@@ -1,6 +1,9 @@
 [submodule "glfw"]
-	path = glfw
+	path = external/glfw
 	url = https://github.com/glfw/glfw.git
 [submodule "catch2"]
-	path = catch2
+	path = external/catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "external/glm"]
+	path = external/glm
+	url = https://github.com/g-truc/glm.git

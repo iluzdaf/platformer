@@ -15,3 +15,5 @@ Makefile
 # OS clutter
 .DS_Store
 Thumbs.db
+
+*.png

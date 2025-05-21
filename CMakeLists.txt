@@ -26,6 +26,7 @@ add_executable(platformer
     src/texture2d.cpp
     src/sprite_renderer.cpp
     src/shader.cpp
+    src/tile_map.cpp
 )
 
 target_include_directories(platformer
@@ -48,9 +49,11 @@ add_executable(tests
     tests/test_main.cpp
     tests/test_texture2d.cpp
     tests/test_shader.cpp
+    tests/test_tile_map.cpp
     tests/test_helpers/gl_context.cpp
     src/texture2d.cpp
     src/shader.cpp
+    src/tile_map.cpp
     external/stb/stb_image.cpp
 )
 

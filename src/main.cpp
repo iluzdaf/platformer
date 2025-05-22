@@ -85,7 +85,7 @@ int main()
             glClear(GL_COLOR_BUFFER_BIT);
 
             tileMapRenderer.draw(tileMap, projection);
-            spriteRenderer.draw(playerTexture, projection, glm::vec2(100, 100), glm::vec2(32, 32));
+            spriteRenderer.draw(playerTexture, projection, glm::vec2(100, 100), glm::vec2(16, 16));
 
             glfwSwapBuffers(window);
             glfwPollEvents();

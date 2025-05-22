@@ -2,8 +2,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cassert>
 
-SpriteRenderer::SpriteRenderer() : quadVertexArrayObject(0)
+SpriteRenderer::SpriteRenderer(const Shader &shader) : quadVertexArrayObject(0), shader(shader)
 {
+    assert(shader.valid());
+
     GLuint vertexBufferObject;
     float vertices[] = {
         0.0f, 1.0f, 0.0f, 0.0f,
@@ -35,14 +37,12 @@ SpriteRenderer::~SpriteRenderer()
 
 void SpriteRenderer::draw(
     const Texture2D &texture,
-    const Shader &shader,
     glm::mat4 projection,
     glm::vec2 position,
     glm::vec2 size,
     float rotate)
 {
     assert(texture.valid());
-    assert(shader.valid());
 
     shader.use();
     shader.setInt("image", 0);
@@ -55,6 +55,36 @@ void SpriteRenderer::draw(
     model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
     model = glm::scale(model, glm::vec3(size, 1.0f));
     shader.setMat4("model", model);
+
+    glActiveTexture(GL_TEXTURE0);
+    texture.bind();
+
+    glBindVertexArray(quadVertexArrayObject);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+}
+
+void SpriteRenderer::drawWithUV(
+    const Texture2D &texture,
+    glm::mat4 projection,
+    glm::vec2 position,
+    glm::vec2 size,
+    glm::vec2 uvStart,
+    glm::vec2 uvEnd)
+{
+    assert(texture.valid());
+
+    shader.use();
+    shader.setMat4("projection", projection);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(position, 0.0f));
+    model = glm::scale(model, glm::vec3(size, 1.0f));
+    shader.setMat4("model", model);
+
+    shader.setVec2("uvStart", uvStart);
+    shader.setVec2("uvEnd", uvEnd);
+    shader.setInt("image", 0);
 
     glActiveTexture(GL_TEXTURE0);
     texture.bind();

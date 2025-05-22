@@ -27,6 +27,7 @@ add_executable(platformer
     src/sprite_renderer.cpp
     src/shader.cpp
     src/tile_map.cpp
+    src/tile_map_renderer.cpp
 )
 
 target_include_directories(platformer

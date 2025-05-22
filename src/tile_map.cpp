@@ -1,7 +1,7 @@
 #include "tile_map.hpp"
 #include <cassert>
 
-TileMap::TileMap(int width, int height) : width(width), height(height), tiles(width, std::vector<int>(height, 0))
+TileMap::TileMap(int width, int height) : width(width), height(height), tiles(width, std::vector<int>(height, -1))
 {
     assert(width > 0);
     assert(height > 0);
@@ -12,6 +12,11 @@ void TileMap::setTile(int x, int y, int tile)
     if (x < 0 || x >= width || y < 0 || y >= height)
     {
         throw std::out_of_range("Coordinates out of bounds");
+    }
+
+    if (tile < 0)
+    {
+        throw std::invalid_argument("Tile index must be greater or equals to 0");
     }
 
     tiles[x][y] = tile;

@@ -5,6 +5,8 @@
 #include "texture2d.hpp"
 #include "shader.hpp"
 #include "sprite_renderer.hpp"
+#include "tile_map.hpp"
+#include "tile_map_renderer.hpp"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
@@ -46,15 +48,30 @@ int main()
         return -1;
     }
 
-    float lastTime = glfwGetTime();
-
     try
     {
+        float lastTime = glfwGetTime();
+
         glm::mat4 projection = glm::ortho(0.0f, (float)screenWidth, (float)screenHeight, 0.0f);
+
         Texture2D playerTexture("../textures/player.png");
+
         Shader spriteShader;
         spriteShader.initByPath("../shaders/sprite.vs", "../shaders/sprite.fs");
-        SpriteRenderer spriteRenderer;
+        SpriteRenderer spriteRenderer(spriteShader);
+
+        TileMap tileMap(50, 38);
+        tileMap.setTile(0, 37, 31);
+        for (int i = 1; i < 49; ++i)
+        {
+            tileMap.setTile(i, 37, 32);
+        }
+        tileMap.setTile(49, 37, 33);
+        Texture2D tileSet("../textures/tile_set.png");
+        Shader tileSetShader;
+        tileSetShader.initByPath("../shaders/tile_set.vs", "../shaders/tile_set.fs");
+        SpriteRenderer tileSetSpriteRenderer(tileSetShader);
+        TileMapRenderer tileMapRenderer(tileSet, 16, tileSetSpriteRenderer);
 
         while (!glfwWindowShouldClose(window))
         {
@@ -67,7 +84,8 @@ int main()
             glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            spriteRenderer.draw(playerTexture, spriteShader, projection, glm::vec2(100, 100), glm::vec2(32, 32));
+            tileMapRenderer.draw(tileMap, projection);
+            spriteRenderer.draw(playerTexture, projection, glm::vec2(100, 100), glm::vec2(32, 32));
 
             glfwSwapBuffers(window);
             glfwPollEvents();

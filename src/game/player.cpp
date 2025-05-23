@@ -44,11 +44,13 @@ void Player::jump()
 void Player::moveLeft()
 {
     velocity.x = -moveSpeed;
+    facingLeft = true;
 }
 
 void Player::moveRight()
 {
     velocity.x = moveSpeed;
+    facingLeft = false;
 }
 
 glm::vec2 Player::getPosition() const
@@ -120,4 +122,9 @@ const SpriteAnimation &Player::getCurrentAnimation() const
 PlayerAnimationState Player::getAnimationState() const
 {
     return animState;
+}
+
+bool Player::isFacingLeft() const
+{
+    return facingLeft;
 }

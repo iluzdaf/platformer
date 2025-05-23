@@ -70,7 +70,8 @@ void SpriteRenderer::drawWithUV(
     glm::vec2 position,
     glm::vec2 size,
     glm::vec2 uvStart,
-    glm::vec2 uvEnd)
+    glm::vec2 uvEnd,
+    bool flipX)
 {
     assert(texture.valid());
 
@@ -79,6 +80,11 @@ void SpriteRenderer::drawWithUV(
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(position, 0.0f));
+    if (flipX)
+    {
+        model = glm::translate(model, glm::vec3(size.x, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(-1.0f, 1.0f, 1.0f));
+    }
     model = glm::scale(model, glm::vec3(size, 1.0f));
     shader.setMat4("model", model);
 

@@ -25,6 +25,7 @@ public:
     static constexpr glm::vec2 size = glm::vec2(16, 16);
     const SpriteAnimation &getCurrentAnimation() const;
     PlayerAnimationState getAnimationState() const;
+    bool isFacingLeft() const;
 
 private:
     glm::vec2 position;
@@ -36,4 +37,5 @@ private:
     SpriteAnimation walkAnim;
     SpriteAnimation *currentAnim = nullptr;
     PlayerAnimationState animState = PlayerAnimationState::Idle;
+    bool facingLeft = false;
 };

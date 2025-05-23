@@ -103,7 +103,8 @@ int main()
                 player.getPosition(),
                 player.size,
                 player.getCurrentAnimation().getUVStart(),
-                player.getCurrentAnimation().getUVEnd());
+                player.getCurrentAnimation().getUVEnd(),
+                player.isFacingLeft());
 
             glfwSwapBuffers(window);
             glfwPollEvents();

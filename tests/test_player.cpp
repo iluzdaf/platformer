@@ -137,3 +137,25 @@ TEST_CASE("Player uses correct animation state", "[PlayerAnimation]")
         REQUIRE(uv1.x != Approx(uv2.x));
     }
 }
+
+TEST_CASE("Player sets facingLeft flag", "[Player]")
+{
+    Player player({0.0f, 0.0f});
+
+    SECTION("Starts facing right")
+    {
+        REQUIRE(player.isFacingLeft() == false);
+    }
+
+    SECTION("Moves left and faces left")
+    {
+        player.moveLeft();
+        REQUIRE(player.isFacingLeft() == true);
+    }
+
+    SECTION("Moves right and faces right")
+    {
+        player.moveRight();
+        REQUIRE(player.isFacingLeft() == false);
+    }
+}

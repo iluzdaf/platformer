@@ -1,4 +1,4 @@
-#include "tile_map_renderer.hpp"
+#include "rendering/tile_map_renderer.hpp"
 #include <cassert>
 
 TileMapRenderer::TileMapRenderer(

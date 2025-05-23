@@ -1,4 +1,4 @@
-#include "sprite_renderer.hpp"
+#include "rendering/sprite_renderer.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <cassert>
 

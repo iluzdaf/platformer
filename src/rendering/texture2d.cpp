@@ -1,4 +1,4 @@
-#include "texture2d.hpp"
+#include "rendering/texture2d.hpp"
 #include "stb_image.h"
 #include <cassert>
 

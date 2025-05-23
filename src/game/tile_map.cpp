@@ -1,4 +1,4 @@
-#include "tile_map.hpp"
+#include "game/tile_map.hpp"
 #include <cassert>
 
 TileMap::TileMap(int width, int height) : width(width), height(height), tiles(width, std::vector<int>(height, -1))

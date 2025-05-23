@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "tile_map.hpp"
+#include "game/tile_map.hpp"
 
 TEST_CASE("TileMap initializes grid correctly", "[tilemap]")
 {

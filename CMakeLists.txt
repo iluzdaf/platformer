@@ -23,11 +23,11 @@ add_subdirectory(external/catch2)
 # Platformer Executable
 add_executable(platformer
     src/main.cpp
-    src/texture2d.cpp
-    src/sprite_renderer.cpp
-    src/shader.cpp
-    src/tile_map.cpp
-    src/tile_map_renderer.cpp
+    src/rendering/texture2d.cpp
+    src/rendering/sprite_renderer.cpp
+    src/rendering/shader.cpp
+    src/game/tile_map.cpp
+    src/rendering/tile_map_renderer.cpp
 )
 
 target_include_directories(platformer
@@ -52,9 +52,9 @@ add_executable(tests
     tests/test_shader.cpp
     tests/test_tile_map.cpp
     tests/test_helpers/gl_context.cpp
-    src/texture2d.cpp
-    src/shader.cpp
-    src/tile_map.cpp
+    src/rendering/texture2d.cpp
+    src/rendering/shader.cpp
+    src/game/tile_map.cpp
     external/stb/stb_image.cpp
 )
 

@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "texture2d.hpp"
+#include "rendering/texture2d.hpp"
 
 TEST_CASE("Texture2D is valid", "[texture2d]")
 {

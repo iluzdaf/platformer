@@ -2,11 +2,11 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
-#include "texture2d.hpp"
-#include "shader.hpp"
-#include "sprite_renderer.hpp"
-#include "tile_map.hpp"
-#include "tile_map_renderer.hpp"
+#include "rendering/texture2d.hpp"
+#include "rendering/shader.hpp"
+#include "rendering/sprite_renderer.hpp"
+#include "game/tile_map.hpp"
+#include "rendering/tile_map_renderer.hpp"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;

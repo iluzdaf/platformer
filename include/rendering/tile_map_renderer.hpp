@@ -1,7 +1,7 @@
 #pragma once
 #include "texture2d.hpp"
 #include "sprite_renderer.hpp"
-#include "tile_map.hpp"
+#include "game/tile_map.hpp"
 #include <glm/glm.hpp>
 
 class TileMapRenderer

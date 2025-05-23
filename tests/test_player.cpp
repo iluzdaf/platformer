@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "game/player.hpp"
+#include "game/fixed_time_step.hpp"
 using Catch::Approx;
 
 TEST_CASE("Player starts with correct position and zero velocity", "[player]")
@@ -14,16 +15,16 @@ TEST_CASE("Player starts with correct position and zero velocity", "[player]")
 
 TEST_CASE("Player falls under gravity", "[player]")
 {
-    Player player(glm::vec2(0.0f, -Player::gravity));
+    Player player(glm::vec2(0.0f, 0));
+    TileMap tileMap(1, Player::gravity);
 
-    float deltaTime = 1.0f;
-    player.update(deltaTime);
+    player.update(1.0f, tileMap);
 
     glm::vec2 vel = player.getVelocity();
     glm::vec2 pos = player.getPosition();
 
     REQUIRE(vel.y == Approx(Player::gravity));
-    REQUIRE(pos.y == Approx(0));
+    REQUIRE(pos.y == Approx(Player::gravity));
 }
 
 TEST_CASE("Player jumps upward", "[player]")
@@ -44,4 +45,20 @@ TEST_CASE("Player moves left and right", "[player]")
 
     player.moveRight();
     REQUIRE(player.getVelocity().x == Player::moveSpeed);
+}
+
+TEST_CASE("Player lands on solid tile", "[player]")
+{
+    TileMap tileMap(1, Player::gravity);
+    tileMap.setTileTypes({{1, TileKind::Solid}});
+    tileMap.setTile(0, 5, 1);
+
+    Player player(glm::vec2(0.0f, 0.0f));
+    FixedTimeStep timestepper(0.01f);
+    timestepper.run(1.0f, [&](float dt)
+                    { player.update(dt, tileMap); });
+
+    float expectedY = 5 * tileMap.getTileSize() - player.getSize().y;
+    REQUIRE(player.getPosition().y == Approx(expectedY));
+    REQUIRE(player.getVelocity().y == Approx(0.0f));
 }

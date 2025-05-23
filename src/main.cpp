@@ -8,6 +8,7 @@
 #include "rendering/tile_map_renderer.hpp"
 #include "game/tile_map.hpp"
 #include "game/player.hpp"
+#include "game/fixed_time_step.hpp"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
@@ -52,11 +53,22 @@ int main()
             tileMap.setTile(i, 37, 32);
         }
         tileMap.setTile(49, 37, 33);
+
+        tileMap.setTile(25, 32, 31);
+        tileMap.setTile(26, 32, 32);
+        tileMap.setTile(27, 32, 33);
+
+        tileMap.setTileTypes({
+            {-1, TileKind::Empty},
+            {31, TileKind::Solid},
+            {32, TileKind::Solid},
+            {33, TileKind::Solid},
+        });
         Texture2D tileSet("../textures/tile_set.png");
         Shader tileSetShader;
         tileSetShader.initByPath("../shaders/tile_set.vs", "../shaders/tile_set.fs");
         SpriteRenderer tileSetSpriteRenderer(tileSetShader);
-        TileMapRenderer tileMapRenderer(tileSet, 16, tileSetSpriteRenderer);
+        TileMapRenderer tileMapRenderer(tileSet, tileSetSpriteRenderer);
 
         Texture2D playerTexture("../textures/player.png");
         Player player(glm::vec2(100, 100), glm::vec2(16, 16));
@@ -77,7 +89,9 @@ int main()
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
                 player.jump();
 
-            player.update(deltaTime);
+            FixedTimeStep timestepper(0.01f);
+            timestepper.run(deltaTime, [&](float dt)
+                            { player.update(dt, tileMap); });
 
             tileMapRenderer.draw(tileMap, projection);
             spriteRenderer.draw(playerTexture, projection, player.getPosition(), player.getSize());

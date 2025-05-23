@@ -1,10 +1,11 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
+#include "tile_map.hpp"
 
 class Player {
 public:
-    Player(glm::vec2 startPos, glm::vec2 size = glm::vec2(1, 1));
-    void update(float deltaTime);
+    Player(glm::vec2 startPos, glm::vec2 size = glm::vec2(16, 16));
+    void update(float deltaTime, const TileMap& tileMap);
     void jump();
     void moveLeft();
     void moveRight();

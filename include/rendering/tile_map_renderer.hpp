@@ -7,12 +7,11 @@
 class TileMapRenderer
 {
 public:
-    TileMapRenderer(const Texture2D &tileSet, const int tileSize, const SpriteRenderer &spriteRenderer);
+    TileMapRenderer(const Texture2D &tileSet, const SpriteRenderer &spriteRenderer);
     void draw(const TileMap &map, const glm::mat4 &projection);
 
 private:
     Texture2D tileSet;
-    int tileSize;
     SpriteRenderer spriteRenderer;
     int tilesPerRow;
 };

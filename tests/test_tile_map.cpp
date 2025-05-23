@@ -48,3 +48,30 @@ TEST_CASE("TileMap setTile values", "[tilemap]")
         REQUIRE_NOTHROW(map.setTile(1, 2, 10));
     }
 }
+
+TEST_CASE("TileMap returns correct TileType for known indices", "[tilemap]")
+{
+    TileMap map(3, 3);
+
+    std::unordered_map<int, TileKind> types = {
+        {1, TileKind::Solid},
+        {2, TileKind::Empty},
+        {3, TileKind::Empty}};
+    map.setTileTypes(types);
+
+    REQUIRE(map.getTileType(1).kind == TileKind::Solid);
+    REQUIRE(map.getTileType(2).kind == TileKind::Empty);
+    REQUIRE(map.getTileType(3).kind == TileKind::Empty);
+}
+
+TEST_CASE("TileMap returns default type for unknown tile index", "[tilemap]")
+{
+    TileMap map(3, 3);
+
+    std::unordered_map<int, TileKind> types = {
+        {1, TileKind::Solid}};
+    map.setTileTypes(types);
+
+    const TileType &type = map.getTileType(999);
+    REQUIRE(type.kind == TileKind::Empty);
+}

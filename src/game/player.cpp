@@ -1,5 +1,6 @@
 #include "game/player.hpp"
 #include <cassert>
+#include "game/tile_type.hpp"
 
 Player::Player(glm::vec2 startPos, glm::vec2 size) : position(startPos), velocity(0.0f, 0.0f), size(size)
 {
@@ -7,17 +8,25 @@ Player::Player(glm::vec2 startPos, glm::vec2 size) : position(startPos), velocit
     assert(size.y > 0);
 }
 
-void Player::update(float deltaTime)
+void Player::update(float deltaTime, const TileMap &tileMap)
 {
     velocity.y += gravity * deltaTime;
-    position += velocity * deltaTime;
+    glm::vec2 nextPosition = position + velocity * deltaTime;
 
-    if (position.y + size.y > 400.0f)
+    float playerFeetX = nextPosition.x + size.x / 2.0f;
+    float playerFeetY = nextPosition.y + size.y;
+    int tileSize = tileMap.getTileSize();
+    int tileX = static_cast<int>(playerFeetX) / tileSize;
+    int tileY = static_cast<int>(playerFeetY) / tileSize;
+    int tileIndex = tileMap.getTile(tileX, tileY);
+    const TileType &tileType = tileMap.getTileType(tileIndex);
+    if (tileY < tileMap.getHeight() && tileType.isSolid())
     {
-        position.y = 400.0f - size.y;
         velocity.y = 0.0f;
+        nextPosition.y = tileY * tileSize - size.y;
     }
 
+    position = nextPosition;
     velocity.x = 0.0f;
 }
 

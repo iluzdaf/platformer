@@ -53,6 +53,7 @@ add_executable(tests
     tests/test_shader.cpp
     tests/test_tile_map.cpp
     tests/test_player.cpp
+    tests/test_fixed_time_step.cpp
     tests/test_helpers/gl_context.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp

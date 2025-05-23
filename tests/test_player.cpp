@@ -79,3 +79,30 @@ TEST_CASE("Player cannot move into solid wall", "[player]")
     REQUIRE(player.getVelocity().x == Approx(0.0f));
     REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize() - player.getSize().x));
 }
+
+TEST_CASE("Player cannot jump through solid ceiling", "[player]")
+{
+    TileMap map(10, 10);
+    map.setTileTypes({{1, TileKind::Solid}});
+
+    int ceilingTileX = 2;
+    int ceilingTileY = 2;
+    map.setTile(ceilingTileX, ceilingTileY, 1);
+
+    map.setTile(2, 5, 1);
+
+    glm::vec2 playerStartPos(32.0f, 64.0f);
+    Player player(playerStartPos);
+
+    player.jump();
+
+    FixedTimeStep stepper(0.01f);
+    stepper.run(1.0f, [&](float dt)
+                { player.update(dt, map); });
+
+    float playerTopY = player.getPosition().y;
+    float ceilingBottomY = (ceilingTileY + 1) * 16.0f;
+
+    REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
+    REQUIRE(player.getVelocity().y == Approx(0.0f));
+}

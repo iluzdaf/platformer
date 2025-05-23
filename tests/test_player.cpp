@@ -62,3 +62,20 @@ TEST_CASE("Player lands on solid tile", "[player]")
     REQUIRE(player.getPosition().y == Approx(expectedY));
     REQUIRE(player.getVelocity().y == Approx(0.0f));
 }
+
+TEST_CASE("Player cannot move into solid wall", "[player]")
+{
+    TileMap tileMap(10, 10);
+    tileMap.setTileTypes({{1, TileKind::Solid}});
+    tileMap.setTile(3, 5, 1);
+    tileMap.setTile(2, 4, 1);
+
+    Player player(glm::vec2(32.0f, 80.0f));
+    player.moveRight();
+    FixedTimeStep timestep(0.01f);
+    timestep.run(0.1f, [&](float dt)
+                 { player.update(dt, tileMap); });
+
+    REQUIRE(player.getVelocity().x == Approx(0.0f));
+    REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize() - player.getSize().x));
+}

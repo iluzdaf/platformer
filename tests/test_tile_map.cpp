@@ -22,13 +22,13 @@ TEST_CASE("TileMap sets and gets tiles correctly", "[tilemap]")
     REQUIRE(map.getTile(1, 1) == 5);
     REQUIRE(map.getTile(0, 2) == 7);
     REQUIRE(map.getTile(2, 2) == -1);
+    REQUIRE(map.getTile(-1, 0) == -1);
 }
 
-TEST_CASE("TileMap getTile out of bounds", "[tilemap]")
+TEST_CASE("TileMap setTile out of bounds", "[tilemap]")
 {
     TileMap map(3, 3);
 
-    REQUIRE_THROWS_AS(map.getTile(-1, 0), std::out_of_range);
     REQUIRE_THROWS_AS(map.setTile(3, 0, 1), std::out_of_range);
 }
 

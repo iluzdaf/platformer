@@ -30,7 +30,7 @@ int TileMap::getTile(int x, int y) const
 {
     if (x < 0 || x >= width || y < 0 || y >= height)
     {
-        throw std::out_of_range("Coordinates out of bounds");
+        return -1;
     }
 
     return tiles[x][y];

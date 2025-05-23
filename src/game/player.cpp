@@ -13,17 +13,38 @@ void Player::update(float deltaTime, const TileMap &tileMap)
     velocity.y += gravity * deltaTime;
     glm::vec2 nextPosition = position + velocity * deltaTime;
 
-    float playerFeetX = nextPosition.x + size.x / 2.0f;
-    float playerFeetY = nextPosition.y + size.y;
-    int tileSize = tileMap.getTileSize();
-    int tileX = static_cast<int>(playerFeetX) / tileSize;
-    int tileY = static_cast<int>(playerFeetY) / tileSize;
-    int tileIndex = tileMap.getTile(tileX, tileY);
+    const float playerFeetX = nextPosition.x + size.x / 2.0f;
+    const float playerFeetY = nextPosition.y + size.y;
+    const int tileSize = tileMap.getTileSize();
+    const int tileX = static_cast<int>(playerFeetX) / tileSize;
+    const int tileY = static_cast<int>(playerFeetY) / tileSize;
+    const int tileIndex = tileMap.getTile(tileX, tileY);
     const TileType &tileType = tileMap.getTileType(tileIndex);
     if (tileY < tileMap.getHeight() && tileType.isSolid())
     {
         velocity.y = 0.0f;
         nextPosition.y = tileY * tileSize - size.y;
+    }
+
+    if (velocity.x != 0.0f)
+    {
+        float playerSideX = (velocity.x > 0)
+                                ? nextPosition.x + size.x
+                                : nextPosition.x;
+
+        float playerFeetY = nextPosition.y + size.y - 1;
+        const int tileX = static_cast<int>(playerSideX) / tileSize;
+        const int tileY = static_cast<int>(playerFeetY) / tileSize;
+        const int tileIndex = tileMap.getTile(tileX, tileY);
+        const TileType &tileType = tileMap.getTileType(tileIndex);
+
+        if (tileType.isSolid())
+        {
+            nextPosition.x = (velocity.x > 0)
+                                 ? tileX * tileSize - size.x
+                                 : (tileX + 1) * tileSize;
+            velocity.x = 0.0f;
+        }
     }
 
     position = nextPosition;

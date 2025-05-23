@@ -58,11 +58,18 @@ int main()
         tileMap.setTile(26, 32, 32);
         tileMap.setTile(27, 32, 33);
 
+        tileMap.setTile(15, 34, 26);
+        tileMap.setTile(15, 35, 22);
+        tileMap.setTile(15, 36, 22);
+        tileMap.setTile(15, 37, 20);
+
         tileMap.setTileTypes({
-            {-1, TileKind::Empty},
             {31, TileKind::Solid},
             {32, TileKind::Solid},
             {33, TileKind::Solid},
+            {26, TileKind::Solid},
+            {20, TileKind::Solid},
+            {22, TileKind::Solid},
         });
         Texture2D tileSet("../textures/tile_set.png");
         Shader tileSetShader;

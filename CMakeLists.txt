@@ -26,8 +26,9 @@ add_executable(platformer
     src/rendering/texture2d.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
-    src/game/tile_map.cpp
     src/rendering/tile_map_renderer.cpp
+    src/game/tile_map.cpp
+    src/game/player.cpp
 )
 
 target_include_directories(platformer
@@ -51,10 +52,12 @@ add_executable(tests
     tests/test_texture2d.cpp
     tests/test_shader.cpp
     tests/test_tile_map.cpp
+    tests/test_player.cpp
     tests/test_helpers/gl_context.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp
     src/game/tile_map.cpp
+    src/game/player.cpp
     external/stb/stb_image.cpp
 )
 

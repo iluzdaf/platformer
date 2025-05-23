@@ -5,25 +5,12 @@
 #include "rendering/texture2d.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/sprite_renderer.hpp"
-#include "game/tile_map.hpp"
 #include "rendering/tile_map_renderer.hpp"
+#include "game/tile_map.hpp"
+#include "game/player.hpp"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
-float xPos = 0.0f, yPos = 0.0f;
-
-void processInput(GLFWwindow *window, float deltaTime)
-{
-    float speed = 2.0f * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        yPos += speed;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        yPos -= speed;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        xPos -= speed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        xPos += speed;
-}
 
 int main()
 {
@@ -54,8 +41,6 @@ int main()
 
         glm::mat4 projection = glm::ortho(0.0f, (float)screenWidth, (float)screenHeight, 0.0f);
 
-        Texture2D playerTexture("../textures/player.png");
-
         Shader spriteShader;
         spriteShader.initByPath("../shaders/sprite.vs", "../shaders/sprite.fs");
         SpriteRenderer spriteRenderer(spriteShader);
@@ -73,19 +58,29 @@ int main()
         SpriteRenderer tileSetSpriteRenderer(tileSetShader);
         TileMapRenderer tileMapRenderer(tileSet, 16, tileSetSpriteRenderer);
 
+        Texture2D playerTexture("../textures/player.png");
+        Player player(glm::vec2(100, 100), glm::vec2(16, 16));
+
         while (!glfwWindowShouldClose(window))
         {
             float currentTime = glfwGetTime();
             float deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            processInput(window, deltaTime);
-
             glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+                player.moveLeft();
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                player.moveRight();
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+                player.jump();
+
+            player.update(deltaTime);
+
             tileMapRenderer.draw(tileMap, projection);
-            spriteRenderer.draw(playerTexture, projection, glm::vec2(100, 100), glm::vec2(16, 16));
+            spriteRenderer.draw(playerTexture, projection, player.getPosition(), player.getSize());
 
             glfwSwapBuffers(window);
             glfwPollEvents();

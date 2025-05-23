@@ -13,7 +13,7 @@ TEST_CASE("TileMap initializes grid correctly", "[tilemap]")
             REQUIRE(map.getTile(x, y) == -1);
 }
 
-TEST_CASE("TileMap sets and gets tiles", "[tilemap]")
+TEST_CASE("TileMap sets and gets tiles correctly", "[tilemap]")
 {
     TileMap map(3, 3);
     map.setTile(1, 1, 5);
@@ -24,7 +24,7 @@ TEST_CASE("TileMap sets and gets tiles", "[tilemap]")
     REQUIRE(map.getTile(2, 2) == -1);
 }
 
-TEST_CASE("TileMap out-of-bounds access", "[tilemap]")
+TEST_CASE("TileMap getTile out of bounds", "[tilemap]")
 {
     TileMap map(3, 3);
 
@@ -32,7 +32,7 @@ TEST_CASE("TileMap out-of-bounds access", "[tilemap]")
     REQUIRE_THROWS_AS(map.setTile(3, 0, 1), std::out_of_range);
 }
 
-TEST_CASE("TileMap setTile", "[tilemap]")
+TEST_CASE("TileMap setTile values", "[tilemap]")
 {
     TileMap map(3, 3);
 

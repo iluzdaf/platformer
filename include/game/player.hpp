@@ -22,4 +22,5 @@ private:
     glm::vec2 size;
     void resolveVerticalCollision(float& nextY, float& velY, const TileMap& tileMap, const glm::vec2& size);
     void resolveHorizontalCollision(float& nextX, float& velX, const TileMap& tileMap, const glm::vec2& size, float nextY);
+    static inline float snapToTileEdge(int tile, int tileSize, bool positive, float entitySize = 0.0f);
 };

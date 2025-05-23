@@ -72,9 +72,7 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
 
     if (blocked)
     {
-        nextY = (velY > 0.0f)
-                    ? tileY * tileSize - size.y
-                    : (tileY + 1) * tileSize;
+        nextY = snapToTileEdge(tileY, tileSize, velY > 0.0f, size.y);
         velY = 0.0f;
     }
 }
@@ -95,9 +93,14 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
 
     if (blocked)
     {
-        nextX = (velX > 0)
-                    ? tileX * tileSize - size.x
-                    : (tileX + 1) * tileSize;
+        nextX = snapToTileEdge(tileX, tileSize, velX > 0.0f, size.x);
         velX = 0.0f;
     }
+}
+
+inline float Player::snapToTileEdge(int tile, int tileSize, bool positive, float entitySize)
+{
+    return positive
+               ? tile * tileSize - entitySize
+               : (tile + 1) * tileSize;
 }

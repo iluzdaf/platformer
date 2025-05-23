@@ -29,6 +29,9 @@ add_executable(platformer
     src/rendering/tile_map_renderer.cpp
     src/game/tile_map.cpp
     src/game/player.cpp
+    src/game/fixed_time_step.cpp
+    src/game/frame_animation.cpp
+    src/game/sprite_animation.cpp
 )
 
 target_include_directories(platformer
@@ -54,11 +57,16 @@ add_executable(tests
     tests/test_tile_map.cpp
     tests/test_player.cpp
     tests/test_fixed_time_step.cpp
+    tests/test_frame_animation.cpp
+    tests/test_sprite_animation.cpp
     tests/test_helpers/gl_context.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp
     src/game/tile_map.cpp
     src/game/player.cpp
+    src/game/fixed_time_step.cpp
+    src/game/frame_animation.cpp
+    src/game/sprite_animation.cpp
     external/stb/stb_image.cpp
 )
 

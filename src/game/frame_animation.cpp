@@ -1,0 +1,31 @@
+#include "game/frame_animation.hpp"
+
+FrameAnimation::FrameAnimation(std::vector<int> frames, float frameDuration)
+    : frames(std::move(frames)),
+      frameDuration(frameDuration)
+{
+}
+
+void FrameAnimation::update(float deltaTime)
+{
+    if (frames.empty())
+        return;
+
+    timer += deltaTime;
+    while (timer >= frameDuration)
+    {
+        timer -= frameDuration;
+        currentFrame = (currentFrame + 1) % frames.size();
+    }
+}
+
+int FrameAnimation::getCurrentFrame() const
+{
+    return frames.empty() ? 0 : frames[currentFrame];
+}
+
+void FrameAnimation::reset()
+{
+    currentFrame = 0;
+    timer = 0.0f;
+}

@@ -9,6 +9,7 @@
 #include "game/tile_map.hpp"
 #include "game/player.hpp"
 #include "game/fixed_time_step.hpp"
+#include "game/sprite_animation.hpp"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
@@ -41,10 +42,6 @@ int main()
         float lastTime = glfwGetTime();
 
         glm::mat4 projection = glm::ortho(0.0f, (float)screenWidth, (float)screenHeight, 0.0f);
-
-        Shader spriteShader;
-        spriteShader.initByPath("../shaders/sprite.vs", "../shaders/sprite.fs");
-        SpriteRenderer spriteRenderer(spriteShader);
 
         TileMap tileMap(50, 38);
         tileMap.setTile(0, 37, 31);
@@ -79,6 +76,7 @@ int main()
 
         Texture2D playerTexture("../textures/player.png");
         Player player(glm::vec2(100, 100), glm::vec2(16, 16));
+        SpriteAnimation idleAnim({30, 31, 32, 33}, 0.1f, 16, 16, 96);
 
         while (!glfwWindowShouldClose(window))
         {
@@ -98,10 +96,12 @@ int main()
 
             FixedTimeStep timestepper(0.01f);
             timestepper.run(deltaTime, [&](float dt)
-                            { player.update(dt, tileMap); });
+                            { 
+                                player.update(dt, tileMap); 
+                                idleAnim.update(deltaTime); });
 
             tileMapRenderer.draw(tileMap, projection);
-            spriteRenderer.draw(playerTexture, projection, player.getPosition(), player.getSize());
+            tileSetSpriteRenderer.drawWithUV(playerTexture, projection, player.getPosition(), player.getSize(), idleAnim.getUVStart(), idleAnim.getUVEnd());
 
             glfwSwapBuffers(window);
             glfwPollEvents();

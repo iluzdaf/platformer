@@ -3,7 +3,7 @@
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
 
-Shader::Shader() : shaderID(0)
+Shader::Shader()
 {
 }
 

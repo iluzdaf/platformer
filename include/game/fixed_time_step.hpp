@@ -5,18 +5,9 @@
 class FixedTimeStep
 {
 public:
-    explicit FixedTimeStep(float maxStep = 0.01f)
-        : maxStep(maxStep) {}
+    explicit FixedTimeStep(float maxStep = 0.01f);
 
-    void run(float deltaTime, const std::function<void(float)> &stepFunc) const
-    {
-        while (deltaTime > 0.0f)
-        {
-            float dt = std::min(maxStep, deltaTime);
-            stepFunc(dt);
-            deltaTime -= dt;
-        }
-    }
+    void run(float deltaTime, const std::function<void(float)> &stepFunc) const;
 
 private:
     float maxStep;

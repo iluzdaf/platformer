@@ -8,7 +8,7 @@
 class SpriteRenderer
 {
 public:
-    SpriteRenderer(const Shader &shader);
+    explicit SpriteRenderer(const Shader &shader);
     ~SpriteRenderer();
     void draw(
         const Texture2D &texture,
@@ -25,6 +25,6 @@ public:
         glm::vec2 uvEnd = glm::vec2(1.0f, 1.0f));
 
 private:
-    GLuint quadVertexArrayObject;
+    GLuint quadVertexArrayObject = 0;
     Shader shader;
 };

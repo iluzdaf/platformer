@@ -5,7 +5,7 @@
 class Texture2D
 {
 public:
-    Texture2D(const std::string &filePath);
+    explicit Texture2D(const std::string &filePath);
     ~Texture2D();
     void bind() const;
     unsigned int getWidth() const;
@@ -13,6 +13,6 @@ public:
     bool valid() const;
 
 private:
-    GLuint textureID;
-    int width, height, channels;
+    GLuint textureID = 0;
+    int width = 0, height = 0, channels = 0;
 };

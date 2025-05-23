@@ -13,5 +13,4 @@ public:
 private:
     Texture2D tileSet;
     SpriteRenderer spriteRenderer;
-    int tilesPerRow;
 };

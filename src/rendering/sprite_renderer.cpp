@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cassert>
 
-SpriteRenderer::SpriteRenderer(const Shader &shader) : quadVertexArrayObject(0), shader(shader)
+SpriteRenderer::SpriteRenderer(const Shader &shader) : shader(shader)
 {
     assert(shader.valid());
 

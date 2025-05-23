@@ -2,7 +2,7 @@
 #include "stb_image.h"
 #include <cassert>
 
-Texture2D::Texture2D(const std::string &filePath) : width(0), height(0), channels(0), textureID(0)
+Texture2D::Texture2D(const std::string &filePath)
 {
     assert(!filePath.empty());
 

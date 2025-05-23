@@ -2,7 +2,7 @@
 #include <cassert>
 #include "game/tile_type.hpp"
 
-Player::Player(glm::vec2 startPos, glm::vec2 size) : position(startPos), velocity(0.0f, 0.0f), size(size)
+Player::Player(glm::vec2 startPos, glm::vec2 size) : position(startPos), size(size)
 {
     assert(size.x > 0);
     assert(size.y > 0);
@@ -58,17 +58,15 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
     if (std::abs(velY) < 0.0001f)
         return;
 
-    const int tileSize = tileMap.getTileSize();
-    const float centerX = position.x + size.x / 2.0f;
-    const float edgeY = (velY > 0.0f)
+    int tileSize = tileMap.getTileSize();
+    float centerX = position.x + size.x / 2.0f;
+    float edgeY = (velY > 0.0f)
                             ? nextY + size.y
                             : nextY;
-
-    const int tileX = static_cast<int>(centerX) / tileSize;
-    const int tileY = static_cast<int>(edgeY) / tileSize;
-
-    const int tile = tileMap.getTile(tileX, tileY);
-    const bool blocked = tileMap.getTileType(tile).isSolid();
+    int tileX = static_cast<int>(centerX) / tileSize;
+    int tileY = static_cast<int>(edgeY) / tileSize;
+    int tile = tileMap.getTile(tileX, tileY);
+    bool blocked = tileMap.getTileType(tile).isSolid();
 
     if (blocked)
     {
@@ -82,14 +80,14 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
     if (std::abs(velX) < 0.0001f)
         return;
 
-    const int tileSize = tileMap.getTileSize();
-    const float footY = nextY + size.y - 1.0f;
-    const float sideX = (velX > 0) ? nextX + size.x : nextX;
+    int tileSize = tileMap.getTileSize();
+    float footY = nextY + size.y - 1.0f;
+    float sideX = (velX > 0) ? nextX + size.x : nextX;
 
-    const int tileX = static_cast<int>(sideX) / tileSize;
-    const int tileY = static_cast<int>(footY) / tileSize;
-    const int tile = tileMap.getTile(tileX, tileY);
-    const bool blocked = tileMap.getTileType(tile).isSolid();
+    int tileX = static_cast<int>(sideX) / tileSize;
+    int tileY = static_cast<int>(footY) / tileSize;
+    int tile = tileMap.getTile(tileX, tileY);
+    bool blocked = tileMap.getTileType(tile).isSolid();
 
     if (blocked)
     {

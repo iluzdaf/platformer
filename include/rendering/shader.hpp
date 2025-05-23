@@ -21,6 +21,6 @@ public:
 
 private:
     std::string loadFile(const std::string &path) const;
-    GLuint shaderID;
+    GLuint shaderID = 0;
     std::string compileLinkLog;
 };

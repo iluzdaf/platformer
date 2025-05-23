@@ -9,7 +9,6 @@
 #include "game/tile_map.hpp"
 #include "game/player.hpp"
 #include "game/fixed_time_step.hpp"
-#include "game/sprite_animation.hpp"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
@@ -75,8 +74,7 @@ int main()
         TileMapRenderer tileMapRenderer(tileSet, tileSetSpriteRenderer);
 
         Texture2D playerTexture("../textures/player.png");
-        Player player(glm::vec2(100, 100), glm::vec2(16, 16));
-        SpriteAnimation idleAnim({30, 31, 32, 33}, 0.1f, 16, 16, 96);
+        Player player(glm::vec2(100, 100));
 
         while (!glfwWindowShouldClose(window))
         {
@@ -96,12 +94,16 @@ int main()
 
             FixedTimeStep timestepper(0.01f);
             timestepper.run(deltaTime, [&](float dt)
-                            { 
-                                player.update(dt, tileMap); 
-                                idleAnim.update(deltaTime); });
+                            { player.update(dt, tileMap); });
 
             tileMapRenderer.draw(tileMap, projection);
-            tileSetSpriteRenderer.drawWithUV(playerTexture, projection, player.getPosition(), player.getSize(), idleAnim.getUVStart(), idleAnim.getUVEnd());
+            tileSetSpriteRenderer.drawWithUV(
+                playerTexture,
+                projection,
+                player.getPosition(),
+                player.size,
+                player.getCurrentAnimation().getUVStart(),
+                player.getCurrentAnimation().getUVEnd());
 
             glfwSwapBuffers(window);
             glfwPollEvents();

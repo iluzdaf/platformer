@@ -7,14 +7,13 @@
 class SpriteAnimation
 {
 public:
+    SpriteAnimation() = default;
     SpriteAnimation(std::vector<int> frames,
                     float frameDuration,
                     int frameWidth,
                     int frameHeight,
                     int textureWidth);
-
     void update(float deltaTime);
-
     glm::vec2 getUVStart() const;
     glm::vec2 getUVEnd() const;
 

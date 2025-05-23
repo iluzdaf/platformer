@@ -58,7 +58,7 @@ TEST_CASE("Player lands on solid tile", "[player]")
     timestepper.run(1.0f, [&](float dt)
                     { player.update(dt, tileMap); });
 
-    float expectedY = 5 * tileMap.getTileSize() - player.getSize().y;
+    float expectedY = 5 * tileMap.getTileSize() - player.size.y;
     REQUIRE(player.getPosition().y == Approx(expectedY));
     REQUIRE(player.getVelocity().y == Approx(0.0f));
 }
@@ -77,7 +77,7 @@ TEST_CASE("Player cannot move into solid wall", "[player]")
                  { player.update(dt, tileMap); });
 
     REQUIRE(player.getVelocity().x == Approx(0.0f));
-    REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize() - player.getSize().x));
+    REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize() - player.size.x));
 }
 
 TEST_CASE("Player cannot jump through solid ceiling", "[player]")
@@ -105,4 +105,35 @@ TEST_CASE("Player cannot jump through solid ceiling", "[player]")
 
     REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
     REQUIRE(player.getVelocity().y == Approx(0.0f));
+}
+
+TEST_CASE("Player uses correct animation state", "[PlayerAnimation]")
+{
+    TileMap tileMap(10, 10, 16);
+    Player player({0, 0});
+
+    SECTION("Player is idle by default")
+    {
+        player.update(0.1f, tileMap);
+        REQUIRE(player.getAnimationState() == PlayerAnimationState::Idle);
+    }
+
+    SECTION("Player walking triggers walk animation")
+    {
+        player.moveRight();
+        player.update(0.1f, tileMap);
+        REQUIRE(player.getAnimationState() == PlayerAnimationState::Walk);
+    }
+
+    SECTION("Animation frame advances over time")
+    {
+        player.moveRight();
+        player.update(0.1f, tileMap);
+        glm::vec2 uv1 = player.getCurrentAnimation().getUVStart();
+        player.moveRight();
+        player.update(0.1f, tileMap);
+        glm::vec2 uv2 = player.getCurrentAnimation().getUVStart();
+
+        REQUIRE(uv1.x != Approx(uv2.x));
+    }
 }

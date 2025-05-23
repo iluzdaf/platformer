@@ -13,56 +13,8 @@ void Player::update(float deltaTime, const TileMap &tileMap)
     velocity.y += gravity * deltaTime;
     glm::vec2 nextPosition = position + velocity * deltaTime;
 
-    const int tileSize = tileMap.getTileSize();
-
-    if (velocity.y > 0.0f)
-    {
-        const float playerFeetX = nextPosition.x + size.x / 2.0f;
-        const float playerFeetY = nextPosition.y + size.y;
-        const int tileX = static_cast<int>(playerFeetX) / tileSize;
-        const int tileY = static_cast<int>(playerFeetY) / tileSize;
-        const int tileIndex = tileMap.getTile(tileX, tileY);
-        const TileType &tileType = tileMap.getTileType(tileIndex);
-        if (tileY < tileMap.getHeight() && tileType.isSolid())
-        {
-            velocity.y = 0.0f;
-            nextPosition.y = tileY * tileSize - size.y;
-        }
-    }
-    else if (velocity.y < 0.0f)
-    {
-        const float playerHeadY = nextPosition.y;
-        const float playerCenterX = nextPosition.x + size.x / 2.0f;
-        const int tileX = static_cast<int>(playerCenterX) / tileSize;
-        const int tileY = static_cast<int>(playerHeadY) / tileSize;
-        const int tileIndex = tileMap.getTile(tileX, tileY);
-        const TileType &tile = tileMap.getTileType(tileIndex);
-        if (tile.isSolid())
-        {
-            velocity.y = 0.0f;
-            nextPosition.y = (tileY + 1) * tileSize;
-        }
-    }
-
-    if (velocity.x != 0.0f)
-    {
-        float playerSideX = (velocity.x > 0)
-                                ? nextPosition.x + size.x
-                                : nextPosition.x;
-        float playerFeetY = nextPosition.y + size.y - 1;
-        const int tileX = static_cast<int>(playerSideX) / tileSize;
-        const int tileY = static_cast<int>(playerFeetY) / tileSize;
-        const int tileIndex = tileMap.getTile(tileX, tileY);
-        const TileType &tileType = tileMap.getTileType(tileIndex);
-
-        if (tileType.isSolid())
-        {
-            nextPosition.x = (velocity.x > 0)
-                                 ? tileX * tileSize - size.x
-                                 : (tileX + 1) * tileSize;
-            velocity.x = 0.0f;
-        }
-    }
+    resolveVerticalCollision(nextPosition.y, velocity.y, tileMap, size);
+    resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, size, nextPosition.y);
 
     position = nextPosition;
     velocity.x = 0.0f;
@@ -99,4 +51,53 @@ glm::vec2 Player::getSize() const
 glm::vec2 Player::getVelocity() const
 {
     return velocity;
+}
+
+void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap, const glm::vec2 &size)
+{
+    if (std::abs(velY) < 0.0001f)
+        return;
+
+    const int tileSize = tileMap.getTileSize();
+    const float centerX = position.x + size.x / 2.0f;
+    const float edgeY = (velY > 0.0f)
+                            ? nextY + size.y
+                            : nextY;
+
+    const int tileX = static_cast<int>(centerX) / tileSize;
+    const int tileY = static_cast<int>(edgeY) / tileSize;
+
+    const int tile = tileMap.getTile(tileX, tileY);
+    const bool blocked = tileMap.getTileType(tile).isSolid();
+
+    if (blocked)
+    {
+        nextY = (velY > 0.0f)
+                    ? tileY * tileSize - size.y
+                    : (tileY + 1) * tileSize;
+        velY = 0.0f;
+    }
+}
+
+void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap &tileMap, const glm::vec2 &size, float nextY)
+{
+    if (std::abs(velX) < 0.0001f)
+        return;
+
+    const int tileSize = tileMap.getTileSize();
+    const float footY = nextY + size.y - 1.0f;
+    const float sideX = (velX > 0) ? nextX + size.x : nextX;
+
+    const int tileX = static_cast<int>(sideX) / tileSize;
+    const int tileY = static_cast<int>(footY) / tileSize;
+    const int tile = tileMap.getTile(tileX, tileY);
+    const bool blocked = tileMap.getTileType(tile).isSolid();
+
+    if (blocked)
+    {
+        nextX = (velX > 0)
+                    ? tileX * tileSize - size.x
+                    : (tileX + 1) * tileSize;
+        velX = 0.0f;
+    }
 }

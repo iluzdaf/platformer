@@ -186,3 +186,29 @@ TEST_CASE("Player can jump after being clamped to bottom of tilemap", "[player]"
 
     REQUIRE(player.getVelocity().y < 0.0f);
 }
+
+TEST_CASE("Player collects pickup and tile is replaced", "[player]")
+{
+    TileMap tileMap(3, 3, 16);
+    tileMap.setTiles({{0, {TileKind::Empty}},
+                      {5, {TileKind::Pickup, std::nullopt, 0}}});
+    tileMap.setTileIndex(1, 1, 5);
+    Player player(glm::vec2(16.0f, 16.0f));
+    player.update(0.1f, tileMap);
+    int tileIndexAfter = tileMap.getTileIndex(1, 1);
+
+    REQUIRE(tileIndexAfter == 0);
+}
+
+TEST_CASE("Non-pickup tile is not replaced by player", "[player]")
+{
+    TileMap tileMap(3, 3, 16);
+    tileMap.setTiles({{0, {TileKind::Empty}},
+                      {2, {TileKind::Solid}}});
+    tileMap.setTileIndex(1, 1, 2);
+    Player player(glm::vec2(16.0f, 16.0f));
+    player.update(0.1f, tileMap);
+    int tileIndexAfter = tileMap.getTileIndex(1, 1);
+    
+    REQUIRE(tileIndexAfter == 2);
+}

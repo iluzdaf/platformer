@@ -10,20 +10,20 @@ Player::Player(glm::vec2 startPos) : position(startPos)
     currentAnim = &idleAnim;
 }
 
-void Player::update(float deltaTime, const TileMap &tileMap)
+void Player::update(float deltaTime, TileMap &tileMap)
 {
     velocity.y += gravity * deltaTime;
     glm::vec2 nextPosition = position + velocity * deltaTime;
 
     resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
     resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
-
     updateAnimation(deltaTime);
 
     position = nextPosition;
     velocity.x = 0.0f;
 
     clampToTileMapBounds(tileMap);
+    handlePickup(tileMap);
 }
 
 void Player::updateAnimation(float deltaTime)
@@ -167,5 +167,20 @@ void Player::clampToTileMapBounds(const TileMap &tileMap)
     {
         position.y = height - size.y;
         velocity.y = 0.0f;
+    }
+}
+
+void Player::handlePickup(TileMap &tileMap)
+{
+    int tileX = static_cast<int>((position.x)) / tileMap.getTileSize();
+    int tileY = static_cast<int>((position.y)) / tileMap.getTileSize();
+    int tileIndex = tileMap.getTileIndex(tileX, tileY);
+    auto tileOpt = tileMap.getTile(tileIndex);
+
+    if (tileOpt && tileOpt->get().isPickup())
+    {
+        auto replaceIndexOpt = tileOpt->get().getPickupReplaceIndex();
+        assert(replaceIndexOpt.has_value());
+        tileMap.setTileIndex(tileX, tileY, replaceIndexOpt.value());
     }
 }

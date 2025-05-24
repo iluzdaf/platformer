@@ -1,8 +1,10 @@
 #include "game/tile.hpp"
+#include <cassert>
 
-Tile::Tile(TileKind kind)
-    : kind(kind)
+Tile::Tile(TileKind kind, std::optional<int> pickupReplaceIndex)
+    : kind(kind), pickupReplaceIndex(pickupReplaceIndex)
 {
+    assert((kind != TileKind::Pickup || pickupReplaceIndex.has_value()) && "Pickup tile must define a pickupReplaceIndex");
 }
 
 void Tile::update(float deltaTime)
@@ -40,4 +42,14 @@ bool Tile::isAnimated() const
 TileKind Tile::getKind() const
 {
     return kind;
+}
+
+bool Tile::isPickup() const
+{
+    return kind == TileKind::Pickup;
+}
+
+std::optional<int> Tile::getPickupReplaceIndex() const
+{
+    return pickupReplaceIndex;
 }

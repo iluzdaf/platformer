@@ -8,4 +8,5 @@ struct TileDefinition
 {
     TileKind kind;
     std::optional<TileAnimation> animation;
+    std::optional<int> pickupReplaceIndex;
 };

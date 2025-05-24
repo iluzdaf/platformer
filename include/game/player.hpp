@@ -13,7 +13,7 @@ class Player
 {
 public:
     Player(glm::vec2 startPos);
-    void update(float deltaTime, const TileMap &tileMap);
+    void update(float deltaTime, TileMap &tileMap);
     void jump();
     void moveLeft();
     void moveRight();
@@ -41,4 +41,5 @@ private:
     void updateAnimation(float deltaTime);
     bool isTileSolid(const TileMap &map, int index) const;
     void clampToTileMapBounds(const TileMap &tileMap);
+    void handlePickup(TileMap &tilemap);
 };

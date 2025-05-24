@@ -142,3 +142,16 @@ TEST_CASE("TileMap updates multiple animated tiles independently", "[tilemap]")
     REQUIRE(tile1->get().getCurrentFrame() == 1);
     REQUIRE(tile2->get().getCurrentFrame() == 6);
 }
+
+TEST_CASE("Pickup tile is defined correctly", "[tilemap]")
+{
+    TileMap tileMap(3, 3, 16);
+    tileMap.setTiles({{0, {TileKind::Empty}},
+                      {5, {TileKind::Pickup, std::nullopt, 0}}});
+    tileMap.setTileIndex(1, 1, 5);
+    auto tileOpt = tileMap.getTile(5);
+
+    REQUIRE(tileOpt.has_value());
+    REQUIRE(tileOpt->get().isPickup());
+    REQUIRE(tileOpt->get().getPickupReplaceIndex().value() == 0);
+}

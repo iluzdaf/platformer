@@ -44,16 +44,16 @@ void TileMap::setTiles(const std::unordered_map<int, TileDefinition> &tileDefini
 {
     tiles.clear();
 
-    for (const auto &[index, definition] : tileDefinitions)
+    for (const auto &[tileIndex, tileDefinition] : tileDefinitions)
     {
-        Tile tile(definition.kind);
+        Tile tile(tileDefinition.kind, tileDefinition.pickupReplaceIndex);
 
-        if (definition.animation.has_value())
+        if (tileDefinition.animation.has_value())
         {
-            tile.setAnimation(definition.animation.value());
+            tile.setAnimation(tileDefinition.animation.value());
         }
 
-        tiles[index] = std::move(tile);
+        tiles[tileIndex] = std::move(tile);
     }
 }
 

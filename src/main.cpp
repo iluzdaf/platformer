@@ -62,7 +62,8 @@ int main()
         tileMap.setTileIndex(15, 36, 26);
         tileMap.setTileIndex(15, 37, 14);
 
-        tileMap.setTileIndex(10, 36, 42);
+        tileMap.setTileIndex(15, 33, 42);
+        tileMap.setTileIndex(21, 33, 42);
 
         tileMap.setTiles({{28, {TileKind::Solid, std::nullopt}},
                           {29, {TileKind::Solid, std::nullopt}},
@@ -73,7 +74,8 @@ int main()
                           {32, {TileKind::Solid, std::nullopt}},
                           {26, {TileKind::Solid, std::nullopt}},
                           {14, {TileKind::Solid, std::nullopt}},
-                          {42, {TileKind::Empty, TileAnimation({42, 43, 44, 45, 46, 47, 48, 35, 36, 37}, 0.075f)}}});
+                          {42, {TileKind::Pickup, TileAnimation({42, 43, 44, 45, 46, 47, 48, 35, 36, 37}, 0.075f), 0}},
+                          {0, {TileKind::Empty, std::nullopt}}});
         Texture2D tileSet("../textures/tile_set.png");
         Shader tileSetShader;
         tileSetShader.initByPath("../shaders/tile_set.vs", "../shaders/tile_set.fs");

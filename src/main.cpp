@@ -64,18 +64,16 @@ int main()
 
         tileMap.setTileIndex(10, 36, 42);
 
-        tileMap.setTiles({
-            {28, {TileKind::Solid, std::nullopt}},
-            {29, {TileKind::Solid, std::nullopt}},
-            {31, {TileKind::Solid, std::nullopt}},
-            {39, {TileKind::Solid, std::nullopt}},
-            {40, {TileKind::Solid, std::nullopt}},
-            {41, {TileKind::Solid, std::nullopt}},
-            {32, {TileKind::Solid, std::nullopt}},
-            {26, {TileKind::Solid, std::nullopt}},
-            {14, {TileKind::Solid, std::nullopt}},
-            {42, {TileKind::Empty, TileAnimation({42, 43, 44, 45, 46, 47, 48, 35, 36, 37}, 0.075f)}}
-        });
+        tileMap.setTiles({{28, {TileKind::Solid, std::nullopt}},
+                          {29, {TileKind::Solid, std::nullopt}},
+                          {31, {TileKind::Solid, std::nullopt}},
+                          {39, {TileKind::Solid, std::nullopt}},
+                          {40, {TileKind::Solid, std::nullopt}},
+                          {41, {TileKind::Solid, std::nullopt}},
+                          {32, {TileKind::Solid, std::nullopt}},
+                          {26, {TileKind::Solid, std::nullopt}},
+                          {14, {TileKind::Solid, std::nullopt}},
+                          {42, {TileKind::Empty, TileAnimation({42, 43, 44, 45, 46, 47, 48, 35, 36, 37}, 0.075f)}}});
         Texture2D tileSet("../textures/tile_set.png");
         Shader tileSetShader;
         tileSetShader.initByPath("../shaders/tile_set.vs", "../shaders/tile_set.fs");
@@ -84,7 +82,7 @@ int main()
 
         glm::mat4 projection = glm::ortho(0.0f, (float)screenWidth, (float)screenHeight, 0.0f);
         Camera2D camera(screenWidth, screenHeight, 4);
-        camera.setWorldBounds(glm::vec2(0), glm::vec2(tileMap.getWidth() * tileMap.getTileSize(), tileMap.getHeight() * tileMap.getTileSize()));
+        camera.setWorldBounds(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
 
         Texture2D playerTexture("../textures/player.png");
         Player player(glm::vec2(100, 400));

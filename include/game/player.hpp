@@ -40,4 +40,5 @@ private:
     bool facingLeft = false;
     void updateAnimation(float deltaTime);
     bool isTileSolid(const TileMap &map, int index) const;
+    void clampToTileMapBounds(const TileMap &tileMap);
 };

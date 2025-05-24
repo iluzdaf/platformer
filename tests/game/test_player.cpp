@@ -160,3 +160,29 @@ TEST_CASE("Player sets facingLeft flag", "[Player]")
         REQUIRE(player.isFacingLeft() == false);
     }
 }
+
+TEST_CASE("Player stays within bounds of tilemap")
+{
+    TileMap tileMap(10, 10, 16);
+    Player player(glm::vec2(1000.0f, 1000.0f));
+    player.update(0.1f, tileMap);
+    glm::vec2 pos = player.getPosition();
+
+    REQUIRE(pos.x <= tileMap.getWorldWidth());
+    REQUIRE(pos.y <= tileMap.getWorldHeight());
+}
+
+TEST_CASE("Player can jump after being clamped to bottom of tilemap", "[player]")
+{
+    TileMap tileMap(5, 5, 16);
+    Player player(glm::vec2(10.0f, 1000.0f));
+    player.update(0.1f, tileMap);
+
+    REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
+    REQUIRE(player.getVelocity().y == Approx(0.0f));
+
+    player.jump();
+    player.update(0.1f, tileMap);
+
+    REQUIRE(player.getVelocity().y < 0.0f);
+}

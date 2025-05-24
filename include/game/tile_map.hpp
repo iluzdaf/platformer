@@ -17,6 +17,8 @@ public:
     std::optional<std::reference_wrapper<const Tile>> getTile(int tileIndex) const;
     int getTileSize() const;
     void update(float deltaTime);
+    int getWorldWidth() const;
+    int getWorldHeight() const;
 
 private:
     int width, height, tileSize;

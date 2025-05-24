@@ -79,3 +79,13 @@ void TileMap::update(float deltaTime)
         tile.update(deltaTime);
     }
 }
+
+int TileMap::getWorldWidth() const
+{
+    return width * tileSize;
+}
+
+int TileMap::getWorldHeight() const
+{
+    return height * tileSize;
+}

@@ -1,6 +1,7 @@
 #include "game/player.hpp"
-#include <cassert>
 #include "game/tile.hpp"
+#include <cassert>
+#include <algorithm>
 
 Player::Player(glm::vec2 startPos) : position(startPos)
 {
@@ -21,6 +22,8 @@ void Player::update(float deltaTime, const TileMap &tileMap)
 
     position = nextPosition;
     velocity.x = 0.0f;
+
+    clampToTileMapBounds(tileMap);
 }
 
 void Player::updateAnimation(float deltaTime)
@@ -137,4 +140,32 @@ bool Player::isTileSolid(const TileMap &tileMap, int tileIndex) const
         return tileOpt->get().isSolid();
     }
     return false;
+}
+
+void Player::clampToTileMapBounds(const TileMap &tileMap)
+{
+    const int width = tileMap.getWorldWidth();
+    const int height = tileMap.getWorldHeight();
+
+    if (position.x < 0.0f)
+    {
+        position.x = 0.0f;
+        velocity.x = 0.0f;
+    }
+    else if (position.x + size.x > width)
+    {
+        position.x = width - size.x;
+        velocity.x = 0.0f;
+    }
+
+    if (position.y < 0.0f)
+    {
+        position.y = 0.0f;
+        velocity.y = 0.0f;
+    }
+    else if (position.y + size.y > height)
+    {
+        position.y = height - size.y;
+        velocity.y = 0.0f;
+    }
 }

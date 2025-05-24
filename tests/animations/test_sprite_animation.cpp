@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "game/sprite_animation.hpp"
+#include "animations/sprite_animation.hpp"
 #include <glm/glm.hpp>
 #include <catch2/catch_approx.hpp>
 using Catch::Approx;

@@ -30,9 +30,10 @@ add_executable(platformer
     src/game/tile_map.cpp
     src/game/player.cpp
     src/game/fixed_time_step.cpp
-    src/game/frame_animation.cpp
-    src/game/sprite_animation.cpp
     src/game/camera2d.cpp
+    src/animations/frame_animation.cpp
+    src/animations/sprite_animation.cpp
+    src/animations/tile_animation.cpp
 )
 
 target_include_directories(platformer
@@ -53,23 +54,25 @@ target_link_libraries(platformer
 # Tests
 add_executable(tests
     tests/test_main.cpp
-    tests/test_texture2d.cpp
-    tests/test_shader.cpp
-    tests/test_tile_map.cpp
-    tests/test_player.cpp
-    tests/test_fixed_time_step.cpp
-    tests/test_frame_animation.cpp
-    tests/test_sprite_animation.cpp
-    tests/test_camera2d.cpp
+    tests/rendering/test_texture2d.cpp
+    tests/rendering/test_shader.cpp
+    tests/game/test_tile_map.cpp
+    tests/game/test_player.cpp
+    tests/game/test_fixed_time_step.cpp
+    tests/game/test_camera2d.cpp
+    tests/animations/test_frame_animation.cpp
+    tests/animations/test_sprite_animation.cpp
+    tests/animations/test_tile_animation.cpp
     tests/test_helpers/gl_context.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp
     src/game/tile_map.cpp
     src/game/player.cpp
     src/game/fixed_time_step.cpp
-    src/game/frame_animation.cpp
-    src/game/sprite_animation.cpp
     src/game/camera2d.cpp
+    src/animations/frame_animation.cpp
+    src/animations/sprite_animation.cpp
+    src/animations/tile_animation.cpp
     external/stb/stb_image.cpp
 )
 

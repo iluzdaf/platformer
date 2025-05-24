@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
 #include "tile_map.hpp"
-#include "game/sprite_animation.hpp"
+#include "animations/sprite_animation.hpp"
 
 enum class PlayerAnimationState
 {

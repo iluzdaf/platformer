@@ -1,4 +1,4 @@
-#include "game/sprite_animation.hpp"
+#include "animations/sprite_animation.hpp"
 
 SpriteAnimation::SpriteAnimation(std::vector<int> frames,
                                  float frameDuration,

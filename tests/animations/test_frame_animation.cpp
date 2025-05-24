@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "game/frame_animation.hpp"
+#include "animations/frame_animation.hpp"
 
 TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
 {

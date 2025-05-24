@@ -1,4 +1,4 @@
-#include "game/frame_animation.hpp"
+#include "animations/frame_animation.hpp"
 
 FrameAnimation::FrameAnimation(std::vector<int> frames, float frameDuration)
     : frames(std::move(frames)),

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "game/frame_animation.hpp"
+#include "animations/frame_animation.hpp"
 #include <glm/glm.hpp>
 #include <vector>
 

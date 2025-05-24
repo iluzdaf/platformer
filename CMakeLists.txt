@@ -32,6 +32,7 @@ add_executable(platformer
     src/game/fixed_time_step.cpp
     src/game/frame_animation.cpp
     src/game/sprite_animation.cpp
+    src/game/camera2d.cpp
 )
 
 target_include_directories(platformer
@@ -59,6 +60,7 @@ add_executable(tests
     tests/test_fixed_time_step.cpp
     tests/test_frame_animation.cpp
     tests/test_sprite_animation.cpp
+    tests/test_camera2d.cpp
     tests/test_helpers/gl_context.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp
@@ -67,6 +69,7 @@ add_executable(tests
     src/game/fixed_time_step.cpp
     src/game/frame_animation.cpp
     src/game/sprite_animation.cpp
+    src/game/camera2d.cpp
     external/stb/stb_image.cpp
 )
 

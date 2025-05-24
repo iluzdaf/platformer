@@ -9,6 +9,7 @@
 #include "game/tile_map.hpp"
 #include "game/player.hpp"
 #include "game/fixed_time_step.hpp"
+#include "game/camera2d.hpp"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
@@ -39,8 +40,6 @@ int main()
     try
     {
         float lastTime = glfwGetTime();
-
-        glm::mat4 projection = glm::ortho(0.0f, (float)screenWidth, (float)screenHeight, 0.0f);
 
         TileMap tileMap(50, 38);
         tileMap.setTile(0, 37, 31);
@@ -73,8 +72,12 @@ int main()
         SpriteRenderer tileSetSpriteRenderer(tileSetShader);
         TileMapRenderer tileMapRenderer(tileSet, tileSetSpriteRenderer);
 
+        glm::mat4 projection = glm::ortho(0.0f, (float)screenWidth, (float)screenHeight, 0.0f);
+        Camera2D camera(screenWidth, screenHeight, 4);
+        camera.setWorldBounds(glm::vec2(0), glm::vec2(tileMap.getWidth() * tileMap.getTileSize(), tileMap.getHeight() * tileMap.getTileSize()));
+
         Texture2D playerTexture("../textures/player.png");
-        Player player(glm::vec2(100, 100));
+        Player player(glm::vec2(100, 400));
 
         while (!glfwWindowShouldClose(window))
         {
@@ -94,7 +97,9 @@ int main()
 
             FixedTimeStep timestepper(0.01f);
             timestepper.run(deltaTime, [&](float dt)
-                            { player.update(dt, tileMap); });
+                            { player.update(dt, tileMap); 
+                            camera.follow(player.getPosition()); });
+            glm::mat4 projection = camera.getProjection();
 
             tileMapRenderer.draw(tileMap, projection);
             tileSetSpriteRenderer.drawWithUV(

@@ -50,8 +50,8 @@ TEST_CASE("Player moves left and right", "[player]")
 TEST_CASE("Player lands on solid tile", "[player]")
 {
     TileMap tileMap(1, Player::gravity);
-    tileMap.setTileTypes({{1, TileKind::Solid}});
-    tileMap.setTile(0, 5, 1);
+    tileMap.setTiles({{1, TileKind::Solid}});
+    tileMap.setTileIndex(0, 5, 1);
 
     Player player(glm::vec2(0.0f, 0.0f));
     FixedTimeStep timestepper(0.01f);
@@ -66,9 +66,9 @@ TEST_CASE("Player lands on solid tile", "[player]")
 TEST_CASE("Player cannot move into solid wall", "[player]")
 {
     TileMap tileMap(10, 10);
-    tileMap.setTileTypes({{1, TileKind::Solid}});
-    tileMap.setTile(3, 5, 1);
-    tileMap.setTile(2, 4, 1);
+    tileMap.setTiles({{1, TileKind::Solid}});
+    tileMap.setTileIndex(3, 5, 1);
+    tileMap.setTileIndex(2, 4, 1);
 
     Player player(glm::vec2(32.0f, 80.0f));
     player.moveRight();
@@ -83,13 +83,13 @@ TEST_CASE("Player cannot move into solid wall", "[player]")
 TEST_CASE("Player cannot jump through solid ceiling", "[player]")
 {
     TileMap map(10, 10);
-    map.setTileTypes({{1, TileKind::Solid}});
+    map.setTiles({{1, TileKind::Solid}});
 
     int ceilingTileX = 2;
     int ceilingTileY = 2;
-    map.setTile(ceilingTileX, ceilingTileY, 1);
+    map.setTileIndex(ceilingTileX, ceilingTileY, 1);
 
-    map.setTile(2, 5, 1);
+    map.setTileIndex(2, 5, 1);
 
     glm::vec2 playerStartPos(32.0f, 64.0f);
     Player player(playerStartPos);

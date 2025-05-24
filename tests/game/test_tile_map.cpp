@@ -10,68 +10,80 @@ TEST_CASE("TileMap initializes grid correctly", "[tilemap]")
 
     for (int y = 0; y < tileMap.getHeight(); ++y)
         for (int x = 0; x < tileMap.getWidth(); ++x)
-            REQUIRE(tileMap.getTile(x, y) == -1);
+            REQUIRE(tileMap.getTileIndex(x, y) == -1);
 }
 
-TEST_CASE("TileMap sets and gets tiles correctly", "[tilemap]")
+TEST_CASE("TileMap sets and gets tile indices correctly", "[tilemap]")
 {
     TileMap tileMap(3, 3);
-    tileMap.setTile(1, 1, 5);
-    tileMap.setTile(0, 2, 7);
+    tileMap.setTileIndex(1, 1, 5);
+    tileMap.setTileIndex(0, 2, 7);
 
-    REQUIRE(tileMap.getTile(1, 1) == 5);
-    REQUIRE(tileMap.getTile(0, 2) == 7);
-    REQUIRE(tileMap.getTile(2, 2) == -1);
-    REQUIRE(tileMap.getTile(-1, 0) == -1);
+    REQUIRE(tileMap.getTileIndex(1, 1) == 5);
+    REQUIRE(tileMap.getTileIndex(0, 2) == 7);
+    REQUIRE(tileMap.getTileIndex(2, 2) == -1);
+    REQUIRE(tileMap.getTileIndex(-1, 0) == -1);
 }
 
-TEST_CASE("TileMap setTile out of bounds", "[tilemap]")
+TEST_CASE("TileMap setTileIndex handles out of bounds", "[tilemap]")
 {
     TileMap tileMap(3, 3);
 
-    REQUIRE_THROWS_AS(tileMap.setTile(3, 0, 1), std::out_of_range);
+    REQUIRE_THROWS_AS(tileMap.setTileIndex(3, 0, 1), std::out_of_range);
 }
 
-TEST_CASE("TileMap setTile values", "[tilemap]")
+TEST_CASE("TileMap setTileIndex sets indices correctly", "[tilemap]")
 {
     TileMap tileMap(3, 3);
 
     SECTION("Throws on negative value")
     {
-        REQUIRE_THROWS_AS(tileMap.setTile(2, 2, -5), std::invalid_argument);
+        REQUIRE_THROWS_AS(tileMap.setTileIndex(2, 2, -5), std::invalid_argument);
     }
 
     SECTION("Accepts 0 and positive values")
     {
-        REQUIRE_NOTHROW(tileMap.setTile(0, 0, 0));
-        REQUIRE_NOTHROW(tileMap.setTile(0, 1, 1));
-        REQUIRE_NOTHROW(tileMap.setTile(1, 2, 10));
+        REQUIRE_NOTHROW(tileMap.setTileIndex(0, 0, 0));
+        REQUIRE_NOTHROW(tileMap.setTileIndex(0, 1, 1));
+        REQUIRE_NOTHROW(tileMap.setTileIndex(1, 2, 10));
     }
 }
 
-TEST_CASE("TileMap returns correct TileType for known indices", "[tilemap]")
+TEST_CASE("TileMap returns correct tile for known indices", "[tilemap]")
 {
     TileMap tileMap(3, 3);
+    tileMap.setTiles({{1, TileKind::Solid},
+                      {2, TileKind::Empty},
+                      {3, TileKind::Empty}});
 
-    std::unordered_map<int, TileKind> types = {
-        {1, TileKind::Solid},
-        {2, TileKind::Empty},
-        {3, TileKind::Empty}};
-    tileMap.setTileTypes(types);
+    auto tile1 = tileMap.getTile(1);
+    auto tile2 = tileMap.getTile(2);
+    auto tile3 = tileMap.getTile(3);
 
-    REQUIRE(tileMap.getTileType(1).kind == TileKind::Solid);
-    REQUIRE(tileMap.getTileType(2).kind == TileKind::Empty);
-    REQUIRE(tileMap.getTileType(3).kind == TileKind::Empty);
+    REQUIRE(tile1.has_value());
+    REQUIRE(tile2.has_value());
+    REQUIRE(tile3.has_value());
+
+    REQUIRE(tile1->get().getKind() == TileKind::Solid);
+    REQUIRE(tile2->get().getKind() == TileKind::Empty);
+    REQUIRE(tile3->get().getKind() == TileKind::Empty);
 }
 
-TEST_CASE("TileMap returns default type for unknown tile index", "[tilemap]")
+TEST_CASE("TileMap returns no tile for unknown indices", "[tilemap]")
+{
+    TileMap tileMap(3, 3);
+    tileMap.setTiles({{1, TileKind::Solid}});
+    auto tileOpt = tileMap.getTile(999);
+
+    REQUIRE_FALSE(tileOpt.has_value());
+}
+
+TEST_CASE("getTileIndex handles out-of-bounds safely", "[tilemap]")
 {
     TileMap tileMap(3, 3);
 
-    std::unordered_map<int, TileKind> types = {
-        {1, TileKind::Solid}};
-    tileMap.setTileTypes(types);
-
-    const TileType &tileType = tileMap.getTileType(999);
-    REQUIRE(tileType.kind == TileKind::Empty);
+    REQUIRE(tileMap.getTileIndex(-1, 0) == -1);
+    REQUIRE(tileMap.getTileIndex(0, -1) == -1);
+    REQUIRE(tileMap.getTileIndex(3, 0) == -1);
+    REQUIRE(tileMap.getTileIndex(0, 3) == -1);
 }

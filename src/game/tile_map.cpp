@@ -3,7 +3,7 @@
 
 TileMap::TileMap(int width, int height, int tileSize) : width(width),
                                                         height(height),
-                                                        tiles(width, std::vector<int>(height, -1)),
+                                                        tileIndices(width, std::vector<int>(height, -1)),
                                                         tileSize(tileSize)
 {
     assert(width > 0);
@@ -11,7 +11,7 @@ TileMap::TileMap(int width, int height, int tileSize) : width(width),
     assert(tileSize > 0);
 }
 
-void TileMap::setTile(int x, int y, int tile)
+void TileMap::setTileIndex(int x, int y, int tile)
 {
     if (x < 0 || x >= width || y < 0 || y >= height)
     {
@@ -23,42 +23,40 @@ void TileMap::setTile(int x, int y, int tile)
         throw std::invalid_argument("Tile index must be greater or equals to 0");
     }
 
-    tiles[x][y] = tile;
+    tileIndices[x][y] = tile;
 }
 
-int TileMap::getTile(int x, int y) const
+int TileMap::getTileIndex(int x, int y) const
 {
     if (x < 0 || x >= width || y < 0 || y >= height)
     {
         return -1;
     }
 
-    return tiles[x][y];
+    return tileIndices[x][y];
 }
 
 int TileMap::getWidth() const { return width; }
 
 int TileMap::getHeight() const { return height; }
 
-void TileMap::setTileTypes(const std::unordered_map<int, TileKind> &types)
+void TileMap::setTiles(const std::unordered_map<int, TileKind> &tiles)
 {
-    tileTypes.clear();
-    for (auto &[index, kind] : types)
+    this->tiles.clear();
+    for (auto &[index, kind] : tiles)
     {
-        tileTypes[index] = TileType{kind};
+        this->tiles[index] = Tile(kind);
     }
 }
 
-const TileType &TileMap::getTileType(int tileIndex) const
+std::optional<std::reference_wrapper<const Tile>> TileMap::getTile(int tileIndex) const
 {
-    auto it = tileTypes.find(tileIndex);
-    if (it != tileTypes.end())
+    auto it = tiles.find(tileIndex);
+    if (it == tiles.end())
     {
-        return it->second;
+        return std::nullopt;
     }
-
-    static const TileType defaultType{TileKind::Empty};
-    return defaultType;
+    return it->second;
 }
 
 int TileMap::getTileSize() const

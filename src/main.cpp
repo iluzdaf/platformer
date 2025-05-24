@@ -45,23 +45,23 @@ int main()
         float lastTime = glfwGetTime();
 
         TileMap tileMap(50, 38);
-        tileMap.setTile(0, 37, 31);
+        tileMap.setTileIndex(0, 37, 31);
         for (int i = 1; i < 49; ++i)
         {
-            tileMap.setTile(i, 37, 32);
+            tileMap.setTileIndex(i, 37, 32);
         }
-        tileMap.setTile(49, 37, 33);
+        tileMap.setTileIndex(49, 37, 33);
 
-        tileMap.setTile(25, 32, 31);
-        tileMap.setTile(26, 32, 32);
-        tileMap.setTile(27, 32, 33);
+        tileMap.setTileIndex(25, 32, 31);
+        tileMap.setTileIndex(26, 32, 32);
+        tileMap.setTileIndex(27, 32, 33);
 
-        tileMap.setTile(15, 34, 26);
-        tileMap.setTile(15, 35, 22);
-        tileMap.setTile(15, 36, 22);
-        tileMap.setTile(15, 37, 20);
+        tileMap.setTileIndex(15, 34, 26);
+        tileMap.setTileIndex(15, 35, 22);
+        tileMap.setTileIndex(15, 36, 22);
+        tileMap.setTileIndex(15, 37, 20);
 
-        tileMap.setTileTypes({
+        tileMap.setTiles({
             {31, TileKind::Solid},
             {32, TileKind::Solid},
             {33, TileKind::Solid},

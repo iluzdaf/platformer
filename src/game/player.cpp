@@ -1,6 +1,6 @@
 #include "game/player.hpp"
 #include <cassert>
-#include "game/tile_type.hpp"
+#include "game/tile.hpp"
 
 Player::Player(glm::vec2 startPos) : position(startPos)
 {
@@ -75,9 +75,13 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
                       : nextY;
     int tileX = static_cast<int>(centerX) / tileSize;
     int tileY = static_cast<int>(edgeY) / tileSize;
-    int tile = tileMap.getTile(tileX, tileY);
-    bool blocked = tileMap.getTileType(tile).isSolid();
+    int tileIndex = tileMap.getTileIndex(tileX, tileY);
 
+    bool blocked = false;
+    if (auto tileOpt = tileMap.getTile(tileIndex)) {
+        const Tile& tile = tileOpt->get();
+        blocked = tile.isSolid();
+    }
     if (blocked)
     {
         nextY = snapToTileEdge(tileY, tileSize, velY > 0.0f, size.y);
@@ -96,8 +100,13 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
 
     int tileX = static_cast<int>(sideX) / tileSize;
     int tileY = static_cast<int>(footY) / tileSize;
-    int tile = tileMap.getTile(tileX, tileY);
-    bool blocked = tileMap.getTileType(tile).isSolid();
+    int tileIndex = tileMap.getTileIndex(tileX, tileY);
+    
+    bool blocked = false;
+    if (auto tileOpt = tileMap.getTile(tileIndex)) {
+        const Tile& tile = tileOpt->get();
+        blocked = tile.isSolid();
+    }
 
     if (blocked)
     {

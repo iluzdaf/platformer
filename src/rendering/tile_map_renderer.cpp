@@ -19,7 +19,7 @@ void TileMapRenderer::draw(const TileMap &tileMap, const glm::mat4 &projection)
     {
         for (int x = 0; x < tileMap.getWidth(); ++x)
         {
-            int tileIndex = tileMap.getTile(x, y);
+            int tileIndex = tileMap.getTileIndex(x, y);
             if (tileIndex < 0)
                 continue;
 

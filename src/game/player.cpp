@@ -8,7 +8,7 @@ Player::Player(glm::vec2 startPos) : position(startPos)
     assert(size.y > 0);
 
     idleAnim = SpriteAnimation({30}, 1.0f, size.x, size.y, 96);
-    walkAnim = SpriteAnimation({34, 35}, 0.1f, size.x, size.y, 96);
+    walkAnim = SpriteAnimation({34, 26, 35}, 0.1f, size.x, size.y, 96);
     currentAnim = &idleAnim;
 }
 

@@ -4,9 +4,6 @@
 
 Player::Player(glm::vec2 startPos) : position(startPos)
 {
-    assert(size.x > 0);
-    assert(size.y > 0);
-
     idleAnim = SpriteAnimation({30}, 1.0f, size.x, size.y, 96);
     walkAnim = SpriteAnimation({34, 26, 35}, 0.1f, size.x, size.y, 96);
     currentAnim = &idleAnim;
@@ -20,17 +17,24 @@ void Player::update(float deltaTime, const TileMap &tileMap)
     resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
     resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
 
+    updateAnimation(deltaTime);
+
+    position = nextPosition;
+    velocity.x = 0.0f;
+}
+
+void Player::updateAnimation(float deltaTime)
+{
     bool isWalking = std::abs(velocity.x) > 0.01f;
     PlayerAnimationState newState = isWalking ? PlayerAnimationState::Walk : PlayerAnimationState::Idle;
+
     if (newState != animState)
     {
         animState = newState;
         currentAnim = (animState == PlayerAnimationState::Walk) ? &walkAnim : &idleAnim;
     }
-    currentAnim->update(deltaTime);
 
-    position = nextPosition;
-    velocity.x = 0.0f;
+    currentAnim->update(deltaTime);
 }
 
 void Player::jump()
@@ -68,21 +72,15 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
     if (std::abs(velY) < 0.0001f)
         return;
 
-    int tileSize = tileMap.getTileSize();
-    float centerX = position.x + size.x / 2.0f;
-    float edgeY = (velY > 0.0f)
-                      ? nextY + size.y
-                      : nextY;
-    int tileX = static_cast<int>(centerX) / tileSize;
-    int tileY = static_cast<int>(edgeY) / tileSize;
-    int tileIndex = tileMap.getTileIndex(tileX, tileY);
+    const int tileSize = tileMap.getTileSize();
+    const float centerX = position.x + size.x / 2.0f;
+    const float verticalEdgeY = (velY > 0.0f) ? nextY + size.y : nextY;
+    const int tileX = static_cast<int>(centerX) / tileSize;
+    const int tileY = static_cast<int>(verticalEdgeY) / tileSize;
+    const int tileIndex = tileMap.getTileIndex(tileX, tileY);
+    const bool collidesWithSolidTile = isTileSolid(tileMap, tileIndex);
 
-    bool blocked = false;
-    if (auto tileOpt = tileMap.getTile(tileIndex)) {
-        const Tile& tile = tileOpt->get();
-        blocked = tile.isSolid();
-    }
-    if (blocked)
+    if (collidesWithSolidTile)
     {
         nextY = snapToTileEdge(tileY, tileSize, velY > 0.0f, size.y);
         velY = 0.0f;
@@ -94,21 +92,15 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
     if (std::abs(velX) < 0.0001f)
         return;
 
-    int tileSize = tileMap.getTileSize();
-    float footY = nextY + size.y - 1.0f;
-    float sideX = (velX > 0) ? nextX + size.x : nextX;
+    const int tileSize = tileMap.getTileSize();
+    const float bottomY = nextY + size.y - 1.0f;
+    const float leadingEdgeX = (velX > 0) ? nextX + size.x : nextX;
+    const int tileX = static_cast<int>(leadingEdgeX) / tileSize;
+    const int tileY = static_cast<int>(bottomY) / tileSize;
+    const int tileIndex = tileMap.getTileIndex(tileX, tileY);
+    const bool collidesWithSolidTile = isTileSolid(tileMap, tileIndex);
 
-    int tileX = static_cast<int>(sideX) / tileSize;
-    int tileY = static_cast<int>(footY) / tileSize;
-    int tileIndex = tileMap.getTileIndex(tileX, tileY);
-    
-    bool blocked = false;
-    if (auto tileOpt = tileMap.getTile(tileIndex)) {
-        const Tile& tile = tileOpt->get();
-        blocked = tile.isSolid();
-    }
-
-    if (blocked)
+    if (collidesWithSolidTile)
     {
         nextX = snapToTileEdge(tileX, tileSize, velX > 0.0f, size.x);
         velX = 0.0f;
@@ -136,4 +128,13 @@ PlayerAnimationState Player::getAnimationState() const
 bool Player::isFacingLeft() const
 {
     return facingLeft;
+}
+
+bool Player::isTileSolid(const TileMap &tileMap, int tileIndex) const
+{
+    if (auto tileOpt = tileMap.getTile(tileIndex))
+    {
+        return tileOpt->get().isSolid();
+    }
+    return false;
 }

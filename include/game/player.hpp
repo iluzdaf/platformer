@@ -38,4 +38,6 @@ private:
     SpriteAnimation *currentAnim = nullptr;
     PlayerAnimationState animState = PlayerAnimationState::Idle;
     bool facingLeft = false;
+    void updateAnimation(float deltaTime);
+    bool isTileSolid(const TileMap &map, int index) const;
 };

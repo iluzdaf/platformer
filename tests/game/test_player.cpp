@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
+#include <optional>
 #include "game/player.hpp"
 #include "game/fixed_time_step.hpp"
 using Catch::Approx;
@@ -50,7 +51,7 @@ TEST_CASE("Player moves left and right", "[player]")
 TEST_CASE("Player lands on solid tile", "[player]")
 {
     TileMap tileMap(1, Player::gravity);
-    tileMap.setTiles({{1, TileKind::Solid}});
+    tileMap.setTiles({{1, {TileKind::Solid, std::nullopt}}});
     tileMap.setTileIndex(0, 5, 1);
 
     Player player(glm::vec2(0.0f, 0.0f));
@@ -66,7 +67,7 @@ TEST_CASE("Player lands on solid tile", "[player]")
 TEST_CASE("Player cannot move into solid wall", "[player]")
 {
     TileMap tileMap(10, 10);
-    tileMap.setTiles({{1, TileKind::Solid}});
+    tileMap.setTiles({{1, {TileKind::Solid, std::nullopt}}});
     tileMap.setTileIndex(3, 5, 1);
     tileMap.setTileIndex(2, 4, 1);
 
@@ -82,14 +83,14 @@ TEST_CASE("Player cannot move into solid wall", "[player]")
 
 TEST_CASE("Player cannot jump through solid ceiling", "[player]")
 {
-    TileMap map(10, 10);
-    map.setTiles({{1, TileKind::Solid}});
+    TileMap tileMap(10, 10);
+    tileMap.setTiles({{1, {TileKind::Solid, std::nullopt}}});
 
     int ceilingTileX = 2;
     int ceilingTileY = 2;
-    map.setTileIndex(ceilingTileX, ceilingTileY, 1);
+    tileMap.setTileIndex(ceilingTileX, ceilingTileY, 1);
 
-    map.setTileIndex(2, 5, 1);
+    tileMap.setTileIndex(2, 5, 1);
 
     glm::vec2 playerStartPos(32.0f, 64.0f);
     Player player(playerStartPos);
@@ -98,7 +99,7 @@ TEST_CASE("Player cannot jump through solid ceiling", "[player]")
 
     FixedTimeStep stepper(0.01f);
     stepper.run(1.0f, [&](float dt)
-                { player.update(dt, map); });
+                { player.update(dt, tileMap); });
 
     float playerTopY = player.getPosition().y;
     float ceilingBottomY = (ceilingTileY + 1) * 16.0f;

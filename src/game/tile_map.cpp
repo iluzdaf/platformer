@@ -40,12 +40,20 @@ int TileMap::getWidth() const { return width; }
 
 int TileMap::getHeight() const { return height; }
 
-void TileMap::setTiles(const std::unordered_map<int, TileKind> &tiles)
+void TileMap::setTiles(const std::unordered_map<int, TileDefinition> &tileDefinitions)
 {
-    this->tiles.clear();
-    for (auto &[index, kind] : tiles)
+    tiles.clear();
+
+    for (const auto &[index, definition] : tileDefinitions)
     {
-        this->tiles[index] = Tile(kind);
+        Tile tile(definition.kind);
+
+        if (definition.animation.has_value())
+        {
+            tile.setAnimation(definition.animation.value());
+        }
+
+        tiles[index] = std::move(tile);
     }
 }
 
@@ -62,4 +70,12 @@ std::optional<std::reference_wrapper<const Tile>> TileMap::getTile(int tileIndex
 int TileMap::getTileSize() const
 {
     return tileSize;
+}
+
+void TileMap::update(float deltaTime)
+{
+    for (auto &[_, tile] : tiles)
+    {
+        tile.update(deltaTime);
+    }
 }

@@ -23,8 +23,17 @@ void TileMapRenderer::draw(const TileMap &tileMap, const glm::mat4 &projection)
             if (tileIndex < 0)
                 continue;
 
-            int tileX = tileIndex % tilesPerRow;
-            int tileY = tileIndex / tilesPerRow;
+            auto tileOpt = tileMap.getTile(tileIndex);
+            if (!tileOpt)
+                continue;
+
+            const Tile &tile = tileOpt->get();
+            int frameIndex = tile.isAnimated()
+                                 ? tile.getCurrentFrame()
+                                 : tileIndex;
+
+            int tileX = frameIndex % tilesPerRow;
+            int tileY = frameIndex / tilesPerRow;
             float tileUVSize = static_cast<float>(tileSize) / static_cast<float>(tileSetWidth);
             glm::vec2 uvStart(tileX * tileUVSize, tileY * tileUVSize);
             glm::vec2 uvEnd = uvStart + glm::vec2(tileUVSize);

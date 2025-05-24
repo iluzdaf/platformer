@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <optional>
 #include "game/tile_map.hpp"
 
 TEST_CASE("TileMap initializes grid correctly", "[tilemap]")
@@ -52,9 +53,10 @@ TEST_CASE("TileMap setTileIndex sets indices correctly", "[tilemap]")
 TEST_CASE("TileMap returns correct tile for known indices", "[tilemap]")
 {
     TileMap tileMap(3, 3);
-    tileMap.setTiles({{1, TileKind::Solid},
-                      {2, TileKind::Empty},
-                      {3, TileKind::Empty}});
+    tileMap.setTiles(
+        {{1, {TileKind::Solid, std::nullopt}},
+         {2, {TileKind::Empty, std::nullopt}},
+         {3, {TileKind::Empty, std::nullopt}}});
 
     auto tile1 = tileMap.getTile(1);
     auto tile2 = tileMap.getTile(2);
@@ -63,16 +65,18 @@ TEST_CASE("TileMap returns correct tile for known indices", "[tilemap]")
     REQUIRE(tile1.has_value());
     REQUIRE(tile2.has_value());
     REQUIRE(tile3.has_value());
-
     REQUIRE(tile1->get().getKind() == TileKind::Solid);
     REQUIRE(tile2->get().getKind() == TileKind::Empty);
     REQUIRE(tile3->get().getKind() == TileKind::Empty);
+    REQUIRE_FALSE(tile1->get().isAnimated());
+    REQUIRE_FALSE(tile2->get().isAnimated());
+    REQUIRE_FALSE(tile3->get().isAnimated());
 }
 
 TEST_CASE("TileMap returns no tile for unknown indices", "[tilemap]")
 {
     TileMap tileMap(3, 3);
-    tileMap.setTiles({{1, TileKind::Solid}});
+    tileMap.setTiles({{1, {TileKind::Solid, std::nullopt}}});
     auto tileOpt = tileMap.getTile(999);
 
     REQUIRE_FALSE(tileOpt.has_value());
@@ -86,4 +90,55 @@ TEST_CASE("getTileIndex handles out-of-bounds safely", "[tilemap]")
     REQUIRE(tileMap.getTileIndex(0, -1) == -1);
     REQUIRE(tileMap.getTileIndex(3, 0) == -1);
     REQUIRE(tileMap.getTileIndex(0, 3) == -1);
+}
+
+TEST_CASE("TileMap updates animated tiles", "[tilemap]")
+{
+    TileMap tileMap(2, 2);
+
+    TileAnimation anim({10, 11, 12}, 0.25f);
+    tileMap.setTiles({{1, {TileKind::Empty, anim}}});
+
+    tileMap.setTileIndex(0, 0, 1);
+
+    auto tileBefore = tileMap.getTile(1);
+    REQUIRE(tileBefore->get().getCurrentFrame() == 10);
+
+    tileMap.update(0.25f);
+
+    auto tileAfter = tileMap.getTile(1);
+    REQUIRE(tileAfter->get().getCurrentFrame() == 11);
+}
+
+TEST_CASE("TileMap update does not affect static tiles", "[tilemap]")
+{
+    TileMap tileMap(2, 2);
+    tileMap.setTiles({{1, {TileKind::Solid, std::nullopt}}});
+
+    tileMap.setTileIndex(0, 0, 1);
+    auto tileBefore = tileMap.getTile(1);
+    REQUIRE(tileBefore->get().getCurrentFrame() == -1);
+
+    tileMap.update(1.0f);
+    auto tileAfter = tileMap.getTile(1);
+    REQUIRE(tileAfter->get().getCurrentFrame() == -1);
+}
+
+TEST_CASE("TileMap updates multiple animated tiles independently", "[tilemap]")
+{
+    TileMap tileMap(2, 2);
+
+    TileAnimation anim1({1, 2}, 0.1f);
+    TileAnimation anim2({5, 6, 7}, 0.2f);
+
+    tileMap.setTiles({{1, {TileKind::Empty, anim1}},
+                      {2, {TileKind::Solid, anim2}}});
+
+    tileMap.update(0.2f);
+
+    auto tile1 = tileMap.getTile(1);
+    auto tile2 = tileMap.getTile(2);
+
+    REQUIRE(tile1->get().getCurrentFrame() == 1);
+    REQUIRE(tile2->get().getCurrentFrame() == 6);
 }

@@ -1,9 +1,9 @@
 #pragma once
-#include <vector>
 #include "game/tile.hpp"
+#include "game/tile_definition.hpp"
+#include <vector>
 #include <unordered_map>
 #include <optional>
-#include <functional>
 
 class TileMap
 {
@@ -13,9 +13,10 @@ public:
     int getTileIndex(int x, int y) const;
     int getWidth() const;
     int getHeight() const;
-    void setTiles(const std::unordered_map<int, TileKind> &tiles);
+    void setTiles(const std::unordered_map<int, TileDefinition> &tileDefinitions);
     std::optional<std::reference_wrapper<const Tile>> getTile(int tileIndex) const;
     int getTileSize() const;
+    void update(float deltaTime);
 
 private:
     int width, height, tileSize;

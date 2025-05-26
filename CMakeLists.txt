@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(Platformer)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 
 # GLAD
 add_library(glad STATIC external/glad/src/glad.c)
@@ -19,6 +19,9 @@ include_directories(external/glm)
 
 # Catch2 (for tests only)
 add_subdirectory(external/catch2)
+
+# Glaze
+add_subdirectory(external/glaze)
 
 # Platformer Executable
 add_executable(platformer
@@ -42,6 +45,7 @@ target_include_directories(platformer
     include
     external/glad/include
     external/glfw/include
+    external/glaze/include
 )
 
 target_link_libraries(platformer
@@ -84,6 +88,7 @@ target_include_directories(tests
     include
     external/glad/include
     external/glfw/include
+    external/glaze/include
 )
 
 target_link_libraries(tests

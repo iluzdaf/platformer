@@ -1,10 +1,15 @@
 #include "game/tile.hpp"
 #include <cassert>
 
-Tile::Tile(TileKind kind, std::optional<int> pickupReplaceIndex)
-    : kind(kind), pickupReplaceIndex(pickupReplaceIndex)
+Tile::Tile(const TileData &tileData)
+    : kind(tileData.kind), pickupReplaceIndex(tileData.pickupReplaceIndex)
 {
     assert((kind != TileKind::Pickup || pickupReplaceIndex.has_value()) && "Pickup tile must define a pickupReplaceIndex");
+
+    if (tileData.animationData.has_value())
+    {
+        animation = TileAnimation(tileData.animationData.value());
+    }
 }
 
 void Tile::update(float deltaTime)
@@ -27,11 +32,6 @@ int Tile::getCurrentFrame() const
 bool Tile::isSolid() const
 {
     return kind == TileKind::Solid;
-}
-
-void Tile::setAnimation(const TileAnimation &anim)
-{
-    animation = anim;
 }
 
 bool Tile::isAnimated() const

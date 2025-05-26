@@ -2,22 +2,22 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "rendering/shader.hpp"
 
-TEST_CASE("Shader is valid", "[shader]")
+TEST_CASE("Shader is valid", "[Shader]")
 {
     Shader shader;
-    shader.initByPath("../shaders/sprite.vs", "../shaders/sprite.fs");
+    shader.initByShaderFile("../shaders/sprite.vs", "../shaders/sprite.fs");
     REQUIRE(shader.valid());
 }
 
-TEST_CASE("Shader does not exist", "[shader]")
+TEST_CASE("Shader does not exist", "[Shader]")
 {
     Shader shader;
     REQUIRE_THROWS_WITH(
-        shader.initByPath("../shaders/does_not_exist.vs", "../shaders/does_not_exist.fs"),
+        shader.initByShaderFile("../shaders/does_not_exist.vs", "../shaders/does_not_exist.fs"),
         "Vertex shader code is empty");
 }
 
-TEST_CASE("Shader is broken", "[shader]")
+TEST_CASE("Shader is broken", "[Shader]")
 {
     const std::string brokenVertex = R"(
         #version 330 core
@@ -41,7 +41,7 @@ TEST_CASE("Shader is broken", "[shader]")
     REQUIRE_FALSE(shader.valid());
 }
 
-TEST_CASE("Shader fails to link", "[shader]")
+TEST_CASE("Shader fails to link", "[Shader]")
 {
     const std::string vertexShaderCode = R"(
         #version 330 core
@@ -70,11 +70,11 @@ TEST_CASE("Shader fails to link", "[shader]")
     REQUIRE_FALSE(shader.valid());
 }
 
-TEST_CASE("Shader can only initialize once", "[shader]")
+TEST_CASE("Shader can only initialize once", "[Shader]")
 {
     Shader shader;
-    shader.initByPath("../shaders/sprite.vs", "../shaders/sprite.fs");
+    shader.initByShaderFile("../shaders/sprite.vs", "../shaders/sprite.fs");
     REQUIRE_THROWS_WITH(
-        shader.initByPath("../shaders/sprite.vs", "../shaders/sprite.fs"),
+        shader.initByShaderFile("../shaders/sprite.vs", "../shaders/sprite.fs"),
         "Shader is already initialized");
 }

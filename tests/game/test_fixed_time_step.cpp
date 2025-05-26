@@ -3,7 +3,7 @@
 #include "game/fixed_time_step.hpp"
 using Catch::Approx;
 
-TEST_CASE("FixedTimeStep divides time into correct steps", "[fixedtimestep]")
+TEST_CASE("FixedTimeStep divides time into correct steps", "[FixedTimeStep]")
 {
     FixedTimeStep timestep(0.01f);
     float total = 0.0f;
@@ -13,12 +13,11 @@ TEST_CASE("FixedTimeStep divides time into correct steps", "[fixedtimestep]")
                  {
         total += dt;
         steps++; });
-
     REQUIRE(steps == 4);
     REQUIRE(total == Approx(0.035f));
 }
 
-TEST_CASE("FixedTimestep uses full delta if under max step", "[fixedtimestep]")
+TEST_CASE("FixedTimestep uses full delta if under max step", "[FixedTimeStep]")
 {
     FixedTimeStep timestep(0.01f);
     float total = 0.0f;
@@ -28,18 +27,16 @@ TEST_CASE("FixedTimestep uses full delta if under max step", "[fixedtimestep]")
                  {
         total += dt;
         steps++; });
-
     REQUIRE(steps == 1);
     REQUIRE(total == Approx(0.008f));
 }
 
-TEST_CASE("FixedTimeStep handles exact multiples", "[fixedtimestep]")
+TEST_CASE("FixedTimeStep handles exact multiples", "[FixedTimeStep]")
 {
     FixedTimeStep timestep(0.01f);
     int steps = 0;
 
     timestep.run(0.03f, [&](float)
                  { steps++; });
-
     REQUIRE(steps == 3);
 }

@@ -16,7 +16,7 @@ public:
     void setVec2(const std::string &name, const glm::vec2 &value) const;
     void setMat4(const std::string &name, const glm::mat4 &mat) const;
     bool valid() const;
-    void initByPath(const std::string &vertexPath, const std::string &fragmentPath);
+    void initByShaderFile(const std::string &vertexPath, const std::string &fragmentPath);
     void initByCode(const std::string &vertexCode, const std::string &fragmentCode);
 
 private:

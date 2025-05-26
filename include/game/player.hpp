@@ -12,7 +12,8 @@ enum class PlayerAnimationState
 class Player
 {
 public:
-    Player(glm::vec2 startPos);
+    explicit Player(glm::vec2 startPos);
+    void fixedUpdate(float deltaTime, TileMap &tileMap);
     void update(float deltaTime, TileMap &tileMap);
     void jump();
     void moveLeft();
@@ -20,8 +21,8 @@ public:
     glm::vec2 getPosition() const;
     glm::vec2 getVelocity() const;
     static constexpr float gravity = 980.0f;
-    static constexpr float moveSpeed = 200.0f;
-    static constexpr float jumpVelocity = -400.0f;
+    static constexpr float moveSpeed = 160.0f;
+    static constexpr float jumpVelocity = -320.0f;
     static constexpr glm::vec2 size = glm::vec2(16, 16);
     const SpriteAnimation &getCurrentAnimation() const;
     PlayerAnimationState getAnimationState() const;

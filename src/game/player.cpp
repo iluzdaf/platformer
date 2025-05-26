@@ -10,20 +10,21 @@ Player::Player(glm::vec2 startPos) : position(startPos)
     currentAnim = &idleAnim;
 }
 
-void Player::update(float deltaTime, TileMap &tileMap)
+void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 {
     velocity.y += gravity * deltaTime;
     glm::vec2 nextPosition = position + velocity * deltaTime;
-
     resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
     resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
-    updateAnimation(deltaTime);
-
     position = nextPosition;
-    velocity.x = 0.0f;
+}
 
+void Player::update(float deltaTime, TileMap &tileMap)
+{
     clampToTileMapBounds(tileMap);
     handlePickup(tileMap);
+    updateAnimation(deltaTime);
+    velocity.x = 0.0f;
 }
 
 void Player::updateAnimation(float deltaTime)

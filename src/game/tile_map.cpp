@@ -1,14 +1,99 @@
 #include "game/tile_map.hpp"
 #include <cassert>
+#include <glaze/glaze.hpp>
+#include <optional>
 
-TileMap::TileMap(int width, int height, int tileSize) : width(width),
-                                                        height(height),
-                                                        tileIndices(width, std::vector<int>(height, -1)),
-                                                        tileSize(tileSize)
+TileMap::TileMap()
 {
-    assert(width > 0);
-    assert(height > 0);
-    assert(tileSize > 0);
+}
+
+void TileMap::initByJsonFile(const std::string jsonFilePath)
+{
+    if (valid())
+    {
+        throw std::runtime_error("TileMap can only be initialized once");
+    }
+
+    if (jsonFilePath.empty())
+    {
+        throw std::runtime_error("jsonFilePath is empty");
+    }
+
+    TileMapData tileMapData;
+    auto ec = glz::read_file_json(tileMapData, jsonFilePath, std::string{});
+    if (ec)
+    {
+        throw std::runtime_error("Failed to read json file");
+    }
+
+    initByData(tileMapData);
+}
+
+void TileMap::initByData(const TileMapData &tileMapData)
+{
+    if (valid())
+    {
+        throw std::runtime_error("TileMap can only be initialized once");
+    }
+
+    tileSize = tileMapData.size;
+
+    const bool hasTileIndices = tileMapData.indices.has_value();
+    const bool hasExplicitSize = tileMapData.width.has_value() && tileMapData.height.has_value();
+
+    if (hasTileIndices && hasExplicitSize)
+    {
+        throw std::runtime_error("Cannot specify both tileIndices and width/height explicitly.");
+    }
+
+    if (hasTileIndices)
+    {
+        const auto &indices = tileMapData.indices.value();
+        height = indices.size();
+        width = height > 0 ? indices[0].size() : 0;
+
+        for (int y = 0; y < height; ++y)
+        {
+            if (indices[y].size() != width)
+            {
+                throw std::runtime_error("Inconsistent row width in tileIndices");
+            }
+        }
+
+        tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, -1));
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                tileIndices[x][y] = indices[y][x];
+            }
+        }
+    }
+    else if (hasExplicitSize)
+    {
+        height = tileMapData.height.value();
+        width = tileMapData.width.value();
+        tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, -1));
+    }
+    else
+    {
+        throw std::runtime_error("Must specify either tileIndices or width/height.");
+    }
+
+    if (width == 0 || height == 0)
+    {
+        throw std::runtime_error("TileMapData has invalid dimensions");
+    }
+
+    for (const auto &[tileIndex, tileData] : tileMapData.data)
+    {
+        tiles.insert_or_assign(tileIndex, Tile(tileData));
+    }
+}
+
+bool TileMap::valid() const
+{
+    return width > 0 && height > 0 && tileSize > 0 && !tileIndices.empty();
 }
 
 void TileMap::setTileIndex(int x, int y, int tile)
@@ -39,23 +124,6 @@ int TileMap::getTileIndex(int x, int y) const
 int TileMap::getWidth() const { return width; }
 
 int TileMap::getHeight() const { return height; }
-
-void TileMap::setTiles(const std::unordered_map<int, TileDefinition> &tileDefinitions)
-{
-    tiles.clear();
-
-    for (const auto &[tileIndex, tileDefinition] : tileDefinitions)
-    {
-        Tile tile(tileDefinition.kind, tileDefinition.pickupReplaceIndex);
-
-        if (tileDefinition.animation.has_value())
-        {
-            tile.setAnimation(tileDefinition.animation.value());
-        }
-
-        tiles[tileIndex] = std::move(tile);
-    }
-}
 
 std::optional<std::reference_wrapper<const Tile>> TileMap::getTile(int tileIndex) const
 {

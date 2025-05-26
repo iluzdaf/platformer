@@ -1,12 +1,12 @@
 #pragma once
 
 #include "game/tile_kind.hpp"
-#include "animations/tile_animation.hpp"
+#include "animations/tile_animation_data.hpp"
 #include <optional>
 
-struct TileDefinition
+struct TileData
 {
     TileKind kind;
-    std::optional<TileAnimation> animation;
+    std::optional<TileAnimationData> animationData;
     std::optional<int> pickupReplaceIndex;
 };

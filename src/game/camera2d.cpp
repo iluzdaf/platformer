@@ -1,6 +1,7 @@
 #include "game/camera2d.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <cassert>
+#include <algorithm>
 
 Camera2D::Camera2D(float screenWidth, float screenHeight, float zoom)
     : screenWidth(screenWidth), screenHeight(screenHeight), zoom(zoom)

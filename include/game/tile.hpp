@@ -1,17 +1,17 @@
 #pragma once
 
-#include "tile_kind.hpp"
+#include "game/tile_kind.hpp"
+#include "game/tile_data.hpp"
 #include "animations/tile_animation.hpp"
 #include <optional>
 
 class Tile
 {
 public:
-    explicit Tile(TileKind kind = TileKind::Empty, std::optional<int> pickupReplaceIndex = std::nullopt);
+    explicit Tile(const TileData &tileData);
     void update(float deltaTime);
     int getCurrentFrame() const;
     bool isSolid() const;
-    void setAnimation(const TileAnimation &anim);
     bool isAnimated() const;
     TileKind getKind() const;
     bool isPickup() const;

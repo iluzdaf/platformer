@@ -1,7 +1,9 @@
 #include "animations/tile_animation.hpp"
 
-TileAnimation::TileAnimation(std::vector<int> frames, float frameDuration)
-    : animation(std::move(frames), frameDuration) {}
+TileAnimation::TileAnimation(const TileAnimationData &tileAnimationData)
+    : animation(std::move(tileAnimationData.frames), tileAnimationData.frameDuration)
+{
+}
 
 void TileAnimation::update(float deltaTime)
 {

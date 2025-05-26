@@ -80,7 +80,7 @@ bool Shader::valid() const
     return shaderID != 0;
 }
 
-void Shader::initByPath(const std::string &vertexPath, const std::string &fragmentPath)
+void Shader::initByShaderFile(const std::string &vertexPath, const std::string &fragmentPath)
 {
     if (valid())
     {

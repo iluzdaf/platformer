@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
-#include <optional>
 #include "rendering/texture2d.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/sprite_renderer.hpp"
@@ -45,45 +44,16 @@ int main()
     {
         float lastTime = glfwGetTime();
 
-        TileMap tileMap(50, 38);
-        tileMap.setTileIndex(0, 37, 28);
-        for (int i = 1; i < 49; ++i)
-        {
-            tileMap.setTileIndex(i, 37, 29);
-        }
-        tileMap.setTileIndex(49, 37, 31);
+        TileMap tileMap;
+        tileMap.initByJsonFile("../tile_maps/level1.json");
 
-        tileMap.setTileIndex(20, 34, 39);
-        tileMap.setTileIndex(21, 34, 40);
-        tileMap.setTileIndex(22, 34, 41);
-
-        tileMap.setTileIndex(15, 34, 32);
-        tileMap.setTileIndex(15, 35, 26);
-        tileMap.setTileIndex(15, 36, 26);
-        tileMap.setTileIndex(15, 37, 14);
-
-        tileMap.setTileIndex(15, 33, 42);
-        tileMap.setTileIndex(21, 33, 42);
-
-        tileMap.setTiles({{28, {TileKind::Solid, std::nullopt}},
-                          {29, {TileKind::Solid, std::nullopt}},
-                          {31, {TileKind::Solid, std::nullopt}},
-                          {39, {TileKind::Solid, std::nullopt}},
-                          {40, {TileKind::Solid, std::nullopt}},
-                          {41, {TileKind::Solid, std::nullopt}},
-                          {32, {TileKind::Solid, std::nullopt}},
-                          {26, {TileKind::Solid, std::nullopt}},
-                          {14, {TileKind::Solid, std::nullopt}},
-                          {42, {TileKind::Pickup, TileAnimation({42, 43, 44, 45, 46, 47, 48, 35, 36, 37}, 0.075f), 0}},
-                          {0, {TileKind::Empty, std::nullopt}}});
         Texture2D tileSet("../textures/tile_set.png");
         Shader tileSetShader;
-        tileSetShader.initByPath("../shaders/tile_set.vs", "../shaders/tile_set.fs");
+        tileSetShader.initByShaderFile("../shaders/tile_set.vs", "../shaders/tile_set.fs");
         SpriteRenderer tileSetSpriteRenderer(tileSetShader);
         TileMapRenderer tileMapRenderer(tileSet, tileSetSpriteRenderer);
 
-        glm::mat4 projection = glm::ortho(0.0f, (float)screenWidth, (float)screenHeight, 0.0f);
-        Camera2D camera(screenWidth, screenHeight, 4);
+        Camera2D camera(screenWidth, screenHeight, 3.5f);
         camera.setWorldBounds(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
 
         Texture2D playerTexture("../textures/player.png");
@@ -107,8 +77,9 @@ int main()
 
             FixedTimeStep timestepper(0.01f);
             timestepper.run(deltaTime, [&](float dt)
-                            { player.update(dt, tileMap); 
-                            camera.follow(player.getPosition()); });
+                            { player.fixedUpdate(dt, tileMap); });
+            player.update(deltaTime, tileMap);
+            camera.follow(player.getPosition());
             tileMap.update(deltaTime);
 
             glm::mat4 projection = camera.getProjection();

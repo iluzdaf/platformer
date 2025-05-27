@@ -1,8 +1,7 @@
 #pragma once
-#include <vector>
+#include "animations/frame_animation_data.hpp"
 
 struct TileAnimationData
 {
-    std::vector<int> frames;
-    float frameDuration = 0.1f;
+    FrameAnimationData frameAnimationData;
 };

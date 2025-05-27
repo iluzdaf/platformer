@@ -1,11 +1,11 @@
 #pragma once
-#include <vector>
+#include "animations/frame_animation_data.hpp"
 
 class FrameAnimation
 {
 public:
     FrameAnimation() = default;
-    FrameAnimation(std::vector<int> frames, float frameDuration);
+    FrameAnimation(const FrameAnimationData &frameAnimationData);
     void update(float deltaTime);
     int getCurrentFrame() const;
     void reset();

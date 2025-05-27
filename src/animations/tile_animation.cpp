@@ -1,16 +1,16 @@
 #include "animations/tile_animation.hpp"
 
 TileAnimation::TileAnimation(const TileAnimationData &tileAnimationData)
-    : animation(std::move(tileAnimationData.frames), tileAnimationData.frameDuration)
+    : frameAnimation(tileAnimationData.frameAnimationData)
 {
 }
 
 void TileAnimation::update(float deltaTime)
 {
-    animation.update(deltaTime);
+    frameAnimation.update(deltaTime);
 }
 
 int TileAnimation::getCurrentFrame() const
 {
-    return animation.getCurrentFrame();
+    return frameAnimation.getCurrentFrame();
 }

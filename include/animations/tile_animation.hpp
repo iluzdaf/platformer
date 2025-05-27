@@ -10,5 +10,5 @@ public:
     int getCurrentFrame() const;
 
 private:
-    FrameAnimation animation;
+    FrameAnimation frameAnimation;
 };

@@ -1,23 +1,21 @@
 #include "animations/sprite_animation.hpp"
 
-SpriteAnimation::SpriteAnimation(std::vector<int> frames,
-                                 float frameDuration,
-                                 int frameWidth,
-                                 int frameHeight,
-                                 int textureWidth)
-    : animation(std::move(frames), frameDuration),
-      frameWidth(frameWidth),
-      frameHeight(frameHeight),
-      textureWidth(textureWidth) {}
+SpriteAnimation::SpriteAnimation(const SpriteAnimationData &spriteAnimationData)
+    : frameAnimation(spriteAnimationData.frameAnimationData),
+      frameWidth(spriteAnimationData.frameWidth),
+      frameHeight(spriteAnimationData.frameHeight),
+      textureWidth(spriteAnimationData.textureWidth)
+{
+}
 
 void SpriteAnimation::update(float deltaTime)
 {
-    animation.update(deltaTime);
+    frameAnimation.update(deltaTime);
 }
 
 glm::vec2 SpriteAnimation::getUVStart() const
 {
-    int frame = animation.getCurrentFrame();
+    int frame = frameAnimation.getCurrentFrame();
     int cols = textureWidth / frameWidth;
     int x = frame % cols;
     int y = frame / cols;

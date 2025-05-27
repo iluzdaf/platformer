@@ -2032,19 +2032,21 @@
     "42": {
       "kind": 2,
       "animationData": {
-        "frames": [
-          42,
-          43,
-          44,
-          45,
-          46,
-          47,
-          48,
-          35,
-          36,
-          37
-        ],
-        "frameDuration": 0.075
+        "frameAnimationData": {
+          "frames": [
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            35,
+            36,
+            37
+          ],
+          "frameDuration": 0.075
+        }
       },
       "pickupReplaceIndex": 0
     }

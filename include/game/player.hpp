@@ -3,12 +3,7 @@
 #include "tile_map.hpp"
 #include "animations/sprite_animation.hpp"
 #include "game/player_data.hpp"
-
-enum class PlayerAnimationState
-{
-    Idle,
-    Walk
-};
+#include "game/player_animation_state.hpp"
 
 class Player
 {

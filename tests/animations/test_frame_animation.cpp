@@ -1,9 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include "animations/frame_animation.hpp"
 
+// What happens when we try to use a default frame animation?
+
 TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
 {
-    FrameAnimation anim({1, 2, 3}, 0.5f);
+    FrameAnimation anim(FrameAnimationData{{1, 2, 3}, 0.5f});
 
     SECTION("Starts at first frame")
     {

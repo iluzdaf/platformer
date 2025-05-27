@@ -3,7 +3,7 @@
 
 TEST_CASE("TileAnimation advances frames over time correctly", "[TileAnimation]")
 {
-    TileAnimation anim(TileAnimationData{{10, 11, 12, 13}, 0.25f});
+    TileAnimation anim(TileAnimationData{FrameAnimationData{{10, 11, 12, 13}, 0.25f}});
 
     SECTION("Starts at first frame")
     {

@@ -8,5 +8,29 @@
     "size": [
         16.0,
         16.0
-    ]
+    ],
+    "idleSpriteAnimationData": {
+        "frameAnimationData": {
+            "frames": [
+                30
+            ],
+            "frameDuration": 1
+        },
+        "frameWidth": 16,
+        "frameHeight": 16,
+        "textureWidth": 96
+    },
+    "walkSpriteAnimationData": {
+        "frameAnimationData": {
+            "frames": [
+                34,
+                26,
+                35
+            ],
+            "frameDuration": 0.1
+        },
+        "frameWidth": 16,
+        "frameHeight": 16,
+        "textureWidth": 96
+    }
 }

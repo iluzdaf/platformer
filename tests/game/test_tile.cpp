@@ -22,7 +22,7 @@ TEST_CASE("Tile is not animated by default", "[Tile]")
 
 TEST_CASE("Tile becomes animated when animation is set", "[Tile]")
 {
-    Tile tile(TileData{TileKind::Empty, TileAnimationData{{1, 2, 3}, 0.5f}});
+    Tile tile(TileData{TileKind::Empty, TileAnimationData{FrameAnimationData{{1, 2, 3}, 0.5f}}});
 
     REQUIRE(tile.isAnimated());
     REQUIRE(tile.getCurrentFrame() == 1);
@@ -30,7 +30,7 @@ TEST_CASE("Tile becomes animated when animation is set", "[Tile]")
 
 TEST_CASE("Tile updates animation over time", "[Tile]")
 {
-    Tile tile(TileData{TileKind::Empty, TileAnimationData{{10, 11, 12}, 0.25f}});
+    Tile tile(TileData{TileKind::Empty, TileAnimationData{FrameAnimationData{{10, 11, 12}, 0.25f}}});
     tile.update(0.25f);
     REQUIRE(tile.getCurrentFrame() == 11);
 

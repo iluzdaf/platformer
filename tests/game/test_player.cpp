@@ -33,6 +33,8 @@ Player setupPlayer(glm::vec2 startPosition = glm::vec2(0, 0))
 {
     PlayerData playerData;
     playerData.startPosition = startPosition;
+    playerData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
+    playerData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
     return Player(playerData);
 }
 

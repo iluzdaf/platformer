@@ -32,8 +32,8 @@ void Player::initFromData(const PlayerData &playerData)
     moveSpeed = playerData.moveSpeed;
     jumpSpeed = playerData.jumpSpeed;
     size = playerData.size;
-    idleAnim = SpriteAnimation({30}, 1.0f, size.x, size.y, 96);
-    walkAnim = SpriteAnimation({34, 26, 35}, 0.1f, size.x, size.y, 96);
+    idleAnim = SpriteAnimation(playerData.idleSpriteAnimationData);
+    walkAnim = SpriteAnimation(playerData.walkSpriteAnimationData);
     currentAnim = &idleAnim;
 }
 

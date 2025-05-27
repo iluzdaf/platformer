@@ -1,8 +1,8 @@
 #include "animations/frame_animation.hpp"
 
-FrameAnimation::FrameAnimation(std::vector<int> frames, float frameDuration)
-    : frames(std::move(frames)),
-      frameDuration(frameDuration)
+FrameAnimation::FrameAnimation(const FrameAnimationData &frameAnimationData)
+    : frames(std::move(frameAnimationData.frames)),
+      frameDuration(frameAnimationData.frameDuration)
 {
 }
 

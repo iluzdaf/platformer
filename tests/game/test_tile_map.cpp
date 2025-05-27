@@ -98,9 +98,9 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     tileMapData.width = 2;
     tileMapData.height = 2;
     tileMapData.tileData = {
-        {1, TileData{TileKind::Empty, TileAnimationData({10, 11, 12}, 0.1f)}},
+        {1, TileData{TileKind::Empty, TileAnimationData(FrameAnimationData({10, 11, 12}, 0.1f))}},
         {2, TileData{TileKind::Empty}},
-        {3, TileData{TileKind::Empty, TileAnimationData({5, 6}, 0.1f)}}};
+        {3, TileData{TileKind::Empty, TileAnimationData(FrameAnimationData({5, 6}, 0.1f))}}};
     TileMap tileMap(tileMapData);
     tileMap.setTileIndex(0, 0, 1);
     tileMap.setTileIndex(0, 1, 2);

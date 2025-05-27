@@ -5,7 +5,7 @@
 TEST_CASE("Shader is valid", "[Shader]")
 {
     Shader shader;
-    shader.initByShaderFile("../shaders/sprite.vs", "../shaders/sprite.fs");
+    REQUIRE_NOTHROW(shader.initByShaderFile("../assets/shaders/sprite.vs", "../assets/shaders/sprite.fs"));
     REQUIRE(shader.valid());
 }
 
@@ -13,7 +13,7 @@ TEST_CASE("Shader does not exist", "[Shader]")
 {
     Shader shader;
     REQUIRE_THROWS_WITH(
-        shader.initByShaderFile("../shaders/does_not_exist.vs", "../shaders/does_not_exist.fs"),
+        shader.initByShaderFile("../assets/shaders/does_not_exist.vs", "../assets/shaders/does_not_exist.fs"),
         "Vertex shader code is empty");
 }
 
@@ -73,8 +73,8 @@ TEST_CASE("Shader fails to link", "[Shader]")
 TEST_CASE("Shader can only initialize once", "[Shader]")
 {
     Shader shader;
-    shader.initByShaderFile("../shaders/sprite.vs", "../shaders/sprite.fs");
+    shader.initByShaderFile("../assets/shaders/sprite.vs", "../assets/shaders/sprite.fs");
     REQUIRE_THROWS_WITH(
-        shader.initByShaderFile("../shaders/sprite.vs", "../shaders/sprite.fs"),
+        shader.initByShaderFile("../assets/shaders/sprite.vs", "../assets/shaders/sprite.fs"),
         "Shader is already initialized");
 }

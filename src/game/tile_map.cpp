@@ -3,18 +3,9 @@
 #include <glaze/glaze.hpp>
 #include <optional>
 
-TileMap::TileMap()
+TileMap::TileMap(const std::string &jsonFilePath)
 {
-}
-
-void TileMap::initByJsonFile(const std::string jsonFilePath)
-{
-    if (valid())
-    {
-        throw std::runtime_error("TileMap can only be initialized once");
-    }
-
-    if (jsonFilePath.empty())
+        if (jsonFilePath.empty())
     {
         throw std::runtime_error("jsonFilePath is empty");
     }
@@ -29,13 +20,13 @@ void TileMap::initByJsonFile(const std::string jsonFilePath)
     initByData(tileMapData);
 }
 
+TileMap::TileMap(const TileMapData &tileMapData)
+{
+    initByData(tileMapData);
+}
+
 void TileMap::initByData(const TileMapData &tileMapData)
 {
-    if (valid())
-    {
-        throw std::runtime_error("TileMap can only be initialized once");
-    }
-
     tileSize = tileMapData.size;
 
     const bool hasTileIndices = tileMapData.indices.has_value();
@@ -85,15 +76,10 @@ void TileMap::initByData(const TileMapData &tileMapData)
         throw std::runtime_error("TileMapData has invalid dimensions");
     }
 
-    for (const auto &[tileIndex, tileData] : tileMapData.data)
+    for (const auto &[tileIndex, tileData] : tileMapData.tileData)
     {
         tiles.insert_or_assign(tileIndex, Tile(tileData));
     }
-}
-
-bool TileMap::valid() const
-{
-    return width > 0 && height > 0 && tileSize > 0 && !tileIndices.empty();
 }
 
 void TileMap::setTileIndex(int x, int y, int tile)

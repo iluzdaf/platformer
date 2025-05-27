@@ -4,20 +4,17 @@
 
 // TileMap getWorldHeight and width
 // Tilemap initializes size correctly
-// TileMap init with json, init only once
+// TileMap init with json
 
 TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
 {
     TileMapData tileMapData;
-    tileMapData.size = 1;
     tileMapData.width = 10;
     tileMapData.height = 5;
-    TileMap tileMap;
-    tileMap.initByData(tileMapData);
+    TileMap tileMap(tileMapData);
 
     REQUIRE(tileMap.getWidth() == 10);
     REQUIRE(tileMap.getHeight() == 5);
-
     for (int y = 0; y < tileMap.getHeight(); ++y)
         for (int x = 0; x < tileMap.getWidth(); ++x)
             REQUIRE(tileMap.getTileIndex(x, y) == -1);
@@ -26,11 +23,9 @@ TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
 TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 {
     TileMapData tileMapData;
-    tileMapData.size = 1;
     tileMapData.width = 3;
     tileMapData.height = 3;
-    TileMap tileMap;
-    tileMap.initByData(tileMapData);
+    TileMap tileMap(tileMapData);
 
     SECTION("Sets and gets tile indices correctly")
     {
@@ -65,14 +60,12 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 TEST_CASE("TileMap returns correct tile", "[TileMap]")
 {
     TileMapData tileMapData;
-    tileMapData.size = 1;
     tileMapData.width = 3;
     tileMapData.height = 3;
-    tileMapData.data = {{1, {TileKind::Solid}},
-                        {2, {TileKind::Empty}},
-                        {3, {TileKind::Empty}}};
-    TileMap tileMap;
-    tileMap.initByData(tileMapData);
+    tileMapData.tileData = {{1, {TileKind::Solid}},
+                            {2, {TileKind::Empty}},
+                            {3, {TileKind::Empty}}};
+    TileMap tileMap(tileMapData);
 
     SECTION("Known indices")
     {
@@ -102,15 +95,13 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
 TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 {
     TileMapData tileMapData;
-    tileMapData.size = 1;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    tileMapData.data = {
+    tileMapData.tileData = {
         {1, TileData{TileKind::Empty, TileAnimationData({10, 11, 12}, 0.1f)}},
         {2, TileData{TileKind::Empty}},
         {3, TileData{TileKind::Empty, TileAnimationData({5, 6}, 0.1f)}}};
-    TileMap tileMap;
-    tileMap.initByData(tileMapData);
+    TileMap tileMap(tileMapData);
     tileMap.setTileIndex(0, 0, 1);
     tileMap.setTileIndex(0, 1, 2);
     tileMap.setTileIndex(1, 1, 3);
@@ -140,13 +131,11 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 TEST_CASE("Pickup tile is defined correctly", "[tilemap]")
 {
     TileMapData tileMapData;
-    tileMapData.size = 1;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    tileMapData.data = {{0, {TileKind::Empty}},
-                        {5, {TileKind::Pickup, std::nullopt, 0}}};
-    TileMap tileMap;
-    tileMap.initByData(tileMapData);
+    tileMapData.tileData = {{0, {TileKind::Empty}},
+                            {5, {TileKind::Pickup, std::nullopt, 0}}};
+    TileMap tileMap(tileMapData);
     tileMap.setTileIndex(1, 1, 5);
     auto tileOpt = tileMap.getTile(5);
 

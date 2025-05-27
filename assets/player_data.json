@@ -1,0 +1,12 @@
+{
+    "startPosition": [
+        100.0,
+        400.0
+    ],
+    "moveSpeed": 160.0,
+    "jumpSpeed": -320.0,
+    "size": [
+        16.0,
+        16.0
+    ]
+}

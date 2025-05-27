@@ -4,5 +4,5 @@
 struct TileAnimationData
 {
     std::vector<int> frames;
-    float frameDuration;
+    float frameDuration = 0.1f;
 };

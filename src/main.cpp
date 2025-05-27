@@ -16,48 +16,43 @@ const unsigned int screenHeight = 600;
 
 int main()
 {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "Platformer", NULL, NULL);
-    if (!window)
-    {
-        std::cerr << "Failed to create window\n";
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cerr << "Failed to initialize GLAD\n";
-        return -1;
-    }
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     try
     {
+        glfwInit();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "Platformer", NULL, NULL);
+        if (!window)
+        {
+            throw std::runtime_error("Failed to create window");
+        }
+        glfwMakeContextCurrent(window);
+        glfwSwapInterval(1);
+
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        {
+            throw std::runtime_error("Failed to initialize GLAD");
+        }
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         float lastTime = glfwGetTime();
 
-        TileMap tileMap;
-        tileMap.initByJsonFile("../tile_maps/level1.json");
-
-        Texture2D tileSet("../textures/tile_set.png");
+        TileMap tileMap("../assets/tile_maps/level1.json");
+        Texture2D tileSet("../assets/textures/tile_set.png");
         Shader tileSetShader;
-        tileSetShader.initByShaderFile("../shaders/tile_set.vs", "../shaders/tile_set.fs");
+        tileSetShader.initByShaderFile("../assets/shaders/tile_set.vs", "../assets/shaders/tile_set.fs");
         SpriteRenderer tileSetSpriteRenderer(tileSetShader);
         TileMapRenderer tileMapRenderer(tileSet, tileSetSpriteRenderer);
 
         Camera2D camera(screenWidth, screenHeight, 3.5f);
         camera.setWorldBounds(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
 
-        Texture2D playerTexture("../textures/player.png");
-        Player player(glm::vec2(100, 400));
+        Texture2D playerTexture("../assets/textures/player.png");
+        Player player("../assets/player_data.json");
 
         while (!glfwWindowShouldClose(window))
         {
@@ -88,7 +83,7 @@ int main()
                 playerTexture,
                 projection,
                 player.getPosition(),
-                player.size,
+                player.getSize(),
                 player.getCurrentAnimation().getUVStart(),
                 player.getCurrentAnimation().getUVEnd(),
                 player.isFacingLeft());
@@ -96,12 +91,14 @@ int main()
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
+
+        glfwTerminate();
+        return 0;
     }
     catch (const std::runtime_error &e)
     {
         std::cout << e.what() << "\n";
+        glfwTerminate();
+        return -1;
     }
-
-    glfwTerminate();
-    return 0;
 }

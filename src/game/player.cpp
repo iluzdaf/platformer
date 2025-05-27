@@ -2,9 +2,36 @@
 #include "game/tile.hpp"
 #include <cassert>
 #include <algorithm>
+#include <glaze/glaze.hpp>
 
-Player::Player(glm::vec2 startPos) : position(startPos)
+Player::Player(const std::string &jsonFilePath)
 {
+    if (jsonFilePath.empty())
+    {
+        throw std::runtime_error("jsonFilePath is empty");
+    }
+
+    PlayerData playerData;
+    auto ec = glz::read_file_json(playerData, jsonFilePath, std::string{});
+    if (ec)
+    {
+        throw std::runtime_error("Failed to read json file");
+    }
+
+    initFromData(playerData);
+}
+
+Player::Player(const PlayerData &playerData)
+{
+    initFromData(playerData);
+}
+
+void Player::initFromData(const PlayerData &playerData)
+{
+    position = playerData.startPosition;
+    moveSpeed = playerData.moveSpeed;
+    jumpSpeed = playerData.jumpSpeed;
+    size = playerData.size;
     idleAnim = SpriteAnimation({30}, 1.0f, size.x, size.y, 96);
     walkAnim = SpriteAnimation({34, 26, 35}, 0.1f, size.x, size.y, 96);
     currentAnim = &idleAnim;
@@ -45,7 +72,7 @@ void Player::jump()
 {
     if (velocity.y == 0.0f)
     {
-        velocity.y = jumpVelocity;
+        velocity.y = jumpSpeed;
     }
 }
 
@@ -184,4 +211,19 @@ void Player::handlePickup(TileMap &tileMap)
         assert(replaceIndexOpt.has_value());
         tileMap.setTileIndex(tileX, tileY, replaceIndexOpt.value());
     }
+}
+
+glm::vec2 Player::getSize() const
+{
+    return size;
+}
+
+float Player::getMoveSpeed() const
+{
+    return moveSpeed;
+}
+
+float Player::getJumpSpeed() const
+{
+    return jumpSpeed;
 }

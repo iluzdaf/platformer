@@ -8,10 +8,8 @@
 class TileMap
 {
 public:
-    TileMap();
-    void initByJsonFile(const std::string jsonFilePath);
-    void initByData(const TileMapData& tileMapData);
-    bool valid() const;
+    explicit TileMap(const std::string& jsonFilePath);
+    explicit TileMap(const TileMapData& tileMapData);
     void setTileIndex(int x, int y, int tile);
     int getTileIndex(int x, int y) const;
     int getWidth() const;
@@ -26,4 +24,5 @@ private:
     int width = 0, height = 0, tileSize = 0;
     std::vector<std::vector<int>> tileIndices;
     std::unordered_map<int, Tile> tiles;
+    void initByData(const TileMapData &tileMapData);
 };

@@ -1,41 +1,51 @@
 #include <catch2/catch_test_macros.hpp>
 #include "animations/frame_animation.hpp"
 
-// What happens when we try to use a default frame animation?
+TEST_CASE("Default Constucted FrameAnimation behaves correctly", "[FrameAnimation]")
+{
+    FrameAnimation frameAnimation;
+    REQUIRE(frameAnimation.getCurrentFrame() == 0);
+
+    frameAnimation.update(0.5f);
+    REQUIRE(frameAnimation.getCurrentFrame() == 0);
+
+    frameAnimation.reset();
+    REQUIRE(frameAnimation.getCurrentFrame() == 0);
+}
 
 TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
 {
-    FrameAnimation anim(FrameAnimationData{{1, 2, 3}, 0.5f});
+    FrameAnimation frameAnimation(FrameAnimationData{{1, 2, 3}, 0.5f});
 
     SECTION("Starts at first frame")
     {
-        REQUIRE(anim.getCurrentFrame() == 1);
+        REQUIRE(frameAnimation.getCurrentFrame() == 1);
     }
 
     SECTION("Advances to next frame after time")
     {
-        anim.update(0.5f);
-        REQUIRE(anim.getCurrentFrame() == 2);
+        frameAnimation.update(0.5f);
+        REQUIRE(frameAnimation.getCurrentFrame() == 2);
     }
 
     SECTION("Wraps around after all frames")
     {
-        anim.update(1.5f);
-        REQUIRE(anim.getCurrentFrame() == 1);
+        frameAnimation.update(1.5f);
+        REQUIRE(frameAnimation.getCurrentFrame() == 1);
     }
 
     SECTION("Multiple small steps accumulate")
     {
-        anim.update(0.2f);
-        anim.update(0.2f);
-        anim.update(0.2f);
-        REQUIRE(anim.getCurrentFrame() == 2);
+        frameAnimation.update(0.2f);
+        frameAnimation.update(0.2f);
+        frameAnimation.update(0.2f);
+        REQUIRE(frameAnimation.getCurrentFrame() == 2);
     }
 
     SECTION("Reset returns to frame 0")
     {
-        anim.update(1.0f);
-        anim.reset();
-        REQUIRE(anim.getCurrentFrame() == 1);
+        frameAnimation.update(1.0f);
+        frameAnimation.reset();
+        REQUIRE(frameAnimation.getCurrentFrame() == 1);
     }
 }

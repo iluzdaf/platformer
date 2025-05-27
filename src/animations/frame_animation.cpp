@@ -1,9 +1,11 @@
+#include <cassert>
 #include "animations/frame_animation.hpp"
 
 FrameAnimation::FrameAnimation(const FrameAnimationData &frameAnimationData)
     : frames(std::move(frameAnimationData.frames)),
       frameDuration(frameAnimationData.frameDuration)
 {
+    assert(frameDuration > 0);
 }
 
 void FrameAnimation::update(float deltaTime)

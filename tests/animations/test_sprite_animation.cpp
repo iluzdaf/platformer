@@ -1,10 +1,19 @@
 #include <catch2/catch_test_macros.hpp>
-#include "animations/sprite_animation.hpp"
 #include <glm/glm.hpp>
 #include <catch2/catch_approx.hpp>
+#include "animations/sprite_animation.hpp"
 using Catch::Approx;
 
-// What happens when we try to use a default sprite animation?
+TEST_CASE("Default Constucted SpriteAnimation behaves correctly", "[FrameAnimation]")
+{
+    SpriteAnimation spriteAnimation;
+    REQUIRE(spriteAnimation.getUVStart() == glm::vec2(0, 0));
+    REQUIRE(spriteAnimation.getUVEnd() == glm::vec2(1, 1));
+
+    spriteAnimation.update(0.5f);
+    REQUIRE(spriteAnimation.getUVStart() == glm::vec2(0, 0));
+    REQUIRE(spriteAnimation.getUVEnd() == glm::vec2(1, 1));
+}
 
 TEST_CASE("SpriteAnimation returns correct UVs", "[SpriteAnimation]")
 {

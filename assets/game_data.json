@@ -1,0 +1,46 @@
+{
+    "playerData": {
+        "startPosition": [
+            100.0,
+            400.0
+        ],
+        "moveSpeed": 160.0,
+        "jumpSpeed": -320.0,
+        "size": [
+            16.0,
+            16.0
+        ],
+        "idleSpriteAnimationData": {
+            "frameAnimationData": {
+                "frames": [
+                    30
+                ],
+                "frameDuration": 1
+            },
+            "frameWidth": 16,
+            "frameHeight": 16,
+            "textureWidth": 96
+        },
+        "walkSpriteAnimationData": {
+            "frameAnimationData": {
+                "frames": [
+                    34,
+                    26,
+                    35
+                ],
+                "frameDuration": 0.1
+            },
+            "frameWidth": 16,
+            "frameHeight": 16,
+            "textureWidth": 96
+        }
+    },
+    "cameraData": {
+        "width": 800,
+        "height": 600,
+        "zoom": 3.5
+    },
+    "physicsData": {
+        "gravity": 980.0
+    }
+}

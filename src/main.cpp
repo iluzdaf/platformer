@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glaze/glaze.hpp>
 #include "rendering/texture2d.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/sprite_renderer.hpp"
@@ -10,9 +11,7 @@
 #include "game/player.hpp"
 #include "game/fixed_time_step.hpp"
 #include "game/camera2d.hpp"
-
-const unsigned int screenWidth = 800;
-const unsigned int screenHeight = 600;
+#include "game/game_data.hpp"
 
 int main()
 {
@@ -23,7 +22,16 @@ int main()
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "Platformer", NULL, NULL);
+        GameData gameData;
+        auto ec = glz::read_file_json(gameData, "../assets/game_data.json", std::string{});
+        if (ec)
+        {
+            throw std::runtime_error("Failed to read game data json file");
+        }
+        assert(gameData.cameraData.width > 0);
+        assert(gameData.cameraData.height > 0);
+
+        GLFWwindow *window = glfwCreateWindow(gameData.cameraData.width, gameData.cameraData.height, "Platformer", NULL, NULL);
         if (!window)
         {
             throw std::runtime_error("Failed to create window");
@@ -48,11 +56,11 @@ int main()
         SpriteRenderer tileSetSpriteRenderer(tileSetShader);
         TileMapRenderer tileMapRenderer(tileSet, tileSetSpriteRenderer);
 
-        Camera2D camera(screenWidth, screenHeight, 3.5f);
+        Camera2D camera(gameData.cameraData);
         camera.setWorldBounds(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
 
         Texture2D playerTexture("../assets/textures/player.png");
-        Player player("../assets/player_data.json");
+        Player player(gameData.playerData, gameData.physicsData);
 
         while (!glfwWindowShouldClose(window))
         {

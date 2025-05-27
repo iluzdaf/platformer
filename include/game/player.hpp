@@ -4,12 +4,12 @@
 #include "animations/sprite_animation.hpp"
 #include "game/player_data.hpp"
 #include "game/player_animation_state.hpp"
+#include "game/physics_data.hpp"
 
 class Player
 {
 public:
-    explicit Player(const std::string& jsonFilePath);
-    explicit Player(const PlayerData &playerData);
+    Player(const PlayerData &playerData, const PhysicsData &physicsData);
     void fixedUpdate(float deltaTime, TileMap &tileMap);
     void update(float deltaTime, TileMap &tileMap);
     void jump();
@@ -17,7 +17,6 @@ public:
     void moveRight();
     glm::vec2 getPosition() const;
     glm::vec2 getVelocity() const;
-    static constexpr float gravity = 980.0f;
     const SpriteAnimation &getCurrentAnimation() const;
     PlayerAnimationState getAnimationState() const;
     bool isFacingLeft() const;
@@ -43,4 +42,5 @@ private:
     float moveSpeed = 0, jumpSpeed = 0;
     glm::vec2 size = glm::vec2(1, 1);
     void initFromData(const PlayerData &playerData);
+    float gravity;
 };

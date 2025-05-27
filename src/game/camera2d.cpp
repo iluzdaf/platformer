@@ -3,8 +3,8 @@
 #include <cassert>
 #include <algorithm>
 
-Camera2D::Camera2D(float screenWidth, float screenHeight, float zoom)
-    : screenWidth(screenWidth), screenHeight(screenHeight), zoom(zoom)
+Camera2D::Camera2D(const Camera2DData &cameraData)
+    : screenWidth(cameraData.width), screenHeight(cameraData.height), zoom(cameraData.zoom)
 {
     assert(screenWidth > 0.0f && "screenWidth must be positive");
     assert(screenHeight > 0.0f && "screenHeight must be positive");

@@ -1,13 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "game/camera2d.hpp"
 #include <catch2/catch_approx.hpp>
+#include "game/camera2d.hpp"
+#include "game/camera2d_data.hpp"
 using Catch::Approx;
 
 TEST_CASE("Camera2D clamps target to bounds", "[Camera2D]")
 {
-    Camera2D camera(100.0f, 80.0f, 1.0f);
+    Camera2D camera(Camera2DData(100, 80, 1.0f));
     camera.setWorldBounds(glm::vec2(0, 0), glm::vec2(200, 200));
 
     SECTION("Camera centers on target inside bounds")

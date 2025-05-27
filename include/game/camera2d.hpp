@@ -1,10 +1,11 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "game/camera2d_data.hpp"
 
 class Camera2D
 {
 public:
-    Camera2D(float screenWidth, float screenHeight, float zoom = 1.0f);
+    explicit Camera2D(const Camera2DData &cameraData);
     void follow(const glm::vec2 &target);
     void setWorldBounds(const glm::vec2 &min, const glm::vec2 &max);
     glm::mat4 getProjection() const;

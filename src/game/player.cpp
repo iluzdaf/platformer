@@ -1,29 +1,12 @@
-#include "game/player.hpp"
-#include "game/tile.hpp"
 #include <cassert>
 #include <algorithm>
-#include <glaze/glaze.hpp>
+#include "game/player.hpp"
+#include "game/tile.hpp"
 
-Player::Player(const std::string &jsonFilePath)
-{
-    if (jsonFilePath.empty())
-    {
-        throw std::runtime_error("jsonFilePath is empty");
-    }
-
-    PlayerData playerData;
-    auto ec = glz::read_file_json(playerData, jsonFilePath, std::string{});
-    if (ec)
-    {
-        throw std::runtime_error("Failed to read json file");
-    }
-
-    initFromData(playerData);
-}
-
-Player::Player(const PlayerData &playerData)
+Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
 {
     initFromData(playerData);
+    gravity = physicsData.gravity;
 }
 
 void Player::initFromData(const PlayerData &playerData)

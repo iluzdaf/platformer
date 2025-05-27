@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "game/player.hpp"
 #include "game/fixed_time_step.hpp"
+#include "game/physics_data.hpp"
 using Catch::Approx;
 
 // player starts in solid tile
@@ -29,13 +30,15 @@ TileMap setupSimpleTileMap(int width = 10, int height = 10, int tileSize = 16)
     return tileMap;
 }
 
-Player setupPlayer(glm::vec2 startPosition = glm::vec2(0, 0))
+Player setupPlayer(glm::vec2 startPosition = glm::vec2(0, 0), float gravity = 980.0f)
 {
     PlayerData playerData;
     playerData.startPosition = startPosition;
     playerData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
     playerData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
-    return Player(playerData);
+    PhysicsData physicsData;
+    physicsData.gravity = gravity;
+    return Player(playerData, physicsData);
 }
 
 TEST_CASE("Player starts with correct position and zero velocity", "[Player]")
@@ -48,14 +51,15 @@ TEST_CASE("Player starts with correct position and zero velocity", "[Player]")
 
 TEST_CASE("Player falls under gravity", "[Player]")
 {
-    Player player = setupPlayer();
-    TileMap tileMap = setupSimpleTileMap(1, player.gravity + 2);
+    float gravity = 980.0f;
+    Player player = setupPlayer(glm::vec2(0, 0), gravity);
+    TileMap tileMap = setupSimpleTileMap(1, gravity + 2);
     simulatePlayer(player, tileMap, 1.0f);
 
     glm::vec2 vel = player.getVelocity();
     glm::vec2 pos = player.getPosition();
-    REQUIRE(vel.y == Approx(Player::gravity));
-    REQUIRE(pos.y == Approx(0.5f * Player::gravity).margin(5));
+    REQUIRE(vel.y == Approx(gravity));
+    REQUIRE(pos.y == Approx(0.5f * gravity).margin(5));
 }
 
 TEST_CASE("Player jumps upward", "[Player]")

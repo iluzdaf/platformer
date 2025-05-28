@@ -28,6 +28,8 @@ void TileMap::initByData(const TileMapData &tileMapData)
 {
     tileSize = tileMapData.size;
 
+    assert(tileSize > 0);
+
     const bool hasTileIndices = tileMapData.indices.has_value();
     const bool hasExplicitSize = tileMapData.width.has_value() && tileMapData.height.has_value();
 
@@ -107,6 +109,13 @@ int TileMap::getTileIndex(int x, int y) const
     return tileIndices[x][y];
 }
 
+int TileMap::getTileIndex(glm::vec2 worldPosition) const
+{
+    int tileX = static_cast<int>((worldPosition.x)) / tileSize;
+    int tileY = static_cast<int>((worldPosition.y)) / tileSize;
+    return getTileIndex(tileX, tileY);
+}
+
 int TileMap::getWidth() const { return width; }
 
 int TileMap::getHeight() const { return height; }
@@ -119,6 +128,18 @@ const Tile &TileMap::getTile(int tileIndex) const
         return tiles.at(-1);
     }
     return it->second;
+}
+
+const Tile &TileMap::getTile(int x, int y) const
+{
+    int tileIndex = getTileIndex(x, y);
+    return getTile(tileIndex);
+}
+
+const Tile &TileMap::getTile(glm::vec2 worldPosition) const
+{
+    int tileIndex = getTileIndex(worldPosition);
+    return getTile(tileIndex);
 }
 
 int TileMap::getTileSize() const

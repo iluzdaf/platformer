@@ -79,17 +79,15 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
 {
     if (std::abs(velY) < 0.0001f)
         return;
-
-    const int tileSize = tileMap.getTileSize();
-    const float centerX = position.x + size.x / 2.0f;
-    const float verticalEdgeY = (velY > 0.0f) ? nextY + size.y : nextY;
-    const int tileX = static_cast<int>(centerX) / tileSize;
-    const int tileY = static_cast<int>(verticalEdgeY) / tileSize;
-    const int tileIndex = tileMap.getTileIndex(tileX, tileY);
-    const bool collidesWithSolidTile = tileMap.getTile(tileIndex).isSolid();
+    
+    float centerX = position.x + size.x / 2.0f;
+    float verticalEdgeY = (velY > 0.0f) ? nextY + size.y : nextY;
+    bool collidesWithSolidTile = tileMap.getTile(glm::vec2(centerX, verticalEdgeY)).isSolid();
 
     if (collidesWithSolidTile)
     {
+        int tileSize = tileMap.getTileSize();
+        int tileY = static_cast<int>(verticalEdgeY) / tileSize;
         nextY = snapToTileEdge(tileY, tileSize, velY > 0.0f, size.y);
         velY = 0.0f;
     }
@@ -100,16 +98,14 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
     if (std::abs(velX) < 0.0001f)
         return;
 
-    const int tileSize = tileMap.getTileSize();
-    const float bottomY = nextY + size.y - 1.0f;
-    const float leadingEdgeX = (velX > 0) ? nextX + size.x : nextX;
-    const int tileX = static_cast<int>(leadingEdgeX) / tileSize;
-    const int tileY = static_cast<int>(bottomY) / tileSize;
-    const int tileIndex = tileMap.getTileIndex(tileX, tileY);
-    const bool collidesWithSolidTile = tileMap.getTile(tileIndex).isSolid();
+    float bottomY = nextY + size.y - 1.0f;
+    float leadingEdgeX = (velX > 0) ? nextX + size.x : nextX;
+    bool collidesWithSolidTile = tileMap.getTile(glm::vec2(leadingEdgeX, bottomY)).isSolid();
 
     if (collidesWithSolidTile)
     {
+        int tileSize = tileMap.getTileSize();
+        int tileX = static_cast<int>(leadingEdgeX) / tileSize;
         nextX = snapToTileEdge(tileX, tileSize, velX > 0.0f, size.x);
         velX = 0.0f;
     }
@@ -164,18 +160,24 @@ void Player::clampToTileMapBounds(const TileMap &tileMap)
         position.y = height - size.y;
         velocity.y = 0.0f;
     }
+
+    const Tile &tile = tileMap.getTile(position);
+    if (tile.isSolid())
+    {
+        throw std::runtime_error("Trying to clamp player into a solid tile");
+    }
 }
 
 void Player::handlePickup(TileMap &tileMap)
 {
-    int tileX = static_cast<int>((position.x)) / tileMap.getTileSize();
-    int tileY = static_cast<int>((position.y)) / tileMap.getTileSize();
-    int tileIndex = tileMap.getTileIndex(tileX, tileY);
-    const Tile& tile = tileMap.getTile(tileIndex);
+    const Tile &tile = tileMap.getTile(position);
     if (tile.isPickup())
     {
         auto replaceIndexOpt = tile.getPickupReplaceIndex();
         assert(replaceIndexOpt.has_value());
+        int tileSize = tileMap.getTileSize();
+        int tileX = static_cast<int>((position.x)) / tileSize;
+        int tileY = static_cast<int>((position.y)) / tileSize;
         tileMap.setTileIndex(tileX, tileY, replaceIndexOpt.value());
     }
 }

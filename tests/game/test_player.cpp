@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "game/player.hpp"
 #include "game/fixed_time_step.hpp"
 #include "game/physics_data.hpp"
 using Catch::Approx;
 
-// player starts in solid tile
 // player doesn't drift when moving left or right, also it's x velocity is reset every frame. Does this work with FixedTimeStep updates or do I need a PostUpdate to clean up?
 // what if tile size and player size is different?
 // what if player has super big move speed, gravity etc?
@@ -188,7 +188,7 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 
 TEST_CASE("Player and tilemap bounds", "[Player]")
 {
-    TileMap tileMap = setupTileMap(3, 3);
+    TileMap tileMap = setupTileMap(3, 3, 16, {{1, TileData{TileKind::Solid}}});
 
     SECTION("Player that spawns outside of the tileMap is clamped inside the tileMap")
     {
@@ -235,6 +235,20 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
             REQUIRE(position.x <= tileMap.getWorldWidth());
             REQUIRE(position.y <= tileMap.getWorldHeight());
         }
+    }
+
+    SECTION("Throws if player is clamped into a solid tile")
+    {
+        tileMap.setTileIndex(0, 0, 1);
+        tileMap.setTileIndex(0, 1, 1);
+        tileMap.setTileIndex(0, 2, 1);
+        tileMap.setTileIndex(1, 2, 1);
+        tileMap.setTileIndex(2, 2, 1);
+        tileMap.setTileIndex(2, 1, 1);
+        tileMap.setTileIndex(2, 0, 1);
+        tileMap.setTileIndex(1, 0, 1);
+        Player player = setupPlayer(glm::vec2(10.0f, 1000.0f));
+        REQUIRE_THROWS_WITH(simulatePlayer(player, tileMap, 0.1f), "Trying to clamp player into a solid tile");
     }
 }
 

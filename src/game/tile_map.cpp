@@ -1,7 +1,6 @@
 #include "game/tile_map.hpp"
 #include <cassert>
 #include <glaze/glaze.hpp>
-#include <optional>
 
 TileMap::TileMap(const std::string &jsonFilePath)
 {
@@ -76,6 +75,7 @@ void TileMap::initByData(const TileMapData &tileMapData)
         throw std::runtime_error("TileMapData has invalid dimensions");
     }
 
+    tiles.insert_or_assign(-1, Tile(TileData{TileKind::Empty}));
     for (const auto &[tileIndex, tileData] : tileMapData.tileData)
     {
         tiles.insert_or_assign(tileIndex, Tile(tileData));
@@ -111,12 +111,12 @@ int TileMap::getWidth() const { return width; }
 
 int TileMap::getHeight() const { return height; }
 
-std::optional<std::reference_wrapper<const Tile>> TileMap::getTile(int tileIndex) const
+const Tile &TileMap::getTile(int tileIndex) const
 {
     auto it = tiles.find(tileIndex);
     if (it == tiles.end())
     {
-        return std::nullopt;
+        return tiles.at(-1);
     }
     return it->second;
 }

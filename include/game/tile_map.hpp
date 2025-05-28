@@ -3,7 +3,6 @@
 #include "game/tile_map_data.hpp"
 #include <vector>
 #include <unordered_map>
-#include <optional>
 
 class TileMap
 {
@@ -14,7 +13,7 @@ public:
     int getTileIndex(int x, int y) const;
     int getWidth() const;
     int getHeight() const;
-    std::optional<std::reference_wrapper<const Tile>> getTile(int tileIndex) const;
+    const Tile& getTile(int tileIndex) const;
     int getTileSize() const;
     void update(float deltaTime);
     int getWorldWidth() const;

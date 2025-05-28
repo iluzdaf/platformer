@@ -20,14 +20,7 @@ void TileMapRenderer::draw(const TileMap &tileMap, const glm::mat4 &projection)
         for (int x = 0; x < tileMap.getWidth(); ++x)
         {
             int tileIndex = tileMap.getTileIndex(x, y);
-            if (tileIndex < 0)
-                continue;
-
-            auto tileOpt = tileMap.getTile(tileIndex);
-            if (!tileOpt)
-                continue;
-
-            const Tile &tile = tileOpt->get();
+            const Tile &tile = tileMap.getTile(tileIndex);
             int frameIndex = tile.isAnimated()
                                  ? tile.getCurrentFrame()
                                  : tileIndex;

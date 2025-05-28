@@ -3,13 +3,12 @@
 #include "game/player.hpp"
 #include "game/tile.hpp"
 
-Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) :
-    position (playerData.startPosition),
-    moveSpeed (playerData.moveSpeed),
-    jumpSpeed (playerData.jumpSpeed),
-    size (playerData.size),
-    idleAnim (SpriteAnimation(playerData.idleSpriteAnimationData)),
-    walkAnim (SpriteAnimation(playerData.walkSpriteAnimationData))
+Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : position(playerData.startPosition),
+                                                                               moveSpeed(playerData.moveSpeed),
+                                                                               jumpSpeed(playerData.jumpSpeed),
+                                                                               size(playerData.size),
+                                                                               idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
+                                                                               walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
 {
     currentAnim = &idleAnim;
     gravity = physicsData.gravity;
@@ -87,7 +86,7 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
     const int tileX = static_cast<int>(centerX) / tileSize;
     const int tileY = static_cast<int>(verticalEdgeY) / tileSize;
     const int tileIndex = tileMap.getTileIndex(tileX, tileY);
-    const bool collidesWithSolidTile = isTileSolid(tileMap, tileIndex);
+    const bool collidesWithSolidTile = tileMap.getTile(tileIndex).isSolid();
 
     if (collidesWithSolidTile)
     {
@@ -107,7 +106,7 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
     const int tileX = static_cast<int>(leadingEdgeX) / tileSize;
     const int tileY = static_cast<int>(bottomY) / tileSize;
     const int tileIndex = tileMap.getTileIndex(tileX, tileY);
-    const bool collidesWithSolidTile = isTileSolid(tileMap, tileIndex);
+    const bool collidesWithSolidTile = tileMap.getTile(tileIndex).isSolid();
 
     if (collidesWithSolidTile)
     {
@@ -137,15 +136,6 @@ PlayerAnimationState Player::getAnimationState() const
 bool Player::isFacingLeft() const
 {
     return facingLeft;
-}
-
-bool Player::isTileSolid(const TileMap &tileMap, int tileIndex) const
-{
-    if (auto tileOpt = tileMap.getTile(tileIndex))
-    {
-        return tileOpt->get().isSolid();
-    }
-    return false;
 }
 
 void Player::clampToTileMapBounds(const TileMap &tileMap)
@@ -181,11 +171,10 @@ void Player::handlePickup(TileMap &tileMap)
     int tileX = static_cast<int>((position.x)) / tileMap.getTileSize();
     int tileY = static_cast<int>((position.y)) / tileMap.getTileSize();
     int tileIndex = tileMap.getTileIndex(tileX, tileY);
-    auto tileOpt = tileMap.getTile(tileIndex);
-
-    if (tileOpt && tileOpt->get().isPickup())
+    const Tile& tile = tileMap.getTile(tileIndex);
+    if (tile.isPickup())
     {
-        auto replaceIndexOpt = tileOpt->get().getPickupReplaceIndex();
+        auto replaceIndexOpt = tile.getPickupReplaceIndex();
         assert(replaceIndexOpt.has_value());
         tileMap.setTileIndex(tileX, tileY, replaceIndexOpt.value());
     }

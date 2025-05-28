@@ -1,5 +1,4 @@
 #include <catch2/catch_test_macros.hpp>
-#include <optional>
 #include "game/tile_map.hpp"
 
 TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
@@ -66,26 +65,24 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
 
     SECTION("Known indices")
     {
-        auto tile1 = tileMap.getTile(1);
-        REQUIRE(tile1.has_value());
-        REQUIRE(tile1->get().getKind() == TileKind::Solid);
-        REQUIRE_FALSE(tile1->get().isAnimated());
+        const Tile& tile1 = tileMap.getTile(1);
+        REQUIRE(tile1.getKind() == TileKind::Solid);
+        REQUIRE_FALSE(tile1.isAnimated());
 
-        auto tile2 = tileMap.getTile(2);
-        REQUIRE(tile2.has_value());
-        REQUIRE(tile2->get().getKind() == TileKind::Empty);
-        REQUIRE_FALSE(tile2->get().isAnimated());
+        const Tile& tile2 = tileMap.getTile(2);
+        REQUIRE(tile2.getKind() == TileKind::Empty);
+        REQUIRE_FALSE(tile2.isAnimated());
 
-        auto tile3 = tileMap.getTile(3);
-        REQUIRE(tile3.has_value());
-        REQUIRE(tile3->get().getKind() == TileKind::Empty);
-        REQUIRE_FALSE(tile3->get().isAnimated());
+        const Tile& tile3 = tileMap.getTile(3);
+        REQUIRE(tile3.getKind() == TileKind::Empty);
+        REQUIRE_FALSE(tile3.isAnimated());
     }
 
     SECTION("Unknown indices")
     {
-        auto tileOpt = tileMap.getTile(999);
-        REQUIRE_FALSE(tileOpt.has_value());
+        const Tile& tile = tileMap.getTile(999);
+        REQUIRE(tile.getKind() == TileKind::Empty);
+        REQUIRE_FALSE(tile.isAnimated());
     }
 }
 
@@ -105,27 +102,25 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 
     SECTION("Animated tiles")
     {
-        auto tile = tileMap.getTile(1);
-        auto tile2 = tileMap.getTile(3);
-        REQUIRE(tile->get().getCurrentFrame() == 10);
-        REQUIRE(tile2->get().getCurrentFrame() == 5);
-
+        const Tile& tile1 = tileMap.getTile(1);
+        const Tile& tile2 = tileMap.getTile(3);
+        REQUIRE(tile1.getCurrentFrame() == 10);
+        REQUIRE(tile2.getCurrentFrame() == 5);
         tileMap.update(0.1f);
-        REQUIRE(tile->get().getCurrentFrame() == 11);
-        REQUIRE(tile2->get().getCurrentFrame() == 6);
+        REQUIRE(tile1.getCurrentFrame() == 11);
+        REQUIRE(tile2.getCurrentFrame() == 6);
     }
 
     SECTION("Non-animated tiles")
     {
-        auto tile = tileMap.getTile(2);
-        REQUIRE(tile->get().getCurrentFrame() == -1);
-
+        const Tile& tile = tileMap.getTile(2);
+        REQUIRE(tile.getCurrentFrame() == -1);
         tileMap.update(1.0f);
-        REQUIRE(tile->get().getCurrentFrame() == -1);
+        REQUIRE(tile.getCurrentFrame() == -1);
     }
 }
 
-TEST_CASE("Pickup tile is defined correctly", "[tilemap]")
+TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
 {
     TileMapData tileMapData;
     tileMapData.width = 2;
@@ -134,11 +129,9 @@ TEST_CASE("Pickup tile is defined correctly", "[tilemap]")
                             {5, {TileKind::Pickup, std::nullopt, 0}}};
     TileMap tileMap(tileMapData);
     tileMap.setTileIndex(1, 1, 5);
-    auto tileOpt = tileMap.getTile(5);
-
-    REQUIRE(tileOpt.has_value());
-    REQUIRE(tileOpt->get().isPickup());
-    REQUIRE(tileOpt->get().getPickupReplaceIndex().value() == 0);
+    const Tile& tile = tileMap.getTile(5);
+    REQUIRE(tile.isPickup());
+    REQUIRE(tile.getPickupReplaceIndex().value() == 0);
 }
 
 TEST_CASE("TileMap calculates world dimensions correctly", "[TileMap]")
@@ -148,7 +141,6 @@ TEST_CASE("TileMap calculates world dimensions correctly", "[TileMap]")
     tileMapData.height = 4;
     tileMapData.size = 16;
     TileMap tileMap(tileMapData);
-
     REQUIRE(tileMap.getWorldWidth() == 5 * 16);
     REQUIRE(tileMap.getWorldHeight() == 4 * 16);
 }

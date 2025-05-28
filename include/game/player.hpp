@@ -29,7 +29,6 @@ private:
     void resolveHorizontalCollision(float &nextX, float &velX, const TileMap &tileMap, float nextY);
     static inline float snapToTileEdge(int tile, int tileSize, bool positive, float entitySize = 0.0f);
     void updateAnimation(float deltaTime);
-    bool isTileSolid(const TileMap &map, int index) const;
     void clampToTileMapBounds(const TileMap &tileMap);
     void handlePickup(TileMap &tilemap);
     glm::vec2 position = glm::vec2(0, 0);

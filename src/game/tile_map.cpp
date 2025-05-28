@@ -5,7 +5,7 @@
 
 TileMap::TileMap(const std::string &jsonFilePath)
 {
-        if (jsonFilePath.empty())
+    if (jsonFilePath.empty())
     {
         throw std::runtime_error("jsonFilePath is empty");
     }

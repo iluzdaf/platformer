@@ -10,7 +10,7 @@ Texture2D::Texture2D(const std::string &filePath)
     unsigned char *data = stbi_load(filePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
     if (!data)
     {
-        return;
+        throw std::runtime_error("Failed to load Texture2D");
     }
 
     glGenTextures(1, &textureID);

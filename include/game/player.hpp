@@ -25,22 +25,21 @@ public:
     float getJumpSpeed() const;
 
 private:
-    glm::vec2 position = glm::vec2(0, 0);
-    glm::vec2 velocity = glm::vec2(0, 0);
     void resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap);
     void resolveHorizontalCollision(float &nextX, float &velX, const TileMap &tileMap, float nextY);
     static inline float snapToTileEdge(int tile, int tileSize, bool positive, float entitySize = 0.0f);
+    void updateAnimation(float deltaTime);
+    bool isTileSolid(const TileMap &map, int index) const;
+    void clampToTileMapBounds(const TileMap &tileMap);
+    void handlePickup(TileMap &tilemap);
+    glm::vec2 position = glm::vec2(0, 0);
+    glm::vec2 velocity = glm::vec2(0, 0);
     SpriteAnimation idleAnim;
     SpriteAnimation walkAnim;
     SpriteAnimation *currentAnim = nullptr;
     PlayerAnimationState animState = PlayerAnimationState::Idle;
     bool facingLeft = false;
-    void updateAnimation(float deltaTime);
-    bool isTileSolid(const TileMap &map, int index) const;
-    void clampToTileMapBounds(const TileMap &tileMap);
-    void handlePickup(TileMap &tilemap);
     float moveSpeed = 0, jumpSpeed = 0;
     glm::vec2 size = glm::vec2(1, 1);
-    void initFromData(const PlayerData &playerData);
-    float gravity;
+    float gravity = 980;
 };

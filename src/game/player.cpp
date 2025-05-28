@@ -3,21 +3,16 @@
 #include "game/player.hpp"
 #include "game/tile.hpp"
 
-Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
+Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) :
+    position (playerData.startPosition),
+    moveSpeed (playerData.moveSpeed),
+    jumpSpeed (playerData.jumpSpeed),
+    size (playerData.size),
+    idleAnim (SpriteAnimation(playerData.idleSpriteAnimationData)),
+    walkAnim (SpriteAnimation(playerData.walkSpriteAnimationData))
 {
-    initFromData(playerData);
-    gravity = physicsData.gravity;
-}
-
-void Player::initFromData(const PlayerData &playerData)
-{
-    position = playerData.startPosition;
-    moveSpeed = playerData.moveSpeed;
-    jumpSpeed = playerData.jumpSpeed;
-    size = playerData.size;
-    idleAnim = SpriteAnimation(playerData.idleSpriteAnimationData);
-    walkAnim = SpriteAnimation(playerData.walkSpriteAnimationData);
     currentAnim = &idleAnim;
+    gravity = physicsData.gravity;
 }
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
@@ -26,13 +21,13 @@ void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
     glm::vec2 nextPosition = position + velocity * deltaTime;
     resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
     resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
+    handlePickup(tileMap);
     position = nextPosition;
 }
 
 void Player::update(float deltaTime, TileMap &tileMap)
 {
     clampToTileMapBounds(tileMap);
-    handlePickup(tileMap);
     updateAnimation(deltaTime);
     velocity.x = 0.0f;
 }

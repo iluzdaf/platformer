@@ -2,10 +2,6 @@
 #include <optional>
 #include "game/tile_map.hpp"
 
-// TileMap getWorldHeight and width
-// Tilemap initializes size correctly
-// TileMap init with json
-
 TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
 {
     TileMapData tileMapData;
@@ -18,6 +14,7 @@ TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
     for (int y = 0; y < tileMap.getHeight(); ++y)
         for (int x = 0; x < tileMap.getWidth(); ++x)
             REQUIRE(tileMap.getTileIndex(x, y) == -1);
+    REQUIRE(tileMap.getTileSize() == 16);
 }
 
 TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
@@ -142,4 +139,16 @@ TEST_CASE("Pickup tile is defined correctly", "[tilemap]")
     REQUIRE(tileOpt.has_value());
     REQUIRE(tileOpt->get().isPickup());
     REQUIRE(tileOpt->get().getPickupReplaceIndex().value() == 0);
+}
+
+TEST_CASE("TileMap calculates world dimensions correctly", "[TileMap]")
+{
+    TileMapData tileMapData;
+    tileMapData.width = 5;
+    tileMapData.height = 4;
+    tileMapData.size = 16;
+    TileMap tileMap(tileMapData);
+
+    REQUIRE(tileMap.getWorldWidth() == 5 * 16);
+    REQUIRE(tileMap.getWorldHeight() == 4 * 16);
 }

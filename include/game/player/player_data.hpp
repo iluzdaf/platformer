@@ -11,4 +11,5 @@ struct PlayerData
     glm::vec2 size = glm::vec2(16, 16);
     SpriteAnimationData idleSpriteAnimationData;
     SpriteAnimationData walkSpriteAnimationData;
+    int maxJumpCount = 2;
 };

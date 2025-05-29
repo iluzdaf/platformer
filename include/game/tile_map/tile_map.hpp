@@ -2,8 +2,8 @@
 #include <vector>
 #include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp>
-#include "game/tile.hpp"
-#include "game/tile_map_data.hpp"
+#include "game/tile_map/tile.hpp"
+#include "game/tile_map/tile_map_data.hpp"
 
 class TileMap
 {

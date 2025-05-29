@@ -1,14 +1,15 @@
 #include <cassert>
 #include <algorithm>
-#include "game/player.hpp"
-#include "game/tile.hpp"
+#include "game/player/player.hpp"
+#include "game/tile_map/tile.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : position(playerData.startPosition),
                                                                                moveSpeed(playerData.moveSpeed),
                                                                                jumpSpeed(playerData.jumpSpeed),
                                                                                size(playerData.size),
                                                                                idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
-                                                                               walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
+                                                                               walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData)),
+                                                                               maxJumpCount(playerData.maxJumpCount)
 {
     currentAnim = &idleAnim;
     gravity = physicsData.gravity;
@@ -29,27 +30,31 @@ void Player::update(float deltaTime, TileMap &tileMap)
     clampToTileMapBounds(tileMap);
     updateAnimation(deltaTime);
     velocity.x = 0.0f;
+    if (onGround)
+    {
+        jumpCount = 0;
+    }
 }
 
 void Player::updateAnimation(float deltaTime)
 {
     bool isWalking = std::abs(velocity.x) > 0.01f;
     PlayerAnimationState newState = isWalking ? PlayerAnimationState::Walk : PlayerAnimationState::Idle;
-
     if (newState != animState)
     {
         animState = newState;
         currentAnim = (animState == PlayerAnimationState::Walk) ? &walkAnim : &idleAnim;
     }
-
     currentAnim->update(deltaTime);
 }
 
 void Player::jump()
 {
-    if (velocity.y == 0.0f)
+    if (jumpCount < maxJumpCount)
     {
         velocity.y = jumpSpeed;
+        ++jumpCount;
+        onGround = false;
     }
 }
 
@@ -79,13 +84,16 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
 {
     if (std::abs(velY) < 0.0001f)
         return;
-    
+
+    bool isFalling = (velY > 0.0f);
     float centerX = position.x + size.x / 2.0f;
-    float verticalEdgeY = (velY > 0.0f) ? nextY + size.y : nextY;
+    float verticalEdgeY = isFalling ? nextY + size.y : nextY;
     bool collidesWithSolidTile = tileMap.getTile(glm::vec2(centerX, verticalEdgeY)).isSolid();
 
     if (collidesWithSolidTile)
     {
+        if (isFalling)
+            onGround = true;
         int tileSize = tileMap.getTileSize();
         int tileY = static_cast<int>(verticalEdgeY) / tileSize;
         nextY = snapToTileEdge(tileY, tileSize, velY > 0.0f, size.y);
@@ -136,35 +144,50 @@ bool Player::isFacingLeft() const
 
 void Player::clampToTileMapBounds(const TileMap &tileMap)
 {
-    const int width = tileMap.getWorldWidth();
-    const int height = tileMap.getWorldHeight();
+    const int mapWidth = tileMap.getWorldWidth();
+    const int mapHeight = tileMap.getWorldHeight();
 
-    if (position.x < 0.0f)
-    {
-        position.x = 0.0f;
-        velocity.x = 0.0f;
-    }
-    else if (position.x + size.x > width)
-    {
-        position.x = width - size.x;
-        velocity.x = 0.0f;
-    }
+    glm::vec2 newPos = position;
+    glm::vec2 newVel = velocity;
+    bool clamped = false;
 
-    if (position.y < 0.0f)
+    if (newPos.x < 0.0f)
     {
-        position.y = 0.0f;
-        velocity.y = 0.0f;
+        newPos.x = 0.0f;
+        newVel.x = 0.0f;
+        clamped = true;
     }
-    else if (position.y + size.y > height)
+    else if (newPos.x + size.x > mapWidth)
     {
-        position.y = height - size.y;
-        velocity.y = 0.0f;
+        newPos.x = mapWidth - size.x;
+        newVel.x = 0.0f;
+        clamped = true;
     }
 
-    const Tile &tile = tileMap.getTile(position);
-    if (tile.isSolid())
+    if (newPos.y < 0.0f)
     {
-        throw std::runtime_error("Trying to clamp player into a solid tile");
+        newPos.y = 0.0f;
+        newVel.y = 0.0f;
+        clamped = true;
+    }
+    else if (newPos.y + size.y > mapHeight)
+    {
+        newPos.y = mapHeight - size.y;
+        newVel.y = 0.0f;
+        onGround = true;
+        clamped = true;
+    }
+
+    if (clamped)
+    {
+        const Tile &tile = tileMap.getTile(newPos);
+        if (tile.isSolid())
+        {
+            throw std::runtime_error("Trying to clamp player into a solid tile");
+        }
+
+        position = newPos;
+        velocity = newVel;
     }
 }
 
@@ -195,4 +218,9 @@ float Player::getMoveSpeed() const
 float Player::getJumpSpeed() const
 {
     return jumpSpeed;
+}
+
+int Player::getMaxJumpCount() const
+{
+    return maxJumpCount;
 }

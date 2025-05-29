@@ -7,11 +7,12 @@
 #include "rendering/shader.hpp"
 #include "rendering/sprite_renderer.hpp"
 #include "rendering/tile_map_renderer.hpp"
-#include "game/tile_map.hpp"
-#include "game/player.hpp"
+#include "game/tile_map/tile_map.hpp"
+#include "game/player/player.hpp"
 #include "game/fixed_time_step.hpp"
 #include "game/camera2d.hpp"
 #include "game/game_data.hpp"
+#include "input/keyboard_manager.hpp"
 
 int main()
 {
@@ -28,8 +29,6 @@ int main()
         {
             throw std::runtime_error("Failed to read game data json file");
         }
-        assert(gameData.cameraData.width > 0);
-        assert(gameData.cameraData.height > 0);
 
         GLFWwindow *window = glfwCreateWindow(gameData.cameraData.width, gameData.cameraData.height, "Platformer", NULL, NULL);
         if (!window)
@@ -43,7 +42,6 @@ int main()
         {
             throw std::runtime_error("Failed to initialize GLAD");
         }
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -62,6 +60,11 @@ int main()
         Texture2D playerTexture("../assets/textures/player.png");
         Player player(gameData.playerData, gameData.physicsData);
 
+        KeyboardManager keyboardManager;
+        keyboardManager.registerKey(GLFW_KEY_UP);
+        keyboardManager.registerKey(GLFW_KEY_LEFT);
+        keyboardManager.registerKey(GLFW_KEY_RIGHT);
+
         while (!glfwWindowShouldClose(window))
         {
             float currentTime = glfwGetTime();
@@ -71,12 +74,19 @@ int main()
             glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-                player.moveLeft();
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-                player.moveRight();
-            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+            keyboardManager.update(window);
+            if (keyboardManager.isPressed(GLFW_KEY_UP))
+            {
                 player.jump();
+            }
+            if (keyboardManager.isDown(GLFW_KEY_LEFT))
+            {
+                player.moveLeft();
+            }
+            if (keyboardManager.isDown(GLFW_KEY_RIGHT))
+            {
+                player.moveRight();
+            }
 
             FixedTimeStep timestepper(0.01f);
             timestepper.run(deltaTime, [&](float dt)

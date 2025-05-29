@@ -1,8 +1,7 @@
 #pragma once
-
-#include "game/tile_kind.hpp"
-#include "animations/tile_animation_data.hpp"
 #include <optional>
+#include "game/tile_map/tile_kind.hpp"
+#include "animations/tile_animation_data.hpp"
 
 struct TileData
 {

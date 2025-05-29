@@ -1,6 +1,6 @@
-#include "game/tile_map.hpp"
 #include <cassert>
 #include <glaze/glaze.hpp>
+#include "game/tile_map/tile_map.hpp"
 
 TileMap::TileMap(const std::string &jsonFilePath)
 {
@@ -111,9 +111,9 @@ int TileMap::getTileIndex(int x, int y) const
 
 int TileMap::getTileIndex(glm::vec2 worldPosition) const
 {
-    int tileX = static_cast<int>((worldPosition.x)) / tileSize;
-    int tileY = static_cast<int>((worldPosition.y)) / tileSize;
-    return getTileIndex(tileX, tileY);
+    int x = static_cast<int>(worldPosition.x) / tileSize;
+    int y = static_cast<int>(worldPosition.y) / tileSize;
+    return getTileIndex(x, y);
 }
 
 int TileMap::getWidth() const { return width; }

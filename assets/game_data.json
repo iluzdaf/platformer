@@ -5,7 +5,7 @@
             400.0
         ],
         "moveSpeed": 160.0,
-        "jumpSpeed": -320.0,
+        "jumpSpeed": -280.0,
         "size": [
             16.0,
             16.0
@@ -33,7 +33,8 @@
             "frameWidth": 16,
             "frameHeight": 16,
             "textureWidth": 96
-        }
+        },
+        "maxJumpCount": 2
     },
     "cameraData": {
         "width": 800,

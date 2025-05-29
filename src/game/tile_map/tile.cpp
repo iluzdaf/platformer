@@ -1,5 +1,5 @@
-#include "game/tile.hpp"
 #include <cassert>
+#include "game/tile_map/tile.hpp"
 
 Tile::Tile(const TileData &tileData)
     : kind(tileData.kind), pickupReplaceIndex(tileData.pickupReplaceIndex)

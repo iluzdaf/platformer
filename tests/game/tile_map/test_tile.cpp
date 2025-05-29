@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "game/tile.hpp"
+#include "game/tile_map/tile.hpp"
 
 TEST_CASE("Tile correctly stores kind", "[Tile]")
 {

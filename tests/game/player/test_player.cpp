@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
-#include "game/player.hpp"
+#include "game/player/player.hpp"
 #include "game/fixed_time_step.hpp"
 #include "game/physics_data.hpp"
 using Catch::Approx;
@@ -59,11 +59,34 @@ TEST_CASE("Player falls under gravity", "[Player]")
     REQUIRE(pos.y == Approx(0.5f * gravity).margin(5));
 }
 
-TEST_CASE("Player jumps upward", "[Player]")
+TEST_CASE("Player can multi-jump", "[Player]")
 {
-    Player player = setupPlayer(glm::vec2(0, 300));
-    player.jump();
-    REQUIRE(player.getVelocity().y == player.getJumpSpeed());
+    TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+    tileMap.setTileIndex(1, 9, 1);
+    Player player = setupPlayer(glm::vec2(16, 128));
+    simulatePlayer(player, tileMap, 0.1f);
+    int maxJumpCount = player.getMaxJumpCount();
+    int jumpTries = maxJumpCount + 1;
+
+    std::vector<float> jumpVelocities;
+    for (int i = 0; i < jumpTries; ++i)
+    {
+        player.jump();
+        jumpVelocities.push_back(player.getVelocity().y);
+        simulatePlayer(player, tileMap, 0.1f);
+    }
+
+    REQUIRE(jumpVelocities[0] == player.getJumpSpeed());
+
+    float beforeJumpVelocity = jumpVelocities[0];
+    for (int i = 1; i < jumpTries - 1; ++i)
+    {
+        REQUIRE(jumpVelocities[i] < 0.0f);
+        REQUIRE(jumpVelocities[i] <= beforeJumpVelocity);
+        beforeJumpVelocity = jumpVelocities[i];
+    }
+
+    REQUIRE(jumpVelocities.back() >= Approx(beforeJumpVelocity));
 }
 
 TEST_CASE("Player moves left and right", "[Player]")

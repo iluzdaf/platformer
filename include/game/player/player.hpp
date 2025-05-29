@@ -1,10 +1,10 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
-#include "tile_map.hpp"
-#include "animations/sprite_animation.hpp"
-#include "game/player_data.hpp"
-#include "game/player_animation_state.hpp"
+#include "game/tile_map/tile_map.hpp"
+#include "game/player/player_data.hpp"
+#include "game/player/player_animation_state.hpp"
 #include "game/physics_data.hpp"
+#include "animations/sprite_animation.hpp"
 
 class Player
 {
@@ -23,6 +23,7 @@ public:
     glm::vec2 getSize() const;
     float getMoveSpeed() const;
     float getJumpSpeed() const;
+    int getMaxJumpCount() const;
 
 private:
     void resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap);
@@ -41,4 +42,6 @@ private:
     float moveSpeed = 0, jumpSpeed = 0;
     glm::vec2 size = glm::vec2(1, 1);
     float gravity = 980;
+    int jumpCount = 0, maxJumpCount = 2;
+    bool onGround = false;
 };

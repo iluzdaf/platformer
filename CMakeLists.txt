@@ -30,11 +30,12 @@ add_executable(platformer
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
     src/rendering/tile_map_renderer.cpp
-    src/game/tile_map.cpp
-    src/game/player.cpp
+    src/game/tile_map/tile_map.cpp
+    src/game/tile_map/tile.cpp
+    src/game/player/player.cpp
     src/game/fixed_time_step.cpp
     src/game/camera2d.cpp
-    src/game/tile.cpp
+    src/input/keyboard_manager.cpp
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp
@@ -61,22 +62,24 @@ add_executable(tests
     tests/test_main.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_shader.cpp
-    tests/game/test_tile_map.cpp
-    tests/game/test_player.cpp
+    src/rendering/texture2d.cpp
+    src/rendering/shader.cpp    
+    tests/game/tile_map/test_tile_map.cpp
+    tests/game/tile_map/test_tile.cpp
+    tests/game/player/test_player.cpp
     tests/game/test_fixed_time_step.cpp
     tests/game/test_camera2d.cpp
-    tests/game/test_tile.cpp
+    tests/input/test_keyboard_manager.cpp
     tests/animations/test_frame_animation.cpp
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp
     tests/test_helpers/gl_context.cpp
-    src/rendering/texture2d.cpp
-    src/rendering/shader.cpp
-    src/game/tile_map.cpp
-    src/game/player.cpp
+    src/game/tile_map/tile_map.cpp
+    src/game/tile_map/tile.cpp
+    src/game/player/player.cpp
     src/game/fixed_time_step.cpp
     src/game/camera2d.cpp
-    src/game/tile.cpp
+    src/input/keyboard_manager.cpp
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp

@@ -34,7 +34,10 @@
             "frameHeight": 16,
             "textureWidth": 96
         },
-        "maxJumpCount": 2
+        "maxJumpCount": 2,
+        "dashSpeed": 480,
+        "dashDuration": 0.2,
+        "dashCooldown": 0.5
     },
     "cameraData": {
         "width": 800,

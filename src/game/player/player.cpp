@@ -9,7 +9,10 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : p
                                                                                size(playerData.size),
                                                                                idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
                                                                                walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData)),
-                                                                               maxJumpCount(playerData.maxJumpCount)
+                                                                               maxJumpCount(playerData.maxJumpCount),
+                                                                               dashSpeed(playerData.dashSpeed),
+                                                                               dashDuration(playerData.dashDuration),
+                                                                               dashCooldown(playerData.dashCooldown)
 {
     currentAnim = &idleAnim;
     gravity = physicsData.gravity;
@@ -17,7 +20,24 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : p
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 {
-    velocity.y += gravity * deltaTime;
+    if (!canDash())
+    {
+        dashCooldownLeft -= deltaTime;
+    }
+
+    if (dashing())
+    {
+        dashTimeLeft -= deltaTime;
+        if (dashTimeLeft > 0.0f)
+        {
+            velocity.x = dashSpeed * dashDirection;
+        }
+    }
+    else
+    {
+        velocity.y += gravity * deltaTime;
+    }
+
     glm::vec2 nextPosition = position + velocity * deltaTime;
     resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
     resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
@@ -50,6 +70,9 @@ void Player::updateAnimation(float deltaTime)
 
 void Player::jump()
 {
+    if (dashing())
+        return;
+
     if (jumpCount < maxJumpCount)
     {
         velocity.y = jumpSpeed;
@@ -61,13 +84,13 @@ void Player::jump()
 void Player::moveLeft()
 {
     velocity.x = -moveSpeed;
-    facingLeft = true;
+    isFacingLeft = true;
 }
 
 void Player::moveRight()
 {
     velocity.x = moveSpeed;
-    facingLeft = false;
+    isFacingLeft = false;
 }
 
 glm::vec2 Player::getPosition() const
@@ -137,9 +160,9 @@ PlayerAnimationState Player::getAnimationState() const
     return animState;
 }
 
-bool Player::isFacingLeft() const
+bool Player::facingLeft() const
 {
-    return facingLeft;
+    return isFacingLeft;
 }
 
 void Player::clampToTileMapBounds(const TileMap &tileMap)
@@ -223,4 +246,30 @@ float Player::getJumpSpeed() const
 int Player::getMaxJumpCount() const
 {
     return maxJumpCount;
+}
+
+void Player::dash()
+{
+    if (canDash() && !dashing())
+    {
+        velocity.y = 0;
+        dashTimeLeft = dashDuration;
+        dashCooldownLeft = dashCooldown;
+        dashDirection = isFacingLeft ? -1 : 1;
+    }
+}
+
+bool Player::dashing() const
+{
+    return dashTimeLeft > 0.0f;
+}
+
+float Player::getDashDuration() const
+{
+    return dashDuration;
+}
+
+bool Player::canDash() const
+{
+    return dashCooldownLeft <= 0.0f;
 }

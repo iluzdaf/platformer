@@ -193,19 +193,19 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 
     SECTION("Starts facing right")
     {
-        REQUIRE(player.isFacingLeft() == false);
+        REQUIRE(player.facingLeft() == false);
     }
 
     SECTION("Moves left and faces left")
     {
         player.moveLeft();
-        REQUIRE(player.isFacingLeft() == true);
+        REQUIRE(player.facingLeft() == true);
     }
 
     SECTION("Moves right and faces right")
     {
         player.moveRight();
-        REQUIRE(player.isFacingLeft() == false);
+        REQUIRE(player.facingLeft() == false);
     }
 }
 
@@ -332,5 +332,62 @@ TEST_CASE("Player and empty or invalid tiles", "[Player]")
         Player player = setupPlayer(glm::vec2(16.0f, 16.0f));
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(tileMap.getTileIndex(1, 1) == -1);
+    }
+}
+
+TEST_CASE("Player can dash", "[Player]")
+{
+    Player player = setupPlayer(glm::vec2(80, 144));
+    TileMap tileMap = setupTileMap();
+    simulatePlayer(player, tileMap, 0.01f);
+
+    SECTION("Player dashes from stationary")
+    {
+        float initialX = player.getPosition().x;
+        player.dash();
+        REQUIRE(player.dashing());
+        simulatePlayer(player, tileMap, player.getDashDuration());
+        REQUIRE(player.getPosition().x > initialX);
+        REQUIRE_FALSE(player.dashing());
+    }
+
+    SECTION("Player cannot jump while dashing")
+    {
+        player.dash();
+        simulatePlayer(player, tileMap, 0.01f);
+        float initialVelY = player.getVelocity().y;
+        player.jump();
+        simulatePlayer(player, tileMap, 0.01f);
+        REQUIRE(player.getVelocity().y == Approx(initialVelY));
+    }
+
+    SECTION("Player cannot move while dashing")
+    {
+        player.dash();
+        float totalTime = player.getDashDuration() - 0.1f;
+        FixedTimeStep timestepper(0.01f);
+        timestepper.run(totalTime, [&](float dt)
+                        { player.fixedUpdate(dt, tileMap); });
+        float initialVelX = player.getVelocity().x;
+        player.update(totalTime, tileMap);
+        player.moveLeft();
+        timestepper.run(0.1f, [&](float dt)
+                        { player.fixedUpdate(dt, tileMap); });
+        REQUIRE(player.getVelocity().x == Approx(initialVelX));
+        player.update(0.1f, tileMap);
+    }
+
+    SECTION("Player can jump and dash")
+    {
+        player.jump();
+        simulatePlayer(player, tileMap, 0.1f);
+        float initialX = player.getPosition().x;
+        float initialY = player.getPosition().y;
+        player.dash();
+        REQUIRE(player.dashing());
+        simulatePlayer(player, tileMap, player.getDashDuration());
+        REQUIRE(player.getPosition().x > initialX);
+        REQUIRE(player.getPosition().y == Approx(initialY));
+        REQUIRE_FALSE(player.dashing());
     }
 }

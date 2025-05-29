@@ -12,4 +12,7 @@ struct PlayerData
     SpriteAnimationData idleSpriteAnimationData;
     SpriteAnimationData walkSpriteAnimationData;
     int maxJumpCount = 2;
+    float dashSpeed = 480;
+    float dashDuration = 0.2f;
+    float dashCooldown = 0.5f;
 };

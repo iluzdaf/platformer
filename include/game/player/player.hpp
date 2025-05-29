@@ -15,15 +15,19 @@ public:
     void jump();
     void moveLeft();
     void moveRight();
+    void dash();
     glm::vec2 getPosition() const;
     glm::vec2 getVelocity() const;
     const SpriteAnimation &getCurrentAnimation() const;
     PlayerAnimationState getAnimationState() const;
-    bool isFacingLeft() const;
     glm::vec2 getSize() const;
     float getMoveSpeed() const;
     float getJumpSpeed() const;
     int getMaxJumpCount() const;
+    float getDashDuration() const;
+    bool facingLeft() const;
+    bool dashing() const;
+    bool canDash() const;
 
 private:
     void resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap);
@@ -38,10 +42,16 @@ private:
     SpriteAnimation walkAnim;
     SpriteAnimation *currentAnim = nullptr;
     PlayerAnimationState animState = PlayerAnimationState::Idle;
-    bool facingLeft = false;
+    bool isFacingLeft = false;
     float moveSpeed = 0, jumpSpeed = 0;
     glm::vec2 size = glm::vec2(1, 1);
     float gravity = 980;
     int jumpCount = 0, maxJumpCount = 2;
     bool onGround = false;
+    float dashTimeLeft = 0.0f;
+    float dashCooldownLeft = 0.0f;
+    float dashSpeed = 480.0f;
+    float dashDuration = 0.2f;
+    float dashCooldown = 1.0f;
+    int dashDirection = 1;
 };

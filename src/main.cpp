@@ -64,6 +64,7 @@ int main()
         keyboardManager.registerKey(GLFW_KEY_UP);
         keyboardManager.registerKey(GLFW_KEY_LEFT);
         keyboardManager.registerKey(GLFW_KEY_RIGHT);
+        keyboardManager.registerKey(GLFW_KEY_RIGHT_SHIFT);
 
         while (!glfwWindowShouldClose(window))
         {
@@ -87,6 +88,10 @@ int main()
             {
                 player.moveRight();
             }
+            if (keyboardManager.isPressed(GLFW_KEY_RIGHT_SHIFT))
+            {
+                player.dash();
+            }
 
             FixedTimeStep timestepper(0.01f);
             timestepper.run(deltaTime, [&](float dt)
@@ -104,7 +109,7 @@ int main()
                 player.getSize(),
                 player.getCurrentAnimation().getUVStart(),
                 player.getCurrentAnimation().getUVEnd(),
-                player.isFacingLeft());
+                player.facingLeft());
 
             glfwSwapBuffers(window);
             glfwPollEvents();

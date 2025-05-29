@@ -73,6 +73,12 @@ platformer/
 └── README.md            # Project documentation
 ```
 
+### Assets and Textures
+
+This repository does not currently use Git LFS. If you're looking for the textures required to run the platformer, you can download them from the following link:
+
+[Download Textures](https://drive.google.com/file/d/1JdVLy9ghLwf-Uz4zopB9EdoCs_skeKEO/view?usp=sharing)
+
 ## 🔭 Future Plans
 
 - Add enemy AI with basic pathfinding

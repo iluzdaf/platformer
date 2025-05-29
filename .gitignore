@@ -17,3 +17,5 @@ Makefile
 Thumbs.db
 
 *.png
+
+.vs/

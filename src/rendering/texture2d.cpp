@@ -1,6 +1,7 @@
+#include <cassert>
+#include <stdexcept>
 #include "rendering/texture2d.hpp"
 #include "stb_image.h"
-#include <cassert>
 
 Texture2D::Texture2D(const std::string &filePath)
 {

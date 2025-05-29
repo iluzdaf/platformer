@@ -2,8 +2,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <catch2/catch_approx.hpp>
-#include "game/camera2d.hpp"
-#include "game/camera2d_data.hpp"
+#include "cameras/camera2d.hpp"
+#include "cameras/camera2d_data.hpp"
 using Catch::Approx;
 
 TEST_CASE("Camera2D clamps target to bounds", "[Camera2D]")

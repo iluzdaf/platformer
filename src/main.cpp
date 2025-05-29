@@ -9,8 +9,8 @@
 #include "rendering/tile_map_renderer.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/player/player.hpp"
-#include "game/fixed_time_step.hpp"
-#include "game/camera2d.hpp"
+#include "physics/fixed_time_step.hpp"
+#include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
 #include "input/keyboard_manager.hpp"
 

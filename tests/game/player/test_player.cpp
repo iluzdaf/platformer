@@ -2,8 +2,8 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "game/player/player.hpp"
-#include "game/fixed_time_step.hpp"
-#include "game/physics_data.hpp"
+#include "physics/fixed_time_step.hpp"
+#include "physics/physics_data.hpp"
 using Catch::Approx;
 
 // player doesn't drift when moving left or right, also it's x velocity is reset every frame. Does this work with FixedTimeStep updates or do I need a PostUpdate to clean up?

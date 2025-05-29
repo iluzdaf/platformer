@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
-#include "game/camera2d_data.hpp"
+#include "cameras/camera2d_data.hpp"
 
 class Camera2D
 {

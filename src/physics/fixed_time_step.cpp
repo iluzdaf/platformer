@@ -1,5 +1,5 @@
-#include "game/fixed_time_step.hpp"
 #include <algorithm>
+#include "physics/fixed_time_step.hpp"
 
 FixedTimeStep::FixedTimeStep(float maxStep)
     : maxStep(maxStep) {}

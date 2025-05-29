@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
-#include "game/fixed_time_step.hpp"
+#include "physics/fixed_time_step.hpp"
 using Catch::Approx;
 
 TEST_CASE("FixedTimeStep divides time into correct steps", "[FixedTimeStep]")

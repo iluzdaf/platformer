@@ -1,7 +1,7 @@
-#include "game/camera2d.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <cassert>
 #include <algorithm>
+#include "cameras/camera2d.hpp"
 
 Camera2D::Camera2D(const Camera2DData &cameraData)
     : screenWidth(cameraData.width), screenHeight(cameraData.height), zoom(cameraData.zoom)

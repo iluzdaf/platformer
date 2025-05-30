@@ -10,6 +10,7 @@ public:
     void tryDash(MovementContext &context) override;
     bool dashing() const;
     float getDashDuration() const;
+    float getDashCooldown() const;
 
 private:
     float dashSpeed = 480;

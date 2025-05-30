@@ -53,3 +53,8 @@ float DashAbility::getDashDuration() const
 {
     return dashDuration;
 }
+
+float DashAbility::getDashCooldown() const
+{
+    return dashCooldown;
+}

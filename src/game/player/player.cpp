@@ -4,10 +4,12 @@
 #include "game/tile_map/tile.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/player/player_data.hpp"
+#include "game/player/movement_abilities/jump_ability.hpp"
+#include "game/player/movement_abilities/dash_ability.hpp"
+#include "game/player/movement_abilities/move_ability.hpp"
 #include "physics/physics_data.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : position(playerData.startPosition),
-                                                                               moveSpeed(playerData.moveSpeed),
                                                                                size(playerData.size),
                                                                                idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
                                                                                walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
@@ -16,6 +18,7 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : p
     gravity = physicsData.gravity;
     movementAbilities.emplace_back(std::make_unique<JumpAbility>(playerData.maxJumpCount, playerData.jumpSpeed));
     movementAbilities.emplace_back(std::make_unique<DashAbility>(playerData.dashSpeed, playerData.dashDuration, playerData.dashCooldown));
+    movementAbilities.emplace_back(std::make_unique<MoveAbility>(playerData.moveSpeed));
 }
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
@@ -66,14 +69,18 @@ void Player::jump()
 
 void Player::moveLeft()
 {
-    velocity.x = -moveSpeed;
-    isFacingLeft = true;
+    for (auto &ability : movementAbilities)
+    {
+        ability->tryMoveLeft(*this);
+    }
 }
 
 void Player::moveRight()
 {
-    velocity.x = moveSpeed;
-    isFacingLeft = false;
+    for (auto &ability : movementAbilities)
+    {
+        ability->tryMoveRight(*this);
+    }
 }
 
 glm::vec2 Player::getPosition() const
@@ -216,11 +223,6 @@ glm::vec2 Player::getSize() const
     return size;
 }
 
-float Player::getMoveSpeed() const
-{
-    return moveSpeed;
-}
-
 void Player::dash()
 {
     for (auto &ability : movementAbilities)
@@ -254,4 +256,9 @@ MovementAbility *Player::getAbilityByType(const std::type_info &type)
         }
     }
     return nullptr;
+}
+
+void Player::setFacingLeft(bool isFacingLeft)
+{
+    this->isFacingLeft = isFacingLeft;
 }

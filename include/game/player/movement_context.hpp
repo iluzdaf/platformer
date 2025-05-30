@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
+class MovementAbility;
 
 class MovementContext
 {
@@ -17,4 +18,5 @@ public:
     {
         return dynamic_cast<T *>(getAbilityByType(typeid(T)));
     }
+    virtual void setFacingLeft(bool isFacingLeft) = 0;
 };

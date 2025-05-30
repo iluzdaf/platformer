@@ -3,6 +3,9 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "game/player/player.hpp"
 #include "game/player/player_data.hpp"
+#include "game/player/movement_abilities/jump_ability.hpp"
+#include "game/player/movement_abilities/dash_ability.hpp"
+#include "game/player/movement_abilities/move_ability.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/tile_map/tile_map_data.hpp"
 #include "physics/fixed_time_step.hpp"
@@ -123,20 +126,28 @@ TEST_CASE("Player can move", "[Player]")
     }
     Player player = setupPlayer(glm::vec2(80, 128));
     simulatePlayer(player, tileMap, 0.1f);
+    MoveAbility *moveAbility = player.getAbility<MoveAbility>();
+    REQUIRE(moveAbility != nullptr);
+    FixedTimeStep timestepper(0.01f);
 
     SECTION("Player can move left and not drift")
     {
         player.moveLeft();
-        REQUIRE(player.getVelocity().x == -player.getMoveSpeed());
-        simulatePlayer(player, tileMap, 0.1f);
+        timestepper.run(0.1f, [&](float dt)
+                        { player.fixedUpdate(dt, tileMap); });
+        REQUIRE(player.getVelocity().x == -moveAbility->getMoveSpeed());
+        player.update(0.1f, tileMap);
         REQUIRE(player.getVelocity().x == 0);
     }
 
     SECTION("Player can move right and not drift")
     {
         player.moveRight();
-        REQUIRE(player.getVelocity().x == player.getMoveSpeed());
-        simulatePlayer(player, tileMap, 0.1f);
+        timestepper.run(0.1f, [&](float dt)
+                        { player.fixedUpdate(dt, tileMap); });
+
+        REQUIRE(player.getVelocity().x == moveAbility->getMoveSpeed());
+        player.update(0.1f, tileMap);
         REQUIRE(player.getVelocity().x == 0);
     }
 }
@@ -233,6 +244,7 @@ TEST_CASE("Player uses correct animation state", "[Player]")
 TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 {
     Player player = setupPlayer();
+    TileMap tileMap = setupTileMap();
 
     SECTION("Starts facing right")
     {
@@ -242,12 +254,14 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
     SECTION("Moves left and faces left")
     {
         player.moveLeft();
+        simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(player.facingLeft() == true);
     }
 
     SECTION("Moves right and faces right")
     {
         player.moveRight();
+        simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(player.facingLeft() == false);
     }
 }

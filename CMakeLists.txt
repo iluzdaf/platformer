@@ -41,6 +41,7 @@ add_executable(platformer
     src/game/player/player.cpp
     src/game/player/movement_abilities/jump_ability.cpp
     src/game/player/movement_abilities/dash_ability.cpp
+    src/game/player/movement_abilities/move_ability.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp
@@ -73,6 +74,9 @@ add_executable(tests
     tests/game/tile_map/test_tile_map.cpp
     tests/game/tile_map/test_tile.cpp
     tests/game/player/test_player.cpp
+    tests/game/player/movement_abilities/test_jump_ability.cpp
+    tests/game/player/movement_abilities/test_dash_ability.cpp
+    tests/game/player/movement_abilities/test_move_ability.cpp
     tests/physics/test_fixed_time_step.cpp
     tests/cameras/test_camera2d.cpp
     tests/input/test_keyboard_manager.cpp
@@ -86,6 +90,7 @@ add_executable(tests
     src/game/player/player.cpp
     src/game/player/movement_abilities/jump_ability.cpp
     src/game/player/movement_abilities/dash_ability.cpp
+    src/game/player/movement_abilities/move_ability.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp
@@ -101,6 +106,7 @@ target_include_directories(tests
     external/glad/include
     external/glfw/include
     external/glaze/include
+    tests/
 )
 
 target_link_libraries(tests

@@ -4,8 +4,13 @@
             100.0,
             400.0
         ],
-        "moveSpeed": 160.0,
-        "jumpSpeed": -280.0,
+        "moveAbilityData": {
+            "moveSpeed": 160.0
+        },
+        "jumpAbilityData": {
+            "jumpSpeed": -280.0,
+            "maxJumpCount": 2
+        },
         "size": [
             16.0,
             16.0
@@ -34,10 +39,11 @@
             "frameHeight": 16,
             "textureWidth": 96
         },
-        "maxJumpCount": 2,
-        "dashSpeed": 480,
-        "dashDuration": 0.2,
-        "dashCooldown": 0.5
+        "dashAbilityData": {
+            "dashSpeed": 480,
+            "dashDuration": 0.2,
+            "dashCooldown": 0.5
+        }
     },
     "cameraData": {
         "width": 800,

@@ -1,11 +1,12 @@
 #pragma once
 #include "game/player/movement_abilities/movement_ability.hpp"
 class MovementContext;
+class DashAbilityData;
 
 class DashAbility : public MovementAbility
 {
 public:
-    DashAbility(float dashSpeed, float dashDuration, float dashCooldown);
+    explicit DashAbility(const DashAbilityData &dashAbilityData);
     void update(MovementContext &context, float deltaTime) override;
     void tryDash(MovementContext &context) override;
     bool dashing() const;

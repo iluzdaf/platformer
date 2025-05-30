@@ -1,11 +1,12 @@
 #pragma once
 #include "game/player/movement_abilities/movement_ability.hpp"
 class MovementContext;
+class JumpAbilityData;
 
 class JumpAbility : public MovementAbility
 {
 public:
-    JumpAbility(int maxJumpCount, float jumpSpeed);
+    explicit JumpAbility(const JumpAbilityData &jumpAbilityData);
     void update(MovementContext &context, float deltaTime) override;
     void tryJump(MovementContext &context) override;
     void resetJumps();

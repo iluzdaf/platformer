@@ -9,16 +9,29 @@
 #include "game/player/movement_abilities/move_ability.hpp"
 #include "physics/physics_data.hpp"
 
-Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : position(playerData.startPosition),
-                                                                               size(playerData.size),
-                                                                               idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
-                                                                               walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
+Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
+    : position(playerData.startPosition),
+      size(playerData.size),
+      idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
+      walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
 {
     currentAnim = &idleAnim;
     gravity = physicsData.gravity;
-    movementAbilities.emplace_back(std::make_unique<JumpAbility>(playerData.maxJumpCount, playerData.jumpSpeed));
-    movementAbilities.emplace_back(std::make_unique<DashAbility>(playerData.dashSpeed, playerData.dashDuration, playerData.dashCooldown));
-    movementAbilities.emplace_back(std::make_unique<MoveAbility>(playerData.moveSpeed));
+
+    if (playerData.jumpAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<JumpAbility>(*playerData.jumpAbilityData));
+    }
+
+    if (playerData.dashAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<DashAbility>(*playerData.dashAbilityData));
+    }
+
+    if (playerData.moveAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<MoveAbility>(*playerData.moveAbilityData));
+    }
 }
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)

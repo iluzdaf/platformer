@@ -1,12 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include "game/player/movement_abilities/dash_ability.hpp"
+#include "game/player/movement_abilities/dash_ability_data.hpp"
 #include "glm/vec2.hpp"
 #include "test_helpers/mock_player.hpp"
 
 TEST_CASE("DashAbility basic behavior", "[DashAbility]")
 {
     MockPlayer mockPlayer;
-    DashAbility dashAbility(480, 0.2f, 0.5f);
+    DashAbilityData dashAbilityData;
+    DashAbility dashAbility(dashAbilityData);
 
     SECTION("Can dash when not cooling down")
     {

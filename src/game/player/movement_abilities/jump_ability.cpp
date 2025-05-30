@@ -3,8 +3,11 @@
 #include "game/player/movement_abilities/jump_ability.hpp"
 #include "game/player/movement_abilities/dash_ability.hpp"
 #include "game/player/player.hpp"
+#include "game/player/movement_abilities/jump_ability_data.hpp"
 
-JumpAbility::JumpAbility(int maxJumpCount, float jumpSpeed) : maxJumpCount(maxJumpCount), jumpSpeed(jumpSpeed)
+JumpAbility::JumpAbility(const JumpAbilityData &jumpAbilityData)
+    : maxJumpCount(jumpAbilityData.maxJumpCount),
+      jumpSpeed(jumpAbilityData.jumpSpeed)
 {
 }
 

@@ -1,8 +1,11 @@
 #include "game/player/movement_abilities/dash_ability.hpp"
 #include "game/player/movement_context.hpp"
+#include "game/player/movement_abilities/dash_ability_data.hpp"
 
-DashAbility::DashAbility(float speed, float duration, float cooldown)
-    : dashSpeed(speed), dashDuration(duration), dashCooldown(cooldown)
+DashAbility::DashAbility(const DashAbilityData &dashAbilityData)
+    : dashSpeed(dashAbilityData.dashSpeed),
+      dashDuration(dashAbilityData.dashDuration),
+      dashCooldown(dashAbilityData.dashCooldown)
 {
 }
 

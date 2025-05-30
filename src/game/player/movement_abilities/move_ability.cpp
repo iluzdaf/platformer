@@ -1,7 +1,8 @@
 #include "game/player/movement_abilities/move_ability.hpp"
 #include "game/player/movement_context.hpp"
+#include "game/player/movement_abilities/move_ability_data.hpp"
 
-MoveAbility::MoveAbility(float moveSpeed) : moveSpeed(moveSpeed)
+MoveAbility::MoveAbility(const MoveAbilityData &moveAbilityData) : moveSpeed(moveAbilityData.moveSpeed)
 {
 }
 

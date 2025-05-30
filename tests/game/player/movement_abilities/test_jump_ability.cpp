@@ -1,13 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "game/player/movement_abilities/jump_ability.hpp"
+#include "game/player/movement_abilities/jump_ability_data.hpp"
 #include "test_helpers/mock_player.hpp"
 using Catch::Approx;
 
 TEST_CASE("JumpAbility respects max jump count", "[JumpAbility]")
 {
     MockPlayer mockPlayer;
-    JumpAbility jumpAbility(2, -500);
+    JumpAbilityData jumpAbilityData;
+    JumpAbility jumpAbility(jumpAbilityData);
 
     SECTION("Player can jump twice but not more")
     {

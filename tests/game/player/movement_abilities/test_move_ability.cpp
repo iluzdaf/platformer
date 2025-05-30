@@ -1,22 +1,23 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "game/player/movement_abilities/move_ability.hpp"
+#include "game/player/movement_abilities/move_ability_data.hpp"
 #include "glm/vec2.hpp"
 #include "test_helpers/mock_player.hpp"
 using Catch::Approx;
 
 TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
 {
-    const float moveSpeed = 160.0f;
     MockPlayer mockPlayer;
-    MoveAbility moveAbility(moveSpeed);
+    MoveAbilityData moveAbilityData;
+    MoveAbility moveAbility(moveAbilityData);
 
     SECTION("Move left sets negative x velocity and facing left")
     {
         moveAbility.tryMoveLeft(mockPlayer);
         moveAbility.update(mockPlayer, 0.1f);
 
-        REQUIRE(mockPlayer.getVelocity().x == Approx(-moveSpeed));
+        REQUIRE(mockPlayer.getVelocity().x == Approx(-moveAbility.getMoveSpeed()));
         REQUIRE(mockPlayer.facingLeft());
     }
 
@@ -25,7 +26,7 @@ TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
         moveAbility.tryMoveRight(mockPlayer);
         moveAbility.update(mockPlayer, 0.1f);
 
-        REQUIRE(mockPlayer.getVelocity().x == Approx(moveSpeed));
+        REQUIRE(mockPlayer.getVelocity().x == Approx(moveAbility.getMoveSpeed()));
         REQUIRE_FALSE(mockPlayer.facingLeft());
     }
 

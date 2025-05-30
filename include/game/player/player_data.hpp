@@ -1,18 +1,19 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
+#include <optional>
 #include "serialization/glm_vec2_meta.hpp"
 #include "animations/sprite_animation_data.hpp"
+#include "game/player/movement_abilities/move_ability_data.hpp"
+#include "game/player/movement_abilities/jump_ability_data.hpp"
+#include "game/player/movement_abilities/dash_ability_data.hpp"
 
 struct PlayerData
 {
     glm::vec2 startPosition = glm::vec2(0, 0);
-    float moveSpeed = 160;
-    float jumpSpeed = -320;
     glm::vec2 size = glm::vec2(16, 16);
     SpriteAnimationData idleSpriteAnimationData;
     SpriteAnimationData walkSpriteAnimationData;
-    int maxJumpCount = 2;
-    float dashSpeed = 480;
-    float dashDuration = 0.2f;
-    float dashCooldown = 0.5f;
+    std::optional<MoveAbilityData> moveAbilityData;
+    std::optional<JumpAbilityData> jumpAbilityData;
+    std::optional<DashAbilityData> dashAbilityData;
 };

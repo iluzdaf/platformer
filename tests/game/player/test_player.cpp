@@ -36,7 +36,10 @@ Player setupPlayer(glm::vec2 startPosition = glm::vec2(0, 0), float gravity = 98
     playerData.startPosition = startPosition;
     playerData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
     playerData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
-    playerData.moveSpeed = moveSpeed;
+    playerData.moveAbilityData = MoveAbilityData();
+    playerData.moveAbilityData->moveSpeed = moveSpeed;
+    playerData.jumpAbilityData = JumpAbilityData();
+    playerData.dashAbilityData = DashAbilityData();
     PhysicsData physicsData;
     physicsData.gravity = gravity;
     return Player(playerData, physicsData);

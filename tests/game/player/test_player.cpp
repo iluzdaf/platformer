@@ -71,7 +71,9 @@ TEST_CASE("Player can multi-jump", "[Player]")
 
     SECTION("Player multi-jump works correctly")
     {
-        int maxJumpCount = player.getMaxJumpCount();
+        auto jumpAbility = player.getJumpAbility();
+        REQUIRE(jumpAbility != nullptr);
+        int maxJumpCount = jumpAbility->getMaxJumpCount();
         int jumpTries = maxJumpCount + 1;
 
         std::vector<float> jumpVelocities;
@@ -82,7 +84,7 @@ TEST_CASE("Player can multi-jump", "[Player]")
             simulatePlayer(player, tileMap, 0.1f);
         }
 
-        REQUIRE(jumpVelocities[0] == player.getJumpSpeed());
+        REQUIRE(jumpVelocities[0] == jumpAbility->getJumpSpeed());
 
         float beforeJumpVelocity = jumpVelocities[0];
         for (int i = 1; i < jumpTries - 1; ++i)
@@ -97,7 +99,9 @@ TEST_CASE("Player can multi-jump", "[Player]")
 
     SECTION("Can multi-jump again after landing")
     {
-        for (int i = 0; i < player.getMaxJumpCount(); ++i)
+        auto jumpAbility = player.getJumpAbility();
+        REQUIRE(jumpAbility != nullptr);
+        for (int i = 0; i < jumpAbility->getMaxJumpCount(); ++i)
         {
             player.jump();
             simulatePlayer(player, tileMap, 0.1f);
@@ -106,7 +110,7 @@ TEST_CASE("Player can multi-jump", "[Player]")
         simulatePlayer(player, tileMap, 1.0f);
 
         player.jump();
-        REQUIRE(player.getVelocity().y == player.getJumpSpeed());
+        REQUIRE(player.getVelocity().y == jumpAbility->getJumpSpeed());
     }
 }
 

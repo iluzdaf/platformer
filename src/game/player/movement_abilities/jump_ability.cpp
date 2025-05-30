@@ -1,36 +1,46 @@
-#include <GLFW/glfw3.h>
+
+
 #include "game/player/movement_abilities/jump_ability.hpp"
 #include "game/player/player.hpp"
 
-JumpAbility::JumpAbility(int maxJumps, float jumpVelocity)
-    : maxJumps(maxJumps), remainingJumps(maxJumps), jumpVelocity(jumpVelocity)
+JumpAbility::JumpAbility(int maxJumpCount, float jumpSpeed) : maxJumpCount(maxJumpCount), jumpSpeed(jumpSpeed)
 {
 }
 
-void JumpAbility::update(Player &player, float /*deltaTime*/)
+void JumpAbility::update(MovementContext &context, float deltaTime)
 {
-    bool isPressed = glfwGetKey(player.getWindow(), GLFW_KEY_SPACE) == GLFW_PRESS;
-
-    if (isPressed && !wasJumpPressed && remainingJumps > 0)
+    if (context.onGround())
     {
-        player.setVelocityY(jumpVelocity);
-        onJump();
+        resetJumps();
     }
+}
 
-    wasJumpPressed = isPressed;
+void JumpAbility::tryJump(MovementContext &context)
+{
+    if (context.dashing())
+        return;
+
+    if (jumpCount < maxJumpCount)
+    {
+        glm::vec2 velocity = context.getVelocity();
+        velocity.y = jumpSpeed;
+        context.setVelocity(velocity);
+        jumpCount++;
+        context.setOnGround(false);
+    }
 }
 
 void JumpAbility::resetJumps()
 {
-    remainingJumps = maxJumps;
+    jumpCount = 0;
 }
 
-void JumpAbility::onJump()
+int JumpAbility::getMaxJumpCount() const
 {
-    --remainingJumps;
+    return maxJumpCount;
 }
 
-int JumpAbility::getRemainingJumps() const
+float JumpAbility::getJumpSpeed() const
 {
-    return remainingJumps;
+    return jumpSpeed;
 }

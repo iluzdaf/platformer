@@ -39,6 +39,7 @@ add_executable(platformer
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/player/player.cpp
+    src/game/player/movement_abilities/jump_ability.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp
@@ -68,8 +69,6 @@ add_executable(tests
     tests/test_main.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_shader.cpp
-    src/rendering/texture2d.cpp
-    src/rendering/shader.cpp
     tests/game/tile_map/test_tile_map.cpp
     tests/game/tile_map/test_tile.cpp
     tests/game/player/test_player.cpp
@@ -79,10 +78,12 @@ add_executable(tests
     tests/animations/test_frame_animation.cpp
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp
-    tests/test_helpers/gl_context.cpp
+    src/rendering/texture2d.cpp
+    src/rendering/shader.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/player/player.cpp
+    src/game/player/movement_abilities/jump_ability.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp

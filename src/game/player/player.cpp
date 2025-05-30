@@ -8,21 +8,25 @@
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : position(playerData.startPosition),
                                                                                moveSpeed(playerData.moveSpeed),
-                                                                               jumpSpeed(playerData.jumpSpeed),
                                                                                size(playerData.size),
                                                                                idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
                                                                                walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData)),
-                                                                               maxJumpCount(playerData.maxJumpCount),
                                                                                dashSpeed(playerData.dashSpeed),
                                                                                dashDuration(playerData.dashDuration),
                                                                                dashCooldown(playerData.dashCooldown)
 {
     currentAnim = &idleAnim;
     gravity = physicsData.gravity;
+    movementAbilities.emplace_back(std::make_unique<JumpAbility>(playerData.maxJumpCount, playerData.jumpSpeed));
 }
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 {
+    for (auto &ability : movementAbilities)
+    {
+        ability->update(*this, deltaTime);
+    }
+
     if (!canDash())
     {
         dashCooldownLeft -= deltaTime;
@@ -53,10 +57,6 @@ void Player::update(float deltaTime, TileMap &tileMap)
     clampToTileMapBounds(tileMap);
     updateAnimation(deltaTime);
     velocity.x = 0.0f;
-    if (onGround)
-    {
-        jumpCount = 0;
-    }
 }
 
 void Player::updateAnimation(float deltaTime)
@@ -73,14 +73,9 @@ void Player::updateAnimation(float deltaTime)
 
 void Player::jump()
 {
-    if (dashing())
-        return;
-
-    if (jumpCount < maxJumpCount)
+    for (auto &ability : movementAbilities)
     {
-        velocity.y = jumpSpeed;
-        ++jumpCount;
-        onGround = false;
+        ability->tryJump(*this);
     }
 }
 
@@ -119,7 +114,7 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
     if (collidesWithSolidTile)
     {
         if (isFalling)
-            onGround = true;
+            isOnGround = true;
         int tileSize = tileMap.getTileSize();
         int tileY = static_cast<int>(verticalEdgeY) / tileSize;
         nextY = snapToTileEdge(tileY, tileSize, velY > 0.0f, size.y);
@@ -200,7 +195,7 @@ void Player::clampToTileMapBounds(const TileMap &tileMap)
     {
         newPos.y = mapHeight - size.y;
         newVel.y = 0.0f;
-        onGround = true;
+        isOnGround = true;
         clamped = true;
     }
 
@@ -241,16 +236,6 @@ float Player::getMoveSpeed() const
     return moveSpeed;
 }
 
-float Player::getJumpSpeed() const
-{
-    return jumpSpeed;
-}
-
-int Player::getMaxJumpCount() const
-{
-    return maxJumpCount;
-}
-
 void Player::dash()
 {
     if (canDash() && !dashing())
@@ -275,4 +260,31 @@ float Player::getDashDuration() const
 bool Player::canDash() const
 {
     return dashCooldownLeft <= 0.0f;
+}
+
+bool Player::onGround() const
+{
+    return isOnGround;
+}
+
+JumpAbility *Player::getJumpAbility()
+{
+    for (auto &ability : movementAbilities)
+    {
+        if (auto *jump = dynamic_cast<JumpAbility *>(ability.get()))
+        {
+            return jump;
+        }
+    }
+    return nullptr;
+}
+
+void Player::setOnGround(bool isOnGround)
+{
+    this->isOnGround = isOnGround;
+}
+
+void Player::setVelocity(const glm::vec2 &velocity)
+{
+    this->velocity = velocity;
 }

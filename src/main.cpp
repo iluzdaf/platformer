@@ -9,9 +9,9 @@
 #include "rendering/tile_map_renderer.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/player/player.hpp"
+#include "game/game_data.hpp"
 #include "physics/fixed_time_step.hpp"
 #include "cameras/camera2d.hpp"
-#include "game/game_data.hpp"
 #include "input/keyboard_manager.hpp"
 
 int main()
@@ -66,6 +66,8 @@ int main()
         keyboardManager.registerKey(GLFW_KEY_RIGHT);
         keyboardManager.registerKey(GLFW_KEY_RIGHT_SHIFT);
 
+        FixedTimeStep timestepper(0.01f);
+
         while (!glfwWindowShouldClose(window))
         {
             float currentTime = glfwGetTime();
@@ -93,7 +95,6 @@ int main()
                 player.dash();
             }
 
-            FixedTimeStep timestepper(0.01f);
             timestepper.run(deltaTime, [&](float dt)
                             { player.fixedUpdate(dt, tileMap); });
             player.update(deltaTime, tileMap);

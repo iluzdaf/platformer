@@ -6,8 +6,8 @@ class JumpAbility : public MovementAbility
 {
 public:
     JumpAbility(int maxJumpCount, float jumpSpeed);
-    void update(MovementContext &player, float deltaTime);
-    void tryJump(MovementContext &player);
+    void update(MovementContext &context, float deltaTime) override;
+    void tryJump(MovementContext &context) override;
     void resetJumps();
     int getMaxJumpCount() const;
     float getJumpSpeed() const;

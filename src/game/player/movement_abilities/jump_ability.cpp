@@ -17,7 +17,8 @@ void JumpAbility::update(MovementContext &context, float deltaTime)
 
 void JumpAbility::tryJump(MovementContext &context)
 {
-    if (context.dashing())
+    DashAbility *dash = context.getAbility<DashAbility>();
+    if (dash && dash->dashing())
         return;
 
     if (jumpCount < maxJumpCount)

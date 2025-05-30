@@ -40,6 +40,7 @@ add_executable(platformer
     src/game/tile_map/tile.cpp
     src/game/player/player.cpp
     src/game/player/movement_abilities/jump_ability.cpp
+    src/game/player/movement_abilities/dash_ability.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp
@@ -84,6 +85,7 @@ add_executable(tests
     src/game/tile_map/tile.cpp
     src/game/player/player.cpp
     src/game/player/movement_abilities/jump_ability.cpp
+    src/game/player/movement_abilities/dash_ability.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp

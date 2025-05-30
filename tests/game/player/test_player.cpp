@@ -71,7 +71,7 @@ TEST_CASE("Player can multi-jump", "[Player]")
 
     SECTION("Player multi-jump works correctly")
     {
-        auto jumpAbility = player.getJumpAbility();
+        JumpAbility *jumpAbility = player.getAbility<JumpAbility>();
         REQUIRE(jumpAbility != nullptr);
         int maxJumpCount = jumpAbility->getMaxJumpCount();
         int jumpTries = maxJumpCount + 1;
@@ -99,7 +99,7 @@ TEST_CASE("Player can multi-jump", "[Player]")
 
     SECTION("Can multi-jump again after landing")
     {
-        auto jumpAbility = player.getJumpAbility();
+        JumpAbility *jumpAbility = player.getAbility<JumpAbility>();
         REQUIRE(jumpAbility != nullptr);
         for (int i = 0; i < jumpAbility->getMaxJumpCount(); ++i)
         {
@@ -381,6 +381,8 @@ TEST_CASE("Player and empty or invalid tiles", "[Player]")
 TEST_CASE("Player can dash", "[Player]")
 {
     Player player = setupPlayer(glm::vec2(80, 144));
+    DashAbility *dashAbility = player.getAbility<DashAbility>();
+    REQUIRE(dashAbility != nullptr);
     TileMap tileMap = setupTileMap();
     simulatePlayer(player, tileMap, 0.01f);
 
@@ -388,10 +390,10 @@ TEST_CASE("Player can dash", "[Player]")
     {
         float initialX = player.getPosition().x;
         player.dash();
-        REQUIRE(player.dashing());
-        simulatePlayer(player, tileMap, player.getDashDuration());
+        REQUIRE(dashAbility->dashing());
+        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
         REQUIRE(player.getPosition().x > initialX);
-        REQUIRE_FALSE(player.dashing());
+        REQUIRE_FALSE(dashAbility->dashing());
         REQUIRE(player.getVelocity().x == Approx(0));
     }
 
@@ -408,7 +410,7 @@ TEST_CASE("Player can dash", "[Player]")
     SECTION("Player cannot move while dashing")
     {
         player.dash();
-        float totalTime = player.getDashDuration() - 0.1f;
+        float totalTime = dashAbility->getDashDuration() - 0.1f;
         FixedTimeStep timestepper(0.01f);
         timestepper.run(totalTime, [&](float dt)
                         { player.fixedUpdate(dt, tileMap); });
@@ -427,10 +429,10 @@ TEST_CASE("Player can dash", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         float initialX = player.getPosition().x;
         player.dash();
-        REQUIRE(player.dashing());
-        simulatePlayer(player, tileMap, player.getDashDuration());
+        REQUIRE(dashAbility->dashing());
+        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
         REQUIRE(player.getPosition().x > initialX);
-        REQUIRE_FALSE(player.dashing());
+        REQUIRE_FALSE(dashAbility->dashing());
     }
 
     SECTION("Gravity is not applied while dashing")
@@ -439,7 +441,7 @@ TEST_CASE("Player can dash", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         float initialY = player.getPosition().y;
         player.dash();
-        simulatePlayer(player, tileMap, player.getDashDuration());
+        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
         REQUIRE(player.getPosition().y == Approx(initialY));
     }
 
@@ -449,10 +451,10 @@ TEST_CASE("Player can dash", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         float initialX = player.getPosition().x;
         player.dash();
-        REQUIRE(player.dashing());
-        simulatePlayer(player, tileMap, player.getDashDuration());
+        REQUIRE(dashAbility->dashing());
+        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
         REQUIRE(player.getPosition().x > initialX);
-        REQUIRE_FALSE(player.dashing());
+        REQUIRE_FALSE(dashAbility->dashing());
     }
 
     SECTION("Player can move left and dash")
@@ -461,9 +463,9 @@ TEST_CASE("Player can dash", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         float initialX = player.getPosition().x;
         player.dash();
-        REQUIRE(player.dashing());
-        simulatePlayer(player, tileMap, player.getDashDuration());
+        REQUIRE(dashAbility->dashing());
+        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
         REQUIRE(player.getPosition().x < initialX);
-        REQUIRE_FALSE(player.dashing());
+        REQUIRE_FALSE(dashAbility->dashing());
     }
 }

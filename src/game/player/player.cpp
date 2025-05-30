@@ -10,45 +10,30 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : p
                                                                                moveSpeed(playerData.moveSpeed),
                                                                                size(playerData.size),
                                                                                idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
-                                                                               walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData)),
-                                                                               dashSpeed(playerData.dashSpeed),
-                                                                               dashDuration(playerData.dashDuration),
-                                                                               dashCooldown(playerData.dashCooldown)
+                                                                               walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
 {
     currentAnim = &idleAnim;
     gravity = physicsData.gravity;
     movementAbilities.emplace_back(std::make_unique<JumpAbility>(playerData.maxJumpCount, playerData.jumpSpeed));
+    movementAbilities.emplace_back(std::make_unique<DashAbility>(playerData.dashSpeed, playerData.dashDuration, playerData.dashCooldown));
 }
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 {
+    velocity.y += gravity * deltaTime;
+
     for (auto &ability : movementAbilities)
     {
         ability->update(*this, deltaTime);
     }
 
-    if (!canDash())
-    {
-        dashCooldownLeft -= deltaTime;
-    }
-
-    if (dashing())
-    {
-        dashTimeLeft -= deltaTime;
-        if (dashTimeLeft > 0.0f)
-        {
-            velocity.x = dashSpeed * dashDirection;
-        }
-    }
-    else
-    {
-        velocity.y += gravity * deltaTime;
-    }
-
     glm::vec2 nextPosition = position + velocity * deltaTime;
+
     resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
     resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
+
     handlePickup(tileMap);
+
     position = nextPosition;
 }
 
@@ -238,45 +223,15 @@ float Player::getMoveSpeed() const
 
 void Player::dash()
 {
-    if (canDash() && !dashing())
+    for (auto &ability : movementAbilities)
     {
-        velocity.y = 0;
-        dashTimeLeft = dashDuration;
-        dashCooldownLeft = dashCooldown;
-        dashDirection = isFacingLeft ? -1 : 1;
+        ability->tryDash(*this);
     }
-}
-
-bool Player::dashing() const
-{
-    return dashTimeLeft > 0.0f;
-}
-
-float Player::getDashDuration() const
-{
-    return dashDuration;
-}
-
-bool Player::canDash() const
-{
-    return dashCooldownLeft <= 0.0f;
 }
 
 bool Player::onGround() const
 {
     return isOnGround;
-}
-
-JumpAbility *Player::getJumpAbility()
-{
-    for (auto &ability : movementAbilities)
-    {
-        if (auto *jump = dynamic_cast<JumpAbility *>(ability.get()))
-        {
-            return jump;
-        }
-    }
-    return nullptr;
 }
 
 void Player::setOnGround(bool isOnGround)
@@ -287,4 +242,16 @@ void Player::setOnGround(bool isOnGround)
 void Player::setVelocity(const glm::vec2 &velocity)
 {
     this->velocity = velocity;
+}
+
+MovementAbility *Player::getAbilityByType(const std::type_info &type)
+{
+    for (auto &ability : movementAbilities)
+    {
+        if (typeid(*ability) == type)
+        {
+            return ability.get();
+        }
+    }
+    return nullptr;
 }

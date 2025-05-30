@@ -1,10 +1,10 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
-#include "game/tile_map/tile_map.hpp"
-#include "game/player/player_data.hpp"
 #include "game/player/player_animation_state.hpp"
-#include "physics/physics_data.hpp"
 #include "animations/sprite_animation.hpp"
+class TileMap;
+class PlayerData;
+class PhysicsData;
 
 class Player
 {

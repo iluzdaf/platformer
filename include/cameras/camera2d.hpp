@@ -1,6 +1,6 @@
 #pragma once
-#include <glm/glm.hpp>
-#include "cameras/camera2d_data.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+class Camera2DData;
 
 class Camera2D
 {

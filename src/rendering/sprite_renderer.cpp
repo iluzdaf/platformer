@@ -1,6 +1,6 @@
-#include "rendering/sprite_renderer.hpp"
-#include <glm/gtc/matrix_transform.hpp>
 #include <cassert>
+#include "rendering/sprite_renderer.hpp"
+#include "rendering/texture2d.hpp"
 
 SpriteRenderer::SpriteRenderer(const Shader &shader) : shader(shader)
 {

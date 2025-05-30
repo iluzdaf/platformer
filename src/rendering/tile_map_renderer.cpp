@@ -1,5 +1,6 @@
-#include "rendering/tile_map_renderer.hpp"
 #include <cassert>
+#include "rendering/tile_map_renderer.hpp"
+#include "game/tile_map/tile_map.hpp"
 
 TileMapRenderer::TileMapRenderer(
     const Texture2D &tileSet,

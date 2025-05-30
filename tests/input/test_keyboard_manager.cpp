@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <GLFW/glfw3.h>
 #include "input/keyboard_manager.hpp"
 
 TEST_CASE("KeyboardManager tracks key press and release", "[keyboard]")

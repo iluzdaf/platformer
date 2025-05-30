@@ -1,3 +1,4 @@
+#include <GLFW/glfw3.h>
 #include "input/keyboard_manager.hpp"
 
 void KeyboardManager::registerKey(int key)

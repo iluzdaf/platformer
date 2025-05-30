@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "animations/frame_animation.hpp"
+#include "animations/frame_animation_data.hpp"
 
 TEST_CASE("Default Constucted FrameAnimation behaves correctly", "[FrameAnimation]")
 {
@@ -15,7 +16,7 @@ TEST_CASE("Default Constucted FrameAnimation behaves correctly", "[FrameAnimatio
 
 TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
 {
-    FrameAnimation frameAnimation(FrameAnimationData{{1, 2, 3}, 0.5f});
+    FrameAnimation frameAnimation({{1, 2, 3}, 0.5f});
 
     SECTION("Starts at first frame")
     {

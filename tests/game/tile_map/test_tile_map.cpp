@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "game/tile_map/tile_map.hpp"
+#include "game/tile_map/tile_map_data.hpp"
 
 TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
 {
@@ -65,22 +66,22 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
 
     SECTION("Known indices")
     {
-        const Tile& tile1 = tileMap.getTile(1);
+        const Tile &tile1 = tileMap.getTile(1);
         REQUIRE(tile1.getKind() == TileKind::Solid);
         REQUIRE_FALSE(tile1.isAnimated());
 
-        const Tile& tile2 = tileMap.getTile(2);
+        const Tile &tile2 = tileMap.getTile(2);
         REQUIRE(tile2.getKind() == TileKind::Empty);
         REQUIRE_FALSE(tile2.isAnimated());
 
-        const Tile& tile3 = tileMap.getTile(3);
+        const Tile &tile3 = tileMap.getTile(3);
         REQUIRE(tile3.getKind() == TileKind::Empty);
         REQUIRE_FALSE(tile3.isAnimated());
     }
 
     SECTION("Unknown indices")
     {
-        const Tile& tile = tileMap.getTile(999);
+        const Tile &tile = tileMap.getTile(999);
         REQUIRE(tile.getKind() == TileKind::Empty);
         REQUIRE_FALSE(tile.isAnimated());
     }
@@ -92,9 +93,9 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     tileMapData.width = 2;
     tileMapData.height = 2;
     tileMapData.tileData = {
-        {1, TileData{TileKind::Empty, TileAnimationData(FrameAnimationData({10, 11, 12}, 0.1f))}},
-        {2, TileData{TileKind::Empty}},
-        {3, TileData{TileKind::Empty, TileAnimationData(FrameAnimationData({5, 6}, 0.1f))}}};
+        {1, {TileKind::Empty, TileAnimationData{{{10, 11, 12}, 0.1f}}}},
+        {2, {TileKind::Empty}},
+        {3, {TileKind::Empty, TileAnimationData{{{5, 6}, 0.1f}}}}};
     TileMap tileMap(tileMapData);
     tileMap.setTileIndex(0, 0, 1);
     tileMap.setTileIndex(0, 1, 2);
@@ -102,8 +103,8 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 
     SECTION("Animated tiles")
     {
-        const Tile& tile1 = tileMap.getTile(1);
-        const Tile& tile2 = tileMap.getTile(3);
+        const Tile &tile1 = tileMap.getTile(1);
+        const Tile &tile2 = tileMap.getTile(3);
         REQUIRE(tile1.getCurrentFrame() == 10);
         REQUIRE(tile2.getCurrentFrame() == 5);
         tileMap.update(0.1f);
@@ -113,7 +114,7 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 
     SECTION("Non-animated tiles")
     {
-        const Tile& tile = tileMap.getTile(2);
+        const Tile &tile = tileMap.getTile(2);
         REQUIRE(tile.getCurrentFrame() == -1);
         tileMap.update(1.0f);
         REQUIRE(tile.getCurrentFrame() == -1);
@@ -129,7 +130,7 @@ TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
                             {5, {TileKind::Pickup, std::nullopt, 0}}};
     TileMap tileMap(tileMapData);
     tileMap.setTileIndex(1, 1, 5);
-    const Tile& tile = tileMap.getTile(5);
+    const Tile &tile = tileMap.getTile(5);
     REQUIRE(tile.isPickup());
     REQUIRE(tile.getPickupReplaceIndex().value() == 0);
 }

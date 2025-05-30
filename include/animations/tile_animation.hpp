@@ -1,6 +1,6 @@
 #pragma once
 #include "animations/frame_animation.hpp"
-#include "animations/tile_animation_data.hpp"
+class TileAnimationData;
 
 class TileAnimation
 {

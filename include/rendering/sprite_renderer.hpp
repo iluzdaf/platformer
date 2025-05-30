@@ -1,8 +1,8 @@
 #pragma once
 #include <glad/glad.h>
-#include <glm/glm.hpp>
-#include "texture2d.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 #include "shader.hpp"
+class Texture2D;
 
 class SpriteRenderer
 {

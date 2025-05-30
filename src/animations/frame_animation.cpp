@@ -1,5 +1,6 @@
 #include <cassert>
 #include "animations/frame_animation.hpp"
+#include "animations/frame_animation_data.hpp"
 
 FrameAnimation::FrameAnimation(const FrameAnimationData &frameAnimationData)
     : frames(std::move(frameAnimationData.frames)),

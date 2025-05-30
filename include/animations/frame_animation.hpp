@@ -1,5 +1,6 @@
 #pragma once
-#include "animations/frame_animation_data.hpp"
+#include <vector>
+class FrameAnimationData;
 
 class FrameAnimation
 {

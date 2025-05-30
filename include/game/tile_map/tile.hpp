@@ -1,8 +1,8 @@
 #pragma once
 #include <optional>
 #include "game/tile_map/tile_kind.hpp"
-#include "game/tile_map/tile_data.hpp"
 #include "animations/tile_animation.hpp"
+class TileData;
 
 class Tile
 {

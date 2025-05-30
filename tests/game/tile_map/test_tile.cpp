@@ -1,10 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include "game/tile_map/tile.hpp"
+#include "game/tile_map/tile_data.hpp"
 
 TEST_CASE("Tile correctly stores kind", "[Tile]")
 {
-    Tile solidTile(TileData{TileKind::Solid});
-    Tile emptyTile(TileData{TileKind::Empty});
+    Tile solidTile({TileKind::Solid});
+    Tile emptyTile({TileKind::Empty});
 
     REQUIRE(solidTile.getKind() == TileKind::Solid);
     REQUIRE(emptyTile.getKind() == TileKind::Empty);
@@ -14,7 +15,7 @@ TEST_CASE("Tile correctly stores kind", "[Tile]")
 
 TEST_CASE("Tile is not animated by default", "[Tile]")
 {
-    Tile tile(TileData{TileKind::Empty});
+    Tile tile({TileKind::Empty});
 
     REQUIRE_FALSE(tile.isAnimated());
     REQUIRE(tile.getCurrentFrame() == -1);
@@ -22,7 +23,7 @@ TEST_CASE("Tile is not animated by default", "[Tile]")
 
 TEST_CASE("Tile becomes animated when animation is set", "[Tile]")
 {
-    Tile tile(TileData{TileKind::Empty, TileAnimationData{FrameAnimationData{{1, 2, 3}, 0.5f}}});
+    Tile tile({TileKind::Empty, TileAnimationData{{{1, 2, 3}, 0.5f}}});
 
     REQUIRE(tile.isAnimated());
     REQUIRE(tile.getCurrentFrame() == 1);
@@ -30,7 +31,7 @@ TEST_CASE("Tile becomes animated when animation is set", "[Tile]")
 
 TEST_CASE("Tile updates animation over time", "[Tile]")
 {
-    Tile tile(TileData{TileKind::Empty, TileAnimationData{FrameAnimationData{{10, 11, 12}, 0.25f}}});
+    Tile tile({TileKind::Empty, TileAnimationData{{{10, 11, 12}, 0.25f}}});
     tile.update(0.25f);
     REQUIRE(tile.getCurrentFrame() == 11);
 

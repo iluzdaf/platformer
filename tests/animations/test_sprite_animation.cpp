@@ -2,6 +2,8 @@
 #include <glm/glm.hpp>
 #include <catch2/catch_approx.hpp>
 #include "animations/sprite_animation.hpp"
+#include "animations/frame_animation_data.hpp"
+#include "animations/sprite_animation_data.hpp"
 using Catch::Approx;
 
 TEST_CASE("Default Constucted SpriteAnimation behaves correctly", "[FrameAnimation]")
@@ -17,7 +19,7 @@ TEST_CASE("Default Constucted SpriteAnimation behaves correctly", "[FrameAnimati
 
 TEST_CASE("SpriteAnimation returns correct UVs", "[SpriteAnimation]")
 {
-    SpriteAnimation anim(SpriteAnimationData{FrameAnimationData{{0, 1, 2}, 0.2f}, 32, 32, 96});
+    SpriteAnimation anim({{{0, 1, 2}, 0.2f}, 32, 32, 96});
 
     SECTION("Frame 0 UV")
     {

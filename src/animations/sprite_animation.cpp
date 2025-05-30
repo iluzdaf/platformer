@@ -1,5 +1,6 @@
 #include <cassert>
 #include "animations/sprite_animation.hpp"
+#include "animations/sprite_animation_data.hpp"
 
 SpriteAnimation::SpriteAnimation(const SpriteAnimationData &spriteAnimationData)
     : frameAnimation(spriteAnimationData.frameAnimationData),

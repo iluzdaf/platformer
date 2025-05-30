@@ -1,8 +1,8 @@
 #pragma once
-#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "rendering/texture2d.hpp"
 #include "rendering/sprite_renderer.hpp"
-#include "game/tile_map/tile_map.hpp"
+class TileMap;
 
 class TileMapRenderer
 {

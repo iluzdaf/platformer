@@ -1,9 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include "animations/tile_animation.hpp"
+#include "animations/tile_animation_data.hpp"
+#include "animations/frame_animation_data.hpp"
 
 TEST_CASE("TileAnimation advances frames over time correctly", "[TileAnimation]")
 {
-    TileAnimation anim(TileAnimationData{FrameAnimationData{{10, 11, 12, 13}, 0.25f}});
+    TileAnimation anim({{{10, 11, 12, 13}, 0.25f}});
 
     SECTION("Starts at first frame")
     {

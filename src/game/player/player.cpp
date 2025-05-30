@@ -2,6 +2,9 @@
 #include <algorithm>
 #include "game/player/player.hpp"
 #include "game/tile_map/tile.hpp"
+#include "game/tile_map/tile_map.hpp"
+#include "game/player/player_data.hpp"
+#include "physics/physics_data.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData) : position(playerData.startPosition),
                                                                                moveSpeed(playerData.moveSpeed),

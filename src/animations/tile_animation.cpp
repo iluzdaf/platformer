@@ -1,4 +1,5 @@
 #include "animations/tile_animation.hpp"
+#include "animations/tile_animation_data.hpp"
 
 TileAnimation::TileAnimation(const TileAnimationData &tileAnimationData)
     : frameAnimation(tileAnimationData.frameAnimationData)

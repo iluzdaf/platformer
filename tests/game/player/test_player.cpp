@@ -2,6 +2,9 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "game/player/player.hpp"
+#include "game/player/player_data.hpp"
+#include "game/tile_map/tile_map.hpp"
+#include "game/tile_map/tile_map_data.hpp"
 #include "physics/fixed_time_step.hpp"
 #include "physics/physics_data.hpp"
 using Catch::Approx;

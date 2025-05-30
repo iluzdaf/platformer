@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
-#include "animations/sprite_animation_data.hpp"
 #include "animations/frame_animation.hpp"
+class SpriteAnimationData;
 
 class SpriteAnimation
 {

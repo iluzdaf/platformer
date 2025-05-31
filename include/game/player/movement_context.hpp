@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
 class MovementAbility;
+class PlayerState;
 
 class MovementContext
 {
@@ -12,11 +13,8 @@ public:
     virtual bool onGround() const = 0;
     virtual void setOnGround(bool isOnGround) = 0;
     virtual bool facingLeft() const = 0;
-    virtual MovementAbility *getAbilityByType(const std::type_info &type) = 0;
-    template <typename T>
-    T *getAbility()
-    {
-        return dynamic_cast<T *>(getAbilityByType(typeid(T)));
-    }
     virtual void setFacingLeft(bool isFacingLeft) = 0;
+    virtual const PlayerState &getPlayerState() const = 0;
+    virtual bool touchingLeftWall() const = 0;
+    virtual bool touchingRightWall() const = 0;
 };

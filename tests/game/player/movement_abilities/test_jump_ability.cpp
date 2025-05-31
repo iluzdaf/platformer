@@ -15,15 +15,15 @@ TEST_CASE("JumpAbility respects max jump count", "[JumpAbility]")
     {
         mockPlayer.setOnGround(true);
         jumpAbility.tryJump(mockPlayer);
-        REQUIRE(mockPlayer.velocity.y == Approx(jumpAbility.getJumpSpeed()));
+        REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
 
         mockPlayer.setOnGround(true);
         jumpAbility.tryJump(mockPlayer);
-        REQUIRE(mockPlayer.velocity.y == Approx(jumpAbility.getJumpSpeed()));
+        REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
 
-        mockPlayer.velocity = {0, 0};
+        mockPlayer.setVelocity({0, 0});
         jumpAbility.tryJump(mockPlayer);
-        REQUIRE(mockPlayer.velocity.y == Approx(0.0f));
+        REQUIRE(mockPlayer.getVelocity().y == Approx(0.0f));
     }
 
     SECTION("Jump count resets when on ground")
@@ -31,12 +31,12 @@ TEST_CASE("JumpAbility respects max jump count", "[JumpAbility]")
         mockPlayer.setOnGround(true);
         jumpAbility.update(mockPlayer, 0.016f);
         jumpAbility.tryJump(mockPlayer);
-        REQUIRE(mockPlayer.velocity.y == Approx(jumpAbility.getJumpSpeed()));
+        REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
 
         mockPlayer.setOnGround(true);
         jumpAbility.update(mockPlayer, 0.016f);
-        mockPlayer.velocity = {0, 0};
+        mockPlayer.setVelocity({0, 0});
         jumpAbility.tryJump(mockPlayer);
-        REQUIRE(mockPlayer.velocity.y == Approx(jumpAbility.getJumpSpeed()));
+        REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
     }
 }

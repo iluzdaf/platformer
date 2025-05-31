@@ -1,10 +1,10 @@
 #pragma once
-#include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include <vector>
 #include "game/player/player_animation_state.hpp"
 #include "game/player/movement_abilities/movement_ability.hpp"
 #include "game/player/movement_context.hpp"
+#include "game/player/player_state.hpp"
 #include "animations/sprite_animation.hpp"
 class TileMap;
 class PlayerData;
@@ -30,8 +30,10 @@ public:
     bool onGround() const override;
     void setOnGround(bool isOnGround) override;
     bool facingLeft() const override;
-    virtual MovementAbility *getAbilityByType(const std::type_info &type) override;
     void setFacingLeft(bool isFacingLeft) override;
+    const PlayerState &getPlayerState() const override;
+    bool touchingLeftWall() const override;
+    bool touchingRightWall() const override;
 
 private:
     void resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap);
@@ -40,6 +42,8 @@ private:
     void updateAnimation(float deltaTime);
     void clampToTileMapBounds(const TileMap &tileMap);
     void handlePickup(TileMap &tilemap);
+    void updatePlayerState();
+    void updateAbilities(float deltaTime);
 
     glm::vec2 position = glm::vec2(0, 0);
     glm::vec2 velocity = glm::vec2(0, 0);
@@ -48,10 +52,11 @@ private:
     SpriteAnimation walkAnim;
     PlayerAnimationState animState = PlayerAnimationState::Idle;
 
-    bool isFacingLeft = false;
+    bool isFacingLeft = false, isOnGround = false, isTouchingLeftWall = false, isTouchingRightWall = false;
     glm::vec2 size = glm::vec2(1, 1);
     float gravity = 980;
-    bool isOnGround = false;
 
     std::vector<std::unique_ptr<MovementAbility>> movementAbilities;
+
+    PlayerState playerState;
 };

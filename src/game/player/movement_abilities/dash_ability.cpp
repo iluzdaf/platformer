@@ -1,6 +1,7 @@
 #include "game/player/movement_abilities/dash_ability.hpp"
 #include "game/player/movement_context.hpp"
 #include "game/player/movement_abilities/dash_ability_data.hpp"
+#include "game/player/player_state.hpp"
 
 DashAbility::DashAbility(const DashAbilityData &dashAbilityData)
     : dashSpeed(dashAbilityData.dashSpeed),
@@ -9,14 +10,14 @@ DashAbility::DashAbility(const DashAbilityData &dashAbilityData)
 {
 }
 
-void DashAbility::update(MovementContext &context, float deltaTime)
+void DashAbility::update(MovementContext &movementContext, float deltaTime)
 {
     if (!canDash())
         dashCooldownLeft -= deltaTime;
 
     if (dashing())
     {
-        glm::vec2 velocity = context.getVelocity();
+        glm::vec2 velocity = movementContext.getVelocity();
         dashTimeLeft -= deltaTime;
 
         if (dashing())
@@ -25,20 +26,20 @@ void DashAbility::update(MovementContext &context, float deltaTime)
         }
 
         velocity.y = 0.0f;
-        context.setVelocity(velocity);
+        movementContext.setVelocity(velocity);
     }
 }
 
-void DashAbility::tryDash(MovementContext &context)
+void DashAbility::tryDash(MovementContext &movementContext)
 {
     if (canDash() && !dashing())
     {
-        dashDirection = context.facingLeft() ? -1 : 1;
+        dashDirection = movementContext.facingLeft() ? -1 : 1;
         dashTimeLeft = dashDuration;
         dashCooldownLeft = dashCooldown;
-        glm::vec2 velocity = context.getVelocity();
+        glm::vec2 velocity = movementContext.getVelocity();
         velocity.y = 0.0f;
-        context.setVelocity(velocity);
+        movementContext.setVelocity(velocity);
     }
 }
 
@@ -60,4 +61,10 @@ float DashAbility::getDashDuration() const
 float DashAbility::getDashCooldown() const
 {
     return dashCooldown;
+}
+
+void DashAbility::syncState(PlayerState &playerState) const
+{
+    playerState.dashDuration = dashDuration;
+    playerState.dashing = dashing();
 }

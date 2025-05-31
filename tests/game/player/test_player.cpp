@@ -73,14 +73,12 @@ TEST_CASE("Player can multi-jump", "[Player]")
     TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
     tileMap.setTileIndex(1, 9, 1);
     Player player = setupPlayer(glm::vec2(16, 128));
+    const PlayerState &playerState = player.getPlayerState();
     simulatePlayer(player, tileMap, 0.1f);
 
     SECTION("Player multi-jump works correctly")
     {
-        JumpAbility *jumpAbility = player.getAbility<JumpAbility>();
-        REQUIRE(jumpAbility != nullptr);
-        int maxJumpCount = jumpAbility->getMaxJumpCount();
-        int jumpTries = maxJumpCount + 1;
+        int jumpTries = playerState.maxJumpCount + 1;
 
         std::vector<float> jumpVelocities;
         for (int i = 0; i < jumpTries; ++i)
@@ -90,7 +88,7 @@ TEST_CASE("Player can multi-jump", "[Player]")
             simulatePlayer(player, tileMap, 0.1f);
         }
 
-        REQUIRE(jumpVelocities[0] == jumpAbility->getJumpSpeed());
+        REQUIRE(jumpVelocities[0] == playerState.jumpSpeed);
 
         float beforeJumpVelocity = jumpVelocities[0];
         for (int i = 1; i < jumpTries - 1; ++i)
@@ -105,9 +103,7 @@ TEST_CASE("Player can multi-jump", "[Player]")
 
     SECTION("Can multi-jump again after landing")
     {
-        JumpAbility *jumpAbility = player.getAbility<JumpAbility>();
-        REQUIRE(jumpAbility != nullptr);
-        for (int i = 0; i < jumpAbility->getMaxJumpCount(); ++i)
+        for (int i = 0; i < playerState.maxJumpCount; ++i)
         {
             player.jump();
             simulatePlayer(player, tileMap, 0.1f);
@@ -116,7 +112,7 @@ TEST_CASE("Player can multi-jump", "[Player]")
         simulatePlayer(player, tileMap, 1.0f);
 
         player.jump();
-        REQUIRE(player.getVelocity().y == jumpAbility->getJumpSpeed());
+        REQUIRE(player.getVelocity().y == playerState.jumpSpeed);
     }
 }
 
@@ -129,8 +125,7 @@ TEST_CASE("Player can move", "[Player]")
     }
     Player player = setupPlayer(glm::vec2(80, 128));
     simulatePlayer(player, tileMap, 0.1f);
-    MoveAbility *moveAbility = player.getAbility<MoveAbility>();
-    REQUIRE(moveAbility != nullptr);
+    const PlayerState &playerState = player.getPlayerState();
     FixedTimeStep timestepper(0.01f);
 
     SECTION("Player can move left and not drift")
@@ -138,7 +133,7 @@ TEST_CASE("Player can move", "[Player]")
         player.moveLeft();
         timestepper.run(0.1f, [&](float dt)
                         { player.fixedUpdate(dt, tileMap); });
-        REQUIRE(player.getVelocity().x == -moveAbility->getMoveSpeed());
+        REQUIRE(player.getVelocity().x == -playerState.moveSpeed);
         player.update(0.1f, tileMap);
         REQUIRE(player.getVelocity().x == 0);
     }
@@ -149,7 +144,7 @@ TEST_CASE("Player can move", "[Player]")
         timestepper.run(0.1f, [&](float dt)
                         { player.fixedUpdate(dt, tileMap); });
 
-        REQUIRE(player.getVelocity().x == moveAbility->getMoveSpeed());
+        REQUIRE(player.getVelocity().x == playerState.moveSpeed);
         player.update(0.1f, tileMap);
         REQUIRE(player.getVelocity().x == 0);
     }
@@ -398,8 +393,7 @@ TEST_CASE("Player and empty or invalid tiles", "[Player]")
 TEST_CASE("Player can dash", "[Player]")
 {
     Player player = setupPlayer(glm::vec2(80, 144));
-    DashAbility *dashAbility = player.getAbility<DashAbility>();
-    REQUIRE(dashAbility != nullptr);
+    const PlayerState &playerState = player.getPlayerState();
     TileMap tileMap = setupTileMap();
     simulatePlayer(player, tileMap, 0.01f);
 
@@ -407,10 +401,11 @@ TEST_CASE("Player can dash", "[Player]")
     {
         float initialX = player.getPosition().x;
         player.dash();
-        REQUIRE(dashAbility->dashing());
-        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
+        simulatePlayer(player, tileMap, 0.01f);
+        REQUIRE(playerState.dashing);
+        simulatePlayer(player, tileMap, playerState.dashDuration - 0.01f);
         REQUIRE(player.getPosition().x > initialX);
-        REQUIRE_FALSE(dashAbility->dashing());
+        REQUIRE_FALSE(playerState.dashing);
         REQUIRE(player.getVelocity().x == Approx(0));
     }
 
@@ -427,7 +422,7 @@ TEST_CASE("Player can dash", "[Player]")
     SECTION("Player cannot move while dashing")
     {
         player.dash();
-        float totalTime = dashAbility->getDashDuration() - 0.1f;
+        float totalTime = playerState.dashDuration - 0.1f;
         FixedTimeStep timestepper(0.01f);
         timestepper.run(totalTime, [&](float dt)
                         { player.fixedUpdate(dt, tileMap); });
@@ -446,10 +441,11 @@ TEST_CASE("Player can dash", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         float initialX = player.getPosition().x;
         player.dash();
-        REQUIRE(dashAbility->dashing());
-        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
+        simulatePlayer(player, tileMap, 0.01f);
+        REQUIRE(playerState.dashing);
+        simulatePlayer(player, tileMap, playerState.dashDuration - 0.01f);
         REQUIRE(player.getPosition().x > initialX);
-        REQUIRE_FALSE(dashAbility->dashing());
+        REQUIRE_FALSE(playerState.dashing);
     }
 
     SECTION("Gravity is not applied while dashing")
@@ -458,7 +454,7 @@ TEST_CASE("Player can dash", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         float initialY = player.getPosition().y;
         player.dash();
-        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
+        simulatePlayer(player, tileMap, playerState.dashDuration);
         REQUIRE(player.getPosition().y == Approx(initialY));
     }
 
@@ -468,10 +464,11 @@ TEST_CASE("Player can dash", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         float initialX = player.getPosition().x;
         player.dash();
-        REQUIRE(dashAbility->dashing());
-        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
+        simulatePlayer(player, tileMap, 0.01f);
+        REQUIRE(playerState.dashing);
+        simulatePlayer(player, tileMap, playerState.dashDuration - 0.01f);
         REQUIRE(player.getPosition().x > initialX);
-        REQUIRE_FALSE(dashAbility->dashing());
+        REQUIRE_FALSE(playerState.dashing);
     }
 
     SECTION("Player can move left and dash")
@@ -480,9 +477,44 @@ TEST_CASE("Player can dash", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         float initialX = player.getPosition().x;
         player.dash();
-        REQUIRE(dashAbility->dashing());
-        simulatePlayer(player, tileMap, dashAbility->getDashDuration());
+        simulatePlayer(player, tileMap, 0.01f);
+        REQUIRE(playerState.dashing);
+        simulatePlayer(player, tileMap, playerState.dashDuration - 0.01f);
         REQUIRE(player.getPosition().x < initialX);
-        REQUIRE_FALSE(dashAbility->dashing());
+        REQUIRE_FALSE(playerState.dashing);
+    }
+}
+
+TEST_CASE("Player sets wall touch flags correctly", "[Player]")
+{
+    TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+
+    SECTION("Touching right wall")
+    {
+        for (int y = 0; y < 10; ++y)
+        {
+            tileMap.setTileIndex(6, y, 1);
+        }
+
+        Player player = setupPlayer(glm::vec2(5 * 16.0f, 0.0f));
+        player.moveRight();
+        simulatePlayer(player, tileMap, 0.1f);
+
+        REQUIRE(player.touchingRightWall());
+        REQUIRE_FALSE(player.touchingLeftWall());
+    }
+
+    SECTION("Touching left wall")
+    {
+        for (int y = 0; y < 10; ++y)
+        {
+            tileMap.setTileIndex(3, y, 1);
+        }
+        Player player = setupPlayer(glm::vec2(4 * 16.0f, 0.0f));
+        player.moveLeft();
+        simulatePlayer(player, tileMap, 0.1f);
+
+        REQUIRE(player.touchingLeftWall());
+        REQUIRE_FALSE(player.touchingRightWall());
     }
 }

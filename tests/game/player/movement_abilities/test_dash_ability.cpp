@@ -21,7 +21,7 @@ TEST_CASE("DashAbility basic behavior", "[DashAbility]")
         mockPlayer.setFacingLeft(false);
         dashAbility.tryDash(mockPlayer);
         dashAbility.update(mockPlayer, 0.1f);
-        REQUIRE(mockPlayer.velocity.x > 0);
+        REQUIRE(mockPlayer.getVelocity().x > 0);
     }
 
     SECTION("Dash applies speed to the right")
@@ -29,7 +29,7 @@ TEST_CASE("DashAbility basic behavior", "[DashAbility]")
         mockPlayer.setFacingLeft(true);
         dashAbility.tryDash(mockPlayer);
         dashAbility.update(mockPlayer, 0.1f);
-        REQUIRE(mockPlayer.velocity.x < 0);
+        REQUIRE(mockPlayer.getVelocity().x < 0);
     }
 
     SECTION("Dash ends after duration")

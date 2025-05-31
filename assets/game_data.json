@@ -2,7 +2,7 @@
     "playerData": {
         "startPosition": [
             100.0,
-            400.0
+            100.0
         ],
         "moveAbilityData": {
             "moveSpeed": 160.0
@@ -43,6 +43,9 @@
             "dashSpeed": 480,
             "dashDuration": 0.2,
             "dashCooldown": 0.5
+        },
+        "wallSlideAbilityData": {
+            "slideSpeed": 35
         }
     },
     "cameraData": {

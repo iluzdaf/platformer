@@ -11,27 +11,26 @@ JumpAbility::JumpAbility(const JumpAbilityData &jumpAbilityData)
 {
 }
 
-void JumpAbility::update(MovementContext &context, float deltaTime)
+void JumpAbility::update(MovementContext &movementContext, float deltaTime)
 {
-    if (context.onGround())
+    if (movementContext.onGround())
     {
         resetJumps();
     }
 }
 
-void JumpAbility::tryJump(MovementContext &context)
+void JumpAbility::tryJump(MovementContext &movementContext)
 {
-    DashAbility *dash = context.getAbility<DashAbility>();
-    if (dash && dash->dashing())
+    if (movementContext.getPlayerState().dashing)
         return;
 
     if (jumpCount < maxJumpCount)
     {
-        glm::vec2 velocity = context.getVelocity();
+        glm::vec2 velocity = movementContext.getVelocity();
         velocity.y = jumpSpeed;
-        context.setVelocity(velocity);
+        movementContext.setVelocity(velocity);
         jumpCount++;
-        context.setOnGround(false);
+        movementContext.setOnGround(false);
     }
 }
 
@@ -48,4 +47,10 @@ int JumpAbility::getMaxJumpCount() const
 float JumpAbility::getJumpSpeed() const
 {
     return jumpSpeed;
+}
+
+void JumpAbility::syncState(PlayerState &playerState) const
+{
+    playerState.jumpSpeed = jumpSpeed;
+    playerState.maxJumpCount = maxJumpCount;
 }

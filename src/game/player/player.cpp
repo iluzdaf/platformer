@@ -7,6 +7,7 @@
 #include "game/player/movement_abilities/jump_ability.hpp"
 #include "game/player/movement_abilities/dash_ability.hpp"
 #include "game/player/movement_abilities/move_ability.hpp"
+#include "game/player/movement_abilities/wall_slide_ability.hpp"
 #include "physics/physics_data.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
@@ -31,16 +32,19 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
     {
         movementAbilities.emplace_back(std::make_unique<MoveAbility>(*playerData.moveAbilityData));
     }
+
+    if (playerData.wallSlideAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<WallSlideAbility>(*playerData.wallSlideAbilityData));
+    }
 }
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 {
     velocity.y += gravity * deltaTime;
 
-    for (auto &ability : movementAbilities)
-    {
-        ability->update(*this, deltaTime);
-    }
+    updateAbilities(deltaTime);
+    updatePlayerState();
 
     glm::vec2 nextPosition = position + velocity * deltaTime;
 
@@ -80,6 +84,9 @@ void Player::jump()
 
 void Player::moveLeft()
 {
+    isTouchingLeftWall = false;
+    isTouchingRightWall = false;
+
     for (auto &ability : movementAbilities)
     {
         ability->tryMoveLeft(*this);
@@ -88,6 +95,9 @@ void Player::moveLeft()
 
 void Player::moveRight()
 {
+    isTouchingLeftWall = false;
+    isTouchingRightWall = false;
+
     for (auto &ability : movementAbilities)
     {
         ability->tryMoveRight(*this);
@@ -130,8 +140,9 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
     if (std::abs(velX) < 0.0001f)
         return;
 
+    bool isMovingRight = (velX > 0);
     float bottomY = nextY + size.y - 1.0f;
-    float leadingEdgeX = (velX > 0) ? nextX + size.x : nextX;
+    float leadingEdgeX = isMovingRight ? nextX + size.x : nextX;
     bool collidesWithSolidTile = tileMap.getTile(glm::vec2(leadingEdgeX, bottomY)).isSolid();
 
     if (collidesWithSolidTile)
@@ -140,6 +151,8 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
         int tileX = static_cast<int>(leadingEdgeX) / tileSize;
         nextX = snapToTileEdge(tileX, tileSize, velX > 0.0f, size.x);
         velX = 0.0f;
+        isTouchingLeftWall = !isMovingRight;
+        isTouchingRightWall = isMovingRight;
     }
 }
 
@@ -263,19 +276,46 @@ void Player::setVelocity(const glm::vec2 &velocity)
     this->velocity = velocity;
 }
 
-MovementAbility *Player::getAbilityByType(const std::type_info &type)
-{
-    for (auto &ability : movementAbilities)
-    {
-        if (typeid(*ability) == type)
-        {
-            return ability.get();
-        }
-    }
-    return nullptr;
-}
-
 void Player::setFacingLeft(bool isFacingLeft)
 {
     this->isFacingLeft = isFacingLeft;
+}
+
+void Player::updatePlayerState()
+{
+    playerState.position = position;
+    playerState.velocity = velocity;
+    playerState.size = size;
+    playerState.onGround = onGround();
+    playerState.facingLeft = facingLeft();
+    playerState.touchingRightWall = touchingRightWall();
+    playerState.touchingLeftWall = touchingLeftWall();
+
+    for (const auto &ability : movementAbilities)
+    {
+        ability->syncState(playerState);
+    }
+}
+
+const PlayerState &Player::getPlayerState() const
+{
+    return playerState;
+}
+
+void Player::updateAbilities(float deltaTime)
+{
+    for (auto &ability : movementAbilities)
+    {
+        ability->update(*this, deltaTime);
+    }
+}
+
+bool Player::touchingLeftWall() const
+{
+    return isTouchingLeftWall;
+}
+
+bool Player::touchingRightWall() const
+{
+    return isTouchingRightWall;
 }

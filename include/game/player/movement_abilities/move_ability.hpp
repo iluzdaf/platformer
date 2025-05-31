@@ -6,10 +6,11 @@ class MoveAbility : public MovementAbility
 {
 public:
     explicit MoveAbility(const MoveAbilityData &moveAbilityData);
-    void update(MovementContext &context, float deltaTime) override;
-    void tryMoveLeft(MovementContext &context) override;
-    void tryMoveRight(MovementContext &context) override;
+    void update(MovementContext &movementContext, float deltaTime) override;
+    void tryMoveLeft(MovementContext &movementContext) override;
+    void tryMoveRight(MovementContext &movementContext) override;
     float getMoveSpeed() const;
+    void syncState(PlayerState &playerState) const override;
 
 private:
     float moveSpeed = 160.0f;

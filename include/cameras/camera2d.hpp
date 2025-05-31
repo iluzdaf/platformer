@@ -5,16 +5,17 @@ class Camera2DData;
 class Camera2D
 {
 public:
-    explicit Camera2D(const Camera2DData &cameraData);
+    Camera2D(const Camera2DData &cameraData, int screenWidth, int screenHeight);
     void follow(const glm::vec2 &target);
     void setWorldBounds(const glm::vec2 &min, const glm::vec2 &max);
     glm::mat4 getProjection() const;
     glm::vec2 getPosition() const;
+    void resize(float screenWidth, float screenHeight);
 
 private:
-    float screenWidth, screenHeight;
-    float zoom;
-    glm::vec2 position;
+    float screenWidth = 800, screenHeight = 600;
+    float zoom = 1;
+    glm::vec2 position = glm::vec2(0, 0);
     glm::vec2 worldMin = glm::vec2(0.0f);
     glm::vec2 worldMax = glm::vec2(10000.0f);
 };

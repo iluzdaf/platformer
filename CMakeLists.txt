@@ -42,6 +42,7 @@ add_executable(platformer
     src/game/player/movement_abilities/jump_ability.cpp
     src/game/player/movement_abilities/dash_ability.cpp
     src/game/player/movement_abilities/move_ability.cpp
+    src/game/game.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp

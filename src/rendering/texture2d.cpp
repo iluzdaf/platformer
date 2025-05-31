@@ -31,6 +31,7 @@ Texture2D::~Texture2D()
     if (valid())
     {
         glDeleteTextures(1, &textureID);
+        textureID = 0;
     }
 }
 

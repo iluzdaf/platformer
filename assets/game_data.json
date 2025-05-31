@@ -46,11 +46,11 @@
         }
     },
     "cameraData": {
-        "width": 800,
-        "height": 600,
-        "zoom": 3.5
+        "zoom": 7
     },
     "physicsData": {
         "gravity": 980.0
-    }
+    },
+    "screenWidth": 800,
+    "screenHeight": 600
 }

@@ -20,10 +20,10 @@ public:
     void moveLeft();
     void moveRight();
     void dash();
-    const SpriteAnimation &getCurrentAnimation() const;
+    SpriteAnimation &getCurrentAnimation();
     PlayerAnimationState getAnimationState() const;
     glm::vec2 getSize() const;
-    
+
     glm::vec2 getPosition() const override;
     glm::vec2 getVelocity() const override;
     void setVelocity(const glm::vec2 &velocity) override;
@@ -46,7 +46,6 @@ private:
 
     SpriteAnimation idleAnim;
     SpriteAnimation walkAnim;
-    SpriteAnimation *currentAnim = nullptr;
     PlayerAnimationState animState = PlayerAnimationState::Idle;
 
     bool isFacingLeft = false;

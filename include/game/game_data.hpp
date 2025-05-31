@@ -8,4 +8,6 @@ struct GameData
     PlayerData playerData;
     Camera2DData cameraData;
     PhysicsData physicsData;
+    int screenWidth = 800;
+    int screenHeight = 600;
 };

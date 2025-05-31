@@ -12,6 +12,7 @@ Shader::~Shader()
     if (valid())
     {
         glDeleteProgram(shaderID);
+        shaderID = 0;
     }
 }
 

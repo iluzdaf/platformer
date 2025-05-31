@@ -3,12 +3,11 @@
 #include "cameras/camera2d.hpp"
 #include "cameras/camera2d_data.hpp"
 
-Camera2D::Camera2D(const Camera2DData &cameraData)
-    : screenWidth(cameraData.width), screenHeight(cameraData.height), zoom(cameraData.zoom)
+Camera2D::Camera2D(const Camera2DData &cameraData, int screenWidth, int screenHeight)
+    : zoom(cameraData.zoom)
 {
-    assert(screenWidth > 0.0f && "screenWidth must be positive");
-    assert(screenHeight > 0.0f && "screenHeight must be positive");
     assert(zoom > 0.0f && "zoom must be positive and non-zero");
+    resize(screenWidth, screenHeight);
 }
 
 void Camera2D::follow(const glm::vec2 &target)
@@ -42,4 +41,12 @@ glm::mat4 Camera2D::getProjection() const
         position.x + halfW,
         position.y + halfH,
         position.y - halfH);
+}
+
+void Camera2D::resize(float screenWidth, float screenHeight)
+{
+    assert(screenWidth > 0.0f && "screenWidth must be positive");
+    assert(screenHeight > 0.0f && "screenHeight must be positive");
+    this->screenWidth = screenWidth;
+    this->screenHeight = screenHeight;
 }

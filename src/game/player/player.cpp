@@ -15,7 +15,6 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
       idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
       walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
 {
-    currentAnim = &idleAnim;
     gravity = physicsData.gravity;
 
     if (playerData.jumpAbilityData)
@@ -67,9 +66,8 @@ void Player::updateAnimation(float deltaTime)
     if (newState != animState)
     {
         animState = newState;
-        currentAnim = (animState == PlayerAnimationState::Walk) ? &walkAnim : &idleAnim;
     }
-    currentAnim->update(deltaTime);
+    getCurrentAnimation().update(deltaTime);
 }
 
 void Player::jump()
@@ -152,10 +150,16 @@ inline float Player::snapToTileEdge(int tile, int tileSize, bool positive, float
                : (tile + 1) * tileSize;
 }
 
-const SpriteAnimation &Player::getCurrentAnimation() const
+SpriteAnimation &Player::getCurrentAnimation()
 {
-    assert(currentAnim);
-    return *currentAnim;
+    switch (animState)
+    {
+    case PlayerAnimationState::Idle:
+        return idleAnim;
+    case PlayerAnimationState::Walk:
+        return walkAnim;
+    }
+    return idleAnim;
 }
 
 PlayerAnimationState Player::getAnimationState() const

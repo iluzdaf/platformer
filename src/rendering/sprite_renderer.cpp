@@ -32,7 +32,11 @@ SpriteRenderer::SpriteRenderer(const Shader &shader) : shader(shader)
 
 SpriteRenderer::~SpriteRenderer()
 {
-    glDeleteVertexArrays(1, &quadVertexArrayObject);
+    if (quadVertexArrayObject != 0)
+    {
+        glDeleteVertexArrays(1, &quadVertexArrayObject);
+        quadVertexArrayObject = 0;
+    }
 }
 
 void SpriteRenderer::draw(

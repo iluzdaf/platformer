@@ -43,6 +43,7 @@ add_executable(platformer
     src/game/player/movement_abilities/dash_ability.cpp
     src/game/player/movement_abilities/move_ability.cpp
     src/game/player/movement_abilities/wall_slide_ability.cpp
+    src/game/player/movement_abilities/wall_jump_ability.cpp
     src/game/game.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
@@ -80,6 +81,7 @@ add_executable(tests
     tests/game/player/movement_abilities/test_dash_ability.cpp
     tests/game/player/movement_abilities/test_move_ability.cpp
     tests/game/player/movement_abilities/test_wall_slide_ability.cpp
+    tests/game/player/movement_abilities/test_wall_jump_ability.cpp
     tests/physics/test_fixed_time_step.cpp
     tests/cameras/test_camera2d.cpp
     tests/input/test_keyboard_manager.cpp
@@ -95,6 +97,7 @@ add_executable(tests
     src/game/player/movement_abilities/dash_ability.cpp
     src/game/player/movement_abilities/move_ability.cpp
     src/game/player/movement_abilities/wall_slide_ability.cpp
+    src/game/player/movement_abilities/wall_jump_ability.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp

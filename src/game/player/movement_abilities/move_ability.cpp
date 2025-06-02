@@ -6,9 +6,13 @@
 MoveAbility::MoveAbility(const MoveAbilityData &moveAbilityData)
     : moveSpeed(moveAbilityData.moveSpeed)
 {
+    assert(moveSpeed > 0);
 }
 
-void MoveAbility::update(MovementContext &movementContext, float /*deltaTime*/)
+void MoveAbility::fixedUpdate(
+    MovementContext & movementContext,
+    const PlayerState & /*playerState*/,
+    float /*deltaTime*/)
 {
     if (moveLeftRequested && !moveRightRequested)
     {
@@ -24,18 +28,34 @@ void MoveAbility::update(MovementContext &movementContext, float /*deltaTime*/)
         movementContext.setVelocity(vel);
         movementContext.setFacingLeft(false);
     }
+}
 
+void MoveAbility::update(
+    MovementContext &movementContext,
+    const PlayerState & /*playerState*/,
+    float /*deltaTime*/)
+{
     moveLeftRequested = false;
     moveRightRequested = false;
 }
 
-void MoveAbility::tryMoveLeft(MovementContext &context)
+void MoveAbility::tryMoveLeft(
+    MovementContext & /*movementContext*/,
+    const PlayerState &playerState)
 {
+    if (playerState.dashing || playerState.wallJumping)
+        return;
+
     moveLeftRequested = true;
 }
 
-void MoveAbility::tryMoveRight(MovementContext &context)
+void MoveAbility::tryMoveRight(
+    MovementContext & /*movementContext*/,
+    const PlayerState &playerState)
 {
+    if (playerState.dashing || playerState.wallJumping)
+        return;
+
     moveRightRequested = true;
 }
 

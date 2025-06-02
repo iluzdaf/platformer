@@ -7,6 +7,7 @@
 #include "game/player/movement_abilities/jump_ability_data.hpp"
 #include "game/player/movement_abilities/dash_ability_data.hpp"
 #include "game/player/movement_abilities/wall_slide_ability_data.hpp"
+#include "game/player/movement_abilities/wall_jump_ability_data.hpp"
 
 struct PlayerData
 {
@@ -18,4 +19,5 @@ struct PlayerData
     std::optional<JumpAbilityData> jumpAbilityData;
     std::optional<DashAbilityData> dashAbilityData;
     std::optional<WallSlideAbilityData> wallSlideAbilityData;
+    std::optional<WallJumpAbilityData> wallJumpAbilityData;
 };

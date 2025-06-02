@@ -8,39 +8,51 @@ DashAbility::DashAbility(const DashAbilityData &dashAbilityData)
       dashDuration(dashAbilityData.dashDuration),
       dashCooldown(dashAbilityData.dashCooldown)
 {
+    assert(dashSpeed > 0);
+    assert(dashDuration > 0);
+    assert(dashCooldown > 0);
+    assert(dashCooldown > dashDuration);
 }
 
-void DashAbility::update(MovementContext &movementContext, float deltaTime)
+void DashAbility::fixedUpdate(
+    MovementContext &movementContext,
+    const PlayerState & /*playerState*/,
+    float deltaTime)
 {
-    if (!canDash())
+    if (dashCooldownLeft > 0.0f)
         dashCooldownLeft -= deltaTime;
 
-    if (dashing())
-    {
-        glm::vec2 velocity = movementContext.getVelocity();
-        dashTimeLeft -= deltaTime;
+    if (!dashing())
+        return;
 
-        if (dashing())
-        {
-            velocity.x = dashSpeed * dashDirection;
-        }
+    dashTimeLeft -= deltaTime;
 
-        velocity.y = 0.0f;
-        movementContext.setVelocity(velocity);
-    }
+    glm::vec2 velocity = movementContext.getVelocity();
+    velocity.x = dashSpeed * dashDirection;
+    velocity.y = 0.0f;
+    movementContext.setVelocity(velocity);
 }
 
-void DashAbility::tryDash(MovementContext &movementContext)
+void DashAbility::update(
+    MovementContext & /*movementContext*/,
+    const PlayerState & /*playerState*/,
+    float /*deltaTime*/)
 {
-    if (canDash() && !dashing())
-    {
-        dashDirection = movementContext.facingLeft() ? -1 : 1;
-        dashTimeLeft = dashDuration;
-        dashCooldownLeft = dashCooldown;
-        glm::vec2 velocity = movementContext.getVelocity();
-        velocity.y = 0.0f;
-        movementContext.setVelocity(velocity);
-    }
+}
+
+void DashAbility::tryDash(
+    MovementContext &movementContext,
+    const PlayerState &playerState)
+{
+    if (playerState.wallSliding || playerState.wallJumping || dashing() || !canDash())
+        return;
+
+    dashDirection = playerState.facingLeft ? -1 : 1;
+    dashTimeLeft = dashDuration;
+    dashCooldownLeft = dashCooldown;
+    glm::vec2 velocity = movementContext.getVelocity();
+    velocity.y = 0.0f;
+    movementContext.setVelocity(velocity);
 }
 
 bool DashAbility::canDash() const

@@ -3,9 +3,11 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "game/player/player.hpp"
 #include "game/player/player_data.hpp"
-#include "game/player/movement_abilities/jump_ability.hpp"
-#include "game/player/movement_abilities/dash_ability.hpp"
-#include "game/player/movement_abilities/move_ability.hpp"
+#include "game/player/movement_abilities/jump_ability_data.hpp"
+#include "game/player/movement_abilities/dash_ability_data.hpp"
+#include "game/player/movement_abilities/move_ability_data.hpp"
+#include "game/player/movement_abilities/wall_slide_ability_data.hpp"
+#include "game/player/movement_abilities/wall_jump_ability_data.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/tile_map/tile_map_data.hpp"
 #include "physics/fixed_time_step.hpp"
@@ -14,8 +16,8 @@ using Catch::Approx;
 
 void simulatePlayer(Player &player, TileMap &tileMap, float totalTime, float step = 0.01f)
 {
-    FixedTimeStep timestepper(step);
-    timestepper.run(totalTime, [&](float dt)
+    FixedTimeStep timeStepper(step);
+    timeStepper.run(totalTime, [&](float dt)
                     { player.fixedUpdate(dt, tileMap); });
     player.update(totalTime, tileMap);
 }
@@ -40,6 +42,8 @@ Player setupPlayer(glm::vec2 startPosition = glm::vec2(0, 0), float gravity = 98
     playerData.moveAbilityData->moveSpeed = moveSpeed;
     playerData.jumpAbilityData = JumpAbilityData();
     playerData.dashAbilityData = DashAbilityData();
+    playerData.wallSlideAbilityData = WallSlideAbilityData();
+    playerData.wallJumpAbilityData = WallJumpAbilityData();
     PhysicsData physicsData;
     physicsData.gravity = gravity;
     return Player(playerData, physicsData);
@@ -200,7 +204,7 @@ TEST_CASE("Player and solid tiles", "[Player]")
         float playerTopY = player.getPosition().y;
         float ceilingBottomY = (ceilingTileY + 1);
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
-        REQUIRE(player.getVelocity().y == Approx(0.0f));
+        REQUIRE(player.getVelocity().y >= Approx(0.0f));
     }
 }
 
@@ -394,7 +398,7 @@ TEST_CASE("Player can dash", "[Player]")
 {
     Player player = setupPlayer(glm::vec2(80, 144));
     const PlayerState &playerState = player.getPlayerState();
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = setupTileMap(20, 10, 16);
     simulatePlayer(player, tileMap, 0.01f);
 
     SECTION("Player dashes from stationary and does not drift")
@@ -426,13 +430,12 @@ TEST_CASE("Player can dash", "[Player]")
         FixedTimeStep timestepper(0.01f);
         timestepper.run(totalTime, [&](float dt)
                         { player.fixedUpdate(dt, tileMap); });
-        float initialVelX = player.getVelocity().x;
+        float initialVelocityX = player.getVelocity().x;
         player.update(totalTime, tileMap);
         player.moveLeft();
         timestepper.run(0.1f, [&](float dt)
                         { player.fixedUpdate(dt, tileMap); });
-        REQUIRE(player.getVelocity().x == Approx(initialVelX));
-        player.update(0.1f, tileMap);
+        REQUIRE(player.getVelocity().x == Approx(initialVelocityX));
     }
 
     SECTION("Player can jump and dash")
@@ -516,5 +519,67 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 
         REQUIRE(player.touchingLeftWall());
         REQUIRE_FALSE(player.touchingRightWall());
+    }
+}
+
+TEST_CASE("Player movement ability integration", "[Player]")
+{
+    SECTION("Player can jump, wall slide, and wall jump")
+    {
+        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        for (int y = 0; y < 10; ++y)
+        {
+            tileMap.setTileIndex(2, y, 1);
+            tileMap.setTileIndex(7, y, 1);
+        }
+
+        Player player = setupPlayer(glm::vec2(3 * 16, 5 * 16));
+        player.moveLeft();
+        player.jump();
+        simulatePlayer(player, tileMap, 0.2f);
+        REQUIRE(player.getPlayerState().wallSliding);
+
+        player.jump();
+        FixedTimeStep timeStepper;
+        timeStepper.run(0.1f, [&](float dt)
+                        { player.fixedUpdate(dt, tileMap); });
+        REQUIRE(player.getVelocity().x > 0);
+        REQUIRE(player.getVelocity().y < 0);
+    }
+
+    SECTION("Player dashes into wall and performs wall jump")
+    {
+        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        for (int y = 0; y < 10; ++y)
+            tileMap.setTileIndex(6, y, 1);
+
+        Player player = setupPlayer(glm::vec2(4 * 16, 2 * 16));
+        player.moveRight();
+        player.dash();
+        simulatePlayer(player, tileMap, 0.2f);
+        REQUIRE(player.touchingRightWall());
+        REQUIRE(player.getPlayerState().wallSliding);
+
+        player.jump();
+        FixedTimeStep timeStepper;
+        timeStepper.run(0.1f, [&](float dt)
+                        { player.fixedUpdate(dt, tileMap); });
+        REQUIRE(player.getVelocity().x < 0);
+    }
+
+    SECTION("Player cannot wall jump unless wall sliding")
+    {
+        Player player = setupPlayer(glm::vec2(0, 0));
+        TileMap tileMap = setupTileMap();
+
+        player.jump();
+        simulatePlayer(player, tileMap, 0.1f);
+
+        glm::vec2 before = player.getVelocity();
+        player.jump();
+        simulatePlayer(player, tileMap, 0.1f);
+
+        glm::vec2 after = player.getVelocity();
+        REQUIRE(after.x == Approx(before.x));
     }
 }

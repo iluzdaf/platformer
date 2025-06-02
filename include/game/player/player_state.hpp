@@ -16,4 +16,5 @@ struct PlayerState
     bool wallSliding = false;
     bool touchingRightWall = false;
     bool touchingLeftWall = false;
+    bool wallJumping = false;
 };

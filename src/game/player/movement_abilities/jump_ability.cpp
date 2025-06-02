@@ -9,29 +9,40 @@ JumpAbility::JumpAbility(const JumpAbilityData &jumpAbilityData)
     : maxJumpCount(jumpAbilityData.maxJumpCount),
       jumpSpeed(jumpAbilityData.jumpSpeed)
 {
+    assert(maxJumpCount > 0);
+    assert(jumpSpeed < 0);
 }
 
-void JumpAbility::update(MovementContext &movementContext, float deltaTime)
+void JumpAbility::fixedUpdate(
+    MovementContext & /*movementContext*/,
+    const PlayerState & /*playerState*/,
+    float /*deltaTime*/)
 {
-    if (movementContext.onGround())
+}
+
+void JumpAbility::update(
+    MovementContext & /*movementContext*/,
+    const PlayerState &playerState,
+    float /*deltaTime*/)
+{
+    if (playerState.onGround)
     {
         resetJumps();
     }
 }
 
-void JumpAbility::tryJump(MovementContext &movementContext)
+void JumpAbility::tryJump(
+    MovementContext &movementContext,
+    const PlayerState &playerState)
 {
-    if (movementContext.getPlayerState().dashing)
+    if (playerState.dashing || playerState.wallSliding || jumpCount >= maxJumpCount || playerState.wallJumping)
         return;
 
-    if (jumpCount < maxJumpCount)
-    {
-        glm::vec2 velocity = movementContext.getVelocity();
-        velocity.y = jumpSpeed;
-        movementContext.setVelocity(velocity);
-        jumpCount++;
-        movementContext.setOnGround(false);
-    }
+    glm::vec2 velocity = movementContext.getVelocity();
+    velocity.y = jumpSpeed;
+    movementContext.setVelocity(velocity);
+    ++jumpCount;
+    movementContext.setOnGround(false);
 }
 
 void JumpAbility::resetJumps()

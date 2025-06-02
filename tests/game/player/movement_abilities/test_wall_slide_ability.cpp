@@ -1,62 +1,55 @@
 #include <catch2/catch_test_macros.hpp>
 #include "game/player/movement_abilities/wall_slide_ability.hpp"
-#include "test_helpers/mock_player.hpp"
 #include "game/player/movement_abilities/wall_slide_ability_data.hpp"
+#include "game/player/player_state.hpp"
+#include "test_helpers/mock_player.hpp"
 
 TEST_CASE("WallSlideAbility activates on wall contact while falling", "[WallSlideAbility]")
 {
+    PlayerState playerState;
     MockPlayer mockPlayer;
     WallSlideAbilityData wallSlideAbilityData;
     WallSlideAbility slideAbility(wallSlideAbilityData);
+    
     mockPlayer.setOnGround(false);
     mockPlayer.setVelocity(glm::vec2(0.0f, 300.0f));
 
     SECTION("Not wallSliding when not touching walls")
     {
-        mockPlayer.setTouchingLeftWall(false);
-        mockPlayer.setTouchingRightWall(false);
-
-        slideAbility.update(mockPlayer, 0.1f);
-
-        PlayerState state;
-        slideAbility.syncState(state);
-        REQUIRE_FALSE(state.wallSliding);
+        playerState.touchingLeftWall = false;
+        playerState.touchingRightWall = false;;
+        slideAbility.update(mockPlayer, playerState, 0.1f);
+        slideAbility.syncState(playerState);
+        REQUIRE_FALSE(playerState.wallSliding);
         REQUIRE(mockPlayer.getVelocity().y == 300.0f);
     }
 
     SECTION("Slides when touching left wall while falling")
     {
-        mockPlayer.setTouchingLeftWall(true);
-
-        slideAbility.update(mockPlayer, 0.1f);
-
-        PlayerState state;
-        slideAbility.syncState(state);
-        REQUIRE(state.wallSliding);
+        playerState.touchingLeftWall = true;
+        slideAbility.fixedUpdate(mockPlayer, playerState, 0.1f); 
+        slideAbility.update(mockPlayer, playerState, 0.1f); 
+        slideAbility.syncState(playerState);
+        REQUIRE(playerState.wallSliding);
         REQUIRE(mockPlayer.getVelocity().y < 300.0f);
     }
 
     SECTION("Slides when touching right wall while falling")
     {
-        mockPlayer.setTouchingRightWall(true);
-
-        slideAbility.update(mockPlayer, 0.1f);
-
-        PlayerState state;
-        slideAbility.syncState(state);
-        REQUIRE(state.wallSliding);
+        playerState.touchingRightWall = true;
+        slideAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
+        slideAbility.update(mockPlayer, playerState, 0.1f);
+        slideAbility.syncState(playerState);
+        REQUIRE(playerState.wallSliding);
         REQUIRE(mockPlayer.getVelocity().y < 300.0f);
     }
 
     SECTION("No slide when on ground")
     {
-        mockPlayer.setOnGround(true);
-        mockPlayer.setTouchingRightWall(true);
-
-        slideAbility.update(mockPlayer, 0.1f);
-
-        PlayerState state;
-        slideAbility.syncState(state);
-        REQUIRE_FALSE(state.wallSliding);
+        playerState.onGround = true;
+        playerState.touchingRightWall = true;
+        slideAbility.update(mockPlayer, playerState, 0.1f);
+        slideAbility.syncState(playerState);
+        REQUIRE_FALSE(playerState.wallSliding);
     }
 }

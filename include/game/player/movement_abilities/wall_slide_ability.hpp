@@ -5,8 +5,10 @@ class WallSlideAbilityData;
 class WallSlideAbility : public MovementAbility
 {
 public:
-    WallSlideAbility(const WallSlideAbilityData& wallSlideAbilityData);
-    void update(MovementContext &movementContext, float deltaTime) override;
+    explicit WallSlideAbility(const WallSlideAbilityData &wallSlideAbilityData);
+
+    void fixedUpdate(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
+    void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
     void syncState(PlayerState &playerState) const override;
 
 private:

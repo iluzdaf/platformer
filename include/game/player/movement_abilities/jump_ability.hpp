@@ -7,13 +7,16 @@ class JumpAbility : public MovementAbility
 {
 public:
     explicit JumpAbility(const JumpAbilityData &jumpAbilityData);
-    void update(MovementContext &movementContext, float deltaTime) override;
-    void tryJump(MovementContext &movementContext) override;
+
+    void fixedUpdate(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
+    void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
+    void tryJump(MovementContext &movementContext, const PlayerState &playerState) override;
+    void syncState(PlayerState &playerState) const override;
+    
     void resetJumps();
     int getMaxJumpCount() const;
     float getJumpSpeed() const;
-    void syncState(PlayerState &playerState) const override;
-
+    
 private:
     int maxJumpCount = 2;
     int jumpCount = 0;

@@ -8,6 +8,7 @@
 #include "game/player/movement_abilities/dash_ability.hpp"
 #include "game/player/movement_abilities/move_ability.hpp"
 #include "game/player/movement_abilities/wall_slide_ability.hpp"
+#include "game/player/movement_abilities/wall_jump_ability.hpp"
 #include "physics/physics_data.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
@@ -37,30 +38,50 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
     {
         movementAbilities.emplace_back(std::make_unique<WallSlideAbility>(*playerData.wallSlideAbilityData));
     }
+
+    if (playerData.wallJumpAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<WallJumpAbility>(*playerData.wallJumpAbilityData));
+    }
 }
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 {
+    resetTransientState();
+
+    checkWallContact(tileMap);
+
     velocity.y += gravity * deltaTime;
 
-    updateAbilities(deltaTime);
-    updatePlayerState();
+    for (auto &ability : movementAbilities)
+    {
+        ability->fixedUpdate(*this, playerState, deltaTime);
+    }
 
     glm::vec2 nextPosition = position + velocity * deltaTime;
-
     resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
     resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
-
     handlePickup(tileMap);
 
     position = nextPosition;
+
+    clampToTileMapBounds(tileMap);
+
+    updatePlayerState();
 }
 
 void Player::update(float deltaTime, TileMap &tileMap)
 {
-    clampToTileMapBounds(tileMap);
+    for (auto &ability : movementAbilities)
+    {
+        ability->update(*this, playerState, deltaTime);
+    }
+
     updateAnimation(deltaTime);
+
     velocity.x = 0.0f;
+
+    updatePlayerState();
 }
 
 void Player::updateAnimation(float deltaTime)
@@ -78,29 +99,23 @@ void Player::jump()
 {
     for (auto &ability : movementAbilities)
     {
-        ability->tryJump(*this);
+        ability->tryJump(*this, playerState);
     }
 }
 
 void Player::moveLeft()
 {
-    isTouchingLeftWall = false;
-    isTouchingRightWall = false;
-
     for (auto &ability : movementAbilities)
     {
-        ability->tryMoveLeft(*this);
+        ability->tryMoveLeft(*this, playerState);
     }
 }
 
 void Player::moveRight()
 {
-    isTouchingLeftWall = false;
-    isTouchingRightWall = false;
-
     for (auto &ability : movementAbilities)
     {
-        ability->tryMoveRight(*this);
+        ability->tryMoveRight(*this, playerState);
     }
 }
 
@@ -130,7 +145,7 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
             isOnGround = true;
         int tileSize = tileMap.getTileSize();
         int tileY = static_cast<int>(verticalEdgeY) / tileSize;
-        nextY = snapToTileEdge(tileY, tileSize, velY > 0.0f, size.y);
+        nextY = snapToTileEdge(tileY, tileSize, isFalling, size.y);
         velY = 0.0f;
     }
 }
@@ -151,8 +166,6 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
         int tileX = static_cast<int>(leadingEdgeX) / tileSize;
         nextX = snapToTileEdge(tileX, tileSize, velX > 0.0f, size.x);
         velX = 0.0f;
-        isTouchingLeftWall = !isMovingRight;
-        isTouchingRightWall = isMovingRight;
     }
 }
 
@@ -257,7 +270,7 @@ void Player::dash()
 {
     for (auto &ability : movementAbilities)
     {
-        ability->tryDash(*this);
+        ability->tryDash(*this, playerState);
     }
 }
 
@@ -302,14 +315,6 @@ const PlayerState &Player::getPlayerState() const
     return playerState;
 }
 
-void Player::updateAbilities(float deltaTime)
-{
-    for (auto &ability : movementAbilities)
-    {
-        ability->update(*this, deltaTime);
-    }
-}
-
 bool Player::touchingLeftWall() const
 {
     return isTouchingLeftWall;
@@ -318,4 +323,24 @@ bool Player::touchingLeftWall() const
 bool Player::touchingRightWall() const
 {
     return isTouchingRightWall;
+}
+
+void Player::checkWallContact(const TileMap &tileMap)
+{
+    float probeOffset = 0.05f;
+    if (tileMap.getTile(glm::vec2(position.x - probeOffset, position.y + size.y * 0.5f)).isSolid())
+    {
+        isTouchingLeftWall = true;
+    }
+
+    if (tileMap.getTile(glm::vec2(position.x + size.x + probeOffset, position.y + size.y * 0.5f)).isSolid())
+    {
+        isTouchingRightWall = true;
+    }
+}
+
+void Player::resetTransientState()
+{
+    isTouchingLeftWall = false;
+    isTouchingRightWall = false;
 }

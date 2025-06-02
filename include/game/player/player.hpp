@@ -23,18 +23,18 @@ public:
     SpriteAnimation &getCurrentAnimation();
     PlayerAnimationState getAnimationState() const;
     glm::vec2 getSize() const;
+    bool facingLeft() const;    
+    bool onGround() const;
+    bool touchingLeftWall() const;
+    bool touchingRightWall() const;
+    const PlayerState &getPlayerState() const;
 
     glm::vec2 getPosition() const override;
     glm::vec2 getVelocity() const override;
     void setVelocity(const glm::vec2 &velocity) override;
-    bool onGround() const override;
     void setOnGround(bool isOnGround) override;
-    bool facingLeft() const override;
     void setFacingLeft(bool isFacingLeft) override;
-    const PlayerState &getPlayerState() const override;
-    bool touchingLeftWall() const override;
-    bool touchingRightWall() const override;
-
+    
 private:
     void resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap);
     void resolveHorizontalCollision(float &nextX, float &velX, const TileMap &tileMap, float nextY);
@@ -43,7 +43,8 @@ private:
     void clampToTileMapBounds(const TileMap &tileMap);
     void handlePickup(TileMap &tilemap);
     void updatePlayerState();
-    void updateAbilities(float deltaTime);
+    void checkWallContact(const TileMap &tileMap);
+    void resetTransientState();
 
     glm::vec2 position = glm::vec2(0, 0);
     glm::vec2 velocity = glm::vec2(0, 0);

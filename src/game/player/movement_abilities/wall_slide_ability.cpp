@@ -6,27 +6,39 @@
 WallSlideAbility::WallSlideAbility(const WallSlideAbilityData &wallSlideAbilityData)
     : slideSpeed(wallSlideAbilityData.slideSpeed)
 {
+    assert(slideSpeed > 0);
 }
 
-void WallSlideAbility::update(MovementContext &movementContext, float /*deltaTime*/)
+void WallSlideAbility::fixedUpdate(
+    MovementContext &movementContext,
+    const PlayerState &playerState,
+    float /*deltaTime*/)
 {
     wallSliding = false;
 
-    const glm::vec2 velocity = movementContext.getVelocity();
-    if (movementContext.onGround() || velocity.y <= 0.0f)
+    if (playerState.onGround)
     {
         return;
     }
 
-    if (!(movementContext.touchingLeftWall() || movementContext.touchingRightWall()))
+    if (!(playerState.touchingLeftWall || playerState.touchingRightWall))
     {
         return;
     }
 
     wallSliding = true;
+    
+    const glm::vec2 velocity = movementContext.getVelocity();
     glm::vec2 clampedVelocity = velocity;
     clampedVelocity.y = glm::min(velocity.y, slideSpeed);
     movementContext.setVelocity(clampedVelocity);
+}
+
+void WallSlideAbility::update(
+    MovementContext & /*movementContext*/,
+    const PlayerState & /*playerState*/,
+    float /*deltaTime*/)
+{
 }
 
 void WallSlideAbility::syncState(PlayerState &playerState) const

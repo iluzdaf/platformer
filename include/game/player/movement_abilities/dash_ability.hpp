@@ -7,12 +7,16 @@ class DashAbility : public MovementAbility
 {
 public:
     explicit DashAbility(const DashAbilityData &dashAbilityData);
-    void update(MovementContext &movementContext, float deltaTime) override;
-    void tryDash(MovementContext &movementContext) override;
+
+    void fixedUpdate(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
+    void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
+    void tryDash(MovementContext &movementContext, const PlayerState &playerState) override;
+    void syncState(PlayerState &playerState) const override;
+    
     bool dashing() const;
     float getDashDuration() const;
     float getDashCooldown() const;
-    void syncState(PlayerState &playerState) const override;
+    bool canDash() const;
 
 private:
     float dashSpeed = 480;
@@ -21,5 +25,4 @@ private:
     float dashTimeLeft = 0.0f;
     float dashCooldownLeft = 0.0f;
     int dashDirection = 1;
-    bool canDash() const;
 };

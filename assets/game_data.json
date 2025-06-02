@@ -46,6 +46,10 @@
         },
         "wallSlideAbilityData": {
             "slideSpeed": 35
+        },
+        "wallJumpAbilityData": {
+            "jumpSpeed": -300,
+            "horizontalSpeed": 250
         }
     },
     "cameraData": {

@@ -1,74 +1,64 @@
 #include <catch2/catch_test_macros.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "game/player/movement_abilities/dash_ability.hpp"
 #include "game/player/movement_abilities/dash_ability_data.hpp"
-#include "glm/vec2.hpp"
+#include "game/player/player_state.hpp"
 #include "test_helpers/mock_player.hpp"
 
 TEST_CASE("DashAbility basic behavior", "[DashAbility]")
 {
+    PlayerState playerState;
     MockPlayer mockPlayer;
     DashAbilityData dashAbilityData;
     DashAbility dashAbility(dashAbilityData);
 
     SECTION("Can dash when not cooling down")
     {
-        dashAbility.tryDash(mockPlayer);
+        dashAbility.tryDash(mockPlayer, playerState);
         REQUIRE(dashAbility.dashing());
     }
 
     SECTION("Dash applies speed to the left")
     {
-        mockPlayer.setFacingLeft(false);
-        dashAbility.tryDash(mockPlayer);
-        dashAbility.update(mockPlayer, 0.1f);
-        REQUIRE(mockPlayer.getVelocity().x > 0);
+        playerState.facingLeft = true;
+        dashAbility.tryDash(mockPlayer, playerState);
+        dashAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
+        dashAbility.update(mockPlayer, playerState, 0.1f);
+        REQUIRE(mockPlayer.getVelocity().x < 0);
     }
 
     SECTION("Dash applies speed to the right")
     {
-        mockPlayer.setFacingLeft(true);
-        dashAbility.tryDash(mockPlayer);
-        dashAbility.update(mockPlayer, 0.1f);
-        REQUIRE(mockPlayer.getVelocity().x < 0);
+        playerState.facingLeft = false;
+        dashAbility.tryDash(mockPlayer, playerState);
+        dashAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
+        dashAbility.update(mockPlayer, playerState, 0.1f);
+        REQUIRE(mockPlayer.getVelocity().x > 0);
     }
 
     SECTION("Dash ends after duration")
     {
-        mockPlayer.setFacingLeft(false);
-        dashAbility.tryDash(mockPlayer);
-
-        float time = 0.0f;
-        while (time < dashAbility.getDashDuration() + 0.1f)
-        {
-            dashAbility.update(mockPlayer, 0.1f);
-            time += 0.1f;
-        }
-
+        dashAbility.tryDash(mockPlayer, playerState);
+        dashAbility.fixedUpdate(mockPlayer, playerState, dashAbility.getDashDuration() + 0.01f);
+        dashAbility.update(mockPlayer, playerState, dashAbility.getDashDuration() + 0.01f);
         REQUIRE_FALSE(dashAbility.dashing());
     }
 
-    SECTION("Cannot dash again immediately")
+    SECTION("Cannot dash again before cooldown")
     {
-        dashAbility.tryDash(mockPlayer);
-        dashAbility.update(mockPlayer, dashAbility.getDashDuration());
-
-        dashAbility.tryDash(mockPlayer);
+        dashAbility.tryDash(mockPlayer, playerState);
+        dashAbility.fixedUpdate(mockPlayer, playerState, dashAbility.getDashCooldown() - 0.01f);
+        dashAbility.update(mockPlayer, playerState, dashAbility.getDashCooldown() - 0.01f);
+        dashAbility.tryDash(mockPlayer, playerState);
         REQUIRE_FALSE(dashAbility.dashing());
     }
 
     SECTION("Can dash again after cooldown")
     {
-        dashAbility.tryDash(mockPlayer);
-        float totalTime = dashAbility.getDashDuration() + dashAbility.getDashCooldown();
-        float time = 0.0f;
-
-        while (time < totalTime)
-        {
-            dashAbility.update(mockPlayer, 0.1f);
-            time += 0.1f;
-        }
-
-        dashAbility.tryDash(mockPlayer);
+        dashAbility.tryDash(mockPlayer, playerState);
+        dashAbility.fixedUpdate(mockPlayer, playerState, dashAbility.getDashCooldown() + 0.01f);
+        dashAbility.update(mockPlayer, playerState, dashAbility.getDashCooldown() + 0.01f);
+        dashAbility.tryDash(mockPlayer, playerState);
         REQUIRE(dashAbility.dashing());
     }
 }

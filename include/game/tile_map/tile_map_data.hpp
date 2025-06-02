@@ -3,6 +3,7 @@
 #include <vector>
 #include <optional>
 #include "game/tile_map/tile_data.hpp"
+#include "serialization/glm_ivec2_meta.hpp"
 
 struct TileMapData
 {
@@ -11,4 +12,6 @@ struct TileMapData
     std::optional<int> height;
     std::optional<std::vector<std::vector<int>>> indices;
     std::unordered_map<int, TileData> tileData;
+    glm::ivec2 playerStartPosition = glm::ivec2(0, 0);
+    std::string nextLevel = "../assets/tile_maps/level1.json";
 };

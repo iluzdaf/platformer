@@ -20,8 +20,12 @@ target_include_directories(stb PUBLIC external/stb)
 # GLFW
 add_subdirectory(external/glfw)
 
+
 # GLM (Header-only)
 include_directories(external/glm)
+
+# TheWisp/signals (Header-only)
+include_directories(external/signals)
 
 # Catch2 (for tests only)
 add_subdirectory(external/catch2)

@@ -12,8 +12,7 @@
 #include "physics/physics_data.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
-    : position(playerData.startPosition),
-      size(playerData.size),
+    : size(playerData.size),
       idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
       walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
 {
@@ -258,6 +257,7 @@ void Player::handlePickup(TileMap &tileMap)
         int tileX = static_cast<int>((position.x)) / tileSize;
         int tileY = static_cast<int>((position.y)) / tileSize;
         tileMap.setTileIndex(tileX, tileY, replaceIndexOpt.value());
+        onLevelComplete();
     }
 }
 
@@ -343,4 +343,9 @@ void Player::resetTransientState()
 {
     isTouchingLeftWall = false;
     isTouchingRightWall = false;
+}
+
+void Player::setPosition(const glm::vec2 &position)
+{
+    this->position = position;
 }

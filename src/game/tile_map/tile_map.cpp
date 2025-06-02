@@ -83,6 +83,15 @@ void TileMap::initByData(const TileMapData &tileMapData)
     {
         tiles.insert_or_assign(tileIndex, Tile(tileData));
     }
+
+    playerStartPosition = tileMapData.playerStartPosition;
+    assert(playerStartPosition.x >= 0);
+    assert(playerStartPosition.y >= 0);
+    assert(playerStartPosition.x < width);
+    assert(playerStartPosition.y < height);
+
+    nextLevel = tileMapData.nextLevel;
+    assert(!nextLevel.empty());
 }
 
 void TileMap::setTileIndex(int x, int y, int tile)
@@ -164,4 +173,14 @@ int TileMap::getWorldWidth() const
 int TileMap::getWorldHeight() const
 {
     return height * tileSize;
+}
+
+glm::vec2 TileMap::getPlayerStartWorldPosition() const
+{
+    return glm::vec2(playerStartPosition.x * tileSize, playerStartPosition.y * tileSize);
+}
+
+const std::string &TileMap::getNextLevel() const
+{
+    return nextLevel;
 }

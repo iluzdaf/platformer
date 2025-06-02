@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <signals.hpp>
 #include "game/player/player_animation_state.hpp"
 #include "game/player/movement_abilities/movement_ability.hpp"
 #include "game/player/movement_context.hpp"
@@ -28,12 +29,15 @@ public:
     bool touchingLeftWall() const;
     bool touchingRightWall() const;
     const PlayerState &getPlayerState() const;
+    void setPosition(const glm::vec2 &position);
 
     glm::vec2 getPosition() const override;
     glm::vec2 getVelocity() const override;
-    void setVelocity(const glm::vec2 &velocity) override;
+    void setVelocity(const glm::vec2 &velocity) override;  
     void setOnGround(bool isOnGround) override;
     void setFacingLeft(bool isFacingLeft) override;
+
+    fteng::signal<void()> onLevelComplete;
     
 private:
     void resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap);

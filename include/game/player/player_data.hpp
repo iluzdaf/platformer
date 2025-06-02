@@ -11,7 +11,6 @@
 
 struct PlayerData
 {
-    glm::vec2 startPosition = glm::vec2(0, 0);
     glm::vec2 size = glm::vec2(16, 16);
     SpriteAnimationData idleSpriteAnimationData;
     SpriteAnimationData walkSpriteAnimationData;

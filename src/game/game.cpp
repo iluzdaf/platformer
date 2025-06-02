@@ -31,6 +31,9 @@ Game::Game()
 
     tileMap = std::make_unique<TileMap>(("../assets/tile_maps/level1.json"));
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
+    player->setPosition(tileMap->getPlayerStartWorldPosition());
+    player->onLevelComplete.connect([this]()
+                                    { this->loadNextLevel(); });
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
@@ -102,6 +105,12 @@ void Game::run()
                         { fixedUpdate(dt); });
         update(deltaTime);
 
+        if (onEndOfFrame)
+        {
+            onEndOfFrame();
+            onEndOfFrame = nullptr;
+        }
+
         render();
 
         glfwSwapBuffers(window);
@@ -163,4 +172,14 @@ void Game::preFixedUpdate()
     {
         player->dash();
     }
+}
+
+void Game::loadNextLevel()
+{
+    onEndOfFrame = [this]()
+    {
+        tileMap = std::make_unique<TileMap>((tileMap->getNextLevel()));
+        player->setPosition(tileMap->getPlayerStartWorldPosition());
+        camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
+    };
 }

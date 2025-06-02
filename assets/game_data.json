@@ -1,9 +1,5 @@
 {
     "playerData": {
-        "startPosition": [
-            100.0,
-            100.0
-        ],
         "moveAbilityData": {
             "moveSpeed": 160.0
         },

@@ -25,6 +25,7 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
+    void loadNextLevel();
 
     GLFWwindow *window;
 
@@ -42,4 +43,6 @@ private:
     std::unique_ptr<SpriteRenderer> tileSetSpriteRenderer;
     std::unique_ptr<TileMapRenderer> tileMapRenderer;
     std::unique_ptr<Texture2D> playerTexture;
+
+    std::function<void()> onEndOfFrame;
 };

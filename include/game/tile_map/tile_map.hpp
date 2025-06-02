@@ -23,10 +23,14 @@ public:
     int getWorldHeight() const;
     int getTileSize() const;
     void update(float deltaTime);
+    glm::vec2 getPlayerStartWorldPosition() const;
+    const std::string& getNextLevel() const;
 
 private:
     int width = 0, height = 0, tileSize = 0;
     std::vector<std::vector<int>> tileIndices;
     std::unordered_map<int, Tile> tiles;
     void initByData(const TileMapData &tileMapData);
+    glm::ivec2 playerStartPosition = glm::ivec2(0, 0);
+    std::string nextLevel = "../assets/tile_maps/level1.json";
 };

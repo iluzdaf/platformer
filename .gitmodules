@@ -10,3 +10,6 @@
 [submodule "external/glaze"]
 	path = external/glaze
 	url = https://github.com/stephenberry/glaze
+[submodule "external/signals"]
+	path = external/signals
+	url = https://github.com/TheWisp/signals

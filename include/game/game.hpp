@@ -26,6 +26,7 @@ private:
     void render();
     void resize(int width, int height);
     void loadNextLevel();
+    void respawn();
 
     GLFWwindow *window;
 

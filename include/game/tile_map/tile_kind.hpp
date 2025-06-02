@@ -4,5 +4,6 @@ enum class TileKind
 {
     Empty,
     Solid,
-    Pickup
+    Pickup,
+    Spikes
 };

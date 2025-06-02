@@ -54,3 +54,8 @@ std::optional<int> Tile::getPickupReplaceIndex() const
 {
     return pickupReplaceIndex;
 }
+
+bool Tile::isSpikes() const
+{
+    return kind == TileKind::Spikes;
+}

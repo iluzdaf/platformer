@@ -38,6 +38,7 @@ public:
     void setFacingLeft(bool isFacingLeft) override;
 
     fteng::signal<void()> onLevelComplete;
+    fteng::signal<void()> onDeath;
     
 private:
     void resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap);
@@ -45,10 +46,11 @@ private:
     static inline float snapToTileEdge(int tile, int tileSize, bool positive, float entitySize = 0.0f);
     void updateAnimation(float deltaTime);
     void clampToTileMapBounds(const TileMap &tileMap);
-    void handlePickup(TileMap &tilemap);
+    void handlePickup(TileMap &tileMap);
     void updatePlayerState();
     void checkWallContact(const TileMap &tileMap);
     void resetTransientState();
+    void handleSpikes(TileMap &tileMap);
 
     glm::vec2 position = glm::vec2(0, 0);
     glm::vec2 velocity = glm::vec2(0, 0);

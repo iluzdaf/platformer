@@ -15,6 +15,7 @@ public:
     TileKind getKind() const;
     bool isPickup() const;
     std::optional<int> getPickupReplaceIndex() const;
+    bool isSpikes() const;
 
 private:
     TileKind kind;

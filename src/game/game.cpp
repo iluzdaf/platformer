@@ -34,6 +34,8 @@ Game::Game()
     player->setPosition(tileMap->getPlayerStartWorldPosition());
     player->onLevelComplete.connect([this]()
                                     { this->loadNextLevel(); });
+    player->onDeath.connect([this]()
+                            { this->respawn(); });
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
@@ -181,5 +183,13 @@ void Game::loadNextLevel()
         tileMap = std::make_unique<TileMap>((tileMap->getNextLevel()));
         player->setPosition(tileMap->getPlayerStartWorldPosition());
         camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
+    };
+}
+
+void Game::respawn()
+{
+    onEndOfFrame = [this]()
+    {
+        player->setPosition(tileMap->getPlayerStartWorldPosition());
     };
 }

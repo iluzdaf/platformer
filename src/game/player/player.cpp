@@ -61,6 +61,7 @@ void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
     resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
     resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
     handlePickup(tileMap);
+    handleSpikes(tileMap);
 
     position = nextPosition;
 
@@ -348,4 +349,13 @@ void Player::resetTransientState()
 void Player::setPosition(const glm::vec2 &position)
 {
     this->position = position;
+}
+
+void Player::handleSpikes(TileMap &tileMap)
+{
+    const Tile &tile = tileMap.getTile(position);
+    if (tile.isSpikes())
+    {
+        onDeath();
+    }
 }

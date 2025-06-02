@@ -1,9 +1,9 @@
 {
   "playerStartPosition": [
-    5,
-    5
+    2,
+    12
   ],
-  "nextLevel": "../assets/tile_maps/level2.json",
+  "nextLevel": "../assets/tile_maps/level3.json",
   "size": 16,
   "indices": [
   [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], 
@@ -18,20 +18,60 @@
   [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
   [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
   [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-  [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+  [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 42, -1],
   [28, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 31]
   ],
-  "tileData": {
+    "tileData": {
     "0": {
       "kind": 0,
       "animationData": null,
       "pickupReplaceIndex": null
     },
+    "7": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },
+    "8": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },
+    "9": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },            
     "14": {
       "kind": 1,
       "animationData": null,
       "pickupReplaceIndex": null
     },
+    "16": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },    
+    "19": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },    
+    "21": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },    
+    "22": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },        
+    "25": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },        
     "26": {
       "kind": 1,
       "animationData": null,
@@ -57,6 +97,16 @@
       "animationData": null,
       "pickupReplaceIndex": null
     },
+    "33": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },
+    "34": {
+      "kind": 1,
+      "animationData": null,
+      "pickupReplaceIndex": null
+    },        
     "39": {
       "kind": 1,
       "animationData": null,

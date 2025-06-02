@@ -36,7 +36,7 @@
             "textureWidth": 96
         },
         "dashAbilityData": {
-            "dashSpeed": 480,
+            "dashSpeed": 550,
             "dashDuration": 0.2,
             "dashCooldown": 0.5
         },
@@ -57,5 +57,6 @@
         "gravity": 980.0
     },
     "screenWidth": 800,
-    "screenHeight": 600
+    "screenHeight": 600,
+    "firstLevel": "../assets/tile_maps/level1.json"
 }

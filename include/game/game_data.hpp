@@ -10,4 +10,5 @@ struct GameData
     PhysicsData physicsData;
     int screenWidth = 800;
     int screenHeight = 600;
+    std::string firstLevel = "../assets/tile_maps/level1.json";
 };

@@ -29,7 +29,7 @@ Game::Game()
     keyboardManager.registerKey(GLFW_KEY_RIGHT);
     keyboardManager.registerKey(GLFW_KEY_RIGHT_SHIFT);
 
-    tileMap = std::make_unique<TileMap>(("../assets/tile_maps/level1.json"));
+    tileMap = std::make_unique<TileMap>((gameData.firstLevel));
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
     player->setPosition(tileMap->getPlayerStartWorldPosition());
     player->onLevelComplete.connect([this]()

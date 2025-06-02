@@ -41,7 +41,7 @@ void WallJumpAbility::fixedUpdate(
 
 void WallJumpAbility::update(
     MovementContext & /*movementContext*/,
-    const PlayerState & playerState,
+    const PlayerState &playerState,
     float /*deltaTime*/)
 {
     if (playerState.onGround)
@@ -54,7 +54,7 @@ void WallJumpAbility::tryJump(
     MovementContext &movementContext,
     const PlayerState &playerState)
 {
-    if (!playerState.wallSliding || jumpCount >= maxJumpCount)
+    if (!(playerState.touchingLeftWall || playerState.touchingRightWall) || jumpCount >= maxJumpCount || playerState.onGround)
         return;
 
     wasTouchingLeftWall = playerState.touchingLeftWall;
@@ -65,7 +65,7 @@ void WallJumpAbility::tryJump(
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);
-    movementContext.setFacingLeft(!wasTouchingLeftWall);    
+    movementContext.setFacingLeft(!wasTouchingLeftWall);
 }
 
 void WallJumpAbility::syncState(PlayerState &playerState) const

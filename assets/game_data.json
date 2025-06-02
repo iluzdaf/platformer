@@ -8,7 +8,7 @@
             "moveSpeed": 160.0
         },
         "jumpAbilityData": {
-            "jumpSpeed": -280.0,
+            "jumpSpeed": -350.0,
             "maxJumpCount": 2
         },
         "size": [
@@ -45,7 +45,8 @@
             "dashCooldown": 0.5
         },
         "wallSlideAbilityData": {
-            "slideSpeed": 35
+            "slideSpeed": 15,
+            "hangDuration": 0.4
         },
         "wallJumpAbilityData": {
             "jumpSpeed": -300,

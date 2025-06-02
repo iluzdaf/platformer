@@ -13,12 +13,11 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
     WallJumpAbilityData wallJumpAbilityData;
     WallJumpAbility wallJumpAbility(wallJumpAbilityData);
 
-    SECTION("WallJumpAbility performs a wall jump when wall sliding and airborne")
+    SECTION("WallJumpAbility performs a wall jump when touching wall and airborne")
     {
         movementContext.facingLeft = true;
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
-        playerState.wallSliding = true;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
         wallJumpAbility.update(movementContext, playerState, 0.1f);
@@ -28,11 +27,9 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         REQUIRE(movementContext.facingLeft == false);
     }
 
-    SECTION("WallJumpAbility does not activate if not wall sliding")
+    SECTION("WallJumpAbility does not activate if not touching wall")
     {
         playerState.onGround = false;
-        playerState.touchingLeftWall = true;
-        playerState.wallSliding = false;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
         wallJumpAbility.syncState(playerState);
@@ -45,7 +42,6 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
     {
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
-        playerState.wallSliding = true;
         wallJumpAbility.tryJump(movementContext, playerState);
 
         playerState.touchingLeftWall = false;
@@ -61,7 +57,6 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
     {
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
-        playerState.wallSliding = true;
         wallJumpAbility.tryJump(movementContext, playerState);
 
         for (int i = 0; i < 5; ++i)
@@ -79,7 +74,6 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
     SECTION("WallJumpAbility respects maxJumpCount")
     {
         playerState.onGround = false;
-        playerState.wallSliding = true;
         playerState.touchingLeftWall = true;
 
         wallJumpAbility.tryJump(movementContext, playerState);
@@ -90,7 +84,6 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         wallJumpAbility.fixedUpdate(movementContext, playerState, 1.0f);
         wallJumpAbility.syncState(playerState);
 
-        playerState.wallSliding = true;
         playerState.touchingLeftWall = true;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
@@ -100,7 +93,6 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         wallJumpAbility.fixedUpdate(movementContext, playerState, 1.0f);
         wallJumpAbility.syncState(playerState);
 
-        playerState.wallSliding = true;
         playerState.touchingLeftWall = true;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
@@ -112,7 +104,6 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         wallJumpAbility.syncState(playerState);
 
         playerState.onGround = false;
-        playerState.wallSliding = true;
         playerState.touchingLeftWall = true;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);

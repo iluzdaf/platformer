@@ -11,7 +11,12 @@ public:
     void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
     void syncState(PlayerState &playerState) const override;
 
+    float getHangDuration() const;
+    void resetHangTime();
+
 private:
     bool wallSliding = false;
     float slideSpeed = 35.0f;
+    float hangDuration = 0.2f;
+    float hangTime = 0;
 };

@@ -38,10 +38,11 @@ void JumpAbility::tryJump(
     if (playerState.dashing || playerState.wallSliding || jumpCount >= maxJumpCount || playerState.wallJumping)
         return;
 
+    ++jumpCount;
+
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);
-    ++jumpCount;
     movementContext.setOnGround(false);
 }
 

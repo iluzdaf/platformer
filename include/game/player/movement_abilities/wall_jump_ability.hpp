@@ -13,6 +13,7 @@ public:
     void syncState(PlayerState &playerState) const override;
 
     bool wallJumping() const;
+    void resetJumps();
 
 private:
     int jumpCount = 0;
@@ -22,4 +23,5 @@ private:
     float wallJumpTimeLeft = 0.0f;
     bool wasTouchingLeftWall = false;
     int wallJumpDirection = 1;
+    int maxJumpCount = 2;
 };

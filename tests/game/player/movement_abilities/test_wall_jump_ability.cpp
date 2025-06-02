@@ -75,4 +75,48 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         wallJumpAbility.syncState(playerState);
         REQUIRE_FALSE(playerState.wallJumping);
     }
+
+    SECTION("WallJumpAbility respects maxJumpCount")
+    {
+        playerState.onGround = false;
+        playerState.wallSliding = true;
+        playerState.touchingLeftWall = true;
+
+        wallJumpAbility.tryJump(movementContext, playerState);
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        wallJumpAbility.syncState(playerState);
+        REQUIRE(playerState.wallJumping);
+
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 1.0f);
+        wallJumpAbility.syncState(playerState);
+
+        playerState.wallSliding = true;
+        playerState.touchingLeftWall = true;
+        wallJumpAbility.tryJump(movementContext, playerState);
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        wallJumpAbility.syncState(playerState);
+        REQUIRE(playerState.wallJumping);
+
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 1.0f);
+        wallJumpAbility.syncState(playerState);
+
+        playerState.wallSliding = true;
+        playerState.touchingLeftWall = true;
+        wallJumpAbility.tryJump(movementContext, playerState);
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        wallJumpAbility.syncState(playerState);
+        REQUIRE_FALSE(playerState.wallJumping);
+
+        playerState.onGround = true;
+        wallJumpAbility.update(movementContext, playerState, 0.0f);
+        wallJumpAbility.syncState(playerState);
+
+        playerState.onGround = false;
+        playerState.wallSliding = true;
+        playerState.touchingLeftWall = true;
+        wallJumpAbility.tryJump(movementContext, playerState);
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        wallJumpAbility.syncState(playerState);
+        REQUIRE(playerState.wallJumping);
+    }
 }

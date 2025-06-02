@@ -5,10 +5,12 @@
 
 WallJumpAbility::WallJumpAbility(const WallJumpAbilityData &wallJumpAbilityData)
     : jumpSpeed(wallJumpAbilityData.jumpSpeed),
-      horizontalSpeed(wallJumpAbilityData.horizontalSpeed)
+      horizontalSpeed(wallJumpAbilityData.horizontalSpeed),
+      maxJumpCount(wallJumpAbilityData.maxJumpCount)
 {
     assert(jumpSpeed < 0);
     assert(horizontalSpeed > 0);
+    assert(maxJumpCount > 0);
 }
 
 void WallJumpAbility::fixedUpdate(
@@ -39,26 +41,31 @@ void WallJumpAbility::fixedUpdate(
 
 void WallJumpAbility::update(
     MovementContext & /*movementContext*/,
-    const PlayerState & /*playerState*/,
+    const PlayerState & playerState,
     float /*deltaTime*/)
 {
+    if (playerState.onGround)
+    {
+        resetJumps();
+    }
 }
 
 void WallJumpAbility::tryJump(
     MovementContext &movementContext,
     const PlayerState &playerState)
 {
-    if (!playerState.wallSliding)
+    if (!playerState.wallSliding || jumpCount >= maxJumpCount)
         return;
 
     wasTouchingLeftWall = playerState.touchingLeftWall;
     wallJumpDirection = wasTouchingLeftWall ? 1 : -1;
     wallJumpTimeLeft = wallJumpDuration;
+    ++jumpCount;
 
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);
-    movementContext.setFacingLeft(!wasTouchingLeftWall);
+    movementContext.setFacingLeft(!wasTouchingLeftWall);    
 }
 
 void WallJumpAbility::syncState(PlayerState &playerState) const
@@ -69,4 +76,9 @@ void WallJumpAbility::syncState(PlayerState &playerState) const
 bool WallJumpAbility::wallJumping() const
 {
     return wallJumpTimeLeft > 0.0f;
+}
+
+void WallJumpAbility::resetJumps()
+{
+    jumpCount = 0;
 }

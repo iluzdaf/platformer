@@ -29,7 +29,7 @@ TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
         moveAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
         moveAbility.update(mockPlayer, playerState, 0.1f);
         REQUIRE(mockPlayer.getVelocity().x == Approx(moveAbility.getMoveSpeed()));
-        REQUIRE_FALSE(playerState.facingLeft);
+        REQUIRE_FALSE(mockPlayer.facingLeft);
     }
 
     SECTION("If both directions requested, no movement applied")

@@ -15,6 +15,7 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
 
     SECTION("WallJumpAbility performs a wall jump when wall sliding and airborne")
     {
+        movementContext.facingLeft = true;
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
         playerState.wallSliding = true;
@@ -24,6 +25,7 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         wallJumpAbility.syncState(playerState);
         REQUIRE(movementContext.velocity.y == Approx(-280.0f));
         REQUIRE(movementContext.velocity.x == Approx(200.0f));
+        REQUIRE(movementContext.facingLeft == false);
     }
 
     SECTION("WallJumpAbility does not activate if not wall sliding")

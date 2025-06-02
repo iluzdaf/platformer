@@ -58,6 +58,7 @@ void WallJumpAbility::tryJump(
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);
+    movementContext.setFacingLeft(!wasTouchingLeftWall);
 }
 
 void WallJumpAbility::syncState(PlayerState &playerState) const

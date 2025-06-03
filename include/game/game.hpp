@@ -32,6 +32,7 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
+    void loadNextLevel();
 
     GLFWwindow *window;
 

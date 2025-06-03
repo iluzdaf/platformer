@@ -22,34 +22,29 @@ Game::Game()
                                 "y", &glm::vec2::y);
     lua.set_function("startCoroutine", [this](sol::function func)
                      {
-    sol::thread thread = sol::thread::create(lua.lua_state());
-    sol::state_view thread_state = thread.state();
-
-    sol::function co_func = func;
-    sol::function co = thread_state["coroutine"]["wrap"](co_func);
-
-    sol::object result = co();
-    if (result.valid() && result.is<float>())
-    {
-        float wait = result.as<float>();
-        waitingCoroutines.push_back({co, wait});
-    } });
-    lua.set_function("loadNextLevel", [this]()
-                     {     tileMap = std::make_unique<TileMap>((tileMap->getNextLevel()));
-                           lua["tileMap"] = tileMap.get();
-                           camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight())); });
+                        sol::thread thread = sol::thread::create(lua.lua_state());
+                        sol::state_view thread_state = thread.state();
+                        sol::function co_func = func;
+                        sol::function co = thread_state["coroutine"]["wrap"](co_func);
+                        sol::object result = co();
+                        if (result.valid() && result.is<float>())
+                        {
+                            float wait = result.as<float>();
+                            waitingCoroutines.push_back({co, wait});
+                        } });
     lua.new_usertype<Game>("Game", "isPaused", sol::property([](Game &g)
                                                              { return g.isPaused; }, [](Game &g, bool v)
-                                                             { g.isPaused = v; }));
+                                                             { g.isPaused = v; }),
+                           "loadNextLevel", &Game::loadNextLevel);
     lua["game"] = this;
 
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int screenWidth, int screenHeight)
                                    {
-        if (Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window)))
-        {
-            game->resize(screenWidth, screenHeight);
-        } });
+                                        if (Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window)))
+                                        {
+                                            game->resize(screenWidth, screenHeight);
+                                        } });
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -68,13 +63,13 @@ Game::Game()
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
     player->setPosition(tileMap->getPlayerStartWorldPosition());
     player->onLevelComplete.connect([this]()
-                                    {   if(isPaused) return;
+                                    {   
                                         if(onLevelComplete.valid())
                                         {
                                             onLevelComplete();
                                         } });
     player->onDeath.connect([this]()
-                            {   if(isPaused) return; 
+                            {
                                 if (onRespawn.valid())
                                 {
                                     onRespawn();
@@ -241,4 +236,12 @@ void Game::preFixedUpdate()
     {
         player->dash();
     }
+}
+
+void Game::loadNextLevel()
+{
+    lua["tileMap"] = sol::nullopt;
+    tileMap = std::make_unique<TileMap>((tileMap->getNextLevel()));
+    lua["tileMap"] = tileMap.get();
+    camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
 }

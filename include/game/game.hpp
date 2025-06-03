@@ -9,6 +9,7 @@
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "physics/fixed_time_step.hpp"
+#include "rendering/screen_transition.hpp"
 
 struct WaitingCoroutine
 {
@@ -57,4 +58,7 @@ private:
     std::vector<WaitingCoroutine> waitingCoroutines;
 
     bool isPaused = false;
+
+    std::unique_ptr<ScreenTransition> screenTransition;
+    Shader screenTransitionShader;
 };

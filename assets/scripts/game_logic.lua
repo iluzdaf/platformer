@@ -18,8 +18,10 @@ end
 
 function levelCompleteCoroutine()
     game.isPaused = true
-    waitSeconds(0.1)
+    screenTransition:start(0.4, true)
+    waitSeconds(0.0)
     game:loadNextLevel()
     player:setPosition(tileMap:getPlayerStartWorldPosition())
+    waitSeconds(0.4)
     game.isPaused = false
 end

@@ -164,3 +164,11 @@ void Shader::initByCode(const std::string &vertexCode, const std::string &fragme
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 }
+
+void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
+{
+    assert(valid());
+    assert(!name.empty());
+
+    glUniform4fv(glGetUniformLocation(shaderID, name.c_str()), 1, &value[0]);
+}

@@ -66,12 +66,18 @@ Game::Game()
     player->setPosition(tileMap->getPlayerStartWorldPosition());
     player->onLevelComplete.connect([this]()
                                     {   
+                                        if(isPaused) 
+                                            return;
+
                                         if(onLevelComplete.valid())
                                         {
                                             onLevelComplete();
                                         } });
     player->onDeath.connect([this]()
                             {
+                                if(isPaused) 
+                                    return;
+                                
                                 if (onRespawn.valid())
                                 {
                                     onRespawn();
@@ -79,15 +85,22 @@ Game::Game()
     lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition);
     lua["player"] = player.get();
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
-    lua.script_file("../assets/scripts/game_logic.lua");
-    onRespawn = lua["onRespawn"];
-    onLevelComplete = lua["onLevelComplete"];
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
     tileSetShader.initByShaderFile("../assets/shaders/tile_set.vs", "../assets/shaders/tile_set.fs");
     tileSetSpriteRenderer = std::make_unique<SpriteRenderer>(tileSetShader);
     tileMapRenderer = std::make_unique<TileMapRenderer>(*tileSet.get(), *tileSetSpriteRenderer.get());
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
+    screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
+    screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
+    lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
+    lua["screenTransition"] = screenTransition.get();
+
+    lua.script_file("../assets/scripts/game_logic.lua");
+    onRespawn = lua["onRespawn"];
+    onLevelComplete = lua["onLevelComplete"];
+
+    screenTransition->start(0.4f, true);
 }
 
 Game::~Game()
@@ -109,7 +122,6 @@ void Game::fixedUpdate(float deltaTime)
 void Game::update(float deltaTime)
 {
     player->update(deltaTime, *tileMap.get());
-    camera->follow(player->getPosition());
     tileMap->update(deltaTime);
 }
 
@@ -130,6 +142,8 @@ void Game::render()
         player->getCurrentAnimation().getUVStart(),
         player->getCurrentAnimation().getUVEnd(),
         player->facingLeft());
+
+    screenTransition->render();
 }
 
 void Game::resize(int screenWidth, int screenHeight)
@@ -170,6 +184,7 @@ void Game::run()
         }
 
         camera->update(deltaTime);
+        screenTransition->update(deltaTime);
 
         if (!isPaused)
         {
@@ -178,6 +193,8 @@ void Game::run()
                             { fixedUpdate(dt); });
             update(deltaTime);
         }
+
+        camera->follow(player->getPosition());
 
         render();
 

@@ -51,6 +51,7 @@ add_executable(platformer
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
     src/rendering/tile_map_renderer.cpp
+    src/rendering/screen_transition.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/player/player.cpp

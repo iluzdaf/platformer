@@ -81,11 +81,9 @@ This repository does not currently use Git LFS. If you're looking for the textur
 
 ## 🔭 Future Plans
 
-- Add enemy AI with basic pathfinding
-- Implement level transitions and checkpoints
-- Support controller input
-- Animate background and parallax scrolling
+- Add giant enemy that shoots things at you
 - Expand tile editor tools for easier level creation
+- Hot reload scripts
 - Port to WebAssembly for browser play
 
 ## 📄 License

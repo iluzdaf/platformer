@@ -34,13 +34,14 @@ glm::vec2 Camera2D::getPosition() const
 
 glm::mat4 Camera2D::getProjection() const
 {
+    glm::vec2 cameraPosition = position + shakeOffset;
     float halfW = screenWidth / (2.0f * zoom);
     float halfH = screenHeight / (2.0f * zoom);
     return glm::ortho(
-        position.x - halfW,
-        position.x + halfW,
-        position.y + halfH,
-        position.y - halfH);
+        cameraPosition.x - halfW,
+        cameraPosition.x + halfW,
+        cameraPosition.y + halfH,
+        cameraPosition.y - halfH);
 }
 
 void Camera2D::resize(float screenWidth, float screenHeight)
@@ -49,4 +50,14 @@ void Camera2D::resize(float screenWidth, float screenHeight)
     assert(screenHeight > 0.0f && "screenHeight must be positive");
     this->screenWidth = screenWidth;
     this->screenHeight = screenHeight;
+}
+
+void Camera2D::update(float deltaTime)
+{
+    shakeOffset = shake.getOffset(deltaTime);
+}
+
+void Camera2D::startShake(float duration, float magnitude)
+{
+    shake.start(duration, magnitude);
 }

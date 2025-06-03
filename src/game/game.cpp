@@ -52,6 +52,8 @@ Game::Game()
     int screenWidth, screenHeight;
     glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
     camera = std::make_unique<Camera2D>(gameData.cameraData, screenWidth, screenHeight);
+    lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
+    lua["camera"] = camera.get();
     keyboardManager.registerKey(GLFW_KEY_UP);
     keyboardManager.registerKey(GLFW_KEY_LEFT);
     keyboardManager.registerKey(GLFW_KEY_RIGHT);
@@ -166,6 +168,8 @@ void Game::run()
                 ++it;
             }
         }
+
+        camera->update(deltaTime);
 
         if (!isPaused)
         {

@@ -6,7 +6,8 @@ end
 
 function respawnCoroutine()
     game.isPaused = true
-    waitSeconds(0.1)
+    camera:startShake(0.25, 4)
+    waitSeconds(0.25)
     player:setPosition(tileMap:getPlayerStartWorldPosition())
     game.isPaused = false
 end

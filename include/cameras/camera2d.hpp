@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
+#include "cameras/camera_shake.hpp"
 class Camera2DData;
 
 class Camera2D
@@ -11,6 +12,8 @@ public:
     glm::mat4 getProjection() const;
     glm::vec2 getPosition() const;
     void resize(float screenWidth, float screenHeight);
+    void update(float deltaTime);
+    void startShake(float duration, float magnitude);
 
 private:
     float screenWidth = 800, screenHeight = 600;
@@ -18,4 +21,6 @@ private:
     glm::vec2 position = glm::vec2(0, 0);
     glm::vec2 worldMin = glm::vec2(0.0f);
     glm::vec2 worldMax = glm::vec2(10000.0f);
+    CameraShake shake;
+    glm::vec2 shakeOffset;
 };

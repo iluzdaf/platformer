@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <sol/sol.hpp>
 #include "game/game_data.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/player/player.hpp"
@@ -8,6 +9,12 @@
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "physics/fixed_time_step.hpp"
+
+struct WaitingCoroutine
+{
+    sol::function co;
+    float remainingTime;
+};
 
 class Game
 {
@@ -25,8 +32,6 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
-    void loadNextLevel();
-    void respawn();
 
     GLFWwindow *window;
 
@@ -45,5 +50,10 @@ private:
     std::unique_ptr<TileMapRenderer> tileMapRenderer;
     std::unique_ptr<Texture2D> playerTexture;
 
-    std::function<void()> onEndOfFrame;
+    sol::state lua;
+    sol::function onRespawn;
+    sol::function onLevelComplete;
+    std::vector<WaitingCoroutine> waitingCoroutines;
+
+    bool isPaused = false;
 };

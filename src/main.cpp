@@ -8,6 +8,10 @@ int main()
         Game game;
         game.run();
     }
+    catch (const sol::error& e)
+    {
+        std::cerr << "Lua error: " << e.what() << std::endl;
+    }
     catch (const std::runtime_error &e)
     {
         std::cout << e.what() << "\n";

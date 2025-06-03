@@ -20,7 +20,6 @@ target_include_directories(stb PUBLIC external/stb)
 # GLFW
 add_subdirectory(external/glfw)
 
-
 # GLM (Header-only)
 include_directories(external/glm)
 
@@ -32,6 +31,18 @@ add_subdirectory(external/catch2)
 
 # Glaze
 add_subdirectory(external/glaze)
+
+# Lua
+# add_subdirectory(external/lua)
+file(GLOB LUA_SOURCES
+    external/lua/lua-5.4.7/src/*.c
+)
+add_library(lua STATIC ${LUA_SOURCES})
+target_include_directories(lua PUBLIC external/lua/lua-5.4.7/include)
+
+# sol2 (header-only)
+add_subdirectory(external/sol2)
+include_directories(external/sol2/include)
 
 # Platformer Executable
 add_executable(platformer
@@ -63,6 +74,7 @@ target_include_directories(platformer
     external/glad/include
     external/glfw/include
     external/glaze/include
+    external/sol2/include
 )
 
 target_link_libraries(platformer
@@ -70,6 +82,7 @@ target_link_libraries(platformer
     glad
     glfw
     stb
+    lua
     ${CMAKE_DL_LIBS}
 )
 

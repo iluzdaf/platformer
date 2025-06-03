@@ -11,8 +11,8 @@
 #include "physics/fixed_time_step.hpp"
 #include "rendering/screen_transition.hpp"
 
-struct WaitingCoroutine
-{
+struct WaitingCoroutine {
+    sol::thread thread;
     sol::function co;
     float remainingTime;
 };
@@ -61,4 +61,6 @@ private:
 
     std::unique_ptr<ScreenTransition> screenTransition;
     Shader screenTransitionShader;
+
+    fteng::connection onLevelCompleteConnection;
 };

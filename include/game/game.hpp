@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <sol/sol.hpp>
 #include "game/game_data.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/player/player.hpp"
@@ -10,12 +9,7 @@
 #include "input/keyboard_manager.hpp"
 #include "physics/fixed_time_step.hpp"
 #include "rendering/screen_transition.hpp"
-
-struct WaitingCoroutine {
-    sol::thread thread;
-    sol::function co;
-    float remainingTime;
-};
+#include "scripting/lua_script_system.hpp"
 
 class Game
 {
@@ -23,6 +17,8 @@ public:
     Game();
     ~Game();
     void run();
+    void loadNextLevel();
+    bool isPaused = false;
 
 private:
     void initGameData();
@@ -33,7 +29,6 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
-    void loadNextLevel();
 
     GLFWwindow *window;
 
@@ -51,16 +46,10 @@ private:
     std::unique_ptr<SpriteRenderer> tileSetSpriteRenderer;
     std::unique_ptr<TileMapRenderer> tileMapRenderer;
     std::unique_ptr<Texture2D> playerTexture;
-
-    sol::state lua;
-    sol::function onRespawn;
-    sol::function onLevelComplete;
-    std::vector<WaitingCoroutine> waitingCoroutines;
-
-    bool isPaused = false;
-
     std::unique_ptr<ScreenTransition> screenTransition;
     Shader screenTransitionShader;
 
     fteng::connection onLevelCompleteConnection;
+
+    std::unique_ptr<LuaScriptSystem> luaScriptSystem;
 };

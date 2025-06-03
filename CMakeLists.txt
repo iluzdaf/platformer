@@ -67,6 +67,7 @@ add_executable(platformer
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp
+    src/scripting/lua_script_system.cpp
 )
 
 target_include_directories(platformer
@@ -106,8 +107,12 @@ add_executable(tests
     tests/animations/test_frame_animation.cpp
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp
+    tests/scripting/test_lua_script_system.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp
+    src/rendering/screen_transition.cpp
+    src/rendering/sprite_renderer.cpp
+    src/rendering/tile_map_renderer.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/player/player.cpp
@@ -116,12 +121,14 @@ add_executable(tests
     src/game/player/movement_abilities/move_ability.cpp
     src/game/player/movement_abilities/wall_slide_ability.cpp
     src/game/player/movement_abilities/wall_jump_ability.cpp
+    src/game/game.cpp
     src/physics/fixed_time_step.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp
+    src/scripting/lua_script_system.cpp
     external/stb/stb_image.cpp
 )
 
@@ -131,6 +138,7 @@ target_include_directories(tests
     external/glad/include
     external/glfw/include
     external/glaze/include
+    external/sol2/include
     tests/
 )
 
@@ -140,6 +148,7 @@ target_link_libraries(tests
     glad
     glfw
     stb
+    lua
     ${CMAKE_DL_LIBS}
 )
 

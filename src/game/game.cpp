@@ -10,34 +10,6 @@ Game::Game()
     initGLFW();
     initGlad();
 
-    lua.open_libraries(
-        sol::lib::base,
-        sol::lib::math,
-        sol::lib::table,
-        sol::lib::string,
-        sol::lib::coroutine);
-    lua.new_usertype<glm::vec2>("vec2",
-                                sol::constructors<glm::vec2(), glm::vec2(float, float)>(),
-                                "x", &glm::vec2::x,
-                                "y", &glm::vec2::y);
-    lua.set_function("startCoroutine", [this](sol::function func)
-                     {
-        sol::thread thread = sol::thread::create(lua.lua_state());
-        sol::state_view thread_state = thread.state();
-        thread_state["f"] = func;
-        sol::function co = thread_state.load("return coroutine.wrap(f)")();
-        sol::object result = co();
-        if (result.valid() && result.is<float>())
-        {
-            float wait = result.as<float>();
-            waitingCoroutines.push_back({thread, co, wait});
-        } });
-    lua.new_usertype<Game>("Game", "isPaused", sol::property([](Game &g)
-                                                             { return g.isPaused; }, [](Game &g, bool v)
-                                                             { g.isPaused = v; }),
-                           "loadNextLevel", &Game::loadNextLevel);
-    lua["game"] = this;
-
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int screenWidth, int screenHeight)
                                    {
@@ -49,38 +21,25 @@ Game::Game()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    luaScriptSystem = std::make_unique<LuaScriptSystem>();
     int screenWidth, screenHeight;
     glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
     camera = std::make_unique<Camera2D>(gameData.cameraData, screenWidth, screenHeight);
-    lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
-    lua["camera"] = camera.get();
     keyboardManager.registerKey(GLFW_KEY_UP);
     keyboardManager.registerKey(GLFW_KEY_LEFT);
     keyboardManager.registerKey(GLFW_KEY_RIGHT);
     keyboardManager.registerKey(GLFW_KEY_RIGHT_SHIFT);
 
     tileMap = std::make_unique<TileMap>((gameData.firstLevel));
-    lua.new_usertype<TileMap>("TileMap", "getPlayerStartWorldPosition", &TileMap::getPlayerStartWorldPosition);
-    lua["tileMap"] = tileMap.get();
+    camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
     player->setPosition(tileMap->getPlayerStartWorldPosition());
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()
                                                                 {
         onLevelCompleteConnection.disconnect();
-        if(onLevelComplete.valid())
-        {
-            onLevelComplete();
-            
-        } });
+        luaScriptSystem->triggerLevelComplete(); });
     player->onDeath.connect([this]()
-                            {
-        if (onRespawn.valid())
-        {
-            onRespawn();
-        } });
-    lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition);
-    lua["player"] = player.get();
-    camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
+                            { luaScriptSystem->triggerRespawn(); });
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
     tileSetShader.initByShaderFile("../assets/shaders/tile_set.vs", "../assets/shaders/tile_set.fs");
@@ -89,12 +48,8 @@ Game::Game()
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
     screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
     screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
-    lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
-    lua["screenTransition"] = screenTransition.get();
 
-    lua.script_file("../assets/scripts/game_logic.lua");
-    onRespawn = lua["onRespawn"];
-    onLevelComplete = lua["onLevelComplete"];
+    luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 
     screenTransition->start(0.4f, true);
 }
@@ -156,29 +111,8 @@ void Game::run()
         float deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        for (auto it = waitingCoroutines.begin(); it != waitingCoroutines.end();)
-        {
-            it->remainingTime -= deltaTime;
-            if (it->remainingTime <= 0.0f)
-            {
-                sol::object result = it->co();
-
-                if (result.valid() && result.is<float>())
-                {
-                    it->remainingTime = result.as<float>();
-                    ++it;
-                }
-                else
-                {
-                    it = waitingCoroutines.erase(it);
-                }
-            }
-            else
-            {
-                ++it;
-            }
-        }
-
+        keyboardManager.update(window);
+        luaScriptSystem->update(deltaTime);
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
 
@@ -236,7 +170,6 @@ void Game::initGlad()
 
 void Game::preFixedUpdate()
 {
-    keyboardManager.update(window);
     if (keyboardManager.isPressed(GLFW_KEY_UP))
     {
         player->jump();
@@ -258,14 +191,10 @@ void Game::preFixedUpdate()
 void Game::loadNextLevel()
 {
     tileMap = std::make_unique<TileMap>((tileMap->getNextLevel()));
-    lua["tileMap"] = tileMap.get();
+    luaScriptSystem->rebindTileMap(tileMap.get());
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()
                                                                 {
         onLevelCompleteConnection.disconnect();
-        if(onLevelComplete.valid())
-        {
-            onLevelComplete();
-            
-        } });
+        luaScriptSystem->triggerLevelComplete(); });
 }

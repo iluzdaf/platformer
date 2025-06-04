@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
 #include "game/tile_map/tile.hpp"
+#include "physics/aabb.hpp"
 class TileMapData;
 
 class TileMap
@@ -26,7 +27,8 @@ public:
     int getTileSize() const;
     void update(float deltaTime);
     glm::vec2 getPlayerStartWorldPosition() const;
-    const std::string& getNextLevel() const;
+    const std::string &getNextLevel() const;
+    AABB getSolidAABB(glm::vec2 worldPosition, glm::vec2 size);
 
 private:
     int width = 0, height = 0, tileSize = 0;

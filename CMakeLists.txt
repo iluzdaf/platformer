@@ -102,6 +102,7 @@ add_executable(tests
     tests/game/player/movement_abilities/test_wall_slide_ability.cpp
     tests/game/player/movement_abilities/test_wall_jump_ability.cpp
     tests/physics/test_fixed_time_step.cpp
+    tests/physics/tests_aabb.cpp
     tests/cameras/test_camera2d.cpp
     tests/input/test_keyboard_manager.cpp
     tests/animations/test_frame_animation.cpp

@@ -145,3 +145,28 @@ TEST_CASE("TileMap calculates world dimensions correctly", "[TileMap]")
     REQUIRE(tileMap.getWorldWidth() == 5 * 16);
     REQUIRE(tileMap.getWorldHeight() == 4 * 16);
 }
+
+TEST_CASE("TileMap calculates solid AABB correctly", "[TileMap]")
+{
+    TileMapData tileMapData;
+    tileMapData.size = 16;
+    tileMapData.tileData = {
+        {1, {TileKind::Solid}},
+        {0, {TileKind::Empty}}};
+    tileMapData.indices = std::vector<std::vector<int>>{
+        {0, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 1, 1, 0},
+        {0, 0, 0, 0}};
+    tileMapData.playerStartTilePosition = {0, 0};
+    tileMapData.nextLevel = "dummy";
+
+    TileMap tileMap(tileMapData);
+    glm::vec2 worldPos(16.0f, 16.0f);
+    glm::vec2 size(32.0f, 32.0f);
+
+    AABB solidAABB = tileMap.getSolidAABB(worldPos, size);
+
+    REQUIRE(solidAABB.position == glm::vec2(16.0f, 16.0f));
+    REQUIRE(solidAABB.size == glm::vec2(32.0f, 32.0f));
+}

@@ -205,3 +205,42 @@ const std::string &TileMap::getNextLevel() const
 {
     return nextLevel;
 }
+
+AABB TileMap::getSolidAABB(glm::vec2 worldPosition, glm::vec2 size)
+{
+    glm::vec2 worldPositionMax = worldPosition + size;
+    int tileMinX = floor(worldPosition.x / tileSize);
+    int tileMaxX = floor((worldPositionMax.x - 0.001f) / tileSize);
+    int tileMinY = floor(worldPosition.y / tileSize);
+    int tileMaxY = floor((worldPositionMax.y - 0.001f) / tileSize);
+
+    glm::ivec2 solidMin(std::numeric_limits<int>::max());
+    glm::ivec2 solidMax(std::numeric_limits<int>::lowest());
+    bool foundAnySolid = false;
+
+    for (int y = tileMinY; y <= tileMaxY; ++y)
+    {
+        for (int x = tileMinX; x <= tileMaxX; ++x)
+        {
+            glm::ivec2 tilePosition = glm::ivec2(x, y);
+            if (getTile(tilePosition).isSolid())
+            {
+                foundAnySolid = true;
+                solidMin = glm::min(solidMin, tilePosition);
+                solidMax = glm::max(solidMax, tilePosition);
+            }
+        }
+    }
+
+    if (foundAnySolid)
+    {
+        glm::vec2 solidWorldMin = glm::vec2(solidMin) * float(tileSize);
+        glm::vec2 solidWorldMax = (glm::vec2(solidMax) + glm::vec2(1)) * float(tileSize);
+        AABB solidAABB;
+        solidAABB.position = solidWorldMin;
+        solidAABB.size = solidWorldMax - solidWorldMin;
+        return solidAABB;
+    }
+
+    return AABB();
+}

@@ -12,6 +12,6 @@ struct TileMapData
     std::optional<int> height;
     std::optional<std::vector<std::vector<int>>> indices;
     std::unordered_map<int, TileData> tileData;
-    glm::ivec2 playerStartPosition = glm::ivec2(0, 0);
+    glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
     std::string nextLevel = "../assets/tile_maps/level1.json";
 };

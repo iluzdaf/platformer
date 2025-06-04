@@ -45,20 +45,20 @@ void TileMap::initByData(const TileMapData &tileMapData)
         height = indices.size();
         width = height > 0 ? indices[0].size() : 0;
 
-        for (int y = 0; y < height; ++y)
+        for (int tileY = 0; tileY < height; ++tileY)
         {
-            if (indices[y].size() != width)
+            if (indices[tileY].size() != width)
             {
                 throw std::runtime_error("Inconsistent row width in tileIndices");
             }
         }
 
         tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, -1));
-        for (int y = 0; y < height; ++y)
+        for (int tileY = 0; tileY < height; ++tileY)
         {
-            for (int x = 0; x < width; ++x)
+            for (int tileX = 0; tileX < width; ++tileX)
             {
-                tileIndices[x][y] = indices[y][x];
+                tileIndices[tileX][tileY] = indices[tileY][tileX];
             }
         }
     }
@@ -84,51 +84,74 @@ void TileMap::initByData(const TileMapData &tileMapData)
         tiles.insert_or_assign(tileIndex, Tile(tileData));
     }
 
-    playerStartPosition = tileMapData.playerStartPosition;
-    assert(playerStartPosition.x >= 0);
-    assert(playerStartPosition.y >= 0);
-    assert(playerStartPosition.x < width);
-    assert(playerStartPosition.y < height);
+    playerStartTilePosition = tileMapData.playerStartTilePosition;
+    assert(playerStartTilePosition.x >= 0);
+    assert(playerStartTilePosition.y >= 0);
+    assert(playerStartTilePosition.x < width);
+    assert(playerStartTilePosition.y < height);
+    const Tile &tile = getTile(playerStartTilePosition);
+    assert(!tile.isSolid());
+    assert(!tile.isSpikes());
 
     nextLevel = tileMapData.nextLevel;
     assert(!nextLevel.empty());
 }
 
-void TileMap::setTileIndex(int x, int y, int tile)
+void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height)
+    if (tilePosition.x < 0 ||
+        tilePosition.x >= width ||
+        tilePosition.y < 0 ||
+        tilePosition.y >= height)
     {
-        throw std::out_of_range("Coordinates out of bounds");
+        throw std::out_of_range("Tile coordinates out of bounds");
     }
 
-    if (tile < 0)
+    if (tileIndex < 0)
     {
         throw std::invalid_argument("Tile index must be greater or equals to 0");
     }
 
-    tileIndices[x][y] = tile;
+    tileIndices[tilePosition.x][tilePosition.y] = tileIndex;
 }
 
-int TileMap::getTileIndex(int x, int y) const
+void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height)
+    setTileIndex(getTileCoordinates(worldPosition), tileIndex);
+}
+
+int TileMap::getTileIndex(glm::ivec2 tilePosition) const
+{
+    if (tilePosition.x < 0 ||
+        tilePosition.x >= width ||
+        tilePosition.y < 0 ||
+        tilePosition.y >= height)
     {
         return -1;
     }
 
-    return tileIndices[x][y];
+    return tileIndices[tilePosition.x][tilePosition.y];
 }
 
-int TileMap::getTileIndex(const glm::vec2 &worldPosition) const
+glm::ivec2 TileMap::getTileCoordinates(glm::vec2 worldPosition) const
 {
-    int x = static_cast<int>(worldPosition.x) / tileSize;
-    int y = static_cast<int>(worldPosition.y) / tileSize;
-    return getTileIndex(x, y);
+    return glm::ivec2(static_cast<int>(worldPosition.x) / tileSize, static_cast<int>(worldPosition.y) / tileSize);
 }
 
-int TileMap::getWidth() const { return width; }
+int TileMap::getTileIndexAt(glm::vec2 worldPosition) const
+{
+    return getTileIndex(getTileCoordinates(worldPosition));
+}
 
-int TileMap::getHeight() const { return height; }
+int TileMap::getWidth() const
+{
+    return width;
+}
+
+int TileMap::getHeight() const
+{
+    return height;
+}
 
 const Tile &TileMap::getTile(int tileIndex) const
 {
@@ -140,16 +163,14 @@ const Tile &TileMap::getTile(int tileIndex) const
     return it->second;
 }
 
-const Tile &TileMap::getTile(int x, int y) const
+const Tile &TileMap::getTile(glm::ivec2 tilePosition) const
 {
-    int tileIndex = getTileIndex(x, y);
-    return getTile(tileIndex);
+    return getTile(getTileIndex(tilePosition));
 }
 
-const Tile &TileMap::getTile(const glm::vec2 &worldPosition) const
+const Tile &TileMap::getTileAt(glm::vec2 worldPosition) const
 {
-    int tileIndex = getTileIndex(worldPosition);
-    return getTile(tileIndex);
+    return getTile(getTileIndexAt(worldPosition));
 }
 
 int TileMap::getTileSize() const
@@ -177,7 +198,7 @@ int TileMap::getWorldHeight() const
 
 glm::vec2 TileMap::getPlayerStartWorldPosition() const
 {
-    return glm::vec2(playerStartPosition.x * tileSize, playerStartPosition.y * tileSize);
+    return glm::vec2(playerStartTilePosition.x * tileSize, playerStartTilePosition.y * tileSize);
 }
 
 const std::string &TileMap::getNextLevel() const

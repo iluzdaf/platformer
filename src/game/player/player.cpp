@@ -137,7 +137,7 @@ void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &
     bool isFalling = (velY > 0.0f);
     float centerX = position.x + size.x / 2.0f;
     float verticalEdgeY = isFalling ? nextY + size.y : nextY;
-    bool collidesWithSolidTile = tileMap.getTile(glm::vec2(centerX, verticalEdgeY)).isSolid();
+    bool collidesWithSolidTile = tileMap.getTileAt(glm::vec2(centerX, verticalEdgeY)).isSolid();
 
     if (collidesWithSolidTile)
     {
@@ -158,7 +158,7 @@ void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap
     bool isMovingRight = (velX > 0);
     float bottomY = nextY + size.y - 1.0f;
     float leadingEdgeX = isMovingRight ? nextX + size.x : nextX;
-    bool collidesWithSolidTile = tileMap.getTile(glm::vec2(leadingEdgeX, bottomY)).isSolid();
+    bool collidesWithSolidTile = tileMap.getTileAt(glm::vec2(leadingEdgeX, bottomY)).isSolid();
 
     if (collidesWithSolidTile)
     {
@@ -236,7 +236,7 @@ void Player::clampToTileMapBounds(const TileMap &tileMap)
 
     if (clamped)
     {
-        const Tile &tile = tileMap.getTile(newPos);
+        const Tile &tile = tileMap.getTileAt(newPos);
         if (tile.isSolid())
         {
             throw std::runtime_error("Trying to clamp player into a solid tile");
@@ -249,15 +249,12 @@ void Player::clampToTileMapBounds(const TileMap &tileMap)
 
 void Player::handlePickup(TileMap &tileMap)
 {
-    const Tile &tile = tileMap.getTile(position);
+    const Tile &tile = tileMap.getTileAt(position);
     if (tile.isPickup())
     {
         auto replaceIndexOpt = tile.getPickupReplaceIndex();
         assert(replaceIndexOpt.has_value());
-        int tileSize = tileMap.getTileSize();
-        int tileX = static_cast<int>((position.x)) / tileSize;
-        int tileY = static_cast<int>((position.y)) / tileSize;
-        tileMap.setTileIndex(tileX, tileY, replaceIndexOpt.value());
+        tileMap.setTileIndexAt(position, replaceIndexOpt.value());
         onLevelComplete();
     }
 }
@@ -329,12 +326,12 @@ bool Player::touchingRightWall() const
 void Player::checkWallContact(const TileMap &tileMap)
 {
     float probeOffset = 0.05f;
-    if (tileMap.getTile(glm::vec2(position.x - probeOffset, position.y + size.y * 0.5f)).isSolid())
+    if (tileMap.getTileAt(glm::vec2(position.x - probeOffset, position.y + size.y * 0.5f)).isSolid())
     {
         isTouchingLeftWall = true;
     }
 
-    if (tileMap.getTile(glm::vec2(position.x + size.x + probeOffset, position.y + size.y * 0.5f)).isSolid())
+    if (tileMap.getTileAt(glm::vec2(position.x + size.x + probeOffset, position.y + size.y * 0.5f)).isSolid())
     {
         isTouchingRightWall = true;
     }
@@ -353,7 +350,7 @@ void Player::setPosition(const glm::vec2 &position)
 
 void Player::handleSpikes(TileMap &tileMap)
 {
-    const Tile &tile = tileMap.getTile(position);
+    const Tile &tile = tileMap.getTileAt(position);
     if (tile.isSpikes())
     {
         onDeath();

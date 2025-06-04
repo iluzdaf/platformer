@@ -79,7 +79,7 @@ TEST_CASE("Player and solid tiles", "[Player]")
     SECTION("Player lands on solid tile")
     {
         TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
-        tileMap.setTileIndex(0, 5, 1);
+        tileMap.setTileIndex(glm::ivec2(0, 5), 1);
         Player player = setupPlayer();
         simulatePlayer(player, tileMap, 1.0f);
         float expectedY = 4 * tileMap.getTileSize();
@@ -90,9 +90,9 @@ TEST_CASE("Player and solid tiles", "[Player]")
     SECTION("Player cannot move into solid tile")
     {
         TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
-        tileMap.setTileIndex(3, 5, 1);
-        tileMap.setTileIndex(2, 4, 1);
-        tileMap.setTileIndex(1, 4, 1);
+        tileMap.setTileIndex(glm::ivec2(3, 5), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 4), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 4), 1);
         Player player = setupPlayer();
         player.setPosition(glm::vec2(32, 80));
 
@@ -118,8 +118,8 @@ TEST_CASE("Player and solid tiles", "[Player]")
         TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
         int ceilingTileX = 2;
         int ceilingTileY = 2;
-        tileMap.setTileIndex(ceilingTileX, ceilingTileY, 1);
-        tileMap.setTileIndex(2, 5, 1);
+        tileMap.setTileIndex(glm::ivec2(ceilingTileX, ceilingTileY), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         Player player = setupPlayer();
         player.setPosition({32, 64});
         player.jump();
@@ -248,14 +248,14 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
     SECTION("Throws if player is clamped into a solid tile")
     {
         TileMap tileMap = setupTileMap(3, 3, 16, {{1, TileData{TileKind::Solid}}});
-        tileMap.setTileIndex(0, 0, 1);
-        tileMap.setTileIndex(0, 1, 1);
-        tileMap.setTileIndex(0, 2, 1);
-        tileMap.setTileIndex(1, 2, 1);
-        tileMap.setTileIndex(2, 2, 1);
-        tileMap.setTileIndex(2, 1, 1);
-        tileMap.setTileIndex(2, 0, 1);
-        tileMap.setTileIndex(1, 0, 1);
+        tileMap.setTileIndex(glm::ivec2(0, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(0, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(0, 2), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 2), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 2), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 0), 1);
         Player player = setupPlayer();
         player.setPosition(glm::vec2(10.0f, 1000.0f));
         REQUIRE_THROWS_WITH(simulatePlayer(player, tileMap, 0.1f), "Trying to clamp player into a solid tile");
@@ -268,14 +268,14 @@ TEST_CASE("Player and pickups", "[Player]")
 
     SECTION("Player collects pickup and tile is replaced")
     {
-        tileMap.setTileIndex(1, 2, 5);
+        tileMap.setTileIndex(glm::ivec2(1, 2), 5);
 
         SECTION("Player spawns on a pickup")
         {
             Player player = setupPlayer();
             player.setPosition(glm::vec2(16, 32));
             simulatePlayer(player, tileMap, 0.1f);
-            REQUIRE(tileMap.getTileIndex(1, 2) == 0);
+            REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 2)) == 0);
         }
 
         SECTION("Player falls on a pickup")
@@ -283,7 +283,7 @@ TEST_CASE("Player and pickups", "[Player]")
             Player player = setupPlayer();
             player.setPosition(glm::vec2(16, 0));
             simulatePlayer(player, tileMap, 1.0f);
-            REQUIRE(tileMap.getTileIndex(1, 2) == 0);
+            REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 2)) == 0);
         }
 
         SECTION("Player moves right on a pickup")
@@ -292,7 +292,7 @@ TEST_CASE("Player and pickups", "[Player]")
             player.setPosition(glm::vec2(0, 32));
             player.moveRight();
             simulatePlayer(player, tileMap, 1.0f);
-            REQUIRE(tileMap.getTileIndex(1, 2) == 0);
+            REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 2)) == 0);
         }
 
         SECTION("Player moves left on a pickup")
@@ -301,7 +301,7 @@ TEST_CASE("Player and pickups", "[Player]")
             player.setPosition(glm::vec2(32, 32));
             player.moveLeft();
             simulatePlayer(player, tileMap, 1.0f);
-            REQUIRE(tileMap.getTileIndex(1, 2) == 0);
+            REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 2)) == 0);
         }
     }
 }
@@ -314,15 +314,15 @@ TEST_CASE("Player and empty or invalid tiles", "[Player]")
 
     SECTION("Player doesn't do anything to empty tiles")
     {
-        tileMap.setTileIndex(1, 1, 0);
+        tileMap.setTileIndex(glm::ivec2(1, 1), 0);
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(tileMap.getTileIndex(1, 1) == 0);
+        REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 1)) == 0);
     }
 
     SECTION("Player doesn't do anything to invalid tiles")
     {
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(tileMap.getTileIndex(1, 1) == -1);
+        REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 1)) == -1);
     }
 }
 
@@ -334,7 +334,7 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
     {
         for (int y = 0; y < 10; ++y)
         {
-            tileMap.setTileIndex(6, y, 1);
+            tileMap.setTileIndex(glm::ivec2(6, y), 1);
         }
 
         Player player = setupPlayer();
@@ -350,7 +350,7 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
     {
         for (int y = 0; y < 10; ++y)
         {
-            tileMap.setTileIndex(3, y, 1);
+            tileMap.setTileIndex(glm::ivec2(3, y), 1);
         }
         Player player = setupPlayer();
         player.setPosition(glm::vec2(4 * 16.0f, 0.0f));
@@ -462,10 +462,10 @@ TEST_CASE("Player movement ability integration", "[Player]")
     SECTION("Player can jump, wall slide, and wall jump")
     {
         TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
-        for (int y = 0; y < 10; ++y)
+        for (int tileY = 0; tileY < 10; ++tileY)
         {
-            tileMap.setTileIndex(2, y, 1);
-            tileMap.setTileIndex(7, y, 1);
+            tileMap.setTileIndex(glm::ivec2(2, tileY), 1);
+            tileMap.setTileIndex(glm::ivec2(7, tileY), 1);
         }
 
         Player player = setupPlayer();
@@ -486,8 +486,8 @@ TEST_CASE("Player movement ability integration", "[Player]")
     SECTION("Player dashes into wall and performs wall jump")
     {
         TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
-        for (int y = 0; y < 10; ++y)
-            tileMap.setTileIndex(6, y, 1);
+        for (int tileY = 0; tileY < 10; ++tileY)
+            tileMap.setTileIndex(glm::ivec2(6, tileY), 1);
 
         Player player = setupPlayer();
         player.setPosition(glm::vec2(4 * 16, 2 * 16));
@@ -524,7 +524,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
 TEST_CASE("Player can multi-jump", "[Player]")
 {
     TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
-    tileMap.setTileIndex(1, 9, 1);
+    tileMap.setTileIndex(glm::ivec2(1, 9), 1);
     Player player = setupPlayer();
     player.setPosition({16, 8 * 16});
     const PlayerState &playerState = player.getPlayerState();
@@ -573,9 +573,9 @@ TEST_CASE("Player can multi-jump", "[Player]")
 TEST_CASE("Player can move", "[Player]")
 {
     TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
-    for (int i = 0; i < 10; ++i)
+    for (int tileX = 0; tileX < 10; ++tileX)
     {
-        tileMap.setTileIndex(i, 9, 1);
+        tileMap.setTileIndex(glm::ivec2(tileX, 9), 1);
     }
     Player player = setupPlayer();
     player.setPosition({5 * 16, 8 * 16});

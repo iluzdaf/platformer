@@ -11,12 +11,14 @@ class TileMap
 public:
     explicit TileMap(const std::string &jsonFilePath);
     explicit TileMap(const TileMapData &tileMapData);
-    void setTileIndex(int x, int y, int tile);
-    int getTileIndex(int x, int y) const;
-    int getTileIndex(const glm::vec2 &worldPosition) const;
+    void setTileIndex(glm::ivec2 tilePosition, int tileIndex);
+    void setTileIndexAt(glm::vec2 worldPosition, int tileIndex);
+    int getTileIndex(glm::ivec2 tilePosition) const;
+    int getTileIndexAt(glm::vec2 worldPosition) const;
+    glm::ivec2 getTileCoordinates(glm::vec2 worldPosition) const;
     const Tile &getTile(int tileIndex) const;
-    const Tile &getTile(int x, int y) const;
-    const Tile &getTile(const glm::vec2 &worldPosition) const;
+    const Tile &getTile(glm::ivec2 tilePosition) const;
+    const Tile &getTileAt(glm::vec2 worldPosition) const;
     int getWidth() const;
     int getHeight() const;
     int getWorldWidth() const;
@@ -31,6 +33,6 @@ private:
     std::vector<std::vector<int>> tileIndices;
     std::unordered_map<int, Tile> tiles;
     void initByData(const TileMapData &tileMapData);
-    glm::ivec2 playerStartPosition = glm::ivec2(0, 0);
+    glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
     std::string nextLevel = "../assets/tile_maps/level1.json";
 };

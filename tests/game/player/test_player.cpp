@@ -12,6 +12,7 @@
 #include "game/tile_map/tile_map_data.hpp"
 #include "physics/fixed_time_step.hpp"
 #include "physics/physics_data.hpp"
+#include "test_helpers/test_tilemap_utils.hpp"
 using Catch::Approx;
 
 void simulatePlayer(Player &player, TileMap &tileMap, float totalTime, float step = 0.01f)
@@ -20,20 +21,6 @@ void simulatePlayer(Player &player, TileMap &tileMap, float totalTime, float ste
     timeStepper.run(totalTime, [&](float dt)
                     { player.fixedUpdate(dt, tileMap); });
     player.update(totalTime, tileMap);
-}
-
-TileMap setupTileMap(
-    int width = 10,
-    int height = 10,
-    int tileSize = 16,
-    const std::unordered_map<int, TileData> &tileDataMap = {})
-{
-    TileMapData tileMapData;
-    tileMapData.size = tileSize;
-    tileMapData.width = width;
-    tileMapData.height = height;
-    tileMapData.tileData = tileDataMap;
-    return TileMap(tileMapData);
 }
 
 Player setupPlayer(float gravity = 980.0f, float moveSpeed = 160.0f)
@@ -84,7 +71,23 @@ TEST_CASE("Player and solid tiles", "[Player]")
         simulatePlayer(player, tileMap, 1.0f);
         float expectedY = 4 * tileMap.getTileSize();
         REQUIRE(player.getPosition().y == Approx(expectedY));
-        REQUIRE(player.getVelocity().y == Approx(0.0f));
+        REQUIRE(player.getPlayerState().onGround);
+        REQUIRE(player.getVelocity().y == Approx(0.0f).margin(0.01f));
+    }
+
+    SECTION("Player walks off a ledge and is no longer onGround")
+    {
+        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        tileMap.setTileIndex(glm::ivec2(1, 5), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 5), 1);
+        Player player = setupPlayer();
+        player.setPosition(glm::vec2(2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()));
+        simulatePlayer(player, tileMap, 0.1f);
+        REQUIRE(player.getPlayerState().onGround);
+
+        player.moveRight();
+        simulatePlayer(player, tileMap, 0.5f);
+        REQUIRE_FALSE(player.getPlayerState().onGround);
     }
 
     SECTION("Player cannot move into solid tile")
@@ -338,12 +341,13 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         }
 
         Player player = setupPlayer();
-        player.setPosition(glm::vec2(5 * 16.0f, 0.0f));
+        player.setPosition(glm::vec2(5 * 16.0f, 16.0f));
         player.moveRight();
         simulatePlayer(player, tileMap, 0.1f);
 
-        REQUIRE(player.touchingRightWall());
-        REQUIRE_FALSE(player.touchingLeftWall());
+        PlayerState playerState = player.getPlayerState();
+        REQUIRE(playerState.touchingRightWall);
+        REQUIRE_FALSE(playerState.touchingLeftWall);
     }
 
     SECTION("Touching left wall")
@@ -353,12 +357,13 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
             tileMap.setTileIndex(glm::ivec2(3, y), 1);
         }
         Player player = setupPlayer();
-        player.setPosition(glm::vec2(4 * 16.0f, 0.0f));
+        player.setPosition(glm::vec2(4 * 16.0f, 16.0f));
         player.moveLeft();
         simulatePlayer(player, tileMap, 0.1f);
 
-        REQUIRE(player.touchingLeftWall());
-        REQUIRE_FALSE(player.touchingRightWall());
+        PlayerState playerState = player.getPlayerState();
+        REQUIRE(playerState.touchingLeftWall);
+        REQUIRE_FALSE(playerState.touchingRightWall);
     }
 }
 
@@ -494,8 +499,9 @@ TEST_CASE("Player movement ability integration", "[Player]")
         player.moveRight();
         player.dash();
         simulatePlayer(player, tileMap, 0.2f);
-        REQUIRE(player.touchingRightWall());
-        REQUIRE(player.getPlayerState().wallSliding);
+        PlayerState playerState = player.getPlayerState();
+        REQUIRE(playerState.touchingRightWall);
+        REQUIRE(playerState.wallSliding);
 
         player.jump();
         FixedTimeStep timeStepper;

@@ -117,7 +117,7 @@ void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
 
 void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)
 {
-    setTileIndex(getTileCoordinates(worldPosition), tileIndex);
+    setTileIndex(getTilePositionAt(worldPosition), tileIndex);
 }
 
 int TileMap::getTileIndex(glm::ivec2 tilePosition) const
@@ -133,14 +133,14 @@ int TileMap::getTileIndex(glm::ivec2 tilePosition) const
     return tileIndices[tilePosition.x][tilePosition.y];
 }
 
-glm::ivec2 TileMap::getTileCoordinates(glm::vec2 worldPosition) const
+glm::ivec2 TileMap::getTilePositionAt(glm::vec2 worldPosition) const
 {
     return glm::ivec2(static_cast<int>(worldPosition.x) / tileSize, static_cast<int>(worldPosition.y) / tileSize);
 }
 
 int TileMap::getTileIndexAt(glm::vec2 worldPosition) const
 {
-    return getTileIndex(getTileCoordinates(worldPosition));
+    return getTileIndex(getTilePositionAt(worldPosition));
 }
 
 int TileMap::getWidth() const
@@ -206,41 +206,49 @@ const std::string &TileMap::getNextLevel() const
     return nextLevel;
 }
 
-AABB TileMap::getSolidAABB(glm::vec2 worldPosition, glm::vec2 size)
+AABB TileMap::getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const
 {
+    glm::ivec2 minTilePosition(std::numeric_limits<int>::max());
+    glm::ivec2 maxTilePosition(std::numeric_limits<int>::lowest());
+    bool foundSolid = false;
+
+    auto tileCoordinates = getTilePositionsAt(worldPosition, size);
+    for (const glm::ivec2 &tileCoordinate : tileCoordinates)
+    {
+        const Tile &tile = getTile(tileCoordinate);
+        if (tile.isSolid())
+        {
+            foundSolid = true;
+            minTilePosition = glm::min(minTilePosition, tileCoordinate);
+            maxTilePosition = glm::max(maxTilePosition, tileCoordinate);
+        }
+    }
+
+    if (!foundSolid)
+    {
+        return AABB();
+    }
+
+    glm::vec2 minWordPosition = glm::vec2(minTilePosition) * float(tileSize);
+    glm::vec2 maxWordPosition = (glm::vec2(maxTilePosition) + glm::vec2(1)) * float(tileSize);
+    return AABB(minWordPosition, maxWordPosition - minWordPosition);
+}
+
+std::vector<glm::ivec2> TileMap::getTilePositionsAt(glm::vec2 worldPosition, glm::vec2 size) const
+{
+    std::vector<glm::ivec2> tileCoordinates;
     glm::vec2 worldPositionMax = worldPosition + size;
     int tileMinX = floor(worldPosition.x / tileSize);
     int tileMaxX = floor((worldPositionMax.x - 0.001f) / tileSize);
     int tileMinY = floor(worldPosition.y / tileSize);
     int tileMaxY = floor((worldPositionMax.y - 0.001f) / tileSize);
-
-    glm::ivec2 solidMin(std::numeric_limits<int>::max());
-    glm::ivec2 solidMax(std::numeric_limits<int>::lowest());
-    bool foundAnySolid = false;
-
-    for (int y = tileMinY; y <= tileMaxY; ++y)
+    for (int tileY = tileMinY; tileY <= tileMaxY; ++tileY)
     {
-        for (int x = tileMinX; x <= tileMaxX; ++x)
+        for (int tileX = tileMinX; tileX <= tileMaxX; ++tileX)
         {
-            glm::ivec2 tilePosition = glm::ivec2(x, y);
-            if (getTile(tilePosition).isSolid())
-            {
-                foundAnySolid = true;
-                solidMin = glm::min(solidMin, tilePosition);
-                solidMax = glm::max(solidMax, tilePosition);
-            }
+            tileCoordinates.emplace_back(tileX, tileY);
         }
     }
 
-    if (foundAnySolid)
-    {
-        glm::vec2 solidWorldMin = glm::vec2(solidMin) * float(tileSize);
-        glm::vec2 solidWorldMax = (glm::vec2(solidMax) + glm::vec2(1)) * float(tileSize);
-        AABB solidAABB;
-        solidAABB.position = solidWorldMin;
-        solidAABB.size = solidWorldMax - solidWorldMin;
-        return solidAABB;
-    }
-
-    return AABB();
+    return tileCoordinates;
 }

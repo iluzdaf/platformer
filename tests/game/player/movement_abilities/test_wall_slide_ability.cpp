@@ -11,7 +11,6 @@ TEST_CASE("WallSlideAbility activates on wall contact while falling", "[WallSlid
     WallSlideAbilityData wallSlideAbilityData;
     WallSlideAbility slideAbility(wallSlideAbilityData);
     
-    mockPlayer.setOnGround(false);
     mockPlayer.setVelocity(glm::vec2(0.0f, 300.0f));
 
     SECTION("Not wallSliding when not touching walls")

@@ -1,5 +1,4 @@
 #include <cassert>
-#include <algorithm>
 #include "game/player/player.hpp"
 #include "game/tile_map/tile.hpp"
 #include "game/tile_map/tile_map.hpp"
@@ -12,11 +11,11 @@
 #include "physics/physics_data.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
-    : size(playerData.size),
-      idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
+    : idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
       walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
 {
-    gravity = physicsData.gravity;
+    physicsBody.setSize(playerData.size);
+    physicsBody.setGravity(physicsData.gravity);
 
     if (playerData.jumpAbilityData)
     {
@@ -46,28 +45,19 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
 
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 {
-    resetTransientState();
-
-    checkWallContact(tileMap);
-
-    velocity.y += gravity * deltaTime;
+    physicsBody.applyGravity(deltaTime);
 
     for (auto &ability : movementAbilities)
     {
         ability->fixedUpdate(*this, playerState, deltaTime);
     }
 
-    glm::vec2 nextPosition = position + velocity * deltaTime;
-    resolveVerticalCollision(nextPosition.y, velocity.y, tileMap);
-    resolveHorizontalCollision(nextPosition.x, velocity.x, tileMap, nextPosition.y);
+    physicsBody.stepPhysics(deltaTime, tileMap);
+
     handlePickup(tileMap);
     handleSpikes(tileMap);
 
-    position = nextPosition;
-
-    clampToTileMapBounds(tileMap);
-
-    updatePlayerState();
+    updatePlayerState(tileMap);
 }
 
 void Player::update(float deltaTime, TileMap &tileMap)
@@ -79,14 +69,12 @@ void Player::update(float deltaTime, TileMap &tileMap)
 
     updateAnimation(deltaTime);
 
-    velocity.x = 0.0f;
-
-    updatePlayerState();
+    physicsBody.setVelocity(glm::vec2(0, physicsBody.getVelocity().y));
 }
 
 void Player::updateAnimation(float deltaTime)
 {
-    bool isWalking = std::abs(velocity.x) > 0.01f;
+    bool isWalking = std::abs(physicsBody.getVelocity().x) > 0.001f;
     PlayerAnimationState newState = isWalking ? PlayerAnimationState::Walk : PlayerAnimationState::Idle;
     if (newState != animState)
     {
@@ -121,59 +109,12 @@ void Player::moveRight()
 
 glm::vec2 Player::getPosition() const
 {
-    return position;
+    return physicsBody.getPosition();
 }
 
 glm::vec2 Player::getVelocity() const
 {
-    return velocity;
-}
-
-void Player::resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap)
-{
-    if (std::abs(velY) < 0.0001f)
-        return;
-
-    bool isFalling = (velY > 0.0f);
-    float centerX = position.x + size.x / 2.0f;
-    float verticalEdgeY = isFalling ? nextY + size.y : nextY;
-    bool collidesWithSolidTile = tileMap.getTileAt(glm::vec2(centerX, verticalEdgeY)).isSolid();
-
-    if (collidesWithSolidTile)
-    {
-        if (isFalling)
-            isOnGround = true;
-        int tileSize = tileMap.getTileSize();
-        int tileY = static_cast<int>(verticalEdgeY) / tileSize;
-        nextY = snapToTileEdge(tileY, tileSize, isFalling, size.y);
-        velY = 0.0f;
-    }
-}
-
-void Player::resolveHorizontalCollision(float &nextX, float &velX, const TileMap &tileMap, float nextY)
-{
-    if (std::abs(velX) < 0.0001f)
-        return;
-
-    bool isMovingRight = (velX > 0);
-    float bottomY = nextY + size.y - 1.0f;
-    float leadingEdgeX = isMovingRight ? nextX + size.x : nextX;
-    bool collidesWithSolidTile = tileMap.getTileAt(glm::vec2(leadingEdgeX, bottomY)).isSolid();
-
-    if (collidesWithSolidTile)
-    {
-        int tileSize = tileMap.getTileSize();
-        int tileX = static_cast<int>(leadingEdgeX) / tileSize;
-        nextX = snapToTileEdge(tileX, tileSize, velX > 0.0f, size.x);
-        velX = 0.0f;
-    }
-}
-
-inline float Player::snapToTileEdge(int tile, int tileSize, bool positive, float entitySize)
-{
-    return positive
-               ? tile * tileSize - entitySize
-               : (tile + 1) * tileSize;
+    return physicsBody.getVelocity();
 }
 
 SpriteAnimation &Player::getCurrentAnimation()
@@ -198,70 +139,33 @@ bool Player::facingLeft() const
     return isFacingLeft;
 }
 
-void Player::clampToTileMapBounds(const TileMap &tileMap)
-{
-    const int mapWidth = tileMap.getWorldWidth();
-    const int mapHeight = tileMap.getWorldHeight();
-
-    glm::vec2 newPos = position;
-    glm::vec2 newVel = velocity;
-    bool clamped = false;
-
-    if (newPos.x < 0.0f)
-    {
-        newPos.x = 0.0f;
-        newVel.x = 0.0f;
-        clamped = true;
-    }
-    else if (newPos.x + size.x > mapWidth)
-    {
-        newPos.x = mapWidth - size.x;
-        newVel.x = 0.0f;
-        clamped = true;
-    }
-
-    if (newPos.y < 0.0f)
-    {
-        newPos.y = 0.0f;
-        newVel.y = 0.0f;
-        clamped = true;
-    }
-    else if (newPos.y + size.y > mapHeight)
-    {
-        newPos.y = mapHeight - size.y;
-        newVel.y = 0.0f;
-        isOnGround = true;
-        clamped = true;
-    }
-
-    if (clamped)
-    {
-        const Tile &tile = tileMap.getTileAt(newPos);
-        if (tile.isSolid())
-        {
-            throw std::runtime_error("Trying to clamp player into a solid tile");
-        }
-
-        position = newPos;
-        velocity = newVel;
-    }
-}
-
 void Player::handlePickup(TileMap &tileMap)
 {
-    const Tile &tile = tileMap.getTileAt(position);
-    if (tile.isPickup())
+    auto tilePositions = tileMap.getTilePositionsAt(physicsBody.getPosition(), physicsBody.getSize());
+    bool levelComplete = false;
+    for (auto tilePosition : tilePositions)
     {
+        const Tile &tile = tileMap.getTile(tilePosition);
+        if (!tile.isPickup())
+        {
+            continue;
+        }
+
         auto replaceIndexOpt = tile.getPickupReplaceIndex();
         assert(replaceIndexOpt.has_value());
-        tileMap.setTileIndexAt(position, replaceIndexOpt.value());
+        tileMap.setTileIndex(tilePosition, replaceIndexOpt.value());
+        levelComplete = true;
+    }
+
+    if (levelComplete)
+    {
         onLevelComplete();
     }
 }
 
 glm::vec2 Player::getSize() const
 {
-    return size;
+    return physicsBody.getSize();
 }
 
 void Player::dash()
@@ -272,19 +176,9 @@ void Player::dash()
     }
 }
 
-bool Player::onGround() const
-{
-    return isOnGround;
-}
-
-void Player::setOnGround(bool isOnGround)
-{
-    this->isOnGround = isOnGround;
-}
-
 void Player::setVelocity(const glm::vec2 &velocity)
 {
-    this->velocity = velocity;
+    physicsBody.setVelocity(velocity);
 }
 
 void Player::setFacingLeft(bool isFacingLeft)
@@ -292,15 +186,15 @@ void Player::setFacingLeft(bool isFacingLeft)
     this->isFacingLeft = isFacingLeft;
 }
 
-void Player::updatePlayerState()
+void Player::updatePlayerState(const TileMap &tileMap)
 {
-    playerState.position = position;
-    playerState.velocity = velocity;
-    playerState.size = size;
-    playerState.onGround = onGround();
+    playerState.position = physicsBody.getPosition();
+    playerState.velocity = physicsBody.getVelocity();
+    playerState.size = physicsBody.getSize();
+    playerState.onGround = physicsBody.contactWithGround(tileMap);
     playerState.facingLeft = facingLeft();
-    playerState.touchingRightWall = touchingRightWall();
-    playerState.touchingLeftWall = touchingLeftWall();
+    playerState.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
+    playerState.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
 
     for (const auto &ability : movementAbilities)
     {
@@ -313,45 +207,26 @@ const PlayerState &Player::getPlayerState() const
     return playerState;
 }
 
-bool Player::touchingLeftWall() const
-{
-    return isTouchingLeftWall;
-}
-
-bool Player::touchingRightWall() const
-{
-    return isTouchingRightWall;
-}
-
-void Player::checkWallContact(const TileMap &tileMap)
-{
-    float probeOffset = 0.05f;
-    if (tileMap.getTileAt(glm::vec2(position.x - probeOffset, position.y + size.y * 0.5f)).isSolid())
-    {
-        isTouchingLeftWall = true;
-    }
-
-    if (tileMap.getTileAt(glm::vec2(position.x + size.x + probeOffset, position.y + size.y * 0.5f)).isSolid())
-    {
-        isTouchingRightWall = true;
-    }
-}
-
-void Player::resetTransientState()
-{
-    isTouchingLeftWall = false;
-    isTouchingRightWall = false;
-}
-
 void Player::setPosition(const glm::vec2 &position)
 {
-    this->position = position;
+    this->physicsBody.setPosition(position);
 }
 
 void Player::handleSpikes(TileMap &tileMap)
 {
-    const Tile &tile = tileMap.getTileAt(position);
-    if (tile.isSpikes())
+    auto tilePositions = tileMap.getTilePositionsAt(physicsBody.getPosition(), physicsBody.getSize());
+    bool death = false;
+    for (auto tilePosition : tilePositions)
+    {
+        const Tile &tile = tileMap.getTile(tilePosition);
+        if (!tile.isSpikes())
+        {
+            continue;
+        }
+        death = true;
+    }
+
+    if(death)
     {
         onDeath();
     }

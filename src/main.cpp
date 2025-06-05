@@ -11,6 +11,7 @@ int main()
     catch (const sol::error& e)
     {
         std::cerr << "Lua error: " << e.what() << std::endl;
+        return -1;
     }
     catch (const std::runtime_error &e)
     {

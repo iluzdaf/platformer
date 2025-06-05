@@ -7,6 +7,7 @@
 #include "game/player/movement_context.hpp"
 #include "game/player/player_state.hpp"
 #include "animations/sprite_animation.hpp"
+#include "physics/physics_body.hpp"
 class TileMap;
 class PlayerData;
 class PhysicsData;
@@ -24,44 +25,32 @@ public:
     SpriteAnimation &getCurrentAnimation();
     PlayerAnimationState getAnimationState() const;
     glm::vec2 getSize() const;
-    bool facingLeft() const;    
-    bool onGround() const;
-    bool touchingLeftWall() const;
-    bool touchingRightWall() const;
+    bool facingLeft() const;
     const PlayerState &getPlayerState() const;
     void setPosition(const glm::vec2 &position);
-
-    glm::vec2 getPosition() const override;
+    glm::vec2 getPosition() const;
+    
     glm::vec2 getVelocity() const override;
-    void setVelocity(const glm::vec2 &velocity) override;  
-    void setOnGround(bool isOnGround) override;
+    void setVelocity(const glm::vec2 &velocity) override;
     void setFacingLeft(bool isFacingLeft) override;
 
     fteng::signal<void()> onLevelComplete;
     fteng::signal<void()> onDeath;
-    
+
 private:
-    void resolveVerticalCollision(float &nextY, float &velY, const TileMap &tileMap);
-    void resolveHorizontalCollision(float &nextX, float &velX, const TileMap &tileMap, float nextY);
-    static inline float snapToTileEdge(int tile, int tileSize, bool positive, float entitySize = 0.0f);
-    void updateAnimation(float deltaTime);
-    void clampToTileMapBounds(const TileMap &tileMap);
+    PhysicsBody physicsBody;
+
     void handlePickup(TileMap &tileMap);
-    void updatePlayerState();
-    void checkWallContact(const TileMap &tileMap);
-    void resetTransientState();
     void handleSpikes(TileMap &tileMap);
 
-    glm::vec2 position = glm::vec2(0, 0);
-    glm::vec2 velocity = glm::vec2(0, 0);
-
+    void updateAnimation(float deltaTime);
     SpriteAnimation idleAnim;
     SpriteAnimation walkAnim;
     PlayerAnimationState animState = PlayerAnimationState::Idle;
 
-    bool isFacingLeft = false, isOnGround = false, isTouchingLeftWall = false, isTouchingRightWall = false;
-    glm::vec2 size = glm::vec2(1, 1);
-    float gravity = 980;
+    void updatePlayerState(const TileMap &tileMap);
+
+    bool isFacingLeft = false;
 
     std::vector<std::unique_ptr<MovementAbility>> movementAbilities;
 

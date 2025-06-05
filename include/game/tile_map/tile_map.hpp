@@ -16,7 +16,7 @@ public:
     void setTileIndexAt(glm::vec2 worldPosition, int tileIndex);
     int getTileIndex(glm::ivec2 tilePosition) const;
     int getTileIndexAt(glm::vec2 worldPosition) const;
-    glm::ivec2 getTileCoordinates(glm::vec2 worldPosition) const;
+    glm::ivec2 getTilePositionAt(glm::vec2 worldPosition) const;
     const Tile &getTile(int tileIndex) const;
     const Tile &getTile(glm::ivec2 tilePosition) const;
     const Tile &getTileAt(glm::vec2 worldPosition) const;
@@ -28,7 +28,8 @@ public:
     void update(float deltaTime);
     glm::vec2 getPlayerStartWorldPosition() const;
     const std::string &getNextLevel() const;
-    AABB getSolidAABB(glm::vec2 worldPosition, glm::vec2 size);
+    AABB getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const;
+    std::vector<glm::ivec2> getTilePositionsAt(glm::vec2 worldPosition, glm::vec2 size) const;
 
 private:
     int width = 0, height = 0, tileSize = 0;

@@ -165,8 +165,27 @@ TEST_CASE("TileMap calculates solid AABB correctly", "[TileMap]")
     glm::vec2 worldPos(16.0f, 16.0f);
     glm::vec2 size(32.0f, 32.0f);
 
-    AABB solidAABB = tileMap.getSolidAABB(worldPos, size);
+    AABB solidAABB = tileMap.getSolidAABBAt(worldPos, size);
 
     REQUIRE(solidAABB.position == glm::vec2(16.0f, 16.0f));
     REQUIRE(solidAABB.size == glm::vec2(32.0f, 32.0f));
+}
+
+TEST_CASE("TileMap getTilePositionsAt returns correct tile coordinates", "[TileMap]") {
+    TileMapData tileMapData;
+    tileMapData.width = 10;
+    tileMapData.height = 10;
+    tileMapData.size = 16;
+    TileMap tileMap(tileMapData);
+
+    glm::vec2 worldPosition(15.0f, 15.0f);
+    glm::vec2 size(16.0f, 16.0f);
+    auto positions = tileMap.getTilePositionsAt(worldPosition, size);
+
+    std::vector<glm::ivec2> expected = {
+        {0, 0}, {1, 0},
+        {0, 1}, {1, 1}
+    };
+
+    REQUIRE(positions == expected);
 }

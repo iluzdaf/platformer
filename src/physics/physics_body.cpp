@@ -44,14 +44,16 @@ float PhysicsBody::getGravity() const
 
 AABB PhysicsBody::getAABB() const
 {
-    return AABB(position, size);
+    return AABB(position + offset, size);
 }
 
 void PhysicsBody::resolveCollision(const TileMap &tileMap)
 {
+    glm::vec2 newPosition = nextPosition + offset;
+
     if (std::abs(velocity.x) > 0.001f)
     {
-        glm::vec2 proposedPosX = {nextPosition.x, position.y};
+        glm::vec2 proposedPosX = {newPosition.x, position.y};
         AABB proposedAABBX(proposedPosX, size);
         AABB solidAABBX = tileMap.getSolidAABBAt(proposedPosX, size);
         if (solidAABBX.intersects(proposedAABBX))
@@ -59,16 +61,16 @@ void PhysicsBody::resolveCollision(const TileMap &tileMap)
             float deltaX = (proposedAABBX.center().x - solidAABBX.center().x);
             float overlapX = (solidAABBX.size.x + proposedAABBX.size.x) * 0.5f - std::abs(deltaX);
             if (deltaX > 0)
-                nextPosition.x += overlapX;
+                newPosition.x += overlapX;
             else
-                nextPosition.x -= overlapX;
+                newPosition.x -= overlapX;
             velocity.x = 0.0f;
         }
     }
 
     if (std::abs(velocity.y) > 0.001f)
     {
-        glm::vec2 proposedPosY = {position.x, nextPosition.y};
+        glm::vec2 proposedPosY = newPosition;
         AABB proposedAABBY(proposedPosY, size);
         AABB solidAABBY = tileMap.getSolidAABBAt(proposedPosY, size);
         if (solidAABBY.intersects(proposedAABBY))
@@ -76,14 +78,16 @@ void PhysicsBody::resolveCollision(const TileMap &tileMap)
             float deltaY = (proposedAABBY.center().y - solidAABBY.center().y);
             float overlapY = (solidAABBY.size.y + proposedAABBY.size.y) * 0.5f - std::abs(deltaY);
             if (deltaY > 0)
-                nextPosition.y += overlapY;
+                newPosition.y += overlapY;
             else
             {
-                nextPosition.y -= overlapY;
+                newPosition.y -= overlapY;
             }
             velocity.y = 0.0f;
         }
     }
+
+    nextPosition = newPosition - offset;
 }
 
 void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
@@ -91,7 +95,7 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
     const int mapWidth = tileMap.getWorldWidth();
     const int mapHeight = tileMap.getWorldHeight();
 
-    glm::vec2 newPosition = nextPosition;
+    glm::vec2 newPosition = nextPosition + offset;
     glm::vec2 newVelocity = velocity;
     bool clamped = false;
 
@@ -125,6 +129,7 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
 
     if (clamped)
     {
+        newPosition -= offset;
         AABB clampedAABB(newPosition, size);
         AABB solidAABB = tileMap.getSolidAABBAt(newPosition, size);
         if (solidAABB.intersects(clampedAABB))
@@ -137,9 +142,9 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
     }
 }
 
-bool PhysicsBody::contactInDirection(const TileMap &tileMap, glm::vec2 offset) const
+bool PhysicsBody::contactInDirection(const TileMap &tileMap, glm::vec2 direction) const
 {
-    glm::vec2 probePos = position + offset;
+    glm::vec2 probePos = position + offset + direction;
     AABB probeAABB(probePos, size);
     AABB solidAABB = tileMap.getSolidAABBAt(probePos, size);
     return solidAABB.intersects(probeAABB);
@@ -179,4 +184,14 @@ void PhysicsBody::stepPhysics(float deltaTime, const TileMap &tileMap)
     clampToTileMapBounds(tileMap);
 
     position = nextPosition;
+}
+
+void PhysicsBody::setOffset(glm::vec2 offset)
+{
+    this->offset = offset;
+}
+
+glm::vec2 PhysicsBody::getOffset() const
+{
+    return offset;
 }

@@ -48,7 +48,15 @@
             "jumpSpeed": -300,
             "horizontalSpeed": 250,
             "maxJumpCount": 3
-        }
+        },
+        "collisionSize": [
+            8,
+            16
+        ],
+        "collisionOffset": [
+            4,
+            0
+        ]
     },
     "cameraData": {
         "zoom": 7

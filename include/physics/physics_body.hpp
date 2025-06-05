@@ -13,6 +13,8 @@ public:
     glm::vec2 getVelocity() const;
     void setSize(glm::vec2 size);
     glm::vec2 getSize() const;
+    void setOffset(glm::vec2 offset);
+    glm::vec2 getOffset() const;
     void setGravity(float gravity);
     float getGravity() const;
     AABB getAABB() const;
@@ -30,6 +32,7 @@ private:
     glm::vec2 velocity = glm::vec2(0, 0);
     glm::vec2 size = glm::vec2(16, 16);
     float gravity = 980;
+    glm::vec2 offset = glm::vec2(0, 0);
 
     void resolveCollision(const TileMap &tileMap);
     void clampToTileMapBounds(const TileMap &tileMap);

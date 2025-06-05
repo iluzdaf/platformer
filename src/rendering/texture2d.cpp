@@ -42,8 +42,17 @@ void Texture2D::bind() const
     glBindTexture(GL_TEXTURE_2D, textureID);
 }
 
-unsigned int Texture2D::getWidth() const { return width; }
+unsigned int Texture2D::getWidth() const
+{
+    return width;
+}
 
-unsigned int Texture2D::getHeight() const { return height; }
+unsigned int Texture2D::getHeight() const
+{
+    return height;
+}
 
-bool Texture2D::valid() const { return textureID != 0; }
+bool Texture2D::valid() const
+{
+    return textureID != 0;
+}

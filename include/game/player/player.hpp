@@ -38,21 +38,19 @@ public:
     fteng::signal<void()> onDeath;
 
 private:
-    PhysicsBody physicsBody;
-
     void handlePickup(TileMap &tileMap);
     void handleSpikes(TileMap &tileMap);
+
+    void updatePlayerState(const TileMap &tileMap);
 
     void updateAnimation(float deltaTime);
     SpriteAnimation idleAnim;
     SpriteAnimation walkAnim;
     PlayerAnimationState animState = PlayerAnimationState::Idle;
 
-    void updatePlayerState(const TileMap &tileMap);
-
+    PhysicsBody physicsBody;
     bool isFacingLeft = false;
-
+    glm::vec2 size = glm::vec2(16, 16);
     std::vector<std::unique_ptr<MovementAbility>> movementAbilities;
-
     PlayerState playerState;
 };

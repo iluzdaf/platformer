@@ -11,10 +11,12 @@
 #include "physics/physics_data.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
-    : idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
+    : size(playerData.size),
+      idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
       walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
 {
-    physicsBody.setSize(playerData.size);
+    physicsBody.setSize(playerData.collisionSize);
+    physicsBody.setOffset(playerData.collisionOffset);
     physicsBody.setGravity(physicsData.gravity);
 
     if (playerData.jumpAbilityData)
@@ -165,7 +167,7 @@ void Player::handlePickup(TileMap &tileMap)
 
 glm::vec2 Player::getSize() const
 {
-    return physicsBody.getSize();
+    return size;
 }
 
 void Player::dash()
@@ -226,7 +228,7 @@ void Player::handleSpikes(TileMap &tileMap)
         death = true;
     }
 
-    if(death)
+    if (death)
     {
         onDeath();
     }

@@ -540,12 +540,12 @@
       },
       "pickupReplaceIndex": 0,
       "colliderSize": [
-        16,
-        16
+        8,
+        8
       ],
       "colliderOffset": [
-        0,
-        0
+        4,
+        4
       ]
     }
   }

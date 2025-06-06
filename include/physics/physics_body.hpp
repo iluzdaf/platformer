@@ -25,6 +25,8 @@ public:
     bool contactWithCeiling(const TileMap &tileMap) const;
     void applyGravity(float deltaTime);
     void stepPhysics(float deltaTime, const TileMap &tileMap);
+    AABB getCollisionAABBX() const;
+    AABB getCollisionAABBY() const;
 
 private:
     glm::vec2 position = glm::vec2(0, 0);
@@ -33,6 +35,8 @@ private:
     glm::vec2 colliderSize = glm::vec2(16, 16);
     glm::vec2 colliderOffset = glm::vec2(0, 0);
     float gravity = 980;
+    AABB collisionAABBX;
+    AABB collisionAABBY;
 
     void resolveCollision(const TileMap &tileMap);
     void clampToTileMapBounds(const TileMap &tileMap);

@@ -16,6 +16,7 @@ class Player : public MovementContext
 {
 public:
     Player(const PlayerData &playerData, const PhysicsData &physicsData);
+    void preFixedUpdate();
     void fixedUpdate(float deltaTime, TileMap &tileMap);
     void update(float deltaTime, TileMap &tileMap);
     void jump();

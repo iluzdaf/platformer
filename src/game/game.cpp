@@ -121,6 +121,7 @@ void Game::run()
         luaScriptSystem->update(deltaTime);
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
+        debugRenderer->update(deltaTime);
 
         if (!isPaused)
         {
@@ -176,6 +177,8 @@ void Game::initGlad()
 
 void Game::preFixedUpdate()
 {
+    player->preFixedUpdate();
+    
     if (keyboardManager.isPressed(GLFW_KEY_UP))
     {
         player->jump();

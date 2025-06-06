@@ -45,6 +45,12 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
     }
 }
 
+void Player::preFixedUpdate()
+{
+    playerState.collisionAABBX = AABB();
+    playerState.collisionAABBY = AABB();
+}
+
 void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 {
     physicsBody.applyGravity(deltaTime);
@@ -169,6 +175,14 @@ void Player::updatePlayerState(const TileMap &tileMap)
     playerState.onGround = physicsBody.contactWithGround(tileMap);
     playerState.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
     playerState.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+    if (!physicsBody.getCollisionAABBX().isEmpty())
+    {
+        playerState.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());
+    }
+    if (!physicsBody.getCollisionAABBY().isEmpty())
+    {
+        playerState.collisionAABBY.expandToInclude(physicsBody.getCollisionAABBY());
+    }
 
     playerState.size = size;
     playerState.facingLeft = facingLeft();

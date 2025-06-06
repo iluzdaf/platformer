@@ -209,7 +209,6 @@ const std::string &TileMap::getNextLevel() const
 AABB TileMap::getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const
 {
     AABB solidAABB;
-    bool foundSolid = false;
     auto tilePositions = getTilePositionsAt(worldPosition, size);
     for (const glm::ivec2 &tilePosition : tilePositions)
     {
@@ -219,16 +218,7 @@ AABB TileMap::getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const
 
         glm::vec2 tileWorldPosition = getTileWorldPosition(tilePosition);
         AABB tileAABB = tile.getAABBAt(tileWorldPosition);
-
-        if (!foundSolid)
-        {
-            solidAABB = tileAABB;
-            foundSolid = true;
-        }
-        else
-        {
-            solidAABB.expandToInclude(tileAABB);
-        }
+        solidAABB.expandToInclude(tileAABB);
     }
 
     return solidAABB;

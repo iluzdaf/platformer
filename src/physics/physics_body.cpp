@@ -49,6 +49,9 @@ AABB PhysicsBody::getAABB() const
 
 void PhysicsBody::resolveCollision(const TileMap &tileMap)
 {
+    collisionAABBX = AABB();
+    collisionAABBY = AABB();
+    
     glm::vec2 newPosition = nextPosition + colliderOffset;
 
     if (std::abs(velocity.x) > 0.001f)
@@ -58,6 +61,7 @@ void PhysicsBody::resolveCollision(const TileMap &tileMap)
         AABB solidAABBX = tileMap.getSolidAABBAt(proposedPosX, colliderSize);
         if (solidAABBX.intersects(proposedAABBX))
         {
+            collisionAABBX = solidAABBX;
             float deltaX = (proposedAABBX.center().x - solidAABBX.center().x);
             float overlapX = (solidAABBX.size.x + proposedAABBX.size.x) * 0.5f - std::abs(deltaX);
             if (deltaX > 0)
@@ -75,6 +79,7 @@ void PhysicsBody::resolveCollision(const TileMap &tileMap)
         AABB solidAABBY = tileMap.getSolidAABBAt(proposedPosY, colliderSize);
         if (solidAABBY.intersects(proposedAABBY))
         {
+            collisionAABBY = solidAABBY;
             float deltaY = (proposedAABBY.center().y - solidAABBY.center().y);
             float overlapY = (solidAABBY.size.y + proposedAABBY.size.y) * 0.5f - std::abs(deltaY);
             if (deltaY > 0)
@@ -194,4 +199,14 @@ void PhysicsBody::setColliderOffset(glm::vec2 offset)
 glm::vec2 PhysicsBody::getColliderOffset() const
 {
     return colliderOffset;
+}
+
+AABB PhysicsBody::getCollisionAABBX() const
+{
+    return collisionAABBX;
+}
+
+AABB PhysicsBody::getCollisionAABBY() const
+{
+    return collisionAABBY;
 }

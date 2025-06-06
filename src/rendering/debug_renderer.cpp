@@ -1,7 +1,5 @@
-#include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <glm/gtc/matrix_transform.hpp>
 #include "rendering/debug_renderer.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/tile_map/tile_map.hpp"
@@ -29,6 +27,38 @@ DebugRenderer::~DebugRenderer()
     ImGui::DestroyContext();
 }
 
+void DebugRenderer::drawAABB(
+    ImDrawList *drawList,
+    const AABB &aabb,
+    const glm::vec2 &cameraTopLeft,
+    float zoom,
+    const glm::vec2 &scale,
+    ImU32 color)
+{
+    if (aabb.isEmpty())
+    {
+        return;
+    }
+
+    glm::vec2 pos = (aabb.position - cameraTopLeft) * zoom;
+    glm::vec2 size = aabb.size * zoom;
+    ImVec2 topLeft = ImVec2(pos.x / scale.x, pos.y / scale.y);
+    ImVec2 bottomRight = ImVec2((pos.x + size.x) / scale.x, (pos.y + size.y) / scale.y);
+    drawList->AddRect(topLeft, bottomRight, color);
+}
+
+void DebugRenderer::update(float deltaTime)
+{
+    for (auto it = debugAABBs.begin(); it != debugAABBs.end();)
+    {
+        it->second.lifetime -= deltaTime;
+        if (it->second.lifetime <= 0.0f)
+            it = debugAABBs.erase(it);
+        else
+            ++it;
+    }
+}
+
 void DebugRenderer::draw(
     const Camera2D &camera,
     const TileMap &tileMap,
@@ -43,20 +73,20 @@ void DebugRenderer::draw(
     ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
 
-    glm::vec2 camPos = camera.getPosition();
+    glm::vec2 cameraPosition = camera.getPosition();
     float zoom = camera.getZoom();
     glm::vec2 frameBufferSize(screenWidth, screenHeight);
-    glm::vec2 camTopLeft = camPos - frameBufferSize / (2.0f * zoom);
+    glm::vec2 cameraTopLeft = cameraPosition - frameBufferSize / (2.0f * zoom);
     glm::vec2 scale = frameBufferSize / glm::vec2(io.DisplaySize.x, io.DisplaySize.y);
     float scaledTileInFramebuffer = tileMap.getTileSize() * zoom;
-    float offsetX_fb = fmod(camPos.x * zoom, scaledTileInFramebuffer);
-    float offsetY_fb = fmod(camPos.y * zoom, scaledTileInFramebuffer);
+    float offsetX_fb = fmod(cameraPosition.x * zoom, scaledTileInFramebuffer);
+    float offsetY_fb = fmod(cameraPosition.y * zoom, scaledTileInFramebuffer);
 
-    float rawOffsetX = fmod(camTopLeft.x * zoom, scaledTileInFramebuffer);
+    float rawOffsetX = fmod(cameraTopLeft.x * zoom, scaledTileInFramebuffer);
     if (rawOffsetX < 0.0f)
         rawOffsetX += scaledTileInFramebuffer;
     float offsetX = -rawOffsetX / scale.x;
-    float rawOffsetY = fmod(camTopLeft.y * zoom, scaledTileInFramebuffer);
+    float rawOffsetY = fmod(cameraTopLeft.y * zoom, scaledTileInFramebuffer);
     if (rawOffsetY < 0.0f)
         rawOffsetY += scaledTileInFramebuffer;
     float offsetY = -rawOffsetY / scale.y;
@@ -73,27 +103,33 @@ void DebugRenderer::draw(
         drawList->AddLine(ImVec2(0, y), ImVec2(io.DisplaySize.x, y), IM_COL32(100, 100, 100, 255));
     }
 
-    AABB box = player.getAABB();
-    glm::vec2 pos = (box.position - camTopLeft) * zoom;
-    glm::vec2 size = box.size * zoom;
-    ImVec2 topLeft = ImVec2(pos.x / scale.x, pos.y / scale.y);
-    ImVec2 bottomRight = ImVec2((pos.x + size.x) / scale.x, (pos.y + size.y) / scale.y);
-    drawList->AddRect(topLeft, bottomRight, IM_COL32(0, 255, 0, 255));
+    drawAABB(drawList, player.getAABB(), cameraTopLeft, zoom, scale, IM_COL32(0, 255, 0, 255));
+    PlayerState playerState = player.getPlayerState();
+    addDebugAABB(playerState.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
+    addDebugAABB(playerState.collisionAABBY, IM_COL32(255, 255, 0, 255), 0.1f);
 
-    auto tilePositions = tileMap.getTilePositionsAt(camTopLeft, frameBufferSize);
+    auto tilePositions = tileMap.getTilePositionsAt(cameraTopLeft, frameBufferSize);
     for (auto tilePosition : tilePositions)
     {
         auto tile = tileMap.getTile(tilePosition);
-        if (tile.isSpikes() || tile.isPickup())
+        if (!tile.isSpikes() && !tile.isPickup())
         {
-            glm::vec2 tileWorldPosition = tileMap.getTileWorldPosition(tilePosition);
-            AABB box = tile.getAABBAt(tileWorldPosition);
-            glm::vec2 pos = (box.position - camTopLeft) * zoom;
-            glm::vec2 size = box.size * zoom;
-            ImVec2 topLeft = ImVec2(pos.x / scale.x, pos.y / scale.y);
-            ImVec2 bottomRight = ImVec2((pos.x + size.x) / scale.x, (pos.y + size.y) / scale.y);
-            drawList->AddRect(topLeft, bottomRight, tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
+            continue;
         }
+
+        glm::vec2 tileWorldPosition = tileMap.getTileWorldPosition(tilePosition);
+        drawAABB(
+            drawList,
+            tile.getAABBAt(tileWorldPosition),
+            cameraTopLeft,
+            zoom,
+            scale,
+            tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
+    }
+
+    for (const auto &[hash, debugAABB] : debugAABBs)
+    {
+        drawAABB(drawList, debugAABB.box, cameraTopLeft, zoom, scale, debugAABB.color);
     }
 
     ImGui::Render();
@@ -104,4 +140,24 @@ void DebugRenderer::resize(float screenWidth, float screenHeight)
 {
     this->screenWidth = screenWidth;
     this->screenHeight = screenHeight;
+}
+
+void DebugRenderer::addDebugAABB(const AABB &aabb, ImU32 color, float duration)
+{
+    if (aabb.isEmpty())
+    {
+        return;
+    }
+
+    std::size_t hash = aabb.hash();
+
+    auto it = debugAABBs.find(hash);
+    if (it != debugAABBs.end())
+    {
+        it->second.lifetime = duration;
+    }
+    else
+    {
+        debugAABBs[hash] = DebugAABB{aabb, color, duration};
+    }
 }

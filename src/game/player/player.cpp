@@ -15,8 +15,8 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
       idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
       walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
 {
-    physicsBody.setSize(playerData.collisionSize);
-    physicsBody.setOffset(playerData.collisionOffset);
+    physicsBody.setColliderSize(playerData.colliderSize);
+    physicsBody.setColliderOffset(playerData.colliderOffset);
     physicsBody.setGravity(physicsData.gravity);
 
     if (playerData.jumpAbilityData)
@@ -165,7 +165,7 @@ void Player::updatePlayerState(const TileMap &tileMap)
 {
     playerState.position = physicsBody.getPosition();
     playerState.velocity = physicsBody.getVelocity();
-    playerState.size = physicsBody.getSize();
+    playerState.size = physicsBody.getColliderSize();
     playerState.onGround = physicsBody.contactWithGround(tileMap);
     playerState.facingLeft = facingLeft();
     playerState.touchingRightWall = physicsBody.contactWithRightWall(tileMap);

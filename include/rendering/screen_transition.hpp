@@ -4,7 +4,7 @@
 class ScreenTransition
 {
 public:
-    ScreenTransition(const Shader &shader);
+    explicit ScreenTransition(const Shader &shader);
     ~ScreenTransition();
     void start(float duration, bool fadeIn = true);
     void update(float deltaTime);

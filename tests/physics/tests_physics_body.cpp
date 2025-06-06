@@ -16,7 +16,7 @@ PhysicsBody setupBody(
 {
     PhysicsBody body;
     body.setPosition(position);
-    body.setSize(size);
+    body.setColliderSize(size);
     body.setVelocity(velocity);
     body.setGravity(gravity);
     return body;

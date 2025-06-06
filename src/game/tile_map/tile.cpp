@@ -3,7 +3,10 @@
 #include "game/tile_map/tile_data.hpp"
 
 Tile::Tile(const TileData &tileData)
-    : kind(tileData.kind), pickupReplaceIndex(tileData.pickupReplaceIndex)
+    : kind(tileData.kind),
+      pickupReplaceIndex(tileData.pickupReplaceIndex),
+      colliderOffset(tileData.colliderOffset),
+      colliderSize(tileData.colliderSize)
 {
     assert((kind != TileKind::Pickup || pickupReplaceIndex.has_value()) && "Pickup tile must define a pickupReplaceIndex");
 
@@ -58,4 +61,19 @@ std::optional<int> Tile::getPickupReplaceIndex() const
 bool Tile::isSpikes() const
 {
     return kind == TileKind::Spikes;
+}
+
+glm::vec2 Tile::getColliderOffset() const
+{
+    return colliderOffset;
+}
+
+glm::vec2 Tile::getColliderSize() const
+{
+    return colliderSize;
+}
+
+AABB Tile::getAABBAt(glm::vec2 worldPosition) const
+{
+    return AABB(worldPosition + colliderOffset, colliderSize);
 }

@@ -198,7 +198,7 @@ int TileMap::getWorldHeight() const
 
 glm::vec2 TileMap::getPlayerStartWorldPosition() const
 {
-    return glm::vec2(playerStartTilePosition.x * tileSize, playerStartTilePosition.y * tileSize);
+    return getTileWorldPosition(playerStartTilePosition);
 }
 
 const std::string &TileMap::getNextLevel() const
@@ -208,30 +208,30 @@ const std::string &TileMap::getNextLevel() const
 
 AABB TileMap::getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const
 {
-    glm::ivec2 minTilePosition(std::numeric_limits<int>::max());
-    glm::ivec2 maxTilePosition(std::numeric_limits<int>::lowest());
+    AABB solidAABB;
     bool foundSolid = false;
-
-    auto tileCoordinates = getTilePositionsAt(worldPosition, size);
-    for (const glm::ivec2 &tileCoordinate : tileCoordinates)
+    auto tilePositions = getTilePositionsAt(worldPosition, size);
+    for (const glm::ivec2 &tilePosition : tilePositions)
     {
-        const Tile &tile = getTile(tileCoordinate);
-        if (tile.isSolid())
+        const Tile &tile = getTile(tilePosition);
+        if (!tile.isSolid())
+            continue;
+
+        glm::vec2 tileWorldPosition = getTileWorldPosition(tilePosition);
+        AABB tileAABB = tile.getAABBAt(tileWorldPosition);
+
+        if (!foundSolid)
         {
+            solidAABB = tileAABB;
             foundSolid = true;
-            minTilePosition = glm::min(minTilePosition, tileCoordinate);
-            maxTilePosition = glm::max(maxTilePosition, tileCoordinate);
+        }
+        else
+        {
+            solidAABB.expandToInclude(tileAABB);
         }
     }
 
-    if (!foundSolid)
-    {
-        return AABB();
-    }
-
-    glm::vec2 minWordPosition = glm::vec2(minTilePosition) * float(tileSize);
-    glm::vec2 maxWordPosition = (glm::vec2(maxTilePosition) + glm::vec2(1)) * float(tileSize);
-    return AABB(minWordPosition, maxWordPosition - minWordPosition);
+    return solidAABB;
 }
 
 std::vector<glm::ivec2> TileMap::getTilePositionsAt(glm::vec2 worldPosition, glm::vec2 size) const
@@ -251,4 +251,9 @@ std::vector<glm::ivec2> TileMap::getTilePositionsAt(glm::vec2 worldPosition, glm
     }
 
     return tileCoordinates;
+}
+
+glm::vec2 TileMap::getTileWorldPosition(glm::ivec2 tilePosition) const
+{
+    return glm::vec2(tilePosition.x * tileSize, tilePosition.y * tileSize);
 }

@@ -6,126 +6,518 @@
   "nextLevel": "../assets/tile_maps/level5.json",
   "size": 16,
   "indices": [
-  [16, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 19],
-  [ 7,  8,  8,  8,  8, 14, 14,  8,  8,  8,  8,  8,  8,  8,  9],
-  [-1, -1, -1, -1, -1,  8,  8, -1, -1, -1, -1, -1, -1, -1, -1],
-  [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 42, -1],
-  [33, 34, 21, -1, -1, -1, -1, -1, -1, 33, 34, 34, 34, 34, 21],
-  [16, 14, 25, -1, -1, -1, -1, -1, -1, 22, 14, 14, 14, 14, 19],
-  [16, 14, 25, -1, -1, -1, -1, -1, -1, 22, 14, 14, 14, 14, 19],
-  [16, 14, 25, -1, -1, -1, -1, -1, -1, 22, 14, 14, 14, 14, 19],
-  [16, 14, 25, -1, -1, -1, -1, -1, -1, 22, 14, 14, 14, 14, 19],
-  [16, 14, 25, -1, -1, -1, -1, -1, -1, 22, 14, 14, 14, 14, 19],
-  [16, 14, 25, -1, -1, -1, -1, -1, -1, 22, 14, 14, 14, 14, 19],
-  [16, 14, 25, -1, -1, -1, -1, -1, -1, 22, 14, 14, 14, 14, 19],
-  [16, 14, 25,  1,  1,  1,  1,  1,  1, 22, 14, 14, 14, 14, 19],
-  [16, 14, 14, 29, 29, 29, 29, 29, 29, 14, 14, 14, 14, 14, 19]
+    [
+      16,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      7,
+      8,
+      8,
+      8,
+      8,
+      14,
+      14,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      9
+    ],
+    [
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      8,
+      8,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1
+    ],
+    [
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      42,
+      -1
+    ],
+    [
+      33,
+      34,
+      21,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      33,
+      34,
+      34,
+      34,
+      34,
+      21
+    ],
+    [
+      16,
+      14,
+      25,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      22,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      16,
+      14,
+      25,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      22,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      16,
+      14,
+      25,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      22,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      16,
+      14,
+      25,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      22,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      16,
+      14,
+      25,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      22,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      16,
+      14,
+      25,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      22,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      16,
+      14,
+      25,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      22,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      16,
+      14,
+      25,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      22,
+      14,
+      14,
+      14,
+      14,
+      19
+    ],
+    [
+      16,
+      14,
+      14,
+      29,
+      29,
+      29,
+      29,
+      29,
+      29,
+      14,
+      14,
+      14,
+      14,
+      14,
+      19
+    ]
   ],
   "tileData": {
     "0": {
       "kind": 0,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "1": {
       "kind": 3,
       "animationData": null,
-      "pickupReplaceIndex": null
-    },    
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        4
+      ],
+      "colliderOffset": [
+        0,
+        12
+      ]
+    },
     "7": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "8": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "9": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
-    },            
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
+    },
     "14": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "16": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
-    },    
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
+    },
     "19": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
-    },    
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
+    },
     "21": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
-    },    
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
+    },
     "22": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
-    },        
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
+    },
     "25": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
-    },        
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
+    },
     "26": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "28": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "29": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "31": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "32": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "33": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "34": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
-    },        
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
+    },
     "39": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "40": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "41": {
       "kind": 1,
       "animationData": null,
-      "pickupReplaceIndex": null
+      "pickupReplaceIndex": null,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     },
     "42": {
       "kind": 2,
@@ -146,7 +538,15 @@
           "frameDuration": 0.075
         }
       },
-      "pickupReplaceIndex": 0
+      "pickupReplaceIndex": 0,
+      "colliderSize": [
+        16,
+        16
+      ],
+      "colliderOffset": [
+        0,
+        0
+      ]
     }
   }
 }

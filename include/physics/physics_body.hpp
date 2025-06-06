@@ -11,10 +11,10 @@ public:
     glm::vec2 getPosition() const;
     void setVelocity(glm::vec2 velocity);
     glm::vec2 getVelocity() const;
-    void setSize(glm::vec2 size);
-    glm::vec2 getSize() const;
-    void setOffset(glm::vec2 offset);
-    glm::vec2 getOffset() const;
+    void setColliderSize(glm::vec2 size);
+    glm::vec2 getColliderSize() const;
+    void setColliderOffset(glm::vec2 offset);
+    glm::vec2 getColliderOffset() const;
     void setGravity(float gravity);
     float getGravity() const;
     AABB getAABB() const;
@@ -30,9 +30,9 @@ private:
     glm::vec2 position = glm::vec2(0, 0);
     glm::vec2 nextPosition = glm::vec2(0, 0);
     glm::vec2 velocity = glm::vec2(0, 0);
-    glm::vec2 size = glm::vec2(16, 16);
+    glm::vec2 colliderSize = glm::vec2(16, 16);
+    glm::vec2 colliderOffset = glm::vec2(0, 0);
     float gravity = 980;
-    glm::vec2 offset = glm::vec2(0, 0);
 
     void resolveCollision(const TileMap &tileMap);
     void clampToTileMapBounds(const TileMap &tileMap);

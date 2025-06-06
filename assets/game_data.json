@@ -49,11 +49,11 @@
             "horizontalSpeed": 250,
             "maxJumpCount": 3
         },
-        "collisionSize": [
+        "colliderSize": [
             8,
             16
         ],
-        "collisionOffset": [
+        "colliderOffset": [
             4,
             0
         ]

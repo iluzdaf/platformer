@@ -30,6 +30,7 @@ public:
     const std::string &getNextLevel() const;
     AABB getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const;
     std::vector<glm::ivec2> getTilePositionsAt(glm::vec2 worldPosition, glm::vec2 size) const;
+    glm::vec2 getTileWorldPosition(glm::ivec2 tilePosition) const;
 
 private:
     int width = 0, height = 0, tileSize = 0;

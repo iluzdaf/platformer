@@ -44,6 +44,22 @@ target_include_directories(lua PUBLIC external/lua/lua-5.4.7/include)
 add_subdirectory(external/sol2)
 include_directories(external/sol2/include)
 
+# IMGUI
+file(GLOB IMGUI_SRC
+    external/imgui/imgui.cpp
+    external/imgui/imgui_draw.cpp
+    external/imgui/imgui_widgets.cpp
+    external/imgui/imgui_tables.cpp
+    external/imgui/backends/imgui_impl_glfw.cpp
+    external/imgui/backends/imgui_impl_opengl3.cpp
+)
+add_library(imgui STATIC ${IMGUI_SRC})
+target_include_directories(imgui PUBLIC
+    external/imgui
+    external/imgui/backends
+)
+target_link_libraries(imgui PRIVATE glfw glad)
+
 # Platformer Executable
 add_executable(platformer
     src/main.cpp
@@ -52,6 +68,7 @@ add_executable(platformer
     src/rendering/shader.cpp
     src/rendering/tile_map_renderer.cpp
     src/rendering/screen_transition.cpp
+    src/rendering/debug_renderer.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
@@ -87,6 +104,7 @@ target_link_libraries(platformer
     glfw
     stb
     lua
+    imgui
     ${CMAKE_DL_LIBS}
 )
 
@@ -117,6 +135,7 @@ add_executable(tests
     src/rendering/screen_transition.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/tile_map_renderer.cpp
+    src/rendering/debug_renderer.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
@@ -155,6 +174,7 @@ target_link_libraries(tests
     glfw
     stb
     lua
+    imgui
     ${CMAKE_DL_LIBS}
 )
 

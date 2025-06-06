@@ -63,7 +63,7 @@ void ScreenTransition::update(float deltaTime)
     }
 }
 
-void ScreenTransition::render()
+void ScreenTransition::draw()
 {
     if (!active)
         return;

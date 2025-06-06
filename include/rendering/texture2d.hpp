@@ -11,6 +11,7 @@ public:
     unsigned int getWidth() const;
     unsigned int getHeight() const;
     bool valid() const;
+    GLuint getTextureID() const;
 
 private:
     GLuint textureID = 0;

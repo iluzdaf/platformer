@@ -14,6 +14,7 @@ public:
     void resize(float screenWidth, float screenHeight);
     void update(float deltaTime);
     void startShake(float duration, float magnitude);
+    float getZoom() const;
 
 private:
     float screenWidth = 800, screenHeight = 600;

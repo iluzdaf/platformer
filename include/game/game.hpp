@@ -7,6 +7,7 @@
 #include "rendering/shader.hpp"
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/screen_transition.hpp"
+#include "rendering/debug_renderer.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "physics/fixed_time_step.hpp"
@@ -51,6 +52,7 @@ private:
     std::unique_ptr<Texture2D> playerTexture;
     std::unique_ptr<ScreenTransition> screenTransition;
     Shader screenTransitionShader;
+    std::unique_ptr<DebugRenderer> debugRenderer;
 
     fteng::connection onLevelCompleteConnection;
 };

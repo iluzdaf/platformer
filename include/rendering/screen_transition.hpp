@@ -8,7 +8,7 @@ public:
     ~ScreenTransition();
     void start(float duration, bool fadeIn = true);
     void update(float deltaTime);
-    void render();
+    void draw();
 
     bool isActive() const;
 

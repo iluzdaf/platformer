@@ -61,3 +61,8 @@ void Camera2D::startShake(float duration, float magnitude)
 {
     shake.start(duration, magnitude);
 }
+
+float Camera2D::getZoom() const
+{
+    return zoom;
+}

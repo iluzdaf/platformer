@@ -56,3 +56,8 @@ bool Texture2D::valid() const
 {
     return textureID != 0;
 }
+
+GLuint Texture2D::getTextureID() const
+{
+    return textureID;
+}

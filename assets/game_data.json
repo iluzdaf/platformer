@@ -51,11 +51,11 @@
         },
         "colliderSize": [
             8,
-            16
+            13
         ],
         "colliderOffset": [
             4,
-            0
+            3
         ]
     },
     "cameraData": {

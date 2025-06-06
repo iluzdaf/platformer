@@ -165,11 +165,13 @@ void Player::updatePlayerState(const TileMap &tileMap)
 {
     playerState.position = physicsBody.getPosition();
     playerState.velocity = physicsBody.getVelocity();
-    playerState.size = physicsBody.getColliderSize();
+    playerState.colliderSize = physicsBody.getColliderSize();
     playerState.onGround = physicsBody.contactWithGround(tileMap);
-    playerState.facingLeft = facingLeft();
     playerState.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
     playerState.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+
+    playerState.size = size;
+    playerState.facingLeft = facingLeft();
 
     for (const auto &ability : movementAbilities)
     {

@@ -40,6 +40,7 @@ Game::Game()
         luaScriptSystem->triggerLevelComplete(); });
     player->onDeath.connect([this]()
                             { luaScriptSystem->triggerRespawn(); });
+    tileInteractionSystem = std::make_unique<TileInteractionSystem>();
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
     tileSetShader.initByShaderFile("../assets/shaders/tile_set.vs", "../assets/shaders/tile_set.fs");
@@ -68,6 +69,7 @@ Game::~Game()
 void Game::fixedUpdate(float deltaTime)
 {
     player->fixedUpdate(deltaTime, *tileMap.get());
+    tileInteractionSystem->fixedUpdate(*player.get(), *tileMap.get());
 }
 
 void Game::update(float deltaTime)

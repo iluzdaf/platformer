@@ -56,9 +56,6 @@ void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 
     physicsBody.stepPhysics(deltaTime, tileMap);
 
-    handlePickup(tileMap);
-    handleSpikes(tileMap);
-
     updatePlayerState(tileMap);
 }
 
@@ -141,30 +138,6 @@ bool Player::facingLeft() const
     return isFacingLeft;
 }
 
-void Player::handlePickup(TileMap &tileMap)
-{
-    auto tilePositions = tileMap.getTilePositionsAt(physicsBody.getPosition(), physicsBody.getSize());
-    bool levelComplete = false;
-    for (auto tilePosition : tilePositions)
-    {
-        const Tile &tile = tileMap.getTile(tilePosition);
-        if (!tile.isPickup())
-        {
-            continue;
-        }
-
-        auto replaceIndexOpt = tile.getPickupReplaceIndex();
-        assert(replaceIndexOpt.has_value());
-        tileMap.setTileIndex(tilePosition, replaceIndexOpt.value());
-        levelComplete = true;
-    }
-
-    if (levelComplete)
-    {
-        onLevelComplete();
-    }
-}
-
 glm::vec2 Player::getSize() const
 {
     return size;
@@ -214,22 +187,7 @@ void Player::setPosition(const glm::vec2 &position)
     this->physicsBody.setPosition(position);
 }
 
-void Player::handleSpikes(TileMap &tileMap)
+AABB Player::getAABB() const
 {
-    auto tilePositions = tileMap.getTilePositionsAt(physicsBody.getPosition(), physicsBody.getSize());
-    bool death = false;
-    for (auto tilePosition : tilePositions)
-    {
-        const Tile &tile = tileMap.getTile(tilePosition);
-        if (!tile.isSpikes())
-        {
-            continue;
-        }
-        death = true;
-    }
-
-    if (death)
-    {
-        onDeath();
-    }
+    return physicsBody.getAABB();
 }

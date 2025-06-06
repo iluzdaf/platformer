@@ -54,6 +54,7 @@ add_executable(platformer
     src/rendering/screen_transition.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
+    src/game/tile_map/tile_interaction_system.cpp
     src/game/player/player.cpp
     src/game/player/movement_abilities/jump_ability.cpp
     src/game/player/movement_abilities/dash_ability.cpp
@@ -118,6 +119,7 @@ add_executable(tests
     src/rendering/tile_map_renderer.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
+    src/game/tile_map/tile_interaction_system.cpp
     src/game/player/player.cpp
     src/game/player/movement_abilities/jump_ability.cpp
     src/game/player/movement_abilities/dash_ability.cpp

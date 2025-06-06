@@ -29,7 +29,8 @@ public:
     const PlayerState &getPlayerState() const;
     void setPosition(const glm::vec2 &position);
     glm::vec2 getPosition() const;
-    
+    AABB getAABB() const;
+
     glm::vec2 getVelocity() const override;
     void setVelocity(const glm::vec2 &velocity) override;
     void setFacingLeft(bool isFacingLeft) override;
@@ -38,19 +39,16 @@ public:
     fteng::signal<void()> onDeath;
 
 private:
-    void handlePickup(TileMap &tileMap);
-    void handleSpikes(TileMap &tileMap);
-
     void updatePlayerState(const TileMap &tileMap);
-
-    void updateAnimation(float deltaTime);
-    SpriteAnimation idleAnim;
-    SpriteAnimation walkAnim;
-    PlayerAnimationState animState = PlayerAnimationState::Idle;
 
     PhysicsBody physicsBody;
     bool isFacingLeft = false;
     glm::vec2 size = glm::vec2(16, 16);
     std::vector<std::unique_ptr<MovementAbility>> movementAbilities;
     PlayerState playerState;
+    
+    void updateAnimation(float deltaTime);
+    SpriteAnimation idleAnim;
+    SpriteAnimation walkAnim;
+    PlayerAnimationState animState = PlayerAnimationState::Idle;
 };

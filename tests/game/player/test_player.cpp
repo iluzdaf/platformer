@@ -265,50 +265,6 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
     }
 }
 
-TEST_CASE("Player and pickups", "[Player]")
-{
-    TileMap tileMap = setupTileMap(3, 3, 16, {{0, {TileKind::Empty}}, {5, {TileKind::Pickup, std::nullopt, 0}}});
-
-    SECTION("Player collects pickup and tile is replaced")
-    {
-        tileMap.setTileIndex(glm::ivec2(1, 2), 5);
-
-        SECTION("Player spawns on a pickup")
-        {
-            Player player = setupPlayer();
-            player.setPosition(glm::vec2(16, 32));
-            simulatePlayer(player, tileMap, 0.1f);
-            REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 2)) == 0);
-        }
-
-        SECTION("Player falls on a pickup")
-        {
-            Player player = setupPlayer();
-            player.setPosition(glm::vec2(16, 0));
-            simulatePlayer(player, tileMap, 1.0f);
-            REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 2)) == 0);
-        }
-
-        SECTION("Player moves right on a pickup")
-        {
-            Player player = setupPlayer();
-            player.setPosition(glm::vec2(0, 32));
-            player.moveRight();
-            simulatePlayer(player, tileMap, 1.0f);
-            REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 2)) == 0);
-        }
-
-        SECTION("Player moves left on a pickup")
-        {
-            Player player = setupPlayer();
-            player.setPosition(glm::vec2(32, 32));
-            player.moveLeft();
-            simulatePlayer(player, tileMap, 1.0f);
-            REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 2)) == 0);
-        }
-    }
-}
-
 TEST_CASE("Player and empty or invalid tiles", "[Player]")
 {
     TileMap tileMap = setupTileMap(3, 3, 16, {{0, {TileKind::Empty}}});

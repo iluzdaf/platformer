@@ -2,13 +2,14 @@
 #include <memory>
 #include "game/game_data.hpp"
 #include "game/tile_map/tile_map.hpp"
+#include "game/tile_map/tile_interaction_system.hpp"
 #include "game/player/player.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/tile_map_renderer.hpp"
+#include "rendering/screen_transition.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "physics/fixed_time_step.hpp"
-#include "rendering/screen_transition.hpp"
 #include "scripting/lua_script_system.hpp"
 
 class Game
@@ -37,9 +38,11 @@ private:
     std::unique_ptr<Camera2D> camera;
     KeyboardManager keyboardManager;
     FixedTimeStep timestepper;
+    std::unique_ptr<LuaScriptSystem> luaScriptSystem;
 
     std::unique_ptr<TileMap> tileMap;
     std::unique_ptr<Player> player;
+    std::unique_ptr<TileInteractionSystem> tileInteractionSystem;
 
     std::unique_ptr<Texture2D> tileSet;
     Shader tileSetShader;
@@ -50,6 +53,4 @@ private:
     Shader screenTransitionShader;
 
     fteng::connection onLevelCompleteConnection;
-
-    std::unique_ptr<LuaScriptSystem> luaScriptSystem;
 };

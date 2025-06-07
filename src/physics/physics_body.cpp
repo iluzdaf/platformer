@@ -52,11 +52,12 @@ void PhysicsBody::resolveCollision(const TileMap &tileMap)
     collisionAABBX = AABB();
     collisionAABBY = AABB();
     
-    glm::vec2 newPosition = nextPosition + colliderOffset;
+    glm::vec2 positionWithOffset = position + colliderOffset;
+    glm::vec2 nextPositionWithOffset = nextPosition + colliderOffset;
 
     if (std::abs(velocity.x) > 0.001f)
     {
-        glm::vec2 proposedPosX = {newPosition.x, position.y};
+        glm::vec2 proposedPosX = {nextPositionWithOffset.x, positionWithOffset.y};
         AABB proposedAABBX(proposedPosX, colliderSize);
         AABB solidAABBX = tileMap.getSolidAABBAt(proposedPosX, colliderSize);
         if (solidAABBX.intersects(proposedAABBX))
@@ -65,16 +66,16 @@ void PhysicsBody::resolveCollision(const TileMap &tileMap)
             float deltaX = (proposedAABBX.center().x - solidAABBX.center().x);
             float overlapX = (solidAABBX.size.x + proposedAABBX.size.x) * 0.5f - std::abs(deltaX);
             if (deltaX > 0)
-                newPosition.x += overlapX;
+                nextPositionWithOffset.x += overlapX;
             else
-                newPosition.x -= overlapX;
+                nextPositionWithOffset.x -= overlapX;
             velocity.x = 0.0f;
         }
     }
 
     if (std::abs(velocity.y) > 0.001f)
     {
-        glm::vec2 proposedPosY = newPosition;
+        glm::vec2 proposedPosY = nextPositionWithOffset;
         AABB proposedAABBY(proposedPosY, colliderSize);
         AABB solidAABBY = tileMap.getSolidAABBAt(proposedPosY, colliderSize);
         if (solidAABBY.intersects(proposedAABBY))
@@ -83,16 +84,16 @@ void PhysicsBody::resolveCollision(const TileMap &tileMap)
             float deltaY = (proposedAABBY.center().y - solidAABBY.center().y);
             float overlapY = (solidAABBY.size.y + proposedAABBY.size.y) * 0.5f - std::abs(deltaY);
             if (deltaY > 0)
-                newPosition.y += overlapY;
+                nextPositionWithOffset.y += overlapY;
             else
             {
-                newPosition.y -= overlapY;
+                nextPositionWithOffset.y -= overlapY;
             }
             velocity.y = 0.0f;
         }
     }
 
-    nextPosition = newPosition - colliderOffset;
+    nextPosition = nextPositionWithOffset - colliderOffset;
 }
 
 void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)

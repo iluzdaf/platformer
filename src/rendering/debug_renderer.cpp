@@ -1,6 +1,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include "rendering/debug_renderer.hpp"
+#include "rendering/debug_renderer_data.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/player/player.hpp"
@@ -8,9 +9,13 @@
 DebugRenderer::DebugRenderer(
     GLFWwindow *window,
     float screenWidth,
-    float screenHeight)
+    float screenHeight,
+    const DebugRendererData &data)
     : screenWidth(screenWidth),
-      screenHeight(screenHeight)
+      screenHeight(screenHeight),
+      shouldDrawGrid(data.shouldDrawGrid),
+      shouldDrawPlayerAABBs(data.shouldDrawPlayerAABBs),
+      shouldDrawTileMapAABBs(data.shouldDrawTileMapAABBs)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -27,12 +32,86 @@ DebugRenderer::~DebugRenderer()
     ImGui::DestroyContext();
 }
 
+void DebugRenderer::drawGrid(
+    ImDrawList *drawList,
+    const TileMap &tileMap,
+    glm::vec2 cameraPosition,
+    glm::vec2 cameraTopLeft,
+    float zoom,
+    glm::vec2 scale,
+    float displayWidth,
+    float displayHeight)
+{
+    float scaledTileInFramebuffer = tileMap.getTileSize() * zoom;
+    float offsetX_fb = fmod(cameraPosition.x * zoom, scaledTileInFramebuffer);
+    float offsetY_fb = fmod(cameraPosition.y * zoom, scaledTileInFramebuffer);
+    float rawOffsetX = fmod(cameraTopLeft.x * zoom, scaledTileInFramebuffer);
+    if (rawOffsetX < 0.0f)
+        rawOffsetX += scaledTileInFramebuffer;
+    float offsetX = -rawOffsetX / scale.x;
+    float rawOffsetY = fmod(cameraTopLeft.y * zoom, scaledTileInFramebuffer);
+    if (rawOffsetY < 0.0f)
+        rawOffsetY += scaledTileInFramebuffer;
+    float offsetY = -rawOffsetY / scale.y;
+    float tileSizeImgui = scaledTileInFramebuffer / scale.x;
+
+    for (float x = offsetX; x < displayWidth; x += tileSizeImgui)
+    {
+        drawList->AddLine(ImVec2(x, 0), ImVec2(x, displayHeight), IM_COL32(100, 100, 100, 255));
+    }
+
+    for (float y = offsetY; y < displayHeight; y += tileSizeImgui)
+    {
+        drawList->AddLine(ImVec2(0, y), ImVec2(displayWidth, y), IM_COL32(100, 100, 100, 255));
+    }
+}
+
+void DebugRenderer::drawPlayerAABBs(
+    ImDrawList *drawList,
+    const Player &player,
+    glm::vec2 cameraTopLeft,
+    float zoom,
+    glm::vec2 scale)
+{
+    drawAABB(drawList, player.getAABB(), cameraTopLeft, zoom, scale, IM_COL32(0, 255, 0, 255));
+    PlayerState playerState = player.getPlayerState();
+    addDebugAABB(playerState.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
+    addDebugAABB(playerState.collisionAABBY, IM_COL32(255, 255, 0, 255), 0.1f);
+}
+
+void DebugRenderer::drawTileMapAABBs(
+    ImDrawList *drawList,
+    const TileMap &tileMap,
+    glm::vec2 cameraTopLeft,
+    float zoom,
+    glm::vec2 scale)
+{
+    auto tilePositions = tileMap.getTilePositionsAt(cameraTopLeft, glm::vec2(screenWidth, screenHeight));
+    for (auto tilePosition : tilePositions)
+    {
+        auto tile = tileMap.getTile(tilePosition);
+        if (!tile.isSpikes() && !tile.isPickup())
+        {
+            continue;
+        }
+
+        glm::vec2 tileWorldPosition = tileMap.getTileWorldPosition(tilePosition);
+        drawAABB(
+            drawList,
+            tile.getAABBAt(tileWorldPosition),
+            cameraTopLeft,
+            zoom,
+            scale,
+            tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
+    }
+}
+
 void DebugRenderer::drawAABB(
     ImDrawList *drawList,
-    const AABB &aabb,
-    const glm::vec2 &cameraTopLeft,
+    AABB aabb,
+    glm::vec2 cameraTopLeft,
     float zoom,
-    const glm::vec2 &scale,
+    glm::vec2 scale,
     ImU32 color)
 {
     if (aabb.isEmpty())
@@ -78,53 +157,20 @@ void DebugRenderer::draw(
     glm::vec2 frameBufferSize(screenWidth, screenHeight);
     glm::vec2 cameraTopLeft = cameraPosition - frameBufferSize / (2.0f * zoom);
     glm::vec2 scale = frameBufferSize / glm::vec2(io.DisplaySize.x, io.DisplaySize.y);
-    float scaledTileInFramebuffer = tileMap.getTileSize() * zoom;
-    float offsetX_fb = fmod(cameraPosition.x * zoom, scaledTileInFramebuffer);
-    float offsetY_fb = fmod(cameraPosition.y * zoom, scaledTileInFramebuffer);
 
-    float rawOffsetX = fmod(cameraTopLeft.x * zoom, scaledTileInFramebuffer);
-    if (rawOffsetX < 0.0f)
-        rawOffsetX += scaledTileInFramebuffer;
-    float offsetX = -rawOffsetX / scale.x;
-    float rawOffsetY = fmod(cameraTopLeft.y * zoom, scaledTileInFramebuffer);
-    if (rawOffsetY < 0.0f)
-        rawOffsetY += scaledTileInFramebuffer;
-    float offsetY = -rawOffsetY / scale.y;
-
-    float tileSizeImgui = scaledTileInFramebuffer / scale.x;
-
-    for (float x = offsetX; x < io.DisplaySize.x; x += tileSizeImgui)
+    if (shouldDrawGrid)
     {
-        drawList->AddLine(ImVec2(x, 0), ImVec2(x, io.DisplaySize.y), IM_COL32(100, 100, 100, 255));
+        drawGrid(drawList, tileMap, cameraPosition, cameraTopLeft, zoom, scale, io.DisplaySize.x, io.DisplaySize.y);
     }
 
-    for (float y = offsetY; y < io.DisplaySize.y; y += tileSizeImgui)
+    if (shouldDrawPlayerAABBs)
     {
-        drawList->AddLine(ImVec2(0, y), ImVec2(io.DisplaySize.x, y), IM_COL32(100, 100, 100, 255));
+        drawPlayerAABBs(drawList, player, cameraTopLeft, zoom, scale);
     }
 
-    drawAABB(drawList, player.getAABB(), cameraTopLeft, zoom, scale, IM_COL32(0, 255, 0, 255));
-    PlayerState playerState = player.getPlayerState();
-    addDebugAABB(playerState.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
-    addDebugAABB(playerState.collisionAABBY, IM_COL32(255, 255, 0, 255), 0.1f);
-
-    auto tilePositions = tileMap.getTilePositionsAt(cameraTopLeft, frameBufferSize);
-    for (auto tilePosition : tilePositions)
+    if (shouldDrawTileMapAABBs)
     {
-        auto tile = tileMap.getTile(tilePosition);
-        if (!tile.isSpikes() && !tile.isPickup())
-        {
-            continue;
-        }
-
-        glm::vec2 tileWorldPosition = tileMap.getTileWorldPosition(tilePosition);
-        drawAABB(
-            drawList,
-            tile.getAABBAt(tileWorldPosition),
-            cameraTopLeft,
-            zoom,
-            scale,
-            tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
+        drawTileMapAABBs(drawList, tileMap, cameraTopLeft, zoom, scale);
     }
 
     for (const auto &[hash, debugAABB] : debugAABBs)
@@ -142,7 +188,7 @@ void DebugRenderer::resize(float screenWidth, float screenHeight)
     this->screenHeight = screenHeight;
 }
 
-void DebugRenderer::addDebugAABB(const AABB &aabb, ImU32 color, float duration)
+void DebugRenderer::addDebugAABB(AABB aabb, ImU32 color, float duration)
 {
     if (aabb.isEmpty())
     {

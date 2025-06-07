@@ -49,7 +49,7 @@ Game::Game()
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
     screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
     screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
-    debugRenderer = std::make_unique<DebugRenderer>(window, screenWidth, screenHeight);
+    debugRenderer = std::make_unique<DebugRenderer>(window, screenWidth, screenHeight, gameData.debugRendererData);
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 

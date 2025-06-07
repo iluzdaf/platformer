@@ -66,5 +66,10 @@
     },
     "screenWidth": 800,
     "screenHeight": 600,
-    "firstLevel": "../assets/tile_maps/level1.json"
+    "firstLevel": "../assets/tile_maps/level1.json",
+    "debugRendererData": {
+        "shouldDrawGrid": true,
+        "shouldDrawPlayerAABBs": true,
+        "shouldDrawTileMapAABBs": true
+    }
 }

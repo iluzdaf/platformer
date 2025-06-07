@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <unordered_map>
+#include <signals.hpp>
 #include "physics/aabb.hpp"
 class GLFWwindow;
 class Camera2D;
@@ -58,10 +59,16 @@ public:
     void resize(float screenWidth, float screenHeight);
     void update(float deltaTime);
 
+    fteng::signal<void()> onPlay;
+    fteng::signal<void()> onStep;
+
 private:
     float screenWidth = 800, screenHeight = 600;
     std::unordered_map<std::size_t, DebugAABB> debugAABBs;
-    bool shouldDrawGrid = false, shouldDrawPlayerAABBs = false, shouldDrawTileMapAABBs = false;
+    bool shouldDrawGrid = false,
+         shouldDrawPlayerAABBs = false,
+         shouldDrawTileMapAABBs = false,
+         showDebugControls = false;
 
     void addDebugAABB(AABB aabb, ImU32 color, float duration);
 };

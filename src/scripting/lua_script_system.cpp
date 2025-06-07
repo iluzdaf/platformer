@@ -15,9 +15,8 @@ LuaScriptSystem::LuaScriptSystem()
                                 sol::constructors<glm::vec2(), glm::vec2(float, float)>(),
                                 "x", &glm::vec2::x,
                                 "y", &glm::vec2::y);
-    lua.new_usertype<Game>("Game", "isPaused", sol::property([](Game &g)
-                                                             { return g.isPaused; }, [](Game &g, bool v)
-                                                             { g.isPaused = v; }),
+    lua.new_usertype<Game>("Game", "pause", &Game::pause,
+                           "play", &Game::play,
                            "loadNextLevel", &Game::loadNextLevel);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
     lua.new_usertype<TileMap>("TileMap", "getPlayerStartWorldPosition", &TileMap::getPlayerStartWorldPosition);

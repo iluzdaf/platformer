@@ -20,7 +20,9 @@ public:
     ~Game();
     void run();
     void loadNextLevel();
-    bool isPaused = false;
+    void pause();
+    void step();
+    void play();
 
 private:
     void initGameData();
@@ -55,4 +57,7 @@ private:
     std::unique_ptr<DebugRenderer> debugRenderer;
 
     fteng::connection onLevelCompleteConnection;
+
+    bool paused = false;
+    bool stepFrame = false;
 };

@@ -15,7 +15,8 @@ DebugRenderer::DebugRenderer(
       screenHeight(screenHeight),
       shouldDrawGrid(data.shouldDrawGrid),
       shouldDrawPlayerAABBs(data.shouldDrawPlayerAABBs),
-      shouldDrawTileMapAABBs(data.shouldDrawTileMapAABBs)
+      shouldDrawTileMapAABBs(data.shouldDrawTileMapAABBs),
+      showDebugControls(data.showDebugControls)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -176,6 +177,18 @@ void DebugRenderer::draw(
     for (const auto &[hash, debugAABB] : debugAABBs)
     {
         drawAABB(drawList, debugAABB.box, cameraTopLeft, zoom, scale, debugAABB.color);
+    }
+
+    if (showDebugControls)
+    {
+        ImGui::SetNextWindowSize(ImVec2(200, 100));
+        ImGui::Begin("Debug Controls");
+        if (ImGui::Button("Step"))
+            onStep();
+        ImGui::SameLine();
+        if (ImGui::Button("Play"))
+            onPlay();
+        ImGui::End();
     }
 
     ImGui::Render();

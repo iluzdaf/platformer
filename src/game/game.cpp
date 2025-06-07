@@ -29,6 +29,8 @@ Game::Game()
     keyboardManager.registerKey(GLFW_KEY_LEFT);
     keyboardManager.registerKey(GLFW_KEY_RIGHT);
     keyboardManager.registerKey(GLFW_KEY_RIGHT_SHIFT);
+    keyboardManager.registerKey(GLFW_KEY_P);
+    keyboardManager.registerKey(GLFW_KEY_S);
 
     tileMap = std::make_unique<TileMap>((gameData.firstLevel));
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
@@ -50,6 +52,10 @@ Game::Game()
     screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
     screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
     debugRenderer = std::make_unique<DebugRenderer>(window, screenWidth, screenHeight, gameData.debugRendererData);
+    debugRenderer->onPlay.connect([this]
+                                  { play(); });
+    debugRenderer->onStep.connect([this]
+                                  { step(); });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 
@@ -123,12 +129,22 @@ void Game::run()
         screenTransition->update(deltaTime);
         debugRenderer->update(deltaTime);
 
-        if (!isPaused)
+        if (keyboardManager.isPressed(GLFW_KEY_P))
+        {
+            play();
+        }
+        if (keyboardManager.isPressed(GLFW_KEY_S))
+        {
+            step();
+        }
+
+        if (!paused || stepFrame)
         {
             preFixedUpdate();
             timestepper.run(deltaTime, [&](float dt)
                             { fixedUpdate(dt); });
             update(deltaTime);
+            stepFrame = false;
         }
 
         camera->follow(player->getPosition());
@@ -178,7 +194,7 @@ void Game::initGlad()
 void Game::preFixedUpdate()
 {
     player->preFixedUpdate();
-    
+
     if (keyboardManager.isPressed(GLFW_KEY_UP))
     {
         player->jump();
@@ -206,4 +222,21 @@ void Game::loadNextLevel()
                                                                 {
         onLevelCompleteConnection.disconnect();
         luaScriptSystem->triggerLevelComplete(); });
+}
+
+void Game::pause()
+{
+    paused = true;
+}
+
+void Game::step()
+{
+    paused = true;
+    stepFrame = true;
+}
+
+void Game::play()
+{
+    paused = false;
+    stepFrame = false;
 }

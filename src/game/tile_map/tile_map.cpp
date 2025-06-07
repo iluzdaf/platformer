@@ -1,7 +1,6 @@
 #include <cassert>
 #include <glaze/glaze.hpp>
 #include "game/tile_map/tile_map.hpp"
-#include "game/tile_map/tile_map_data.hpp"
 
 TileMap::TileMap(const std::string &jsonFilePath)
 {
@@ -246,4 +245,38 @@ std::vector<glm::ivec2> TileMap::getTilePositionsAt(glm::vec2 worldPosition, glm
 glm::vec2 TileMap::getTileWorldPosition(glm::ivec2 tilePosition) const
 {
     return glm::vec2(tilePosition.x * tileSize, tilePosition.y * tileSize);
+}
+
+const std::unordered_map<int, Tile> &TileMap::getTiles() const
+{
+    return tiles;
+}
+
+TileMapData TileMap::toTileMapData() const
+{
+    TileMapData data;
+    data.size = tileSize;
+    data.nextLevel = nextLevel;
+    data.playerStartTilePosition = playerStartTilePosition;
+    data.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, -1));
+    for (int y = 0; y < height; ++y)
+        for (int x = 0; x < width; ++x)
+            (*data.indices)[y][x] = tileIndices[x][y];
+    for (const auto &[index, tile] : tiles)
+        data.tileData[index] = tile.toTileData();
+    return data;
+}
+
+void TileMap::save() const
+{
+    TileMapData data = toTileMapData();
+    std::string json;
+    auto result = glz::write_json(data, json);
+    if (result)
+    {
+        throw std::runtime_error("Failed to serialize TileMapData to JSON");
+    }
+    std::ofstream outFile("../assets/tile_maps/new_level.json");
+    outFile << json;
+    outFile.close();
 }

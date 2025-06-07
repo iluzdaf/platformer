@@ -15,6 +15,7 @@ public:
     void update(float deltaTime);
     void startShake(float duration, float magnitude);
     float getZoom() const;
+    glm::vec2 getTopLeftPosition() const;
 
 private:
     float screenWidth = 800, screenHeight = 600;

@@ -9,6 +9,7 @@ class Camera2D;
 class TileMap;
 class Player;
 class DebugRendererData;
+class Texture2D;
 
 class DebugRenderer
 {
@@ -26,49 +27,61 @@ public:
         float screenHeight,
         const DebugRendererData &data);
     ~DebugRenderer();
-    void drawGrid(
-        ImDrawList *drawList,
-        const TileMap &tileMap,
-        glm::vec2 cameraPosition,
-        glm::vec2 cameraTopLeft,
-        float zoom,
-        glm::vec2 scale,
-        float displayWidth,
-        float displayHeight);
-    void drawPlayerAABBs(
-        ImDrawList *drawList,
-        const Player &player,
-        glm::vec2 cameraTopLeft,
-        float zoom,
-        glm::vec2 scale);
-    void drawTileMapAABBs(
-        ImDrawList *drawList,
-        const TileMap &tileMap,
-        glm::vec2 cameraTopLeft,
-        float zoom,
-        glm::vec2 scale);
-    void drawAABB(ImDrawList *drawList,
-                  AABB aabb,
-                  glm::vec2 cameraTopLeft,
-                  float zoom,
-                  glm::vec2 scale,
-                  ImU32 color);
     void draw(const Camera2D &camera,
               const TileMap &tileMap,
-              const Player &player);
+              const Player &player,
+              const Texture2D &tileSet);
     void resize(float screenWidth, float screenHeight);
-    void update(float deltaTime);
+    void update(
+        float deltaTime,
+        const Camera2D &camera,
+        TileMap &tileMap);
 
     fteng::signal<void()> onPlay;
     fteng::signal<void()> onStep;
 
 private:
-    float screenWidth = 800, screenHeight = 600;
+    float screenWidth = 800, screenHeight = 600,
+          uiWidth = 800, uiHeight = 600;
+    glm::vec2 uiScale = glm::vec2(1.0f);
     std::unordered_map<std::size_t, DebugAABB> debugAABBs;
     bool shouldDrawGrid = false,
          shouldDrawPlayerAABBs = false,
          shouldDrawTileMapAABBs = false,
          showDebugControls = false;
+    int selectedTileIndex = 0;
 
-    void addDebugAABB(AABB aabb, ImU32 color, float duration);
+    void addDebugAABB(
+        AABB aabb, 
+        ImU32 color, 
+        float duration);
+    ImVec2 worldToScreen(
+        glm::vec2 worldPosition, 
+        const Camera2D &camera) const;
+    glm::vec2 screenToWorld(
+        ImVec2 screenPosition, 
+        const Camera2D &camera) const;
+    void drawDebugAABBs(
+        ImDrawList *drawList, 
+        const Camera2D &camera);
+    void drawGrid(
+        ImDrawList *drawList,
+        const TileMap &tileMap,
+        const Camera2D &camera);
+    void drawPlayerAABBs(
+        ImDrawList *drawList,
+        const Player &player,
+        const Camera2D &camera);
+    void drawTileMapAABBs(
+        ImDrawList *drawList,
+        const TileMap &tileMap,
+        const Camera2D &camera);
+    void drawAABB(
+        ImDrawList *drawList,
+        AABB aabb,
+        const Camera2D &camera,
+        ImU32 color);
+    void drawTileMapControls(
+        const TileMap &tileMap, 
+        const Texture2D &tileSet);
 };

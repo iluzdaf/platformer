@@ -2,9 +2,9 @@
 #include <optional>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/tile_map/tile_kind.hpp"
+#include "game/tile_map/tile_data.hpp"
 #include "animations/tile_animation.hpp"
 #include "physics/aabb.hpp"
-class TileData;
 
 class Tile
 {
@@ -21,6 +21,7 @@ public:
     glm::vec2 getColliderOffset() const;
     glm::vec2 getColliderSize() const;
     AABB getAABBAt(glm::vec2 worldPosition) const;
+    TileData toTileData() const;
     
 private:
     TileKind kind;

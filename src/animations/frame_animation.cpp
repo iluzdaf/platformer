@@ -1,6 +1,5 @@
 #include <cassert>
 #include "animations/frame_animation.hpp"
-#include "animations/frame_animation_data.hpp"
 
 FrameAnimation::FrameAnimation(const FrameAnimationData &frameAnimationData)
     : frames(std::move(frameAnimationData.frames)),
@@ -31,4 +30,12 @@ void FrameAnimation::reset()
 {
     currentFrame = 0;
     timer = 0.0f;
+}
+
+FrameAnimationData FrameAnimation::toFrameAnimationData() const
+{
+    FrameAnimationData data;
+    data.frames = frames;
+    data.frameDuration = frameDuration;
+    return data;
 }

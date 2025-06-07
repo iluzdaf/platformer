@@ -4,8 +4,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
 #include "game/tile_map/tile.hpp"
+#include "game/tile_map/tile_map_data.hpp"
 #include "physics/aabb.hpp"
-class TileMapData;
 
 class TileMap
 {
@@ -31,6 +31,9 @@ public:
     AABB getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const;
     std::vector<glm::ivec2> getTilePositionsAt(glm::vec2 worldPosition, glm::vec2 size) const;
     glm::vec2 getTileWorldPosition(glm::ivec2 tilePosition) const;
+    const std::unordered_map<int, Tile> &getTiles() const;
+    TileMapData toTileMapData() const;
+    void save() const;
 
 private:
     int width = 0, height = 0, tileSize = 0;

@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-class FrameAnimationData;
+#include "animations/frame_animation_data.hpp"
 
 class FrameAnimation
 {
@@ -10,6 +10,7 @@ public:
     void update(float deltaTime);
     int getCurrentFrame() const;
     void reset();
+    FrameAnimationData toFrameAnimationData() const;
 
 private:
     std::vector<int> frames;

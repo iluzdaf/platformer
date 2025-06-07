@@ -105,7 +105,11 @@ void Game::render()
 
     screenTransition->draw();
 
-    debugRenderer->draw(*camera.get(), *tileMap.get(), *player.get());
+    debugRenderer->draw(
+        *camera.get(),
+        *tileMap.get(),
+        *player.get(),
+        *tileSet.get());
 }
 
 void Game::resize(int screenWidth, int screenHeight)
@@ -127,7 +131,7 @@ void Game::run()
         luaScriptSystem->update(deltaTime);
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
-        debugRenderer->update(deltaTime);
+        debugRenderer->update(deltaTime, *camera.get(), *tileMap.get());
 
         if (keyboardManager.isPressed(GLFW_KEY_P))
         {

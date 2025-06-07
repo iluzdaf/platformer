@@ -1,6 +1,5 @@
 #include <cassert>
 #include "game/tile_map/tile.hpp"
-#include "game/tile_map/tile_data.hpp"
 
 Tile::Tile(const TileData &tileData)
     : kind(tileData.kind),
@@ -76,4 +75,16 @@ glm::vec2 Tile::getColliderSize() const
 AABB Tile::getAABBAt(glm::vec2 worldPosition) const
 {
     return AABB(worldPosition + colliderOffset, colliderSize);
+}
+
+TileData Tile::toTileData() const
+{
+    TileData data;
+    data.kind = kind;
+    if (animation.has_value())
+        data.animationData = animation.value().toTileAnimationData();
+    data.pickupReplaceIndex = pickupReplaceIndex;
+    data.colliderOffset = colliderOffset;
+    data.colliderSize = colliderSize;
+    return data;
 }

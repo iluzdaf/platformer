@@ -72,7 +72,7 @@ void DebugRenderer::drawGrid(
         {
             if (tileX < 0)
                 continue;
-                
+
             std::string label = std::format("{},{}", static_cast<int>(tileX), static_cast<int>(tileY));
             drawList->AddText(ImVec2(screenX + 2, screenY + 2), IM_COL32(255, 255, 255, 200), label.c_str());
         }
@@ -281,8 +281,8 @@ void DebugRenderer::drawTileMapControls(
 
         int tileSetX = tileIndex % tilesPerRow;
         int tileSetY = tileIndex / tilesPerRow;
-        ImVec2 uv0(tileSetX * uvSize, tileSetY * uvSize);
-        ImVec2 uv1((tileSetX + 1) * uvSize, (tileSetY + 1) * uvSize);
+        ImVec2 uv0(tileSetX * uvSize, (tileSetY + 1) * uvSize);
+        ImVec2 uv1((tileSetX + 1) * uvSize, tileSetY * uvSize);
 
         int previouslySelectedTileIndex = selectedTileIndex;
 

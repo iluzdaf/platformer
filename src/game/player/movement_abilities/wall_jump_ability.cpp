@@ -66,6 +66,7 @@ void WallJumpAbility::tryJump(
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);
     movementContext.setFacingLeft(!wasTouchingLeftWall);
+    movementContext.emitWallJump();
 }
 
 void WallJumpAbility::syncState(PlayerState &playerState) const

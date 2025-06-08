@@ -40,6 +40,9 @@ LuaScriptSystem::LuaScriptSystem()
     lua.script_file("../assets/scripts/game_logic.lua");
     onDeath = lua["onDeath"];
     onLevelComplete = lua["onLevelComplete"];
+    onWallJump = lua["onWallJump"];
+    onDoubleJump = lua["onDoubleJump"];
+    onDash = lua["onDash"];
 }
 
 void LuaScriptSystem::update(float deltaTime)
@@ -111,4 +114,28 @@ sol::state &LuaScriptSystem::getLua()
 const std::vector<LuaScriptSystem::WaitingCoroutine> &LuaScriptSystem::getWaitingCoroutines() const
 {
     return waitingCoroutines;
+}
+
+void LuaScriptSystem::triggerWallJump()
+{
+    if (onWallJump.valid())
+    {
+        onWallJump();
+    }
+}
+
+void LuaScriptSystem::triggerDoubleJump()
+{
+    if (onDoubleJump.valid())
+    {
+        onDoubleJump();
+    }
+}
+
+void LuaScriptSystem::triggerDash()
+{
+    if (onDash.valid())
+    {
+        onDash();
+    }
 }

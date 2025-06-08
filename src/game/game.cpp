@@ -36,12 +36,18 @@ Game::Game()
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
     player->setPosition(tileMap->getPlayerStartWorldPosition());
-    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
+    onLevelCompleteConnection = player->onLevelComplete.connect([this]
                                                                 {
         onLevelCompleteConnection.disconnect();
         luaScriptSystem->triggerLevelComplete(); });
-    player->onDeath.connect([this]()
+    player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
+    player->onWallJump.connect([this]
+                               { luaScriptSystem->triggerWallJump(); });
+    player->onDoubleJump.connect([this]
+                                 { luaScriptSystem->triggerDoubleJump(); });
+    player->onDash.connect([this]
+                           { luaScriptSystem->triggerDash(); });
     tileInteractionSystem = std::make_unique<TileInteractionSystem>();
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");

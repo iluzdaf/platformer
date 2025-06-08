@@ -46,6 +46,8 @@ void JumpAbility::tryJump(
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);
+    if(jumpCount > 1)
+        movementContext.emitDoubleJump();
 }
 
 void JumpAbility::resetJumps()

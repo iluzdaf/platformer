@@ -27,3 +27,15 @@ function levelCompleteCoroutine()
     waitSeconds(0.4)
     game:play()
 end
+
+function onWallJump()
+    camera:startShake(0.1, 1)
+end
+
+function onDoubleJump()
+    camera:startShake(0.1, 2)
+end
+
+function onDash()
+    camera:startShake(0.2, 3)
+end

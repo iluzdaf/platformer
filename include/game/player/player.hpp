@@ -36,9 +36,15 @@ public:
     glm::vec2 getVelocity() const override;
     void setVelocity(const glm::vec2 &velocity) override;
     void setFacingLeft(bool isFacingLeft) override;
+    void emitWallJump() override;
+    void emitDoubleJump() override;
+    void emitDash() override;
 
     fteng::signal<void()> onLevelComplete;
     fteng::signal<void()> onDeath;
+    fteng::signal<void()> onWallJump;
+    fteng::signal<void()> onDoubleJump;
+    fteng::signal<void()> onDash;
 
 private:
     void updatePlayerState(const TileMap &tileMap);
@@ -48,7 +54,7 @@ private:
     glm::vec2 size = glm::vec2(16, 16);
     std::vector<std::unique_ptr<MovementAbility>> movementAbilities;
     PlayerState playerState;
-    
+
     void updateAnimation(float deltaTime);
     SpriteAnimation idleAnim;
     SpriteAnimation walkAnim;

@@ -28,10 +28,16 @@ public:
     void rebindTileMap(TileMap *tileMap);
     sol::state &getLua();
     const std::vector<WaitingCoroutine> &getWaitingCoroutines() const;
+    void triggerWallJump();
+    void triggerDoubleJump();
+    void triggerDash();
 
 private:
     sol::state lua;
     sol::function onDeath;
     sol::function onLevelComplete;
     std::vector<WaitingCoroutine> waitingCoroutines;
+    sol::function onWallJump;
+    sol::function onDoubleJump;
+    sol::function onDash;
 };

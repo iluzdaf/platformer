@@ -221,3 +221,18 @@ void Player::reset()
 
     playerState = PlayerState();
 }
+
+void Player::emitWallJump()
+{
+    onWallJump();
+}
+
+void Player::emitDoubleJump()
+{
+    onDoubleJump();
+}
+
+void Player::emitDash()
+{
+    onDash();
+}

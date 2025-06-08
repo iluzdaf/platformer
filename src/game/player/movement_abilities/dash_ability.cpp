@@ -53,6 +53,7 @@ void DashAbility::tryDash(
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = 0.0f;
     movementContext.setVelocity(velocity);
+    movementContext.emitDash();
 }
 
 bool DashAbility::canDash() const

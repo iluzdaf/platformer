@@ -68,9 +68,11 @@
     "screenHeight": 600,
     "firstLevel": "../assets/tile_maps/level1.json",
     "debugRendererData": {
-        "shouldDrawGrid": true,
-        "shouldDrawPlayerAABBs": true,
-        "shouldDrawTileMapAABBs": true,
-        "showDebugControls": true
+        "shouldDrawGrid": false,
+        "shouldDrawPlayerAABBs": false,
+        "shouldDrawTileMapAABBs": false,
+        "showDebugControls": false,
+        "shouldDrawTileInfo": false,
+        "showTileMapControls": false
     }
 }

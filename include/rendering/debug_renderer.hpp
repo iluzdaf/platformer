@@ -53,7 +53,8 @@ private:
          shouldDrawTileMapAABBs = false,
          showDebugControls = false,
          editingPlayerStartTile = false,
-         shouldDrawTilePositions = true;
+         shouldDrawTileInfo = false,
+         showTileMapControls = false;
     int selectedTileIndex = 0;
 
     void addDebugAABB(
@@ -92,4 +93,9 @@ private:
     glm::vec2 calculateTileMapWorldOffset(
         glm::vec2 cameraTopLeft,
         float tileSize) const;
+    void drawTileInfo(
+        ImDrawList *drawList,
+        const Camera2D &camera,
+        const TileMap &tileMap);
+    void drawDebugControls();
 };

@@ -17,7 +17,9 @@ DebugRenderer::DebugRenderer(
       shouldDrawGrid(data.shouldDrawGrid),
       shouldDrawPlayerAABBs(data.shouldDrawPlayerAABBs),
       shouldDrawTileMapAABBs(data.shouldDrawTileMapAABBs),
-      showDebugControls(data.showDebugControls)
+      showDebugControls(data.showDebugControls),
+      shouldDrawTileInfo(data.shouldDrawTileInfo),
+      showTileMapControls(data.showTileMapControls)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -88,6 +90,19 @@ void DebugRenderer::drawTileMapAABBs(
             camera,
             tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
     }
+
+    drawAABB(
+        drawList,
+        AABB(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight())),
+        camera,
+        IM_COL32(255, 255, 0, 255));
+
+    glm::vec2 playerStartWorldPosition = tileMap.getPlayerStartWorldPosition();
+    drawAABB(
+        drawList,
+        AABB(playerStartWorldPosition, glm::vec2(tileMap.getTileSize())),
+        camera,
+        IM_COL32(255, 0, 255, 255));
 }
 
 void DebugRenderer::drawAABB(
@@ -164,28 +179,9 @@ void DebugRenderer::draw(
         drawGrid(drawList, tileMap, camera);
     }
 
-    if (shouldDrawTilePositions)
+    if (shouldDrawTileInfo)
     {
-        glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
-        int tileSize = tileMap.getTileSize();
-        glm::vec2 tileMapWorldOffset = calculateTileMapWorldOffset(cameraTopLeft, tileSize);
-        ImVec2 offset = worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
-        float tileSizeImgui = tileSize * camera.getZoom() / uiScale.x;
-        glm::ivec2 topLeftTilePosition = glm::floor(cameraTopLeft / static_cast<float>(tileSize));
-        for (float screenY = offset.y, tileY = topLeftTilePosition.y; tileY < tileMap.getHeight(); screenY += tileSizeImgui, ++tileY)
-        {
-            if (tileY < 0)
-                continue;
-
-            for (float screenX = offset.x, tileX = topLeftTilePosition.x; tileX < tileMap.getWidth(); screenX += tileSizeImgui, ++tileX)
-            {
-                if (tileX < 0)
-                    continue;
-
-                std::string label = std::format("{},{}", static_cast<int>(tileX), static_cast<int>(tileY));
-                drawList->AddText(ImVec2(screenX + 2, screenY + 2), IM_COL32(255, 255, 255, 200), label.c_str());
-            }
-        }
+        drawTileInfo(drawList, camera, tileMap);
     }
 
     if (shouldDrawPlayerAABBs)
@@ -198,42 +194,17 @@ void DebugRenderer::draw(
         drawTileMapAABBs(drawList, tileMap, camera);
     }
 
-    drawAABB(
-        drawList,
-        AABB(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight())),
-        camera,
-        IM_COL32(255, 255, 0, 255));
-
-    glm::vec2 playerStartWorldPosition = tileMap.getPlayerStartWorldPosition();
-    drawAABB(
-        drawList,
-        AABB(playerStartWorldPosition, glm::vec2(tileMap.getTileSize())),
-        camera,
-        IM_COL32(255, 0, 255, 255));
-
     drawDebugAABBs(drawList, camera);
 
     if (showDebugControls)
     {
-        ImGui::SetNextWindowSize(ImVec2(200, 120));
-        ImGui::Begin("Debug");
-        if (ImGui::Button("Step"))
-            onStep();
-        ImGui::SameLine();
-        if (ImGui::Button("Play"))
-            onPlay();
-        ImGui::SameLine();
-        if (ImGui::Button("Respawn"))
-            onRespawn();
-        ImGui::SameLine();
-        if (ImGui::Button("Zoom"))
-            onToggleZoom();
-        if (ImGui::Button("Coordinates"))
-            shouldDrawTilePositions = !shouldDrawTilePositions;
-        ImGui::End();
+        drawDebugControls();
     }
 
-    drawTileMapControls(tileMap, tileSet);
+    if (showTileMapControls)
+    {
+        drawTileMapControls(tileMap, tileSet);
+    }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -320,10 +291,15 @@ void DebugRenderer::drawTileMapControls(
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(255, 255, 0, 255));
         }
 
+        ImVec2 tilePos = ImGui::GetCursorScreenPos();
         if (ImGui::ImageButton("##tile", imguiTextureID, ImVec2(32, 32), uv0, uv1))
         {
             selectedTileIndex = tileIndex;
         }
+        ImGui::GetWindowDrawList()->AddText(
+            tilePos,
+            IM_COL32(255, 255, 255, 255),
+            std::to_string(tileIndex).c_str());
 
         if (previouslySelectedTileIndex == tileIndex)
         {
@@ -372,4 +348,60 @@ glm::vec2 DebugRenderer::calculateTileMapWorldOffset(glm::vec2 cameraTopLeft, fl
     if (worldOffsetY < 0.0f)
         worldOffsetY += tileSize;
     return glm::vec2(-worldOffsetX, -worldOffsetY);
+}
+
+void DebugRenderer::drawTileInfo(
+    ImDrawList *drawList,
+    const Camera2D &camera,
+    const TileMap &tileMap)
+{
+    glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
+    int tileSize = tileMap.getTileSize();
+    glm::vec2 tileMapWorldOffset = calculateTileMapWorldOffset(cameraTopLeft, tileSize);
+    ImVec2 offset = worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
+    float tileSizeImgui = tileSize * camera.getZoom() / uiScale.x;
+    glm::ivec2 topLeftTilePosition = glm::floor(cameraTopLeft / static_cast<float>(tileSize));
+    for (float screenY = offset.y, tileY = topLeftTilePosition.y; tileY < tileMap.getHeight(); screenY += tileSizeImgui, ++tileY)
+    {
+        if (tileY < 0)
+            continue;
+
+        for (float screenX = offset.x, tileX = topLeftTilePosition.x; tileX < tileMap.getWidth(); screenX += tileSizeImgui, ++tileX)
+        {
+            if (tileX < 0)
+                continue;
+
+            int tileIndex = tileMap.getTileIndex(glm::ivec2(tileX, tileY));
+            std::string label = std::format("{},{}\n{}", static_cast<int>(tileX), static_cast<int>(tileY), tileIndex);
+            drawList->AddText(ImVec2(screenX + 2, screenY + 2), IM_COL32(255, 255, 255, 200), label.c_str());
+        }
+    }
+}
+
+void DebugRenderer::drawDebugControls()
+{
+    ImGui::SetNextWindowSize(ImVec2(200, 120));
+    ImGui::Begin("Debug");
+    if (ImGui::Button("Step"))
+        onStep();
+    ImGui::SameLine();
+    if (ImGui::Button("Play"))
+        onPlay();
+    ImGui::SameLine();
+    if (ImGui::Button("Respawn"))
+        onRespawn();
+    ImGui::SameLine();
+    if (ImGui::Button("Zoom"))
+        onToggleZoom();
+    if (ImGui::Button("Tile Info"))
+        shouldDrawTileInfo = !shouldDrawTileInfo;
+    ImGui::SameLine();
+    if (ImGui::Button("Grid"))
+        shouldDrawGrid = !shouldDrawGrid;
+    ImGui::SameLine();
+    if (ImGui::Button("Player"))
+        shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs;
+    if (ImGui::Button("TileMap"))
+        shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs;
+    ImGui::End();
 }

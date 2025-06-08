@@ -6,4 +6,6 @@ struct DebugRendererData
     bool shouldDrawPlayerAABBs = false;
     bool shouldDrawTileMapAABBs = false;
     bool showDebugControls = false;
+    bool shouldDrawTileInfo = false;
+    bool showTileMapControls = false;
 };

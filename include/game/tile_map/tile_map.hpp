@@ -35,6 +35,7 @@ public:
     TileMapData toTileMapData() const;
     void save() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
+    bool validTilePosition(glm::ivec2 tilePosition) const;
 
 private:
     int width = 0, height = 0, tileSize = 0;

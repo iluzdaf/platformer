@@ -98,10 +98,7 @@ void TileMap::initByData(const TileMapData &tileMapData)
 
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
 {
-    if (tilePosition.x < 0 ||
-        tilePosition.x >= width ||
-        tilePosition.y < 0 ||
-        tilePosition.y >= height)
+    if (!validTilePosition(tilePosition))
     {
         throw std::out_of_range("Tile coordinates out of bounds");
     }
@@ -119,12 +116,17 @@ void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)
     setTileIndex(getTilePositionAt(worldPosition), tileIndex);
 }
 
+bool TileMap::validTilePosition(glm::ivec2 tilePosition) const
+{
+    return (tilePosition.x >= 0 &&
+            tilePosition.x < width &&
+            tilePosition.y >= 0 &&
+            tilePosition.y < height);
+}
+
 int TileMap::getTileIndex(glm::ivec2 tilePosition) const
 {
-    if (tilePosition.x < 0 ||
-        tilePosition.x >= width ||
-        tilePosition.y < 0 ||
-        tilePosition.y >= height)
+    if (!validTilePosition(tilePosition))
     {
         return -1;
     }

@@ -62,6 +62,11 @@ Game::Game()
                                        { 
         loadLevel(levelPath);
         player->setPosition(tileMap->getPlayerStartWorldPosition()); });
+    debugRenderer->onToggleZoom.connect([this]
+                                        {
+        static int originalZoom = camera->getZoom();
+        int currentZoom = camera->getZoom();
+        camera->setZoom(currentZoom == originalZoom? 3 : originalZoom); });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 

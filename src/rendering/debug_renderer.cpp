@@ -41,15 +41,8 @@ void DebugRenderer::drawGrid(
 {
     glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
     float tileSize = tileMap.getTileSize();
-    float worldOffsetX = fmod(cameraTopLeft.x, tileSize);
-    float worldOffsetY = fmod(cameraTopLeft.y, tileSize);
-    if (worldOffsetX < 0.0f)
-        worldOffsetX += tileSize;
-    if (worldOffsetY < 0.0f)
-        worldOffsetY += tileSize;
-
-    glm::vec2 offsetWorld = glm::vec2(-worldOffsetX, -worldOffsetY);
-    ImVec2 offset = worldToScreen(offsetWorld + cameraTopLeft, camera);
+    glm::vec2 tileMapWorldOffset = calculateTileMapWorldOffset(cameraTopLeft, tileSize);
+    ImVec2 offset = worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
     float tileSizeImgui = tileSize * camera.getZoom() / uiScale.x;
 
     for (float screenX = offset.x; screenX < uiWidth; screenX += tileSizeImgui)
@@ -60,22 +53,6 @@ void DebugRenderer::drawGrid(
     for (float screenY = offset.y; screenY < uiHeight; screenY += tileSizeImgui)
     {
         drawList->AddLine(ImVec2(0, screenY), ImVec2(uiWidth, screenY), IM_COL32(100, 100, 100, 255));
-    }
-
-    glm::ivec2 topLeftTilePosition = glm::floor(cameraTopLeft / static_cast<float>(tileSize));
-    for (float screenY = offset.y, tileY = topLeftTilePosition.y; tileY < tileMap.getHeight(); screenY += tileSizeImgui, ++tileY)
-    {
-        if (tileY < 0)
-            continue;
-
-        for (float screenX = offset.x, tileX = topLeftTilePosition.x; tileX < tileMap.getWidth(); screenX += tileSizeImgui, ++tileX)
-        {
-            if (tileX < 0)
-                continue;
-
-            std::string label = std::format("{},{}", static_cast<int>(tileX), static_cast<int>(tileY));
-            drawList->AddText(ImVec2(screenX + 2, screenY + 2), IM_COL32(255, 255, 255, 200), label.c_str());
-        }
     }
 }
 
@@ -183,6 +160,30 @@ void DebugRenderer::draw(
         drawGrid(drawList, tileMap, camera);
     }
 
+    if (shouldDrawTilePositions)
+    {
+        glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
+        int tileSize = tileMap.getTileSize();
+        glm::vec2 tileMapWorldOffset = calculateTileMapWorldOffset(cameraTopLeft, tileSize);
+        ImVec2 offset = worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
+        float tileSizeImgui = tileSize * camera.getZoom() / uiScale.x;
+        glm::ivec2 topLeftTilePosition = glm::floor(cameraTopLeft / static_cast<float>(tileSize));
+        for (float screenY = offset.y, tileY = topLeftTilePosition.y; tileY < tileMap.getHeight(); screenY += tileSizeImgui, ++tileY)
+        {
+            if (tileY < 0)
+                continue;
+
+            for (float screenX = offset.x, tileX = topLeftTilePosition.x; tileX < tileMap.getWidth(); screenX += tileSizeImgui, ++tileX)
+            {
+                if (tileX < 0)
+                    continue;
+
+                std::string label = std::format("{},{}", static_cast<int>(tileX), static_cast<int>(tileY));
+                drawList->AddText(ImVec2(screenX + 2, screenY + 2), IM_COL32(255, 255, 255, 200), label.c_str());
+            }
+        }
+    }
+
     if (shouldDrawPlayerAABBs)
     {
         drawPlayerAABBs(drawList, player, camera);
@@ -210,7 +211,7 @@ void DebugRenderer::draw(
 
     if (showDebugControls)
     {
-        ImGui::SetNextWindowSize(ImVec2(200, 60));
+        ImGui::SetNextWindowSize(ImVec2(200, 120));
         ImGui::Begin("Debug");
         if (ImGui::Button("Step"))
             onStep();
@@ -220,6 +221,11 @@ void DebugRenderer::draw(
         ImGui::SameLine();
         if (ImGui::Button("Respawn"))
             onRespawn();
+        ImGui::SameLine();
+        if (ImGui::Button("Zoom"))
+            onToggleZoom();
+        if (ImGui::Button("Coordinates"))
+            shouldDrawTilePositions = !shouldDrawTilePositions;
         ImGui::End();
     }
 
@@ -348,4 +354,15 @@ void DebugRenderer::drawTileMapControls(
         onLoadLevel("../assets/tile_maps/new_level.json");
 
     ImGui::End();
+}
+
+glm::vec2 DebugRenderer::calculateTileMapWorldOffset(glm::vec2 cameraTopLeft, float tileSize) const
+{
+    float worldOffsetX = fmod(cameraTopLeft.x, tileSize);
+    float worldOffsetY = fmod(cameraTopLeft.y, tileSize);
+    if (worldOffsetX < 0.0f)
+        worldOffsetX += tileSize;
+    if (worldOffsetY < 0.0f)
+        worldOffsetY += tileSize;
+    return glm::vec2(-worldOffsetX, -worldOffsetY);
 }

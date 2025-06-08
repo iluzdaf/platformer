@@ -40,7 +40,8 @@ public:
     fteng::signal<void()> onPlay;
     fteng::signal<void()> onStep;
     fteng::signal<void()> onRespawn;
-    fteng::signal<void(const std::string&)> onLoadLevel;
+    fteng::signal<void(const std::string &)> onLoadLevel;
+    fteng::signal<void()> onToggleZoom;
 
 private:
     float screenWidth = 800, screenHeight = 600,
@@ -51,21 +52,22 @@ private:
          shouldDrawPlayerAABBs = false,
          shouldDrawTileMapAABBs = false,
          showDebugControls = false,
-         editingPlayerStartTile = false;
+         editingPlayerStartTile = false,
+         shouldDrawTilePositions = true;
     int selectedTileIndex = 0;
 
     void addDebugAABB(
-        AABB aabb, 
-        ImU32 color, 
+        AABB aabb,
+        ImU32 color,
         float duration);
     ImVec2 worldToScreen(
-        glm::vec2 worldPosition, 
+        glm::vec2 worldPosition,
         const Camera2D &camera) const;
     glm::vec2 screenToWorld(
-        ImVec2 screenPosition, 
+        ImVec2 screenPosition,
         const Camera2D &camera) const;
     void drawDebugAABBs(
-        ImDrawList *drawList, 
+        ImDrawList *drawList,
         const Camera2D &camera);
     void drawGrid(
         ImDrawList *drawList,
@@ -85,6 +87,9 @@ private:
         const Camera2D &camera,
         ImU32 color);
     void drawTileMapControls(
-        const TileMap &tileMap, 
+        const TileMap &tileMap,
         const Texture2D &tileSet);
+    glm::vec2 calculateTileMapWorldOffset(
+        glm::vec2 cameraTopLeft,
+        float tileSize) const;
 };

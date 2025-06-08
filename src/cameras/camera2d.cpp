@@ -83,3 +83,8 @@ glm::vec2 Camera2D::getTopLeftPosition() const
 {
     return getPosition() - glm::vec2(screenWidth, screenHeight) / (2.0f * zoom);
 }
+
+void Camera2D::setZoom(float zoom)
+{
+    this->zoom = zoom;
+}

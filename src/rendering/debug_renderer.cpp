@@ -341,7 +341,10 @@ void DebugRenderer::drawTileMapControls(
     }
 
     if (ImGui::Button("Spawn", ImVec2(40, 38)))
+    {
         editingPlayerStartTile = true;
+        selectedTileIndex = 0;
+    }
 
     if (previouslyEditingPlayerStartTile)
         ImGui::PopStyleColor(3);

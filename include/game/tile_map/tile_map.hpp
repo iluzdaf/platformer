@@ -44,4 +44,5 @@ private:
     void initByData(const TileMapData &tileMapData);
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
     std::string nextLevel = "../assets/tile_maps/level1.json";
+    std::string level = "../assets/tile_maps/new_level.json";
 };

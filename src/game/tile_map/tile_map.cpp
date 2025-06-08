@@ -2,7 +2,7 @@
 #include <glaze/glaze.hpp>
 #include "game/tile_map/tile_map.hpp"
 
-TileMap::TileMap(const std::string &jsonFilePath)
+TileMap::TileMap(const std::string &jsonFilePath) : level(jsonFilePath)
 {
     if (jsonFilePath.empty())
     {
@@ -278,7 +278,7 @@ void TileMap::save() const
     {
         throw std::runtime_error("Failed to serialize TileMapData to JSON");
     }
-    std::ofstream outFile("../assets/tile_maps/new_level.json");
+    std::ofstream outFile(level);
     outFile << json;
     outFile.close();
 }

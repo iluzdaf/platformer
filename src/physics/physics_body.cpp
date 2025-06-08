@@ -51,46 +51,40 @@ void PhysicsBody::resolveCollision(const TileMap &tileMap)
 {
     collisionAABBX = AABB();
     collisionAABBY = AABB();
-    
+
     glm::vec2 positionWithOffset = position + colliderOffset;
     glm::vec2 nextPositionWithOffset = nextPosition + colliderOffset;
 
-    if (std::abs(velocity.x) > 0.001f)
+    glm::vec2 proposedPosX = {nextPositionWithOffset.x, positionWithOffset.y};
+    AABB proposedAABBX(proposedPosX, colliderSize);
+    AABB solidAABBX = tileMap.getSolidAABBAt(proposedPosX, colliderSize);
+    if (solidAABBX.intersects(proposedAABBX))
     {
-        glm::vec2 proposedPosX = {nextPositionWithOffset.x, positionWithOffset.y};
-        AABB proposedAABBX(proposedPosX, colliderSize);
-        AABB solidAABBX = tileMap.getSolidAABBAt(proposedPosX, colliderSize);
-        if (solidAABBX.intersects(proposedAABBX))
-        {
-            collisionAABBX = solidAABBX;
-            float deltaX = (proposedAABBX.center().x - solidAABBX.center().x);
-            float overlapX = (solidAABBX.size.x + proposedAABBX.size.x) * 0.5f - std::abs(deltaX);
-            if (deltaX > 0)
-                nextPositionWithOffset.x += overlapX;
-            else
-                nextPositionWithOffset.x -= overlapX;
-            velocity.x = 0.0f;
-        }
+        collisionAABBX = solidAABBX;
+        float deltaX = (proposedAABBX.center().x - solidAABBX.center().x);
+        float overlapX = (solidAABBX.size.x + proposedAABBX.size.x) * 0.5f - std::abs(deltaX);
+        if (deltaX > 0)
+            nextPositionWithOffset.x += overlapX;
+        else
+            nextPositionWithOffset.x -= overlapX;
+        velocity.x = 0.0f;
     }
 
-    if (std::abs(velocity.y) > 0.001f)
+    glm::vec2 proposedPosY = nextPositionWithOffset;
+    AABB proposedAABBY(proposedPosY, colliderSize);
+    AABB solidAABBY = tileMap.getSolidAABBAt(proposedPosY, colliderSize);
+    if (solidAABBY.intersects(proposedAABBY))
     {
-        glm::vec2 proposedPosY = nextPositionWithOffset;
-        AABB proposedAABBY(proposedPosY, colliderSize);
-        AABB solidAABBY = tileMap.getSolidAABBAt(proposedPosY, colliderSize);
-        if (solidAABBY.intersects(proposedAABBY))
+        collisionAABBY = solidAABBY;
+        float deltaY = (proposedAABBY.center().y - solidAABBY.center().y);
+        float overlapY = (solidAABBY.size.y + proposedAABBY.size.y) * 0.5f - std::abs(deltaY);
+        if (deltaY > 0)
+            nextPositionWithOffset.y += overlapY;
+        else
         {
-            collisionAABBY = solidAABBY;
-            float deltaY = (proposedAABBY.center().y - solidAABBY.center().y);
-            float overlapY = (solidAABBY.size.y + proposedAABBY.size.y) * 0.5f - std::abs(deltaY);
-            if (deltaY > 0)
-                nextPositionWithOffset.y += overlapY;
-            else
-            {
-                nextPositionWithOffset.y -= overlapY;
-            }
-            velocity.y = 0.0f;
+            nextPositionWithOffset.y -= overlapY;
         }
+        velocity.y = 0.0f;
     }
 
     nextPosition = nextPositionWithOffset - colliderOffset;
@@ -136,13 +130,6 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
     if (clamped)
     {
         newPosition -= colliderOffset;
-        AABB clampedAABB(newPosition, colliderSize);
-        AABB solidAABB = tileMap.getSolidAABBAt(newPosition, colliderSize);
-        if (solidAABB.intersects(clampedAABB))
-        {
-            throw std::runtime_error("Trying to clamp player into a solid tile");
-        }
-
         nextPosition = newPosition;
         velocity = newVelocity;
     }
@@ -185,9 +172,9 @@ void PhysicsBody::stepPhysics(float deltaTime, const TileMap &tileMap)
 {
     nextPosition += velocity * deltaTime;
 
-    resolveCollision(tileMap);
-
     clampToTileMapBounds(tileMap);
+
+    resolveCollision(tileMap);
 
     position = nextPosition;
 }

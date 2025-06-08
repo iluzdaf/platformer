@@ -247,22 +247,6 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
             REQUIRE(position.y <= tileMap.getWorldHeight());
         }
     }
-
-    SECTION("Throws if player is clamped into a solid tile")
-    {
-        TileMap tileMap = setupTileMap(3, 3, 16, {{1, TileData{TileKind::Solid}}});
-        tileMap.setTileIndex(glm::ivec2(0, 0), 1);
-        tileMap.setTileIndex(glm::ivec2(0, 1), 1);
-        tileMap.setTileIndex(glm::ivec2(0, 2), 1);
-        tileMap.setTileIndex(glm::ivec2(1, 2), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 2), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 1), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 0), 1);
-        tileMap.setTileIndex(glm::ivec2(1, 0), 1);
-        Player player = setupPlayer();
-        player.setPosition(glm::vec2(10.0f, 1000.0f));
-        REQUIRE_THROWS_WITH(simulatePlayer(player, tileMap, 0.1f), "Trying to clamp player into a solid tile");
-    }
 }
 
 TEST_CASE("Player and empty or invalid tiles", "[Player]")

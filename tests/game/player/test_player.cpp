@@ -86,7 +86,7 @@ TEST_CASE("Player and solid tiles", "[Player]")
         REQUIRE(player.getPlayerState().onGround);
 
         player.moveRight();
-        simulatePlayer(player, tileMap, 0.5f);
+        simulatePlayer(player, tileMap, 0.2f);
         REQUIRE_FALSE(player.getPlayerState().onGround);
     }
 
@@ -211,6 +211,10 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
         {
             player.jump();
             simulatePlayer(player, tileMap, 0.1f);
+            REQUIRE(player.getVelocity().y < 0.0f);
+            player.jump();
+            simulatePlayer(player, tileMap, 1.0f);
+            player.jump();
             REQUIRE(player.getVelocity().y < 0.0f);
         }
     }

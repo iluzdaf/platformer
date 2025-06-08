@@ -155,7 +155,8 @@ bool PhysicsBody::contactWithRightWall(const TileMap &tileMap)
 
 bool PhysicsBody::contactWithGround(const TileMap &tileMap)
 {
-    return contactInDirection(tileMap, glm::vec2(0.0f, 0.1f));
+    return contactInDirection(tileMap, glm::vec2(0.0f, 0.1f)) ||
+           AABB(position + colliderOffset, colliderSize).bottom() >= tileMap.getWorldHeight();
 }
 
 bool PhysicsBody::contactWithCeiling(const TileMap &tileMap) const

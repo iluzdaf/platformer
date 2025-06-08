@@ -14,8 +14,20 @@ void Camera2D::follow(const glm::vec2 &target)
 {
     float halfW = screenWidth / (2.0f * zoom);
     float halfH = screenHeight / (2.0f * zoom);
-    position.x = std::clamp(target.x, worldMin.x + halfW, worldMax.x - halfW);
-    position.y = std::clamp(target.y, worldMin.y + halfH, worldMax.y - halfH);
+    float worldW = worldMax.x - worldMin.x;
+    float worldH = worldMax.y - worldMin.y;
+    bool clampX = worldW > screenWidth / zoom;
+    bool clampY = worldH > screenHeight / zoom;
+
+    if (clampX)
+        position.x = std::clamp(target.x, worldMin.x + halfW, worldMax.x - halfW);
+    else
+        position.x = worldMin.x + worldW / 2.0f;
+
+    if (clampY)
+        position.y = std::clamp(target.y, worldMin.y + halfH, worldMax.y - halfH);
+    else
+        position.y = worldMin.y + worldH / 2.0f;
 }
 
 void Camera2D::setWorldBounds(const glm::vec2 &min, const glm::vec2 &max)

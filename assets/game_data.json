@@ -36,18 +36,18 @@
             "textureWidth": 96
         },
         "dashAbilityData": {
-            "dashSpeed": 550,
-            "dashDuration": 0.2,
+            "dashSpeed": 500,
+            "dashDuration": 0.25,
             "dashCooldown": 0.5
         },
         "wallSlideAbilityData": {
             "slideSpeed": 15,
-            "hangDuration": 0.4
+            "hangDuration": 0.75
         },
         "wallJumpAbilityData": {
             "jumpSpeed": -300,
-            "horizontalSpeed": 250,
-            "maxJumpCount": 3
+            "horizontalSpeed": 180,
+            "maxJumpCount": 5
         },
         "colliderSize": [
             8,

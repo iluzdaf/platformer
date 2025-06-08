@@ -1,10 +1,10 @@
 waitSeconds = coroutine.yield
 
-function onRespawn()
-    startCoroutine(respawnCoroutine)
+function onDeath()
+    startCoroutine(deathCoroutine)
 end
 
-function respawnCoroutine()
+function deathCoroutine()
     game:pause()
     camera:startShake(0.25, 4)
     waitSeconds(0.25)

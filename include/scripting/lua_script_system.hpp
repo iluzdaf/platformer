@@ -24,14 +24,14 @@ public:
         Player *player,
         ScreenTransition *screenTransition);
     void triggerLevelComplete();
-    void triggerRespawn();
+    void triggerDeath();
     void rebindTileMap(TileMap *tileMap);
     sol::state &getLua();
     const std::vector<WaitingCoroutine> &getWaitingCoroutines() const;
 
 private:
     sol::state lua;
-    sol::function onRespawn;
+    sol::function onDeath;
     sol::function onLevelComplete;
     std::vector<WaitingCoroutine> waitingCoroutines;
 };

@@ -34,6 +34,7 @@ public:
     const std::unordered_map<int, Tile> &getTiles() const;
     TileMapData toTileMapData() const;
     void save() const;
+    void setPlayerStartTile(glm::ivec2 tilePosition);
 
 private:
     int width = 0, height = 0, tileSize = 0;

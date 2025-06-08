@@ -39,6 +39,8 @@ public:
 
     fteng::signal<void()> onPlay;
     fteng::signal<void()> onStep;
+    fteng::signal<void()> onRespawn;
+    fteng::signal<void(const std::string&)> onLoadLevel;
 
 private:
     float screenWidth = 800, screenHeight = 600,
@@ -48,7 +50,8 @@ private:
     bool shouldDrawGrid = false,
          shouldDrawPlayerAABBs = false,
          shouldDrawTileMapAABBs = false,
-         showDebugControls = false;
+         showDebugControls = false,
+         editingPlayerStartTile = false;
     int selectedTileIndex = 0;
 
     void addDebugAABB(

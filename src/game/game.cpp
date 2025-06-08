@@ -41,7 +41,7 @@ Game::Game()
         onLevelCompleteConnection.disconnect();
         luaScriptSystem->triggerLevelComplete(); });
     player->onDeath.connect([this]()
-                            { luaScriptSystem->triggerRespawn(); });
+                            { luaScriptSystem->triggerDeath(); });
     tileInteractionSystem = std::make_unique<TileInteractionSystem>();
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
@@ -56,6 +56,12 @@ Game::Game()
                                   { play(); });
     debugRenderer->onStep.connect([this]
                                   { step(); });
+    debugRenderer->onRespawn.connect([this]
+                                     { player->setPosition(tileMap->getPlayerStartWorldPosition()); });
+    debugRenderer->onLoadLevel.connect([this](const std::string &levelPath)
+                                       { 
+        loadLevel(levelPath);
+        player->setPosition(tileMap->getPlayerStartWorldPosition()); });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 
@@ -219,13 +225,19 @@ void Game::preFixedUpdate()
 
 void Game::loadNextLevel()
 {
-    tileMap = std::make_unique<TileMap>((tileMap->getNextLevel()));
-    luaScriptSystem->rebindTileMap(tileMap.get());
-    camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
+    loadLevel(tileMap->getNextLevel());
+    onLevelCompleteConnection.disconnect();
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()
                                                                 {
         onLevelCompleteConnection.disconnect();
         luaScriptSystem->triggerLevelComplete(); });
+}
+
+void Game::loadLevel(const std::string &levelPath)
+{
+    tileMap = std::make_unique<TileMap>(levelPath);
+    luaScriptSystem->rebindTileMap(tileMap.get());
+    camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
 }
 
 void Game::pause()

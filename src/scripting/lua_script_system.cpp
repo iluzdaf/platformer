@@ -37,7 +37,7 @@ LuaScriptSystem::LuaScriptSystem()
         } });
 
     lua.script_file("../assets/scripts/game_logic.lua");
-    onRespawn = lua["onRespawn"];
+    onDeath = lua["onDeath"];
     onLevelComplete = lua["onLevelComplete"];
 }
 
@@ -89,11 +89,11 @@ void LuaScriptSystem::triggerLevelComplete()
     }
 }
 
-void LuaScriptSystem::triggerRespawn()
+void LuaScriptSystem::triggerDeath()
 {
-    if (onRespawn.valid())
+    if (onDeath.valid())
     {
-        onRespawn();
+        onDeath();
     }
 }
 

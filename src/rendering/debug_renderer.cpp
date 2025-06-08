@@ -152,7 +152,15 @@ void DebugRenderer::update(
     glm::ivec2 tilePosition = tileMap.getTilePositionAt(worldPosition);
     if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !io.WantCaptureMouse)
     {
-        tileMap.setTileIndex(tilePosition, selectedTileIndex);
+        if (editingPlayerStartTile)
+        {
+            tileMap.setPlayerStartTile(tilePosition);
+            editingPlayerStartTile = false;
+        }
+        else
+        {
+            tileMap.setTileIndex(tilePosition, selectedTileIndex);
+        }
     }
 }
 
@@ -191,17 +199,27 @@ void DebugRenderer::draw(
         camera,
         IM_COL32(255, 255, 0, 255));
 
+    glm::vec2 playerStartWorldPosition = tileMap.getPlayerStartWorldPosition();
+    drawAABB(
+        drawList,
+        AABB(playerStartWorldPosition, glm::vec2(tileMap.getTileSize())),
+        camera,
+        IM_COL32(255, 0, 255, 255));
+
     drawDebugAABBs(drawList, camera);
 
     if (showDebugControls)
     {
-        ImGui::SetNextWindowSize(ImVec2(150, 100));
+        ImGui::SetNextWindowSize(ImVec2(200, 60));
         ImGui::Begin("Debug");
         if (ImGui::Button("Step"))
             onStep();
         ImGui::SameLine();
         if (ImGui::Button("Play"))
             onPlay();
+        ImGui::SameLine();
+        if (ImGui::Button("Respawn"))
+            onRespawn();
         ImGui::End();
     }
 
@@ -272,7 +290,6 @@ void DebugRenderer::drawTileMapControls(
     int tileSetWidth = tileSet.getWidth();
     int tilesPerRow = tileSetWidth / tileSize;
     float uvSize = static_cast<float>(tileSize) / static_cast<float>(tileSetWidth);
-
     ImTextureID imguiTextureID = (ImTextureID)(intptr_t)tileSet.getTextureID();
 
     for (const auto &[tileIndex, tile] : tiles)
@@ -286,7 +303,7 @@ void DebugRenderer::drawTileMapControls(
 
         int previouslySelectedTileIndex = selectedTileIndex;
 
-        if (selectedTileIndex == tileIndex)
+        if (previouslySelectedTileIndex == tileIndex)
         {
             ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 255, 0, 255));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(255, 255, 0, 255));
@@ -309,8 +326,26 @@ void DebugRenderer::drawTileMapControls(
         ImGui::PopID();
     }
 
-    if (ImGui::Button("Save"))
+    bool previouslyEditingPlayerStartTile = editingPlayerStartTile;
+    if (previouslyEditingPlayerStartTile)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 100, 255, 255));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(255, 100, 255, 255));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(255, 100, 255, 255));
+    }
+
+    if (ImGui::Button("Spawn", ImVec2(40, 38)))
+        editingPlayerStartTile = true;
+
+    if (previouslyEditingPlayerStartTile)
+        ImGui::PopStyleColor(3);
+
+    if (ImGui::Button("Save", ImVec2(40, 38)))
         tileMap.save();
+
+    ImGui::SameLine();
+    if (ImGui::Button("Load", ImVec2(40, 38)))
+        onLoadLevel("../assets/tile_maps/new_level.json");
 
     ImGui::End();
 }

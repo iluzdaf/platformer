@@ -280,3 +280,8 @@ void TileMap::save() const
     outFile << json;
     outFile.close();
 }
+
+void TileMap::setPlayerStartTile(glm::ivec2 tilePosition)
+{
+    playerStartTilePosition = tilePosition;
+}

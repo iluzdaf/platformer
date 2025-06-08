@@ -23,6 +23,7 @@ public:
     void pause();
     void step();
     void play();
+    void loadLevel(const std::string& levelPath);
 
 private:
     void initGameData();

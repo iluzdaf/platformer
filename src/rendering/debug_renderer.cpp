@@ -134,7 +134,7 @@ void DebugRenderer::update(
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = screenToWorld(mouseScreenPosition, camera);
     glm::ivec2 tilePosition = tileMap.getTilePositionAt(worldPosition);
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+    if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !io.WantCaptureMouse)
     {
         tileMap.setTileIndex(tilePosition, selectedTileIndex);
     }

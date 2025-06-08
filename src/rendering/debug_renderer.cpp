@@ -52,14 +52,30 @@ void DebugRenderer::drawGrid(
     ImVec2 offset = worldToScreen(offsetWorld + cameraTopLeft, camera);
     float tileSizeImgui = tileSize * camera.getZoom() / uiScale.x;
 
-    for (float x = offset.x; x < uiWidth; x += tileSizeImgui)
+    for (float screenX = offset.x; screenX < uiWidth; screenX += tileSizeImgui)
     {
-        drawList->AddLine(ImVec2(x, 0), ImVec2(x, uiHeight), IM_COL32(100, 100, 100, 255));
+        drawList->AddLine(ImVec2(screenX, 0), ImVec2(screenX, uiHeight), IM_COL32(100, 100, 100, 255));
     }
 
-    for (float y = offset.y; y < uiHeight; y += tileSizeImgui)
+    for (float screenY = offset.y; screenY < uiHeight; screenY += tileSizeImgui)
     {
-        drawList->AddLine(ImVec2(0, y), ImVec2(uiWidth, y), IM_COL32(100, 100, 100, 255));
+        drawList->AddLine(ImVec2(0, screenY), ImVec2(uiWidth, screenY), IM_COL32(100, 100, 100, 255));
+    }
+
+    glm::ivec2 topLeftTilePosition = glm::floor(cameraTopLeft / static_cast<float>(tileSize));
+    for (float screenY = offset.y, tileY = topLeftTilePosition.y; tileY < tileMap.getHeight(); screenY += tileSizeImgui, ++tileY)
+    {
+        if (tileY < 0)
+            continue;
+
+        for (float screenX = offset.x, tileX = topLeftTilePosition.x; tileX < tileMap.getWidth(); screenX += tileSizeImgui, ++tileX)
+        {
+            if (tileX < 0)
+                continue;
+                
+            std::string label = std::format("{},{}", static_cast<int>(tileX), static_cast<int>(tileY));
+            drawList->AddText(ImVec2(screenX + 2, screenY + 2), IM_COL32(255, 255, 255, 200), label.c_str());
+        }
     }
 }
 
@@ -168,6 +184,12 @@ void DebugRenderer::draw(
     {
         drawTileMapAABBs(drawList, tileMap, camera);
     }
+
+    drawAABB(
+        drawList,
+        AABB(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight())),
+        camera,
+        IM_COL32(255, 255, 0, 255));
 
     drawDebugAABBs(drawList, camera);
 

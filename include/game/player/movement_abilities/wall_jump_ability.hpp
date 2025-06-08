@@ -11,6 +11,7 @@ public:
     void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
     void tryJump(MovementContext &MovementContext, const PlayerState &playerState) override;
     void syncState(PlayerState &playerState) const override;
+    void reset() override;
 
     bool wallJumping() const;
     void resetJumps();

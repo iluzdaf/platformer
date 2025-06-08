@@ -12,6 +12,7 @@ public:
     void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
     void tryJump(MovementContext &movementContext, const PlayerState &playerState) override;
     void syncState(PlayerState &playerState) const override;
+    void reset() override;
     
     void resetJumps();
     int getMaxJumpCount() const;

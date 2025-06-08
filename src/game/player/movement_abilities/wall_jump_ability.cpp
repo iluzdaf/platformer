@@ -82,3 +82,11 @@ void WallJumpAbility::resetJumps()
 {
     jumpCount = 0;
 }
+
+void WallJumpAbility::reset()
+{
+    resetJumps();
+    wallJumpTimeLeft = 0;
+    wasTouchingLeftWall = false;
+    wallJumpDirection = 1;
+}

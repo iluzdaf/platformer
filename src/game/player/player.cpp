@@ -207,3 +207,17 @@ AABB Player::getAABB() const
 {
     return physicsBody.getAABB();
 }
+
+void Player::reset()
+{
+    physicsBody.reset();
+
+    isFacingLeft = false;
+
+    for (const auto &ability : movementAbilities)
+    {
+        ability->reset();
+    }
+
+    playerState = PlayerState();
+}

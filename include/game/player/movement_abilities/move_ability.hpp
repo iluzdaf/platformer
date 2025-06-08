@@ -12,6 +12,7 @@ public:
     void tryMoveLeft(MovementContext &movementContext, const PlayerState &playerState) override;
     void tryMoveRight(MovementContext &movementContext, const PlayerState &playerState) override;
     void syncState(PlayerState &playerState) const override;
+    void reset() override;
 
     float getMoveSpeed() const;
 

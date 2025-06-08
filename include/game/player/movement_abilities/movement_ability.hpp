@@ -27,4 +27,5 @@ public:
         MovementContext &movementContext,
         const PlayerState &playerState) {}
     virtual void syncState(PlayerState &playerState) const {}
+    virtual void reset() {}
 };

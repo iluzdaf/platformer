@@ -10,6 +10,7 @@ public:
     void fixedUpdate(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
     void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
     void syncState(PlayerState &playerState) const override;
+    void reset() override;
 
     float getHangDuration() const;
     void resetHangTime();

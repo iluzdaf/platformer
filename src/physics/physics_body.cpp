@@ -199,3 +199,10 @@ AABB PhysicsBody::getCollisionAABBY() const
 {
     return collisionAABBY;
 }
+
+void PhysicsBody::reset()
+{
+    velocity = glm::vec2(0);
+    collisionAABBX = AABB();
+    collisionAABBY = AABB();
+}

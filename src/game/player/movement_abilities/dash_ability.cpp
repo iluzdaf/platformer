@@ -80,3 +80,10 @@ void DashAbility::syncState(PlayerState &playerState) const
     playerState.dashDuration = dashDuration;
     playerState.dashing = dashing();
 }
+
+void DashAbility::reset()
+{
+    dashTimeLeft = 0;
+    dashCooldownLeft = 0;
+    dashDirection = 1;
+}

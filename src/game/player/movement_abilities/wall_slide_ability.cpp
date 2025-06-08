@@ -44,7 +44,7 @@ void WallSlideAbility::fixedUpdate(
 
 void WallSlideAbility::update(
     MovementContext & /*movementContext*/,
-    const PlayerState & playerState,
+    const PlayerState &playerState,
     float /*deltaTime*/)
 {
     if (playerState.onGround)
@@ -66,4 +66,10 @@ float WallSlideAbility::getHangDuration() const
 void WallSlideAbility::resetHangTime()
 {
     hangTime = 0;
+}
+
+void WallSlideAbility::reset()
+{
+    wallSliding = false;
+    resetHangTime();
 }

@@ -10,7 +10,7 @@ MoveAbility::MoveAbility(const MoveAbilityData &moveAbilityData)
 }
 
 void MoveAbility::fixedUpdate(
-    MovementContext & movementContext,
+    MovementContext &movementContext,
     const PlayerState & /*playerState*/,
     float /*deltaTime*/)
 {
@@ -67,4 +67,10 @@ float MoveAbility::getMoveSpeed() const
 void MoveAbility::syncState(PlayerState &playerState) const
 {
     playerState.moveSpeed = moveSpeed;
+}
+
+void MoveAbility::reset()
+{
+    moveLeftRequested = false;
+    moveRightRequested = false;
 }

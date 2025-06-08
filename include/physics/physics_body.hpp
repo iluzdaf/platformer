@@ -27,6 +27,7 @@ public:
     void stepPhysics(float deltaTime, const TileMap &tileMap);
     AABB getCollisionAABBX() const;
     AABB getCollisionAABBY() const;
+    void reset();
 
 private:
     glm::vec2 position = glm::vec2(0, 0);

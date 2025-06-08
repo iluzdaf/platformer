@@ -20,7 +20,8 @@ LuaScriptSystem::LuaScriptSystem()
                            "loadNextLevel", &Game::loadNextLevel);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
     lua.new_usertype<TileMap>("TileMap", "getPlayerStartWorldPosition", &TileMap::getPlayerStartWorldPosition);
-    lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition);
+    lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition,
+                             "reset", &Player::reset);
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
 
     lua.set_function("startCoroutine", [this](sol::function func)

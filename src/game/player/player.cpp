@@ -45,6 +45,10 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
 
     animationManager.addAnimation(PlayerAnimationState::Idle, SpriteAnimation(playerData.idleSpriteAnimationData));
     animationManager.addAnimation(PlayerAnimationState::Walk, SpriteAnimation(playerData.walkSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::Dash, SpriteAnimation(playerData.dashSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::Jump, SpriteAnimation(playerData.jumpSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::Fall, SpriteAnimation(playerData.fallSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::WallSlide, SpriteAnimation(playerData.wallSlideSpriteAnimationData));
 }
 
 void Player::preFixedUpdate()

@@ -3,5 +3,9 @@
 enum class PlayerAnimationState
 {
     Idle,
-    Walk
+    Walk,
+    Dash,
+    Jump,
+    Fall,
+    WallSlide
 };

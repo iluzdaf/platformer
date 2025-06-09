@@ -25,11 +25,55 @@
         "walkSpriteAnimationData": {
             "frameAnimationData": {
                 "frames": [
+                    35,
                     34,
-                    26,
-                    35
+                    26
                 ],
-                "frameDuration": 0.1
+                "frameDuration": 0.15
+            },
+            "frameWidth": 16,
+            "frameHeight": 16,
+            "textureWidth": 96
+        },
+        "jumpSpriteAnimationData": {
+            "frameAnimationData": {
+                "frames": [
+                    29
+                ],
+                "frameDuration": 1
+            },
+            "frameWidth": 16,
+            "frameHeight": 16,
+            "textureWidth": 96
+        },
+        "fallSpriteAnimationData": {
+            "frameAnimationData": {
+                "frames": [
+                    19
+                ],
+                "frameDuration": 1
+            },
+            "frameWidth": 16,
+            "frameHeight": 16,
+            "textureWidth": 96
+        },
+        "dashSpriteAnimationData": {
+            "frameAnimationData": {
+                "frames": [
+                    18
+                ],
+                "frameDuration": 1
+            },
+            "frameWidth": 16,
+            "frameHeight": 16,
+            "textureWidth": 96
+        },
+        "wallSlideSpriteAnimationData": {
+            "frameAnimationData": {
+                "frames": [
+                    10
+                ],
+                "frameDuration": 1
             },
             "frameWidth": 16,
             "frameHeight": 16,

@@ -3,13 +3,39 @@
 
 void AnimationManager::update(float deltaTime, const PlayerState &playerState)
 {
-    bool isWalking = std::abs(playerState.velocity.x) > 0.001f;
-    PlayerAnimationState newState = isWalking ? PlayerAnimationState::Walk : PlayerAnimationState::Idle;
+    PlayerAnimationState newState = currentState;
+
+    if (playerState.dashing)
+    {
+        newState = PlayerAnimationState::Dash;
+    }
+    else if (!playerState.onGround && playerState.velocity.y < 0.0f)
+    {
+        newState = PlayerAnimationState::Jump;
+    }
+    else if (playerState.touchingLeftWall || playerState.touchingRightWall)
+    {
+        newState = PlayerAnimationState::WallSlide;
+    }    
+    else if (!playerState.onGround && playerState.velocity.y > 0.0f)
+    {
+        newState = PlayerAnimationState::Fall;
+    }
+    else if (std::abs(playerState.velocity.x) > 0.1f)
+    {
+        newState = PlayerAnimationState::Walk;
+    }
+    else
+    {
+        newState = PlayerAnimationState::Idle;
+    }
+
     if (newState != currentState)
     {
         currentState = newState;
         getCurrentAnimation().reset();
     }
+
     getCurrentAnimation().update(deltaTime);
 }
 
@@ -24,7 +50,7 @@ PlayerAnimationState AnimationManager::getCurrentState() const
 }
 
 void AnimationManager::addAnimation(
-    PlayerAnimationState state, 
+    PlayerAnimationState state,
     const SpriteAnimation &animation)
 {
     animations.insert_or_assign(state, animation);

@@ -14,6 +14,10 @@ struct PlayerData
     glm::vec2 size = glm::vec2(16, 16);
     SpriteAnimationData idleSpriteAnimationData;
     SpriteAnimationData walkSpriteAnimationData;
+    SpriteAnimationData dashSpriteAnimationData;
+    SpriteAnimationData jumpSpriteAnimationData;
+    SpriteAnimationData fallSpriteAnimationData;
+    SpriteAnimationData wallSlideSpriteAnimationData;
     std::optional<MoveAbilityData> moveAbilityData;
     std::optional<JumpAbilityData> jumpAbilityData;
     std::optional<DashAbilityData> dashAbilityData;

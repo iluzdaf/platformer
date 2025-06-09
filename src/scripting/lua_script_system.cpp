@@ -43,6 +43,8 @@ LuaScriptSystem::LuaScriptSystem()
     onWallJump = lua["onWallJump"];
     onDoubleJump = lua["onDoubleJump"];
     onDash = lua["onDash"];
+    onFallFromHeight = lua["onFallFromHeight"];
+    onHitCeiling = lua["onHitCeiling"];
 }
 
 void LuaScriptSystem::update(float deltaTime)
@@ -88,17 +90,13 @@ void LuaScriptSystem::bindGameObjects(
 void LuaScriptSystem::triggerLevelComplete()
 {
     if (onLevelComplete.valid())
-    {
         onLevelComplete();
-    }
 }
 
 void LuaScriptSystem::triggerDeath()
 {
     if (onDeath.valid())
-    {
         onDeath();
-    }
 }
 
 void LuaScriptSystem::rebindTileMap(TileMap *tileMap)
@@ -119,23 +117,29 @@ const std::vector<LuaScriptSystem::WaitingCoroutine> &LuaScriptSystem::getWaitin
 void LuaScriptSystem::triggerWallJump()
 {
     if (onWallJump.valid())
-    {
         onWallJump();
-    }
 }
 
 void LuaScriptSystem::triggerDoubleJump()
 {
     if (onDoubleJump.valid())
-    {
         onDoubleJump();
-    }
 }
 
 void LuaScriptSystem::triggerDash()
 {
     if (onDash.valid())
-    {
         onDash();
-    }
+}
+
+void LuaScriptSystem::triggerFallFromHeight()
+{
+    if (onFallFromHeight.valid())
+        onFallFromHeight();
+}
+
+void LuaScriptSystem::triggerHitCeiling()
+{
+    if (onHitCeiling.valid())
+        onHitCeiling();
 }

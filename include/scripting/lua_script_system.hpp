@@ -31,13 +31,18 @@ public:
     void triggerWallJump();
     void triggerDoubleJump();
     void triggerDash();
+    void triggerFallFromHeight();
+    void triggerHitCeiling();
 
 private:
     sol::state lua;
-    sol::function onDeath;
-    sol::function onLevelComplete;
+    sol::function
+        onDeath,
+        onLevelComplete,
+        onWallJump,
+        onDoubleJump,
+        onDash,
+        onFallFromHeight,
+        onHitCeiling;
     std::vector<WaitingCoroutine> waitingCoroutines;
-    sol::function onWallJump;
-    sol::function onDoubleJump;
-    sol::function onDash;
 };

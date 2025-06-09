@@ -37,5 +37,13 @@ function onDoubleJump()
 end
 
 function onDash()
-    camera:startShake(0.2, 3)
+    camera:startShake(0.25, 3)
+end
+
+function onFallFromHeight()
+    camera:startShake(0.25, 3)
+end
+
+function onHitCeiling()
+    camera:startShake(0.1, 1)
 end

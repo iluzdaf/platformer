@@ -13,7 +13,8 @@
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
     : size(playerData.size),
       idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
-      walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData))
+      walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData)),
+      fallFromHeightThreshold(playerData.fallFromHeightThreshold)
 {
     physicsBody.setColliderSize(playerData.colliderSize);
     physicsBody.setColliderOffset(playerData.colliderOffset);
@@ -170,9 +171,13 @@ void Player::setFacingLeft(bool isFacingLeft)
 void Player::updatePlayerState(const TileMap &tileMap)
 {
     playerState.position = physicsBody.getPosition();
+    playerState.previousVelocity = playerState.velocity;
     playerState.velocity = physicsBody.getVelocity();
     playerState.colliderSize = physicsBody.getColliderSize();
+    playerState.wasOnGround = playerState.onGround;
     playerState.onGround = physicsBody.contactWithGround(tileMap);
+    playerState.wasHitCeiling = playerState.hitCeiling;
+    playerState.hitCeiling = physicsBody.contactWithCeiling(tileMap);
     playerState.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
     playerState.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
     if (!physicsBody.getCollisionAABBX().isEmpty())
@@ -191,6 +196,11 @@ void Player::updatePlayerState(const TileMap &tileMap)
     {
         ability->syncState(playerState);
     }
+
+    if (!playerState.wasOnGround && playerState.onGround && playerState.previousVelocity.y > fallFromHeightThreshold)
+        onFallFromHeight();
+    if (!playerState.wasHitCeiling && playerState.hitCeiling)
+        onHitCeiling();
 }
 
 const PlayerState &Player::getPlayerState() const

@@ -21,4 +21,5 @@ struct PlayerData
     std::optional<WallJumpAbilityData> wallJumpAbilityData;
     glm::vec2 colliderSize = glm::vec2(8, 16);
     glm::vec2 colliderOffset = glm::vec2(4, 0);
+    float fallFromHeightThreshold = 600;
 };

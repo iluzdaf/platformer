@@ -48,6 +48,10 @@ Game::Game()
                                  { luaScriptSystem->triggerDoubleJump(); });
     player->onDash.connect([this]
                            { luaScriptSystem->triggerDash(); });
+    player->onFallFromHeight.connect([this]
+                                     { luaScriptSystem->triggerFallFromHeight(); });
+    player->onHitCeiling.connect([this]
+                                 { luaScriptSystem->triggerHitCeiling(); });
     tileInteractionSystem = std::make_unique<TileInteractionSystem>();
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");

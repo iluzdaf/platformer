@@ -40,11 +40,14 @@ public:
     void emitDoubleJump() override;
     void emitDash() override;
 
-    fteng::signal<void()> onLevelComplete;
-    fteng::signal<void()> onDeath;
-    fteng::signal<void()> onWallJump;
-    fteng::signal<void()> onDoubleJump;
-    fteng::signal<void()> onDash;
+    fteng::signal<void()>
+        onLevelComplete,
+        onDeath,
+        onWallJump,
+        onDoubleJump,
+        onDash,
+        onFallFromHeight,
+        onHitCeiling;
 
 private:
     void updatePlayerState(const TileMap &tileMap);
@@ -54,6 +57,7 @@ private:
     glm::vec2 size = glm::vec2(16, 16);
     std::vector<std::unique_ptr<MovementAbility>> movementAbilities;
     PlayerState playerState;
+    float fallFromHeightThreshold = 600;
 
     void updateAnimation(float deltaTime);
     SpriteAnimation idleAnim;

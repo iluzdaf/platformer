@@ -8,6 +8,7 @@ void AnimationManager::update(float deltaTime, const PlayerState &playerState)
     if (newState != currentState)
     {
         currentState = newState;
+        getCurrentAnimation().reset();
     }
     getCurrentAnimation().update(deltaTime);
 }
@@ -32,4 +33,9 @@ void AnimationManager::addAnimation(
 void AnimationManager::reset()
 {
     currentState = PlayerAnimationState::Idle;
+
+    for (auto &[state, animation] : animations)
+    {
+        animation.reset();
+    }
 }

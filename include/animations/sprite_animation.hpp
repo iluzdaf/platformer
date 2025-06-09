@@ -6,11 +6,11 @@ class SpriteAnimationData;
 class SpriteAnimation
 {
 public:
-    SpriteAnimation() = default;
-    SpriteAnimation(const SpriteAnimationData &spriteAnimationData);
+    explicit SpriteAnimation(const SpriteAnimationData &spriteAnimationData);
     void update(float deltaTime);
     glm::vec2 getUVStart() const;
     glm::vec2 getUVEnd() const;
+    void reset();
 
 private:
     FrameAnimation frameAnimation;

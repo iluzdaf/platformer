@@ -45,3 +45,8 @@ glm::vec2 SpriteAnimation::getUVEnd() const
                          static_cast<float>(frameWidth) / textureWidth,
                          static_cast<float>(frameHeight) / textureWidth);
 }
+
+void SpriteAnimation::reset()
+{
+    frameAnimation.reset();
+}

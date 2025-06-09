@@ -6,17 +6,6 @@
 #include "animations/sprite_animation_data.hpp"
 using Catch::Approx;
 
-TEST_CASE("Default Constucted SpriteAnimation behaves correctly", "[FrameAnimation]")
-{
-    SpriteAnimation spriteAnimation;
-    REQUIRE(spriteAnimation.getUVStart() == glm::vec2(0, 0));
-    REQUIRE(spriteAnimation.getUVEnd() == glm::vec2(1, 1));
-
-    spriteAnimation.update(0.5f);
-    REQUIRE(spriteAnimation.getUVStart() == glm::vec2(0, 0));
-    REQUIRE(spriteAnimation.getUVEnd() == glm::vec2(1, 1));
-}
-
 TEST_CASE("SpriteAnimation returns correct UVs", "[SpriteAnimation]")
 {
     SpriteAnimation anim({{{0, 1, 2}, 0.2f}, 32, 32, 96});

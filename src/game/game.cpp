@@ -117,14 +117,15 @@ void Game::render()
 
     tileMapRenderer->draw(*tileMap.get(), projection);
 
+    PlayerState playerState = player->getPlayerState();
     tileSetSpriteRenderer->drawWithUV(
         *playerTexture.get(),
         projection,
-        player->getPosition(),
-        player->getSize(),
-        player->getCurrentAnimation().getUVStart(),
-        player->getCurrentAnimation().getUVEnd(),
-        player->facingLeft());
+        playerState.position,
+        playerState.size,
+        playerState.currentAnimationUVStart,
+        playerState.currentAnimationUVEnd,
+        playerState.facingLeft);
 
     screenTransition->draw();
 

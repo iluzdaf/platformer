@@ -143,29 +143,29 @@ TEST_CASE("Player uses correct animation state", "[Player]")
     SECTION("Player is idle by default")
     {
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(player.getAnimationState() == PlayerAnimationState::Idle);
+        REQUIRE(player.getPlayerState().currentAnimationState == PlayerAnimationState::Idle);
     }
 
     SECTION("Player walking triggers walk animation")
     {
         player.moveRight();
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(player.getAnimationState() == PlayerAnimationState::Walk);
+        REQUIRE(player.getPlayerState().currentAnimationState == PlayerAnimationState::Walk);
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(player.getAnimationState() == PlayerAnimationState::Idle);
+        REQUIRE(player.getPlayerState().currentAnimationState == PlayerAnimationState::Idle);
         player.moveLeft();
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(player.getAnimationState() == PlayerAnimationState::Walk);
+        REQUIRE(player.getPlayerState().currentAnimationState == PlayerAnimationState::Walk);
     }
 
     SECTION("Animation frame advances over time")
     {
         player.moveRight();
         simulatePlayer(player, tileMap, 0.1f);
-        glm::vec2 uvBefore = player.getCurrentAnimation().getUVStart();
+        glm::vec2 uvBefore = player.getPlayerState().currentAnimationUVStart;
         player.moveRight();
         simulatePlayer(player, tileMap, 0.1f);
-        glm::vec2 uvAfter = player.getCurrentAnimation().getUVStart();
+        glm::vec2 uvAfter = player.getPlayerState().currentAnimationUVStart;
         REQUIRE(uvBefore.x != Approx(uvAfter.x));
     }
 }

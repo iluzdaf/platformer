@@ -12,8 +12,6 @@
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
     : size(playerData.size),
-      idleAnim(SpriteAnimation(playerData.idleSpriteAnimationData)),
-      walkAnim(SpriteAnimation(playerData.walkSpriteAnimationData)),
       fallFromHeightThreshold(playerData.fallFromHeightThreshold)
 {
     physicsBody.setColliderSize(playerData.colliderSize);
@@ -44,6 +42,9 @@ Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
     {
         movementAbilities.emplace_back(std::make_unique<WallJumpAbility>(*playerData.wallJumpAbilityData));
     }
+
+    animationManager.addAnimation(PlayerAnimationState::Idle, SpriteAnimation(playerData.idleSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::Walk, SpriteAnimation(playerData.walkSpriteAnimationData));
 }
 
 void Player::preFixedUpdate()
@@ -63,7 +64,16 @@ void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
 
     physicsBody.stepPhysics(deltaTime, tileMap);
 
-    updatePlayerState(tileMap);
+    animationManager.update(deltaTime, playerState);
+
+    updatePlayerPhysicsState(tileMap);
+    updatePlayerState();
+
+    if (!playerState.wasOnGround && playerState.onGround &&
+        playerState.previousVelocity.y > fallFromHeightThreshold)
+        onFallFromHeight();
+    if (!playerState.wasHitCeiling && playerState.hitCeiling)
+        onHitCeiling();
 }
 
 void Player::update(float deltaTime, TileMap &tileMap)
@@ -73,20 +83,7 @@ void Player::update(float deltaTime, TileMap &tileMap)
         ability->update(*this, playerState, deltaTime);
     }
 
-    updateAnimation(deltaTime);
-
     physicsBody.setVelocity(glm::vec2(0, physicsBody.getVelocity().y));
-}
-
-void Player::updateAnimation(float deltaTime)
-{
-    bool isWalking = std::abs(physicsBody.getVelocity().x) > 0.001f;
-    PlayerAnimationState newState = isWalking ? PlayerAnimationState::Walk : PlayerAnimationState::Idle;
-    if (newState != animState)
-    {
-        animState = newState;
-    }
-    getCurrentAnimation().update(deltaTime);
 }
 
 void Player::jump()
@@ -123,23 +120,6 @@ glm::vec2 Player::getVelocity() const
     return physicsBody.getVelocity();
 }
 
-SpriteAnimation &Player::getCurrentAnimation()
-{
-    switch (animState)
-    {
-    case PlayerAnimationState::Idle:
-        return idleAnim;
-    case PlayerAnimationState::Walk:
-        return walkAnim;
-    }
-    return idleAnim;
-}
-
-PlayerAnimationState Player::getAnimationState() const
-{
-    return animState;
-}
-
 bool Player::facingLeft() const
 {
     return isFacingLeft;
@@ -168,18 +148,15 @@ void Player::setFacingLeft(bool isFacingLeft)
     this->isFacingLeft = isFacingLeft;
 }
 
-void Player::updatePlayerState(const TileMap &tileMap)
+void Player::updatePlayerPhysicsState(const TileMap &tileMap)
 {
-    playerState.position = physicsBody.getPosition();
-    playerState.previousVelocity = playerState.velocity;
-    playerState.velocity = physicsBody.getVelocity();
-    playerState.colliderSize = physicsBody.getColliderSize();
     playerState.wasOnGround = playerState.onGround;
     playerState.onGround = physicsBody.contactWithGround(tileMap);
     playerState.wasHitCeiling = playerState.hitCeiling;
     playerState.hitCeiling = physicsBody.contactWithCeiling(tileMap);
     playerState.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
     playerState.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+
     if (!physicsBody.getCollisionAABBX().isEmpty())
     {
         playerState.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());
@@ -188,7 +165,14 @@ void Player::updatePlayerState(const TileMap &tileMap)
     {
         playerState.collisionAABBY.expandToInclude(physicsBody.getCollisionAABBY());
     }
+}
 
+void Player::updatePlayerState()
+{
+    playerState.position = physicsBody.getPosition();
+    playerState.previousVelocity = playerState.velocity;
+    playerState.velocity = physicsBody.getVelocity();
+    playerState.colliderSize = physicsBody.getColliderSize();
     playerState.size = size;
     playerState.facingLeft = facingLeft();
 
@@ -197,10 +181,9 @@ void Player::updatePlayerState(const TileMap &tileMap)
         ability->syncState(playerState);
     }
 
-    if (!playerState.wasOnGround && playerState.onGround && playerState.previousVelocity.y > fallFromHeightThreshold)
-        onFallFromHeight();
-    if (!playerState.wasHitCeiling && playerState.hitCeiling)
-        onHitCeiling();
+    playerState.currentAnimationUVStart = animationManager.getCurrentAnimation().getUVStart();
+    playerState.currentAnimationUVEnd = animationManager.getCurrentAnimation().getUVEnd();
+    playerState.currentAnimationState = animationManager.getCurrentState();
 }
 
 const PlayerState &Player::getPlayerState() const
@@ -229,7 +212,10 @@ void Player::reset()
         ability->reset();
     }
 
+    animationManager.reset();
+
     playerState = PlayerState();
+    updatePlayerState();
 }
 
 void Player::emitWallJump()

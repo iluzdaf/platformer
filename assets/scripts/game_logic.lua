@@ -1,12 +1,12 @@
 waitSeconds = coroutine.yield
 
 function onDeath()
+    game:pause()
+    camera:startShake(0.25, 4)
     startCoroutine(deathCoroutine)
 end
 
 function deathCoroutine()
-    game:pause()
-    camera:startShake(0.25, 4)
     waitSeconds(0.25)
     player:reset()
     player:setPosition(tileMap:getPlayerStartWorldPosition())
@@ -14,17 +14,16 @@ function deathCoroutine()
 end
 
 function onLevelComplete()
-    startCoroutine(levelCompleteCoroutine)
-end
-
-function levelCompleteCoroutine()
-    game:pause()
-    screenTransition:start(0.4, true)
-    waitSeconds(0.0)
     game:loadNextLevel()
     player:reset()
     player:setPosition(tileMap:getPlayerStartWorldPosition())
-    waitSeconds(0.4)
+    game:pause()
+    screenTransition:start(0.5, true)
+    startCoroutine(levelCompleteCoroutine)
+end
+
+function levelCompleteCoroutine()    
+    waitSeconds(0.5)
     game:play()
 end
 

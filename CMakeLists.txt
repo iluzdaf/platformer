@@ -86,6 +86,7 @@ add_executable(platformer
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp
+    src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
 )
 
@@ -153,6 +154,7 @@ add_executable(tests
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp
+    src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     external/stb/stb_image.cpp
 )

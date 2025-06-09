@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
 #include "physics/aabb.hpp"
+#include "game/player/player_animation_state.hpp"
 
 struct PlayerState
 {
@@ -18,6 +19,10 @@ struct PlayerState
 
     glm::vec2 size = glm::vec2(16.0f);
     bool facingLeft = false;
+
+    glm::vec2 currentAnimationUVStart = glm::vec2(0, 0);
+    glm::vec2 currentAnimationUVEnd = glm::vec2(1, 1);
+    PlayerAnimationState currentAnimationState = PlayerAnimationState::Idle;
 
     bool dashing = false;
     float dashDuration = 0.2f;

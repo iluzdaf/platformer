@@ -7,6 +7,7 @@
 #include "game/player/movement_context.hpp"
 #include "game/player/player_state.hpp"
 #include "animations/sprite_animation.hpp"
+#include "animations/animation_manager.hpp"
 #include "physics/physics_body.hpp"
 class TileMap;
 class PlayerData;
@@ -23,8 +24,6 @@ public:
     void moveLeft();
     void moveRight();
     void dash();
-    SpriteAnimation &getCurrentAnimation();
-    PlayerAnimationState getAnimationState() const;
     glm::vec2 getSize() const;
     bool facingLeft() const;
     const PlayerState &getPlayerState() const;
@@ -52,17 +51,14 @@ public:
         onWallSliding;
 
 private:
-    void updatePlayerState(const TileMap &tileMap);
-
     PhysicsBody physicsBody;
     bool isFacingLeft = false;
     glm::vec2 size = glm::vec2(16, 16);
     std::vector<std::unique_ptr<MovementAbility>> movementAbilities;
     PlayerState playerState;
     float fallFromHeightThreshold = 600;
+    AnimationManager animationManager;
 
-    void updateAnimation(float deltaTime);
-    SpriteAnimation idleAnim;
-    SpriteAnimation walkAnim;
-    PlayerAnimationState animState = PlayerAnimationState::Idle;
+    void updatePlayerState();
+    void updatePlayerPhysicsState(const TileMap &tileMap);
 };

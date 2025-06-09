@@ -6,7 +6,6 @@ class TileMap;
 class PhysicsBody
 {
 public:
-    PhysicsBody() = default;
     void setPosition(glm::vec2 position);
     glm::vec2 getPosition() const;
     void setVelocity(glm::vec2 velocity);

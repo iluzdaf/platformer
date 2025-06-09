@@ -56,7 +56,8 @@
         "colliderOffset": [
             4,
             3
-        ]
+        ],
+        "fallFromHeightThreshold": 600
     },
     "cameraData": {
         "zoom": 7.1

@@ -22,9 +22,9 @@ Game::Game()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     luaScriptSystem = std::make_unique<LuaScriptSystem>();
-    int screenWidth, screenHeight;
-    glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
-    camera = std::make_unique<Camera2D>(gameData.cameraData, screenWidth, screenHeight);
+    int windowWidth, windowHeight;
+    glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
+    camera = std::make_unique<Camera2D>(gameData.cameraData, windowWidth, windowHeight);
     keyboardManager.registerKey(GLFW_KEY_UP);
     keyboardManager.registerKey(GLFW_KEY_LEFT);
     keyboardManager.registerKey(GLFW_KEY_RIGHT);
@@ -63,7 +63,7 @@ Game::Game()
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
     screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
     screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
-    debugRenderer = std::make_unique<DebugRenderer>(screenWidth, screenHeight, gameData.debugRendererData);
+    debugRenderer = std::make_unique<DebugRenderer>(windowWidth, windowHeight, gameData.debugRendererData);
     debugRenderer->onPlay.connect([this]
                                   { play(); });
     debugRenderer->onStep.connect([this]
@@ -79,7 +79,7 @@ Game::Game()
         static int originalZoom = camera->getZoom();
         int currentZoom = camera->getZoom();
         camera->setZoom(currentZoom == originalZoom? 3 : originalZoom); });
-    imGuiManager = std::make_unique<ImGuiManager>(window);
+    imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 
@@ -138,10 +138,11 @@ void Game::render()
         *tileSet.get());
 }
 
-void Game::resize(int screenWidth, int screenHeight)
+void Game::resize(int windowWidth, int windowHeight)
 {
-    camera->resize(screenWidth, screenHeight);
-    debugRenderer->resize(screenWidth, screenHeight);
+    camera->resize(windowWidth, windowHeight);
+    debugRenderer->resize(windowWidth, windowHeight);
+    imGuiManager->resize(windowWidth, windowHeight);
 }
 
 void Game::run()
@@ -157,7 +158,8 @@ void Game::run()
         luaScriptSystem->update(deltaTime);
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
-        debugRenderer->update(deltaTime, *camera.get(), *tileMap.get());
+        imGuiManager->update();
+        debugRenderer->update(deltaTime, *imGuiManager.get(), *camera.get(), *tileMap.get());
 
         if (keyboardManager.isPressed(GLFW_KEY_P))
         {

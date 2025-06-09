@@ -3,21 +3,25 @@
 #include "cameras/camera2d.hpp"
 #include "cameras/camera2d_data.hpp"
 
-Camera2D::Camera2D(const Camera2DData &cameraData, int screenWidth, int screenHeight)
+Camera2D::Camera2D(
+    const Camera2DData &cameraData, 
+    int windowWidth, 
+    int windowHeight)
     : zoom(cameraData.zoom)
 {
     assert(zoom > 0.0f && "zoom must be positive and non-zero");
-    resize(screenWidth, screenHeight);
+
+    resize(windowWidth, windowHeight);
 }
 
 void Camera2D::follow(const glm::vec2 &target)
 {
-    float halfW = screenWidth / (2.0f * zoom);
-    float halfH = screenHeight / (2.0f * zoom);
+    float halfW = windowWidth / (2.0f * zoom);
+    float halfH = windowHeight / (2.0f * zoom);
     float worldW = worldMax.x - worldMin.x;
     float worldH = worldMax.y - worldMin.y;
-    bool clampX = worldW > screenWidth / zoom;
-    bool clampY = worldH > screenHeight / zoom;
+    bool clampX = worldW > windowWidth / zoom;
+    bool clampY = worldH > windowHeight / zoom;
 
     if (clampX)
         position.x = std::clamp(target.x, worldMin.x + halfW, worldMax.x - halfW);
@@ -47,8 +51,8 @@ glm::vec2 Camera2D::getPosition() const
 glm::mat4 Camera2D::getProjection() const
 {
     glm::vec2 cameraPosition = position + shakeOffset;
-    float halfW = screenWidth / (2.0f * zoom);
-    float halfH = screenHeight / (2.0f * zoom);
+    float halfW = windowWidth / (2.0f * zoom);
+    float halfH = windowHeight / (2.0f * zoom);
     return glm::ortho(
         cameraPosition.x - halfW,
         cameraPosition.x + halfW,
@@ -56,12 +60,13 @@ glm::mat4 Camera2D::getProjection() const
         cameraPosition.y - halfH);
 }
 
-void Camera2D::resize(float screenWidth, float screenHeight)
+void Camera2D::resize(int windowWidth, int windowHeight)
 {
-    assert(screenWidth > 0.0f && "screenWidth must be positive");
-    assert(screenHeight > 0.0f && "screenHeight must be positive");
-    this->screenWidth = screenWidth;
-    this->screenHeight = screenHeight;
+    assert(windowWidth > 0.0f && "windowWidth must be positive");
+    assert(windowHeight > 0.0f && "windowHeight must be positive");
+
+    this->windowWidth = windowWidth;
+    this->windowHeight = windowHeight;
 }
 
 void Camera2D::update(float deltaTime)
@@ -71,6 +76,9 @@ void Camera2D::update(float deltaTime)
 
 void Camera2D::startShake(float duration, float magnitude)
 {
+    assert(duration > 0);
+    assert(magnitude > 0);
+
     shake.start(duration, magnitude);
 }
 
@@ -81,10 +89,12 @@ float Camera2D::getZoom() const
 
 glm::vec2 Camera2D::getTopLeftPosition() const
 {
-    return getPosition() - glm::vec2(screenWidth, screenHeight) / (2.0f * zoom);
+    return getPosition() - glm::vec2(windowWidth, windowHeight) / (2.0f * zoom);
 }
 
 void Camera2D::setZoom(float zoom)
 {
+    assert(zoom > 0.0f && "zoom must be positive and non-zero");
+
     this->zoom = zoom;
 }

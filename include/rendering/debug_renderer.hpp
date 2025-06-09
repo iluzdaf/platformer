@@ -32,9 +32,10 @@ public:
         const TileMap &tileMap,
         const Player &player,
         const Texture2D &tileSet);
-    void resize(float screenWidth, float screenHeight);
+    void resize(int windowWidth, int windowHeight);
     void update(
         float deltaTime,
+        ImGuiManager &imGuiManager,
         const Camera2D &camera,
         TileMap &tileMap);
 
@@ -45,9 +46,7 @@ public:
     fteng::signal<void()> onToggleZoom;
 
 private:
-    float screenWidth = 800, screenHeight = 600,
-          uiWidth = 800, uiHeight = 600;
-    glm::vec2 uiScale = glm::vec2(1.0f);
+    float windowWidth = 800, windowHeight = 600;
     std::unordered_map<std::size_t, DebugAABB> debugAABBs;
     bool shouldDrawGrid = false,
          shouldDrawPlayerAABBs = false,
@@ -62,29 +61,28 @@ private:
         AABB aabb,
         ImU32 color,
         float duration);
-    ImVec2 worldToScreen(
-        glm::vec2 worldPosition,
-        const Camera2D &camera) const;
-    glm::vec2 screenToWorld(
-        ImVec2 screenPosition,
-        const Camera2D &camera) const;
     void drawDebugAABBs(
         ImDrawList *drawList,
+        ImGuiManager &imGuiManager,
         const Camera2D &camera);
     void drawGrid(
         ImDrawList *drawList,
+        const ImGuiManager &imGuiManager,
         const TileMap &tileMap,
         const Camera2D &camera);
     void drawPlayerAABBs(
         ImDrawList *drawList,
+        const ImGuiManager &imGuiManager,
         const Player &player,
         const Camera2D &camera);
     void drawTileMapAABBs(
         ImDrawList *drawList,
+        const ImGuiManager &imGuiManager,
         const TileMap &tileMap,
         const Camera2D &camera);
     void drawAABB(
         ImDrawList *drawList,
+        const ImGuiManager& imGuiManager,
         AABB aabb,
         const Camera2D &camera,
         ImU32 color);
@@ -96,6 +94,7 @@ private:
         float tileSize) const;
     void drawTileInfo(
         ImDrawList *drawList,
+        const ImGuiManager& imGuiManager,
         const Camera2D &camera,
         const TileMap &tileMap);
     void drawDebugControls();

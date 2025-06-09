@@ -7,11 +7,11 @@
 #include "game/player/player.hpp"
 
 DebugRenderer::DebugRenderer(
-    float screenWidth,
-    float screenHeight,
+    float windowWidth,
+    float windowHeight,
     const DebugRendererData &data)
-    : screenWidth(screenWidth),
-      screenHeight(screenHeight),
+    : windowWidth(windowWidth),
+      windowHeight(windowHeight),
       shouldDrawGrid(data.shouldDrawGrid),
       shouldDrawPlayerAABBs(data.shouldDrawPlayerAABBs),
       shouldDrawTileMapAABBs(data.shouldDrawTileMapAABBs),
@@ -23,32 +23,34 @@ DebugRenderer::DebugRenderer(
 
 void DebugRenderer::drawGrid(
     ImDrawList *drawList,
+    const ImGuiManager &imGuiManager,
     const TileMap &tileMap,
     const Camera2D &camera)
 {
     glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
     float tileSize = tileMap.getTileSize();
     glm::vec2 tileMapWorldOffset = calculateTileMapWorldOffset(cameraTopLeft, tileSize);
-    ImVec2 offset = worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
-    float tileSizeImgui = tileSize * camera.getZoom() / uiScale.x;
+    ImVec2 offset = imGuiManager.worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
+    float tileSizeImgui = tileSize * camera.getZoom() / imGuiManager.getUiScale().x;
 
-    for (float screenX = offset.x; screenX < uiWidth; screenX += tileSizeImgui)
+    for (float screenX = offset.x; screenX < imGuiManager.getUiDimensions().x; screenX += tileSizeImgui)
     {
-        drawList->AddLine(ImVec2(screenX, 0), ImVec2(screenX, uiHeight), IM_COL32(100, 100, 100, 255));
+        drawList->AddLine(ImVec2(screenX, 0), ImVec2(screenX, imGuiManager.getUiDimensions().y), IM_COL32(100, 100, 100, 255));
     }
 
-    for (float screenY = offset.y; screenY < uiHeight; screenY += tileSizeImgui)
+    for (float screenY = offset.y; screenY < imGuiManager.getUiDimensions().y; screenY += tileSizeImgui)
     {
-        drawList->AddLine(ImVec2(0, screenY), ImVec2(uiWidth, screenY), IM_COL32(100, 100, 100, 255));
+        drawList->AddLine(ImVec2(0, screenY), ImVec2(imGuiManager.getUiDimensions().x, screenY), IM_COL32(100, 100, 100, 255));
     }
 }
 
 void DebugRenderer::drawPlayerAABBs(
     ImDrawList *drawList,
+    const ImGuiManager &imGuiManager,
     const Player &player,
     const Camera2D &camera)
 {
-    drawAABB(drawList, player.getAABB(), camera, IM_COL32(0, 255, 0, 255));
+    drawAABB(drawList, imGuiManager, player.getAABB(), camera, IM_COL32(0, 255, 0, 255));
     PlayerState playerState = player.getPlayerState();
     addDebugAABB(playerState.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
     addDebugAABB(playerState.collisionAABBY, IM_COL32(255, 255, 0, 255), 0.1f);
@@ -56,10 +58,11 @@ void DebugRenderer::drawPlayerAABBs(
 
 void DebugRenderer::drawTileMapAABBs(
     ImDrawList *drawList,
+    const ImGuiManager &imGuiManager,
     const TileMap &tileMap,
     const Camera2D &camera)
 {
-    auto tilePositions = tileMap.getTilePositionsAt(camera.getTopLeftPosition(), glm::vec2(screenWidth, screenHeight));
+    auto tilePositions = tileMap.getTilePositionsAt(camera.getTopLeftPosition(), glm::vec2(windowWidth, windowHeight));
     for (auto tilePosition : tilePositions)
     {
         auto tile = tileMap.getTile(tilePosition);
@@ -71,6 +74,7 @@ void DebugRenderer::drawTileMapAABBs(
         glm::vec2 tileWorldPosition = tileMap.getTileWorldPosition(tilePosition);
         drawAABB(
             drawList,
+            imGuiManager,
             tile.getAABBAt(tileWorldPosition),
             camera,
             tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
@@ -78,6 +82,7 @@ void DebugRenderer::drawTileMapAABBs(
 
     drawAABB(
         drawList,
+        imGuiManager,
         AABB(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight())),
         camera,
         IM_COL32(255, 255, 0, 255));
@@ -85,6 +90,7 @@ void DebugRenderer::drawTileMapAABBs(
     glm::vec2 playerStartWorldPosition = tileMap.getPlayerStartWorldPosition();
     drawAABB(
         drawList,
+        imGuiManager,
         AABB(playerStartWorldPosition, glm::vec2(tileMap.getTileSize())),
         camera,
         IM_COL32(255, 0, 255, 255));
@@ -92,6 +98,7 @@ void DebugRenderer::drawTileMapAABBs(
 
 void DebugRenderer::drawAABB(
     ImDrawList *drawList,
+    const ImGuiManager &imGuiManager,
     AABB aabb,
     const Camera2D &camera,
     ImU32 color)
@@ -100,13 +107,14 @@ void DebugRenderer::drawAABB(
     {
         return;
     }
-    ImVec2 topLeft = worldToScreen(aabb.position, camera);
-    ImVec2 bottomRight = worldToScreen(aabb.position + aabb.size, camera);
+    ImVec2 topLeft = imGuiManager.worldToScreen(aabb.position, camera);
+    ImVec2 bottomRight = imGuiManager.worldToScreen(aabb.position + aabb.size, camera);
     drawList->AddRect(topLeft, bottomRight, color);
 }
 
 void DebugRenderer::update(
     float deltaTime,
+    ImGuiManager &imGuiManager,
     const Camera2D &camera,
     TileMap &tileMap)
 {
@@ -119,19 +127,15 @@ void DebugRenderer::update(
             ++it;
     }
 
-    ImGuiIO &io = ImGui::GetIO();
-    uiWidth = io.DisplaySize.x;
-    uiHeight = io.DisplaySize.y;
-    uiScale = glm::vec2(screenWidth, screenHeight) / glm::vec2(uiWidth, uiHeight);
-
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
-    glm::vec2 worldPosition = screenToWorld(mouseScreenPosition, camera);
+    glm::vec2 worldPosition = imGuiManager.screenToWorld(mouseScreenPosition, camera);
     glm::ivec2 tilePosition = tileMap.getTilePositionAt(worldPosition);
     if (!tileMap.validTilePosition(tilePosition))
     {
         return;
     }
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !io.WantCaptureMouse)
+
+    if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !imGuiManager.getIO().WantCaptureMouse)
     {
         if (editingPlayerStartTile)
         {
@@ -160,25 +164,25 @@ void DebugRenderer::draw(
 
     if (shouldDrawGrid)
     {
-        drawGrid(drawList, tileMap, camera);
+        drawGrid(drawList, imGuiManager, tileMap, camera);
     }
 
     if (shouldDrawTileInfo)
     {
-        drawTileInfo(drawList, camera, tileMap);
+        drawTileInfo(drawList, imGuiManager, camera, tileMap);
     }
 
     if (shouldDrawPlayerAABBs)
     {
-        drawPlayerAABBs(drawList, player, camera);
+        drawPlayerAABBs(drawList, imGuiManager, player, camera);
     }
 
     if (shouldDrawTileMapAABBs)
     {
-        drawTileMapAABBs(drawList, tileMap, camera);
+        drawTileMapAABBs(drawList, imGuiManager, tileMap, camera);
     }
 
-    drawDebugAABBs(drawList, camera);
+    drawDebugAABBs(drawList, imGuiManager, camera);
 
     if (showDebugControls)
     {
@@ -193,10 +197,10 @@ void DebugRenderer::draw(
     imGuiManager.render();
 }
 
-void DebugRenderer::resize(float screenWidth, float screenHeight)
+void DebugRenderer::resize(int windowWidth, int windowHeight)
 {
-    this->screenWidth = screenWidth;
-    this->screenHeight = screenHeight;
+    this->windowWidth = windowWidth;
+    this->windowHeight = windowHeight;
 }
 
 void DebugRenderer::addDebugAABB(AABB aabb, ImU32 color, float duration)
@@ -219,24 +223,14 @@ void DebugRenderer::addDebugAABB(AABB aabb, ImU32 color, float duration)
     }
 }
 
-ImVec2 DebugRenderer::worldToScreen(glm::vec2 worldPosition, const Camera2D &camera) const
-{
-    glm::vec2 screenPosition = ((worldPosition - camera.getTopLeftPosition()) * camera.getZoom()) / uiScale;
-    return ImVec2(screenPosition.x, screenPosition.y);
-}
-
-glm::vec2 DebugRenderer::screenToWorld(ImVec2 screenPosition, const Camera2D &camera) const
-{
-    glm::vec2 screen(screenPosition.x, screenPosition.y);
-    glm::vec2 worldPos = (screen * uiScale) / camera.getZoom() + camera.getTopLeftPosition();
-    return worldPos;
-}
-
-void DebugRenderer::drawDebugAABBs(ImDrawList *drawList, const Camera2D &camera)
+void DebugRenderer::drawDebugAABBs(
+    ImDrawList *drawList,
+    ImGuiManager &imGuiManager,
+    const Camera2D &camera)
 {
     for (const auto &[hash, debugAABB] : debugAABBs)
     {
-        drawAABB(drawList, debugAABB.box, camera, debugAABB.color);
+        drawAABB(drawList, imGuiManager, debugAABB.box, camera, debugAABB.color);
     }
 }
 
@@ -335,14 +329,15 @@ glm::vec2 DebugRenderer::calculateTileMapWorldOffset(glm::vec2 cameraTopLeft, fl
 
 void DebugRenderer::drawTileInfo(
     ImDrawList *drawList,
+    const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     const TileMap &tileMap)
 {
     glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
     int tileSize = tileMap.getTileSize();
     glm::vec2 tileMapWorldOffset = calculateTileMapWorldOffset(cameraTopLeft, tileSize);
-    ImVec2 offset = worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
-    float tileSizeImgui = tileSize * camera.getZoom() / uiScale.x;
+    ImVec2 offset = imGuiManager.worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
+    float tileSizeImgui = tileSize * camera.getZoom() / imGuiManager.getUiScale().x;
     glm::ivec2 topLeftTilePosition = glm::floor(cameraTopLeft / static_cast<float>(tileSize));
     for (float screenY = offset.y, tileY = topLeftTilePosition.y; tileY < tileMap.getHeight(); screenY += tileSizeImgui, ++tileY)
     {

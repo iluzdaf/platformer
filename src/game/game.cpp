@@ -52,6 +52,8 @@ Game::Game()
                                      { luaScriptSystem->triggerFallFromHeight(); });
     player->onHitCeiling.connect([this]
                                  { luaScriptSystem->triggerHitCeiling(); });
+    player->onWallSliding.connect([this]
+                                  { luaScriptSystem->triggerWallSliding(); });
     tileInteractionSystem = std::make_unique<TileInteractionSystem>();
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");

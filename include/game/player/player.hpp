@@ -39,6 +39,7 @@ public:
     void emitWallJump() override;
     void emitDoubleJump() override;
     void emitDash() override;
+    void emitWallSliding() override;
 
     fteng::signal<void()>
         onLevelComplete,
@@ -47,7 +48,8 @@ public:
         onDoubleJump,
         onDash,
         onFallFromHeight,
-        onHitCeiling;
+        onHitCeiling,
+        onWallSliding;
 
 private:
     void updatePlayerState(const TileMap &tileMap);

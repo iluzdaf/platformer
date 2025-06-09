@@ -33,6 +33,7 @@ public:
     void triggerDash();
     void triggerFallFromHeight();
     void triggerHitCeiling();
+    void triggerWallSliding();
 
 private:
     sol::state lua;
@@ -43,6 +44,7 @@ private:
         onDoubleJump,
         onDash,
         onFallFromHeight,
-        onHitCeiling;
+        onHitCeiling,
+        onWallSliding;
     std::vector<WaitingCoroutine> waitingCoroutines;
 };

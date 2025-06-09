@@ -13,4 +13,5 @@ public:
     virtual void emitWallJump() {}
     virtual void emitDoubleJump() {}
     virtual void emitDash() {}
+    virtual void emitWallSliding() {}
 };

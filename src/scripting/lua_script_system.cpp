@@ -45,6 +45,7 @@ LuaScriptSystem::LuaScriptSystem()
     onDash = lua["onDash"];
     onFallFromHeight = lua["onFallFromHeight"];
     onHitCeiling = lua["onHitCeiling"];
+    onWallSliding = lua["onWallSliding"];
 }
 
 void LuaScriptSystem::update(float deltaTime)
@@ -142,4 +143,10 @@ void LuaScriptSystem::triggerHitCeiling()
 {
     if (onHitCeiling.valid())
         onHitCeiling();
+}
+
+void LuaScriptSystem::triggerWallSliding()
+{
+    if(onWallSliding.valid())
+        onWallSliding();
 }

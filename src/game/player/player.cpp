@@ -246,3 +246,8 @@ void Player::emitDash()
 {
     onDash();
 }
+
+void Player::emitWallSliding()
+{
+    onWallSliding();
+}

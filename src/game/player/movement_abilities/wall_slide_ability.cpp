@@ -23,7 +23,8 @@ void WallSlideAbility::fixedUpdate(
         return;
     }
 
-    if (!((moveLeftRequested && playerState.touchingLeftWall) || (moveRightRequested && playerState.touchingRightWall)))
+    if (!((moveLeftRequested && playerState.touchingLeftWall) ||
+          (moveRightRequested && playerState.touchingRightWall)))
     {
         return;
     }
@@ -40,6 +41,7 @@ void WallSlideAbility::fixedUpdate(
     glm::vec2 clampedVelocity = velocity;
     clampedVelocity.y = glm::min(velocity.y, slideSpeed);
     movementContext.setVelocity(clampedVelocity);
+    movementContext.emitWallSliding();
 }
 
 void WallSlideAbility::update(
@@ -78,15 +80,15 @@ void WallSlideAbility::reset()
 }
 
 void WallSlideAbility::tryMoveLeft(
-    MovementContext &/*movementContext*/,
-    const PlayerState &/*playerState*/)
+    MovementContext & /*movementContext*/,
+    const PlayerState & /*playerState*/)
 {
     moveLeftRequested = true;
 }
 
 void WallSlideAbility::tryMoveRight(
-    MovementContext &/*movementContext*/,
-    const PlayerState &/*playerState*/)
+    MovementContext & /*movementContext*/,
+    const PlayerState & /*playerState*/)
 {
     moveRightRequested = true;
 }

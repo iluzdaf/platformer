@@ -33,17 +33,21 @@ function onWallJump()
 end
 
 function onDoubleJump()
-    camera:startShake(0.1, 2)
+    camera:startShake(0.1, 1)
 end
 
 function onDash()
-    camera:startShake(0.25, 3)
+    camera:startShake(0.25, 2)
 end
 
 function onFallFromHeight()
-    camera:startShake(0.25, 3)
+    camera:startShake(0.25, 2)
 end
 
 function onHitCeiling()
-    camera:startShake(0.1, 1)
+    camera:startShake(0.1, 0.5)
+end
+
+function onWallSliding()
+    camera:startShake(0.1, 0.3)
 end

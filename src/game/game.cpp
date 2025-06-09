@@ -63,33 +63,34 @@ Game::Game()
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
     screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
     screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
-    debugRenderer = std::make_unique<DebugRenderer>(gameData.debugRendererData);
-    debugRenderer->onPlay.connect([this]
-                                  { play(); });
-    debugRenderer->onStep.connect([this]
-                                  { step(); });
-    debugRenderer->onRespawn.connect([this]
-                                     { player->setPosition(tileMap->getPlayerStartWorldPosition()); });
-    debugRenderer->onLoadLevel.connect([this](const std::string &levelPath)
-                                       { 
-        loadLevel(levelPath);
-        player->setPosition(tileMap->getPlayerStartWorldPosition()); });
-    debugRenderer->onToggleZoom.connect([this]
-                                        {
+    debugControlUi = std::make_unique<DebugControlUi>();
+    debugControlUi->onPlay.connect([this]
+                                   { play(); });
+    debugControlUi->onStep.connect([this]
+                                   { step(); });
+    debugControlUi->onRespawn.connect([this]
+                                      { player->setPosition(tileMap->getPlayerStartWorldPosition()); });
+    debugControlUi->onToggleZoom.connect([this]
+                                         {
         static int originalZoom = camera->getZoom();
         int currentZoom = camera->getZoom();
         camera->setZoom(currentZoom == originalZoom? 3 : originalZoom); });
-    debugRenderer->onToggleDrawGrid.connect([this]
-                                            { shouldDrawGrid = !shouldDrawGrid; });
-    debugRenderer->onToggleDrawTileInfo.connect([this]
-                                                { shouldDrawTileInfo = !shouldDrawTileInfo; });
-    debugRenderer->onToggleDrawPlayerAABBs.connect([this]
-                                                   { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
-    debugRenderer->onToggleDrawTileMapAABBs.connect([this]
-                                                    { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
+    debugControlUi->onToggleDrawGrid.connect([this]
+                                             { shouldDrawGrid = !shouldDrawGrid; });
+    debugControlUi->onToggleDrawTileInfo.connect([this]
+                                                 { shouldDrawTileInfo = !shouldDrawTileInfo; });
+    debugControlUi->onToggleDrawPlayerAABBs.connect([this]
+                                                    { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
+    debugControlUi->onToggleDrawTileMapAABBs.connect([this]
+                                                     { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
     debugTileMapUi = std::make_unique<DebugTileMapUi>();
     debugAABBUi = std::make_unique<DebugAABBUi>();
+    editorTileMapUi = std::make_unique<EditorTileMapUi>();
+    editorTileMapUi->onLoadLevel.connect([this](const std::string &levelPath)
+                                        { 
+        loadLevel(levelPath);
+        player->setPosition(tileMap->getPlayerStartWorldPosition()); });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 
@@ -110,12 +111,14 @@ Game::~Game()
 void Game::fixedUpdate(float deltaTime)
 {
     player->fixedUpdate(deltaTime, *tileMap.get());
+
     tileInteractionSystem->fixedUpdate(*player.get(), *tileMap.get());
 }
 
 void Game::update(float deltaTime)
 {
     player->update(deltaTime, *tileMap.get());
+
     tileMap->update(deltaTime);
 }
 
@@ -157,10 +160,13 @@ void Game::render()
         shouldDrawPlayerAABBs,
         shouldDrawTileMapAABBs);
 
-    debugRenderer->draw(
+    debugControlUi->draw(showDebugControls);
+
+    editorTileMapUi->draw(
         *imGuiManager.get(),
         *tileMap.get(),
-        *tileSet.get());
+        *tileSet.get(),
+        showTileMapEditor);
 
     imGuiManager->render();
 }
@@ -185,11 +191,11 @@ void Game::run()
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
         imGuiManager->update();
-        debugRenderer->update(
+        debugAABBUi->update(deltaTime);
+        editorTileMapUi->update(
             *imGuiManager.get(),
             *camera.get(),
             *tileMap.get());
-        debugAABBUi->update(deltaTime);
 
         if (keyboardManager.isPressed(GLFW_KEY_P))
         {
@@ -244,10 +250,12 @@ void Game::initGameData()
         throw std::runtime_error("Failed to read game data json file");
     }
 
-    shouldDrawGrid = gameData.debugRendererData.shouldDrawGrid;
-    shouldDrawTileInfo = gameData.debugRendererData.shouldDrawTileInfo;
-    shouldDrawPlayerAABBs = gameData.debugRendererData.shouldDrawPlayerAABBs;
-    shouldDrawTileMapAABBs = gameData.debugRendererData.shouldDrawTileMapAABBs;
+    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
+    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
+    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
+    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
+    showDebugControls = gameData.debugData.showDebugControls;
+    showTileMapEditor = gameData.debugData.showTileMapEditor;
 }
 
 void Game::initGlad()

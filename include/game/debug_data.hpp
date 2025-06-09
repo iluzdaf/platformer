@@ -1,11 +1,11 @@
 #pragma once
 
-struct DebugRendererData
+struct DebugData
 {
     bool shouldDrawGrid = false;
     bool shouldDrawPlayerAABBs = false;
     bool shouldDrawTileMapAABBs = false;
     bool showDebugControls = false;
     bool shouldDrawTileInfo = false;
-    bool showTileMapControls = false;
+    bool showTileMapEditor = false;
 };

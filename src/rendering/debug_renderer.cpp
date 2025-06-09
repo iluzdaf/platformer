@@ -6,104 +6,19 @@
 #include "game/tile_map/tile_map.hpp"
 #include "game/player/player.hpp"
 
-DebugRenderer::DebugRenderer(
-    float windowWidth,
-    float windowHeight,
-    const DebugRendererData &data)
-    : windowWidth(windowWidth),
-      windowHeight(windowHeight),
-      shouldDrawPlayerAABBs(data.shouldDrawPlayerAABBs),
-      shouldDrawTileMapAABBs(data.shouldDrawTileMapAABBs),
-      showDebugControls(data.showDebugControls),
+DebugRenderer::DebugRenderer(const DebugRendererData &data)
+    : showDebugControls(data.showDebugControls),
       showTileMapControls(data.showTileMapControls)
 {
 }
 
-void DebugRenderer::drawPlayerAABBs(
-    ImDrawList *drawList,
-    const ImGuiManager &imGuiManager,
-    const Player &player,
-    const Camera2D &camera)
-{
-    drawAABB(drawList, imGuiManager, player.getAABB(), camera, IM_COL32(0, 255, 0, 255));
-    PlayerState playerState = player.getPlayerState();
-    addDebugAABB(playerState.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
-    addDebugAABB(playerState.collisionAABBY, IM_COL32(255, 255, 0, 255), 0.1f);
-}
-
-void DebugRenderer::drawTileMapAABBs(
-    ImDrawList *drawList,
-    const ImGuiManager &imGuiManager,
-    const TileMap &tileMap,
-    const Camera2D &camera)
-{
-    auto tilePositions = tileMap.worldToTilePositions(camera.getTopLeftPosition(), glm::vec2(windowWidth, windowHeight));
-    for (auto tilePosition : tilePositions)
-    {
-        auto tile = tileMap.getTileAtTilePosition(tilePosition);
-        if (!tile.isSpikes() && !tile.isPickup())
-        {
-            continue;
-        }
-
-        glm::vec2 tileWorldPosition = tileMap.tileToWorldPosition(tilePosition);
-        drawAABB(
-            drawList,
-            imGuiManager,
-            tile.getAABBAt(tileWorldPosition),
-            camera,
-            tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
-    }
-
-    drawAABB(
-        drawList,
-        imGuiManager,
-        AABB(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight())),
-        camera,
-        IM_COL32(255, 255, 0, 255));
-
-    glm::vec2 playerStartWorldPosition = tileMap.getPlayerStartWorldPosition();
-    drawAABB(
-        drawList,
-        imGuiManager,
-        AABB(playerStartWorldPosition, glm::vec2(tileMap.getTileSize())),
-        camera,
-        IM_COL32(255, 0, 255, 255));
-}
-
-void DebugRenderer::drawAABB(
-    ImDrawList *drawList,
-    const ImGuiManager &imGuiManager,
-    AABB aabb,
-    const Camera2D &camera,
-    ImU32 color)
-{
-    if (aabb.isEmpty())
-    {
-        return;
-    }
-    ImVec2 topLeft = imGuiManager.cameraRelativeToScreen(camera.worldToCameraRelative(aabb.position), camera.getZoom());
-    ImVec2 bottomRight = imGuiManager.cameraRelativeToScreen(camera.worldToCameraRelative(aabb.position + aabb.size), camera.getZoom());
-    drawList->AddRect(topLeft, bottomRight, color);
-}
-
 void DebugRenderer::update(
-    float deltaTime,
     ImGuiManager &imGuiManager,
     const Camera2D &camera,
     TileMap &tileMap)
 {
-    for (auto it = debugAABBs.begin(); it != debugAABBs.end();)
-    {
-        it->second.lifetime -= deltaTime;
-        if (it->second.lifetime <= 0.0f)
-            it = debugAABBs.erase(it);
-        else
-            ++it;
-    }
-
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
-    glm::vec2 worldPosition = imGuiManager.screenToWorld(mouseScreenPosition, camera);
+    glm::vec2 worldPosition = imGuiManager.screenToWorld(mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
     glm::ivec2 tilePosition = tileMap.worldToTilePosition(worldPosition);
     if (!tileMap.validTilePosition(tilePosition))
     {
@@ -126,26 +41,11 @@ void DebugRenderer::update(
 
 void DebugRenderer::draw(
     ImGuiManager &imGuiManager,
-    const Camera2D &camera,
     const TileMap &tileMap,
-    const Player &player,
     const Texture2D &tileSet)
 {
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-    ImDrawList *drawList = ImGui::GetBackgroundDrawList();
-
-    if (shouldDrawPlayerAABBs)
-    {
-        drawPlayerAABBs(drawList, imGuiManager, player, camera);
-    }
-
-    if (shouldDrawTileMapAABBs)
-    {
-        drawTileMapAABBs(drawList, imGuiManager, tileMap, camera);
-    }
-
-    drawDebugAABBs(drawList, imGuiManager, camera);
+    ImGui::SetNextWindowSize(imGuiManager.getIO().DisplaySize);
 
     if (showDebugControls)
     {
@@ -155,43 +55,6 @@ void DebugRenderer::draw(
     if (showTileMapControls)
     {
         drawTileMapControls(tileMap, tileSet);
-    }
-}
-
-void DebugRenderer::resize(int windowWidth, int windowHeight)
-{
-    this->windowWidth = windowWidth;
-    this->windowHeight = windowHeight;
-}
-
-void DebugRenderer::addDebugAABB(AABB aabb, ImU32 color, float duration)
-{
-    if (aabb.isEmpty())
-    {
-        return;
-    }
-
-    std::size_t hash = aabb.hash();
-
-    auto it = debugAABBs.find(hash);
-    if (it != debugAABBs.end())
-    {
-        it->second.lifetime = duration;
-    }
-    else
-    {
-        debugAABBs[hash] = DebugAABB{aabb, color, duration};
-    }
-}
-
-void DebugRenderer::drawDebugAABBs(
-    ImDrawList *drawList,
-    ImGuiManager &imGuiManager,
-    const Camera2D &camera)
-{
-    for (const auto &[hash, debugAABB] : debugAABBs)
-    {
-        drawAABB(drawList, imGuiManager, debugAABB.box, camera, debugAABB.color);
     }
 }
 
@@ -299,8 +162,8 @@ void DebugRenderer::drawDebugControls()
         onToggleDrawGrid();
     ImGui::SameLine();
     if (ImGui::Button("Player"))
-        shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs;
+        onToggleDrawPlayerAABBs();
     if (ImGui::Button("TileMap"))
-        shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs;
+        onToggleDrawTileMapAABBs();
     ImGui::End();
 }

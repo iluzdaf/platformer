@@ -16,12 +16,14 @@ public:
     void newFrame();
     void render();
     ImGuiIO &getIO();
-    ImVec2 cameraRelativeToScreen(
+    ImVec2 worldToScreen(
         glm::vec2 cameraRelative,
-        float zoom) const;
+        float zoom,
+        glm::vec2 cameraLeftPosition) const;
     glm::vec2 screenToWorld(
         ImVec2 screenPosition,
-        const Camera2D &camera) const;
+        float zoom,
+        glm::vec2 cameraLeftPosition) const;
     void update();
     glm::vec2 getUiScale() const;
     void resize(int windowWidth, int windowHeight);

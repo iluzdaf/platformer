@@ -44,17 +44,17 @@ ImGuiIO &ImGuiManager::getIO()
     return ImGui::GetIO();
 }
 
-ImVec2 ImGuiManager::cameraRelativeToScreen(glm::vec2 cameraRelative, float zoom) const
+ImVec2 ImGuiManager::worldToScreen(glm::vec2 worldPosition, float zoom, glm::vec2 cameraTopLeft) const
 {
-    glm::vec2 screenPosition = (cameraRelative * zoom) / uiScale;
+    glm::vec2 screenPosition = ((worldPosition - cameraTopLeft) * zoom) / uiScale;
     return ImVec2(screenPosition.x, screenPosition.y);
 }
 
-glm::vec2 ImGuiManager::screenToWorld(ImVec2 screenPosition, const Camera2D &camera) const
+glm::vec2 ImGuiManager::screenToWorld(ImVec2 screenPosition, float zoom, glm::vec2 cameraTopLeft) const
 {
     glm::vec2 screen(screenPosition.x, screenPosition.y);
-    glm::vec2 worldPos = (screen * uiScale) / camera.getZoom() + camera.getTopLeftPosition();
-    return worldPos;
+    glm::vec2 worldPosition = (screen * uiScale) / zoom + cameraTopLeft;
+    return worldPosition;
 }
 
 void ImGuiManager::update()

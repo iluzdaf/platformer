@@ -63,7 +63,7 @@ Game::Game()
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
     screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
     screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
-    debugRenderer = std::make_unique<DebugRenderer>(windowWidth, windowHeight, gameData.debugRendererData);
+    debugRenderer = std::make_unique<DebugRenderer>(gameData.debugRendererData);
     debugRenderer->onPlay.connect([this]
                                   { play(); });
     debugRenderer->onStep.connect([this]
@@ -83,8 +83,13 @@ Game::Game()
                                             { shouldDrawGrid = !shouldDrawGrid; });
     debugRenderer->onToggleDrawTileInfo.connect([this]
                                                 { shouldDrawTileInfo = !shouldDrawTileInfo; });
+    debugRenderer->onToggleDrawPlayerAABBs.connect([this]
+                                                   { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
+    debugRenderer->onToggleDrawTileMapAABBs.connect([this]
+                                                    { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
     debugTileMapUi = std::make_unique<DebugTileMapUi>();
+    debugAABBUi = std::make_unique<DebugAABBUi>();
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 
@@ -144,11 +149,17 @@ void Game::render()
         shouldDrawGrid,
         shouldDrawTileInfo);
 
+    debugAABBUi->draw(
+        *imGuiManager.get(),
+        *player.get(),
+        *tileMap.get(),
+        *camera.get(),
+        shouldDrawPlayerAABBs,
+        shouldDrawTileMapAABBs);
+
     debugRenderer->draw(
         *imGuiManager.get(),
-        *camera.get(),
         *tileMap.get(),
-        *player.get(),
         *tileSet.get());
 
     imGuiManager->render();
@@ -157,7 +168,6 @@ void Game::render()
 void Game::resize(int windowWidth, int windowHeight)
 {
     camera->resize(windowWidth, windowHeight);
-    debugRenderer->resize(windowWidth, windowHeight);
     imGuiManager->resize(windowWidth, windowHeight);
 }
 
@@ -175,7 +185,11 @@ void Game::run()
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
         imGuiManager->update();
-        debugRenderer->update(deltaTime, *imGuiManager.get(), *camera.get(), *tileMap.get());
+        debugRenderer->update(
+            *imGuiManager.get(),
+            *camera.get(),
+            *tileMap.get());
+        debugAABBUi->update(deltaTime);
 
         if (keyboardManager.isPressed(GLFW_KEY_P))
         {
@@ -232,6 +246,8 @@ void Game::initGameData()
 
     shouldDrawGrid = gameData.debugRendererData.shouldDrawGrid;
     shouldDrawTileInfo = gameData.debugRendererData.shouldDrawTileInfo;
+    shouldDrawPlayerAABBs = gameData.debugRendererData.shouldDrawPlayerAABBs;
+    shouldDrawTileMapAABBs = gameData.debugRendererData.shouldDrawTileMapAABBs;
 }
 
 void Game::initGlad()

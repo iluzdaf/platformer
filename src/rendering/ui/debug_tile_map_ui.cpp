@@ -16,14 +16,16 @@ void DebugTileMapUi::draw(
     glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
     float tileSize = tileMap.getTileSize();
     glm::vec2 snappedTopLeft = glm::floor(cameraTopLeft / tileSize) * tileSize;
-    ImVec2 screenOffset = imGuiManager.cameraRelativeToScreen(camera.worldToCameraRelative(snappedTopLeft), camera.getZoom());
+    ImVec2 screenOffset = imGuiManager.worldToScreen(snappedTopLeft, camera.getZoom(), camera.getTopLeftPosition());
     float tileSizeImgui = tileSize * camera.getZoom() / imGuiManager.getUiScale().x;
-    ImVec2 uiDimensions = imGuiManager.getUiDimensions();
 
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
 
     if (shouldDrawGrid)
+    {
+        ImVec2 uiDimensions = imGuiManager.getUiDimensions();
         drawGridLines(drawList, tileSizeImgui, screenOffset, uiDimensions);
+    }
 
     if (shouldDrawTileInfo)
     {

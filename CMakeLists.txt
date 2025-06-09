@@ -69,6 +69,7 @@ add_executable(platformer
     src/rendering/tile_map_renderer.cpp
     src/rendering/screen_transition.cpp
     src/rendering/debug_renderer.cpp
+    src/rendering/ui/imgui_manager.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
@@ -137,6 +138,7 @@ add_executable(tests
     src/rendering/sprite_renderer.cpp
     src/rendering/tile_map_renderer.cpp
     src/rendering/debug_renderer.cpp
+    src/rendering/ui/imgui_manager.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp

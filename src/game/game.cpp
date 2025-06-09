@@ -63,7 +63,7 @@ Game::Game()
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
     screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
     screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
-    debugRenderer = std::make_unique<DebugRenderer>(window, screenWidth, screenHeight, gameData.debugRendererData);
+    debugRenderer = std::make_unique<DebugRenderer>(screenWidth, screenHeight, gameData.debugRendererData);
     debugRenderer->onPlay.connect([this]
                                   { play(); });
     debugRenderer->onStep.connect([this]
@@ -79,6 +79,7 @@ Game::Game()
         static int originalZoom = camera->getZoom();
         int currentZoom = camera->getZoom();
         camera->setZoom(currentZoom == originalZoom? 3 : originalZoom); });
+    imGuiManager = std::make_unique<ImGuiManager>(window);
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 
@@ -130,6 +131,7 @@ void Game::render()
     screenTransition->draw();
 
     debugRenderer->draw(
+        *imGuiManager.get(),
         *camera.get(),
         *tileMap.get(),
         *player.get(),

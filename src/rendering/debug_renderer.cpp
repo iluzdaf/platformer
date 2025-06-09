@@ -1,14 +1,12 @@
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
 #include "rendering/debug_renderer.hpp"
 #include "rendering/debug_renderer_data.hpp"
 #include "rendering/texture2d.hpp"
+#include "rendering/ui/imgui_manager.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/player/player.hpp"
 
 DebugRenderer::DebugRenderer(
-    GLFWwindow *window,
     float screenWidth,
     float screenHeight,
     const DebugRendererData &data)
@@ -21,19 +19,6 @@ DebugRenderer::DebugRenderer(
       shouldDrawTileInfo(data.shouldDrawTileInfo),
       showTileMapControls(data.showTileMapControls)
 {
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
-    ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 150");
-}
-
-DebugRenderer::~DebugRenderer()
-{
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
 }
 
 void DebugRenderer::drawGrid(
@@ -161,14 +146,13 @@ void DebugRenderer::update(
 }
 
 void DebugRenderer::draw(
+    ImGuiManager &imGuiManager,
     const Camera2D &camera,
     const TileMap &tileMap,
     const Player &player,
     const Texture2D &tileSet)
 {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+    imGuiManager.newFrame();
 
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
@@ -206,8 +190,7 @@ void DebugRenderer::draw(
         drawTileMapControls(tileMap, tileSet);
     }
 
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    imGuiManager.render();
 }
 
 void DebugRenderer::resize(float screenWidth, float screenHeight)

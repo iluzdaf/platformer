@@ -10,6 +10,7 @@ class TileMap;
 class Player;
 class DebugRendererData;
 class Texture2D;
+class ImGuiManager;
 
 class DebugRenderer
 {
@@ -22,15 +23,15 @@ public:
     };
 
     DebugRenderer(
-        GLFWwindow *window,
         float screenWidth,
         float screenHeight,
         const DebugRendererData &data);
-    ~DebugRenderer();
-    void draw(const Camera2D &camera,
-              const TileMap &tileMap,
-              const Player &player,
-              const Texture2D &tileSet);
+    void draw(
+        ImGuiManager &imGuiManager,
+        const Camera2D &camera,
+        const TileMap &tileMap,
+        const Player &player,
+        const Texture2D &tileSet);
     void resize(float screenWidth, float screenHeight);
     void update(
         float deltaTime,

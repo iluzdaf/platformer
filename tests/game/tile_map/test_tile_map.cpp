@@ -13,7 +13,7 @@ TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
     REQUIRE(tileMap.getHeight() == 5);
     for (int tileY = 0; tileY < tileMap.getHeight(); ++tileY)
         for (int tileX = 0; tileX < tileMap.getWidth(); ++tileX)
-            REQUIRE(tileMap.getTileIndex(glm::ivec2(tileX, tileY)) == -1);
+            REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(tileX, tileY)) == -1);
     REQUIRE(tileMap.getTileSize() == 16);
 }
 
@@ -29,18 +29,18 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
         REQUIRE_NOTHROW(tileMap.setTileIndex(glm::ivec2(1, 1), 5));
         REQUIRE_NOTHROW(tileMap.setTileIndex(glm::ivec2(0, 2), 7));
         REQUIRE_NOTHROW(tileMap.setTileIndex(glm::ivec2(0, 0), 0));
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 1)) == 5);
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(0, 2)) == 7);
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(2, 2)) == -1);
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(0, 0)) == 0);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == 5);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(0, 2)) == 7);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(2, 2)) == -1);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(0, 0)) == 0);
     }
 
     SECTION("getTileIndex handles out of bounds by returning -1")
     {
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(-1, 0)) == -1);
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(0, -1)) == -1);
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(3, 0)) == -1);
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(0, 3)) == -1);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(-1, 0)) == -1);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(0, -1)) == -1);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(3, 0)) == -1);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(0, 3)) == -1);
     }
 
     SECTION("setTileIndex handles out of bounds")
@@ -180,7 +180,7 @@ TEST_CASE("TileMap getTilePositionsAt returns correct tile coordinates", "[TileM
 
     glm::vec2 worldPosition(15.0f, 15.0f);
     glm::vec2 size(16.0f, 16.0f);
-    auto positions = tileMap.getTilePositionsAt(worldPosition, size);
+    auto positions = tileMap.worldToTilePositions(worldPosition, size);
 
     std::vector<glm::ivec2> expected = {
         {0, 0}, {1, 0},

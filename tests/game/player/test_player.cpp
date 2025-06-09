@@ -263,13 +263,13 @@ TEST_CASE("Player and empty or invalid tiles", "[Player]")
     {
         tileMap.setTileIndex(glm::ivec2(1, 1), 0);
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 1)) == 0);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == 0);
     }
 
     SECTION("Player doesn't do anything to invalid tiles")
     {
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(tileMap.getTileIndex(glm::ivec2(1, 1)) == -1);
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == -1);
     }
 }
 

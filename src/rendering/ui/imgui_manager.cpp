@@ -44,9 +44,9 @@ ImGuiIO &ImGuiManager::getIO()
     return ImGui::GetIO();
 }
 
-ImVec2 ImGuiManager::worldToScreen(glm::vec2 worldPosition, const Camera2D &camera) const
+ImVec2 ImGuiManager::cameraRelativeToScreen(glm::vec2 cameraRelative, float zoom) const
 {
-    glm::vec2 screenPosition = ((worldPosition - camera.getTopLeftPosition()) * camera.getZoom()) / uiScale;
+    glm::vec2 screenPosition = (cameraRelative * zoom) / uiScale;
     return ImVec2(screenPosition.x, screenPosition.y);
 }
 

@@ -43,7 +43,7 @@ TEST_CASE("TileInteractionSystem triggers level complete on pickup")
 
     system.fixedUpdate(player, tileMap);
     REQUIRE(completed);
-    REQUIRE(tileMap.getTileIndex({1, 1}) == 1);
+    REQUIRE(tileMap.tilePositionToTileIndex({1, 1}) == 1);
 }
 
 TEST_CASE("TileInteractionSystem triggers death on spikes")
@@ -70,5 +70,5 @@ TEST_CASE("TileInteractionSystem replaces pickup tile with replacement index")
 
     system.fixedUpdate(player, tileMap);
 
-    REQUIRE(tileMap.getTileIndex({1, 1}) == 1);
+    REQUIRE(tileMap.tilePositionToTileIndex({1, 1}) == 1);
 }

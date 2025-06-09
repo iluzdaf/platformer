@@ -9,6 +9,7 @@
 #include "rendering/screen_transition.hpp"
 #include "rendering/debug_renderer.hpp"
 #include "rendering/ui/imgui_manager.hpp"
+#include "rendering/ui/debug_tile_map_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "physics/fixed_time_step.hpp"
@@ -24,7 +25,7 @@ public:
     void pause();
     void step();
     void play();
-    void loadLevel(const std::string& levelPath);
+    void loadLevel(const std::string &levelPath);
 
 private:
     void initGameData();
@@ -58,9 +59,10 @@ private:
     Shader screenTransitionShader;
     std::unique_ptr<DebugRenderer> debugRenderer;
     std::unique_ptr<ImGuiManager> imGuiManager;
+    std::unique_ptr<DebugTileMapUi> debugTileMapUi;
 
     fteng::connection onLevelCompleteConnection;
 
-    bool paused = false;
-    bool stepFrame = false;
+    bool paused = false, stepFrame = false,
+         shouldDrawGrid = false, shouldDrawTileInfo = false;
 };

@@ -20,7 +20,7 @@ void TileMapRenderer::draw(const TileMap &tileMap, const glm::mat4 &projection)
     {
         for (int tileX = 0; tileX < tileMap.getWidth(); ++tileX)
         {
-            int tileIndex = tileMap.getTileIndex(glm::ivec2(tileX, tileY));
+            int tileIndex = tileMap.tilePositionToTileIndex(glm::ivec2(tileX, tileY));
             const Tile &tile = tileMap.getTile(tileIndex);
             int frameIndex = tile.isAnimated()
                                  ? tile.getCurrentFrame()

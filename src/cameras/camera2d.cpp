@@ -98,3 +98,8 @@ void Camera2D::setZoom(float zoom)
 
     this->zoom = zoom;
 }
+
+glm::vec2 Camera2D::worldToCameraRelative(glm::vec2 worldPosition) const
+{
+    return worldPosition - getTopLeftPosition();
+}

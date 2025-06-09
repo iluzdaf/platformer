@@ -22,6 +22,7 @@ public:
     float getZoom() const;
     glm::vec2 getTopLeftPosition() const;
     void setZoom(float zoom);
+    glm::vec2 worldToCameraRelative(glm::vec2 worldPosition) const;
 
 private:
     float windowWidth = 800,

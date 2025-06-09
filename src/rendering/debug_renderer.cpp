@@ -12,36 +12,11 @@ DebugRenderer::DebugRenderer(
     const DebugRendererData &data)
     : windowWidth(windowWidth),
       windowHeight(windowHeight),
-      shouldDrawGrid(data.shouldDrawGrid),
       shouldDrawPlayerAABBs(data.shouldDrawPlayerAABBs),
       shouldDrawTileMapAABBs(data.shouldDrawTileMapAABBs),
       showDebugControls(data.showDebugControls),
-      shouldDrawTileInfo(data.shouldDrawTileInfo),
       showTileMapControls(data.showTileMapControls)
 {
-}
-
-void DebugRenderer::drawGrid(
-    ImDrawList *drawList,
-    const ImGuiManager &imGuiManager,
-    const TileMap &tileMap,
-    const Camera2D &camera)
-{
-    glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
-    float tileSize = tileMap.getTileSize();
-    glm::vec2 tileMapWorldOffset = calculateTileMapWorldOffset(cameraTopLeft, tileSize);
-    ImVec2 offset = imGuiManager.worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
-    float tileSizeImgui = tileSize * camera.getZoom() / imGuiManager.getUiScale().x;
-
-    for (float screenX = offset.x; screenX < imGuiManager.getUiDimensions().x; screenX += tileSizeImgui)
-    {
-        drawList->AddLine(ImVec2(screenX, 0), ImVec2(screenX, imGuiManager.getUiDimensions().y), IM_COL32(100, 100, 100, 255));
-    }
-
-    for (float screenY = offset.y; screenY < imGuiManager.getUiDimensions().y; screenY += tileSizeImgui)
-    {
-        drawList->AddLine(ImVec2(0, screenY), ImVec2(imGuiManager.getUiDimensions().x, screenY), IM_COL32(100, 100, 100, 255));
-    }
 }
 
 void DebugRenderer::drawPlayerAABBs(
@@ -62,16 +37,16 @@ void DebugRenderer::drawTileMapAABBs(
     const TileMap &tileMap,
     const Camera2D &camera)
 {
-    auto tilePositions = tileMap.getTilePositionsAt(camera.getTopLeftPosition(), glm::vec2(windowWidth, windowHeight));
+    auto tilePositions = tileMap.worldToTilePositions(camera.getTopLeftPosition(), glm::vec2(windowWidth, windowHeight));
     for (auto tilePosition : tilePositions)
     {
-        auto tile = tileMap.getTile(tilePosition);
+        auto tile = tileMap.getTileAtTilePosition(tilePosition);
         if (!tile.isSpikes() && !tile.isPickup())
         {
             continue;
         }
 
-        glm::vec2 tileWorldPosition = tileMap.getTileWorldPosition(tilePosition);
+        glm::vec2 tileWorldPosition = tileMap.tileToWorldPosition(tilePosition);
         drawAABB(
             drawList,
             imGuiManager,
@@ -107,8 +82,8 @@ void DebugRenderer::drawAABB(
     {
         return;
     }
-    ImVec2 topLeft = imGuiManager.worldToScreen(aabb.position, camera);
-    ImVec2 bottomRight = imGuiManager.worldToScreen(aabb.position + aabb.size, camera);
+    ImVec2 topLeft = imGuiManager.cameraRelativeToScreen(camera.worldToCameraRelative(aabb.position), camera.getZoom());
+    ImVec2 bottomRight = imGuiManager.cameraRelativeToScreen(camera.worldToCameraRelative(aabb.position + aabb.size), camera.getZoom());
     drawList->AddRect(topLeft, bottomRight, color);
 }
 
@@ -129,7 +104,7 @@ void DebugRenderer::update(
 
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = imGuiManager.screenToWorld(mouseScreenPosition, camera);
-    glm::ivec2 tilePosition = tileMap.getTilePositionAt(worldPosition);
+    glm::ivec2 tilePosition = tileMap.worldToTilePosition(worldPosition);
     if (!tileMap.validTilePosition(tilePosition))
     {
         return;
@@ -156,21 +131,9 @@ void DebugRenderer::draw(
     const Player &player,
     const Texture2D &tileSet)
 {
-    imGuiManager.newFrame();
-
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
-
-    if (shouldDrawGrid)
-    {
-        drawGrid(drawList, imGuiManager, tileMap, camera);
-    }
-
-    if (shouldDrawTileInfo)
-    {
-        drawTileInfo(drawList, imGuiManager, camera, tileMap);
-    }
 
     if (shouldDrawPlayerAABBs)
     {
@@ -193,8 +156,6 @@ void DebugRenderer::draw(
     {
         drawTileMapControls(tileMap, tileSet);
     }
-
-    imGuiManager.render();
 }
 
 void DebugRenderer::resize(int windowWidth, int windowHeight)
@@ -316,46 +277,6 @@ void DebugRenderer::drawTileMapControls(
     ImGui::End();
 }
 
-glm::vec2 DebugRenderer::calculateTileMapWorldOffset(glm::vec2 cameraTopLeft, float tileSize) const
-{
-    float worldOffsetX = fmod(cameraTopLeft.x, tileSize);
-    float worldOffsetY = fmod(cameraTopLeft.y, tileSize);
-    if (worldOffsetX < 0.0f)
-        worldOffsetX += tileSize;
-    if (worldOffsetY < 0.0f)
-        worldOffsetY += tileSize;
-    return glm::vec2(-worldOffsetX, -worldOffsetY);
-}
-
-void DebugRenderer::drawTileInfo(
-    ImDrawList *drawList,
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera,
-    const TileMap &tileMap)
-{
-    glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
-    int tileSize = tileMap.getTileSize();
-    glm::vec2 tileMapWorldOffset = calculateTileMapWorldOffset(cameraTopLeft, tileSize);
-    ImVec2 offset = imGuiManager.worldToScreen(tileMapWorldOffset + cameraTopLeft, camera);
-    float tileSizeImgui = tileSize * camera.getZoom() / imGuiManager.getUiScale().x;
-    glm::ivec2 topLeftTilePosition = glm::floor(cameraTopLeft / static_cast<float>(tileSize));
-    for (float screenY = offset.y, tileY = topLeftTilePosition.y; tileY < tileMap.getHeight(); screenY += tileSizeImgui, ++tileY)
-    {
-        if (tileY < 0)
-            continue;
-
-        for (float screenX = offset.x, tileX = topLeftTilePosition.x; tileX < tileMap.getWidth(); screenX += tileSizeImgui, ++tileX)
-        {
-            if (tileX < 0)
-                continue;
-
-            int tileIndex = tileMap.getTileIndex(glm::ivec2(tileX, tileY));
-            std::string label = std::format("{},{}\n{}", static_cast<int>(tileX), static_cast<int>(tileY), tileIndex);
-            drawList->AddText(ImVec2(screenX + 2, screenY + 2), IM_COL32(255, 255, 255, 200), label.c_str());
-        }
-    }
-}
-
 void DebugRenderer::drawDebugControls()
 {
     ImGui::SetNextWindowSize(ImVec2(200, 120));
@@ -372,10 +293,10 @@ void DebugRenderer::drawDebugControls()
     if (ImGui::Button("Zoom"))
         onToggleZoom();
     if (ImGui::Button("Tile Info"))
-        shouldDrawTileInfo = !shouldDrawTileInfo;
+        onToggleDrawTileInfo();
     ImGui::SameLine();
     if (ImGui::Button("Grid"))
-        shouldDrawGrid = !shouldDrawGrid;
+        onToggleDrawGrid();
     ImGui::SameLine();
     if (ImGui::Button("Player"))
         shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs;

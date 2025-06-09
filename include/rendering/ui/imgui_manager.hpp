@@ -16,9 +16,9 @@ public:
     void newFrame();
     void render();
     ImGuiIO &getIO();
-    ImVec2 worldToScreen(
-        glm::vec2 worldPosition,
-        const Camera2D &camera) const;
+    ImVec2 cameraRelativeToScreen(
+        glm::vec2 cameraRelative,
+        float zoom) const;
     glm::vec2 screenToWorld(
         ImVec2 screenPosition,
         const Camera2D &camera) const;

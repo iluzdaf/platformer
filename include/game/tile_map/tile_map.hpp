@@ -14,12 +14,12 @@ public:
     explicit TileMap(const TileMapData &tileMapData);
     void setTileIndex(glm::ivec2 tilePosition, int tileIndex);
     void setTileIndexAt(glm::vec2 worldPosition, int tileIndex);
-    int getTileIndex(glm::ivec2 tilePosition) const;
-    int getTileIndexAt(glm::vec2 worldPosition) const;
-    glm::ivec2 getTilePositionAt(glm::vec2 worldPosition) const;
+    int tilePositionToTileIndex(glm::ivec2 tilePosition) const;
+    int worldPositionToTileIndex(glm::vec2 worldPosition) const;
+    glm::ivec2 worldToTilePosition(glm::vec2 worldPosition) const;
     const Tile &getTile(int tileIndex) const;
-    const Tile &getTile(glm::ivec2 tilePosition) const;
-    const Tile &getTileAt(glm::vec2 worldPosition) const;
+    const Tile &getTileAtTilePosition(glm::ivec2 tilePosition) const;
+    const Tile &getTileAtWorldPosition(glm::vec2 worldPosition) const;
     int getWidth() const;
     int getHeight() const;
     int getWorldWidth() const;
@@ -29,8 +29,8 @@ public:
     glm::vec2 getPlayerStartWorldPosition() const;
     const std::string &getNextLevel() const;
     AABB getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const;
-    std::vector<glm::ivec2> getTilePositionsAt(glm::vec2 worldPosition, glm::vec2 size) const;
-    glm::vec2 getTileWorldPosition(glm::ivec2 tilePosition) const;
+    std::vector<glm::ivec2> worldToTilePositions(glm::vec2 worldPosition, glm::vec2 size) const;
+    glm::vec2 tileToWorldPosition(glm::ivec2 tilePosition) const;
     const std::unordered_map<int, Tile> &getTiles() const;
     TileMapData toTileMapData() const;
     void save() const;

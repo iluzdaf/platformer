@@ -6,12 +6,12 @@
 void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 {
     AABB playerAABB = player.getAABB();
-    auto tilePositions = tileMap.getTilePositionsAt(playerAABB.position, playerAABB.size);
+    auto tilePositions = tileMap.worldToTilePositions(playerAABB.position, playerAABB.size);
 
     for (const auto &tilePosition : tilePositions)
     {
-        const Tile &tile = tileMap.getTile(tilePosition);
-        glm::vec2 tileWorldPosition = tileMap.getTileWorldPosition(tilePosition);
+        const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
+        glm::vec2 tileWorldPosition = tileMap.tileToWorldPosition(tilePosition);
         AABB tileAABB = tile.getAABBAt(tileWorldPosition);
 
         if (!playerAABB.intersects(tileAABB))

@@ -39,21 +39,21 @@ public:
         const Camera2D &camera,
         TileMap &tileMap);
 
-    fteng::signal<void()> onPlay;
-    fteng::signal<void()> onStep;
-    fteng::signal<void()> onRespawn;
+    fteng::signal<void()> onPlay,
+        onStep,
+        onRespawn,
+        onToggleZoom,
+        onToggleDrawGrid,
+        onToggleDrawTileInfo;
     fteng::signal<void(const std::string &)> onLoadLevel;
-    fteng::signal<void()> onToggleZoom;
 
 private:
     float windowWidth = 800, windowHeight = 600;
     std::unordered_map<std::size_t, DebugAABB> debugAABBs;
-    bool shouldDrawGrid = false,
-         shouldDrawPlayerAABBs = false,
+    bool shouldDrawPlayerAABBs = false,
          shouldDrawTileMapAABBs = false,
          showDebugControls = false,
          editingPlayerStartTile = false,
-         shouldDrawTileInfo = false,
          showTileMapControls = false;
     int selectedTileIndex = 0;
 
@@ -64,11 +64,6 @@ private:
     void drawDebugAABBs(
         ImDrawList *drawList,
         ImGuiManager &imGuiManager,
-        const Camera2D &camera);
-    void drawGrid(
-        ImDrawList *drawList,
-        const ImGuiManager &imGuiManager,
-        const TileMap &tileMap,
         const Camera2D &camera);
     void drawPlayerAABBs(
         ImDrawList *drawList,
@@ -82,20 +77,13 @@ private:
         const Camera2D &camera);
     void drawAABB(
         ImDrawList *drawList,
-        const ImGuiManager& imGuiManager,
+        const ImGuiManager &imGuiManager,
         AABB aabb,
         const Camera2D &camera,
         ImU32 color);
     void drawTileMapControls(
         const TileMap &tileMap,
         const Texture2D &tileSet);
-    glm::vec2 calculateTileMapWorldOffset(
-        glm::vec2 cameraTopLeft,
-        float tileSize) const;
-    void drawTileInfo(
-        ImDrawList *drawList,
-        const ImGuiManager& imGuiManager,
-        const Camera2D &camera,
-        const TileMap &tileMap);
+
     void drawDebugControls();
 };

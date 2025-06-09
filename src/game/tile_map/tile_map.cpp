@@ -88,7 +88,7 @@ void TileMap::initByData(const TileMapData &tileMapData)
     assert(playerStartTilePosition.y >= 0);
     assert(playerStartTilePosition.x < width);
     assert(playerStartTilePosition.y < height);
-    const Tile &tile = getTile(playerStartTilePosition);
+    const Tile &tile = getTileAtTilePosition(playerStartTilePosition);
     assert(!tile.isSolid());
     assert(!tile.isSpikes());
 
@@ -113,7 +113,7 @@ void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
 
 void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)
 {
-    setTileIndex(getTilePositionAt(worldPosition), tileIndex);
+    setTileIndex(worldToTilePosition(worldPosition), tileIndex);
 }
 
 bool TileMap::validTilePosition(glm::ivec2 tilePosition) const
@@ -124,7 +124,7 @@ bool TileMap::validTilePosition(glm::ivec2 tilePosition) const
             tilePosition.y < height);
 }
 
-int TileMap::getTileIndex(glm::ivec2 tilePosition) const
+int TileMap::tilePositionToTileIndex(glm::ivec2 tilePosition) const
 {
     if (!validTilePosition(tilePosition))
     {
@@ -134,14 +134,14 @@ int TileMap::getTileIndex(glm::ivec2 tilePosition) const
     return tileIndices[tilePosition.x][tilePosition.y];
 }
 
-glm::ivec2 TileMap::getTilePositionAt(glm::vec2 worldPosition) const
+glm::ivec2 TileMap::worldToTilePosition(glm::vec2 worldPosition) const
 {
     return glm::ivec2(static_cast<int>(worldPosition.x) / tileSize, static_cast<int>(worldPosition.y) / tileSize);
 }
 
-int TileMap::getTileIndexAt(glm::vec2 worldPosition) const
+int TileMap::worldPositionToTileIndex(glm::vec2 worldPosition) const
 {
-    return getTileIndex(getTilePositionAt(worldPosition));
+    return tilePositionToTileIndex(worldToTilePosition(worldPosition));
 }
 
 int TileMap::getWidth() const
@@ -164,14 +164,14 @@ const Tile &TileMap::getTile(int tileIndex) const
     return it->second;
 }
 
-const Tile &TileMap::getTile(glm::ivec2 tilePosition) const
+const Tile &TileMap::getTileAtTilePosition(glm::ivec2 tilePosition) const
 {
-    return getTile(getTileIndex(tilePosition));
+    return getTile(tilePositionToTileIndex(tilePosition));
 }
 
-const Tile &TileMap::getTileAt(glm::vec2 worldPosition) const
+const Tile &TileMap::getTileAtWorldPosition(glm::vec2 worldPosition) const
 {
-    return getTile(getTileIndexAt(worldPosition));
+    return getTile(worldPositionToTileIndex(worldPosition));
 }
 
 int TileMap::getTileSize() const
@@ -199,7 +199,7 @@ int TileMap::getWorldHeight() const
 
 glm::vec2 TileMap::getPlayerStartWorldPosition() const
 {
-    return getTileWorldPosition(playerStartTilePosition);
+    return tileToWorldPosition(playerStartTilePosition);
 }
 
 const std::string &TileMap::getNextLevel() const
@@ -210,14 +210,14 @@ const std::string &TileMap::getNextLevel() const
 AABB TileMap::getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const
 {
     AABB solidAABB;
-    auto tilePositions = getTilePositionsAt(worldPosition, size);
+    auto tilePositions = worldToTilePositions(worldPosition, size);
     for (const glm::ivec2 &tilePosition : tilePositions)
     {
-        const Tile &tile = getTile(tilePosition);
+        const Tile &tile = getTileAtTilePosition(tilePosition);
         if (!tile.isSolid())
             continue;
 
-        glm::vec2 tileWorldPosition = getTileWorldPosition(tilePosition);
+        glm::vec2 tileWorldPosition = tileToWorldPosition(tilePosition);
         AABB tileAABB = tile.getAABBAt(tileWorldPosition);
         solidAABB.expandToInclude(tileAABB);
     }
@@ -225,7 +225,7 @@ AABB TileMap::getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const
     return solidAABB;
 }
 
-std::vector<glm::ivec2> TileMap::getTilePositionsAt(glm::vec2 worldPosition, glm::vec2 size) const
+std::vector<glm::ivec2> TileMap::worldToTilePositions(glm::vec2 worldPosition, glm::vec2 size) const
 {
     std::vector<glm::ivec2> tileCoordinates;
     glm::vec2 worldPositionMax = worldPosition + size;
@@ -244,7 +244,7 @@ std::vector<glm::ivec2> TileMap::getTilePositionsAt(glm::vec2 worldPosition, glm
     return tileCoordinates;
 }
 
-glm::vec2 TileMap::getTileWorldPosition(glm::ivec2 tilePosition) const
+glm::vec2 TileMap::tileToWorldPosition(glm::ivec2 tilePosition) const
 {
     return glm::vec2(tilePosition.x * tileSize, tilePosition.y * tileSize);
 }

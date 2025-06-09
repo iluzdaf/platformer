@@ -79,7 +79,12 @@ Game::Game()
         static int originalZoom = camera->getZoom();
         int currentZoom = camera->getZoom();
         camera->setZoom(currentZoom == originalZoom? 3 : originalZoom); });
+    debugRenderer->onToggleDrawGrid.connect([this]
+                                            { shouldDrawGrid = !shouldDrawGrid; });
+    debugRenderer->onToggleDrawTileInfo.connect([this]
+                                                { shouldDrawTileInfo = !shouldDrawTileInfo; });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
+    debugTileMapUi = std::make_unique<DebugTileMapUi>();
 
     luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
 
@@ -130,12 +135,23 @@ void Game::render()
 
     screenTransition->draw();
 
+    imGuiManager->newFrame();
+
+    debugTileMapUi->draw(
+        *imGuiManager.get(),
+        *camera.get(),
+        *tileMap.get(),
+        shouldDrawGrid,
+        shouldDrawTileInfo);
+
     debugRenderer->draw(
         *imGuiManager.get(),
         *camera.get(),
         *tileMap.get(),
         *player.get(),
         *tileSet.get());
+
+    imGuiManager->render();
 }
 
 void Game::resize(int windowWidth, int windowHeight)
@@ -213,6 +229,9 @@ void Game::initGameData()
     {
         throw std::runtime_error("Failed to read game data json file");
     }
+
+    shouldDrawGrid = gameData.debugRendererData.shouldDrawGrid;
+    shouldDrawTileInfo = gameData.debugRendererData.shouldDrawTileInfo;
 }
 
 void Game::initGlad()

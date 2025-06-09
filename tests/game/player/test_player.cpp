@@ -65,7 +65,7 @@ TEST_CASE("Player and solid tiles", "[Player]")
 {
     SECTION("Player lands on solid tile")
     {
-        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        TileMap tileMap = setupTileMap();
         tileMap.setTileIndex(glm::ivec2(0, 5), 1);
         Player player = setupPlayer();
         simulatePlayer(player, tileMap, 1.0f);
@@ -77,7 +77,7 @@ TEST_CASE("Player and solid tiles", "[Player]")
 
     SECTION("Player walks off a ledge and is no longer onGround")
     {
-        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        TileMap tileMap = setupTileMap();
         tileMap.setTileIndex(glm::ivec2(1, 5), 1);
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         Player player = setupPlayer();
@@ -92,7 +92,7 @@ TEST_CASE("Player and solid tiles", "[Player]")
 
     SECTION("Player cannot move into solid tile")
     {
-        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        TileMap tileMap = setupTileMap();
         tileMap.setTileIndex(glm::ivec2(3, 5), 1);
         tileMap.setTileIndex(glm::ivec2(2, 4), 1);
         tileMap.setTileIndex(glm::ivec2(1, 4), 1);
@@ -118,7 +118,7 @@ TEST_CASE("Player and solid tiles", "[Player]")
 
     SECTION("Player cannot jump through solid tile", "[Player]")
     {
-        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        TileMap tileMap = setupTileMap();
         int ceilingTileX = 2;
         int ceilingTileY = 2;
         tileMap.setTileIndex(glm::ivec2(ceilingTileX, ceilingTileY), 1);
@@ -275,7 +275,7 @@ TEST_CASE("Player and empty or invalid tiles", "[Player]")
 
 TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+    TileMap tileMap = setupTileMap();
 
     SECTION("Touching right wall")
     {
@@ -410,7 +410,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
 {
     SECTION("Player can jump, wall slide, and wall jump")
     {
-        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        TileMap tileMap = setupTileMap();
         for (int tileY = 0; tileY < 10; ++tileY)
         {
             tileMap.setTileIndex(glm::ivec2(2, tileY), 1);
@@ -434,7 +434,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
 
     SECTION("Player dashes into wall and performs wall jump")
     {
-        TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+        TileMap tileMap = setupTileMap();
         for (int tileY = 0; tileY < 10; ++tileY)
             tileMap.setTileIndex(glm::ivec2(6, tileY), 1);
 
@@ -473,7 +473,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
 
 TEST_CASE("Player can multi-jump", "[Player]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+    TileMap tileMap = setupTileMap();
     tileMap.setTileIndex(glm::ivec2(1, 9), 1);
     Player player = setupPlayer();
     player.setPosition({16, 8 * 16});
@@ -522,7 +522,7 @@ TEST_CASE("Player can multi-jump", "[Player]")
 
 TEST_CASE("Player can move", "[Player]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+    TileMap tileMap = setupTileMap();
     for (int tileX = 0; tileX < 10; ++tileX)
     {
         tileMap.setTileIndex(glm::ivec2(tileX, 9), 1);

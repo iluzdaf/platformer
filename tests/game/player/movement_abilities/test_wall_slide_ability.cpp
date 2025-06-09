@@ -26,6 +26,7 @@ TEST_CASE("WallSlideAbility activates on wall contact while falling", "[WallSlid
     SECTION("Slides when touching left wall while falling")
     {
         playerState.touchingLeftWall = true;
+        slideAbility.tryMoveLeft(mockPlayer, playerState);
         slideAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
         slideAbility.update(mockPlayer, playerState, 0.1f);
         slideAbility.syncState(playerState);
@@ -36,6 +37,7 @@ TEST_CASE("WallSlideAbility activates on wall contact while falling", "[WallSlid
     SECTION("Slides when touching right wall while falling")
     {
         playerState.touchingRightWall = true;
+        slideAbility.tryMoveRight(mockPlayer, playerState);
         slideAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
         slideAbility.update(mockPlayer, playerState, 0.1f);
         slideAbility.syncState(playerState);
@@ -47,6 +49,8 @@ TEST_CASE("WallSlideAbility activates on wall contact while falling", "[WallSlid
     {
         playerState.onGround = true;
         playerState.touchingRightWall = true;
+        slideAbility.tryMoveRight(mockPlayer, playerState);
+        slideAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
         slideAbility.update(mockPlayer, playerState, 0.1f);
         slideAbility.syncState(playerState);
         REQUIRE_FALSE(playerState.wallSliding);
@@ -55,6 +59,7 @@ TEST_CASE("WallSlideAbility activates on wall contact while falling", "[WallSlid
     SECTION("No slide when exceed hang time, hang time resets when on ground")
     {
         playerState.touchingLeftWall = true;
+        slideAbility.tryMoveLeft(mockPlayer, playerState);
         slideAbility.fixedUpdate(mockPlayer, playerState, slideAbility.getHangDuration() + 0.01f);
         slideAbility.update(mockPlayer, playerState, slideAbility.getHangDuration() + 0.01f);
         slideAbility.syncState(playerState);
@@ -66,6 +71,7 @@ TEST_CASE("WallSlideAbility activates on wall contact while falling", "[WallSlid
 
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
+        slideAbility.tryMoveLeft(mockPlayer, playerState);
         slideAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
         slideAbility.update(mockPlayer, playerState, 0.1f);
         slideAbility.syncState(playerState);

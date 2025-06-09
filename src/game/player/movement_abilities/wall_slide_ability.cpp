@@ -23,7 +23,7 @@ void WallSlideAbility::fixedUpdate(
         return;
     }
 
-    if (!(playerState.touchingLeftWall || playerState.touchingRightWall))
+    if (!((moveLeftRequested && playerState.touchingLeftWall) || (moveRightRequested && playerState.touchingRightWall)))
     {
         return;
     }
@@ -47,6 +47,9 @@ void WallSlideAbility::update(
     const PlayerState &playerState,
     float /*deltaTime*/)
 {
+    moveLeftRequested = false;
+    moveRightRequested = false;
+
     if (playerState.onGround)
     {
         resetHangTime();
@@ -72,4 +75,18 @@ void WallSlideAbility::reset()
 {
     wallSliding = false;
     resetHangTime();
+}
+
+void WallSlideAbility::tryMoveLeft(
+    MovementContext &/*movementContext*/,
+    const PlayerState &/*playerState*/)
+{
+    moveLeftRequested = true;
+}
+
+void WallSlideAbility::tryMoveRight(
+    MovementContext &/*movementContext*/,
+    const PlayerState &/*playerState*/)
+{
+    moveRightRequested = true;
 }

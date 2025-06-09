@@ -24,7 +24,7 @@ PhysicsBody setupBody(
 
 TEST_CASE("PhysicsBody resolves collisions with solid tiles", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+    TileMap tileMap = setupTileMap();
     tileMap.setTileIndex(glm::ivec2(0, 5), 1);
     PhysicsBody body = setupBody({0, 4 * 16.0f}, {16, 16}, {0, 0}, 100.0f);
     FixedTimeStep timeStepper;
@@ -39,7 +39,7 @@ TEST_CASE("PhysicsBody resolves collisions with solid tiles", "[PhysicsBody]")
 
 TEST_CASE("PhysicsBody clamps to map bounds", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16);
+    TileMap tileMap = setupTileMap();
     PhysicsBody body = setupBody({-5, -5}, {16, 16}, {0, 0});
     body.stepPhysics(1.0f, tileMap);
     REQUIRE(body.getPosition().x == Approx(0.0f));
@@ -48,7 +48,7 @@ TEST_CASE("PhysicsBody clamps to map bounds", "[PhysicsBody]")
 
 TEST_CASE("PhysicsBody detects contact with ground", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, {{1, TileData{TileKind::Solid}}});
+    TileMap tileMap = setupTileMap();
     tileMap.setTileIndex(glm::ivec2(1, 2), 1);
     PhysicsBody body = setupBody({16, 16}, {16, 16});
     REQUIRE(body.contactWithGround(tileMap));

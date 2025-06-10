@@ -17,9 +17,10 @@ LuaScriptSystem::LuaScriptSystem()
                                 "y", &glm::vec2::y);
     lua.new_usertype<Game>("Game", "pause", &Game::pause,
                            "play", &Game::play,
-                           "loadNextLevel", &Game::loadNextLevel);
+                           "loadLevel", &Game::loadLevel);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
-    lua.new_usertype<TileMap>("TileMap", "getPlayerStartWorldPosition", &TileMap::getPlayerStartWorldPosition);
+    lua.new_usertype<TileMap>("TileMap", "getPlayerStartWorldPosition", &TileMap::getPlayerStartWorldPosition,
+                              "getNextLevel", &TileMap::getNextLevel);
     lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition,
                              "reset", &Player::reset);
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
@@ -147,6 +148,6 @@ void LuaScriptSystem::triggerHitCeiling()
 
 void LuaScriptSystem::triggerWallSliding()
 {
-    if(onWallSliding.valid())
+    if (onWallSliding.valid())
         onWallSliding();
 }

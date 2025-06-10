@@ -14,7 +14,7 @@ function deathCoroutine()
 end
 
 function onLevelComplete()
-    game:loadNextLevel()
+    game:loadLevel(tileMap:getNextLevel())
     player:reset()
     player:setPosition(tileMap:getPlayerStartWorldPosition())
     game:pause()

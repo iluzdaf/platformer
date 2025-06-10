@@ -88,7 +88,7 @@ Game::Game()
     debugAABBUi = std::make_unique<DebugAABBUi>();
     editorTileMapUi = std::make_unique<EditorTileMapUi>();
     editorTileMapUi->onLoadLevel.connect([this](const std::string &levelPath)
-                                        { 
+                                         { 
         loadLevel(levelPath);
         player->setPosition(tileMap->getPlayerStartWorldPosition()); });
 
@@ -288,21 +288,16 @@ void Game::preFixedUpdate()
     }
 }
 
-void Game::loadNextLevel()
-{
-    loadLevel(tileMap->getNextLevel());
-    onLevelCompleteConnection.disconnect();
-    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
-                                                                {
-        onLevelCompleteConnection.disconnect();
-        luaScriptSystem->triggerLevelComplete(); });
-}
-
 void Game::loadLevel(const std::string &levelPath)
 {
     tileMap = std::make_unique<TileMap>(levelPath);
     luaScriptSystem->rebindTileMap(tileMap.get());
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
+    onLevelCompleteConnection.disconnect();
+    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
+                                                                {
+        onLevelCompleteConnection.disconnect();
+        luaScriptSystem->triggerLevelComplete(); });
 }
 
 void Game::pause()

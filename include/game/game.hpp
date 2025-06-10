@@ -23,7 +23,6 @@ public:
     Game();
     ~Game();
     void run();
-    void loadNextLevel();
     void pause();
     void step();
     void play();

@@ -21,6 +21,7 @@ public:
     fteng::signal<void(const std::string &)> onLoadLevel;
 
 private:
+    bool editing = false;
     bool editingPlayerStartTile = false;
     int selectedTileIndex = 0;
 };

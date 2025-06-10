@@ -201,8 +201,8 @@ AABB PhysicsBody::getCollisionAABBY() const
 
 void PhysicsBody::reset()
 {
-    position = glm::vec2(-100, -100);
-    nextPosition = glm::vec2(-100, -100);
+    position = glm::vec2(0, 0);
+    nextPosition = glm::vec2(0, 0);
     velocity = glm::vec2(0);
     collisionAABBX = AABB();
     collisionAABBY = AABB();

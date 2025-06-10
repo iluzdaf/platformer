@@ -20,12 +20,11 @@ public:
     void bindGameObjects(
         Game *game,
         Camera2D *camera,
-        TileMap *tileMap,
         Player *player,
         ScreenTransition *screenTransition);
     void triggerLevelComplete();
     void triggerDeath();
-    void rebindTileMap(TileMap *tileMap);
+    void bindTileMap(TileMap *tileMap);
     sol::state &getLua();
     const std::vector<WaitingCoroutine> &getWaitingCoroutines() const;
     void triggerWallJump();
@@ -34,6 +33,7 @@ public:
     void triggerFallFromHeight();
     void triggerHitCeiling();
     void triggerWallSliding();
+    void loadScripts();
 
 private:
     sol::state lua;

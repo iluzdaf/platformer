@@ -13,6 +13,7 @@ public:
     void addAnimation(PlayerAnimationState state, const SpriteAnimation &anim);
     PlayerAnimationState getCurrentState() const;
     void reset();
+    void clear();
 
 private:
     PlayerAnimationState currentState = PlayerAnimationState::Idle;

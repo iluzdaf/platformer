@@ -6,17 +6,17 @@
 
 Game::Game()
 {
-    initGameData();
-    initGLFW();
-    initGlad();
+    GameData gameData = loadGameData();
+    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
+    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
+    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
+    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
+    showDebugControls = gameData.debugData.showDebugControls;
+    showTileMapEditor = gameData.debugData.showTileMapEditor;
 
-    glfwSetWindowUserPointer(window, this);
-    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int screenWidth, int screenHeight)
-                                   {
-        if (Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window)))
-        {
-            game->resize(screenWidth, screenHeight);
-        } });
+    initGLFW(gameData.windowWidth, gameData.windowHeight);
+
+    initGlad();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -32,14 +32,7 @@ Game::Game()
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
 
-    tileMap = std::make_unique<TileMap>((gameData.firstLevel));
-    camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
-    player->setPosition(tileMap->getPlayerStartWorldPosition());
-    onLevelCompleteConnection = player->onLevelComplete.connect([this]
-                                                                {
-        onLevelCompleteConnection.disconnect();
-        luaScriptSystem->triggerLevelComplete(); });
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
     player->onWallJump.connect([this]
@@ -54,6 +47,7 @@ Game::Game()
                                  { luaScriptSystem->triggerHitCeiling(); });
     player->onWallSliding.connect([this]
                                   { luaScriptSystem->triggerWallSliding(); });
+    loadLevel(gameData.firstLevel);
     tileInteractionSystem = std::make_unique<TileInteractionSystem>();
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
@@ -83,16 +77,16 @@ Game::Game()
                                                     { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
     debugControlUi->onToggleDrawTileMapAABBs.connect([this]
                                                      { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
+    debugControlUi->onGameReload.connect([this]
+                                         { reload(); });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
     debugTileMapUi = std::make_unique<DebugTileMapUi>();
     debugAABBUi = std::make_unique<DebugAABBUi>();
     editorTileMapUi = std::make_unique<EditorTileMapUi>();
     editorTileMapUi->onLoadLevel.connect([this](const std::string &levelPath)
-                                         { 
-        loadLevel(levelPath);
-        player->setPosition(tileMap->getPlayerStartWorldPosition()); });
+                                         { loadLevel(levelPath); });
 
-    luaScriptSystem->bindGameObjects(this, camera.get(), tileMap.get(), player.get(), screenTransition.get());
+    luaScriptSystem->bindGameObjects(this, camera.get(), player.get(), screenTransition.get());
 
     screenTransition->start(0.4f, true);
 }
@@ -224,14 +218,14 @@ void Game::run()
     }
 }
 
-void Game::initGLFW()
+void Game::initGLFW(int windowWidth, int windowHeight)
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(gameData.screenWidth, gameData.screenHeight, "platformer", NULL, NULL);
+    window = glfwCreateWindow(windowWidth, windowHeight, "platformer", NULL, NULL);
     if (!window)
     {
         throw std::runtime_error("Failed to create window");
@@ -240,22 +234,27 @@ void Game::initGLFW()
     glfwMakeContextCurrent(window);
 
     glfwSwapInterval(1);
+
+    glfwSetWindowUserPointer(window, this);
+
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int windowWidth, int windowHeight)
+                                   {
+        if (Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window)))
+        {
+            game->resize(windowWidth, windowHeight);
+        } });
 }
 
-void Game::initGameData()
+GameData Game::loadGameData() const
 {
+    GameData gameData;
     auto ec = glz::read_file_json(gameData, "../assets/game_data.json", std::string{});
     if (ec)
     {
         throw std::runtime_error("Failed to read game data json file");
     }
 
-    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
-    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
-    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
-    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
-    showDebugControls = gameData.debugData.showDebugControls;
-    showTileMapEditor = gameData.debugData.showTileMapEditor;
+    return gameData;
 }
 
 void Game::initGlad()
@@ -291,13 +290,15 @@ void Game::preFixedUpdate()
 void Game::loadLevel(const std::string &levelPath)
 {
     tileMap = std::make_unique<TileMap>(levelPath);
-    luaScriptSystem->rebindTileMap(tileMap.get());
+    luaScriptSystem->bindTileMap(tileMap.get());
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
     onLevelCompleteConnection.disconnect();
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()
                                                                 {
         onLevelCompleteConnection.disconnect();
         luaScriptSystem->triggerLevelComplete(); });
+    player->reset();
+    player->setPosition(tileMap->getPlayerStartWorldPosition());
 }
 
 void Game::pause()
@@ -315,4 +316,25 @@ void Game::play()
 {
     paused = false;
     stepFrame = false;
+}
+
+void Game::reload()
+{
+    GameData gameData = loadGameData();
+    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
+    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
+    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
+    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
+    showDebugControls = gameData.debugData.showDebugControls;
+    showTileMapEditor = gameData.debugData.showTileMapEditor;
+
+    glfwSetWindowSize(window, gameData.windowHeight, gameData.windowHeight);
+
+    luaScriptSystem->loadScripts();
+
+    loadLevel(gameData.firstLevel);
+
+    player->initFromData(gameData.playerData, gameData.physicsData);
+
+    camera->setZoom(gameData.cameraData.zoom);
 }

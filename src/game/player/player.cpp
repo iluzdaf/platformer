@@ -11,44 +11,8 @@
 #include "physics/physics_data.hpp"
 
 Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
-    : size(playerData.size),
-      fallFromHeightThreshold(playerData.fallFromHeightThreshold)
 {
-    physicsBody.setColliderSize(playerData.colliderSize);
-    physicsBody.setColliderOffset(playerData.colliderOffset);
-    physicsBody.setGravity(physicsData.gravity);
-
-    if (playerData.jumpAbilityData)
-    {
-        movementAbilities.emplace_back(std::make_unique<JumpAbility>(*playerData.jumpAbilityData));
-    }
-
-    if (playerData.dashAbilityData)
-    {
-        movementAbilities.emplace_back(std::make_unique<DashAbility>(*playerData.dashAbilityData));
-    }
-
-    if (playerData.moveAbilityData)
-    {
-        movementAbilities.emplace_back(std::make_unique<MoveAbility>(*playerData.moveAbilityData));
-    }
-
-    if (playerData.wallSlideAbilityData)
-    {
-        movementAbilities.emplace_back(std::make_unique<WallSlideAbility>(*playerData.wallSlideAbilityData));
-    }
-
-    if (playerData.wallJumpAbilityData)
-    {
-        movementAbilities.emplace_back(std::make_unique<WallJumpAbility>(*playerData.wallJumpAbilityData));
-    }
-
-    animationManager.addAnimation(PlayerAnimationState::Idle, SpriteAnimation(playerData.idleSpriteAnimationData));
-    animationManager.addAnimation(PlayerAnimationState::Walk, SpriteAnimation(playerData.walkSpriteAnimationData));
-    animationManager.addAnimation(PlayerAnimationState::Dash, SpriteAnimation(playerData.dashSpriteAnimationData));
-    animationManager.addAnimation(PlayerAnimationState::Jump, SpriteAnimation(playerData.jumpSpriteAnimationData));
-    animationManager.addAnimation(PlayerAnimationState::Fall, SpriteAnimation(playerData.fallSpriteAnimationData));
-    animationManager.addAnimation(PlayerAnimationState::WallSlide, SpriteAnimation(playerData.wallSlideSpriteAnimationData));
+    initFromData(playerData, physicsData);
 }
 
 void Player::preFixedUpdate()
@@ -240,4 +204,48 @@ void Player::emitDash()
 void Player::emitWallSliding()
 {
     onWallSliding();
+}
+
+void Player::initFromData(const PlayerData &playerData, const PhysicsData &physicsData)
+{
+    size = playerData.size;
+    fallFromHeightThreshold = playerData.fallFromHeightThreshold;
+
+    physicsBody.setColliderSize(playerData.colliderSize);
+    physicsBody.setColliderOffset(playerData.colliderOffset);
+    physicsBody.setGravity(physicsData.gravity);
+
+    movementAbilities.clear();
+    if (playerData.jumpAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<JumpAbility>(*playerData.jumpAbilityData));
+    }
+
+    if (playerData.dashAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<DashAbility>(*playerData.dashAbilityData));
+    }
+
+    if (playerData.moveAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<MoveAbility>(*playerData.moveAbilityData));
+    }
+
+    if (playerData.wallSlideAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<WallSlideAbility>(*playerData.wallSlideAbilityData));
+    }
+
+    if (playerData.wallJumpAbilityData)
+    {
+        movementAbilities.emplace_back(std::make_unique<WallJumpAbility>(*playerData.wallJumpAbilityData));
+    }
+
+    animationManager.clear();
+    animationManager.addAnimation(PlayerAnimationState::Idle, SpriteAnimation(playerData.idleSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::Walk, SpriteAnimation(playerData.walkSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::Dash, SpriteAnimation(playerData.dashSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::Jump, SpriteAnimation(playerData.jumpSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::Fall, SpriteAnimation(playerData.fallSpriteAnimationData));
+    animationManager.addAnimation(PlayerAnimationState::WallSlide, SpriteAnimation(playerData.wallSlideSpriteAnimationData));
 }

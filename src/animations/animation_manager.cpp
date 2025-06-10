@@ -65,3 +65,8 @@ void AnimationManager::reset()
         animation.reset();
     }
 }
+
+void AnimationManager::clear()
+{
+    animations.clear();
+}

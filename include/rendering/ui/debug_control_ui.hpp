@@ -13,5 +13,6 @@ public:
         onToggleDrawGrid,
         onToggleDrawTileInfo,
         onToggleDrawPlayerAABBs,
-        onToggleDrawTileMapAABBs;
+        onToggleDrawTileMapAABBs,
+        onGameReload;
 };

@@ -27,10 +27,11 @@ public:
     void step();
     void play();
     void loadLevel(const std::string &levelPath);
+    void reload();
 
 private:
-    void initGameData();
-    void initGLFW();
+    GameData loadGameData() const;
+    void initGLFW(int windowWidth, int windowHeight);
     void initGlad();
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);
@@ -39,8 +40,6 @@ private:
     void resize(int width, int height);
 
     GLFWwindow *window;
-
-    GameData gameData;
 
     std::unique_ptr<Camera2D> camera;
     KeyboardManager keyboardManager;

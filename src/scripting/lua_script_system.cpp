@@ -38,15 +38,7 @@ LuaScriptSystem::LuaScriptSystem()
             waitingCoroutines.push_back({thread, co, wait});
         } });
 
-    lua.script_file("../assets/scripts/game_logic.lua");
-    onDeath = lua["onDeath"];
-    onLevelComplete = lua["onLevelComplete"];
-    onWallJump = lua["onWallJump"];
-    onDoubleJump = lua["onDoubleJump"];
-    onDash = lua["onDash"];
-    onFallFromHeight = lua["onFallFromHeight"];
-    onHitCeiling = lua["onHitCeiling"];
-    onWallSliding = lua["onWallSliding"];
+    loadScripts();
 }
 
 void LuaScriptSystem::update(float deltaTime)
@@ -78,13 +70,11 @@ void LuaScriptSystem::update(float deltaTime)
 void LuaScriptSystem::bindGameObjects(
     Game *game,
     Camera2D *camera,
-    TileMap *tileMap,
     Player *player,
     ScreenTransition *screenTransition)
 {
     lua["game"] = game;
     lua["camera"] = camera;
-    lua["tileMap"] = tileMap;
     lua["player"] = player;
     lua["screenTransition"] = screenTransition;
 }
@@ -101,7 +91,7 @@ void LuaScriptSystem::triggerDeath()
         onDeath();
 }
 
-void LuaScriptSystem::rebindTileMap(TileMap *tileMap)
+void LuaScriptSystem::bindTileMap(TileMap *tileMap)
 {
     lua["tileMap"] = tileMap;
 }
@@ -150,4 +140,17 @@ void LuaScriptSystem::triggerWallSliding()
 {
     if (onWallSliding.valid())
         onWallSliding();
+}
+
+void LuaScriptSystem::loadScripts()
+{
+    lua.script_file("../assets/scripts/game_logic.lua");
+    onDeath = lua["onDeath"];
+    onLevelComplete = lua["onLevelComplete"];
+    onWallJump = lua["onWallJump"];
+    onDoubleJump = lua["onDoubleJump"];
+    onDash = lua["onDash"];
+    onFallFromHeight = lua["onFallFromHeight"];
+    onHitCeiling = lua["onHitCeiling"];
+    onWallSliding = lua["onWallSliding"];
 }

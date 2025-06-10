@@ -9,8 +9,8 @@ struct GameData
     PlayerData playerData;
     Camera2DData cameraData;
     PhysicsData physicsData;
-    int screenWidth = 800;
-    int screenHeight = 600;
+    int windowWidth = 800;
+    int windowHeight = 600;
     std::string firstLevel = "../assets/tile_maps/level1.json";
     DebugData debugData;
 };

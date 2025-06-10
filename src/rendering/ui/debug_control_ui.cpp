@@ -28,6 +28,9 @@ void DebugControlUi::draw(bool showDebugControls)
             onToggleDrawPlayerAABBs();
         if (ImGui::Button("TileMap"))
             onToggleDrawTileMapAABBs();
+        ImGui::SameLine();
+        if (ImGui::Button("Reload"))
+            onGameReload();
         ImGui::End();
     }
 }

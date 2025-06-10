@@ -109,8 +109,8 @@
     "physicsData": {
         "gravity": 980.0
     },
-    "screenWidth": 800,
-    "screenHeight": 600,
+    "windowWidth": 1600,
+    "windowHeight": 1200,
     "firstLevel": "../assets/tile_maps/level1.json",
     "debugData": {
         "shouldDrawGrid": false,

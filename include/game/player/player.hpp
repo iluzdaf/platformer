@@ -31,6 +31,7 @@ public:
     glm::vec2 getPosition() const;
     AABB getAABB() const;
     void reset();
+    void initFromData(const PlayerData &playerData, const PhysicsData &physicsData);
 
     glm::vec2 getVelocity() const override;
     void setVelocity(const glm::vec2 &velocity) override;

@@ -129,8 +129,7 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
 
     if (clamped)
     {
-        newPosition -= colliderOffset;
-        nextPosition = newPosition;
+        nextPosition = newPosition - colliderOffset;
         velocity = newVelocity;
     }
 }
@@ -173,9 +172,9 @@ void PhysicsBody::stepPhysics(float deltaTime, const TileMap &tileMap)
 {
     nextPosition += velocity * deltaTime;
 
-    clampToTileMapBounds(tileMap);
-
     resolveCollision(tileMap);
+    
+    clampToTileMapBounds(tileMap);
 
     position = nextPosition;
 }

@@ -24,9 +24,9 @@ public:
     TileData toTileData() const;
     
 private:
-    TileKind kind;
+    TileKind kind = TileKind::Empty;
     std::optional<TileAnimation> animation;
     std::optional<int> pickupReplaceIndex;
-    glm::vec2 colliderOffset;
-    glm::vec2 colliderSize;
+    glm::vec2 colliderOffset = glm::vec2(0, 0);
+    glm::vec2 colliderSize = glm::vec2(16, 16);
 };

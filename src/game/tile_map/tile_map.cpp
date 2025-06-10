@@ -52,7 +52,7 @@ void TileMap::initByData(const TileMapData &tileMapData)
             }
         }
 
-        tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, -1));
+        tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, 0));
         for (int tileY = 0; tileY < height; ++tileY)
         {
             for (int tileX = 0; tileX < width; ++tileX)
@@ -65,7 +65,7 @@ void TileMap::initByData(const TileMapData &tileMapData)
     {
         height = tileMapData.height.value();
         width = tileMapData.width.value();
-        tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, -1));
+        tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, 0));
     }
     else
     {
@@ -77,7 +77,7 @@ void TileMap::initByData(const TileMapData &tileMapData)
         throw std::runtime_error("TileMapData has invalid dimensions");
     }
 
-    tiles.insert_or_assign(-1, Tile(TileData{TileKind::Empty}));
+    tiles.insert_or_assign(0, Tile(TileData{TileKind::Empty}));
     for (const auto &[tileIndex, tileData] : tileMapData.tileData)
     {
         tiles.insert_or_assign(tileIndex, Tile(tileData));
@@ -128,7 +128,7 @@ int TileMap::tilePositionToTileIndex(glm::ivec2 tilePosition) const
 {
     if (!validTilePosition(tilePosition))
     {
-        return -1;
+        throw std::out_of_range("Tile coordinates out of bounds");
     }
 
     return tileIndices[tilePosition.x][tilePosition.y];
@@ -159,7 +159,7 @@ const Tile &TileMap::getTile(int tileIndex) const
     auto it = tiles.find(tileIndex);
     if (it == tiles.end())
     {
-        return tiles.at(-1);
+        throw std::out_of_range("Invalid tile index");
     }
     return it->second;
 }
@@ -237,7 +237,12 @@ std::vector<glm::ivec2> TileMap::worldToTilePositions(glm::vec2 worldPosition, g
     {
         for (int tileX = tileMinX; tileX <= tileMaxX; ++tileX)
         {
-            tileCoordinates.emplace_back(tileX, tileY);
+            glm::ivec2 tilePosition(tileX, tileY);
+            if (!validTilePosition(tilePosition))
+            {
+                continue;
+            }
+            tileCoordinates.emplace_back(tilePosition);
         }
     }
 
@@ -260,7 +265,7 @@ TileMapData TileMap::toTileMapData() const
     data.size = tileSize;
     data.nextLevel = nextLevel;
     data.playerStartTilePosition = playerStartTilePosition;
-    data.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, -1));
+    data.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
     for (int y = 0; y < height; ++y)
         for (int x = 0; x < width; ++x)
             (*data.indices)[y][x] = tileIndices[x][y];

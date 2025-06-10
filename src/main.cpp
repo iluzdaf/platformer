@@ -8,14 +8,19 @@ int main()
         Game game;
         game.run();
     }
-    catch (const sol::error& e)
+    catch (const sol::error &e)
     {
         std::cerr << "Lua error: " << e.what() << std::endl;
         return -1;
     }
-    catch (const std::runtime_error &e)
+    catch (const std::exception &e)
     {
-        std::cout << e.what() << "\n";
+        std::cerr << e.what() << std::endl;
+        return -1;
+    }
+    catch (...)
+    {
+        std::cerr << "Unknown exception caught" << std::endl;
         return -1;
     }
 

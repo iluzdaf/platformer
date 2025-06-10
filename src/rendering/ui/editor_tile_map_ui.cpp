@@ -17,8 +17,8 @@ void EditorTileMapUi::draw(
 
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 200, 0));
     ImGui::SetNextWindowSize(ImVec2(200, 350));
-    ImGui::Begin("TileMap");
-    
+    ImGui::Begin("TileMap Editor");
+
     std::string tileMapLevel = tileMap.getLevel();
     tileMapLevel = tileMapLevel.substr(tileMapLevel.find_last_of("/\\") + 1);
     ImGui::Text("%s w%dxh%dxs%d", tileMapLevel.c_str(), tileMap.getWidth(), tileMap.getHeight(), tileMap.getTileSize());
@@ -62,7 +62,7 @@ void EditorTileMapUi::draw(
         ImVec2 tilePos = ImGui::GetCursorScreenPos();
         if (ImGui::ImageButton("##tile", imguiTextureID, ImVec2(32, 32), uv0, uv1))
             selectedTileIndex = tileIndex;
-        
+
         ImGui::GetWindowDrawList()->AddText(
             tilePos,
             IM_COL32(255, 255, 255, 255),
@@ -85,7 +85,8 @@ void EditorTileMapUi::draw(
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(255, 100, 255, 255));
     }
 
-    if (ImGui::Button("Spawn", ImVec2(40, 38)))
+    ImGui::NewLine();
+    if (ImGui::Button("Spawn"))
     {
         editingPlayerStartTile = true;
         selectedTileIndex = 0;
@@ -94,14 +95,15 @@ void EditorTileMapUi::draw(
     if (previouslyEditingPlayerStartTile)
         ImGui::PopStyleColor(3);
 
-    if (ImGui::Button("Save", ImVec2(40, 38)))
+    ImGui::SameLine();
+    if (ImGui::Button("Save"))
     {
         tileMap.save();
         editing = false;
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Reload", ImVec2(40, 38)))
+    if (ImGui::Button("Reload"))
         onLoadLevel(tileMap.getLevel());
 
     ImGui::End();

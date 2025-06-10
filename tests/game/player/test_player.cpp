@@ -199,7 +199,7 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
 {
     SECTION("Player that spawns outside of the tileMap is clamped inside the tileMap")
     {
-        TileMap tileMap = setupTileMap(3, 3, 16, {{1, TileData{TileKind::Solid}}});
+        TileMap tileMap = setupTileMap();
         Player player = setupPlayer();
         player.setPosition(glm::vec2(10.0f, 1000.0f));
         simulatePlayer(player, tileMap, 0.1f);
@@ -221,7 +221,7 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
 
     SECTION("Player stays within bounds")
     {
-        TileMap tileMap = setupTileMap(3, 3, 16, {{1, TileData{TileKind::Solid}}});
+        TileMap tileMap = setupTileMap();
         Player player = setupPlayer();
         player.setPosition(glm::vec2(16, 32));
 
@@ -253,7 +253,7 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
     }
 }
 
-TEST_CASE("Player and empty or invalid tiles", "[Player]")
+TEST_CASE("Player and empty tiles", "[Player]")
 {
     TileMap tileMap = setupTileMap(3, 3, 16, {{0, {TileKind::Empty}}});
     Player player = setupPlayer();
@@ -264,12 +264,6 @@ TEST_CASE("Player and empty or invalid tiles", "[Player]")
         tileMap.setTileIndex(glm::ivec2(1, 1), 0);
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == 0);
-    }
-
-    SECTION("Player doesn't do anything to invalid tiles")
-    {
-        simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == -1);
     }
 }
 

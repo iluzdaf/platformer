@@ -36,6 +36,7 @@ public:
     void save() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
     bool validTilePosition(glm::ivec2 tilePosition) const;
+    const std::string &getLevel() const;
 
 private:
     int width = 0, height = 0, tileSize = 0;

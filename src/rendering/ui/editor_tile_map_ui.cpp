@@ -18,6 +18,10 @@ void EditorTileMapUi::draw(
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 200, 0));
     ImGui::SetNextWindowSize(ImVec2(200, 350));
     ImGui::Begin("TileMap");
+    
+    std::string tileMapLevel = tileMap.getLevel();
+    tileMapLevel = tileMapLevel.substr(tileMapLevel.find_last_of("/\\") + 1);
+    ImGui::Text("%s w%dxh%dxs%d", tileMapLevel.c_str(), tileMap.getWidth(), tileMap.getHeight(), tileMap.getTileSize());
 
     if (!editing)
     {
@@ -97,8 +101,8 @@ void EditorTileMapUi::draw(
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Load", ImVec2(40, 38)))
-        onLoadLevel("../assets/tile_maps/new_level.json");
+    if (ImGui::Button("Reload", ImVec2(40, 38)))
+        onLoadLevel(tileMap.getLevel());
 
     ImGui::End();
 }

@@ -287,3 +287,8 @@ void TileMap::setPlayerStartTile(glm::ivec2 tilePosition)
 {
     playerStartTilePosition = tilePosition;
 }
+
+const std::string &TileMap::getLevel() const
+{
+    return level;
+}

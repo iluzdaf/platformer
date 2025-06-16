@@ -2,6 +2,7 @@
 #include "game/tile_map/tile_map.hpp"
 #include "game/tile_map/tile_map_data.hpp"
 #include "test_helpers/test_tilemap_utils.hpp"
+#include "physics/aabb.hpp"
 
 TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
 {
@@ -145,4 +146,18 @@ TEST_CASE("TileMap worldToTilePositions returns correct tile coordinates", "[Til
         {0, 0}, {1, 0}, {0, 1}, {1, 1}};
 
     REQUIRE(positions == expected);
+}
+
+TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap(3, 3);
+    tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+
+    AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
+
+    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &tileAABB) {
+        return true;
+    });
+
+    REQUIRE(result == true);
 }

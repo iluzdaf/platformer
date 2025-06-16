@@ -285,10 +285,14 @@ void Game::preFixedUpdate()
 {
     player->preFixedUpdate();
 
-    if (keyboardManager.isPressed(GLFW_KEY_UP))
+    static bool wasJumpKeyDownLastFrame = false;
+    bool isJumpKeyDown = keyboardManager.isDown(GLFW_KEY_UP);
+    if (isJumpKeyDown && !wasJumpKeyDownLastFrame)
     {
         player->jump();
     }
+    wasJumpKeyDownLastFrame = isJumpKeyDown;
+
     if (keyboardManager.isDown(GLFW_KEY_LEFT))
     {
         player->moveLeft();
@@ -297,10 +301,14 @@ void Game::preFixedUpdate()
     {
         player->moveRight();
     }
-    if (keyboardManager.isPressed(GLFW_KEY_RIGHT_SHIFT))
+
+    static bool wasDashKeyDownLastFrame = false;
+    bool isDashKeyDown = keyboardManager.isDown(GLFW_KEY_RIGHT_SHIFT);
+    if (isDashKeyDown && !wasDashKeyDownLastFrame)
     {
         player->dash();
     }
+    wasDashKeyDownLastFrame = isDashKeyDown;
 }
 
 void Game::loadLevel(const std::string &levelPath)

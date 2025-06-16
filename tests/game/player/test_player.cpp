@@ -548,3 +548,95 @@ TEST_CASE("Player can move", "[Player]")
         REQUIRE(player.getVelocity().x == 0);
     }
 }
+
+TEST_CASE("Player event callbacks are triggered", "[Player]")
+{
+    TileMap tileMap = setupTileMap(10, 20);
+    for (int x = 0; x < 10; ++x)
+    {
+        tileMap.setTileIndex(glm::ivec2(x, 19), 1);
+    }
+    Player player = setupPlayer();
+
+    SECTION("onFallFromHeight")
+    {
+        player.setPosition(glm::vec2(0, 0));
+        bool fallFromHeightTriggered = false;
+        player.onFallFromHeight.connect([&]
+                                        { fallFromHeightTriggered = true; });
+        simulatePlayer(player, tileMap, 1.0f);
+        REQUIRE(fallFromHeightTriggered);
+    }
+
+    SECTION("onHitCeiling")
+    {
+        tileMap.setTileIndex(glm::ivec2(2, 2), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 5), 1);
+        player.setPosition({2 * 16, 4 * 16});
+        player.jump();
+        bool hitCeilingTriggered = false;
+        player.onHitCeiling.connect([&]
+                                    { hitCeilingTriggered = true; });
+        simulatePlayer(player, tileMap, 1.0f);
+        REQUIRE(hitCeilingTriggered);
+    }
+
+    SECTION("onDash")
+    {
+        player.setPosition({5 * 16, 9 * 16});
+        bool dashTriggered = false;
+        player.onDash.connect([&]
+                              { dashTriggered = true; });
+        player.dash();
+        simulatePlayer(player, tileMap, 0.2f);
+        REQUIRE(dashTriggered);
+    }
+
+    SECTION("onDoubleJump")
+    {
+        player.setPosition({5 * 16, 8 * 16});
+        bool doubleJumpTriggered = false;
+        player.onDoubleJump.connect([&]
+                                    { doubleJumpTriggered = true; });
+        player.jump();
+        simulatePlayer(player, tileMap, 0.1f);
+        REQUIRE_FALSE(doubleJumpTriggered);
+        player.jump();
+        simulatePlayer(player, tileMap, 0.2f);
+        REQUIRE(doubleJumpTriggered);
+    }
+
+    SECTION("onWallSliding")
+    {
+        for (int y = 0; y < 20; ++y)
+        {
+            tileMap.setTileIndex(glm::ivec2(2, y), 1);
+        }
+        player.setPosition(glm::vec2(3 * 16, 5 * 16));
+        bool wallSlideTriggered = false;
+        player.onWallSliding.connect([&]
+                                  { wallSlideTriggered = true; });
+        player.moveLeft();
+        player.jump();
+        simulatePlayer(player, tileMap, 0.2f);
+        REQUIRE(wallSlideTriggered);
+    }
+
+    SECTION("onWallJump")
+    {
+        for (int y = 0; y < 20; ++y)
+        {
+            tileMap.setTileIndex(glm::ivec2(2, y), 1);
+        }
+        player.setPosition(glm::vec2(3 * 16, 5 * 16));
+        bool wallJumpTriggered = false;
+        player.onWallJump.connect([&]
+                                  { wallJumpTriggered = true; });
+        player.moveLeft();
+        player.jump();
+        simulatePlayer(player, tileMap, 0.2f);
+        player.jump();
+        simulatePlayer(player, tileMap, 0.1f);
+        REQUIRE(wallJumpTriggered);
+    }
+}

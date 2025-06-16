@@ -116,7 +116,7 @@
         "shouldDrawGrid": false,
         "shouldDrawPlayerAABBs": false,
         "shouldDrawTileMapAABBs": false,
-        "showDebugControls": false,
+        "showDebug": false,
         "shouldDrawTileInfo": false,
         "showTileMapEditor": false
     }

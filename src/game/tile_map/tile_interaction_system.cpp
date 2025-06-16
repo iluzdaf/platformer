@@ -25,6 +25,7 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
         if (tile.isSpikes())
         {
             player.onDeath();
+            break;
         }
 
         if (tile.isPickup())
@@ -33,6 +34,7 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
             assert(replaceIndexOpt.has_value());
             tileMap.setTileIndex(tilePosition, replaceIndexOpt.value());
             player.onLevelComplete();
+            break;
         }
     }
 }

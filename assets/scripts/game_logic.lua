@@ -13,14 +13,15 @@ function deathCoroutine()
     game:play()
 end
 
-function onLevelComplete()
-    game:pause()
-    game:loadLevel(tileMap:getNextLevel())
-    screenTransition:start(0.5, true)
+function onLevelComplete()    
     startCoroutine(levelCompleteCoroutine)
 end
 
 function levelCompleteCoroutine()    
+    waitSeconds(0);
+    game:pause()
+    game:loadLevel(tileMap:getNextLevel())
+    screenTransition:start(0.5, true)
     waitSeconds(0.5)
     game:play()
 end

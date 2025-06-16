@@ -9,17 +9,20 @@ void AnimationManager::update(float deltaTime, const PlayerState &playerState)
     {
         newState = PlayerAnimationState::Dash;
     }
-    else if (!playerState.onGround && playerState.velocity.y < 0.0f)
+    else if (!playerState.onGround)
     {
-        newState = PlayerAnimationState::Jump;
-    }
-    else if (playerState.touchingLeftWall || playerState.touchingRightWall)
-    {
-        newState = PlayerAnimationState::WallSlide;
-    }    
-    else if (!playerState.onGround && playerState.velocity.y > 0.0f)
-    {
-        newState = PlayerAnimationState::Fall;
+        if (playerState.velocity.y < 0.0f)
+        {
+            newState = PlayerAnimationState::Jump;
+        }
+        else if (playerState.wallSliding)
+        {
+            newState = PlayerAnimationState::WallSlide;
+        }
+        else if (playerState.velocity.y > 0.0f)
+        {
+            newState = PlayerAnimationState::Fall;
+        }
     }
     else if (std::abs(playerState.velocity.x) > 0.1f)
     {

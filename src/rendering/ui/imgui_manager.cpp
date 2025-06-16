@@ -39,7 +39,7 @@ void ImGuiManager::render()
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-ImGuiIO &ImGuiManager::getIO()
+ImGuiIO &ImGuiManager::getIO() const
 {
     return ImGui::GetIO();
 }

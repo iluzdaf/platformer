@@ -7,7 +7,7 @@
 #include "rendering/shader.hpp"
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/screen_transition.hpp"
-#include "rendering/ui/debug_control_ui.hpp"
+#include "rendering/ui/debug_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "rendering/ui/debug_tile_map_ui.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
@@ -57,7 +57,7 @@ private:
     std::unique_ptr<Texture2D> playerTexture;
     std::unique_ptr<ScreenTransition> screenTransition;
     Shader screenTransitionShader;
-    std::unique_ptr<DebugControlUi> debugControlUi;
+    std::unique_ptr<DebugUi> debugControlUi;
     std::unique_ptr<ImGuiManager> imGuiManager;
     std::unique_ptr<DebugTileMapUi> debugTileMapUi;
     std::unique_ptr<DebugAABBUi> debugAABBUi;
@@ -71,6 +71,6 @@ private:
          shouldDrawTileInfo = false,
          shouldDrawPlayerAABBs = false,
          shouldDrawTileMapAABBs = false,
-         showDebugControls = false,
+         showDebug = false,
          showTileMapEditor = false;
 };

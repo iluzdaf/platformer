@@ -11,7 +11,7 @@ Game::Game()
     shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
     shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
     shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
-    showDebugControls = gameData.debugData.showDebugControls;
+    showDebug = gameData.debugData.showDebug;
     showTileMapEditor = gameData.debugData.showTileMapEditor;
 
     initGLFW(gameData.windowWidth, gameData.windowHeight);
@@ -57,7 +57,7 @@ Game::Game()
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
     screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
     screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
-    debugControlUi = std::make_unique<DebugControlUi>();
+    debugControlUi = std::make_unique<DebugUi>();
     debugControlUi->onPlay.connect([this]
                                    { play(); });
     debugControlUi->onStep.connect([this]
@@ -156,7 +156,11 @@ void Game::render()
         shouldDrawPlayerAABBs,
         shouldDrawTileMapAABBs);
 
-    debugControlUi->draw(showDebugControls);
+    debugControlUi->draw(
+        *imGuiManager.get(),
+        playerState,
+        *camera.get(),
+        showDebug);
 
     editorTileMapUi->draw(
         *imGuiManager.get(),
@@ -337,7 +341,7 @@ void Game::reload()
     shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
     shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
     shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
-    showDebugControls = gameData.debugData.showDebugControls;
+    showDebug = gameData.debugData.showDebug;
     showTileMapEditor = gameData.debugData.showTileMapEditor;
 
     glfwSetWindowSize(window, gameData.windowHeight, gameData.windowHeight);

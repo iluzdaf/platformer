@@ -4,7 +4,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 
 void DebugTileMapUi::draw(
-    ImGuiManager &imGuiManager,
+    const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     const TileMap &tileMap,
     bool shouldDrawGrid,

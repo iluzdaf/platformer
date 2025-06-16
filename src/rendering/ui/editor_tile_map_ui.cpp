@@ -5,7 +5,7 @@
 #include "cameras/camera2d.hpp"
 
 void EditorTileMapUi::draw(
-    ImGuiManager &imGuiManager,
+    const ImGuiManager &imGuiManager,
     const TileMap &tileMap,
     const Texture2D &tileSet,
     bool showTileMapEditor)
@@ -16,7 +16,7 @@ void EditorTileMapUi::draw(
     }
 
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 200, 0));
-    ImGui::SetNextWindowSize(ImVec2(200, 350));
+    ImGui::SetNextWindowSize(ImVec2(200, ImGui::GetIO().DisplaySize.y));
     ImGui::Begin("TileMap Editor");
 
     std::string tileMapLevel = tileMap.getLevel();
@@ -113,7 +113,7 @@ void EditorTileMapUi::draw(
 }
 
 void EditorTileMapUi::update(
-    ImGuiManager &imGuiManager,
+    const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     TileMap &tileMap)
 {

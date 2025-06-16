@@ -18,7 +18,7 @@ public:
     };
 
     void draw(
-        ImGuiManager &imGuiManager,
+        const ImGuiManager &imGuiManager,
         const Player &player,
         const TileMap &tileMap,
         const Camera2D &camera,
@@ -35,7 +35,7 @@ private:
         float duration);
     void drawDebugAABBs(
         ImDrawList *drawList,
-        ImGuiManager &imGuiManager,
+        const ImGuiManager &imGuiManager,
         const Camera2D &camera);
     void drawPlayerAABBs(
         ImDrawList *drawList,

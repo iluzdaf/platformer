@@ -5,7 +5,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 
 void DebugAABBUi::draw(
-    ImGuiManager &imGuiManager,
+    const ImGuiManager &imGuiManager,
     const Player &player,
     const TileMap &tileMap,
     const Camera2D &camera,
@@ -127,7 +127,7 @@ void DebugAABBUi::addDebugAABB(AABB aabb, ImU32 color, float duration)
 
 void DebugAABBUi::drawDebugAABBs(
     ImDrawList *drawList,
-    ImGuiManager &imGuiManager,
+    const ImGuiManager &imGuiManager,
     const Camera2D &camera)
 {
     for (const auto &[hash, debugAABB] : debugAABBs)

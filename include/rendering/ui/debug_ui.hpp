@@ -1,10 +1,17 @@
 #pragma once
 #include <signals.hpp>
+class PlayerState;
+class Camera2D;
+class ImGuiManager;
 
-class DebugControlUi
+class DebugUi
 {
 public:
-    void draw(bool shouldDrawDebugControl);
+    void draw(
+        const ImGuiManager &imGuiManager, 
+        const PlayerState &playerState, 
+        const Camera2D &camera, 
+        bool showDebug);
 
     fteng::signal<void()> onPlay,
         onStep,

@@ -68,7 +68,7 @@ add_executable(platformer
     src/rendering/shader.cpp
     src/rendering/tile_map_renderer.cpp
     src/rendering/screen_transition.cpp
-    src/rendering/ui/debug_control_ui.cpp
+    src/rendering/ui/debug_ui.cpp
     src/rendering/ui/imgui_manager.cpp
     src/rendering/ui/debug_tile_map_ui.cpp
     src/rendering/ui/debug_aabb_ui.cpp
@@ -140,7 +140,7 @@ add_executable(tests
     src/rendering/screen_transition.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/tile_map_renderer.cpp
-    src/rendering/ui/debug_control_ui.cpp
+    src/rendering/ui/debug_ui.cpp
     src/rendering/ui/imgui_manager.cpp
     src/rendering/ui/debug_tile_map_ui.cpp
     src/rendering/ui/debug_aabb_ui.cpp

@@ -15,7 +15,7 @@ public:
     ~ImGuiManager();
     void newFrame();
     void render();
-    ImGuiIO &getIO();
+    ImGuiIO &getIO() const;
     ImVec2 worldToScreen(
         glm::vec2 cameraRelative,
         float zoom,

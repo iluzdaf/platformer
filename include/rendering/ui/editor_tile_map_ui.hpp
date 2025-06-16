@@ -9,12 +9,12 @@ class EditorTileMapUi
 {
 public:
     void draw(
-        ImGuiManager &imGuiManager,
+        const ImGuiManager &imGuiManager,
         const TileMap &tileMap,
         const Texture2D &tileSet,
         bool shouldDrawTileMapEditor);
     void update(
-        ImGuiManager &imGuiManager,
+        const ImGuiManager &imGuiManager,
         const Camera2D &camera,
         TileMap &tileMap);
 

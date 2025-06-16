@@ -86,7 +86,7 @@
         },
         "wallSlideAbilityData": {
             "slideSpeed": 15,
-            "hangDuration": 0.75
+            "hangDuration": 1
         },
         "wallJumpAbilityData": {
             "jumpSpeed": -300,

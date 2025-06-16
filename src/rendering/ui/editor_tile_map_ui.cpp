@@ -104,7 +104,10 @@ void EditorTileMapUi::draw(
 
     ImGui::SameLine();
     if (ImGui::Button("Reload"))
+    {
         onLoadLevel(tileMap.getLevel());
+        editing = false;
+    }
 
     ImGui::End();
 }

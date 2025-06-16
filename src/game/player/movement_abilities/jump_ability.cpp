@@ -69,6 +69,7 @@ void JumpAbility::syncState(PlayerState &playerState) const
 {
     playerState.jumpSpeed = jumpSpeed;
     playerState.maxJumpCount = maxJumpCount;
+    playerState.jumpCount = jumpCount;
 }
 
 void JumpAbility::reset()

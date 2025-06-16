@@ -28,7 +28,6 @@ public:
     void update(float deltaTime);
     glm::vec2 getPlayerStartWorldPosition() const;
     const std::string &getNextLevel() const;
-    AABB getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const;
     std::vector<glm::ivec2> worldToTilePositions(glm::vec2 worldPosition, glm::vec2 size) const;
     glm::vec2 tileToWorldPosition(glm::ivec2 tilePosition) const;
     const std::unordered_map<int, Tile> &getTiles() const;
@@ -37,6 +36,9 @@ public:
     void setPlayerStartTile(glm::ivec2 tilePosition);
     bool validTilePosition(glm::ivec2 tilePosition) const;
     const std::string &getLevel() const;
+    bool probeSolidTiles(
+        const AABB &probeAABB,
+        const std::function<bool(const AABB &)> &callback) const;
 
 private:
     int width = 0, height = 0, tileSize = 0;

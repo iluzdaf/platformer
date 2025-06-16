@@ -63,7 +63,9 @@ Game::Game()
     debugControlUi->onStep.connect([this]
                                    { step(); });
     debugControlUi->onRespawn.connect([this]
-                                      { player->setPosition(tileMap->getPlayerStartWorldPosition()); });
+                                      { 
+        player->reset();
+        player->setPosition(tileMap->getPlayerStartWorldPosition()); });
     debugControlUi->onToggleZoom.connect([this]
                                          {
         static int originalZoom = camera->getZoom();

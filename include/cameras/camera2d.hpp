@@ -24,6 +24,7 @@ public:
     void setZoom(float zoom);
     glm::vec2 worldToCameraRelative(glm::vec2 worldPosition) const;
     glm::vec2 getWindowSize() const;
+    bool shaking() const;
 
 private:
     float windowWidth = 800,

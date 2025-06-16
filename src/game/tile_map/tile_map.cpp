@@ -207,32 +207,14 @@ const std::string &TileMap::getNextLevel() const
     return nextLevel;
 }
 
-AABB TileMap::getSolidAABBAt(glm::vec2 worldPosition, glm::vec2 size) const
-{
-    AABB solidAABB;
-    auto tilePositions = worldToTilePositions(worldPosition, size);
-    for (const glm::ivec2 &tilePosition : tilePositions)
-    {
-        const Tile &tile = getTileAtTilePosition(tilePosition);
-        if (!tile.isSolid())
-            continue;
-
-        glm::vec2 tileWorldPosition = tileToWorldPosition(tilePosition);
-        AABB tileAABB = tile.getAABBAt(tileWorldPosition);
-        solidAABB.expandToInclude(tileAABB);
-    }
-
-    return solidAABB;
-}
-
 std::vector<glm::ivec2> TileMap::worldToTilePositions(glm::vec2 worldPosition, glm::vec2 size) const
 {
     std::vector<glm::ivec2> tileCoordinates;
     glm::vec2 worldPositionMax = worldPosition + size;
     int tileMinX = floor(worldPosition.x / tileSize);
-    int tileMaxX = floor((worldPositionMax.x - 0.001f) / tileSize);
+    int tileMaxX = floor(worldPositionMax.x / tileSize);
     int tileMinY = floor(worldPosition.y / tileSize);
-    int tileMaxY = floor((worldPositionMax.y - 0.001f) / tileSize);
+    int tileMaxY = floor(worldPositionMax.y / tileSize);
     for (int tileY = tileMinY; tileY <= tileMaxY; ++tileY)
     {
         for (int tileX = tileMinX; tileX <= tileMaxX; ++tileX)
@@ -242,7 +224,7 @@ std::vector<glm::ivec2> TileMap::worldToTilePositions(glm::vec2 worldPosition, g
             {
                 continue;
             }
-            tileCoordinates.emplace_back(tilePosition);
+            tileCoordinates.push_back(tilePosition);
         }
     }
 
@@ -296,4 +278,29 @@ void TileMap::setPlayerStartTile(glm::ivec2 tilePosition)
 const std::string &TileMap::getLevel() const
 {
     return level;
+}
+
+bool TileMap::probeSolidTiles(
+    const AABB &probeAABB,
+    const std::function<bool(const AABB &)> &callback) const
+{
+    auto tilePositions = worldToTilePositions(probeAABB.position, probeAABB.size);
+    for (const auto &tilePosition : tilePositions)
+    {
+        if (!validTilePosition(tilePosition))
+            continue;
+
+        const Tile &tile = getTileAtTilePosition(tilePosition);
+        if (!tile.isSolid())
+            continue;
+
+        auto tileWorldPosition = tileToWorldPosition(tilePosition);
+        AABB tileAABB = tile.getAABBAt(tileWorldPosition);
+        if (tileAABB.intersects(probeAABB))
+        {
+            if (callback(tileAABB))
+                return true;
+        }
+    }
+    return false;
 }

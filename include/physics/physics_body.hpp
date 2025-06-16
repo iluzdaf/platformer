@@ -17,7 +17,6 @@ public:
     void setGravity(float gravity);
     float getGravity() const;
     AABB getAABB() const;
-    bool contactInDirection(const TileMap &tileMap, glm::vec2 offset) const;
     bool contactWithLeftWall(const TileMap &tileMap);
     bool contactWithRightWall(const TileMap &tileMap);
     bool contactWithGround(const TileMap &tileMap);
@@ -29,15 +28,23 @@ public:
     void reset();
 
 private:
-    glm::vec2 position = glm::vec2(0, 0);
-    glm::vec2 nextPosition = glm::vec2(0, 0);
-    glm::vec2 velocity = glm::vec2(0, 0);
-    glm::vec2 colliderSize = glm::vec2(16, 16);
-    glm::vec2 colliderOffset = glm::vec2(0, 0);
+    glm::vec2 position = glm::vec2(0, 0),
+              nextPosition = glm::vec2(0, 0),
+              velocity = glm::vec2(0, 0),
+              nextVelocity = glm::vec2(0, 0),
+              colliderSize = glm::vec2(16, 16),
+              colliderOffset = glm::vec2(0, 0);
     float gravity = 980;
-    AABB collisionAABBX;
-    AABB collisionAABBY;
+    AABB collisionAABBX, collisionAABBY;
 
-    void resolveCollision(const TileMap &tileMap);
+    void resolveHorizontalCollision(const TileMap &tileMap);
+    void resolveVerticalCollision(const TileMap &tileMap);
+    void resolveCollisionAgainstTile(
+        const AABB &proposedAABB,
+        const AABB &tileAABB,
+        glm::vec2 axisMask,
+        float &velocityComponent,
+        glm::vec2 &positionWithOffset,
+        AABB &collisionAABB);
     void clampToTileMapBounds(const TileMap &tileMap);
 };

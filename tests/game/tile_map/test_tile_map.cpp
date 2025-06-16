@@ -135,40 +135,14 @@ TEST_CASE("TileMap calculates world dimensions correctly", "[TileMap]")
     REQUIRE(tileMap.getWorldHeight() == 10 * 16);
 }
 
-TEST_CASE("TileMap calculates solid AABB correctly", "[TileMap]")
+TEST_CASE("TileMap worldToTilePositions returns correct tile coordinates", "[TileMap]")
 {
-    TileMapData tileMapData;
-    tileMapData.size = 16;
-    tileMapData.tileData = {
-        {1, {TileKind::Solid}},
-        {0, {TileKind::Empty}}};
-    tileMapData.indices = std::vector<std::vector<int>>{
-        {0, 0, 0, 0},
-        {0, 1, 0, 0},
-        {0, 1, 1, 0},
-        {0, 0, 0, 0}};
-    tileMapData.playerStartTilePosition = {0, 0};
-    tileMapData.nextLevel = "dummy";
-
-    TileMap tileMap(tileMapData);
-    glm::vec2 worldPos(16.0f, 16.0f);
-    glm::vec2 size(32.0f, 32.0f);
-
-    AABB solidAABB = tileMap.getSolidAABBAt(worldPos, size);
-
-    REQUIRE(solidAABB.position == glm::vec2(16.0f, 16.0f));
-    REQUIRE(solidAABB.size == glm::vec2(32.0f, 32.0f));
-}
-
-TEST_CASE("TileMap worldToTilePositions returns correct tile coordinates", "[TileMap]") {
     TileMap tileMap = setupTileMap();
     glm::vec2 worldPosition(15.0f, 15.0f);
     glm::vec2 size(16.0f, 16.0f);
     auto positions = tileMap.worldToTilePositions(worldPosition, size);
     std::vector<glm::ivec2> expected = {
-        {0, 0}, {1, 0},
-        {0, 1}, {1, 1}
-    };
+        {0, 0}, {1, 0}, {0, 1}, {1, 1}};
 
     REQUIRE(positions == expected);
 }

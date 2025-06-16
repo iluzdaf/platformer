@@ -141,6 +141,7 @@ void Player::updatePlayerState()
     playerState.previousVelocity = playerState.velocity;
     playerState.velocity = physicsBody.getVelocity();
     playerState.colliderSize = physicsBody.getColliderSize();
+    playerState.colliderOffset = physicsBody.getColliderOffset();
     playerState.size = size;
     playerState.facingLeft = facingLeft();
 

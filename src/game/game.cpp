@@ -205,9 +205,19 @@ void Game::run()
         if (!paused || stepFrame)
         {
             preFixedUpdate();
-            timestepper.run(deltaTime, [&](float dt)
-                            { fixedUpdate(dt); });
-            update(deltaTime);
+
+            if (stepFrame)
+            {
+                fixedUpdate(0.01f);
+                update(0.01f);
+            }
+            else
+            {
+                timestepper.run(deltaTime, [&](float dt)
+                                { fixedUpdate(dt); });
+                update(deltaTime);
+            }
+
             stepFrame = false;
         }
 

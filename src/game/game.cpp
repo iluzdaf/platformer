@@ -35,6 +35,10 @@ Game::Game()
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
+    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
+                                                                {
+        onLevelCompleteConnection.block();
+        luaScriptSystem->triggerLevelComplete(); });
     player->onWallJump.connect([this]
                                { luaScriptSystem->triggerWallJump(); });
     player->onDoubleJump.connect([this]
@@ -316,11 +320,7 @@ void Game::loadLevel(const std::string &levelPath)
     tileMap = std::make_unique<TileMap>(levelPath);
     luaScriptSystem->bindTileMap(tileMap.get());
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
-    onLevelCompleteConnection.disconnect();
-    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
-                                                                {
-        onLevelCompleteConnection.disconnect();
-        luaScriptSystem->triggerLevelComplete(); });
+    onLevelCompleteConnection.unblock();
     player->reset();
     player->setPosition(tileMap->getPlayerStartWorldPosition());
 }

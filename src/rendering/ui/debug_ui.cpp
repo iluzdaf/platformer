@@ -14,7 +14,7 @@ void DebugUi::draw(
     if (!showDebug)
         return;
 
-    ImGui::SetNextWindowSize(ImVec2(200, ImGui::GetIO().DisplaySize.y));
+    ImGui::SetNextWindowSize(ImVec2(200, imGuiManager.getUiDimensions().y));
     ImGui::Begin("Debug");
     if (ImGui::Button("Step"))
         onStep();

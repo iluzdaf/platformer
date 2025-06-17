@@ -275,7 +275,6 @@ void Game::run()
         luaScriptSystem->update(deltaTime);
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
-        imGuiManager->update();
         debugAABBUi->update(deltaTime);
         editorTileMapUi->update(
             *imGuiManager.get(),

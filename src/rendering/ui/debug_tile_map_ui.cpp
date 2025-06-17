@@ -11,7 +11,7 @@ void DebugTileMapUi::draw(
     bool shouldDrawTileInfo)
 {
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+    ImGui::SetNextWindowSize(imGuiManager.getUiDimensions());
 
     glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
     float tileSize = tileMap.getTileSize();

@@ -11,7 +11,7 @@ ImGuiManager::ImGuiManager(
     : window(window)
 {
     resize(windowWidth, windowHeight);
-
+    
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -46,23 +46,15 @@ ImGuiIO &ImGuiManager::getIO() const
 
 ImVec2 ImGuiManager::worldToScreen(glm::vec2 worldPosition, float zoom, glm::vec2 cameraTopLeft) const
 {
-    glm::vec2 screenPosition = ((worldPosition - cameraTopLeft) * zoom) / uiScale;
+    glm::vec2 screenPosition = ((worldPosition - cameraTopLeft) * zoom) / getUiScale();
     return ImVec2(screenPosition.x, screenPosition.y);
 }
 
 glm::vec2 ImGuiManager::screenToWorld(ImVec2 screenPosition, float zoom, glm::vec2 cameraTopLeft) const
 {
     glm::vec2 screen(screenPosition.x, screenPosition.y);
-    glm::vec2 worldPosition = (screen * uiScale) / zoom + cameraTopLeft;
+    glm::vec2 worldPosition = (screen * getUiScale()) / zoom + cameraTopLeft;
     return worldPosition;
-}
-
-void ImGuiManager::update()
-{
-    ImGuiIO &io = getIO();
-    uiWidth = io.DisplaySize.x;
-    uiHeight = io.DisplaySize.y;
-    uiScale = glm::vec2(windowWidth, windowHeight) / glm::vec2(uiWidth, uiHeight);
 }
 
 void ImGuiManager::resize(int windowWidth, int windowHeight)
@@ -78,10 +70,11 @@ void ImGuiManager::resize(int windowWidth, int windowHeight)
 
 glm::vec2 ImGuiManager::getUiScale() const
 {
-    return uiScale;
+    ImVec2 displaySize = getUiDimensions();
+    return glm::vec2(windowWidth, windowHeight) / glm::vec2(displaySize.x, displaySize.y);
 }
 
 ImVec2 ImGuiManager::getUiDimensions() const
 {
-    return ImVec2(uiWidth, uiHeight);
+    return getIO().DisplaySize;
 }

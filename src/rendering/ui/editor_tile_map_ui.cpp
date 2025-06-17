@@ -15,8 +15,9 @@ void EditorTileMapUi::draw(
         return;
     }
 
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 200, 0));
-    ImGui::SetNextWindowSize(ImVec2(200, ImGui::GetIO().DisplaySize.y));
+    ImVec2 displaySize = imGuiManager.getUiDimensions();
+    ImGui::SetNextWindowPos(ImVec2(displaySize.x - 200, 0));
+    ImGui::SetNextWindowSize(ImVec2(200, displaySize.y));
     ImGui::Begin("TileMap Editor");
 
     std::string tileMapLevel = tileMap.getLevel();

@@ -24,14 +24,11 @@ public:
         ImVec2 screenPosition,
         float zoom,
         glm::vec2 cameraLeftPosition) const;
-    void update();
     glm::vec2 getUiScale() const;
     void resize(int windowWidth, int windowHeight);
     ImVec2 getUiDimensions() const;
 
 private:
     GLFWwindow *window;
-    int windowWidth = 800, windowHeight = 600,
-        uiWidth = 800, uiHeight = 600;
-    glm::vec2 uiScale = glm::vec2(1.0f);
+    int windowWidth = 800, windowHeight = 600;
 };

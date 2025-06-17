@@ -49,3 +49,7 @@ end
 function onWallSliding()
     camera:startShake(0.1, 0.3)
 end
+
+function onGameLoaded()
+    screenTransition:start(0.5, true)
+end

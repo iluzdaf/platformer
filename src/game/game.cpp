@@ -167,7 +167,7 @@ Game::Game()
 
     luaScriptSystem->bindGameObjects(this, camera.get(), player.get(), screenTransition.get());
 
-    screenTransition->start(0.4f, true);
+    luaScriptSystem->triggerGameLoaded();
 }
 
 Game::~Game()

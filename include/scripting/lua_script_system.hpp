@@ -33,6 +33,7 @@ public:
     void triggerFallFromHeight();
     void triggerHitCeiling();
     void triggerWallSliding();
+    void triggerGameLoaded();
     void loadScripts();
 
 private:
@@ -45,6 +46,7 @@ private:
         onDash,
         onFallFromHeight,
         onHitCeiling,
-        onWallSliding;
+        onWallSliding,
+        onGameLoaded;
     std::vector<WaitingCoroutine> waitingCoroutines;
 };

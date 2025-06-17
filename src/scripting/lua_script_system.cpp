@@ -153,4 +153,11 @@ void LuaScriptSystem::loadScripts()
     onFallFromHeight = lua["onFallFromHeight"];
     onHitCeiling = lua["onHitCeiling"];
     onWallSliding = lua["onWallSliding"];
+    onGameLoaded = lua["onGameLoaded"];
+}
+
+void LuaScriptSystem::triggerGameLoaded()
+{
+    if (onGameLoaded.valid())
+        onGameLoaded();
 }

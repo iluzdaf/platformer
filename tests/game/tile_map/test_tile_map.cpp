@@ -109,9 +109,9 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     SECTION("Non-animated tiles")
     {
         const Tile &tile = tileMap.getTile(0);
-        REQUIRE(tile.getCurrentFrame() == -1);
+        REQUIRE(tile.getCurrentFrame() == 0);
         tileMap.update(1.0f);
-        REQUIRE(tile.getCurrentFrame() == -1);
+        REQUIRE(tile.getCurrentFrame() == 0);
     }
 }
 

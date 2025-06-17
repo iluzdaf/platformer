@@ -17,25 +17,15 @@ void TileMapRenderer::draw(
     assert(tileSet.getWidth() == tileSet.getHeight() && "TileSet texture must be square");
 
     int tileSize = tileMap.getTileSize();
-    int tileSetWidth = tileSet.getWidth();
-    int tilesPerRow = tileSetWidth / tileSize;
-
     for (int tileY = 0; tileY < tileMap.getHeight(); ++tileY)
     {
         for (int tileX = 0; tileX < tileMap.getWidth(); ++tileX)
         {
             int tileIndex = tileMap.tilePositionToTileIndex(glm::ivec2(tileX, tileY));
             const Tile &tile = tileMap.getTile(tileIndex);
-            int frameIndex = tile.isAnimated()
-                                 ? tile.getCurrentFrame()
-                                 : tileIndex;
-
-            int tileSetX = frameIndex % tilesPerRow;
-            int tileSetY = frameIndex / tilesPerRow;
-            float tileUVSize = static_cast<float>(tileSize) / static_cast<float>(tileSetWidth);
-            glm::vec2 uvStart(tileSetX * tileUVSize, tileSetY * tileUVSize);
-            glm::vec2 uvEnd = uvStart + glm::vec2(tileUVSize);
-            glm::vec2 position = glm::vec2(tileX * tileSize, tileY * tileSize);
+            int frameIndex = tile.getCurrentFrame();
+            auto [uvStart, uvEnd] = tileSet.getUVRange(frameIndex, tileSize);
+            glm::vec2 position = tileMap.tileToWorldPosition(glm::ivec2(tileX, tileY));
             glm::vec2 size = glm::vec2(tileSize);
 
             spriteRenderer.drawWithUV(tileSetShader, tileSet, projection, position, size, uvStart, uvEnd);

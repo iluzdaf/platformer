@@ -32,11 +32,8 @@ void TileMap::initByData(const TileMapData &tileMapData)
 
     const bool hasTileIndices = tileMapData.indices.has_value();
     const bool hasExplicitSize = tileMapData.width.has_value() && tileMapData.height.has_value();
-
     if (hasTileIndices && hasExplicitSize)
-    {
         throw std::runtime_error("Cannot specify both tileIndices and width/height explicitly.");
-    }
 
     if (hasTileIndices)
     {
@@ -68,20 +65,14 @@ void TileMap::initByData(const TileMapData &tileMapData)
         tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, 0));
     }
     else
-    {
         throw std::runtime_error("Must specify either tileIndices or width/height.");
-    }
 
     if (width == 0 || height == 0)
-    {
         throw std::runtime_error("TileMapData has invalid dimensions");
-    }
 
-    tiles.insert_or_assign(0, Tile(TileData{TileKind::Empty}));
+    tiles.insert_or_assign(0, Tile(0, TileData(TileKind::Empty)));
     for (const auto &[tileIndex, tileData] : tileMapData.tileData)
-    {
-        tiles.insert_or_assign(tileIndex, Tile(tileData));
-    }
+        tiles.insert_or_assign(tileIndex, Tile(tileIndex, tileData));
 
     playerStartTilePosition = tileMapData.playerStartTilePosition;
     if (playerStartTilePosition.x < 0 || playerStartTilePosition.y < 0 ||
@@ -93,6 +84,8 @@ void TileMap::initByData(const TileMapData &tileMapData)
         throw std::runtime_error("Player start position is on a solid tile");
     if (tile.isSpikes())
         throw std::runtime_error("Player start position is on a spike tile");
+    if (tile.isPortal())
+        throw std::runtime_error("Player start position is on a portal tile");
 
     nextLevel = tileMapData.nextLevel;
     if (nextLevel.empty())
@@ -102,14 +95,10 @@ void TileMap::initByData(const TileMapData &tileMapData)
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
 {
     if (!validTilePosition(tilePosition))
-    {
         throw std::out_of_range("Tile coordinates out of bounds");
-    }
 
     if (tileIndex < 0)
-    {
         throw std::invalid_argument("Tile index must be greater or equals to 0");
-    }
 
     tileIndices[tilePosition.x][tilePosition.y] = tileIndex;
 }
@@ -130,9 +119,7 @@ bool TileMap::validTilePosition(glm::ivec2 tilePosition) const
 int TileMap::tilePositionToTileIndex(glm::ivec2 tilePosition) const
 {
     if (!validTilePosition(tilePosition))
-    {
         throw std::out_of_range("Tile coordinates out of bounds");
-    }
 
     return tileIndices[tilePosition.x][tilePosition.y];
 }
@@ -161,9 +148,7 @@ const Tile &TileMap::getTile(int tileIndex) const
 {
     auto it = tiles.find(tileIndex);
     if (it == tiles.end())
-    {
         throw std::out_of_range("Invalid tile index");
-    }
     return it->second;
 }
 
@@ -185,9 +170,7 @@ int TileMap::getTileSize() const
 void TileMap::update(float deltaTime)
 {
     for (auto &[_, tile] : tiles)
-    {
         tile.update(deltaTime);
-    }
 }
 
 int TileMap::getWorldWidth() const
@@ -224,9 +207,7 @@ std::vector<glm::ivec2> TileMap::worldToTilePositions(glm::vec2 worldPosition, g
         {
             glm::ivec2 tilePosition(tileX, tileY);
             if (!validTilePosition(tilePosition))
-            {
                 continue;
-            }
             tileCoordinates.push_back(tilePosition);
         }
     }
@@ -265,9 +246,7 @@ void TileMap::save() const
     std::string json;
     auto result = glz::write_json(data, json);
     if (result)
-    {
         throw std::runtime_error("Failed to serialize TileMapData to JSON");
-    }
     std::ofstream outFile(level);
     outFile << json;
     outFile.close();
@@ -299,11 +278,8 @@ bool TileMap::probeSolidTiles(
 
         auto tileWorldPosition = tileToWorldPosition(tilePosition);
         AABB tileAABB = tile.getAABBAt(tileWorldPosition);
-        if (tileAABB.intersects(probeAABB))
-        {
-            if (callback(tileAABB))
-                return true;
-        }
+        if (tileAABB.intersects(probeAABB) && callback(tileAABB))
+            return true;
     }
     return false;
 }

@@ -76,6 +76,7 @@ add_executable(platformer
     src/rendering/ui/debug_tile_map_ui.cpp
     src/rendering/ui/debug_aabb_ui.cpp
     src/rendering/ui/editor_tile_map_ui.cpp
+    src/rendering/ui/score_ui.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
@@ -86,6 +87,7 @@ add_executable(platformer
     src/game/player/movement_abilities/wall_slide_ability.cpp
     src/game/player/movement_abilities/wall_jump_ability.cpp
     src/game/game.cpp
+    src/game/scoring_system.cpp
     src/physics/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp
@@ -150,6 +152,7 @@ add_executable(tests
     src/rendering/ui/debug_tile_map_ui.cpp
     src/rendering/ui/debug_aabb_ui.cpp
     src/rendering/ui/editor_tile_map_ui.cpp
+    src/rendering/ui/score_ui.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
@@ -160,6 +163,7 @@ add_executable(tests
     src/game/player/movement_abilities/wall_slide_ability.cpp
     src/game/player/movement_abilities/wall_jump_ability.cpp
     src/game/game.cpp
+    src/game/scoring_system.cpp
     src/physics/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp

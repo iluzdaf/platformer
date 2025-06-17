@@ -118,8 +118,9 @@ Game::Game()
                                  { luaScriptSystem->triggerHitCeiling(); });
     player->onWallSliding.connect([this]
                                   { luaScriptSystem->triggerWallSliding(); });
+    player->onPickup.connect([this](int scoreDelta)
+                             { scoringSystem.addScore(scoreDelta); });
     loadLevel(gameData.firstLevel);
-    tileInteractionSystem = std::make_unique<TileInteractionSystem>();
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
     ShaderData shaderData;
@@ -133,36 +134,32 @@ Game::Game()
     shaderData.fragmentPath = "../assets/shaders/transition.fs";
     screenTransitionShader = std::make_unique<Shader>(shaderData);
     screenTransition = std::make_unique<ScreenTransition>();
-    debugControlUi = std::make_unique<DebugUi>();
-    debugControlUi->onPlay.connect([this]
-                                   { play(); });
-    debugControlUi->onStep.connect([this]
-                                   { step(); });
-    debugControlUi->onRespawn.connect([this]
-                                      {
+    debugUi.onPlay.connect([this]
+                           { play(); });
+    debugUi.onStep.connect([this]
+                           { step(); });
+    debugUi.onRespawn.connect([this]
+                              {
         player->reset();
         player->setPosition(tileMap->getPlayerStartWorldPosition()); });
-    debugControlUi->onToggleZoom.connect([this]
-                                         {
+    debugUi.onToggleZoom.connect([this]
+                                 {
         static int originalZoom = camera->getZoom();
         int currentZoom = camera->getZoom();
         camera->setZoom(currentZoom == originalZoom ? 3 : originalZoom); });
-    debugControlUi->onToggleDrawGrid.connect([this]
-                                             { shouldDrawGrid = !shouldDrawGrid; });
-    debugControlUi->onToggleDrawTileInfo.connect([this]
-                                                 { shouldDrawTileInfo = !shouldDrawTileInfo; });
-    debugControlUi->onToggleDrawPlayerAABBs.connect([this]
-                                                    { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
-    debugControlUi->onToggleDrawTileMapAABBs.connect([this]
-                                                     { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
-    debugControlUi->onGameReload.connect([this]
-                                         { reload(); });
+    debugUi.onToggleDrawGrid.connect([this]
+                                     { shouldDrawGrid = !shouldDrawGrid; });
+    debugUi.onToggleDrawTileInfo.connect([this]
+                                         { shouldDrawTileInfo = !shouldDrawTileInfo; });
+    debugUi.onToggleDrawPlayerAABBs.connect([this]
+                                            { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
+    debugUi.onToggleDrawTileMapAABBs.connect([this]
+                                             { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
+    debugUi.onGameReload.connect([this]
+                                 { reload(); });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
-    debugTileMapUi = std::make_unique<DebugTileMapUi>();
-    debugAABBUi = std::make_unique<DebugAABBUi>();
-    editorTileMapUi = std::make_unique<EditorTileMapUi>();
-    editorTileMapUi->onLoadLevel.connect([this](const std::string &levelPath)
-                                         { loadLevel(levelPath); });
+    editorTileMapUi.onLoadLevel.connect([this](const std::string &levelPath)
+                                        { loadLevel(levelPath); });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), player.get(), screenTransition.get());
 
@@ -184,7 +181,7 @@ void Game::fixedUpdate(float deltaTime)
 {
     player->fixedUpdate(deltaTime, *tileMap.get());
 
-    tileInteractionSystem->fixedUpdate(*player.get(), *tileMap.get());
+    tileInteractionSystem.fixedUpdate(*player.get(), *tileMap.get());
 }
 
 void Game::update(float deltaTime)
@@ -222,14 +219,14 @@ void Game::render()
 
     imGuiManager->newFrame();
 
-    debugTileMapUi->draw(
+    debugTileMapUi.draw(
         *imGuiManager.get(),
         *camera.get(),
         *tileMap.get(),
         shouldDrawGrid,
         shouldDrawTileInfo);
 
-    debugAABBUi->draw(
+    debugAABBUi.draw(
         *imGuiManager.get(),
         *player.get(),
         *tileMap.get(),
@@ -237,17 +234,22 @@ void Game::render()
         shouldDrawPlayerAABBs,
         shouldDrawTileMapAABBs);
 
-    debugControlUi->draw(
+    debugUi.draw(
         *imGuiManager.get(),
         playerState,
         *camera.get(),
         showDebug);
 
-    editorTileMapUi->draw(
+    editorTileMapUi.draw(
         *imGuiManager.get(),
         *tileMap.get(),
         *tileSet.get(),
         showTileMapEditor);
+
+    scoreUi.draw(
+        *imGuiManager.get(),
+        scoringSystem,
+        *tileSet.get());
 
     imGuiManager->render();
 }
@@ -275,20 +277,16 @@ void Game::run()
         luaScriptSystem->update(deltaTime);
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
-        debugAABBUi->update(deltaTime);
-        editorTileMapUi->update(
+        debugAABBUi.update(deltaTime);
+        editorTileMapUi.update(
             *imGuiManager.get(),
             *camera.get(),
             *tileMap.get());
 
         if (keyboardManager.isPressed(GLFW_KEY_P))
-        {
             play();
-        }
         if (keyboardManager.isPressed(GLFW_KEY_S))
-        {
             step();
-        }
 
         if (!paused || stepFrame)
         {
@@ -372,26 +370,18 @@ void Game::preFixedUpdate()
     static bool wasJumpKeyDownLastFrame = false;
     bool isJumpKeyDown = keyboardManager.isDown(GLFW_KEY_UP);
     if (isJumpKeyDown && !wasJumpKeyDownLastFrame)
-    {
         player->jump();
-    }
     wasJumpKeyDownLastFrame = isJumpKeyDown;
 
     if (keyboardManager.isDown(GLFW_KEY_LEFT))
-    {
         player->moveLeft();
-    }
     if (keyboardManager.isDown(GLFW_KEY_RIGHT))
-    {
         player->moveRight();
-    }
 
     static bool wasDashKeyDownLastFrame = false;
     bool isDashKeyDown = keyboardManager.isDown(GLFW_KEY_RIGHT_SHIFT);
     if (isDashKeyDown && !wasDashKeyDownLastFrame)
-    {
         player->dash();
-    }
     wasDashKeyDownLastFrame = isDashKeyDown;
 }
 

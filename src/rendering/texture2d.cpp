@@ -54,3 +54,18 @@ GLuint Texture2D::getTextureID() const
 {
     return textureID;
 }
+
+std::pair<glm::vec2, glm::vec2> Texture2D::getUVRange(int frameIndex, int tileSize, bool flipY) const
+{
+    int tilesPerRow = width / tileSize;
+    int tileX = frameIndex % tilesPerRow;
+    int tileY = frameIndex / tilesPerRow;
+    float uvSize = static_cast<float>(tileSize) / static_cast<float>(width);
+
+    if (flipY)
+        return {glm::vec2(tileX * uvSize, tileY * uvSize),
+                glm::vec2((tileX + 1) * uvSize, (tileY + 1) * uvSize)};
+    else
+        return {glm::vec2(tileX * uvSize, (tileY + 1) * uvSize),
+                glm::vec2((tileX + 1) * uvSize, tileY * uvSize)};
+}

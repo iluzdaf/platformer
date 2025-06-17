@@ -1,18 +1,23 @@
 #include <cassert>
+#include <stdexcept>
 #include "game/tile_map/tile.hpp"
 
-Tile::Tile(const TileData &tileData)
+Tile::Tile(int tileIndex, const TileData &tileData)
     : kind(tileData.kind),
       pickupReplaceIndex(tileData.pickupReplaceIndex),
       colliderOffset(tileData.colliderOffset),
-      colliderSize(tileData.colliderSize)
+      colliderSize(tileData.colliderSize),
+      pickupScoreDelta(tileData.pickupScoreDelta),
+      tileIndex(tileIndex)
 {
-    assert((kind != TileKind::Pickup || pickupReplaceIndex.has_value()) && "Pickup tile must define a pickupReplaceIndex");
+    if (kind == TileKind::Pickup && !pickupReplaceIndex.has_value())
+        throw std::invalid_argument("Pickup tile must define a pickupReplaceIndex");
+
+    if (tileIndex < 0)
+        throw std::invalid_argument("TileIndex must be 0 or more");
 
     if (tileData.animationData.has_value())
-    {
         animation = TileAnimation(tileData.animationData.value());
-    }
 }
 
 void Tile::update(float deltaTime)
@@ -29,7 +34,7 @@ int Tile::getCurrentFrame() const
     {
         return animation->getCurrentFrame();
     }
-    return -1;
+    return tileIndex;
 }
 
 bool Tile::isSolid() const
@@ -97,4 +102,9 @@ bool Tile::isPortal() const
 bool Tile::isEmpty() const
 {
     return kind == TileKind::Empty;
+}
+
+std::optional<int> Tile::getPickupScoreDelta() const
+{
+    return pickupScoreDelta;
 }

@@ -11,9 +11,7 @@ void EditorTileMapUi::draw(
     bool showTileMapEditor)
 {
     if (!showTileMapEditor)
-    {
         return;
-    }
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
     ImGui::SetNextWindowPos(ImVec2(displaySize.x - 200, 0));
@@ -37,20 +35,12 @@ void EditorTileMapUi::draw(
     int columns = 4;
     int count = 0;
     int tileSize = tileMap.getTileSize();
-    int tileSetWidth = tileSet.getWidth();
-    int tilesPerRow = tileSetWidth / tileSize;
-    float uvSize = static_cast<float>(tileSize) / static_cast<float>(tileSetWidth);
     ImTextureID imguiTextureID = (ImTextureID)(intptr_t)tileSet.getTextureID();
 
     for (const auto &[tileIndex, tile] : tiles)
     {
         ImGui::PushID(tileIndex);
-
-        int tileSetX = tileIndex % tilesPerRow;
-        int tileSetY = tileIndex / tilesPerRow;
-        ImVec2 uv0(tileSetX * uvSize, (tileSetY + 1) * uvSize);
-        ImVec2 uv1((tileSetX + 1) * uvSize, tileSetY * uvSize);
-
+        auto [uvStart, uvEnd] = tileSet.getUVRange(tileIndex, tileSize, false);
         int previouslySelectedTileIndex = selectedTileIndex;
 
         if (previouslySelectedTileIndex == tileIndex)
@@ -61,7 +51,12 @@ void EditorTileMapUi::draw(
         }
 
         ImVec2 tilePos = ImGui::GetCursorScreenPos();
-        if (ImGui::ImageButton("##tile", imguiTextureID, ImVec2(32, 32), uv0, uv1))
+        if (ImGui::ImageButton(
+                "##tile",
+                imguiTextureID,
+                ImVec2(32, 32),
+                ImVec2(uvStart.x, uvStart.y),
+                ImVec2(uvEnd.x, uvEnd.y)))
             selectedTileIndex = tileIndex;
 
         ImGui::GetWindowDrawList()->AddText(
@@ -119,17 +114,13 @@ void EditorTileMapUi::update(
     TileMap &tileMap)
 {
     if (!editing)
-    {
         return;
-    }
 
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = imGuiManager.screenToWorld(mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
     glm::ivec2 tilePosition = tileMap.worldToTilePosition(worldPosition);
     if (!tileMap.validTilePosition(tilePosition))
-    {
         return;
-    }
 
     if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !imGuiManager.getIO().WantCaptureMouse)
     {
@@ -139,8 +130,6 @@ void EditorTileMapUi::update(
             editingPlayerStartTile = false;
         }
         else
-        {
             tileMap.setTileIndex(tilePosition, selectedTileIndex);
-        }
     }
 }

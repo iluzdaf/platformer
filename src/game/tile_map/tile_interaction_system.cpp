@@ -1,7 +1,6 @@
 #include "game/tile_map/tile_interaction_system.hpp"
 #include "game/player/player.hpp"
 #include "game/tile_map/tile_map.hpp"
-#include <iostream>
 
 void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 {
@@ -30,9 +29,11 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 
         if (tile.isPickup())
         {
-            auto replaceIndexOpt = tile.getPickupReplaceIndex();
-            assert(replaceIndexOpt.has_value());
-            tileMap.setTileIndex(tilePosition, replaceIndexOpt.value());
+            auto replaceIndexOptional = tile.getPickupReplaceIndex();
+            assert(replaceIndexOptional.has_value());
+            tileMap.setTileIndex(tilePosition, replaceIndexOptional.value());
+            auto pickupScoreDeltaOptional = tile.getPickupScoreDelta();
+            player.onPickup(pickupScoreDeltaOptional.has_value() ? pickupScoreDeltaOptional.value() : 0);
         }
 
         if (tile.isPortal())

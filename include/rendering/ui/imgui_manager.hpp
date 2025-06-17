@@ -1,8 +1,8 @@
 #pragma once
-#include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
 class Camera2D;
+class GLFWwindow;
 
 class ImGuiManager
 {

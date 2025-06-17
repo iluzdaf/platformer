@@ -8,7 +8,7 @@ struct TileData
 {
     TileKind kind;
     std::optional<TileAnimationData> animationData;
-    std::optional<int> pickupReplaceIndex;
-    glm::vec2 colliderOffset{0.0f, 0.0f};
-    glm::vec2 colliderSize{16.0f, 16.0f};
+    std::optional<int> pickupReplaceIndex, pickupScoreDelta;
+    glm::vec2 colliderOffset = glm::vec2(0.0f, 0.0f),
+              colliderSize = glm::vec2(16.0f, 16.0f);
 };

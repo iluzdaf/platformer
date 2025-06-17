@@ -4,6 +4,7 @@
 #include "game/tile_map/tile_map.hpp"
 #include "game/tile_map/tile_interaction_system.hpp"
 #include "game/player/player.hpp"
+#include "game/scoring_system.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_map_renderer.hpp"
@@ -13,6 +14,7 @@
 #include "rendering/ui/debug_tile_map_ui.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
 #include "rendering/ui/editor_tile_map_ui.hpp"
+#include "rendering/ui/score_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "physics/fixed_time_step.hpp"
@@ -57,7 +59,8 @@ private:
 
     std::unique_ptr<TileMap> tileMap;
     std::unique_ptr<Player> player;
-    std::unique_ptr<TileInteractionSystem> tileInteractionSystem;
+    TileInteractionSystem tileInteractionSystem;
+    ScoringSystem scoringSystem;
 
     std::unique_ptr<Texture2D> tileSet;
     std::unique_ptr<Shader> tileSetShader;
@@ -66,11 +69,12 @@ private:
     std::unique_ptr<Texture2D> playerTexture;
     std::unique_ptr<ScreenTransition> screenTransition;
     std::unique_ptr<Shader> screenTransitionShader;
-    std::unique_ptr<DebugUi> debugControlUi;
     std::unique_ptr<ImGuiManager> imGuiManager;
-    std::unique_ptr<DebugTileMapUi> debugTileMapUi;
-    std::unique_ptr<DebugAABBUi> debugAABBUi;
-    std::unique_ptr<EditorTileMapUi> editorTileMapUi;
+    DebugUi debugUi;
+    DebugTileMapUi debugTileMapUi;
+    DebugAABBUi debugAABBUi;
+    EditorTileMapUi editorTileMapUi;
+    ScoreUi scoreUi;
 
     fteng::connection onLevelCompleteConnection;
 

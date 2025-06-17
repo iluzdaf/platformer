@@ -2,11 +2,9 @@
 #include <memory>
 #include <vector>
 #include <signals.hpp>
-#include "game/player/player_animation_state.hpp"
 #include "game/player/movement_abilities/movement_ability.hpp"
 #include "game/player/movement_context.hpp"
 #include "game/player/player_state.hpp"
-#include "animations/sprite_animation.hpp"
 #include "animations/animation_manager.hpp"
 #include "physics/physics_body.hpp"
 class TileMap;
@@ -50,6 +48,7 @@ public:
         onFallFromHeight,
         onHitCeiling,
         onWallSliding;
+    fteng::signal<void(int)> onPickup;
 
 private:
     PhysicsBody physicsBody;

@@ -9,7 +9,7 @@
 class Tile
 {
 public:
-    explicit Tile(const TileData &tileData);
+    Tile(int tileIndex, const TileData &tileData);
     void update(float deltaTime);
     int getCurrentFrame() const;
     bool isSolid() const;
@@ -24,11 +24,13 @@ public:
     TileData toTileData() const;
     bool isPortal() const;
     bool isEmpty() const;
+    std::optional<int> getPickupScoreDelta() const;
 
 private:
     TileKind kind = TileKind::Empty;
     std::optional<TileAnimation> animation;
-    std::optional<int> pickupReplaceIndex;
-    glm::vec2 colliderOffset = glm::vec2(0, 0);
-    glm::vec2 colliderSize = glm::vec2(16, 16);
+    std::optional<int> pickupReplaceIndex, pickupScoreDelta;
+    glm::vec2 colliderOffset = glm::vec2(0, 0),
+              colliderSize = glm::vec2(16, 16);
+    int tileIndex;
 };

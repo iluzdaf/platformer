@@ -436,7 +436,7 @@ void Game::reload()
     showDebug = gameData.debugData.showDebug;
     showTileMapEditor = gameData.debugData.showTileMapEditor;
 
-    glfwSetWindowSize(window, gameData.windowHeight, gameData.windowHeight);
+    glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
 
     camera->setZoom(gameData.cameraData.zoom);
 

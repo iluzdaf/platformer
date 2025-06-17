@@ -96,9 +96,8 @@ Game::Game()
         {
             std::cerr << e.what() << std::endl;
         } });
-    scriptWatcher.onScriptsChanged.connect([this]{
-        luaScriptSystem->loadScripts();
-    });
+    scriptWatcher.onScriptsChanged.connect([this]
+                                           { luaScriptSystem->loadScripts(); });
 
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
     player->onDeath.connect([this]
@@ -213,7 +212,7 @@ void Game::render()
         *tileSetShader.get(),
         *playerTexture.get(),
         projection,
-        playerState.position,
+        player->getPosition(),
         playerState.size,
         playerState.currentAnimationUVStart,
         playerState.currentAnimationUVEnd,

@@ -38,6 +38,7 @@ void JumpAbility::tryJump(
     if (playerState.dashing || 
         playerState.wallSliding || 
         jumpCount >= maxJumpCount || 
+        (playerState.touchingLeftWall || playerState.touchingRightWall) ||
         playerState.wallJumping)
         return;
 

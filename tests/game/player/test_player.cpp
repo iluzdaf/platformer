@@ -402,16 +402,17 @@ TEST_CASE("Player can dash", "[Player]")
 
 TEST_CASE("Player movement ability integration", "[Player]")
 {
+    TileMap tileMap = setupTileMap();
+    Player player = setupPlayer();
+
     SECTION("Player can jump, wall slide, and wall jump")
     {
-        TileMap tileMap = setupTileMap();
         for (int tileY = 0; tileY < 10; ++tileY)
         {
             tileMap.setTileIndex(glm::ivec2(2, tileY), 1);
             tileMap.setTileIndex(glm::ivec2(7, tileY), 1);
         }
 
-        Player player = setupPlayer();
         player.setPosition(glm::vec2(3 * 16, 5 * 16));
         player.moveLeft();
         player.jump();
@@ -428,11 +429,9 @@ TEST_CASE("Player movement ability integration", "[Player]")
 
     SECTION("Player dashes into wall and performs wall jump")
     {
-        TileMap tileMap = setupTileMap();
         for (int tileY = 0; tileY < 10; ++tileY)
             tileMap.setTileIndex(glm::ivec2(6, tileY), 1);
 
-        Player player = setupPlayer();
         player.setPosition(glm::vec2(4 * 16, 2 * 16));
         player.moveRight();
         player.dash();
@@ -448,11 +447,8 @@ TEST_CASE("Player movement ability integration", "[Player]")
         REQUIRE(player.getVelocity().x < 0);
     }
 
-    SECTION("Player cannot wall jump unless wall sliding")
+    SECTION("Player cannot wall jump unless touching wall")
     {
-        Player player = setupPlayer();
-        TileMap tileMap = setupTileMap();
-
         player.jump();
         simulatePlayer(player, tileMap, 0.1f);
 
@@ -462,6 +458,31 @@ TEST_CASE("Player movement ability integration", "[Player]")
 
         glm::vec2 after = player.getVelocity();
         REQUIRE(after.x == Approx(before.x));
+    }
+
+    SECTION("Wall jump does not increment jump count")
+    {
+        for (int y = 0; y < 10; ++y)
+        {
+            tileMap.setTileIndex(glm::ivec2(2, y), 1);
+            tileMap.setTileIndex(glm::ivec2(5, y), 1);
+        }
+
+        player.setPosition(glm::vec2(3 * 16, 5 * 16));
+        player.moveLeft();
+        player.jump();
+        simulatePlayer(player, tileMap, 0.2f);
+
+        int jumpsBeforeWallJump = player.getPlayerState().jumpCount;
+        player.jump();
+        simulatePlayer(player, tileMap, 0.2f);
+        int jumpsAfterWallJump = player.getPlayerState().jumpCount;
+        REQUIRE(jumpsAfterWallJump == jumpsBeforeWallJump);
+
+        player.jump();
+        simulatePlayer(player, tileMap, 0.1f);
+        jumpsAfterWallJump = player.getPlayerState().jumpCount;
+        REQUIRE(jumpsAfterWallJump == jumpsBeforeWallJump);
     }
 }
 
@@ -615,7 +636,7 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
         player.setPosition(glm::vec2(3 * 16, 5 * 16));
         bool wallSlideTriggered = false;
         player.onWallSliding.connect([&]
-                                  { wallSlideTriggered = true; });
+                                     { wallSlideTriggered = true; });
         player.moveLeft();
         player.jump();
         simulatePlayer(player, tileMap, 0.2f);

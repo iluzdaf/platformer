@@ -17,12 +17,14 @@ public:
     TileKind getKind() const;
     bool isPickup() const;
     std::optional<int> getPickupReplaceIndex() const;
-    bool isSpikes() const;    
+    bool isSpikes() const;
     glm::vec2 getColliderOffset() const;
     glm::vec2 getColliderSize() const;
     AABB getAABBAt(glm::vec2 worldPosition) const;
     TileData toTileData() const;
-    
+    bool isPortal() const;
+    bool isEmpty() const;
+
 private:
     TileKind kind = TileKind::Empty;
     std::optional<TileAnimation> animation;

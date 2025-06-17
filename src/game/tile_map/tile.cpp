@@ -88,3 +88,13 @@ TileData Tile::toTileData() const
     data.colliderSize = colliderSize;
     return data;
 }
+
+bool Tile::isPortal() const
+{
+    return kind == TileKind::Portal;
+}
+
+bool Tile::isEmpty() const
+{
+    return kind == TileKind::Empty;
+}

@@ -10,9 +10,9 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 
     for (const auto &tilePosition : tilePositions)
     {
-        if(!tileMap.validTilePosition(tilePosition))
+        if (!tileMap.validTilePosition(tilePosition))
             continue;
-            
+
         const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
         glm::vec2 tileWorldPosition = tileMap.tileToWorldPosition(tilePosition);
         AABB tileAABB = tile.getAABBAt(tileWorldPosition);
@@ -33,6 +33,10 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
             auto replaceIndexOpt = tile.getPickupReplaceIndex();
             assert(replaceIndexOpt.has_value());
             tileMap.setTileIndex(tilePosition, replaceIndexOpt.value());
+        }
+
+        if (tile.isPortal())
+        {
             player.onLevelComplete();
             break;
         }

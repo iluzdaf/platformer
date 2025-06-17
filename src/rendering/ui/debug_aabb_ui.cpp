@@ -61,7 +61,7 @@ void DebugAABBUi::drawTileMapAABBs(
     for (auto tilePosition : tilePositions)
     {
         auto tile = tileMap.getTileAtTilePosition(tilePosition);
-        if (!tile.isSpikes() && !tile.isPickup())
+        if (tile.isSolid() || tile.isEmpty())
         {
             continue;
         }

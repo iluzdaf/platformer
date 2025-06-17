@@ -5,5 +5,6 @@ enum class TileKind
     Empty,
     Solid,
     Pickup,
-    Spikes
+    Spikes,
+    Portal
 };

@@ -20,7 +20,7 @@ DashAbility::DashAbility(const DashAbilityData &dashAbilityData)
 
 void DashAbility::fixedUpdate(
     MovementContext &movementContext,
-    const PlayerState & /*playerState*/,
+    const PlayerState & playerState,
     float deltaTime)
 {
     if (dashCooldownLeft > 0.0f)
@@ -28,6 +28,12 @@ void DashAbility::fixedUpdate(
 
     if (!dashing())
         return;
+
+    if (playerState.touchingLeftWall || playerState.touchingRightWall)
+    {
+        dashTimeLeft = 0.0f;
+        return;
+    }
 
     dashTimeLeft -= deltaTime;
 

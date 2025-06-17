@@ -340,9 +340,10 @@ TEST_CASE("Player movement ability integration", "[Player]")
         player.setPosition(glm::vec2(4 * 16, 2 * 16));
         player.moveRight();
         player.dash();
-        simulatePlayer(player, tileMap, 0.2f);
+        simulatePlayer(player, tileMap, 0.19f);
         PlayerState playerState = player.getPlayerState();
         REQUIRE(playerState.touchingRightWall);
+        REQUIRE_FALSE(playerState.dashing);
         REQUIRE(playerState.wallSliding);
 
         player.jump();

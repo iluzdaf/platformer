@@ -1,11 +1,11 @@
-#include <cassert>
 #include <stdexcept>
 #include "rendering/texture2d.hpp"
 #include "stb_image.h"
 
 Texture2D::Texture2D(const std::string &filePath)
 {
-    assert(!filePath.empty());
+    if (filePath.empty())
+        throw std::invalid_argument("Texture2D filePath must not be empty");
 
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
@@ -28,7 +28,7 @@ Texture2D::Texture2D(const std::string &filePath)
 
 Texture2D::~Texture2D()
 {
-    if (valid())
+    if (textureID != 0)
     {
         glDeleteTextures(1, &textureID);
         textureID = 0;
@@ -37,8 +37,6 @@ Texture2D::~Texture2D()
 
 void Texture2D::bind() const
 {
-    assert(valid());
-
     glBindTexture(GL_TEXTURE_2D, textureID);
 }
 
@@ -50,11 +48,6 @@ unsigned int Texture2D::getWidth() const
 unsigned int Texture2D::getHeight() const
 {
     return height;
-}
-
-bool Texture2D::valid() const
-{
-    return textureID != 0;
 }
 
 GLuint Texture2D::getTextureID() const

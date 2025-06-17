@@ -1,5 +1,3 @@
-
-
 #include "game/player/movement_abilities/jump_ability.hpp"
 #include "game/player/movement_abilities/dash_ability.hpp"
 #include "game/player/player.hpp"
@@ -9,8 +7,10 @@ JumpAbility::JumpAbility(const JumpAbilityData &jumpAbilityData)
     : maxJumpCount(jumpAbilityData.maxJumpCount),
       jumpSpeed(jumpAbilityData.jumpSpeed)
 {
-    assert(maxJumpCount > 0);
-    assert(jumpSpeed < 0);
+    if (maxJumpCount <= 0)
+        throw std::invalid_argument("maxJumpCount must be greater than 0");
+    if (jumpSpeed >= 0)
+        throw std::invalid_argument("jumpSpeed must be negative");
 }
 
 void JumpAbility::fixedUpdate(

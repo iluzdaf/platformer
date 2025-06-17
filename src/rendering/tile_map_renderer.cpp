@@ -1,17 +1,21 @@
 #include <cassert>
 #include "rendering/tile_map_renderer.hpp"
+#include "rendering/texture2d.hpp"
 #include "game/tile_map/tile_map.hpp"
 
-TileMapRenderer::TileMapRenderer(
-    const Texture2D &tileSet,
-    const SpriteRenderer &spriteRenderer) : tileSet(tileSet),
-                                            spriteRenderer(spriteRenderer)
+TileMapRenderer::TileMapRenderer(const SpriteRenderer &spriteRenderer)
+    : spriteRenderer(spriteRenderer)
 {
-    assert(tileSet.getWidth() == tileSet.getHeight() && "TileSet texture must be square");
 }
 
-void TileMapRenderer::draw(const TileMap &tileMap, const glm::mat4 &projection)
+void TileMapRenderer::draw(
+    const TileMap &tileMap,
+    const glm::mat4 &projection,
+    const Shader &tileSetShader,
+    const Texture2D &tileSet)
 {
+    assert(tileSet.getWidth() == tileSet.getHeight() && "TileSet texture must be square");
+
     int tileSize = tileMap.getTileSize();
     int tileSetWidth = tileSet.getWidth();
     int tilesPerRow = tileSetWidth / tileSize;
@@ -34,7 +38,7 @@ void TileMapRenderer::draw(const TileMap &tileMap, const glm::mat4 &projection)
             glm::vec2 position = glm::vec2(tileX * tileSize, tileY * tileSize);
             glm::vec2 size = glm::vec2(tileSize);
 
-            spriteRenderer.drawWithUV(tileSet, projection, position, size, uvStart, uvEnd);
+            spriteRenderer.drawWithUV(tileSetShader, tileSet, projection, position, size, uvStart, uvEnd);
         }
     }
 }

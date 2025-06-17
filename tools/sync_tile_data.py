@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 base_path = Path(__file__).resolve().parent
-tile_map_dir = base_path.parent / "assets" / "tile_maps"
+tile_map_dir = base_path.parent / "assets" / "levels"
 
 with open(tile_map_dir / "test.json") as f:
     test_data = json.load(f)

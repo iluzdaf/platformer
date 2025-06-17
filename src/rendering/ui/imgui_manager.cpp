@@ -67,8 +67,10 @@ void ImGuiManager::update()
 
 void ImGuiManager::resize(int windowWidth, int windowHeight)
 {
-    assert(windowWidth > 0.0f && "windowWidth must be positive");
-    assert(windowHeight > 0.0f && "windowHeight must be positive");
+    if (windowWidth <= 0.0f)
+        throw std::invalid_argument("windowWidth must be positive");
+    if (windowHeight <= 0.0f)
+        throw std::invalid_argument("windowHeight must be positive");
 
     this->windowWidth = windowWidth;
     this->windowHeight = windowHeight;

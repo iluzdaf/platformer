@@ -1,21 +1,23 @@
 #pragma once
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include "shader.hpp"
 class Texture2D;
+class Shader;
 
 class SpriteRenderer
 {
 public:
-    explicit SpriteRenderer(const Shader &shader);
+    SpriteRenderer();
     ~SpriteRenderer();
     void draw(
+        const Shader &shader,
         const Texture2D &texture,
         glm::mat4 projection,
         glm::vec2 position,
         glm::vec2 size,
         float rotate = 0.0f);
     void drawWithUV(
+        const Shader &shader,
         const Texture2D &texture,
         glm::mat4 projection,
         glm::vec2 position,
@@ -26,5 +28,4 @@ public:
 
 private:
     GLuint quadVertexArrayObject = 0;
-    Shader shader;
 };

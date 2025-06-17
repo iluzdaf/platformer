@@ -162,7 +162,7 @@ const PlayerState &Player::getPlayerState() const
 
 void Player::setPosition(const glm::vec2 &position)
 {
-    this->physicsBody.setPosition(position);
+    physicsBody.setPosition(position);
 }
 
 AABB Player::getAABB() const

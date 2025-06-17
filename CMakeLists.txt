@@ -60,6 +60,9 @@ target_include_directories(imgui PUBLIC
 )
 target_link_libraries(imgui PRIVATE glfw glad)
 
+#esfw
+add_subdirectory(external/efsw)
+
 # Platformer Executable
 add_executable(platformer
     src/main.cpp
@@ -101,6 +104,7 @@ target_include_directories(platformer
     external/glfw/include
     external/glaze/include
     external/sol2/include
+    external/efsw/include
 )
 
 target_link_libraries(platformer
@@ -110,6 +114,7 @@ target_link_libraries(platformer
     stb
     lua
     imgui
+    efsw
     ${CMAKE_DL_LIBS}
 )
 
@@ -174,6 +179,7 @@ target_include_directories(tests
     external/glfw/include
     external/glaze/include
     external/sol2/include
+    external/efsw/include
     tests/
 )
 
@@ -185,6 +191,7 @@ target_link_libraries(tests
     stb
     lua
     imgui
+    efsw
     ${CMAKE_DL_LIBS}
 )
 

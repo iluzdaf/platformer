@@ -1,20 +1,19 @@
 #pragma once
-#include "rendering/shader.hpp"
+class Shader;
 
 class ScreenTransition
 {
 public:
-    explicit ScreenTransition(const Shader &shader);
+    ScreenTransition();
     ~ScreenTransition();
     void start(float duration, bool fadeIn = true);
     void update(float deltaTime);
-    void draw();
+    void draw(const Shader &shader);
 
     bool isActive() const;
 
 private:
     unsigned int VAO, VBO;
-    Shader shader;
 
     float duration;
     float timer;

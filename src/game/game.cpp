@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/game.hpp"
+#include "rendering/shader_data.hpp"
 
 Game::Game()
 {
@@ -31,6 +32,73 @@ Game::Game()
     keyboardManager.registerKey(GLFW_KEY_RIGHT_SHIFT);
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
+    levelWatcher.onLevelChanged.connect([this](const std::string &levelPath)
+                                        {
+        if (levelPath.compare(tileMap->getLevel()) == 0)
+            try
+            {
+                loadLevel(levelPath);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << std::endl;
+            } });
+    assetWatcher.onShaderChanged.connect([this](const std::string &shaderPath)
+                                         {
+        try
+        {
+            ShaderData shaderData;
+            if (shaderPath.compare("../assets/shaders/tile_set.vs") == 0 || shaderPath.compare("../assets/shaders/tile_set.fs") == 0)
+            {
+                shaderData.vertexPath = "../assets/shaders/tile_set.vs";
+                shaderData.fragmentPath = "../assets/shaders/tile_set.fs";
+                std::unique_ptr<Shader> newtileSetShader = std::make_unique<Shader>(shaderData);
+                tileSetShader = std::move(newtileSetShader);
+            }
+            else if (shaderPath.compare("../assets/shaders/transition.vs") == 0 || shaderPath.compare("../assets/shaders/transition.fs") == 0)
+            {
+                shaderData.vertexPath = "../assets/shaders/transition.vs";
+                shaderData.fragmentPath = "../assets/shaders/transition.fs";
+                std::unique_ptr<Shader> newScreenTransitionShader = std::make_unique<Shader>(shaderData);
+                screenTransitionShader = std::move(newScreenTransitionShader);
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << std::endl;
+        } });
+    assetWatcher.onTextureChanged.connect([this](const std::string &texturePath)
+                                          {
+        try
+        {
+            if (texturePath.compare("../assets/textures/tile_set.png") == 0)
+            {
+                std::unique_ptr<Texture2D> newTileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
+                tileSet = std::move(newTileSet);                                                        
+            }
+            else if (texturePath.compare("../assets/textures/player.png") == 0)
+            {
+                std::unique_ptr<Texture2D> newPlayerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
+                playerTexture = std::move(newPlayerTexture);
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << std::endl;
+        } });
+    gameDataWatcher.onGameDataChanged.connect([this]
+                                              {
+        try
+        {
+            reload();
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << std::endl;
+        } });
+    scriptWatcher.onScriptsChanged.connect([this]{
+        luaScriptSystem->loadScripts();
+    });
 
     player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
     player->onDeath.connect([this]
@@ -55,26 +123,31 @@ Game::Game()
     tileInteractionSystem = std::make_unique<TileInteractionSystem>();
 
     tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
-    tileSetShader.initByShaderFile("../assets/shaders/tile_set.vs", "../assets/shaders/tile_set.fs");
-    tileSetSpriteRenderer = std::make_unique<SpriteRenderer>(tileSetShader);
-    tileMapRenderer = std::make_unique<TileMapRenderer>(*tileSet.get(), *tileSetSpriteRenderer.get());
+    ShaderData shaderData;
+    shaderData.vertexPath = "../assets/shaders/tile_set.vs";
+    shaderData.fragmentPath = "../assets/shaders/tile_set.fs";
+    tileSetShader = std::make_unique<Shader>(shaderData);
+    spriteRenderer = std::make_unique<SpriteRenderer>();
+    tileMapRenderer = std::make_unique<TileMapRenderer>(*spriteRenderer.get());
     playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
-    screenTransitionShader.initByShaderFile("../assets/shaders/transition.vs", "../assets/shaders/transition.fs");
-    screenTransition = std::make_unique<ScreenTransition>(screenTransitionShader);
+    shaderData.vertexPath = "../assets/shaders/transition.vs";
+    shaderData.fragmentPath = "../assets/shaders/transition.fs";
+    screenTransitionShader = std::make_unique<Shader>(shaderData);
+    screenTransition = std::make_unique<ScreenTransition>();
     debugControlUi = std::make_unique<DebugUi>();
     debugControlUi->onPlay.connect([this]
                                    { play(); });
     debugControlUi->onStep.connect([this]
                                    { step(); });
     debugControlUi->onRespawn.connect([this]
-                                      { 
+                                      {
         player->reset();
         player->setPosition(tileMap->getPlayerStartWorldPosition()); });
     debugControlUi->onToggleZoom.connect([this]
                                          {
         static int originalZoom = camera->getZoom();
         int currentZoom = camera->getZoom();
-        camera->setZoom(currentZoom == originalZoom? 3 : originalZoom); });
+        camera->setZoom(currentZoom == originalZoom ? 3 : originalZoom); });
     debugControlUi->onToggleDrawGrid.connect([this]
                                              { shouldDrawGrid = !shouldDrawGrid; });
     debugControlUi->onToggleDrawTileInfo.connect([this]
@@ -129,10 +202,15 @@ void Game::render()
 
     glm::mat4 projection = camera->getProjection();
 
-    tileMapRenderer->draw(*tileMap.get(), projection);
+    tileMapRenderer->draw(
+        *tileMap.get(),
+        projection,
+        *tileSetShader.get(),
+        *tileSet.get());
 
     PlayerState playerState = player->getPlayerState();
-    tileSetSpriteRenderer->drawWithUV(
+    spriteRenderer->drawWithUV(
+        *tileSetShader.get(),
         *playerTexture.get(),
         projection,
         playerState.position,
@@ -141,7 +219,7 @@ void Game::render()
         playerState.currentAnimationUVEnd,
         playerState.facingLeft);
 
-    screenTransition->draw();
+    screenTransition->draw(*screenTransitionShader.get());
 
     imGuiManager->newFrame();
 
@@ -190,6 +268,10 @@ void Game::run()
         float deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
+        levelWatcher.process();
+        assetWatcher.process();
+        gameDataWatcher.process();
+        scriptWatcher.process();
         keyboardManager.update(window);
         luaScriptSystem->update(deltaTime);
         camera->update(deltaTime);
@@ -317,7 +399,8 @@ void Game::preFixedUpdate()
 
 void Game::loadLevel(const std::string &levelPath)
 {
-    tileMap = std::make_unique<TileMap>(levelPath);
+    std::unique_ptr<TileMap> newTileMap = std::make_unique<TileMap>(levelPath);
+    tileMap = std::move(newTileMap);
     luaScriptSystem->bindTileMap(tileMap.get());
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
     onLevelCompleteConnection.unblock();
@@ -345,6 +428,7 @@ void Game::play()
 void Game::reload()
 {
     GameData gameData = loadGameData();
+
     shouldDrawGrid = gameData.debugData.shouldDrawGrid;
     shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
     shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
@@ -354,11 +438,9 @@ void Game::reload()
 
     glfwSetWindowSize(window, gameData.windowHeight, gameData.windowHeight);
 
-    luaScriptSystem->loadScripts();
-
-    loadLevel(gameData.firstLevel);
+    camera->setZoom(gameData.cameraData.zoom);
 
     player->initFromData(gameData.playerData, gameData.physicsData);
 
-    camera->setZoom(gameData.cameraData.zoom);
+    loadLevel(gameData.firstLevel);
 }

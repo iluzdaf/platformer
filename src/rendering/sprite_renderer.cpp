@@ -1,11 +1,9 @@
-#include <cassert>
 #include "rendering/sprite_renderer.hpp"
 #include "rendering/texture2d.hpp"
+#include "rendering/shader.hpp"
 
-SpriteRenderer::SpriteRenderer(const Shader &shader) : shader(shader)
+SpriteRenderer::SpriteRenderer()
 {
-    assert(shader.valid());
-
     GLuint vertexBufferObject;
     float vertices[] = {
         0.0f, 1.0f, 0.0f, 0.0f,
@@ -40,14 +38,13 @@ SpriteRenderer::~SpriteRenderer()
 }
 
 void SpriteRenderer::draw(
+    const Shader &shader,
     const Texture2D &texture,
     glm::mat4 projection,
     glm::vec2 position,
     glm::vec2 size,
     float rotate)
 {
-    assert(texture.valid());
-
     shader.use();
     shader.setInt("image", 0);
     shader.setMat4("projection", projection);
@@ -69,6 +66,7 @@ void SpriteRenderer::draw(
 }
 
 void SpriteRenderer::drawWithUV(
+    const Shader &shader,
     const Texture2D &texture,
     glm::mat4 projection,
     glm::vec2 position,
@@ -77,8 +75,6 @@ void SpriteRenderer::drawWithUV(
     glm::vec2 uvEnd,
     bool flipX)
 {
-    assert(texture.valid());
-
     shader.use();
     shader.setMat4("projection", projection);
 

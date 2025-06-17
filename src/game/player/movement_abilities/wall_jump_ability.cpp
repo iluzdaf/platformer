@@ -8,9 +8,12 @@ WallJumpAbility::WallJumpAbility(const WallJumpAbilityData &wallJumpAbilityData)
       horizontalSpeed(wallJumpAbilityData.horizontalSpeed),
       maxJumpCount(wallJumpAbilityData.maxJumpCount)
 {
-    assert(jumpSpeed < 0);
-    assert(horizontalSpeed > 0);
-    assert(maxJumpCount > 0);
+    if (jumpSpeed >= 0)
+        throw std::invalid_argument("jumpSpeed must be negative");
+    if (horizontalSpeed <= 0)
+        throw std::invalid_argument("horizontalSpeed must be greater than 0");
+    if (maxJumpCount <= 0)
+        throw std::invalid_argument("maxJumpCount must be greater than 0");
 }
 
 void WallJumpAbility::fixedUpdate(

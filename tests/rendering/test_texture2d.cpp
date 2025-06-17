@@ -4,8 +4,7 @@
 
 TEST_CASE("Texture2D is valid", "[Texture2D]")
 {
-    Texture2D texture("../assets/textures/player.png");
-    REQUIRE(texture.valid());
+    REQUIRE_NOTHROW(Texture2D("../assets/textures/player.png"));
 }
 
 TEST_CASE("Texture2D does not exist", "[Texture2D]")

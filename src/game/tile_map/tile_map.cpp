@@ -1,4 +1,3 @@
-#include <cassert>
 #include <glaze/glaze.hpp>
 #include "game/tile_map/tile_map.hpp"
 
@@ -6,14 +5,14 @@ TileMap::TileMap(const std::string &jsonFilePath) : level(jsonFilePath)
 {
     if (jsonFilePath.empty())
     {
-        throw std::runtime_error("jsonFilePath is empty");
+        throw std::runtime_error("Tile Map jsonFilePath is empty");
     }
 
     TileMapData tileMapData;
     auto ec = glz::read_file_json(tileMapData, jsonFilePath, std::string{});
     if (ec)
     {
-        throw std::runtime_error("Failed to read json file");
+        throw std::runtime_error("Failed to read Tile Map json file");
     }
 
     initByData(tileMapData);
@@ -28,7 +27,8 @@ void TileMap::initByData(const TileMapData &tileMapData)
 {
     tileSize = tileMapData.size;
 
-    assert(tileSize > 0);
+    if (tileSize <= 0)
+        throw std::runtime_error("tileSize must be greater than 0");
 
     const bool hasTileIndices = tileMapData.indices.has_value();
     const bool hasExplicitSize = tileMapData.width.has_value() && tileMapData.height.has_value();
@@ -84,16 +84,19 @@ void TileMap::initByData(const TileMapData &tileMapData)
     }
 
     playerStartTilePosition = tileMapData.playerStartTilePosition;
-    assert(playerStartTilePosition.x >= 0);
-    assert(playerStartTilePosition.y >= 0);
-    assert(playerStartTilePosition.x < width);
-    assert(playerStartTilePosition.y < height);
+    if (playerStartTilePosition.x < 0 || playerStartTilePosition.y < 0 ||
+        playerStartTilePosition.x >= width || playerStartTilePosition.y >= height)
+        throw std::runtime_error("playerStartTilePosition is out of bounds");
+
     const Tile &tile = getTileAtTilePosition(playerStartTilePosition);
-    assert(!tile.isSolid());
-    assert(!tile.isSpikes());
+    if (tile.isSolid())
+        throw std::runtime_error("Player start position is on a solid tile");
+    if (tile.isSpikes())
+        throw std::runtime_error("Player start position is on a spike tile");
 
     nextLevel = tileMapData.nextLevel;
-    assert(!nextLevel.empty());
+    if (nextLevel.empty())
+        throw std::runtime_error("nextLevel must not be empty");
 }
 
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)

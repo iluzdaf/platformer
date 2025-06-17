@@ -1,15 +1,28 @@
-#include "rendering/shader.hpp"
 #include <fstream>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
+#include "rendering/shader.hpp"
+#include "rendering/shader_data.hpp"
 
-Shader::Shader()
+Shader::Shader(const ShaderData &shaderData)
 {
+    if (shaderData.vertexCode && shaderData.fragmentCode)
+    {
+        initByCode(*shaderData.vertexCode, *shaderData.fragmentCode);
+    }
+    else if (shaderData.vertexPath && shaderData.fragmentPath)
+    {
+        initByShaderFile(*shaderData.vertexPath, *shaderData.fragmentPath);
+    }
+    else
+    {
+        throw std::runtime_error("ShaderData must contain either both vertex/fragment code or both vertex/fragment paths");
+    }
 }
 
 Shader::~Shader()
 {
-    if (valid())
+    if (shaderID != 0)
     {
         glDeleteProgram(shaderID);
         shaderID = 0;
@@ -18,14 +31,11 @@ Shader::~Shader()
 
 void Shader::use() const
 {
-    assert(valid());
-
     glUseProgram(shaderID);
 }
 
 void Shader::setBool(const std::string &name, bool value) const
 {
-    assert(valid());
     assert(!name.empty());
 
     glUniform1i(glGetUniformLocation(shaderID, name.c_str()), (int)value);
@@ -33,7 +43,6 @@ void Shader::setBool(const std::string &name, bool value) const
 
 void Shader::setInt(const std::string &name, int value) const
 {
-    assert(valid());
     assert(!name.empty());
 
     glUniform1i(glGetUniformLocation(shaderID, name.c_str()), value);
@@ -41,7 +50,6 @@ void Shader::setInt(const std::string &name, int value) const
 
 void Shader::setFloat(const std::string &name, float value) const
 {
-    assert(valid());
     assert(!name.empty());
 
     glUniform1f(glGetUniformLocation(shaderID, name.c_str()), value);
@@ -49,7 +57,6 @@ void Shader::setFloat(const std::string &name, float value) const
 
 void Shader::setVec2(const std::string &name, const glm::vec2 &value) const
 {
-    assert(valid());
     assert(!name.empty());
 
     glUniform2fv(glGetUniformLocation(shaderID, name.c_str()), 1, &value[0]);
@@ -57,7 +64,6 @@ void Shader::setVec2(const std::string &name, const glm::vec2 &value) const
 
 void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
 {
-    assert(valid());
     assert(!name.empty());
 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
@@ -76,14 +82,9 @@ std::string Shader::loadFile(const std::string &path) const
     return buffer.str();
 }
 
-bool Shader::valid() const
-{
-    return shaderID != 0;
-}
-
 void Shader::initByShaderFile(const std::string &vertexPath, const std::string &fragmentPath)
 {
-    if (valid())
+    if (shaderID != 0)
     {
         throw std::runtime_error("Shader is already initialized");
     }
@@ -103,7 +104,7 @@ void Shader::initByShaderFile(const std::string &vertexPath, const std::string &
 
 void Shader::initByCode(const std::string &vertexCode, const std::string &fragmentCode)
 {
-    if (valid())
+    if (shaderID != 0)
     {
         throw std::runtime_error("Shader is already initialized");
     }
@@ -130,9 +131,8 @@ void Shader::initByCode(const std::string &vertexCode, const std::string &fragme
     if (!success)
     {
         glGetShaderInfoLog(vertex, 1024, nullptr, log);
-        compileLinkLog += log;
         glDeleteShader(vertex);
-        return;
+        throw std::runtime_error(std::string("Vertex shader compilation failed:\n") + log);
     }
 
     GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -142,10 +142,9 @@ void Shader::initByCode(const std::string &vertexCode, const std::string &fragme
     if (!success)
     {
         glGetShaderInfoLog(fragment, 1024, nullptr, log);
-        compileLinkLog += log;
         glDeleteShader(vertex);
         glDeleteShader(fragment);
-        return;
+        throw std::runtime_error(std::string("Fragment shader compilation failed:\n") + log);
     }
 
     shaderID = glCreateProgram();
@@ -156,9 +155,11 @@ void Shader::initByCode(const std::string &vertexCode, const std::string &fragme
     if (!success)
     {
         glGetProgramInfoLog(shaderID, 1024, nullptr, log);
-        compileLinkLog += log;
         glDeleteProgram(shaderID);
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
         shaderID = 0;
+        throw std::runtime_error(std::string("Shader program linking failed:\n") + log);
     }
 
     glDeleteShader(vertex);
@@ -167,7 +168,6 @@ void Shader::initByCode(const std::string &vertexCode, const std::string &fragme
 
 void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
 {
-    assert(valid());
     assert(!name.empty());
 
     glUniform4fv(glGetUniformLocation(shaderID, name.c_str()), 1, &value[0]);

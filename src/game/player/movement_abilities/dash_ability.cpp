@@ -8,10 +8,14 @@ DashAbility::DashAbility(const DashAbilityData &dashAbilityData)
       dashDuration(dashAbilityData.dashDuration),
       dashCooldown(dashAbilityData.dashCooldown)
 {
-    assert(dashSpeed > 0);
-    assert(dashDuration > 0);
-    assert(dashCooldown > 0);
-    assert(dashCooldown > dashDuration);
+    if (dashSpeed <= 0)
+        throw std::invalid_argument("dashSpeed must be greater than 0");
+    if (dashDuration <= 0)
+        throw std::invalid_argument("dashDuration must be greater than 0");
+    if (dashCooldown <= 0)
+        throw std::invalid_argument("dashCooldown must be greater than 0");
+    if (dashCooldown <= dashDuration)
+        throw std::invalid_argument("dashCooldown must be greater than dashDuration");
 }
 
 void DashAbility::fixedUpdate(

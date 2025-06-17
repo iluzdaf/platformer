@@ -1,4 +1,3 @@
-#include <cassert>
 #include <algorithm>
 #include "cameras/camera2d.hpp"
 #include "cameras/camera2d_data.hpp"
@@ -7,9 +6,8 @@ Camera2D::Camera2D(
     const Camera2DData &cameraData, 
     int windowWidth, 
     int windowHeight)
-    : zoom(cameraData.zoom)
 {
-    assert(zoom > 0.0f && "zoom must be positive and non-zero");
+    setZoom(cameraData.zoom);
 
     resize(windowWidth, windowHeight);
 }
@@ -36,8 +34,10 @@ void Camera2D::follow(const glm::vec2 &target)
 
 void Camera2D::setWorldBounds(const glm::vec2 &min, const glm::vec2 &max)
 {
-    assert(min.x < max.x && "worldMin.x must be less than worldMax.x");
-    assert(min.y < max.y && "worldMin.y must be less than worldMax.y");
+    if (min.x >= max.x)
+        throw std::invalid_argument("worldMin.x must be less than worldMax.x");
+    if (min.y >= max.y)
+        throw std::invalid_argument("worldMin.y must be less than worldMax.y");
 
     worldMin = min;
     worldMax = max;
@@ -62,8 +62,10 @@ glm::mat4 Camera2D::getProjection() const
 
 void Camera2D::resize(int windowWidth, int windowHeight)
 {
-    assert(windowWidth > 0.0f && "windowWidth must be positive");
-    assert(windowHeight > 0.0f && "windowHeight must be positive");
+    if (windowWidth <= 0.0f)
+        throw std::invalid_argument("windowWidth must be positive");
+    if (windowHeight <= 0.0f)
+        throw std::invalid_argument("windowHeight must be positive");
 
     this->windowWidth = windowWidth;
     this->windowHeight = windowHeight;
@@ -76,8 +78,10 @@ void Camera2D::update(float deltaTime)
 
 void Camera2D::startShake(float duration, float magnitude)
 {
-    assert(duration > 0);
-    assert(magnitude > 0);
+    if (duration <= 0)
+        throw std::invalid_argument("Shake duration must be greater than 0");
+    if (magnitude <= 0)
+        throw std::invalid_argument("Shake magnitude must be greater than 0");
 
     shake.start(duration, magnitude);
 }
@@ -94,7 +98,8 @@ glm::vec2 Camera2D::getTopLeftPosition() const
 
 void Camera2D::setZoom(float zoom)
 {
-    assert(zoom > 0.0f && "zoom must be positive and non-zero");
+    if (zoom <= 0.0f)
+        throw std::invalid_argument("Camera zoom must be positive and non-zero");
 
     this->zoom = zoom;
 }

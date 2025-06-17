@@ -10,7 +10,6 @@ public:
     void bind() const;
     unsigned int getWidth() const;
     unsigned int getHeight() const;
-    bool valid() const;
     GLuint getTextureID() const;
 
 private:

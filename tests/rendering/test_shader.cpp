@@ -1,19 +1,23 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "rendering/shader.hpp"
+#include "rendering/shader_data.hpp"
 
 TEST_CASE("Shader is valid", "[Shader]")
 {
-    Shader shader;
-    REQUIRE_NOTHROW(shader.initByShaderFile("../assets/shaders/sprite.vs", "../assets/shaders/sprite.fs"));
-    REQUIRE(shader.valid());
+    ShaderData shaderData;
+    shaderData.vertexPath = "../assets/shaders/sprite.vs";
+    shaderData.fragmentPath = "../assets/shaders/sprite.fs";
+    REQUIRE_NOTHROW(Shader(shaderData));
 }
 
 TEST_CASE("Shader does not exist", "[Shader]")
 {
-    Shader shader;
+    ShaderData shaderData;
+    shaderData.vertexPath = "../assets/shaders/does_not_exist.vs";
+    shaderData.fragmentPath = "../assets/shaders/does_not_exist.fs";
     REQUIRE_THROWS_WITH(
-        shader.initByShaderFile("../assets/shaders/does_not_exist.vs", "../assets/shaders/does_not_exist.fs"),
+        Shader(shaderData),
         "Vertex shader code is empty");
 }
 
@@ -36,9 +40,10 @@ TEST_CASE("Shader is broken", "[Shader]")
         }
     )";
 
-    Shader shader;
-    shader.initByCode(brokenVertex, brokenFragment);
-    REQUIRE_FALSE(shader.valid());
+    ShaderData shaderData;
+    shaderData.vertexCode = brokenVertex;
+    shaderData.fragmentCode = brokenFragment;
+    REQUIRE_THROWS(Shader(shaderData));
 }
 
 TEST_CASE("Shader fails to link", "[Shader]")
@@ -65,16 +70,8 @@ TEST_CASE("Shader fails to link", "[Shader]")
         }
     )";
 
-    Shader shader;
-    shader.initByCode(vertexShaderCode, fragmentShaderCode);
-    REQUIRE_FALSE(shader.valid());
-}
-
-TEST_CASE("Shader can only initialize once", "[Shader]")
-{
-    Shader shader;
-    shader.initByShaderFile("../assets/shaders/sprite.vs", "../assets/shaders/sprite.fs");
-    REQUIRE_THROWS_WITH(
-        shader.initByShaderFile("../assets/shaders/sprite.vs", "../assets/shaders/sprite.fs"),
-        "Shader is already initialized");
+    ShaderData shaderData;
+    shaderData.vertexCode = vertexShaderCode;
+    shaderData.fragmentCode = fragmentShaderCode;
+    REQUIRE_THROWS(Shader(shaderData));
 }

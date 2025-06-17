@@ -7,8 +7,10 @@ WallSlideAbility::WallSlideAbility(const WallSlideAbilityData &wallSlideAbilityD
     : slideSpeed(wallSlideAbilityData.slideSpeed),
       hangDuration(wallSlideAbilityData.hangDuration)
 {
-    assert(slideSpeed > 0);
-    assert(hangDuration > 0);
+    if (slideSpeed <= 0)
+        throw std::invalid_argument("slideSpeed must be greater than 0");
+    if (hangDuration <= 0)
+        throw std::invalid_argument("hangDuration must be greater than 0");
 }
 
 void WallSlideAbility::fixedUpdate(

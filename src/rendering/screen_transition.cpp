@@ -1,15 +1,15 @@
-#include "rendering/screen_transition.hpp"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "rendering/screen_transition.hpp"
+#include "rendering/shader.hpp"
 
-ScreenTransition::ScreenTransition(const Shader &shader)
+ScreenTransition::ScreenTransition()
     : active(false),
       alpha(0.0f),
       duration(1.0f),
       timer(0.0f),
-      fadeIn(true),
-      shader(shader)
+      fadeIn(true)
 {
     initQuad();
 }
@@ -58,12 +58,10 @@ void ScreenTransition::update(float deltaTime)
     alpha = fadeIn ? (1.0f - t) : t;
 
     if (t >= 1.0f)
-    {
         active = false;
-    }
 }
 
-void ScreenTransition::draw()
+void ScreenTransition::draw(const Shader &shader)
 {
     if (!active)
         return;

@@ -6,7 +6,8 @@
 MoveAbility::MoveAbility(const MoveAbilityData &moveAbilityData)
     : moveSpeed(moveAbilityData.moveSpeed)
 {
-    assert(moveSpeed > 0);
+    if (moveSpeed <= 0)
+        throw std::invalid_argument("moveSpeed must be greater than 0");
 }
 
 void MoveAbility::fixedUpdate(

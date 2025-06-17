@@ -111,7 +111,7 @@
     },
     "windowWidth": 1600,
     "windowHeight": 1200,
-    "firstLevel": "../assets/tile_maps/level1.json",
+    "firstLevel": "../assets/levels/level1.json",
     "debugData": {
         "shouldDrawGrid": false,
         "shouldDrawPlayerAABBs": false,

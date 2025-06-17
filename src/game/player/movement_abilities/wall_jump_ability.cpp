@@ -6,7 +6,8 @@
 WallJumpAbility::WallJumpAbility(const WallJumpAbilityData &wallJumpAbilityData)
     : jumpSpeed(wallJumpAbilityData.jumpSpeed),
       horizontalSpeed(wallJumpAbilityData.horizontalSpeed),
-      maxJumpCount(wallJumpAbilityData.maxJumpCount)
+      maxJumpCount(wallJumpAbilityData.maxJumpCount),
+      wallJumpDuration(wallJumpAbilityData.wallJumpDuration)
 {
     if (jumpSpeed >= 0)
         throw std::invalid_argument("jumpSpeed must be negative");

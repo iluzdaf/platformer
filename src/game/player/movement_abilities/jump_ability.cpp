@@ -59,7 +59,7 @@ void JumpAbility::tryJump(
     if (jumpCount >= maxJumpCount)
         return;
 
-    if (playerState.onGround || jumpCoyoteTime > 0.0f)
+    if (playerState.onGround || jumpCoyoteTime > 0.0f || jumpCount > 0)
     {
         performJump(movementContext);
         jumpCoyoteTime = 0.0f;

@@ -16,8 +16,10 @@ TEST_CASE("JumpAbility respects max jump count", "[JumpAbility]")
     SECTION("Player can jump twice but not more")
     {
         playerState.onGround = true;
-        jumpAbility.tryJump(mockPlayer, playerState);
+        jumpAbility.tryJump(mockPlayer, playerState);        
         REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+        playerState.onGround = false;
+        mockPlayer.setVelocity({0, 0});
         jumpAbility.tryJump(mockPlayer, playerState);
         REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
         mockPlayer.setVelocity({0, 0});

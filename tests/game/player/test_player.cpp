@@ -1,18 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
-#include "game/player/player.hpp"
-#include "game/player/player_data.hpp"
-#include "game/player/movement_abilities/jump_ability_data.hpp"
-#include "game/player/movement_abilities/dash_ability_data.hpp"
-#include "game/player/movement_abilities/move_ability_data.hpp"
-#include "game/player/movement_abilities/wall_slide_ability_data.hpp"
-#include "game/player/movement_abilities/wall_jump_ability_data.hpp"
-#include "game/tile_map/tile_map.hpp"
-#include "game/tile_map/tile_map_data.hpp"
 #include "physics/fixed_time_step.hpp"
-#include "physics/physics_data.hpp"
-#include "test_helpers/test_tilemap_utils.hpp"
+#include "test_helpers/test_tile_map_utils.hpp"
+#include "test_helpers/test_player_utils.hpp"
 using Catch::Approx;
 
 void simulatePlayer(Player &player, TileMap &tileMap, float totalTime, float step = 0.01f)
@@ -21,22 +12,6 @@ void simulatePlayer(Player &player, TileMap &tileMap, float totalTime, float ste
     timeStepper.run(totalTime, [&](float dt)
                     { player.fixedUpdate(dt, tileMap); });
     player.update(totalTime, tileMap);
-}
-
-Player setupPlayer(float gravity = 980.0f, float moveSpeed = 160.0f)
-{
-    PlayerData playerData;
-    playerData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
-    playerData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
-    playerData.moveAbilityData = MoveAbilityData();
-    playerData.moveAbilityData->moveSpeed = moveSpeed;
-    playerData.jumpAbilityData = JumpAbilityData();
-    playerData.dashAbilityData = DashAbilityData();
-    playerData.wallSlideAbilityData = WallSlideAbilityData();
-    playerData.wallJumpAbilityData = WallJumpAbilityData();
-    PhysicsData physicsData;
-    physicsData.gravity = gravity;
-    return Player(playerData, physicsData);
 }
 
 TEST_CASE("Player starts with correct position and zero velocity", "[Player]")
@@ -61,13 +36,14 @@ TEST_CASE("Player and gravity", "[Player]")
     }
 }
 
-TEST_CASE("Player and solid tiles", "[Player]")
+TEST_CASE("Player and tiles", "[Player]")
 {
+    TileMap tileMap = setupTileMap();
+    Player player = setupPlayer();
+
     SECTION("Player lands on solid tile")
     {
-        TileMap tileMap = setupTileMap();
         tileMap.setTileIndex(glm::ivec2(0, 5), 1);
-        Player player = setupPlayer();
         simulatePlayer(player, tileMap, 1.0f);
         float expectedY = 4 * tileMap.getTileSize();
         REQUIRE(player.getPosition().y == Approx(expectedY));
@@ -77,14 +53,11 @@ TEST_CASE("Player and solid tiles", "[Player]")
 
     SECTION("Player walks off a ledge and is no longer onGround")
     {
-        TileMap tileMap = setupTileMap();
         tileMap.setTileIndex(glm::ivec2(1, 5), 1);
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
-        Player player = setupPlayer();
         player.setPosition(glm::vec2(2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()));
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(player.getPlayerState().onGround);
-
         player.moveRight();
         simulatePlayer(player, tileMap, 0.2f);
         REQUIRE_FALSE(player.getPlayerState().onGround);
@@ -92,11 +65,9 @@ TEST_CASE("Player and solid tiles", "[Player]")
 
     SECTION("Player cannot move into solid tile")
     {
-        TileMap tileMap = setupTileMap();
         tileMap.setTileIndex(glm::ivec2(3, 5), 1);
         tileMap.setTileIndex(glm::ivec2(2, 4), 1);
         tileMap.setTileIndex(glm::ivec2(1, 4), 1);
-        Player player = setupPlayer();
         player.setPosition(glm::vec2(32, 80));
 
         SECTION("Moving right into solid tile")
@@ -118,12 +89,10 @@ TEST_CASE("Player and solid tiles", "[Player]")
 
     SECTION("Player cannot jump through solid tile", "[Player]")
     {
-        TileMap tileMap = setupTileMap();
         int ceilingTileX = 2;
         int ceilingTileY = 2;
         tileMap.setTileIndex(glm::ivec2(ceilingTileX, ceilingTileY), 1);
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
-        Player player = setupPlayer();
         player.setPosition({32, 64});
         player.jump();
         simulatePlayer(player, tileMap, 1.0f);
@@ -250,20 +219,6 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
             REQUIRE(position.x <= tileMap.getWorldWidth());
             REQUIRE(position.y <= tileMap.getWorldHeight());
         }
-    }
-}
-
-TEST_CASE("Player and empty tiles", "[Player]")
-{
-    TileMap tileMap = setupTileMap(3, 3, 16, {{0, {TileKind::Empty}}});
-    Player player = setupPlayer();
-    player.setPosition(glm::vec2(16, 16));
-
-    SECTION("Player doesn't do anything to empty tiles")
-    {
-        tileMap.setTileIndex(glm::ivec2(1, 1), 0);
-        simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == 0);
     }
 }
 

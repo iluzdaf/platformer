@@ -127,6 +127,7 @@ add_executable(tests
     tests/rendering/test_shader.cpp
     tests/game/tile_map/test_tile_map.cpp
     tests/game/tile_map/test_tile.cpp
+    tests/game/tile_map/test_tile_interaction_system.cpp
     tests/game/player/test_player.cpp
     tests/game/player/movement_abilities/test_jump_ability.cpp
     tests/game/player/movement_abilities/test_dash_ability.cpp

@@ -1,7 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "game/tile_map/tile_map.hpp"
-#include "game/tile_map/tile_map_data.hpp"
-#include "test_helpers/test_tilemap_utils.hpp"
+#include "test_helpers/test_tile_map_utils.hpp"
 #include "physics/aabb.hpp"
 
 TEST_CASE("TileMap initializes grid correctly", "[TileMap]")

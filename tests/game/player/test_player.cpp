@@ -274,9 +274,10 @@ TEST_CASE("Player movement ability integration", "[Player]")
         }
 
         player.setPosition(glm::vec2(3 * 16, 5 * 16));
-        player.moveLeft();
         player.jump();
-        simulatePlayer(player, tileMap, 0.2f);
+        simulatePlayer(player, tileMap, 0.1f);
+        player.moveLeft();
+        simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(player.getPlayerState().wallSliding);
 
         player.jump();

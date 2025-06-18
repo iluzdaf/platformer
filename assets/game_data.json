@@ -93,7 +93,8 @@
             "jumpSpeed": -300,
             "horizontalSpeed": 180,
             "maxJumpCount": 5,
-            "wallJumpDuration": 0.3
+            "wallJumpDuration": 0.3,
+            "wallJumpBufferDuration": 0.1
         },
         "colliderSize": [
             8,

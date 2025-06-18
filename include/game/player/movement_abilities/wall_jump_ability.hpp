@@ -14,15 +14,21 @@ public:
     void reset() override;
 
     bool wallJumping() const;
-    void resetJumps();
 
 private:
-    int jumpCount = 0;
-    float jumpSpeed = -280.0f;
-    float horizontalSpeed = 200.0f;
-    float wallJumpDuration = 0.25f;
-    float wallJumpTimeLeft = 0.0f;
+    int jumpCount = 0,
+        wallJumpDirection = 1,
+        maxJumpCount = 2;
+    float jumpSpeed = -280.0f,
+          horizontalSpeed = 200.0f,
+          wallJumpDuration = 0.25f,
+          wallJumpTimeLeft = 0.0f,
+          wallJumpBufferTime = 0,
+          wallJumpBufferDuration = 0.1f;
     bool wasTouchingLeftWall = false;
-    int wallJumpDirection = 1;
-    int maxJumpCount = 2;
+
+    void resetJumps();
+    void performWallJump(
+        MovementContext &movementContext,
+        const PlayerState &playerState);
 };

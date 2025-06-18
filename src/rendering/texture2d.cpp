@@ -10,9 +10,7 @@ Texture2D::Texture2D(const std::string &filePath)
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
     if (!data)
-    {
         throw std::runtime_error("Failed to load Texture2D");
-    }
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);

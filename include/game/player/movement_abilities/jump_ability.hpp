@@ -25,5 +25,5 @@ private:
           jumpBufferDuration = 0.1f;
 
     void resetJumps();
-    void jump(MovementContext &movementContext);
+    void performJump(MovementContext &movementContext);
 };

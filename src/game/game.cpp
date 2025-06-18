@@ -325,9 +325,7 @@ void Game::initGLFW(int windowWidth, int windowHeight)
 
     window = glfwCreateWindow(windowWidth, windowHeight, "platformer", NULL, NULL);
     if (!window)
-    {
         throw std::runtime_error("Failed to create window");
-    }
 
     glfwMakeContextCurrent(window);
 
@@ -338,9 +336,7 @@ void Game::initGLFW(int windowWidth, int windowHeight)
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int windowWidth, int windowHeight)
                                    {
         if (Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window)))
-        {
-            game->resize(windowWidth, windowHeight);
-        } });
+            game->resize(windowWidth, windowHeight); });
 }
 
 GameData Game::loadGameData() const
@@ -348,19 +344,14 @@ GameData Game::loadGameData() const
     GameData gameData;
     auto ec = glz::read_file_json(gameData, "../assets/game_data.json", std::string{});
     if (ec)
-    {
         throw std::runtime_error("Failed to read game data json file");
-    }
-
     return gameData;
 }
 
 void Game::initGlad()
 {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
         throw std::runtime_error("Failed to initialize GLAD");
-    }
 }
 
 void Game::preFixedUpdate()

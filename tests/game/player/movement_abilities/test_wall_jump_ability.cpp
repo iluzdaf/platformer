@@ -110,4 +110,18 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         wallJumpAbility.syncState(playerState);
         REQUIRE(playerState.wallJumping);
     }
+
+    SECTION("WallJumpAbility buffers input and performs wall jump on contact")
+    {
+        playerState.onGround = false;
+        playerState.touchingLeftWall = false;
+        wallJumpAbility.tryJump(movementContext, playerState);
+        playerState.touchingLeftWall = true;
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.09f);
+        wallJumpAbility.update(movementContext, playerState, 0.09f);
+        wallJumpAbility.syncState(playerState);
+        REQUIRE(playerState.wallJumping);
+        REQUIRE(movementContext.velocity.y < 0.0f);
+        REQUIRE(movementContext.velocity.x != 0.0f);
+    }
 }

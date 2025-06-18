@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <catch2/catch_approx.hpp>
 #include "animations/sprite_animation.hpp"
 #include "animations/frame_animation_data.hpp"

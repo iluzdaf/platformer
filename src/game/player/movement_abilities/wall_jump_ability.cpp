@@ -7,7 +7,8 @@ WallJumpAbility::WallJumpAbility(const WallJumpAbilityData &wallJumpAbilityData)
     : jumpSpeed(wallJumpAbilityData.jumpSpeed),
       horizontalSpeed(wallJumpAbilityData.horizontalSpeed),
       maxJumpCount(wallJumpAbilityData.maxJumpCount),
-      wallJumpDuration(wallJumpAbilityData.wallJumpDuration)
+      wallJumpDuration(wallJumpAbilityData.wallJumpDuration),
+      wallJumpBufferDuration(wallJumpAbilityData.wallJumpBufferDuration)
 {
     if (jumpSpeed >= 0)
         throw std::invalid_argument("jumpSpeed must be negative");
@@ -22,6 +23,16 @@ void WallJumpAbility::fixedUpdate(
     const PlayerState &playerState,
     float deltaTime)
 {
+    if (wallJumpBufferTime > 0.0f)
+        wallJumpBufferTime -= deltaTime;
+
+    if ((playerState.touchingLeftWall || playerState.touchingRightWall) &&
+        wallJumpBufferTime > 0.0f)
+    {
+        performWallJump(movementContext, playerState);
+        wallJumpBufferTime = 0.0f;
+    }
+
     if (!wallJumping())
         return;
 
@@ -49,23 +60,30 @@ void WallJumpAbility::update(
     float /*deltaTime*/)
 {
     if (playerState.onGround)
-    {
         resetJumps();
-    }
 }
 
 void WallJumpAbility::tryJump(
     MovementContext &movementContext,
     const PlayerState &playerState)
 {
-    if (!(playerState.touchingLeftWall || playerState.touchingRightWall) || jumpCount >= maxJumpCount || playerState.onGround)
+    if (playerState.onGround || jumpCount >= maxJumpCount)
         return;
 
+    if (playerState.touchingLeftWall || playerState.touchingRightWall)
+        performWallJump(movementContext, playerState);
+    else
+        wallJumpBufferTime = wallJumpBufferDuration;
+}
+
+void WallJumpAbility::performWallJump(
+    MovementContext &movementContext,
+    const PlayerState &playerState)
+{
     wasTouchingLeftWall = playerState.touchingLeftWall;
     wallJumpDirection = wasTouchingLeftWall ? 1 : -1;
     wallJumpTimeLeft = wallJumpDuration;
     ++jumpCount;
-
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);
@@ -94,4 +112,5 @@ void WallJumpAbility::reset()
     wallJumpTimeLeft = 0;
     wasTouchingLeftWall = false;
     wallJumpDirection = 1;
+    wallJumpBufferTime = 0;
 }

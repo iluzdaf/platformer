@@ -1,5 +1,3 @@
-
-
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "physics/physics_body.hpp"
@@ -51,6 +49,30 @@ TEST_CASE("PhysicsBody detects contact with ground", "[PhysicsBody]")
     tileMap.setTileIndex(glm::ivec2(1, 2), 1);
     PhysicsBody body = setupBody({16, 16}, {16, 16});
     REQUIRE(body.contactWithGround(tileMap));
+}
+
+TEST_CASE("PhysicsBody detects contact with ceiling", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(1, 3), 1);
+    PhysicsBody body = setupBody({16, 48}, {16, 16});
+    REQUIRE(body.contactWithCeiling(tileMap));
+}
+
+TEST_CASE("PhysicsBody detects contact with left wall", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(0, 3), 1);
+    PhysicsBody body = setupBody({16, 48}, {16, 16});
+    REQUIRE(body.contactWithLeftWall(tileMap));
+}
+
+TEST_CASE("PhysicsBody detects contact with right wall", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(2, 3), 1);
+    PhysicsBody body = setupBody({16, 48}, {16, 16});
+    REQUIRE(body.contactWithRightWall(tileMap));
 }
 
 TEST_CASE("PhysicsBody applies gravity", "[PhysicsBody]")

@@ -24,7 +24,7 @@ void JumpAbility::fixedUpdate(
 
     if (playerState.onGround && jumpBufferTime > 0.0f)
     {
-        jump(movementContext);
+        performJump(movementContext);
         jumpBufferTime = 0.0f;
     }
 }
@@ -59,7 +59,7 @@ void JumpAbility::tryJump(
         return;
     }
 
-    jump(movementContext);
+    performJump(movementContext);
 }
 
 void JumpAbility::resetJumps()
@@ -90,7 +90,7 @@ void JumpAbility::reset()
     jumpBufferTime = 0;
 }
 
-void JumpAbility::jump(MovementContext &movementContext)
+void JumpAbility::performJump(MovementContext &movementContext)
 {
     ++jumpCount;
 

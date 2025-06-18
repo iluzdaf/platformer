@@ -222,12 +222,6 @@ void Game::render()
         scoringSystem,
         *tileSet.get());
 
-    imGuiManager->render();
-
-    screenTransition->draw(*screenTransitionShader.get());
-
-    imGuiManager->newFrame();
-
     debugTileMapUi.draw(
         *imGuiManager.get(),
         *camera.get(),
@@ -256,6 +250,8 @@ void Game::render()
         showTileMapEditor);
 
     imGuiManager->render();
+
+    screenTransition->draw(*screenTransitionShader.get());
 }
 
 void Game::resize(int windowWidth, int windowHeight)

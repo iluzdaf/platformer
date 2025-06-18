@@ -215,6 +215,15 @@ void Game::render()
         playerState.currentAnimationUVEnd,
         playerState.facingLeft);
 
+    imGuiManager->newFrame();
+
+    scoreUi.draw(
+        *imGuiManager.get(),
+        scoringSystem,
+        *tileSet.get());
+
+    imGuiManager->render();
+
     screenTransition->draw(*screenTransitionShader.get());
 
     imGuiManager->newFrame();
@@ -245,11 +254,6 @@ void Game::render()
         *tileMap.get(),
         *tileSet.get(),
         showTileMapEditor);
-
-    scoreUi.draw(
-        *imGuiManager.get(),
-        scoringSystem,
-        *tileSet.get());
 
     imGuiManager->render();
 }

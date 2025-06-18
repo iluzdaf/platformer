@@ -35,11 +35,12 @@ void JumpAbility::tryJump(
     MovementContext &movementContext,
     const PlayerState &playerState)
 {
-    if (playerState.dashing || 
-        playerState.wallSliding || 
-        jumpCount >= maxJumpCount || 
+    if (playerState.dashing ||
+        playerState.wallSliding ||
+        jumpCount >= maxJumpCount ||
         (!playerState.onGround && (playerState.touchingLeftWall || playerState.touchingRightWall)) ||
-        playerState.wallJumping)
+        playerState.wallJumping ||
+        (!playerState.onGround && jumpCount == 0))
         return;
 
     ++jumpCount;
@@ -47,7 +48,7 @@ void JumpAbility::tryJump(
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);
-    if(jumpCount > 1)
+    if (jumpCount > 1)
         movementContext.emitDoubleJump();
 }
 

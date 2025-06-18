@@ -591,8 +591,8 @@ TEST_CASE("Player movement ability integration", "[Player]")
             tileMap.setTileIndex(glm::ivec2(2, tileY), 1);
         }
 
-        player.setPosition(glm::vec2(3 * 16, 9 * 16));    
-        player.moveLeft();    
+        player.setPosition(glm::vec2(3 * 16, 9 * 16));
+        player.moveLeft();
         simulatePlayer(player, tileMap, 0.1f);
         const PlayerState &playerState = player.getPlayerState();
         REQUIRE(playerState.onGround);
@@ -600,6 +600,15 @@ TEST_CASE("Player movement ability integration", "[Player]")
         player.jump();
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(player.getVelocity().y < 0);
+    }
+
+    SECTION("Player cannot execute first jump if not on ground")
+    {
+        player.setPosition(glm::vec2(5 * 16, 5 * 16));
+        simulatePlayer(player, tileMap, 0.01f);
+        player.jump();
+        simulatePlayer(player, tileMap, 0.1f);
+        REQUIRE(player.getVelocity().y > 0);
     }
 }
 
@@ -627,6 +636,7 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
         tileMap.setTileIndex(glm::ivec2(2, 2), 1);
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         player.setPosition({2 * 16, 4 * 16});
+        simulatePlayer(player, tileMap, 0.01f);
         player.jump();
         bool hitCeilingTriggered = false;
         player.onHitCeiling.connect([&]
@@ -648,7 +658,8 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
 
     SECTION("onDoubleJump")
     {
-        player.setPosition({5 * 16, 8 * 16});
+        player.setPosition({5 * 16, 18 * 16});
+        simulatePlayer(player, tileMap, 0.01f);
         bool doubleJumpTriggered = false;
         player.onDoubleJump.connect([&]
                                     { doubleJumpTriggered = true; });

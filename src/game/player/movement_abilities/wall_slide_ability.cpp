@@ -21,21 +21,15 @@ void WallSlideAbility::fixedUpdate(
     wallSliding = false;
 
     if (playerState.onGround)
-    {
         return;
-    }
 
     if (!((moveLeftRequested && playerState.touchingLeftWall) ||
           (moveRightRequested && playerState.touchingRightWall)))
-    {
         return;
-    }
 
     hangTime += deltaTime;
     if (hangTime > hangDuration)
-    {
         return;
-    }
 
     wallSliding = true;
 
@@ -55,9 +49,7 @@ void WallSlideAbility::update(
     moveRightRequested = false;
 
     if (playerState.onGround)
-    {
         resetHangTime();
-    }
 }
 
 void WallSlideAbility::syncState(PlayerState &playerState) const

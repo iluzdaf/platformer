@@ -124,4 +124,20 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         REQUIRE(movementContext.velocity.y < 0.0f);
         REQUIRE(movementContext.velocity.x != 0.0f);
     }
+
+    SECTION("Wall jump works within coyote time after losing contact with wall")
+    {
+        playerState.touchingLeftWall = true;
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.01f);
+        playerState.touchingLeftWall = false;
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.08f);
+        wallJumpAbility.update(movementContext, playerState, 0.09f);
+        wallJumpAbility.tryJump(movementContext, playerState);
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        wallJumpAbility.update(movementContext, playerState, 0.09f);
+        wallJumpAbility.syncState(playerState);
+        REQUIRE(playerState.wallJumping);
+        REQUIRE(movementContext.velocity.y < 0.0f);
+        REQUIRE(movementContext.velocity.x != 0.0f);
+    }
 }

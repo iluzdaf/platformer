@@ -16,15 +16,17 @@ public:
     bool wallJumping() const;
 
 private:
-    int jumpCount = 0,
+    int wallJumpCount = 0,
         wallJumpDirection = 1,
-        maxJumpCount = 2;
-    float jumpSpeed = -280.0f,
-          horizontalSpeed = 200.0f,
+        maxWallJumpCount = 2;
+    float wallJumpSpeed = -280.0f,
+          wallJumpHorizontalSpeed = 200.0f,
           wallJumpDuration = 0.25f,
           wallJumpTimeLeft = 0.0f,
           wallJumpBufferTime = 0,
-          wallJumpBufferDuration = 0.1f;
+          wallJumpBufferDuration = 0.1f,
+          wallJumpCoyoteDuration = 0.1f,
+          wallJumpCoyoteTime = 0;
     bool wasTouchingLeftWall = false;
 
     void resetJumps();

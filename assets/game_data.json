@@ -90,11 +90,12 @@
             "hangDuration": 1
         },
         "wallJumpAbilityData": {
-            "jumpSpeed": -300,
-            "horizontalSpeed": 180,
-            "maxJumpCount": 5,
+            "wallJumpSpeed": -300,
+            "wallJumpHorizontalSpeed": 180,
+            "maxWallJumpCount": 5,
             "wallJumpDuration": 0.3,
-            "wallJumpBufferDuration": 0.1
+            "wallJumpBufferDuration": 0.1,
+            "wallJumpCoyoteDuration": 0.1
         },
         "colliderSize": [
             8,

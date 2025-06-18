@@ -2,9 +2,10 @@
 
 struct WallJumpAbilityData
 {
-    float jumpSpeed = -280.0f,
-          horizontalSpeed = 200.0f,
+    float wallJumpSpeed = -280.0f,
+          wallJumpHorizontalSpeed = 200.0f,
           wallJumpDuration = 0.25f,
-          wallJumpBufferDuration = 0.1f;
-    int maxJumpCount = 2;
+          wallJumpBufferDuration = 0.1f,
+          wallJumpCoyoteDuration = 0.1f;
+    int maxWallJumpCount = 2;
 };

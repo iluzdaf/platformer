@@ -5,7 +5,8 @@
 
 JumpAbility::JumpAbility(const JumpAbilityData &jumpAbilityData)
     : maxJumpCount(jumpAbilityData.maxJumpCount),
-      jumpSpeed(jumpAbilityData.jumpSpeed)
+      jumpSpeed(jumpAbilityData.jumpSpeed),
+      jumpBufferDuration(jumpAbilityData.jumpBufferDuration)
 {
     if (maxJumpCount <= 0)
         throw std::invalid_argument("maxJumpCount must be greater than 0");
@@ -14,10 +15,18 @@ JumpAbility::JumpAbility(const JumpAbilityData &jumpAbilityData)
 }
 
 void JumpAbility::fixedUpdate(
-    MovementContext & /*movementContext*/,
-    const PlayerState & /*playerState*/,
-    float /*deltaTime*/)
+    MovementContext &movementContext,
+    const PlayerState &playerState,
+    float deltaTime)
 {
+    if (jumpBufferTime > 0.0f)
+        jumpBufferTime -= deltaTime;
+
+    if (playerState.onGround && jumpBufferTime > 0.0f)
+    {
+        jump(movementContext);
+        jumpBufferTime = 0.0f;
+    }
 }
 
 void JumpAbility::update(
@@ -26,9 +35,7 @@ void JumpAbility::update(
     float /*deltaTime*/)
 {
     if (playerState.onGround)
-    {
         resetJumps();
-    }
 }
 
 void JumpAbility::tryJump(
@@ -37,19 +44,22 @@ void JumpAbility::tryJump(
 {
     if (playerState.dashing ||
         playerState.wallSliding ||
-        jumpCount >= maxJumpCount ||
-        (!playerState.onGround && (playerState.touchingLeftWall || playerState.touchingRightWall)) ||
-        playerState.wallJumping ||
-        (!playerState.onGround && jumpCount == 0))
+        playerState.wallJumping)
         return;
 
-    ++jumpCount;
+    if ((!playerState.onGround && (playerState.touchingLeftWall || playerState.touchingRightWall)))
+        return;
 
-    glm::vec2 velocity = movementContext.getVelocity();
-    velocity.y = jumpSpeed;
-    movementContext.setVelocity(velocity);
-    if (jumpCount > 1)
-        movementContext.emitDoubleJump();
+    if (jumpCount >= maxJumpCount)
+        return;
+
+    if (!playerState.onGround && jumpCount == 0)
+    {
+        jumpBufferTime = jumpBufferDuration;
+        return;
+    }
+
+    jump(movementContext);
 }
 
 void JumpAbility::resetJumps()
@@ -77,4 +87,16 @@ void JumpAbility::syncState(PlayerState &playerState) const
 void JumpAbility::reset()
 {
     resetJumps();
+    jumpBufferTime = 0;
+}
+
+void JumpAbility::jump(MovementContext &movementContext)
+{
+    ++jumpCount;
+
+    glm::vec2 velocity = movementContext.getVelocity();
+    velocity.y = jumpSpeed;
+    movementContext.setVelocity(velocity);
+    if (jumpCount > 1)
+        movementContext.emitDoubleJump();
 }

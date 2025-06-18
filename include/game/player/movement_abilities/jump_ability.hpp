@@ -13,13 +13,17 @@ public:
     void tryJump(MovementContext &movementContext, const PlayerState &playerState) override;
     void syncState(PlayerState &playerState) const override;
     void reset() override;
-    
-    void resetJumps();
+
     int getMaxJumpCount() const;
     float getJumpSpeed() const;
-    
+
 private:
-    int maxJumpCount = 2;
-    int jumpCount = 0;
-    float jumpSpeed = -280;
+    int maxJumpCount = 2,
+        jumpCount = 0;
+    float jumpSpeed = -280,
+          jumpBufferTime = 0,
+          jumpBufferDuration = 0.1f;
+
+    void resetJumps();
+    void jump(MovementContext &movementContext);
 };

@@ -5,7 +5,8 @@
         },
         "jumpAbilityData": {
             "jumpSpeed": -350.0,
-            "maxJumpCount": 2
+            "maxJumpCount": 2,
+            "jumpBufferDuration": 0.1
         },
         "size": [
             16.0,

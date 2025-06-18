@@ -37,3 +37,29 @@ TEST_CASE("JumpAbility respects max jump count", "[JumpAbility]")
         REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
     }
 }
+
+TEST_CASE("Jump is buffered and consumed on landing", "[JumpAbility]")
+{
+    MockPlayer mockPlayer;
+    PlayerState playerState;
+    JumpAbilityData jumpAbilityData;
+    jumpAbilityData.jumpBufferDuration = 0.2f;
+    JumpAbility jumpAbility(jumpAbilityData);
+    playerState.onGround = false;
+    jumpAbility.tryJump(mockPlayer, playerState);
+    playerState.onGround = true;
+    jumpAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
+    REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+}
+
+TEST_CASE("First jump must be from ground", "[JumpAbility]")
+{
+    MockPlayer mockPlayer;
+    PlayerState playerState;
+    JumpAbilityData jumpAbilityData;
+    JumpAbility jumpAbility(jumpAbilityData);
+    playerState.onGround = false;
+    jumpAbility.tryJump(mockPlayer, playerState);
+    REQUIRE(mockPlayer.getVelocity().y == Approx(0.0f));
+    REQUIRE(playerState.jumpCount == 0);
+}

@@ -610,6 +610,16 @@ TEST_CASE("Player movement ability integration", "[Player]")
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(player.getVelocity().y > 0);
     }
+
+    SECTION("Player jump buffering")
+    {
+        tileMap.setTileIndex(glm::ivec2(5, 9), 1);
+        player.setPosition(glm::vec2(5 * 16, 7 * 16));
+        simulatePlayer(player, tileMap, 0.1f);
+        player.jump();
+        simulatePlayer(player, tileMap, 0.2f);
+        REQUIRE(player.getVelocity().y < 0.0f);
+    }
 }
 
 TEST_CASE("Player event callbacks are triggered", "[Player]")

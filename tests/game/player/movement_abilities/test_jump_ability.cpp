@@ -63,3 +63,20 @@ TEST_CASE("First jump must be from ground", "[JumpAbility]")
     REQUIRE(mockPlayer.getVelocity().y == Approx(0.0f));
     REQUIRE(playerState.jumpCount == 0);
 }
+
+TEST_CASE("Jump is allowed during coyote time", "[JumpAbility]")
+{
+    MockPlayer mockPlayer;
+    PlayerState playerState;
+    JumpAbilityData jumpAbilityData;
+    jumpAbilityData.jumpCoyoteDuration = 0.2f;
+    JumpAbility jumpAbility(jumpAbilityData);
+    playerState.onGround = true;
+    jumpAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
+    jumpAbility.update(mockPlayer, playerState, 0.1f);
+    playerState.onGround = false;
+    jumpAbility.fixedUpdate(mockPlayer, playerState, 0.09f);
+    jumpAbility.update(mockPlayer, playerState, 0.09f);
+    jumpAbility.tryJump(mockPlayer, playerState);
+    REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+}

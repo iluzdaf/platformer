@@ -22,7 +22,9 @@ private:
         jumpCount = 0;
     float jumpSpeed = -280,
           jumpBufferTime = 0,
-          jumpBufferDuration = 0.1f;
+          jumpBufferDuration = 0.1f,
+          jumpCoyoteDuration = 0.2f,
+          jumpCoyoteTime = 0;
 
     void resetJumps();
     void performJump(MovementContext &movementContext);

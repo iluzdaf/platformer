@@ -1,12 +1,13 @@
 #include "game/player/movement_abilities/jump_ability.hpp"
-#include "game/player/movement_abilities/dash_ability.hpp"
-#include "game/player/player.hpp"
 #include "game/player/movement_abilities/jump_ability_data.hpp"
+#include "game/player/player_state.hpp"
+#include "game/player/movement_context.hpp"
 
 JumpAbility::JumpAbility(const JumpAbilityData &jumpAbilityData)
     : maxJumpCount(jumpAbilityData.maxJumpCount),
       jumpSpeed(jumpAbilityData.jumpSpeed),
-      jumpBufferDuration(jumpAbilityData.jumpBufferDuration)
+      jumpBufferDuration(jumpAbilityData.jumpBufferDuration),
+      jumpCoyoteDuration(jumpAbilityData.jumpCoyoteDuration)
 {
     if (maxJumpCount <= 0)
         throw std::invalid_argument("maxJumpCount must be greater than 0");
@@ -19,6 +20,11 @@ void JumpAbility::fixedUpdate(
     const PlayerState &playerState,
     float deltaTime)
 {
+    if (playerState.onGround)
+        jumpCoyoteTime = jumpCoyoteDuration;
+    else if (jumpCoyoteTime > 0.0f)
+        jumpCoyoteTime -= deltaTime;
+
     if (jumpBufferTime > 0.0f)
         jumpBufferTime -= deltaTime;
 
@@ -53,13 +59,15 @@ void JumpAbility::tryJump(
     if (jumpCount >= maxJumpCount)
         return;
 
-    if (!playerState.onGround && jumpCount == 0)
+    if (playerState.onGround || jumpCoyoteTime > 0.0f)
+    {
+        performJump(movementContext);
+        jumpCoyoteTime = 0.0f;
+    }
+    else
     {
         jumpBufferTime = jumpBufferDuration;
-        return;
     }
-
-    performJump(movementContext);
 }
 
 void JumpAbility::resetJumps()
@@ -88,12 +96,12 @@ void JumpAbility::reset()
 {
     resetJumps();
     jumpBufferTime = 0;
+    jumpCoyoteTime = 0;
 }
 
 void JumpAbility::performJump(MovementContext &movementContext)
 {
     ++jumpCount;
-
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.y = jumpSpeed;
     movementContext.setVelocity(velocity);

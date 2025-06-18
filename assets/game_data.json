@@ -6,7 +6,8 @@
         "jumpAbilityData": {
             "jumpSpeed": -350.0,
             "maxJumpCount": 2,
-            "jumpBufferDuration": 0.1
+            "jumpBufferDuration": 0.2,
+            "jumpCoyoteDuration": 0.2
         },
         "size": [
             16.0,
@@ -94,8 +95,8 @@
             "wallJumpHorizontalSpeed": 180,
             "maxWallJumpCount": 5,
             "wallJumpDuration": 0.3,
-            "wallJumpBufferDuration": 0.1,
-            "wallJumpCoyoteDuration": 0.1
+            "wallJumpBufferDuration": 0.2,
+            "wallJumpCoyoteDuration": 0.2
         },
         "colliderSize": [
             8,

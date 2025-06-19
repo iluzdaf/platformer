@@ -77,15 +77,6 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
         REQUIRE(jumpAbility.getJumpCount() == 0);
     }
 
-    SECTION("Cannot jump when wallSliding")
-    {
-        playerState.onGround = true;
-        playerState.wallSliding = true;
-        jumpAbility.tryJump(movementContext, playerState);
-        REQUIRE(movementContext.getVelocity().y == Approx(0.0f));
-        REQUIRE(jumpAbility.getJumpCount() == 0);
-    }
-
     SECTION("Cannot jump when wallJumping")
     {
         playerState.onGround = true;

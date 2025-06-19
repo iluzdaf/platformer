@@ -86,9 +86,9 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         REQUIRE(dashAbility.getDashTimeLeft() == Approx(dashAbility.getDashDuration() - 0.02f));
     }
 
-    SECTION("Cannot dash while wall sliding")
+    SECTION("Cannot dash while touching wall")
     {
-        playerState.wallSliding = true;
+        playerState.touchingLeftWall = true;
         dashAbility.tryDash(movementContext, playerState);
         REQUIRE_FALSE(dashAbility.dashing());
     }

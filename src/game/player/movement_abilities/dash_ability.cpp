@@ -54,10 +54,10 @@ void DashAbility::tryDash(
     MovementContext &movementContext,
     const PlayerState &playerState)
 {
-    if (playerState.wallSliding ||
-        playerState.wallJumping ||
-        dashing() ||
-        !canDash())
+    if (playerState.touchingLeftWall || playerState.touchingRightWall || playerState.wallJumping)
+        return;
+
+    if (dashing() || !canDash())
         return;
 
     dashDirection = playerState.facingLeft ? -1 : 1;

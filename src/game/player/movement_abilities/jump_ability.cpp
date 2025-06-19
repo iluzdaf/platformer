@@ -48,9 +48,7 @@ void JumpAbility::tryJump(
     MovementContext &movementContext,
     const PlayerState &playerState)
 {
-    if (playerState.dashing ||
-        playerState.wallSliding ||
-        playerState.wallJumping)
+    if (playerState.dashing || playerState.wallJumping)
         return;
 
     if ((!playerState.onGround && (playerState.touchingLeftWall || playerState.touchingRightWall)))

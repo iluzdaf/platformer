@@ -37,4 +37,6 @@ struct PlayerState
     bool wallSliding = false;
 
     bool wallJumping = false;
+
+    bool climbing = false;
 };

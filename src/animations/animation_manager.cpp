@@ -11,13 +11,13 @@ void AnimationManager::update(float deltaTime, const PlayerState &playerState)
     }
     else if (!playerState.onGround)
     {
-        if (playerState.velocity.y < 0.0f)
-        {
-            newState = PlayerAnimationState::Jump;
-        }
-        else if (playerState.wallSliding)
+        if (playerState.wallSliding || playerState.climbing)
         {
             newState = PlayerAnimationState::WallSlide;
+        }
+        else if (playerState.velocity.y < 0.0f)
+        {
+            newState = PlayerAnimationState::Jump;
         }
         else if (playerState.velocity.y > 0.0f)
         {

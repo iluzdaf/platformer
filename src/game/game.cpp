@@ -27,9 +27,12 @@ Game::Game()
     glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
     camera = std::make_unique<Camera2D>(gameData.cameraData, windowWidth, windowHeight);
     keyboardManager.registerKey(GLFW_KEY_UP);
+    keyboardManager.registerKey(GLFW_KEY_DOWN);
     keyboardManager.registerKey(GLFW_KEY_LEFT);
     keyboardManager.registerKey(GLFW_KEY_RIGHT);
-    keyboardManager.registerKey(GLFW_KEY_RIGHT_SHIFT);
+    keyboardManager.registerKey(GLFW_KEY_Z);
+    keyboardManager.registerKey(GLFW_KEY_X);
+    keyboardManager.registerKey(GLFW_KEY_C);
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
     levelWatcher.onLevelChanged.connect([this](const std::string &levelPath)
@@ -359,7 +362,7 @@ void Game::preFixedUpdate()
     player->preFixedUpdate();
 
     static bool wasJumpKeyDownLastFrame = false;
-    bool isJumpKeyDown = keyboardManager.isDown(GLFW_KEY_UP);
+    bool isJumpKeyDown = keyboardManager.isDown(GLFW_KEY_Z);
     if (isJumpKeyDown && !wasJumpKeyDownLastFrame)
         player->jump();
     wasJumpKeyDownLastFrame = isJumpKeyDown;
@@ -368,9 +371,15 @@ void Game::preFixedUpdate()
         player->moveLeft();
     if (keyboardManager.isDown(GLFW_KEY_RIGHT))
         player->moveRight();
+    if (keyboardManager.isDown(GLFW_KEY_UP))
+        player->ascend();
+    if (keyboardManager.isDown(GLFW_KEY_DOWN))
+        player->descend();
+    if (keyboardManager.isDown(GLFW_KEY_C))
+        player->climb();
 
     static bool wasDashKeyDownLastFrame = false;
-    bool isDashKeyDown = keyboardManager.isDown(GLFW_KEY_RIGHT_SHIFT);
+    bool isDashKeyDown = keyboardManager.isDown(GLFW_KEY_X);
     if (isDashKeyDown && !wasDashKeyDownLastFrame)
         player->dash();
     wasDashKeyDownLastFrame = isDashKeyDown;

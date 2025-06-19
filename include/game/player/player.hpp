@@ -22,6 +22,9 @@ public:
     void moveLeft();
     void moveRight();
     void dash();
+    void climb();
+    void ascend();
+    void descend();
     glm::vec2 getSize() const;
     bool facingLeft() const;
     const PlayerState &getPlayerState() const;

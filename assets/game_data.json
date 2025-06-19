@@ -87,8 +87,7 @@
             "dashCooldown": 0.5
         },
         "wallSlideAbilityData": {
-            "slideSpeed": 15,
-            "hangDuration": 1
+            "slideSpeed": 60
         },
         "wallJumpAbilityData": {
             "wallJumpSpeed": -300,
@@ -106,7 +105,13 @@
             4,
             3
         ],
-        "fallFromHeightThreshold": 600
+        "fallFromHeightThreshold": 600,
+        "climbAbilityData": {
+            "climbDuration": 5.0
+        },
+        "climbMoveAbilityData": {
+            "climbSpeed": 40
+        }
     },
     "cameraData": {
         "zoom": 7.1

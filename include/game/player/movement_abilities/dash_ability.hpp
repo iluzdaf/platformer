@@ -18,6 +18,7 @@ public:
     float getDashDuration() const;
     float getDashCooldown() const;
     bool canDash() const;
+    float getDashTimeLeft() const;
 
 private:
     float dashSpeed = 480;

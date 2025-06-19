@@ -20,7 +20,7 @@ DashAbility::DashAbility(const DashAbilityData &dashAbilityData)
 
 void DashAbility::fixedUpdate(
     MovementContext &movementContext,
-    const PlayerState & playerState,
+    const PlayerState &playerState,
     float deltaTime)
 {
     if (dashCooldownLeft > 0.0f)
@@ -54,7 +54,10 @@ void DashAbility::tryDash(
     MovementContext &movementContext,
     const PlayerState &playerState)
 {
-    if (playerState.wallSliding || playerState.wallJumping || dashing() || !canDash())
+    if (playerState.wallSliding ||
+        playerState.wallJumping ||
+        dashing() ||
+        !canDash())
         return;
 
     dashDirection = playerState.facingLeft ? -1 : 1;
@@ -97,4 +100,9 @@ void DashAbility::reset()
     dashTimeLeft = 0;
     dashCooldownLeft = 0;
     dashDirection = 1;
+}
+
+float DashAbility::getDashTimeLeft() const
+{
+    return dashTimeLeft;
 }

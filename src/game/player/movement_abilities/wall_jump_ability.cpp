@@ -54,7 +54,6 @@ void WallJumpAbility::fixedUpdate(
     }
 
     wallJumpTimeLeft -= deltaTime;
-
     glm::vec2 velocity = movementContext.getVelocity();
     velocity.x = wallJumpHorizontalSpeed * wallJumpDirection;
     movementContext.setVelocity(velocity);

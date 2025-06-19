@@ -17,16 +17,16 @@ void MoveAbility::fixedUpdate(
 {
     if (moveLeftRequested && !moveRightRequested)
     {
-        glm::vec2 vel = movementContext.getVelocity();
-        vel.x = -moveSpeed;
-        movementContext.setVelocity(vel);
+        glm::vec2 velocity = movementContext.getVelocity();
+        velocity.x = -moveSpeed;
+        movementContext.setVelocity(velocity);
         movementContext.setFacingLeft(true);
     }
     else if (moveRightRequested && !moveLeftRequested)
     {
-        glm::vec2 vel = movementContext.getVelocity();
-        vel.x = moveSpeed;
-        movementContext.setVelocity(vel);
+        glm::vec2 velocity = movementContext.getVelocity();
+        velocity.x = moveSpeed;
+        movementContext.setVelocity(velocity);
         movementContext.setFacingLeft(false);
     }
 }

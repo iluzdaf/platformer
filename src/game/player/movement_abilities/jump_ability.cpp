@@ -59,15 +59,15 @@ void JumpAbility::tryJump(
     if (jumpCount >= maxJumpCount)
         return;
 
-    if (playerState.onGround || jumpCoyoteTime > 0.0f || jumpCount > 0)
+    if (playerState.onGround ||
+        jumpCoyoteTime > 0.0f ||
+        jumpCount > 0)
     {
         performJump(movementContext);
         jumpCoyoteTime = 0.0f;
     }
     else
-    {
         jumpBufferTime = jumpBufferDuration;
-    }
 }
 
 void JumpAbility::resetJumps()
@@ -107,4 +107,9 @@ void JumpAbility::performJump(MovementContext &movementContext)
     movementContext.setVelocity(velocity);
     if (jumpCount > 1)
         movementContext.emitDoubleJump();
+}
+
+int JumpAbility::getJumpCount() const
+{
+    return jumpCount;
 }

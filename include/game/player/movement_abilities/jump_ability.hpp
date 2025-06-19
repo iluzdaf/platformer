@@ -16,6 +16,7 @@ public:
 
     int getMaxJumpCount() const;
     float getJumpSpeed() const;
+    int getJumpCount() const;
 
 private:
     int maxJumpCount = 2,

@@ -9,49 +9,53 @@ using Catch::Approx;
 TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
 {
     PlayerState playerState;
-    MockPlayer mockPlayer;
+    MockPlayer movementContext;
     MoveAbilityData moveAbilityData;
     MoveAbility moveAbility(moveAbilityData);
 
     SECTION("Move left sets negative x velocity and facing left")
     {
-        moveAbility.tryMoveLeft(mockPlayer, playerState);
-        moveAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
-        moveAbility.update(mockPlayer, playerState, 0.1f);
+        moveAbility.tryMoveLeft(movementContext, playerState);
+        moveAbility.fixedUpdate(movementContext, playerState, 0.1f);
         moveAbility.syncState(playerState);
-        REQUIRE(mockPlayer.getVelocity().x == Approx(-moveAbility.getMoveSpeed()));
-        REQUIRE(mockPlayer.facingLeft);
+        moveAbility.update(movementContext, playerState, 0.1f);
+        REQUIRE(movementContext.getVelocity().x == Approx(-moveAbility.getMoveSpeed()));
+        REQUIRE(movementContext.facingLeft);
     }
 
     SECTION("Move right sets positive x velocity and facing right")
     {
-        moveAbility.tryMoveRight(mockPlayer, playerState);
-        moveAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
-        moveAbility.update(mockPlayer, playerState, 0.1f);
-        REQUIRE(mockPlayer.getVelocity().x == Approx(moveAbility.getMoveSpeed()));
-        REQUIRE_FALSE(mockPlayer.facingLeft);
+        moveAbility.tryMoveRight(movementContext, playerState);
+        moveAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        moveAbility.update(movementContext, playerState, 0.1f);
+        REQUIRE(movementContext.getVelocity().x == Approx(moveAbility.getMoveSpeed()));
+        REQUIRE_FALSE(movementContext.facingLeft);
     }
 
     SECTION("If both directions requested, no movement applied")
     {
-        moveAbility.tryMoveLeft(mockPlayer, playerState);
-        moveAbility.tryMoveRight(mockPlayer, playerState);
-        moveAbility.update(mockPlayer, playerState, 0.1f);
-        REQUIRE(mockPlayer.getVelocity().x == Approx(0.0f));
+        moveAbility.tryMoveLeft(movementContext, playerState);
+        moveAbility.tryMoveRight(movementContext, playerState);
+        moveAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        moveAbility.update(movementContext, playerState, 0.1f);
+        REQUIRE(movementContext.getVelocity().x == Approx(0.0f));
     }
 
     SECTION("If no direction requested, no movement applied")
     {
-        moveAbility.update(mockPlayer, playerState, 0.1f);
-        REQUIRE(mockPlayer.getVelocity().x == Approx(0.0f));
+        moveAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        moveAbility.update(movementContext, playerState, 0.1f);
+        REQUIRE(movementContext.getVelocity().x == Approx(0.0f));
     }
 
     SECTION("Movement requests are cleared after update")
     {
-        moveAbility.tryMoveLeft(mockPlayer, playerState);
-        moveAbility.update(mockPlayer, playerState, 0.1f);
-        mockPlayer.setVelocity({0, 0});
-        moveAbility.update(mockPlayer, playerState, 0.1f);
-        REQUIRE(mockPlayer.getVelocity().x == Approx(0.0f));
+        moveAbility.tryMoveLeft(movementContext, playerState);
+        moveAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        moveAbility.update(movementContext, playerState, 0.1f);
+        movementContext.setVelocity({0, 0});
+        moveAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        moveAbility.update(movementContext, playerState, 0.1f);
+        REQUIRE(movementContext.getVelocity().x == Approx(0.0f));
     }
 }

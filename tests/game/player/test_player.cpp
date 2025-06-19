@@ -21,22 +21,19 @@ TEST_CASE("Player starts with correct position and zero velocity", "[Player]")
     REQUIRE(player.getVelocity() == glm::vec2(0, 0));
 }
 
-TEST_CASE("Player and gravity", "[Player]")
+TEST_CASE("Player falls under normal gravity", "[Player]")
 {
-    SECTION("Player falls under normal gravity")
-    {
-        float gravity = 980.0f;
-        Player player = setupPlayer(gravity);
-        TileMap tileMap = setupTileMap(1, gravity + 2);
-        simulatePlayer(player, tileMap, 1.0f);
-        glm::vec2 vel = player.getVelocity();
-        glm::vec2 pos = player.getPosition();
-        REQUIRE(vel.y == Approx(gravity));
-        REQUIRE(pos.y == Approx(0.5f * gravity).margin(5));
-    }
+    float gravity = 980.0f;
+    Player player = setupPlayer(gravity);
+    TileMap tileMap = setupTileMap(1, gravity + 2);
+    simulatePlayer(player, tileMap, 1.0f);
+    glm::vec2 vel = player.getVelocity();
+    glm::vec2 pos = player.getPosition();
+    REQUIRE(vel.y == Approx(gravity));
+    REQUIRE(pos.y == Approx(0.5f * gravity).margin(5));
 }
 
-TEST_CASE("Player and tiles", "[Player]")
+TEST_CASE("Player sets onGround correcly", "[Player]")
 {
     TileMap tileMap = setupTileMap();
     Player player = setupPlayer();
@@ -61,45 +58,6 @@ TEST_CASE("Player and tiles", "[Player]")
         player.moveRight();
         simulatePlayer(player, tileMap, 0.2f);
         REQUIRE_FALSE(player.getPlayerState().onGround);
-    }
-
-    SECTION("Player cannot move into solid tile")
-    {
-        tileMap.setTileIndex(glm::ivec2(3, 5), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 4), 1);
-        tileMap.setTileIndex(glm::ivec2(1, 4), 1);
-        player.setPosition(glm::vec2(32, 80));
-
-        SECTION("Moving right into solid tile")
-        {
-            player.moveRight();
-            simulatePlayer(player, tileMap, 0.1f);
-            REQUIRE(player.getVelocity().x == Approx(0));
-            REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize()));
-        }
-
-        SECTION("Moving left into solid tile")
-        {
-            player.moveLeft();
-            simulatePlayer(player, tileMap, 0.1f);
-            REQUIRE(player.getVelocity().x == Approx(0));
-            REQUIRE(player.getPosition().x >= Approx(tileMap.getTileSize()));
-        }
-    }
-
-    SECTION("Player cannot jump through solid tile", "[Player]")
-    {
-        int ceilingTileX = 2;
-        int ceilingTileY = 2;
-        tileMap.setTileIndex(glm::ivec2(ceilingTileX, ceilingTileY), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 5), 1);
-        player.setPosition({32, 64});
-        player.jump();
-        simulatePlayer(player, tileMap, 1.0f);
-        float playerTopY = player.getPosition().y;
-        float ceilingBottomY = (ceilingTileY + 1);
-        REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
-        REQUIRE(player.getVelocity().y >= Approx(0.0f));
     }
 }
 
@@ -575,6 +533,45 @@ TEST_CASE("Player movement ability integration", "[Player]")
         player.jump();
         simulatePlayer(player, tileMap, 0.2f);
         REQUIRE(player.getVelocity().y < 0.0f);
+    }
+
+    SECTION("Player cannot move into solid tile")
+    {
+        tileMap.setTileIndex(glm::ivec2(3, 5), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 4), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 4), 1);
+        player.setPosition(glm::vec2(32, 80));
+
+        SECTION("Moving right into solid tile")
+        {
+            player.moveRight();
+            simulatePlayer(player, tileMap, 0.1f);
+            REQUIRE(player.getVelocity().x == Approx(0));
+            REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize()));
+        }
+
+        SECTION("Moving left into solid tile")
+        {
+            player.moveLeft();
+            simulatePlayer(player, tileMap, 0.1f);
+            REQUIRE(player.getVelocity().x == Approx(0));
+            REQUIRE(player.getPosition().x >= Approx(tileMap.getTileSize()));
+        }
+    }
+
+    SECTION("Player cannot jump through solid tile", "[Player]")
+    {
+        int ceilingTileX = 2;
+        int ceilingTileY = 2;
+        tileMap.setTileIndex(glm::ivec2(ceilingTileX, ceilingTileY), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 5), 1);
+        player.setPosition({32, 64});
+        player.jump();
+        simulatePlayer(player, tileMap, 1.0f);
+        float playerTopY = player.getPosition().y;
+        float ceilingBottomY = (ceilingTileY + 1);
+        REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
+        REQUIRE(player.getVelocity().y >= Approx(0.0f));
     }
 }
 

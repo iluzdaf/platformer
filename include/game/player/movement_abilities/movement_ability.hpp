@@ -26,6 +26,15 @@ public:
     virtual void tryMoveRight(
         MovementContext &movementContext,
         const PlayerState &playerState) {}
+    virtual void tryClimb(
+        MovementContext &movementContext,
+        const PlayerState &playerState) {}
+    virtual void tryAscend(
+        MovementContext &movementContext,
+        const PlayerState &playerState) {}
+    virtual void tryDescend(
+        MovementContext &movementContext,
+        const PlayerState &playerState) {}                        
     virtual void syncState(PlayerState &playerState) const {}
     virtual void reset() {}
 };

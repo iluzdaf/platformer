@@ -6,9 +6,9 @@
 #include "test_helpers/mock_player.hpp"
 using Catch::Approx;
 
-TEST_CASE("JumpAbility respects max jump count", "[JumpAbility]")
+TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
 {
-    MockPlayer mockPlayer;
+    MockPlayer movementContext;
     PlayerState playerState;
     JumpAbilityData jumpAbilityData;
     JumpAbility jumpAbility(jumpAbilityData);
@@ -16,69 +16,91 @@ TEST_CASE("JumpAbility respects max jump count", "[JumpAbility]")
     SECTION("Player can jump twice but not more")
     {
         playerState.onGround = true;
-        jumpAbility.tryJump(mockPlayer, playerState);        
-        REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
         playerState.onGround = false;
-        mockPlayer.setVelocity({0, 0});
-        jumpAbility.tryJump(mockPlayer, playerState);
-        REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
-        mockPlayer.setVelocity({0, 0});
-        jumpAbility.tryJump(mockPlayer, playerState);
-        REQUIRE(mockPlayer.getVelocity().y == Approx(0.0f));
+        movementContext.setVelocity({0, 0});
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+        movementContext.setVelocity({0, 0});
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(0.0f));
     }
 
     SECTION("Jump count resets when on ground")
     {
         playerState.onGround = true;
-        jumpAbility.tryJump(mockPlayer, playerState);
-        jumpAbility.tryJump(mockPlayer, playerState);
+        jumpAbility.tryJump(movementContext, playerState);
+        jumpAbility.tryJump(movementContext, playerState);
         playerState.onGround = true;
-        jumpAbility.update(mockPlayer, playerState, 0.01f);
-        mockPlayer.setVelocity({0, 0});
-        jumpAbility.tryJump(mockPlayer, playerState);
-        REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+        jumpAbility.update(movementContext, playerState, 0.01f);
+        movementContext.setVelocity({0, 0});
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
     }
-}
 
-TEST_CASE("Jump is buffered and consumed on landing", "[JumpAbility]")
-{
-    MockPlayer mockPlayer;
-    PlayerState playerState;
-    JumpAbilityData jumpAbilityData;
-    jumpAbilityData.jumpBufferDuration = 0.2f;
-    JumpAbility jumpAbility(jumpAbilityData);
-    playerState.onGround = false;
-    jumpAbility.tryJump(mockPlayer, playerState);
-    playerState.onGround = true;
-    jumpAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
-    REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
-}
+    SECTION("Jump is buffered and consumed on landing")
+    {
+        playerState.onGround = false;
+        jumpAbility.tryJump(movementContext, playerState);
+        playerState.onGround = true;
+        jumpAbility.fixedUpdate(movementContext, playerState, 0.09f);
+        REQUIRE(movementContext.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+    }
 
-TEST_CASE("First jump must be from ground", "[JumpAbility]")
-{
-    MockPlayer mockPlayer;
-    PlayerState playerState;
-    JumpAbilityData jumpAbilityData;
-    JumpAbility jumpAbility(jumpAbilityData);
-    playerState.onGround = false;
-    jumpAbility.tryJump(mockPlayer, playerState);
-    REQUIRE(mockPlayer.getVelocity().y == Approx(0.0f));
-    REQUIRE(playerState.jumpCount == 0);
-}
+    SECTION("Cannot perform first jump in the air")
+    {
+        playerState.onGround = false;
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(0.0f));
+        REQUIRE(jumpAbility.getJumpCount() == 0);
+    }
 
-TEST_CASE("Jump is allowed during coyote time", "[JumpAbility]")
-{
-    MockPlayer mockPlayer;
-    PlayerState playerState;
-    JumpAbilityData jumpAbilityData;
-    jumpAbilityData.jumpCoyoteDuration = 0.2f;
-    JumpAbility jumpAbility(jumpAbilityData);
-    playerState.onGround = true;
-    jumpAbility.fixedUpdate(mockPlayer, playerState, 0.1f);
-    jumpAbility.update(mockPlayer, playerState, 0.1f);
-    playerState.onGround = false;
-    jumpAbility.fixedUpdate(mockPlayer, playerState, 0.09f);
-    jumpAbility.update(mockPlayer, playerState, 0.09f);
-    jumpAbility.tryJump(mockPlayer, playerState);
-    REQUIRE(mockPlayer.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+    SECTION("Can jump during coyote time")
+    {
+        playerState.onGround = true;
+        jumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
+        jumpAbility.update(movementContext, playerState, 0.1f);
+        playerState.onGround = false;
+        jumpAbility.fixedUpdate(movementContext, playerState, 0.09f);
+        jumpAbility.update(movementContext, playerState, 0.09f);
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(jumpAbility.getJumpSpeed()));
+    }
+
+    SECTION("Cannot jump when dashing")
+    {
+        playerState.onGround = true;
+        playerState.dashing = true;
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(0.0f));
+        REQUIRE(jumpAbility.getJumpCount() == 0);
+    }
+
+    SECTION("Cannot jump when wallSliding")
+    {
+        playerState.onGround = true;
+        playerState.wallSliding = true;
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(0.0f));
+        REQUIRE(jumpAbility.getJumpCount() == 0);
+    }
+
+    SECTION("Cannot jump when wallJumping")
+    {
+        playerState.onGround = true;
+        playerState.wallJumping = true;
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(0.0f));
+        REQUIRE(jumpAbility.getJumpCount() == 0);
+    }
+
+    SECTION("Cannot jump when in the air and touching wall")
+    {
+        playerState.onGround = false;
+        playerState.touchingLeftWall = true;
+        jumpAbility.tryJump(movementContext, playerState);
+        REQUIRE(movementContext.getVelocity().y == Approx(0.0f));
+        REQUIRE(jumpAbility.getJumpCount() == 0);
+    }
 }

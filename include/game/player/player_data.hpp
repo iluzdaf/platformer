@@ -8,6 +8,8 @@
 #include "game/player/movement_abilities/dash_ability_data.hpp"
 #include "game/player/movement_abilities/wall_slide_ability_data.hpp"
 #include "game/player/movement_abilities/wall_jump_ability_data.hpp"
+#include "game/player/movement_abilities/climb_ability_data.hpp"
+#include "game/player/movement_abilities/climb_move_ability_data.hpp"
 
 struct PlayerData
 {
@@ -23,6 +25,8 @@ struct PlayerData
     std::optional<DashAbilityData> dashAbilityData;
     std::optional<WallSlideAbilityData> wallSlideAbilityData;
     std::optional<WallJumpAbilityData> wallJumpAbilityData;
+    std::optional<ClimbAbilityData> climbAbilityData;
+    std::optional<ClimbMoveAbilityData> climbMoveAbilityData;
     glm::vec2 colliderSize = glm::vec2(8, 16);
     glm::vec2 colliderOffset = glm::vec2(4, 0);
     float fallFromHeightThreshold = 600;

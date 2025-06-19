@@ -6,54 +6,55 @@
 #include "test_helpers/mock_player.hpp"
 using Catch::Approx;
 
-TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
+TEST_CASE("WallJumpAbility basic movement behaviour", "WallJumpAbility")
 {
     PlayerState playerState;
     MockPlayer movementContext;
     WallJumpAbilityData wallJumpAbilityData;
     WallJumpAbility wallJumpAbility(wallJumpAbilityData);
 
-    SECTION("WallJumpAbility performs a wall jump when touching wall and airborne")
+    SECTION("Can wall jump when touching wall and airborne")
     {
         movementContext.facingLeft = true;
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
-        wallJumpAbility.update(movementContext, playerState, 0.1f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.1f);
         REQUIRE(movementContext.velocity.y == Approx(-280.0f));
         REQUIRE(movementContext.velocity.x == Approx(200.0f));
         REQUIRE(movementContext.facingLeft == false);
     }
 
-    SECTION("WallJumpAbility does not activate if not touching wall")
+    SECTION("Cannot wall jump if not touching wall")
     {
         playerState.onGround = false;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.1f);
         REQUIRE_FALSE(playerState.wallJumping);
         REQUIRE(movementContext.velocity.y == Approx(0.0f));
         REQUIRE(movementContext.velocity.x == Approx(0.0f));
     }
 
-    SECTION("WallJumpAbility ends early if wall side switches")
+    SECTION("Wall jump cancels if wall side switches")
     {
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
         wallJumpAbility.tryJump(movementContext, playerState);
-
         playerState.touchingLeftWall = false;
         playerState.touchingRightWall = true;
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
-
+        wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.1f);
         REQUIRE_FALSE(playerState.wallJumping);
         REQUIRE(movementContext.velocity.y == Approx(0.0f));
         REQUIRE(movementContext.velocity.x == Approx(0.0f));
     }
 
-    SECTION("WallJumpAbility maintains jump for duration if no side switch")
+    SECTION("Wall jump maintains jump for duration if no side switch")
     {
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
@@ -68,10 +69,11 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
 
         wallJumpAbility.fixedUpdate(movementContext, playerState, 1.0f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 1.1f);
         REQUIRE_FALSE(playerState.wallJumping);
     }
 
-    SECTION("WallJumpAbility respects maxJumpCount")
+    SECTION("Wall jump respects maxJumpCount")
     {
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
@@ -79,53 +81,59 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.1f);
         REQUIRE(playerState.wallJumping);
 
         wallJumpAbility.fixedUpdate(movementContext, playerState, 1.0f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 1.0f);
 
         playerState.touchingLeftWall = true;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.1f);
         REQUIRE(playerState.wallJumping);
 
         wallJumpAbility.fixedUpdate(movementContext, playerState, 1.0f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 1.0f);
 
         playerState.touchingLeftWall = true;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.1f);
         REQUIRE_FALSE(playerState.wallJumping);
 
         playerState.onGround = true;
-        wallJumpAbility.update(movementContext, playerState, 0.0f);
-        wallJumpAbility.syncState(playerState);
+        wallJumpAbility.fixedUpdate(movementContext, playerState, 0.01f);
+        wallJumpAbility.update(movementContext, playerState, 0.01f);
 
         playerState.onGround = false;
         playerState.touchingLeftWall = true;
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.1f);
         REQUIRE(playerState.wallJumping);
     }
 
-    SECTION("WallJumpAbility buffers input and performs wall jump on contact")
+    SECTION("Wall jump is buffered and consumed on touching wall")
     {
         playerState.onGround = false;
         playerState.touchingLeftWall = false;
         wallJumpAbility.tryJump(movementContext, playerState);
         playerState.touchingLeftWall = true;
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.09f);
-        wallJumpAbility.update(movementContext, playerState, 0.09f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.09f);
         REQUIRE(playerState.wallJumping);
         REQUIRE(movementContext.velocity.y < 0.0f);
         REQUIRE(movementContext.velocity.x != 0.0f);
     }
 
-    SECTION("Wall jump works within coyote time after losing contact with wall")
+    SECTION("Can wall jump during coyote time")
     {
         playerState.touchingLeftWall = true;
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.01f);
@@ -134,8 +142,8 @@ TEST_CASE("WallJumpAbility performs correctly", "WallJumpAbility")
         wallJumpAbility.update(movementContext, playerState, 0.09f);
         wallJumpAbility.tryJump(movementContext, playerState);
         wallJumpAbility.fixedUpdate(movementContext, playerState, 0.1f);
-        wallJumpAbility.update(movementContext, playerState, 0.09f);
         wallJumpAbility.syncState(playerState);
+        wallJumpAbility.update(movementContext, playerState, 0.09f);
         REQUIRE(playerState.wallJumping);
         REQUIRE(movementContext.velocity.y < 0.0f);
         REQUIRE(movementContext.velocity.x != 0.0f);

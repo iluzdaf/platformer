@@ -17,21 +17,8 @@ public:
         float deltaTime) override;
     void syncState(PlayerState &playerState) const override;
     void reset() override;
-    void tryMoveLeft(
-        MovementContext &movementContext,
-        const PlayerState &playerState) override;
-    void tryMoveRight(
-        MovementContext &movementContext,
-        const PlayerState &playerState) override;
-
-    float getHangDuration() const;
-    void resetHangTime();
 
 private:
     bool wallSliding = false;
     float slideSpeed = 35.0f;
-    float hangDuration = 0.2f;
-    float hangTime = 0;
-    bool moveLeftRequested = false;
-    bool moveRightRequested = false;
 };

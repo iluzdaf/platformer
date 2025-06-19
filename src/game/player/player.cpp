@@ -27,7 +27,10 @@ void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
     physicsBody.applyGravity(deltaTime);
 
     for (auto &ability : movementAbilities)
+    {
         ability->fixedUpdate(*this, playerState, deltaTime);
+        ability->syncState(playerState);
+    }
 
     physicsBody.stepPhysics(deltaTime, tileMap);
 
@@ -122,17 +125,15 @@ void Player::updatePlayerPhysicsState(const TileMap &tileMap)
 
 void Player::updatePlayerState()
 {
+    playerState.size = size;
+    playerState.facingLeft = facingLeft();
+
     playerState.position = physicsBody.getPosition();
     playerState.previousVelocity = playerState.velocity;
     playerState.velocity = physicsBody.getVelocity();
     playerState.colliderSize = physicsBody.getColliderSize();
     playerState.colliderOffset = physicsBody.getColliderOffset();
-    playerState.size = size;
-    playerState.facingLeft = facingLeft();
-
-    for (const auto &ability : movementAbilities)
-        ability->syncState(playerState);
-
+    
     playerState.currentAnimationUVStart = animationManager.getCurrentAnimation().getUVStart();
     playerState.currentAnimationUVEnd = animationManager.getCurrentAnimation().getUVEnd();
     playerState.currentAnimationState = animationManager.getCurrentState();

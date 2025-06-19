@@ -23,14 +23,13 @@ TEST_CASE("Player starts with correct position and zero velocity", "[Player]")
 
 TEST_CASE("Player falls under normal gravity", "[Player]")
 {
-    float gravity = 980.0f;
-    Player player = setupPlayer(gravity);
-    TileMap tileMap = setupTileMap(1, gravity + 2);
+    Player player = setupPlayer();
+    TileMap tileMap = setupTileMap(1, 980/16 + 2);
     simulatePlayer(player, tileMap, 1.0f);
     glm::vec2 vel = player.getVelocity();
     glm::vec2 pos = player.getPosition();
-    REQUIRE(vel.y == Approx(gravity));
-    REQUIRE(pos.y == Approx(0.5f * gravity).margin(5));
+    REQUIRE(vel.y == Approx(980));
+    REQUIRE(pos.y == Approx(0.5f * 980).margin(5));
 }
 
 TEST_CASE("Player sets onGround correcly", "[Player]")
@@ -559,7 +558,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
         }
     }
 
-    SECTION("Player cannot jump through solid tile", "[Player]")
+    SECTION("Player cannot jump through solid tile")
     {
         int ceilingTileX = 2;
         int ceilingTileY = 2;
@@ -572,6 +571,25 @@ TEST_CASE("Player movement ability integration", "[Player]")
         float ceilingBottomY = (ceilingTileY + 1);
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
         REQUIRE(player.getVelocity().y >= Approx(0.0f));
+    }
+
+    SECTION("Wall jump while climbing causes upward jump")
+    {
+        for (int y = 0; y < 10; ++y)
+        {
+            tileMap.setTileIndex(glm::ivec2(2, y), 1);
+        }
+        player.setPosition(glm::vec2(3 * 16, 5 * 16));
+        player.moveLeft();
+        simulatePlayer(player, tileMap, 0.1f);
+        player.climb();
+        simulatePlayer(player, tileMap, 0.1f);
+        REQUIRE(player.getPlayerState().climbing);
+        player.climb();
+        player.jump();
+        simulatePlayer(player, tileMap, 0.1f);
+        REQUIRE(player.getVelocity().y < 0.0f);
+        REQUIRE(player.getPlayerState().wallJumping);
     }
 }
 

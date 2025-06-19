@@ -362,7 +362,7 @@ void Game::preFixedUpdate()
     player->preFixedUpdate();
 
     static bool wasJumpKeyDownLastFrame = false;
-    bool isJumpKeyDown = keyboardManager.isDown(GLFW_KEY_Z);
+    bool isJumpKeyDown = keyboardManager.isDown(GLFW_KEY_C);
     if (isJumpKeyDown && !wasJumpKeyDownLastFrame)
         player->jump();
     wasJumpKeyDownLastFrame = isJumpKeyDown;
@@ -375,7 +375,7 @@ void Game::preFixedUpdate()
         player->ascend();
     if (keyboardManager.isDown(GLFW_KEY_DOWN))
         player->descend();
-    if (keyboardManager.isDown(GLFW_KEY_C))
+    if (keyboardManager.isDown(GLFW_KEY_Z))
         player->climb();
 
     static bool wasDashKeyDownLastFrame = false;

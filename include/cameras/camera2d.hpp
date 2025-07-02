@@ -1,7 +1,8 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
 #include "cameras/camera_shake.hpp"
-class Camera2DData;
+
+struct Camera2DData;
 
 class Camera2D
 {

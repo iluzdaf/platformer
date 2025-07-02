@@ -26,13 +26,6 @@ Game::Game()
     int windowWidth, windowHeight;
     glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
     camera = std::make_unique<Camera2D>(gameData.cameraData, windowWidth, windowHeight);
-    keyboardManager.registerKey(GLFW_KEY_UP);
-    keyboardManager.registerKey(GLFW_KEY_DOWN);
-    keyboardManager.registerKey(GLFW_KEY_LEFT);
-    keyboardManager.registerKey(GLFW_KEY_RIGHT);
-    keyboardManager.registerKey(GLFW_KEY_Z);
-    keyboardManager.registerKey(GLFW_KEY_X);
-    keyboardManager.registerKey(GLFW_KEY_C);
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
     levelWatcher.onLevelChanged.connect([this](const std::string &levelPath)
@@ -109,18 +102,16 @@ Game::Game()
                                                                 {
         onLevelCompleteConnection.block();
         luaScriptSystem->triggerLevelComplete(); });
-    player->onWallJump.connect([this]
-                               { luaScriptSystem->triggerWallJump(); });
-    player->onDoubleJump.connect([this]
-                                 { luaScriptSystem->triggerDoubleJump(); });
-    player->onDash.connect([this]
-                           { luaScriptSystem->triggerDash(); });
+    player->getMovementSystem().onWallJump.connect([this]
+                                                   { luaScriptSystem->triggerWallJump(); });
+    player->getMovementSystem().onDash.connect([this]
+                                               { luaScriptSystem->triggerDash(); });
+    player->getMovementSystem().onWallSliding.connect([this]
+                                                      { luaScriptSystem->triggerWallSliding(); });
     player->onFallFromHeight.connect([this]
                                      { luaScriptSystem->triggerFallFromHeight(); });
     player->onHitCeiling.connect([this]
                                  { luaScriptSystem->triggerHitCeiling(); });
-    player->onWallSliding.connect([this]
-                                  { luaScriptSystem->triggerWallSliding(); });
     player->onPickup.connect([this](int scoreDelta)
                              { scoringSystem.addScore(scoreDelta); });
     loadLevel(gameData.firstLevel);
@@ -180,17 +171,86 @@ Game::~Game()
     glfwTerminate();
 }
 
+void Game::run()
+{
+    float lastTime = glfwGetTime();
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentTime = glfwGetTime();
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        levelWatcher.process();
+        assetWatcher.process();
+        gameDataWatcher.process();
+        scriptWatcher.process();
+
+        keyboardManager.poll(window);
+        if (keyboardManager.isPressed(GLFW_KEY_P))
+            play();
+        if (keyboardManager.isPressed(GLFW_KEY_S))
+            step();
+
+        luaScriptSystem->update(deltaTime);
+        camera->update(deltaTime);
+        screenTransition->update(deltaTime);
+        debugAABBUi.update(deltaTime);
+        editorTileMapUi.update(
+            *imGuiManager.get(),
+            *camera.get(),
+            *tileMap.get());
+
+        if (!paused || stepFrame)
+        {
+            preFixedUpdate();
+
+            if (stepFrame)
+            {
+                float dt = std::min(deltaTime, 0.01f);
+                fixedUpdate(dt);
+                update(dt);
+            }
+            else
+            {
+                timestepper.run(deltaTime, [&](float dt)
+                                { fixedUpdate(dt); });
+                update(deltaTime);
+            }
+
+            stepFrame = false;
+        }
+
+        const PlayerState &playerState = player->getPlayerState();
+        camera->follow(playerState.position);
+
+        render();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void Game::preFixedUpdate()
+{
+    inputManager.process(window);
+
+    player->preFixedUpdate();
+}
+
 void Game::fixedUpdate(float deltaTime)
 {
-    player->fixedUpdate(deltaTime, *tileMap.get());
+    player->fixedUpdate(
+        deltaTime,
+        *tileMap.get(),
+        inputManager.getIntentions());
 
-    tileInteractionSystem.fixedUpdate(*player.get(), *tileMap.get());
+    tileInteractionSystem.fixedUpdate(
+        *player.get(),
+        *tileMap.get());
 }
 
 void Game::update(float deltaTime)
 {
-    player->update(deltaTime, *tileMap.get());
-
     tileMap->update(deltaTime);
 }
 
@@ -212,7 +272,7 @@ void Game::render()
         *tileSetShader.get(),
         *playerTexture.get(),
         projection,
-        player->getPosition(),
+        playerState.position,
         playerState.size,
         playerState.currentAnimationUVStart,
         playerState.currentAnimationUVEnd,
@@ -260,63 +320,8 @@ void Game::render()
 void Game::resize(int windowWidth, int windowHeight)
 {
     camera->resize(windowWidth, windowHeight);
+
     imGuiManager->resize(windowWidth, windowHeight);
-}
-
-void Game::run()
-{
-    float lastTime = glfwGetTime();
-    while (!glfwWindowShouldClose(window))
-    {
-        float currentTime = glfwGetTime();
-        float deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
-
-        levelWatcher.process();
-        assetWatcher.process();
-        gameDataWatcher.process();
-        scriptWatcher.process();
-        keyboardManager.update(window);
-        luaScriptSystem->update(deltaTime);
-        camera->update(deltaTime);
-        screenTransition->update(deltaTime);
-        debugAABBUi.update(deltaTime);
-        editorTileMapUi.update(
-            *imGuiManager.get(),
-            *camera.get(),
-            *tileMap.get());
-
-        if (keyboardManager.isPressed(GLFW_KEY_P))
-            play();
-        if (keyboardManager.isPressed(GLFW_KEY_S))
-            step();
-
-        if (!paused || stepFrame)
-        {
-            preFixedUpdate();
-
-            if (stepFrame)
-            {
-                fixedUpdate(0.01f);
-                update(0.01f);
-            }
-            else
-            {
-                timestepper.run(deltaTime, [&](float dt)
-                                { fixedUpdate(dt); });
-                update(deltaTime);
-            }
-
-            stepFrame = false;
-        }
-
-        camera->follow(player->getPosition());
-
-        render();
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
 }
 
 void Game::initGLFW(int windowWidth, int windowHeight)
@@ -342,6 +347,12 @@ void Game::initGLFW(int windowWidth, int windowHeight)
             game->resize(windowWidth, windowHeight); });
 }
 
+void Game::initGlad()
+{
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        throw std::runtime_error("Failed to initialize GLAD");
+}
+
 GameData Game::loadGameData() const
 {
     GameData gameData;
@@ -351,38 +362,24 @@ GameData Game::loadGameData() const
     return gameData;
 }
 
-void Game::initGlad()
+void Game::reload()
 {
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        throw std::runtime_error("Failed to initialize GLAD");
-}
+    GameData gameData = loadGameData();
 
-void Game::preFixedUpdate()
-{
-    player->preFixedUpdate();
+    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
+    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
+    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
+    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
+    showDebug = gameData.debugData.showDebug;
+    showTileMapEditor = gameData.debugData.showTileMapEditor;
 
-    static bool wasJumpKeyDownLastFrame = false;
-    bool isJumpKeyDown = keyboardManager.isDown(GLFW_KEY_C);
-    if (isJumpKeyDown && !wasJumpKeyDownLastFrame)
-        player->jump();
-    wasJumpKeyDownLastFrame = isJumpKeyDown;
+    glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
 
-    if (keyboardManager.isDown(GLFW_KEY_LEFT))
-        player->moveLeft();
-    if (keyboardManager.isDown(GLFW_KEY_RIGHT))
-        player->moveRight();
-    if (keyboardManager.isDown(GLFW_KEY_UP))
-        player->ascend();
-    if (keyboardManager.isDown(GLFW_KEY_DOWN))
-        player->descend();
-    if (keyboardManager.isDown(GLFW_KEY_Z))
-        player->climb();
+    camera->setZoom(gameData.cameraData.zoom);
 
-    static bool wasDashKeyDownLastFrame = false;
-    bool isDashKeyDown = keyboardManager.isDown(GLFW_KEY_X);
-    if (isDashKeyDown && !wasDashKeyDownLastFrame)
-        player->dash();
-    wasDashKeyDownLastFrame = isDashKeyDown;
+    player->initFromData(gameData.playerData, gameData.physicsData);
+
+    loadLevel(gameData.firstLevel);
 }
 
 void Game::loadLevel(const std::string &levelPath)
@@ -411,24 +408,4 @@ void Game::play()
 {
     paused = false;
     stepFrame = false;
-}
-
-void Game::reload()
-{
-    GameData gameData = loadGameData();
-
-    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
-    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
-    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
-    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
-    showDebug = gameData.debugData.showDebug;
-    showTileMapEditor = gameData.debugData.showTileMapEditor;
-
-    glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
-
-    camera->setZoom(gameData.cameraData.zoom);
-
-    player->initFromData(gameData.playerData, gameData.physicsData);
-
-    loadLevel(gameData.firstLevel);
 }

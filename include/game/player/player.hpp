@@ -2,64 +2,42 @@
 #include <memory>
 #include <vector>
 #include <signals.hpp>
-#include "game/player/movement_abilities/movement_ability.hpp"
-#include "game/player/movement_context.hpp"
+#include "game/player/movement_abilities/movement_system.hpp"
 #include "game/player/player_state.hpp"
-#include "animations/animation_manager.hpp"
+#include "input/input_intentions.hpp"
 #include "physics/physics_body.hpp"
-class TileMap;
-class PlayerData;
-class PhysicsData;
+#include "animations/animation_manager.hpp"
 
-class Player : public MovementContext
+class TileMap;
+struct PlayerData;
+struct PhysicsData;
+
+class Player
 {
 public:
-    Player(const PlayerData &playerData, const PhysicsData &physicsData);
+    Player(PlayerData playerData, PhysicsData physicsData);
     void preFixedUpdate();
-    void fixedUpdate(float deltaTime, TileMap &tileMap);
-    void update(float deltaTime, TileMap &tileMap);
-    void jump();
-    void moveLeft();
-    void moveRight();
-    void dash();
-    void climb();
-    void ascend();
-    void descend();
-    glm::vec2 getSize() const;
-    bool facingLeft() const;
+    void fixedUpdate(float deltaTime, TileMap &tileMap, InputIntentions inputIntentions);
     const PlayerState &getPlayerState() const;
     void setPosition(const glm::vec2 &position);
-    glm::vec2 getPosition() const;
     AABB getAABB() const;
     void reset();
-    void initFromData(const PlayerData &playerData, const PhysicsData &physicsData);
-
-    glm::vec2 getVelocity() const override;
-    void setVelocity(const glm::vec2 &velocity) override;
-    void setFacingLeft(bool isFacingLeft) override;
-    void emitWallJump() override;
-    void emitDoubleJump() override;
-    void emitDash() override;
-    void emitWallSliding() override;
+    void initFromData(PlayerData playerData, PhysicsData physicsData);
+    MovementSystem &getMovementSystem();
 
     fteng::signal<void()>
         onLevelComplete,
         onDeath,
-        onWallJump,
-        onDoubleJump,
-        onDash,
         onFallFromHeight,
-        onHitCeiling,
-        onWallSliding;
+        onHitCeiling;
     fteng::signal<void(int)> onPickup;
 
 private:
-    PhysicsBody physicsBody;
-    bool isFacingLeft = false;
     glm::vec2 size = glm::vec2(16, 16);
-    std::vector<std::unique_ptr<MovementAbility>> movementAbilities;
-    PlayerState playerState;
     float fallFromHeightThreshold = 600;
+    PlayerState playerState;
+    MovementSystem movementSystem;
+    PhysicsBody physicsBody;
     AnimationManager animationManager;
 
     void updatePlayerState();

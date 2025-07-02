@@ -17,6 +17,7 @@
 #include "rendering/ui/score_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
+#include "input/input_manager.hpp"
 #include "physics/fixed_time_step.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "reloading/level_watcher.hpp"
@@ -45,11 +46,12 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
-
+    
     GLFWwindow *window;
 
     std::unique_ptr<Camera2D> camera;
     KeyboardManager keyboardManager;
+    InputManager inputManager;
     FixedTimeStep timestepper;
     std::unique_ptr<LuaScriptSystem> luaScriptSystem;
     LevelWatcher levelWatcher;

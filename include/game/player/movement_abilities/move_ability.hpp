@@ -1,23 +1,19 @@
 #pragma once
 #include "game/player/movement_abilities/movement_ability.hpp"
-class MoveAbilityData;
+#include "game/player/movement_abilities/move_ability_data.hpp"
+
+struct MovementContext;
+struct PlayerState;
 
 class MoveAbility : public MovementAbility
 {
 public:
-    explicit MoveAbility(const MoveAbilityData &moveAbilityData);
-
-    void fixedUpdate(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
-    void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
-    void tryMoveLeft(MovementContext &movementContext, const PlayerState &playerState) override;
-    void tryMoveRight(MovementContext &movementContext, const PlayerState &playerState) override;
-    void syncState(PlayerState &playerState) const override;
-    void reset() override;
-
-    float getMoveSpeed() const;
+    explicit MoveAbility(MoveAbilityData moveAbilityData);
+    void fixedUpdate(
+        MovementContext &movementContext,
+        PlayerState &playerState,
+        float deltaTime) override;
 
 private:
-    float moveSpeed = 160.0f;
-    bool moveLeftRequested = false;
-    bool moveRightRequested = false;
+    MoveAbilityData moveAbilityData;
 };

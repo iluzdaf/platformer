@@ -1,17 +1,17 @@
 #include "game/player/player.hpp"
-#include "game/tile_map/tile.hpp"
-#include "game/tile_map/tile_map.hpp"
 #include "game/player/player_data.hpp"
+#include "game/player/movement_abilities/movement_context.hpp"
+#include "game/player/movement_abilities/move_ability.hpp"
 #include "game/player/movement_abilities/jump_ability.hpp"
 #include "game/player/movement_abilities/dash_ability.hpp"
-#include "game/player/movement_abilities/move_ability.hpp"
 #include "game/player/movement_abilities/wall_slide_ability.hpp"
 #include "game/player/movement_abilities/wall_jump_ability.hpp"
 #include "game/player/movement_abilities/climb_ability.hpp"
 #include "game/player/movement_abilities/climb_move_ability.hpp"
+#include "game/tile_map/tile_map.hpp"
 #include "physics/physics_data.hpp"
 
-Player::Player(const PlayerData &playerData, const PhysicsData &physicsData)
+Player::Player(PlayerData playerData, PhysicsData physicsData)
 {
     initFromData(playerData, physicsData);
 }
@@ -22,16 +22,18 @@ void Player::preFixedUpdate()
     playerState.collisionAABBY = AABB();
 }
 
-void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
+void Player::fixedUpdate(
+    float deltaTime,
+    TileMap &tileMap,
+    InputIntentions inputIntensions)
 {
     physicsBody.applyGravity(deltaTime);
 
-    for (auto &ability : movementAbilities)
-    {
-        ability->fixedUpdate(*this, playerState, deltaTime);
-        ability->syncState(playerState);
-    }
+    playerState.targetVelocity = physicsBody.getVelocity();
 
+    movementSystem.fixedUpdate(playerState, inputIntensions, deltaTime);
+
+    physicsBody.setVelocity(playerState.targetVelocity);
     physicsBody.stepPhysics(deltaTime, tileMap);
 
     animationManager.update(deltaTime, playerState);
@@ -44,68 +46,8 @@ void Player::fixedUpdate(float deltaTime, TileMap &tileMap)
         onFallFromHeight();
     if (!playerState.wasHitCeiling && playerState.hitCeiling)
         onHitCeiling();
-}
-
-void Player::update(float deltaTime, TileMap &tileMap)
-{
-    for (auto &ability : movementAbilities)
-        ability->update(*this, playerState, deltaTime);
 
     physicsBody.setVelocity(glm::vec2(0, physicsBody.getVelocity().y));
-}
-
-void Player::jump()
-{
-    for (auto &ability : movementAbilities)
-        ability->tryJump(*this, playerState);
-}
-
-void Player::moveLeft()
-{
-    for (auto &ability : movementAbilities)
-        ability->tryMoveLeft(*this, playerState);
-}
-
-void Player::moveRight()
-{
-    for (auto &ability : movementAbilities)
-        ability->tryMoveRight(*this, playerState);
-}
-
-glm::vec2 Player::getPosition() const
-{
-    return physicsBody.getPosition();
-}
-
-glm::vec2 Player::getVelocity() const
-{
-    return physicsBody.getVelocity();
-}
-
-bool Player::facingLeft() const
-{
-    return isFacingLeft;
-}
-
-glm::vec2 Player::getSize() const
-{
-    return size;
-}
-
-void Player::dash()
-{
-    for (auto &ability : movementAbilities)
-        ability->tryDash(*this, playerState);
-}
-
-void Player::setVelocity(const glm::vec2 &velocity)
-{
-    physicsBody.setVelocity(velocity);
-}
-
-void Player::setFacingLeft(bool isFacingLeft)
-{
-    this->isFacingLeft = isFacingLeft;
 }
 
 void Player::updatePlayerPhysicsState(const TileMap &tileMap)
@@ -116,6 +58,10 @@ void Player::updatePlayerPhysicsState(const TileMap &tileMap)
     playerState.hitCeiling = physicsBody.contactWithCeiling(tileMap);
     playerState.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
     playerState.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+    if (playerState.touchingLeftWall)
+        playerState.wasLastWallLeft = true;
+    else if (playerState.touchingRightWall)
+        playerState.wasLastWallLeft = false;
 
     if (!physicsBody.getCollisionAABBX().isEmpty())
         playerState.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());
@@ -125,15 +71,15 @@ void Player::updatePlayerPhysicsState(const TileMap &tileMap)
 
 void Player::updatePlayerState()
 {
-    playerState.size = size;
-    playerState.facingLeft = facingLeft();
-
     playerState.position = physicsBody.getPosition();
     playerState.previousVelocity = playerState.velocity;
     playerState.velocity = physicsBody.getVelocity();
     playerState.colliderSize = physicsBody.getColliderSize();
     playerState.colliderOffset = physicsBody.getColliderOffset();
-    
+
+    playerState.size = size;
+    playerState.facingLeft = playerState.velocity.x > 0 ? false : (playerState.velocity.x < 0 ? true : playerState.facingLeft);
+
     playerState.currentAnimationUVStart = animationManager.getCurrentAnimation().getUVStart();
     playerState.currentAnimationUVEnd = animationManager.getCurrentAnimation().getUVEnd();
     playerState.currentAnimationState = animationManager.getCurrentState();
@@ -147,6 +93,7 @@ const PlayerState &Player::getPlayerState() const
 void Player::setPosition(const glm::vec2 &position)
 {
     physicsBody.setPosition(position);
+    playerState.position = position;
 }
 
 AABB Player::getAABB() const
@@ -158,38 +105,13 @@ void Player::reset()
 {
     physicsBody.reset();
 
-    isFacingLeft = false;
-
-    for (const auto &ability : movementAbilities)
-        ability->reset();
-
     animationManager.reset();
 
     playerState = PlayerState();
     updatePlayerState();
 }
 
-void Player::emitWallJump()
-{
-    onWallJump();
-}
-
-void Player::emitDoubleJump()
-{
-    onDoubleJump();
-}
-
-void Player::emitDash()
-{
-    onDash();
-}
-
-void Player::emitWallSliding()
-{
-    onWallSliding();
-}
-
-void Player::initFromData(const PlayerData &playerData, const PhysicsData &physicsData)
+void Player::initFromData(PlayerData playerData, PhysicsData physicsData)
 {
     size = playerData.size;
     fallFromHeightThreshold = playerData.fallFromHeightThreshold;
@@ -198,21 +120,21 @@ void Player::initFromData(const PlayerData &playerData, const PhysicsData &physi
     physicsBody.setColliderOffset(playerData.colliderOffset);
     physicsBody.setGravity(physicsData.gravity);
 
-    movementAbilities.clear();
-    if (playerData.jumpAbilityData)
-        movementAbilities.emplace_back(std::make_unique<JumpAbility>(*playerData.jumpAbilityData));
-    if (playerData.dashAbilityData)
-        movementAbilities.emplace_back(std::make_unique<DashAbility>(*playerData.dashAbilityData));
+    movementSystem.clear();
     if (playerData.moveAbilityData)
-        movementAbilities.emplace_back(std::make_unique<MoveAbility>(*playerData.moveAbilityData));
+        movementSystem.addAbility(std::make_unique<MoveAbility>(*playerData.moveAbilityData));
+    if (playerData.jumpAbilityData)
+        movementSystem.addAbility(std::make_unique<JumpAbility>(*playerData.jumpAbilityData));
+    if (playerData.dashAbilityData)
+        movementSystem.addAbility(std::make_unique<DashAbility>(*playerData.dashAbilityData));
     if (playerData.wallSlideAbilityData)
-        movementAbilities.emplace_back(std::make_unique<WallSlideAbility>(*playerData.wallSlideAbilityData));
+        movementSystem.addAbility(std::make_unique<WallSlideAbility>(*playerData.wallSlideAbilityData));
     if (playerData.wallJumpAbilityData)
-        movementAbilities.emplace_back(std::make_unique<WallJumpAbility>(*playerData.wallJumpAbilityData));
+        movementSystem.addAbility(std::make_unique<WallJumpAbility>(*playerData.wallJumpAbilityData));
     if (playerData.climbAbilityData)
-        movementAbilities.emplace_back(std::make_unique<ClimbAbility>(*playerData.climbAbilityData));
+        movementSystem.addAbility(std::make_unique<ClimbAbility>(*playerData.climbAbilityData));
     if (playerData.climbMoveAbilityData)
-        movementAbilities.emplace_back(std::make_unique<ClimbMoveAbility>(*playerData.climbMoveAbilityData));
+        movementSystem.addAbility(std::make_unique<ClimbMoveAbility>(*playerData.climbMoveAbilityData));
 
     animationManager.clear();
     animationManager.addAnimation(PlayerAnimationState::Idle, SpriteAnimation(playerData.idleSpriteAnimationData));
@@ -223,20 +145,7 @@ void Player::initFromData(const PlayerData &playerData, const PhysicsData &physi
     animationManager.addAnimation(PlayerAnimationState::WallSlide, SpriteAnimation(playerData.wallSlideSpriteAnimationData));
 }
 
-void Player::climb()
+MovementSystem &Player::getMovementSystem()
 {
-    for (auto &ability : movementAbilities)
-        ability->tryClimb(*this, playerState);
-}
-
-void Player::ascend()
-{
-    for (auto &ability : movementAbilities)
-        ability->tryAscend(*this, playerState);
-}
-
-void Player::descend()
-{
-    for (auto &ability : movementAbilities)
-        ability->tryDescend(*this, playerState);
+    return movementSystem;
 }

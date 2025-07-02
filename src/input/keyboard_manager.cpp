@@ -6,13 +6,13 @@ void KeyboardManager::registerKey(int key)
     keyStates[key] = {};
 }
 
-void KeyboardManager::update(GLFWwindow *window)
+void KeyboardManager::poll(GLFWwindow *window)
 {
-    update([window](int key)
+    poll([window](int key)
            { return glfwGetKey(window, key); });
 }
 
-void KeyboardManager::update(const InputPoller &poller)
+void KeyboardManager::poll(const InputPoller &poller)
 {
     for (auto &[key, state] : keyStates)
     {

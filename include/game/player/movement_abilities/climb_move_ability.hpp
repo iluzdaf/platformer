@@ -1,23 +1,19 @@
 #pragma once
 #include "game/player/movement_abilities/movement_ability.hpp"
-class MovementContext;
-class ClimbMoveAbilityData;
+#include "game/player/movement_abilities/climb_move_ability_data.hpp"
+
+struct MovementContext;
+struct PlayerState;
 
 class ClimbMoveAbility : public MovementAbility
 {
 public:
-    explicit ClimbMoveAbility(const ClimbMoveAbilityData &climbMoveAbilityData);
-
-    void fixedUpdate(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
-    void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
-    void tryAscend(MovementContext &movementContext, const PlayerState &playerState) override;
-    void tryDescend(MovementContext &movementContext, const PlayerState &playerState) override;
-    void reset() override;
-
-    float getClimbSpeed() const;
+    explicit ClimbMoveAbility(ClimbMoveAbilityData climbMoveAbilityData);
+    void fixedUpdate(
+        MovementContext &movementContext,
+        PlayerState &playerState,
+        float deltaTime) override;
 
 private:
-    float climbSpeed = 80.0f;
-    bool ascendRequested = false,
-         descendRequested = false;
+    ClimbMoveAbilityData climbMoveAbilityData;
 };

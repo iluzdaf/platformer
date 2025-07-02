@@ -1,24 +1,19 @@
 #pragma once
 #include "game/player/movement_abilities/movement_ability.hpp"
-class WallSlideAbilityData;
+#include "game/player/movement_abilities/wall_slide_ability_data.hpp"
+
+struct MovementContext;
+struct PlayerState;
 
 class WallSlideAbility : public MovementAbility
 {
 public:
-    explicit WallSlideAbility(const WallSlideAbilityData &wallSlideAbilityData);
-
+    explicit WallSlideAbility(WallSlideAbilityData wallSlideAbilityData);
     void fixedUpdate(
         MovementContext &movementContext,
-        const PlayerState &playerState,
+        PlayerState &playerState,
         float deltaTime) override;
-    void update(
-        MovementContext &movementContext,
-        const PlayerState &playerState,
-        float deltaTime) override;
-    void syncState(PlayerState &playerState) const override;
-    void reset() override;
 
 private:
-    bool wallSliding = false;
-    float slideSpeed = 35.0f;
+    WallSlideAbilityData wallSlideAbilityData;
 };

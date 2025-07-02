@@ -1,108 +1,59 @@
 #include "game/player/movement_abilities/dash_ability.hpp"
-#include "game/player/movement_context.hpp"
-#include "game/player/movement_abilities/dash_ability_data.hpp"
+#include "game/player/movement_abilities/movement_context.hpp"
 #include "game/player/player_state.hpp"
 
-DashAbility::DashAbility(const DashAbilityData &dashAbilityData)
-    : dashSpeed(dashAbilityData.dashSpeed),
-      dashDuration(dashAbilityData.dashDuration),
-      dashCooldown(dashAbilityData.dashCooldown)
+DashAbility::DashAbility(DashAbilityData dashAbilityData)
+    : dashAbilityData(dashAbilityData)
 {
-    if (dashSpeed <= 0)
-        throw std::invalid_argument("dashSpeed must be greater than 0");
-    if (dashDuration <= 0)
-        throw std::invalid_argument("dashDuration must be greater than 0");
-    if (dashCooldown <= 0)
-        throw std::invalid_argument("dashCooldown must be greater than 0");
-    if (dashCooldown <= dashDuration)
-        throw std::invalid_argument("dashCooldown must be greater than dashDuration");
+    if (dashAbilityData.dashSpeed <= 0)
+        throw std::invalid_argument("dashSpeed must be > 0");
+    if (dashAbilityData.dashDuration <= 0)
+        throw std::invalid_argument("dashDuration must be > 0");
 }
 
 void DashAbility::fixedUpdate(
     MovementContext &movementContext,
-    const PlayerState &playerState,
+    PlayerState &playerState,
     float deltaTime)
 {
-    if (dashCooldownLeft > 0.0f)
-        dashCooldownLeft -= deltaTime;
+    if (playerState.onGround && playerState.dashTimeLeft <= 0.0f)
+        playerState.canDash = true;
 
-    if (!dashing())
-        return;
-
-    if (playerState.touchingLeftWall || playerState.touchingRightWall)
+    if (movementContext.inputIntentions.dashRequested &&
+        playerState.canDash &&
+        !playerState.touchingLeftWall &&
+        !playerState.touchingRightWall)
     {
-        dashTimeLeft = 0.0f;
-        return;
+        playerState.dashDirection = playerState.facingLeft ? -1.0f : 1.0f;
+        playerState.dashTimeLeft = dashAbilityData.dashDuration;
+        playerState.canDash = false;
+        movementContext.emitDash = true;
+        playerState.dashing = true;
     }
 
-    dashTimeLeft -= deltaTime;
+    if (playerState.dashTimeLeft > 0.0f && playerState.dashing)
+    {
+        if (playerState.touchingLeftWall || playerState.touchingRightWall)
+        {
+            playerState.dashTimeLeft = 0.0f;
+            playerState.dashing = false;
+        }
+        else
+        {
+            playerState.dashTimeLeft -= deltaTime;
 
-    glm::vec2 velocity = movementContext.getVelocity();
-    velocity.x = dashSpeed * dashDirection;
-    velocity.y = 0.0f;
-    movementContext.setVelocity(velocity);
-}
-
-void DashAbility::update(
-    MovementContext & /*movementContext*/,
-    const PlayerState & /*playerState*/,
-    float /*deltaTime*/)
-{
-}
-
-void DashAbility::tryDash(
-    MovementContext &movementContext,
-    const PlayerState &playerState)
-{
-    if (playerState.touchingLeftWall || playerState.touchingRightWall || playerState.wallJumping)
-        return;
-
-    if (dashing() || !canDash())
-        return;
-
-    dashDirection = playerState.facingLeft ? -1 : 1;
-    dashTimeLeft = dashDuration;
-    dashCooldownLeft = dashCooldown;
-    glm::vec2 velocity = movementContext.getVelocity();
-    velocity.y = 0.0f;
-    movementContext.setVelocity(velocity);
-    movementContext.emitDash();
-}
-
-bool DashAbility::canDash() const
-{
-    return dashCooldownLeft <= 0.0f;
-}
-
-bool DashAbility::dashing() const
-{
-    return dashTimeLeft > 0.0f;
-}
-
-float DashAbility::getDashDuration() const
-{
-    return dashDuration;
-}
-
-float DashAbility::getDashCooldown() const
-{
-    return dashCooldown;
-}
-
-void DashAbility::syncState(PlayerState &playerState) const
-{
-    playerState.dashDuration = dashDuration;
-    playerState.dashing = dashing();
-}
-
-void DashAbility::reset()
-{
-    dashTimeLeft = 0;
-    dashCooldownLeft = 0;
-    dashDirection = 1;
-}
-
-float DashAbility::getDashTimeLeft() const
-{
-    return dashTimeLeft;
+            if (playerState.dashTimeLeft > 0.0f)
+            {
+                movementContext.dashVelocity.x = dashAbilityData.dashSpeed * playerState.dashDirection;
+                movementContext.dashVelocity.y = 0.0f;
+            }
+            else
+            {
+                playerState.dashTimeLeft = 0.0f;
+                playerState.dashing = false;
+            }
+        }
+    }
+    else if (playerState.dashTimeLeft <= 0.0f)
+        playerState.dashing = false;
 }

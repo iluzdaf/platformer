@@ -67,7 +67,6 @@ void DebugUi::draw(
         drawRow("Wall Jumping", playerState.wallJumping ? "true" : "false");
         drawRow("Dashing", playerState.dashing ? "true" : "false");
         drawRow("Climbing", playerState.climbing ? "true" : "false");
-        drawRow("Jump Count", std::format("{}", playerState.jumpCount));
 
         drawRow("Animation", toString(playerState.currentAnimationState));
 

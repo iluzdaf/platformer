@@ -88,12 +88,14 @@ add_executable(platformer
     src/game/player/movement_abilities/wall_jump_ability.cpp
     src/game/player/movement_abilities/climb_ability.cpp
     src/game/player/movement_abilities/climb_move_ability.cpp
+    src/game/player/movement_abilities/movement_system.cpp
     src/game/game.cpp
     src/game/scoring_system.cpp
     src/physics/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp
+    src/input/input_manager.cpp
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp
@@ -138,6 +140,10 @@ add_executable(tests
     tests/game/player/movement_abilities/test_wall_jump_ability.cpp
     tests/game/player/movement_abilities/test_climb_ability.cpp
     tests/game/player/movement_abilities/test_climb_move_ability.cpp
+    tests/game/player/movement_abilities/test_coyote_time.cpp
+    tests/game/player/movement_abilities/test_action_buffer.cpp
+    tests/game/player/movement_abilities/test_direction_buffer.cpp
+    tests/game/player/movement_abilities/test_movement_system.cpp
     tests/physics/test_fixed_time_step.cpp
     tests/physics/tests_aabb.cpp
     tests/physics/tests_physics_body.cpp
@@ -169,12 +175,14 @@ add_executable(tests
     src/game/player/movement_abilities/wall_jump_ability.cpp
     src/game/player/movement_abilities/climb_ability.cpp
     src/game/player/movement_abilities/climb_move_ability.cpp
+    src/game/player/movement_abilities/movement_system.cpp
     src/game/game.cpp
     src/game/scoring_system.cpp
     src/physics/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp
     src/input/keyboard_manager.cpp
+    src/input/input_manager.cpp
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp

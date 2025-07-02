@@ -1,36 +1,30 @@
 #pragma once
 #include "game/player/movement_abilities/movement_ability.hpp"
-class WallJumpAbilityData;
+#include "game/player/movement_abilities/wall_jump_ability_data.hpp"
+#include "game/player/movement_abilities/action_buffer.hpp"
+#include "game/player/movement_abilities/coyote_time.hpp"
+#include "game/player/movement_abilities/direction_buffer.hpp"
+
+struct MovementContext;
+struct PlayerState;
 
 class WallJumpAbility : public MovementAbility
 {
 public:
-    explicit WallJumpAbility(const WallJumpAbilityData &wallJumpAbilityData);
-
-    void fixedUpdate(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
-    void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
-    void tryJump(MovementContext &MovementContext, const PlayerState &playerState) override;
-    void syncState(PlayerState &playerState) const override;
-    void reset() override;
-
-    bool wallJumping() const;
+    explicit WallJumpAbility(WallJumpAbilityData wallJumpAbilityData);
+    void fixedUpdate(
+        MovementContext &movementContext,
+        PlayerState &playerState,
+        float deltaTime) override;
 
 private:
-    int wallJumpCount = 0,
-        wallJumpDirection = 1,
-        maxWallJumpCount = 2;
-    float wallJumpSpeed = -280.0f,
-          wallJumpHorizontalSpeed = 200.0f,
-          wallJumpDuration = 0.25f,
-          wallJumpTimeLeft = 0.0f,
-          wallJumpBufferTime = 0,
-          wallJumpBufferDuration = 0.1f,
-          wallJumpCoyoteDuration = 0.1f,
-          wallJumpCoyoteTime = 0;
-    bool wasTouchingLeftWall = false;
+    WallJumpAbilityData wallJumpAbilityData;
+    ActionBuffer wallJumpBuffer;
+    DirectionBuffer wallJumpDirectionBuffer;
+    CoyoteTime wallJumpCoyote;
 
-    void resetJumps();
-    void performWallJump(
+    void startWallJump(
         MovementContext &movementContext,
-        const PlayerState &playerState);
+        PlayerState &playerState,
+        int direction);
 };

@@ -1,32 +1,23 @@
 #pragma once
 #include "game/player/movement_abilities/movement_ability.hpp"
-class MovementContext;
-class JumpAbilityData;
+#include "game/player/movement_abilities/jump_ability_data.hpp"
+#include "game/player/movement_abilities/action_buffer.hpp"
+#include "game/player/movement_abilities/coyote_time.hpp"
+
+struct MovementContext;
+struct PlayerState;
 
 class JumpAbility : public MovementAbility
 {
 public:
-    explicit JumpAbility(const JumpAbilityData &jumpAbilityData);
-
-    void fixedUpdate(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
-    void update(MovementContext &movementContext, const PlayerState &playerState, float deltaTime) override;
-    void tryJump(MovementContext &movementContext, const PlayerState &playerState) override;
-    void syncState(PlayerState &playerState) const override;
-    void reset() override;
-
-    int getMaxJumpCount() const;
-    float getJumpSpeed() const;
-    int getJumpCount() const;
+    explicit JumpAbility(JumpAbilityData jumpAbilityData);
+    void fixedUpdate(
+        MovementContext &movementContext,
+        PlayerState &playerState,
+        float deltaTime) override;
 
 private:
-    int maxJumpCount = 2,
-        jumpCount = 0;
-    float jumpSpeed = -280,
-          jumpBufferTime = 0,
-          jumpBufferDuration = 0.1f,
-          jumpCoyoteDuration = 0.2f,
-          jumpCoyoteTime = 0;
-
-    void resetJumps();
-    void performJump(MovementContext &movementContext);
+    JumpAbilityData jumpAbilityData;
+    ActionBuffer jumpBuffer;
+    CoyoteTime coyoteTime;
 };

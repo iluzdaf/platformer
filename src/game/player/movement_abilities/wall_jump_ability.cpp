@@ -86,7 +86,7 @@ void WallJumpAbility::startWallJump(
     PlayerState &playerState,
     int direction)
 {
-    playerState.wallJumpDirection = direction;
+    playerState.wallJumpDirection = static_cast<float>(direction);
     playerState.wallJumpTimeLeft = wallJumpAbilityData.wallJumpDuration;
     playerState.wallJumping = true;
     movementContext.emitWallJump = true;

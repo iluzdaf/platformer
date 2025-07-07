@@ -52,9 +52,9 @@ struct AABB
     std::size_t hash() const
     {
         glm::ivec2 pos = glm::round(position * 100.0f);
-        glm::ivec2 size = glm::round(this->size * 100.0f);
+        glm::ivec2 roundedSize = glm::round(this->size * 100.0f);
         std::size_t h1 = std::hash<int>()(pos.x) ^ std::hash<int>()(pos.y << 1);
-        std::size_t h2 = std::hash<int>()(size.x) ^ std::hash<int>()(size.y << 1);
+        std::size_t h2 = std::hash<int>()(roundedSize.x) ^ std::hash<int>()(roundedSize.y << 1);
         return h1 ^ (h2 << 1);
     }
 };

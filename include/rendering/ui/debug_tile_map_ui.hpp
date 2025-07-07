@@ -1,10 +1,11 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
+
 class ImGuiManager;
 class Camera2D;
 class TileMap;
-class ImDrawList;
-class ImVec2;
+struct ImDrawList;
+struct ImVec2;
 
 class DebugTileMapUi
 {
@@ -24,8 +25,6 @@ private:
         const ImVec2 &uiDimensions);
     void drawTileInfo(
         ImDrawList *drawList,
-        const ImGuiManager &imGuiManager,
-        const Camera2D &camera,
         const TileMap &tileMap,
         const ImVec2 &screenOffset,
         float tileSizeImgui,

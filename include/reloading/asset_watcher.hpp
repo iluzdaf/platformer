@@ -18,8 +18,8 @@ public:
                 onShaderChanged(path);
         };
 
-        fileWatcher.addWatch("../assets/textures", &listener, false);
-        fileWatcher.addWatch("../assets/shaders", &listener, false);
+        fileWatcher.addWatch("../../assets/textures", &listener, false);
+        fileWatcher.addWatch("../../assets/shaders", &listener, false);
         fileWatcher.watch();
     }
 };

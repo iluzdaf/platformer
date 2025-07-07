@@ -1,7 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 #include "animations/frame_animation.hpp"
-class SpriteAnimationData;
+
+struct SpriteAnimationData;
 
 class SpriteAnimation
 {
@@ -14,7 +15,7 @@ public:
 
 private:
     FrameAnimation frameAnimation;
-    int frameWidth = 0;
-    int frameHeight = 0;
-    int textureWidth = 0;
+    int frameWidth = 0,
+        frameHeight = 0,
+        textureWidth = 0;
 };

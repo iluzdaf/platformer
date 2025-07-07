@@ -1,9 +1,9 @@
 #include <algorithm>
+#include <stdexcept>
 #include "cameras/camera2d.hpp"
-#include "cameras/camera2d_data.hpp"
 
 Camera2D::Camera2D(
-    const Camera2DData &cameraData, 
+    Camera2DData cameraData, 
     int windowWidth, 
     int windowHeight)
 {
@@ -12,7 +12,7 @@ Camera2D::Camera2D(
     resize(windowWidth, windowHeight);
 }
 
-void Camera2D::follow(const glm::vec2 &target)
+void Camera2D::follow(glm::vec2 target)
 {
     float halfW = windowWidth / (2.0f * zoom);
     float halfH = windowHeight / (2.0f * zoom);
@@ -32,12 +32,12 @@ void Camera2D::follow(const glm::vec2 &target)
         position.y = worldMin.y + worldH / 2.0f;
 }
 
-void Camera2D::setWorldBounds(const glm::vec2 &min, const glm::vec2 &max)
+void Camera2D::setWorldBounds(glm::vec2 min, glm::vec2 max)
 {
     if (min.x >= max.x)
-        throw std::invalid_argument("worldMin.x must be less than worldMax.x");
+        throw std::invalid_argument("min.x must be less than max.x");
     if (min.y >= max.y)
-        throw std::invalid_argument("worldMin.y must be less than worldMax.y");
+        throw std::invalid_argument("min.y must be less than max.y");
 
     worldMin = min;
     worldMax = max;
@@ -60,15 +60,15 @@ glm::mat4 Camera2D::getProjection() const
         cameraPosition.y - halfH);
 }
 
-void Camera2D::resize(int windowWidth, int windowHeight)
+void Camera2D::resize(int width, int height)
 {
-    if (windowWidth <= 0.0f)
-        throw std::invalid_argument("windowWidth must be positive");
-    if (windowHeight <= 0.0f)
-        throw std::invalid_argument("windowHeight must be positive");
+    if (width <= 0)
+        throw std::invalid_argument("width must be positive");
+    if (height <= 0)
+        throw std::invalid_argument("height must be positive");
 
-    this->windowWidth = windowWidth;
-    this->windowHeight = windowHeight;
+    windowWidth = static_cast<float>(width);
+    windowHeight = static_cast<float>(height);
 }
 
 void Camera2D::update(float deltaTime)
@@ -96,12 +96,12 @@ glm::vec2 Camera2D::getTopLeftPosition() const
     return getPosition() - glm::vec2(windowWidth, windowHeight) / (2.0f * zoom);
 }
 
-void Camera2D::setZoom(float zoom)
+void Camera2D::setZoom(float newZoom)
 {
-    if (zoom <= 0.0f)
+    if (newZoom <= 0.0f)
         throw std::invalid_argument("Camera zoom must be positive and non-zero");
 
-    this->zoom = zoom;
+    zoom = newZoom;
 }
 
 glm::vec2 Camera2D::worldToCameraRelative(glm::vec2 worldPosition) const

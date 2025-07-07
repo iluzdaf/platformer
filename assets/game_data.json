@@ -46,7 +46,6 @@
             "frameAnimationData": {
                 "frames": [
                     35,
-                    34,
                     26
                 ],
                 "frameDuration": 0.15
@@ -117,13 +116,13 @@
     },
     "windowWidth": 800,
     "windowHeight": 600,
-    "firstLevel": "../assets/levels/level1.json",
+    "firstLevel": "../../assets/levels/level1.json",
     "debugData": {
         "shouldDrawGrid": false,
         "shouldDrawPlayerAABBs": false,
         "shouldDrawTileMapAABBs": false,
         "showDebug": false,
         "shouldDrawTileInfo": false,
-        "showTileMapEditor": false
+        "showTileMapEditor": true
     }
 }

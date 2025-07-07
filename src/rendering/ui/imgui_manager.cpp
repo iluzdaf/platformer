@@ -1,6 +1,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
+#include <stdexcept>
 #include "rendering/ui/imgui_manager.hpp"
 
 ImGuiManager::ImGuiManager(
@@ -8,7 +9,6 @@ ImGuiManager::ImGuiManager(
     int windowWidth,
     int windowHeight,
     const char *glslVersion)
-    : window(window)
 {
     resize(windowWidth, windowHeight);
     
@@ -57,15 +57,15 @@ glm::vec2 ImGuiManager::screenToWorld(ImVec2 screenPosition, float zoom, glm::ve
     return worldPosition;
 }
 
-void ImGuiManager::resize(int windowWidth, int windowHeight)
+void ImGuiManager::resize(int width, int height)
 {
-    if (windowWidth <= 0.0f)
-        throw std::invalid_argument("windowWidth must be positive");
-    if (windowHeight <= 0.0f)
-        throw std::invalid_argument("windowHeight must be positive");
+    if (width <= 0.0f)
+        throw std::invalid_argument("width must be positive");
+    if (height <= 0.0f)
+        throw std::invalid_argument("height must be positive");
 
-    this->windowWidth = windowWidth;
-    this->windowHeight = windowHeight;
+    windowWidth = width;
+    windowHeight = height;
 }
 
 glm::vec2 ImGuiManager::getUiScale() const

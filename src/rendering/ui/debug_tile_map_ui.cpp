@@ -14,7 +14,7 @@ void DebugTileMapUi::draw(
     ImGui::SetNextWindowSize(imGuiManager.getUiDimensions());
 
     glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
-    float tileSize = tileMap.getTileSize();
+    float tileSize = static_cast<float>(tileMap.getTileSize());
     glm::vec2 snappedTopLeft = glm::floor(cameraTopLeft / tileSize) * tileSize;
     ImVec2 screenOffset = imGuiManager.worldToScreen(snappedTopLeft, camera.getZoom(), camera.getTopLeftPosition());
     float tileSizeImgui = tileSize * camera.getZoom() / imGuiManager.getUiScale().x;
@@ -32,8 +32,6 @@ void DebugTileMapUi::draw(
         glm::ivec2 topLeftTilePosition = glm::floor(cameraTopLeft / static_cast<float>(tileSize));
         drawTileInfo(
             drawList,
-            imGuiManager,
-            camera,
             tileMap,
             screenOffset,
             tileSizeImgui,
@@ -56,19 +54,21 @@ void DebugTileMapUi::drawGridLines(
 
 void DebugTileMapUi::drawTileInfo(
     ImDrawList *drawList,
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera,
     const TileMap &tileMap,
     const ImVec2 &screenOffset,
     float tileSizeImgui,
     glm::ivec2 topLeftTilePosition)
 {
-    for (float y = screenOffset.y, tileY = topLeftTilePosition.y; tileY < tileMap.getHeight(); y += tileSizeImgui, ++tileY)
+    for (float y = screenOffset.y, tileY = static_cast<float>(topLeftTilePosition.y);
+         tileY < tileMap.getHeight();
+         y += tileSizeImgui, ++tileY)
     {
         if (tileY < 0)
             continue;
 
-        for (float x = screenOffset.x, tileX = topLeftTilePosition.x; tileX < tileMap.getWidth(); x += tileSizeImgui, ++tileX)
+        for (float x = screenOffset.x, tileX = static_cast<float>(topLeftTilePosition.x);
+             tileX < tileMap.getWidth();
+             x += tileSizeImgui, ++tileX)
         {
             if (tileX < 0)
                 continue;

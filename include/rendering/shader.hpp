@@ -2,7 +2,8 @@
 #include <string>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
-class ShaderData;
+
+struct ShaderData;
 
 class Shader
 {

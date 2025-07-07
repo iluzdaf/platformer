@@ -11,11 +11,8 @@ Makefile
 # Editor stuff
 .vscode/
 .idea/
+.vs/
 
 # OS clutter
 .DS_Store
 Thumbs.db
-
-*.png
-
-.vs/

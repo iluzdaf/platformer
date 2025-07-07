@@ -15,7 +15,7 @@ public:
         const std::string &dir,
         const std::string &filename,
         efsw::Action action,
-        std::string oldFilename = "") override
+        std::string) override
     {
         if (action == efsw::Actions::Modified ||
             action == efsw::Actions::Add ||
@@ -23,7 +23,7 @@ public:
         {
             std::filesystem::path fullPath = std::filesystem::path(dir) / filename;
             std::filesystem::path relativePath = std::filesystem::relative(fullPath, projectRoot);
-            std::filesystem::path finalPath = std::filesystem::path("..") / relativePath;
+            std::filesystem::path finalPath = std::filesystem::path("..") / std::filesystem::path("..") / relativePath;
             std::lock_guard<std::mutex> lock(queueMutex);
             modifiedFiles.push_back(finalPath.string());
         }
@@ -46,5 +46,5 @@ public:
 private:
     std::mutex queueMutex;
     std::vector<std::string> modifiedFiles;
-    std::filesystem::path projectRoot = std::filesystem::absolute("../");
+    std::filesystem::path projectRoot = std::filesystem::absolute("../../");
 };

@@ -1,8 +1,9 @@
 #pragma once
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
+
 class Camera2D;
-class GLFWwindow;
+struct GLFWwindow;
 
 class ImGuiManager
 {
@@ -29,6 +30,5 @@ public:
     ImVec2 getUiDimensions() const;
 
 private:
-    GLFWwindow *window;
     int windowWidth = 800, windowHeight = 600;
 };

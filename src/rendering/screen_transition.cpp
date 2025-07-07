@@ -5,11 +5,6 @@
 #include "rendering/shader.hpp"
 
 ScreenTransition::ScreenTransition()
-    : active(false),
-      alpha(0.0f),
-      duration(1.0f),
-      timer(0.0f),
-      fadeIn(true)
 {
     initQuad();
 }
@@ -39,13 +34,13 @@ void ScreenTransition::initQuad()
     glBindVertexArray(0);
 }
 
-void ScreenTransition::start(float duration, bool in)
+void ScreenTransition::start(float durationSeconds, bool fadeInFlag)
 {
     active = true;
-    duration = duration;
+    duration = durationSeconds;
     timer = 0.0f;
-    fadeIn = in;
-    alpha = in ? 1.0f : 0.0f;
+    fadeIn = fadeInFlag;
+    alpha = fadeInFlag ? 1.0f : 0.0f;
 }
 
 void ScreenTransition::update(float deltaTime)

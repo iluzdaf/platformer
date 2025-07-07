@@ -144,7 +144,7 @@ void LuaScriptSystem::triggerWallSliding()
 
 void LuaScriptSystem::loadScripts()
 {
-    lua.script_file("../assets/scripts/game_logic.lua");
+    lua.script_file("../../assets/scripts/game_logic.lua");
     onDeath = lua["onDeath"];
     onLevelComplete = lua["onLevelComplete"];
     onWallJump = lua["onWallJump"];

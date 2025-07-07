@@ -1,3 +1,4 @@
+#ifndef SKIP_OPENGL_TESTS
 #pragma once
 
 #define GLFW_INCLUDE_NONE
@@ -40,3 +41,4 @@ void initOpenGLForTests()
 
     initialized = true;
 }
+#endif // SKIP_OPENGL_TESTS

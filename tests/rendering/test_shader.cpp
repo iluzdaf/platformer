@@ -1,3 +1,4 @@
+#ifndef SKIP_OPENGL_TESTS
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "rendering/shader.hpp"
@@ -6,16 +7,16 @@
 TEST_CASE("Shader is valid", "[Shader]")
 {
     ShaderData shaderData;
-    shaderData.vertexPath = "../assets/shaders/sprite.vs";
-    shaderData.fragmentPath = "../assets/shaders/sprite.fs";
+    shaderData.vertexPath = "../../assets/shaders/sprite.vs";
+    shaderData.fragmentPath = "../../assets/shaders/sprite.fs";
     REQUIRE_NOTHROW(Shader(shaderData));
 }
 
 TEST_CASE("Shader does not exist", "[Shader]")
 {
     ShaderData shaderData;
-    shaderData.vertexPath = "../assets/shaders/does_not_exist.vs";
-    shaderData.fragmentPath = "../assets/shaders/does_not_exist.fs";
+    shaderData.vertexPath = "../../assets/shaders/does_not_exist.vs";
+    shaderData.fragmentPath = "../../assets/shaders/does_not_exist.fs";
     REQUIRE_THROWS_WITH(
         Shader(shaderData),
         "Vertex shader code is empty");
@@ -75,3 +76,4 @@ TEST_CASE("Shader fails to link", "[Shader]")
     shaderData.fragmentCode = fragmentShaderCode;
     REQUIRE_THROWS(Shader(shaderData));
 }
+#endif // SKIP_OPENGL_TESTS

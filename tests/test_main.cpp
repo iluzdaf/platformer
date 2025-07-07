@@ -5,6 +5,8 @@
 
 int main(int argc, char *argv[])
 {
+#ifndef SKIP_OPENGL_TESTS
     initOpenGLForTests();
+#endif
     return Catch::Session().run(argc, argv);
 }

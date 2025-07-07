@@ -10,7 +10,7 @@ enum class PlayerAnimationState
     WallSlide
 };
 
-static const char *toString(PlayerAnimationState state)
+inline const char *toString(PlayerAnimationState state)
 {
     switch (state)
     {

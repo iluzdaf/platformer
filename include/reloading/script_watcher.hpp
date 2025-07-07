@@ -9,12 +9,12 @@ public:
 
     ScriptWatcher()
     {
-        listener.onFileModified = [&](const std::string &path)
+        listener.onFileModified = [&](const std::string &)
         {
             onScriptsChanged();
         };
 
-        fileWatcher.addWatch("../assets/scripts", &listener, false);
+        fileWatcher.addWatch("../../assets/scripts", &listener, false);
         fileWatcher.watch();
     }
 };

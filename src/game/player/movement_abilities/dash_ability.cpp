@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "game/player/movement_abilities/dash_ability.hpp"
 #include "game/player/movement_abilities/movement_context.hpp"
 #include "game/player/player_state.hpp"

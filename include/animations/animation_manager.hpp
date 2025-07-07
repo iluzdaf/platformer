@@ -2,7 +2,8 @@
 #include <unordered_map>
 #include "game/player/player_animation_state.hpp"
 #include "animations/sprite_animation.hpp"
-class PlayerState;
+
+struct PlayerState;
 
 class AnimationManager
 {
@@ -18,6 +19,4 @@ public:
 private:
     PlayerAnimationState currentState = PlayerAnimationState::Idle;
     std::unordered_map<PlayerAnimationState, SpriteAnimation> animations;
-
-    void transitionTo(PlayerAnimationState newState);
 };

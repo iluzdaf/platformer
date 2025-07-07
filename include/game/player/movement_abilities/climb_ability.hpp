@@ -8,12 +8,9 @@ struct PlayerState;
 class ClimbAbility : public MovementAbility
 {
 public:
-    explicit ClimbAbility(ClimbAbilityData climbAbilityData);
+    explicit ClimbAbility(ClimbAbilityData);
     void fixedUpdate(
         MovementContext &movementContext,
         PlayerState &playerState,
         float deltaTime) override;
-
-private:
-    ClimbAbilityData climbAbilityData;
 };

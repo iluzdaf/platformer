@@ -6,7 +6,7 @@
 
 using Catch::Approx;
 
-TEST_CASE("WallJumpAbility basic movement behaviour", "WallJumpAbility")
+TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
 {
     PlayerState playerState;
     MovementContext movementContext;

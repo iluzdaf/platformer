@@ -38,12 +38,12 @@ void TileMap::initByData(const TileMapData &tileMapData)
     if (hasTileIndices)
     {
         const auto &indices = tileMapData.indices.value();
-        height = indices.size();
-        width = height > 0 ? indices[0].size() : 0;
+        height = static_cast<int>(indices.size());
+        width = height > 0 ? static_cast<int>(indices[0].size()) : 0;
 
         for (int tileY = 0; tileY < height; ++tileY)
         {
-            if (indices[tileY].size() != width)
+            if (static_cast<int>(indices[tileY].size()) != width)
             {
                 throw std::runtime_error("Inconsistent row width in tileIndices");
             }
@@ -197,10 +197,11 @@ std::vector<glm::ivec2> TileMap::worldToTilePositions(glm::vec2 worldPosition, g
 {
     std::vector<glm::ivec2> tileCoordinates;
     glm::vec2 worldPositionMax = worldPosition + size;
-    int tileMinX = floor(worldPosition.x / tileSize);
-    int tileMaxX = floor(worldPositionMax.x / tileSize);
-    int tileMinY = floor(worldPosition.y / tileSize);
-    int tileMaxY = floor(worldPositionMax.y / tileSize);
+    float tileSizePixels = static_cast<float>(tileSize);
+    int tileMinX = static_cast<int>(floor(worldPosition.x / tileSizePixels));
+    int tileMaxX = static_cast<int>(floor(worldPositionMax.x / tileSizePixels));
+    int tileMinY = static_cast<int>(floor(worldPosition.y / tileSizePixels));
+    int tileMaxY = static_cast<int>(floor(worldPositionMax.y / tileSizePixels));
     for (int tileY = tileMinY; tileY <= tileMaxY; ++tileY)
     {
         for (int tileX = tileMinX; tileX <= tileMaxX; ++tileX)

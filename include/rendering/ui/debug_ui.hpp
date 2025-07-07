@@ -1,6 +1,7 @@
 #pragma once
 #include <signals.hpp>
-class PlayerState;
+
+struct PlayerState;
 class Camera2D;
 class ImGuiManager;
 

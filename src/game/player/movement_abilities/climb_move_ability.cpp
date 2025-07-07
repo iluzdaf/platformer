@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "game/player/movement_abilities/climb_move_ability.hpp"
 #include "game/player/movement_abilities/movement_context.hpp"
 #include "game/player/player_state.hpp"
@@ -12,7 +13,7 @@ ClimbMoveAbility::ClimbMoveAbility(ClimbMoveAbilityData climbMoveAbilityData)
 void ClimbMoveAbility::fixedUpdate(
     MovementContext &movementContext,
     PlayerState &playerState,
-    float /*deltaTime*/)
+    float)
 {
     if (!playerState.climbing)
         return;

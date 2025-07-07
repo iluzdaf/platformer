@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 #include "game/game.hpp"
 #include "rendering/shader_data.hpp"
 
@@ -44,17 +45,17 @@ Game::Game()
         try
         {
             ShaderData shaderData;
-            if (shaderPath.compare("../assets/shaders/tile_set.vs") == 0 || shaderPath.compare("../assets/shaders/tile_set.fs") == 0)
+            if (shaderPath.compare("../../assets/shaders/tile_set.vs") == 0 || shaderPath.compare("../../assets/shaders/tile_set.fs") == 0)
             {
-                shaderData.vertexPath = "../assets/shaders/tile_set.vs";
-                shaderData.fragmentPath = "../assets/shaders/tile_set.fs";
+                shaderData.vertexPath = "../../assets/shaders/tile_set.vs";
+                shaderData.fragmentPath = "../../assets/shaders/tile_set.fs";
                 std::unique_ptr<Shader> newtileSetShader = std::make_unique<Shader>(shaderData);
                 tileSetShader = std::move(newtileSetShader);
             }
-            else if (shaderPath.compare("../assets/shaders/transition.vs") == 0 || shaderPath.compare("../assets/shaders/transition.fs") == 0)
+            else if (shaderPath.compare("../../assets/shaders/transition.vs") == 0 || shaderPath.compare("../../assets/shaders/transition.fs") == 0)
             {
-                shaderData.vertexPath = "../assets/shaders/transition.vs";
-                shaderData.fragmentPath = "../assets/shaders/transition.fs";
+                shaderData.vertexPath = "../../assets/shaders/transition.vs";
+                shaderData.fragmentPath = "../../assets/shaders/transition.fs";
                 std::unique_ptr<Shader> newScreenTransitionShader = std::make_unique<Shader>(shaderData);
                 screenTransitionShader = std::move(newScreenTransitionShader);
             }
@@ -67,14 +68,14 @@ Game::Game()
                                           {
         try
         {
-            if (texturePath.compare("../assets/textures/tile_set.png") == 0)
+            if (texturePath.compare("../../assets/textures/tile_set.png") == 0)
             {
-                std::unique_ptr<Texture2D> newTileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
-                tileSet = std::move(newTileSet);                                                        
+                std::unique_ptr<Texture2D> newTileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
+                tileSet = std::move(newTileSet);
             }
-            else if (texturePath.compare("../assets/textures/player.png") == 0)
+            else if (texturePath.compare("../../assets/textures/player.png") == 0)
             {
-                std::unique_ptr<Texture2D> newPlayerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
+                std::unique_ptr<Texture2D> newPlayerTexture = std::make_unique<Texture2D>("../../assets/textures/player.png");
                 playerTexture = std::move(newPlayerTexture);
             }
         }
@@ -116,16 +117,16 @@ Game::Game()
                              { scoringSystem.addScore(scoreDelta); });
     loadLevel(gameData.firstLevel);
 
-    tileSet = std::make_unique<Texture2D>("../assets/textures/tile_set.png");
+    tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
     ShaderData shaderData;
-    shaderData.vertexPath = "../assets/shaders/tile_set.vs";
-    shaderData.fragmentPath = "../assets/shaders/tile_set.fs";
+    shaderData.vertexPath = "../../assets/shaders/tile_set.vs";
+    shaderData.fragmentPath = "../../assets/shaders/tile_set.fs";
     tileSetShader = std::make_unique<Shader>(shaderData);
     spriteRenderer = std::make_unique<SpriteRenderer>();
     tileMapRenderer = std::make_unique<TileMapRenderer>(*spriteRenderer.get());
-    playerTexture = std::make_unique<Texture2D>("../assets/textures/player.png");
-    shaderData.vertexPath = "../assets/shaders/transition.vs";
-    shaderData.fragmentPath = "../assets/shaders/transition.fs";
+    playerTexture = std::make_unique<Texture2D>("../../assets/textures/player.png");
+    shaderData.vertexPath = "../../assets/shaders/transition.vs";
+    shaderData.fragmentPath = "../../assets/shaders/transition.fs";
     screenTransitionShader = std::make_unique<Shader>(shaderData);
     screenTransition = std::make_unique<ScreenTransition>();
     debugUi.onPlay.connect([this]
@@ -138,9 +139,9 @@ Game::Game()
         player->setPosition(tileMap->getPlayerStartWorldPosition()); });
     debugUi.onToggleZoom.connect([this]
                                  {
-        static int originalZoom = camera->getZoom();
-        int currentZoom = camera->getZoom();
-        camera->setZoom(currentZoom == originalZoom ? 3 : originalZoom); });
+        static float originalZoom = camera->getZoom();
+        float currentZoom = camera->getZoom();
+        camera->setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom); });
     debugUi.onToggleDrawGrid.connect([this]
                                      { shouldDrawGrid = !shouldDrawGrid; });
     debugUi.onToggleDrawTileInfo.connect([this]
@@ -173,11 +174,11 @@ Game::~Game()
 
 void Game::run()
 {
-    float lastTime = glfwGetTime();
+    double lastTime = glfwGetTime();
     while (!glfwWindowShouldClose(window))
     {
-        float currentTime = glfwGetTime();
-        float deltaTime = currentTime - lastTime;
+        double currentTime = glfwGetTime();
+        float deltaTime = static_cast<float>(currentTime - lastTime);
         lastTime = currentTime;
 
         levelWatcher.process();
@@ -356,7 +357,7 @@ void Game::initGlad()
 GameData Game::loadGameData() const
 {
     GameData gameData;
-    auto ec = glz::read_file_json(gameData, "../assets/game_data.json", std::string{});
+    auto ec = glz::read_file_json(gameData, "../../assets/game_data.json", std::string{});
     if (ec)
         throw std::runtime_error("Failed to read game data json file");
     return gameData;

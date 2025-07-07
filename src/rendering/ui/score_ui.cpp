@@ -5,7 +5,7 @@
 #include "game/scoring_system.hpp"
 
 void ScoreUi::draw(
-    const ImGuiManager &imGuiManager,
+    const ImGuiManager &,
     const ScoringSystem &scoringSystem,
     const Texture2D &tileSet)
 {

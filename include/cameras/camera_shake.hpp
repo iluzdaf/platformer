@@ -28,8 +28,8 @@ struct CameraShake
             return glm::vec2(0.0f);
         }
 
-        float x = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * 2.0f * magnitude;
-        float y = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * 2.0f * magnitude;
+        float x = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5f) * 2.0f * magnitude;
+        float y = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5f) * 2.0f * magnitude;
 
         return glm::vec2(x, y);
     }

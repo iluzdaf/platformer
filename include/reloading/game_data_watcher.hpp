@@ -10,13 +10,13 @@ public:
     GameDataWatcher()
     {
         listener.onFileModified = [&](const std::string& path) {
-            if (path.compare("../assets/game_data.json") == 0)
+            if (path.compare("../../assets/game_data.json") == 0)
             {
                 onGameDataChanged();
             }
         };
 
-        fileWatcher.addWatch("../assets", &listener, false);
+        fileWatcher.addWatch("../../assets", &listener, false);
         fileWatcher.watch();
     }
 };

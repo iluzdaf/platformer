@@ -15,7 +15,7 @@ public:
                 onLevelChanged(path);
         };
 
-        fileWatcher.addWatch("../assets/levels", &listener, false);
+        fileWatcher.addWatch("../../assets/levels", &listener, false);
         fileWatcher.watch();
     }
 };

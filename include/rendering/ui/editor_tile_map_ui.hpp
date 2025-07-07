@@ -1,5 +1,7 @@
 #pragma once
 #include <signals.hpp>
+#include <string>
+
 class ImGuiManager;
 class TileMap;
 class Texture2D;
@@ -21,7 +23,7 @@ public:
     fteng::signal<void(const std::string &)> onLoadLevel;
 
 private:
-    bool editing = false;
-    bool editingPlayerStartTile = false;
+    bool editing = false,
+         editingPlayerStartTile = false;
     int selectedTileIndex = 0;
 };

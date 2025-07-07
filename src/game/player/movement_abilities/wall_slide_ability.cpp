@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "game/player/movement_abilities/wall_slide_ability.hpp"
 #include "game/player/movement_abilities/movement_context.hpp"
 #include "game/player/player_state.hpp"

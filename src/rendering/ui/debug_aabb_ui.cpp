@@ -86,7 +86,7 @@ void DebugAABBUi::drawTileMapAABBs(
     drawAABB(
         drawList,
         imGuiManager,
-        AABB(playerStartWorldPosition, glm::vec2(tileMap.getTileSize())),
+        AABB(playerStartWorldPosition, glm::vec2(static_cast<float>(tileMap.getTileSize()))),
         camera,
         IM_COL32(255, 0, 255, 255));
 }

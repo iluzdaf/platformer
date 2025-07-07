@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "game/player/movement_abilities/move_ability.hpp"
 #include "game/player/movement_abilities/movement_context.hpp"
 #include "game/player/player_state.hpp"
@@ -11,8 +12,8 @@ MoveAbility::MoveAbility(MoveAbilityData moveAbilityData)
 
 void MoveAbility::fixedUpdate(
     MovementContext &movementContext,
-    PlayerState &playerState,
-    float /*deltaTime*/)
+    PlayerState &,
+    float)
 {
     if (movementContext.inputIntentions.direction.x > 0)
         movementContext.moveVelocity.x = moveAbilityData.moveSpeed;

@@ -2,9 +2,9 @@
 #include "physics/physics_body.hpp"
 #include "game/tile_map/tile_map.hpp"
 
-void PhysicsBody::setPosition(glm::vec2 position)
+void PhysicsBody::setPosition(glm::vec2 newPosition)
 {
-    this->position = position;
+    position = newPosition;
 }
 
 glm::vec2 PhysicsBody::getPosition() const
@@ -12,9 +12,9 @@ glm::vec2 PhysicsBody::getPosition() const
     return position;
 }
 
-void PhysicsBody::setVelocity(glm::vec2 velocity)
+void PhysicsBody::setVelocity(glm::vec2 newVelocity)
 {
-    this->velocity = velocity;
+    velocity = newVelocity;
 }
 
 glm::vec2 PhysicsBody::getVelocity() const
@@ -32,9 +32,9 @@ glm::vec2 PhysicsBody::getColliderSize() const
     return colliderSize;
 }
 
-void PhysicsBody::setGravity(float gravity)
+void PhysicsBody::setGravity(float newGravity)
 {
-    this->gravity = gravity;
+    gravity = newGravity;
 }
 
 float PhysicsBody::getGravity() const

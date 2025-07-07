@@ -1,20 +1,19 @@
 #pragma once
 #include <glm/gtc/matrix_transform.hpp>
 #include "cameras/camera_shake.hpp"
-
-struct Camera2DData;
+#include "cameras/camera2d_data.hpp"
 
 class Camera2D
 {
 public:
     Camera2D(
-        const Camera2DData &cameraData,
+        Camera2DData cameraData,
         int windowWidth,
         int windowHeight);
-    void follow(const glm::vec2 &target);
+    void follow(glm::vec2 target);
     void setWorldBounds(
-        const glm::vec2 &min,
-        const glm::vec2 &max);
+        glm::vec2 min,
+        glm::vec2 max);
     glm::mat4 getProjection() const;
     glm::vec2 getPosition() const;
     void resize(int windowWidth, int windowHeight);

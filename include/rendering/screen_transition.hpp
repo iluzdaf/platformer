@@ -9,17 +9,16 @@ public:
     void start(float duration, bool fadeIn = true);
     void update(float deltaTime);
     void draw(const Shader &shader);
-
     bool isActive() const;
 
 private:
-    unsigned int VAO, VBO;
-
-    float duration;
-    float timer;
-    float alpha;
-    bool active;
-    bool fadeIn;
+    unsigned int VAO,
+        VBO;
+    float duration = 1.0f,
+          timer = 0.0f,
+          alpha = 0.0f;
+    bool active = false,
+         fadeIn = true;
 
     void initQuad();
 };

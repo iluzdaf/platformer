@@ -5,9 +5,9 @@
 Tile::Tile(int tileIndex, const TileData &tileData)
     : kind(tileData.kind),
       pickupReplaceIndex(tileData.pickupReplaceIndex),
+      pickupScoreDelta(tileData.pickupScoreDelta),
       colliderOffset(tileData.colliderOffset),
       colliderSize(tileData.colliderSize),
-      pickupScoreDelta(tileData.pickupScoreDelta),
       tileIndex(tileIndex)
 {
     if (kind == TileKind::Pickup && !pickupReplaceIndex.has_value())

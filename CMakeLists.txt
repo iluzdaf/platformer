@@ -6,7 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC)
-    add_compile_options(/Zc:preprocessor)
+    add_compile_options(/Zc:preprocessor /std:c++23)
+endif()
+
+if(SKIP_OPENGL_TESTS)
+    add_compile_definitions(SKIP_OPENGL_TESTS)
 endif()
 
 # GLAD
@@ -103,9 +107,26 @@ add_executable(platformer
     src/scripting/lua_script_system.cpp
 )
 
+if(MSVC)
+    target_compile_options(platformer PRIVATE
+        /external:W0
+        /external:anglebrackets
+        /W4
+        /WX
+    )
+else()
+    target_compile_options(platformer PRIVATE
+        -Wall
+        -Wextra
+        -Werror
+        -Wno-missing-braces
+    )
+endif()
+
 target_include_directories(platformer
     PRIVATE
     include
+    SYSTEM PRIVATE
     external/glad/include
     external/glfw/include
     external/glaze/include

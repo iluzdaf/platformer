@@ -1,6 +1,6 @@
 #pragma once
-class MovementContext;
-class PlayerState;
+struct MovementContext;
+struct PlayerState;
 
 class MovementAbility
 {

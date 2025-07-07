@@ -2,8 +2,7 @@
 #include "game/player/movement_abilities/movement_context.hpp"
 #include "game/player/player_state.hpp"
 
-ClimbAbility::ClimbAbility(ClimbAbilityData climbAbilityData)
-    : climbAbilityData(climbAbilityData)
+ClimbAbility::ClimbAbility(ClimbAbilityData)
 {
 }
 

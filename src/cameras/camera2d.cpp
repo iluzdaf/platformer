@@ -35,9 +35,9 @@ void Camera2D::follow(glm::vec2 target)
 void Camera2D::setWorldBounds(glm::vec2 min, glm::vec2 max)
 {
     if (min.x >= max.x)
-        throw std::invalid_argument("min.x must be less than max.x");
+        throw std::runtime_error("min.x must be less than max.x");
     if (min.y >= max.y)
-        throw std::invalid_argument("min.y must be less than max.y");
+        throw std::runtime_error("min.y must be less than max.y");
 
     worldMin = min;
     worldMax = max;
@@ -63,9 +63,9 @@ glm::mat4 Camera2D::getProjection() const
 void Camera2D::resize(int width, int height)
 {
     if (width <= 0)
-        throw std::invalid_argument("width must be positive");
+        throw std::runtime_error("width must be positive");
     if (height <= 0)
-        throw std::invalid_argument("height must be positive");
+        throw std::runtime_error("height must be positive");
 
     windowWidth = static_cast<float>(width);
     windowHeight = static_cast<float>(height);
@@ -79,9 +79,9 @@ void Camera2D::update(float deltaTime)
 void Camera2D::startShake(float duration, float magnitude)
 {
     if (duration <= 0)
-        throw std::invalid_argument("Shake duration must be greater than 0");
+        throw std::runtime_error("Shake duration must be greater than 0");
     if (magnitude <= 0)
-        throw std::invalid_argument("Shake magnitude must be greater than 0");
+        throw std::runtime_error("Shake magnitude must be greater than 0");
 
     shake.start(duration, magnitude);
 }
@@ -99,7 +99,7 @@ glm::vec2 Camera2D::getTopLeftPosition() const
 void Camera2D::setZoom(float newZoom)
 {
     if (newZoom <= 0.0f)
-        throw std::invalid_argument("Camera zoom must be positive and non-zero");
+        throw std::runtime_error("Camera zoom must be positive and non-zero");
 
     zoom = newZoom;
 }

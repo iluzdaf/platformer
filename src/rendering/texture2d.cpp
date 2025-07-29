@@ -5,7 +5,7 @@
 Texture2D::Texture2D(const std::string &filePath)
 {
     if (filePath.empty())
-        throw std::invalid_argument("Texture2D filePath must not be empty");
+        throw std::runtime_error("Texture2D filePath must not be empty");
 
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);

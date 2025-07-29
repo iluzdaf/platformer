@@ -8,9 +8,9 @@ WallJumpAbility::WallJumpAbility(WallJumpAbilityData wallJumpAbilityData)
       wallJumpCoyote(wallJumpAbilityData.wallJumpCoyoteDuration)
 {
     if (wallJumpAbilityData.wallJumpSpeed >= 0)
-        throw std::invalid_argument("wallJumpSpeed must be negative");
+        throw std::runtime_error("wallJumpSpeed must be negative");
     if (wallJumpAbilityData.wallJumpHorizontalSpeed <= 0)
-        throw std::invalid_argument("wallJumpHorizontalSpeed must be greater than 0");
+        throw std::runtime_error("wallJumpHorizontalSpeed must be greater than 0");
 }
 
 void WallJumpAbility::fixedUpdate(

@@ -8,14 +8,15 @@
 
 TEST_CASE("Pickup", "[TileInteractionSystem]")
 {
-    TileData pickupTileData, pickupTileData2;
+    TileData pickupTileData, pickupTileData2, emptyTileData;
     pickupTileData2.kind = pickupTileData.kind = TileKind::Pickup;
     pickupTileData2.pickupReplaceIndex = pickupTileData.pickupReplaceIndex = 1;
     pickupTileData.pickupScoreDelta = 100;
+    emptyTileData.kind = TileKind::Empty;
     TileMap tileMap = setupTileMap(
         10, 10, 16,
         {{2, pickupTileData},
-         {1, TileData{TileKind::Empty}},
+         {1, emptyTileData},
          {3, pickupTileData2}});
     tileMap.setTileIndex({1, 1}, 2);
     Player player = setupPlayer();
@@ -44,7 +45,9 @@ TEST_CASE("Pickup", "[TileInteractionSystem]")
 
 TEST_CASE("Spikes", "[TileInteractionSystem]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, {{3, TileData{TileKind::Spikes}}});
+    TileData spikeTileData;
+    spikeTileData.kind = TileKind::Spikes;
+    TileMap tileMap = setupTileMap(10, 10, 16, {{3, spikeTileData}});
     tileMap.setTileIndex({1, 1}, 3);
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
@@ -68,7 +71,9 @@ TEST_CASE("Spikes", "[TileInteractionSystem]")
 
 TEST_CASE("Empty", "[TileInteractionSystem]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, {{0, TileData{TileKind::Empty}}});
+    TileData emptyTileData;
+    emptyTileData.kind = TileKind::Empty;
+    TileMap tileMap = setupTileMap(10, 10, 16, {{0, emptyTileData}});
     tileMap.setTileIndex({1, 1}, 0);
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
@@ -83,7 +88,9 @@ TEST_CASE("Empty", "[TileInteractionSystem]")
 
 TEST_CASE("Portal", "[TileInteractionSystem]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, {{4, TileData{TileKind::Portal}}});
+    TileData portalTileData;
+    portalTileData.kind = TileKind::Portal;
+    TileMap tileMap = setupTileMap(10, 10, 16, {{4, portalTileData}});
     tileMap.setTileIndex({1, 1}, 4);
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));

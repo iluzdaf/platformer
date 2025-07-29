@@ -7,7 +7,7 @@ ClimbMoveAbility::ClimbMoveAbility(ClimbMoveAbilityData climbMoveAbilityData)
     : climbMoveAbilityData(climbMoveAbilityData)
 {
     if (climbMoveAbilityData.climbSpeed <= 0)
-        throw std::invalid_argument("climbSpeed must be greater than 0");
+        throw std::runtime_error("climbSpeed must be greater than 0");
 }
 
 void ClimbMoveAbility::fixedUpdate(

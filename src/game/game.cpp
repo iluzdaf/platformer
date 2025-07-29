@@ -313,6 +313,11 @@ void Game::render()
         *tileSet.get(),
         showTileMapEditor);
 
+    debugNavigationUi.draw(
+        *imGuiManager.get(),
+        tileMap->getNavigationGraph(),
+        *camera.get());
+
     imGuiManager->render();
 
     screenTransition->draw(*screenTransitionShader.get());

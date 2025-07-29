@@ -8,7 +8,7 @@ struct DirectionBuffer
         : bufferDuration(duration)
     {
         if (duration <= 0.0f)
-            throw std::invalid_argument("duration must be greater than 0");
+            throw std::runtime_error("duration must be greater than 0");
     }
 
     void press(float directionX)

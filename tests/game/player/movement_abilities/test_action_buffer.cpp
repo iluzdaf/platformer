@@ -1,6 +1,7 @@
 
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "game/player/movement_abilities/action_buffer.hpp"
 
 TEST_CASE("ActionBuffer basic behavior", "[ActionBuffer]")
@@ -37,6 +38,6 @@ TEST_CASE("ActionBuffer basic behavior", "[ActionBuffer]")
 
     SECTION("Throws on invalid duration")
     {
-        REQUIRE_THROWS_AS(ActionBuffer(0.0f), std::invalid_argument);
+        REQUIRE_THROWS_WITH(ActionBuffer(0.0f), "duration must be greater than 0");
     }
 }

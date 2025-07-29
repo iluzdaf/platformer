@@ -90,15 +90,21 @@ void TileMap::initByData(const TileMapData &tileMapData)
     nextLevel = tileMapData.nextLevel;
     if (nextLevel.empty())
         throw std::runtime_error("nextLevel must not be empty");
+
+    for (auto node : tileMapData.navigationNodes)
+        navigationGraph.addNode(node);
+
+    for (auto edge : tileMapData.navigationEdges)
+        navigationGraph.addEdge(edge);
 }
 
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
 {
     if (!validTilePosition(tilePosition))
-        throw std::out_of_range("Tile coordinates out of bounds");
+        throw std::runtime_error("Tile coordinates out of bounds");
 
     if (tileIndex < 0)
-        throw std::invalid_argument("Tile index must be greater or equals to 0");
+        throw std::runtime_error("Tile index must be greater or equals to 0");
 
     tileIndices[tilePosition.x][tilePosition.y] = tileIndex;
 }
@@ -119,7 +125,7 @@ bool TileMap::validTilePosition(glm::ivec2 tilePosition) const
 int TileMap::tilePositionToTileIndex(glm::ivec2 tilePosition) const
 {
     if (!validTilePosition(tilePosition))
-        throw std::out_of_range("Tile coordinates out of bounds");
+        throw std::runtime_error("Tile coordinates out of bounds");
 
     return tileIndices[tilePosition.x][tilePosition.y];
 }
@@ -148,7 +154,7 @@ const Tile &TileMap::getTile(int tileIndex) const
 {
     auto it = tiles.find(tileIndex);
     if (it == tiles.end())
-        throw std::out_of_range("Invalid tile index");
+        throw std::runtime_error("Invalid tile index");
     return it->second;
 }
 
@@ -238,6 +244,10 @@ TileMapData TileMap::toTileMapData() const
             (*data.indices)[y][x] = tileIndices[x][y];
     for (const auto &[index, tile] : tiles)
         data.tileData[index] = tile.toTileData();
+    for (const auto &[id, node] : navigationGraph.getNodes())
+        data.navigationNodes.push_back(node);
+    for (auto edge : navigationGraph.getEdges())
+        data.navigationEdges.push_back(edge);
     return data;
 }
 
@@ -283,4 +293,9 @@ bool TileMap::probeSolidTiles(
             return true;
     }
     return false;
+}
+
+const NavigationGraph &TileMap::getNavigationGraph() const
+{
+    return navigationGraph;
 }

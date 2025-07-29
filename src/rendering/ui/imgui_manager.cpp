@@ -11,7 +11,7 @@ ImGuiManager::ImGuiManager(
     const char *glslVersion)
 {
     resize(windowWidth, windowHeight);
-    
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -60,9 +60,9 @@ glm::vec2 ImGuiManager::screenToWorld(ImVec2 screenPosition, float zoom, glm::ve
 void ImGuiManager::resize(int width, int height)
 {
     if (width <= 0.0f)
-        throw std::invalid_argument("width must be positive");
+        throw std::runtime_error("width must be positive");
     if (height <= 0.0f)
-        throw std::invalid_argument("height must be positive");
+        throw std::runtime_error("height must be positive");
 
     windowWidth = width;
     windowHeight = height;
@@ -77,4 +77,15 @@ glm::vec2 ImGuiManager::getUiScale() const
 ImVec2 ImGuiManager::getUiDimensions() const
 {
     return getIO().DisplaySize;
+}
+
+ImDrawList *ImGuiManager::getDrawList()
+{
+    return ImGui::GetBackgroundDrawList();
+}
+
+void ImGuiManager::setNextFullscreenWindow()
+{
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(getUiDimensions());
 }

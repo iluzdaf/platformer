@@ -7,9 +7,9 @@ DashAbility::DashAbility(DashAbilityData dashAbilityData)
     : dashAbilityData(dashAbilityData)
 {
     if (dashAbilityData.dashSpeed <= 0)
-        throw std::invalid_argument("dashSpeed must be > 0");
+        throw std::runtime_error("dashSpeed must be > 0");
     if (dashAbilityData.dashDuration <= 0)
-        throw std::invalid_argument("dashDuration must be > 0");
+        throw std::runtime_error("dashDuration must be > 0");
 }
 
 void DashAbility::fixedUpdate(

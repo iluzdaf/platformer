@@ -119,7 +119,7 @@
     "firstLevel": "../../assets/levels/level1.json",
     "debugData": {
         "shouldDrawGrid": false,
-        "shouldDrawPlayerAABBs": false,
+        "shouldDrawPlayerAABBs": true,
         "shouldDrawTileMapAABBs": false,
         "showDebug": false,
         "shouldDrawTileInfo": false,

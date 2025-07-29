@@ -7,7 +7,7 @@ WallSlideAbility::WallSlideAbility(WallSlideAbilityData wallSlideAbilityData)
     : wallSlideAbilityData(wallSlideAbilityData)
 {
     if (wallSlideAbilityData.slideSpeed <= 0)
-        throw std::invalid_argument("slideSpeed must be positive");
+        throw std::runtime_error("slideSpeed must be positive");
 }
 
 void WallSlideAbility::fixedUpdate(

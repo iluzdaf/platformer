@@ -7,7 +7,7 @@ MoveAbility::MoveAbility(MoveAbilityData moveAbilityData)
     : moveAbilityData(moveAbilityData)
 {
     if (moveAbilityData.moveSpeed <= 0)
-        throw std::invalid_argument("moveSpeed must be greater than 0");
+        throw std::runtime_error("moveSpeed must be greater than 0");
 }
 
 void MoveAbility::fixedUpdate(

@@ -8,7 +8,7 @@ JumpAbility::JumpAbility(JumpAbilityData jumpAbilityData)
       coyoteTime(jumpAbilityData.jumpCoyoteDuration)
 {
     if (jumpAbilityData.jumpSpeed >= 0)
-        throw std::invalid_argument("jumpSpeed must be negative");
+        throw std::runtime_error("jumpSpeed must be negative");
 }
 
 void JumpAbility::fixedUpdate(

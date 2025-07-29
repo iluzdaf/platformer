@@ -7,7 +7,7 @@ struct CoyoteTime
     CoyoteTime(float duration = 0.1f) : coyoteDuration(duration)
     {
         if (duration <= 0)
-            throw std::invalid_argument("duration must be greater than 0");
+            throw std::runtime_error("duration must be greater than 0");
     }
 
     void update(bool eligibleForCoyoteTime, float dt)

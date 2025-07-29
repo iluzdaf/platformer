@@ -15,6 +15,7 @@
 #include "rendering/ui/debug_aabb_ui.hpp"
 #include "rendering/ui/editor_tile_map_ui.hpp"
 #include "rendering/ui/score_ui.hpp"
+#include "rendering/ui/debug_navigation_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "input/input_manager.hpp"
@@ -46,7 +47,7 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
-    
+
     GLFWwindow *window;
 
     std::unique_ptr<Camera2D> camera;
@@ -77,6 +78,7 @@ private:
     DebugAABBUi debugAABBUi;
     EditorTileMapUi editorTileMapUi;
     ScoreUi scoreUi;
+    DebugNavigationUi debugNavigationUi;
 
     fteng::connection onLevelCompleteConnection;
 

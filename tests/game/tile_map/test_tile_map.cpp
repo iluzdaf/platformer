@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "physics/aabb.hpp"
 
@@ -31,31 +32,34 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 
     SECTION("tilePositionToTileIndex handles out of bounds by throwing out of range")
     {
-        REQUIRE_THROWS_AS(tileMap.tilePositionToTileIndex(glm::ivec2(-1, 0)), std::out_of_range);
-        REQUIRE_THROWS_AS(tileMap.tilePositionToTileIndex(glm::ivec2(0, -1)), std::out_of_range);
-        REQUIRE_THROWS_AS(tileMap.tilePositionToTileIndex(glm::ivec2(13, 0)), std::out_of_range);
-        REQUIRE_THROWS_AS(tileMap.tilePositionToTileIndex(glm::ivec2(0, 23)), std::out_of_range);
+        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(-1, 0)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(0, -1)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(13, 0)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(0, 23)), "Tile coordinates out of bounds");
     }
 
     SECTION("setTileIndex handles out of bounds")
     {
-        REQUIRE_THROWS_AS(tileMap.setTileIndex(glm::ivec2(13, 0), 1), std::out_of_range);
+        REQUIRE_THROWS_WITH(tileMap.setTileIndex(glm::ivec2(13, 0), 1), "Tile coordinates out of bounds");
     }
 
     SECTION("setTileIndex Throws on negative value")
     {
-        REQUIRE_THROWS_AS(tileMap.setTileIndex(glm::ivec2(2, 2), -5), std::invalid_argument);
+        REQUIRE_THROWS_WITH(tileMap.setTileIndex(glm::ivec2(2, 2), -5), "Tile index must be greater or equals to 0");
     }
 }
 
 TEST_CASE("TileMap returns correct tile", "[TileMap]")
 {
+    TileData solidTileData, emptyTileData;
+    solidTileData.kind = TileKind::Solid;
+    emptyTileData.kind = TileKind::Empty;
     TileMapData tileMapData;
     tileMapData.width = 3;
     tileMapData.height = 3;
-    tileMapData.tileData = {{1, {TileKind::Solid}},
-                            {0, {TileKind::Empty}},
-                            {3, {TileKind::Empty}}};
+    tileMapData.tileData = {{1, solidTileData},
+                            {0, emptyTileData},
+                            {3, emptyTileData}};
     TileMap tileMap(tileMapData);
 
     SECTION("Known indices")
@@ -75,19 +79,23 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
 
     SECTION("Unknown indices")
     {
-        REQUIRE_THROWS_AS(tileMap.getTile(999), std::out_of_range);
+        REQUIRE_THROWS_WITH(tileMap.getTile(999), "Invalid tile index");
     }
 }
 
 TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 {
+    TileData animatedTileData1, animatedTileData2, emptyTileData;
+    animatedTileData1.kind = animatedTileData2.kind = emptyTileData.kind = TileKind::Empty;
+    animatedTileData1.animationData = {{{10, 11, 12}, 0.1f}};
+    animatedTileData2.animationData = {{{5, 6}, 0.1f}};
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
     tileMapData.tileData = {
-        {1, {TileKind::Empty, TileAnimationData{{{10, 11, 12}, 0.1f}}}},
-        {0, {TileKind::Empty}},
-        {3, {TileKind::Empty, TileAnimationData{{{5, 6}, 0.1f}}}}};
+        {1, animatedTileData1},
+        {0, emptyTileData},
+        {3, animatedTileData2}};
     TileMap tileMap(tileMapData);
     tileMap.setTileIndex(glm::ivec2(0, 0), 1);
     tileMap.setTileIndex(glm::ivec2(0, 1), 0);
@@ -115,11 +123,16 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 
 TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
 {
+    TileData emptyTileData, pickupTileData;
+    emptyTileData.kind = TileKind::Empty;
+    pickupTileData.kind = TileKind::Pickup;
+    pickupTileData.pickupReplaceIndex = 0;
+    pickupTileData.animationData = std::nullopt;
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    tileMapData.tileData = {{0, {TileKind::Empty}},
-                            {5, {TileKind::Pickup, std::nullopt, 0}}};
+    tileMapData.tileData = {{0, emptyTileData},
+                            {5, pickupTileData}};
     TileMap tileMap(tileMapData);
     tileMap.setTileIndex(glm::ivec2(1, 1), 5);
     const Tile &tile = tileMap.getTile(5);
@@ -153,9 +166,8 @@ TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]
 
     AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
 
-    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &tileAABB) {
-        return true;
-    });
+    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &_)
+                                          { return true; });
 
     REQUIRE(result == true);
 }

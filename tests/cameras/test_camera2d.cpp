@@ -39,8 +39,6 @@ TEST_CASE("Camera2D resize updates projection", "[Camera2D]")
 {
     Camera2DData data(1.0f);
     Camera2D camera(data, 800, 600);
-    glm::mat4 initialProjection = camera.getProjection();
-
     camera.resize(1024, 768);
     glm::mat4 resizedProjection = camera.getProjection();
 

@@ -81,6 +81,7 @@ add_executable(platformer
     src/rendering/ui/debug_aabb_ui.cpp
     src/rendering/ui/editor_tile_map_ui.cpp
     src/rendering/ui/score_ui.cpp
+    src/rendering/ui/debug_navigation_ui.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
@@ -105,6 +106,7 @@ add_executable(platformer
     src/animations/tile_animation.cpp
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
+    src/navigation/navigation_graph.cpp
 )
 
 if(MSVC)
@@ -174,6 +176,7 @@ add_executable(tests
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp
     tests/scripting/test_lua_script_system.cpp
+    tests/navigation/test_navigation_graph.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp
     src/rendering/screen_transition.cpp
@@ -185,6 +188,7 @@ add_executable(tests
     src/rendering/ui/debug_aabb_ui.cpp
     src/rendering/ui/editor_tile_map_ui.cpp
     src/rendering/ui/score_ui.cpp
+    src/rendering/ui/debug_navigation_ui.cpp
     src/game/tile_map/tile_map.cpp
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
@@ -209,8 +213,25 @@ add_executable(tests
     src/animations/tile_animation.cpp
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
+    src/navigation/navigation_graph.cpp
     external/stb/stb_image.cpp
 )
+
+if(MSVC)
+    target_compile_options(tests PRIVATE
+        /external:W0
+        /external:anglebrackets
+        /W4
+        /WX
+    )
+else()
+    target_compile_options(tests PRIVATE
+        -Wall
+        -Wextra
+        -Werror
+        -Wno-missing-braces
+    )
+endif()
 
 target_include_directories(tests
     PRIVATE

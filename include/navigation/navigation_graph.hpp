@@ -16,6 +16,8 @@ public:
     const std::unordered_map<int, NavigationNode> &getNodes() const;
     const std::vector<NavigationEdge> &getEdges() const;
     const std::vector<NavigationEdge> &getOutgoingEdges(int id) const;
+    void clear();
+    bool hasNodeAtPosition(glm::vec2 position, float epsilon = 0.1f) const;
 
 private:
     std::unordered_map<int, NavigationNode> nodes;

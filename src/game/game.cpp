@@ -8,7 +8,7 @@
 
 Game::Game()
 {
-    GameData gameData = loadGameData();
+    gameData = loadGameData();
     shouldDrawGrid = gameData.debugData.shouldDrawGrid;
     shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
     shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
@@ -95,26 +95,6 @@ Game::Game()
         } });
     scriptWatcher.onScriptsChanged.connect([this]
                                            { luaScriptSystem->loadScripts(); });
-
-    player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
-    player->onDeath.connect([this]
-                            { luaScriptSystem->triggerDeath(); });
-    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
-                                                                {
-        onLevelCompleteConnection.block();
-        luaScriptSystem->triggerLevelComplete(); });
-    player->getMovementSystem().onWallJump.connect([this]
-                                                   { luaScriptSystem->triggerWallJump(); });
-    player->getMovementSystem().onDash.connect([this]
-                                               { luaScriptSystem->triggerDash(); });
-    player->getMovementSystem().onWallSliding.connect([this]
-                                                      { luaScriptSystem->triggerWallSliding(); });
-    player->onFallFromHeight.connect([this]
-                                     { luaScriptSystem->triggerFallFromHeight(); });
-    player->onHitCeiling.connect([this]
-                                 { luaScriptSystem->triggerHitCeiling(); });
-    player->onPickup.connect([this](int scoreDelta)
-                             { scoringSystem.addScore(scoreDelta); });
     loadLevel(gameData.firstLevel);
 
     tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
@@ -135,7 +115,7 @@ Game::Game()
                            { step(); });
     debugUi.onRespawn.connect([this]
                               {
-        player->reset();
+        rebuildPlayer();
         player->setPosition(tileMap->getPlayerStartWorldPosition()); });
     debugUi.onToggleZoom.connect([this]
                                  {
@@ -156,7 +136,7 @@ Game::Game()
     editorTileMapUi.onLoadLevel.connect([this](const std::string &levelPath)
                                         { loadLevel(levelPath); });
 
-    luaScriptSystem->bindGameObjects(this, camera.get(), player.get(), screenTransition.get());
+    luaScriptSystem->bindGameObjects(this, camera.get(), screenTransition.get());
 
     luaScriptSystem->triggerGameLoaded();
 }
@@ -221,8 +201,8 @@ void Game::run()
             stepFrame = false;
         }
 
-        const PlayerState &playerState = player->getPlayerState();
-        camera->follow(playerState.position);
+        const AgentState &playerAgentState = player->getAgent().getState();
+        camera->follow(playerAgentState.position);
 
         render();
 
@@ -268,13 +248,14 @@ void Game::render()
         *tileSetShader.get(),
         *tileSet.get());
 
-    PlayerState playerState = player->getPlayerState();
+    const PlayerState &playerState = player->getState();
+    const AgentState &playerAgentState = player->getAgent().getState();
     spriteRenderer->drawWithUV(
         *tileSetShader.get(),
         *playerTexture.get(),
         projection,
-        playerState.position,
-        playerState.size,
+        playerAgentState.position,
+        playerAgentState.size,
         playerState.currentAnimationUVStart,
         playerState.currentAnimationUVEnd,
         playerState.facingLeft);
@@ -303,6 +284,7 @@ void Game::render()
 
     debugUi.draw(
         *imGuiManager.get(),
+        playerAgentState,
         playerState,
         *camera.get(),
         showDebug);
@@ -370,7 +352,7 @@ GameData Game::loadGameData() const
 
 void Game::reload()
 {
-    GameData gameData = loadGameData();
+    gameData = loadGameData();
 
     shouldDrawGrid = gameData.debugData.shouldDrawGrid;
     shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
@@ -383,19 +365,16 @@ void Game::reload()
 
     camera->setZoom(gameData.cameraData.zoom);
 
-    player->initFromData(gameData.playerData, gameData.physicsData);
-
     loadLevel(gameData.firstLevel);
 }
 
 void Game::loadLevel(const std::string &levelPath)
 {
-    std::unique_ptr<TileMap> newTileMap = std::make_unique<TileMap>(levelPath);
-    tileMap = std::move(newTileMap);
-    luaScriptSystem->bindTileMap(tileMap.get());
+    rebuildTileMap(levelPath);
+
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
-    onLevelCompleteConnection.unblock();
-    player->reset();
+
+    rebuildPlayer();
     player->setPosition(tileMap->getPlayerStartWorldPosition());
 }
 
@@ -414,4 +393,36 @@ void Game::play()
 {
     paused = false;
     stepFrame = false;
+}
+
+void Game::rebuildTileMap(const std::string &levelPath)
+{
+    std::unique_ptr<TileMap> newTileMap = std::make_unique<TileMap>(levelPath);
+    tileMap = std::move(newTileMap);
+    luaScriptSystem->bindTileMap(tileMap.get());
+}
+
+void Game::rebuildPlayer()
+{
+    std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData);
+    player = std::make_unique<Player>(gameData.playerData);
+    player->onDeath.connect([this]
+                            { luaScriptSystem->triggerDeath(); });
+    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
+                                                                {
+        onLevelCompleteConnection.block();
+        luaScriptSystem->triggerLevelComplete(); });
+    player->onWallJump.connect([this]
+                               { luaScriptSystem->triggerWallJump(); });
+    player->onDash.connect([this]
+                           { luaScriptSystem->triggerDash(); });
+    player->onWallSliding.connect([this]
+                                  { luaScriptSystem->triggerWallSliding(); });
+    player->onFallFromHeight.connect([this]
+                                     { luaScriptSystem->triggerFallFromHeight(); });
+    player->onHitCeiling.connect([this]
+                                 { luaScriptSystem->triggerHitCeiling(); });
+    player->onPickup.connect([this](int scoreDelta)
+                             { scoringSystem.addScore(scoreDelta); });
+    luaScriptSystem->bindPlayer(player.get());
 }

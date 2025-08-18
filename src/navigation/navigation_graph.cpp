@@ -62,3 +62,22 @@ const std::vector<NavigationEdge> &NavigationGraph::getOutgoingEdges(int id) con
 
     return empty;
 }
+
+void NavigationGraph::clear()
+{
+    nodes.clear();
+    edges.clear();
+    adjacency.clear();
+}
+
+bool NavigationGraph::hasNodeAtPosition(glm::vec2 position, float epsilon) const
+{
+    for (const auto &[id, node] : nodes)
+    {
+        if (glm::distance(node.position, position) < epsilon)
+        {
+            return true;
+        }
+    }
+    return false;
+}

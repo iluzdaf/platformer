@@ -17,12 +17,12 @@ LuaScriptSystem::LuaScriptSystem()
                                 "y", &glm::vec2::y);
     lua.new_usertype<Game>("Game", "pause", &Game::pause,
                            "play", &Game::play,
-                           "loadLevel", &Game::loadLevel);
+                           "loadLevel", &Game::loadLevel,
+                           "rebuildPlayer", &Game::rebuildPlayer);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
     lua.new_usertype<TileMap>("TileMap", "getPlayerStartWorldPosition", &TileMap::getPlayerStartWorldPosition,
                               "getNextLevel", &TileMap::getNextLevel);
-    lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition,
-                             "reset", &Player::reset);
+    lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition);
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
 
     lua.set_function("startCoroutine", [this](sol::function func)
@@ -70,12 +70,10 @@ void LuaScriptSystem::update(float deltaTime)
 void LuaScriptSystem::bindGameObjects(
     Game *game,
     Camera2D *camera,
-    Player *player,
     ScreenTransition *screenTransition)
 {
     lua["game"] = game;
     lua["camera"] = camera;
-    lua["player"] = player;
     lua["screenTransition"] = screenTransition;
 }
 
@@ -160,4 +158,9 @@ void LuaScriptSystem::triggerGameLoaded()
 {
     if (onGameLoaded.valid())
         onGameLoaded();
+}
+
+void LuaScriptSystem::bindPlayer(Player *player)
+{
+    lua["player"] = player;
 }

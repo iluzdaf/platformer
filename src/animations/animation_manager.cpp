@@ -1,48 +1,36 @@
 #include "animations/animation_manager.hpp"
-#include "game/player/player_state.hpp"
+#include "agent/agent_state.hpp"
 
-void AnimationManager::update(float deltaTime, const PlayerState &playerState)
+void AnimationManager::update(float deltaTime, const AgentState &agentState)
 {
     PlayerAnimationState newState = currentState;
 
-    if (playerState.dashing)
-    {
+    if (agentState.dashing)
         newState = PlayerAnimationState::Dash;
-    }
-    else if (!playerState.onGround)
+    else if (!agentState.onGround)
     {
-        if (playerState.wallSliding || playerState.climbing)
-        {
+        if (agentState.wallSliding || agentState.climbing)
             newState = PlayerAnimationState::WallSlide;
-        }
-        else if (playerState.velocity.y < 0.0f)
-        {
+        else if (agentState.velocity.y < 0.0f)
             newState = PlayerAnimationState::Jump;
-        }
-        else if (playerState.velocity.y > 0.0f)
-        {
+        else if (agentState.velocity.y > 0.0f)
             newState = PlayerAnimationState::Fall;
-        }
     }
-    else if (std::abs(playerState.velocity.x) > 0.1f)
-    {
+    else if (std::abs(agentState.velocity.x) > 0.1f)
         newState = PlayerAnimationState::Walk;
-    }
     else
-    {
         newState = PlayerAnimationState::Idle;
-    }
 
     if (newState != currentState)
     {
         currentState = newState;
-        getCurrentAnimation().reset();
+        animations.at(currentState).reset();
     }
 
-    getCurrentAnimation().update(deltaTime);
+    animations.at(currentState).update(deltaTime);
 }
 
-SpriteAnimation &AnimationManager::getCurrentAnimation()
+const SpriteAnimation &AnimationManager::getCurrentAnimation()
 {
     return animations.at(currentState);
 }
@@ -57,19 +45,4 @@ void AnimationManager::addAnimation(
     const SpriteAnimation &animation)
 {
     animations.insert_or_assign(state, animation);
-}
-
-void AnimationManager::reset()
-{
-    currentState = PlayerAnimationState::Idle;
-
-    for (auto &[state, animation] : animations)
-    {
-        animation.reset();
-    }
-}
-
-void AnimationManager::clear()
-{
-    animations.clear();
 }

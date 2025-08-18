@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp>
@@ -41,14 +42,17 @@ public:
         const AABB &probeAABB,
         const std::function<bool(const AABB &)> &callback) const;
     const NavigationGraph &getNavigationGraph() const;
+    void buildNavigationGraph();
 
 private:
     int width = 0, height = 0, tileSize = 0;
     std::vector<std::vector<int>> tileIndices;
     std::unordered_map<int, Tile> tiles;
-    void initByData(const TileMapData &tileMapData);
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
-    std::string nextLevel = "../assets/levels/level1.json";
-    std::string level = "../assets/levels/new_level.json";
+    std::string nextLevel = "../assets/levels/level1.json",
+                level = "../assets/levels/new_level.json";
     NavigationGraph navigationGraph;
+
+    void initByData(const TileMapData &tileMapData);
+    bool isWalkableBetween(glm::vec2 start, glm::vec2 end);
 };

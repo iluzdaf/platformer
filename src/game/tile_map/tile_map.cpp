@@ -299,3 +299,136 @@ const NavigationGraph &TileMap::getNavigationGraph() const
 {
     return navigationGraph;
 }
+
+void TileMap::buildNavigationGraph()
+{
+    navigationGraph.clear();
+
+    int nextNodeId = 0;
+
+    for (int y = 0; y < height; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            glm::ivec2 tilePosition(x, y);
+            const Tile &tile = getTileAtTilePosition(tilePosition);
+
+            if (tile.isSolid())
+            {
+                glm::ivec2 tilePositionAbove = tilePosition + glm::ivec2(0, -1);
+                bool canWalkAbove = validTilePosition(tilePositionAbove) &&
+                                    !getTileAtTilePosition(tilePositionAbove).isSolid() &&
+                                    !getTileAtTilePosition(tilePositionAbove).isSpikes();
+                glm::ivec2 tilePositionLeft = tilePosition + glm::ivec2(-1, 0);
+                bool isLeftCliff = validTilePosition(tilePositionLeft) &&
+                                   !getTileAtTilePosition(tilePositionLeft).isSolid();
+                glm::ivec2 tilePositionRight = tilePosition + glm::ivec2(1, 0);
+                bool isRightCliff = validTilePosition(tilePositionRight) &&
+                                    !getTileAtTilePosition(tilePositionRight).isSolid();
+                glm::ivec2 tilePositionAboveLeft = tilePositionAbove + glm::ivec2(-1, 0);
+                bool canWalkAboveLeft = !isLeftCliff &&
+                                        validTilePosition(tilePositionAboveLeft) &&
+                                        !getTileAtTilePosition(tilePositionAboveLeft).isSolid() &&
+                                        !getTileAtTilePosition(tilePositionAboveLeft).isSpikes();
+                glm::ivec2 tilePositionAboveRight = tilePositionAbove + glm::ivec2(1, 0);
+                bool canWalkAboveRight = !isRightCliff &&
+                                         validTilePosition(tilePositionAboveRight) &&
+                                         !getTileAtTilePosition(tilePositionAboveRight).isSolid() &&
+                                         !getTileAtTilePosition(tilePositionAboveRight).isSpikes();
+
+                if (canWalkAbove && (isLeftCliff || isRightCliff || !canWalkAboveLeft || !canWalkAboveRight))
+                {
+                    glm::vec2 worldPosition = tileToWorldPosition(tilePosition);
+                    glm::vec2 nodeOffset(0.0f);
+
+                    if (canWalkAboveLeft && !canWalkAboveRight)
+                        nodeOffset = glm::vec2(tileSize, 0.0f);
+                    else if (!canWalkAboveLeft && canWalkAboveRight)
+                        nodeOffset = glm::vec2(0.0f, 0.0f);
+                    else
+                        nodeOffset = glm::vec2(tileSize / 2.0f, 0.f);
+
+                    glm::vec2 nodePosition = worldPosition + nodeOffset;
+                    navigationGraph.addNode(nextNodeId++, nodePosition);
+                }
+            }
+        }
+    }
+
+    // std::unordered_map<int, std::vector<NavigationNode>> nodesByRow;
+
+    // for (const auto &[id, node] : navigationGraph.getNodes())
+    // {
+    //     int y = static_cast<int>(std::round(node.position.y));
+    //     nodesByRow[y].push_back(node);
+    // }
+
+    // for (auto &[y, nodes] : nodesByRow)
+    // {
+    //     std::sort(nodes.begin(), nodes.end(), [](NavigationNode a, NavigationNode b)
+    //               { return a.position.x < b.position.x; });
+    // }
+
+    // for (const auto &[y, nodeGroup] : nodesByRow)
+    // {
+    //     for (size_t i = 0; i < nodeGroup.size(); ++i)
+    //     {
+    //         NavigationNode current = nodeGroup[i];
+
+    //         if (i > 0)
+    //         {
+    //             NavigationNode left = nodeGroup[i - 1];
+    //             if (isWalkableBetween(left.position, current.position))
+    //             {
+    //                 navigationGraph.addEdge(current.id, left.id, EdgeType::Walk);
+    //                 navigationGraph.addEdge(left.id, current.id, EdgeType::Walk);
+    //             }
+    //         }
+
+    //         if (i + 1 < nodeGroup.size())
+    //         {
+    //             const NavigationNode *right = nodeGroup[i + 1];
+    //             if (isWalkableBetween(current->position, right->position))
+    //             {
+    //                 navigationGraph.addEdge(current->nodeId, right->nodeId, EdgeType::Walk);
+    //                 navigationGraph.addEdge(right->nodeId, current->nodeId, EdgeType::Walk);
+    //             }
+    //         }
+    //     }
+    // }
+}
+
+bool TileMap::isWalkableBetween(glm::vec2, glm::vec2)
+{
+    // const int sampleCount = 10;
+
+    // for (int i = 0; i <= sampleCount; ++i)
+    // {
+    //     float t = static_cast<float>(i) / sampleCount;
+    //     glm::vec2 point = glm::mix(a, b, t);
+
+    //     glm::ivec2 footTile = tileMap.worldToTilePosition(point);
+    //     glm::ivec2 groundTile = footTile + glm::ivec2(0, 1);
+    //     glm::ivec2 headTile = footTile + glm::ivec2(0, -1);
+
+    //     if (!tileMap.validTilePosition(footTile) ||
+    //         tileMap.getTileAtTilePosition(footTile).isSolid())
+    //     {
+    //         return false;
+    //     }
+
+    //     if (!tileMap.validTilePosition(headTile) ||
+    //         tileMap.getTileAtTilePosition(headTile).isSolid())
+    //     {
+    //         return false;
+    //     }
+
+    //     if (!tileMap.validTilePosition(groundTile) ||
+    //         !tileMap.getTileAtTilePosition(groundTile).isSolid())
+    //     {
+    //         return false;
+    //     }
+    // }
+
+    return true;
+}

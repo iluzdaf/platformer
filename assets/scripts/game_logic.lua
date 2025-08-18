@@ -8,7 +8,7 @@ end
 
 function deathCoroutine()
     waitSeconds(0.25)
-    player:reset()
+    game:rebuildPlayer()
     player:setPosition(tileMap:getPlayerStartWorldPosition())
     game:play()
 end

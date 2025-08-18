@@ -25,12 +25,12 @@ TEST_CASE("Player falls under normal gravity", "[Player]")
     Player player = setupPlayer();
     TileMap tileMap = setupTileMap(1, static_cast<int>(980.0f / 16.0f) + 2);
     simulatePlayer(player, tileMap, 1.0f);
-    const PlayerState &playerState = player.getPlayerState();
-    REQUIRE(playerState.velocity.y == Approx(980));
-    REQUIRE(playerState.position.y == Approx(0.5f * 980).margin(5));
+    const AgentState &state = player.getAgent().getState();
+    REQUIRE(state.velocity.y == Approx(980));
+    REQUIRE(state.position.y == Approx(0.5f * 980).margin(5));
 }
 
-TEST_CASE("Player sets onGround correcly", "[Player]")
+TEST_CASE("Player sets onGround correctly", "[Player]")
 {
     TileMap tileMap = setupTileMap();
     Player player = setupPlayer();
@@ -40,10 +40,10 @@ TEST_CASE("Player sets onGround correcly", "[Player]")
         tileMap.setTileIndex(glm::ivec2(0, 5), 1);
         simulatePlayer(player, tileMap, 1.0f);
         float expectedY = 4 * tileMap.getTileSize();
-        const PlayerState &playerState = player.getPlayerState();
-        REQUIRE(playerState.position.y == Approx(expectedY));
-        REQUIRE(playerState.onGround);
-        REQUIRE(playerState.velocity.y == Approx(0.0f).margin(0.01f));
+        const AgentState& state = player.getAgent().getState();
+        REQUIRE(state.position.y == Approx(expectedY));
+        REQUIRE(state.onGround);
+        REQUIRE(state.velocity.y == Approx(0.0f).margin(0.01f));
     }
 
     SECTION("Player walks off a ledge and is no longer onGround")
@@ -52,12 +52,12 @@ TEST_CASE("Player sets onGround correcly", "[Player]")
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, tileMap, 0.1f);
-        const PlayerState &playerState = player.getPlayerState();
-        REQUIRE(playerState.onGround);
+        const AgentState& state = player.getAgent().getState();
+        REQUIRE(state.onGround);
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.2f, inputIntentions);
-        REQUIRE_FALSE(playerState.onGround);
+        REQUIRE_FALSE(state.onGround);
     }
 }
 
@@ -70,7 +70,7 @@ TEST_CASE("Player uses correct animation state", "[Player]")
     SECTION("Player is idle by default")
     {
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(player.getPlayerState().currentAnimationState == PlayerAnimationState::Idle);
+        REQUIRE(player.getState().currentAnimationState == PlayerAnimationState::Idle);
     }
 
     SECTION("Player walking triggers walk animation")
@@ -78,13 +78,13 @@ TEST_CASE("Player uses correct animation state", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.getPlayerState().currentAnimationState == PlayerAnimationState::Walk);
+        REQUIRE(player.getState().currentAnimationState == PlayerAnimationState::Walk);
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(player.getPlayerState().currentAnimationState == PlayerAnimationState::Idle);
+        REQUIRE(player.getState().currentAnimationState == PlayerAnimationState::Idle);
         inputIntentions = InputIntentions();
         inputIntentions.direction.x = -1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.getPlayerState().currentAnimationState == PlayerAnimationState::Walk);
+        REQUIRE(player.getState().currentAnimationState == PlayerAnimationState::Walk);
     }
 
     SECTION("Animation frame advances over time")
@@ -92,9 +92,9 @@ TEST_CASE("Player uses correct animation state", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        glm::vec2 uvBefore = player.getPlayerState().currentAnimationUVStart;
+        glm::vec2 uvBefore = player.getState().currentAnimationUVStart;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        glm::vec2 uvAfter = player.getPlayerState().currentAnimationUVStart;
+        glm::vec2 uvAfter = player.getState().currentAnimationUVStart;
         REQUIRE(uvBefore.x != Approx(uvAfter.x));
     }
 }
@@ -106,7 +106,7 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 
     SECTION("Starts facing right")
     {
-        const PlayerState &playerState = player.getPlayerState();
+        const PlayerState &playerState = player.getState();
         REQUIRE_FALSE(playerState.facingLeft);
     }
 
@@ -115,7 +115,7 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        const PlayerState &playerState = player.getPlayerState();
+        const PlayerState &playerState = player.getState();
         REQUIRE(playerState.facingLeft);
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(playerState.facingLeft);
@@ -126,7 +126,7 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        const PlayerState &playerState = player.getPlayerState();
+        const PlayerState &playerState = player.getState();
         REQUIRE_FALSE(playerState.facingLeft);
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE_FALSE(playerState.facingLeft);
@@ -137,23 +137,25 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
 {
     TileMap tileMap = setupTileMap();
     Player player = setupPlayer();
-    const PlayerState &playerState = player.getPlayerState();
+    const AgentState &state = player.getAgent().getState();
 
-    SECTION("Player that spawns outside of the tileMap is clamped inside the tileMap")
-    {
-        player.setPosition(glm::vec2(10.0f, 1000.0f));
-        simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(playerState.position.x <= tileMap.getWorldWidth());
-        REQUIRE(playerState.position.y <= tileMap.getWorldHeight());
+    // SECTION("Player that spawns outside of the tileMap is clamped inside the tileMap")
+    // {
+    //     player.setPosition(glm::vec2(10.0f, 1000.0f));
+    //     simulatePlayer(player, tileMap, 0.1f);
+    //     REQUIRE(state.position.x <= tileMap.getWorldWidth());
+    //     REQUIRE(state.position.y <= tileMap.getWorldHeight());
 
-        SECTION("Player can jump after being clamped")
-        {
-            InputIntentions inputIntentions;
-            inputIntentions.jumpRequested = true;
-            simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-            REQUIRE(playerState.velocity.y < 0.0f);
-        }
-    }
+    //     SECTION("Player can jump after being clamped")
+    //     {
+    //         InputIntentions inputIntentions;
+    //         inputIntentions.jumpRequested = true;
+    //         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+    //         REQUIRE(state.velocity.y < 0.0f);
+    //     }
+    // }
+
+    // Exception if player is setPositioned outside of the tileMap bounds
 
     SECTION("Player stays within bounds")
     {
@@ -162,8 +164,8 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
         SECTION("While falling")
         {
             simulatePlayer(player, tileMap, 10.0f);
-            REQUIRE(playerState.position.x <= tileMap.getWorldWidth());
-            REQUIRE(playerState.position.y <= tileMap.getWorldHeight());
+            REQUIRE(state.position.x <= tileMap.getWorldWidth());
+            REQUIRE(state.position.y <= tileMap.getWorldHeight());
         }
 
         SECTION("While moving left")
@@ -171,8 +173,8 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
             InputIntentions inputIntentions;
             inputIntentions.direction.x = -1;
             simulatePlayer(player, tileMap, 10.0f, inputIntentions);
-            REQUIRE(playerState.position.x <= tileMap.getWorldWidth());
-            REQUIRE(playerState.position.y <= tileMap.getWorldHeight());
+            REQUIRE(state.position.x <= tileMap.getWorldWidth());
+            REQUIRE(state.position.y <= tileMap.getWorldHeight());
         }
 
         SECTION("While moving right")
@@ -180,8 +182,8 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
             InputIntentions inputIntentions;
             inputIntentions.direction.x = 1;
             simulatePlayer(player, tileMap, 10.0f, inputIntentions);
-            REQUIRE(playerState.position.x <= tileMap.getWorldWidth());
-            REQUIRE(playerState.position.y <= tileMap.getWorldHeight());
+            REQUIRE(state.position.x <= tileMap.getWorldWidth());
+            REQUIRE(state.position.y <= tileMap.getWorldHeight());
         }
     }
 }
@@ -190,7 +192,7 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 {
     TileMap tileMap = setupTileMap();
     Player player = setupPlayer();
-    const PlayerState &playerState = player.getPlayerState();
+    const AgentState &state = player.getAgent().getState();
 
     SECTION("Touching right wall")
     {
@@ -202,8 +204,8 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        REQUIRE(playerState.touchingRightWall);
-        REQUIRE_FALSE(playerState.touchingLeftWall);
+        REQUIRE(state.touchingRightWall);
+        REQUIRE_FALSE(state.touchingLeftWall);
     }
 
     SECTION("Touching left wall")
@@ -216,8 +218,8 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        REQUIRE(playerState.touchingLeftWall);
-        REQUIRE_FALSE(playerState.touchingRightWall);
+        REQUIRE(state.touchingLeftWall);
+        REQUIRE_FALSE(state.touchingRightWall);
     }
 }
 
@@ -261,7 +263,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
     TileMap tileMap = setupTileMap(20, 10);
     Player player = setupPlayer();
     InputIntentions inputIntentions;
-    const PlayerState &playerState = player.getPlayerState();
+    const AgentState &state = player.getAgent().getState();
 
     SECTION("Player cannot move into solid tile")
     {
@@ -274,14 +276,14 @@ TEST_CASE("Player movement ability integration", "[Player]")
         {
             inputIntentions.direction.x = 1;
             simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-            REQUIRE(playerState.position.x <= Approx(3 * tileMap.getTileSize()));
+            REQUIRE(state.position.x <= Approx(3 * tileMap.getTileSize()));
         }
 
         SECTION("Moving left into solid tile")
         {
             inputIntentions.direction.x = -1;
             simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-            REQUIRE(playerState.position.x >= Approx(1 * tileMap.getTileSize()));
+            REQUIRE(state.position.x >= Approx(1 * tileMap.getTileSize()));
         }
     }
 
@@ -294,8 +296,54 @@ TEST_CASE("Player movement ability integration", "[Player]")
         player.setPosition({2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()});
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        float playerTopY = playerState.position.y;
+        float playerTopY = state.position.y;
         float ceilingBottomY = (ceilingTileY + 1);
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
     }
 }
+
+// SECTION("Movement System event callbacks are triggered")
+// {
+//     bool wallJumpTriggered = false;
+//     movementSystem.onWallJump.connect([&]
+//                                       { wallJumpTriggered = true; });
+//     bool dashTriggered = false;
+//     movementSystem.onDash.connect([&]
+//                                   { dashTriggered = true; });
+//     bool wallSlideTriggered = false;
+//     movementSystem.onWallSliding.connect([&]
+//                                          { wallSlideTriggered = true; });
+
+//     SECTION("onWallJump")
+//     {
+//         playerState.onGround = false;
+//         playerState.touchingLeftWall = true;
+//         inputIntentions.jumpHeld = true;
+//         inputIntentions.direction = glm::vec2(1.0f, 0.0f);
+//         simulateMovement(playerState, inputIntentions, movementSystem, 0.01f);
+//         REQUIRE(wallJumpTriggered);
+//         REQUIRE_FALSE(dashTriggered);
+//         REQUIRE_FALSE(wallSlideTriggered);
+//     }
+
+//     SECTION("onDash")
+//     {
+//         playerState.touchingLeftWall = false;
+//         inputIntentions.dashRequested = true;
+//         simulateMovement(playerState, inputIntentions, movementSystem, 0.01f);
+//         REQUIRE_FALSE(wallJumpTriggered);
+//         REQUIRE(dashTriggered);
+//         REQUIRE_FALSE(wallSlideTriggered);
+//     }
+
+//     SECTION("onWallSliding")
+//     {
+//         playerState.onGround = false;
+//         playerState.touchingLeftWall = true;
+//         simulateMovement(playerState, inputIntentions, movementSystem, 0.01f);
+//         simulateMovement(playerState, inputIntentions, movementSystem, 0.01f);
+//         REQUIRE_FALSE(wallJumpTriggered);
+//         REQUIRE_FALSE(dashTriggered);
+//         REQUIRE(wallSlideTriggered);
+//     }
+// }

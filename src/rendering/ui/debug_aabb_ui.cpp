@@ -45,10 +45,10 @@ void DebugAABBUi::drawPlayerAABBs(
     const Player &player,
     const Camera2D &camera)
 {
-    drawAABB(drawList, imGuiManager, player.getAABB(), camera, IM_COL32(0, 255, 0, 255));
-    PlayerState playerState = player.getPlayerState();
-    addDebugAABB(playerState.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
-    addDebugAABB(playerState.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
+    drawAABB(drawList, imGuiManager, player.getAgent().getPhysicsBody().getAABB(), camera, IM_COL32(0, 255, 0, 255));
+    AgentState state = player.getAgent().getState();
+    addDebugAABB(state.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
+    addDebugAABB(state.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
 }
 
 void DebugAABBUi::drawTileMapAABBs(

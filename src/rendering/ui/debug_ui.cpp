@@ -2,11 +2,13 @@
 #include <format>
 #include "rendering/ui/debug_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
+#include "agent/agent_state.hpp"
 #include "game/player/player_state.hpp"
 #include "cameras/camera2d.hpp"
 
 void DebugUi::draw(
     const ImGuiManager &imGuiManager,
+    const AgentState &playerAgentState,
     const PlayerState &playerState,
     const Camera2D &camera, 
     bool showDebug)
@@ -54,19 +56,19 @@ void DebugUi::draw(
             ImGui::TextUnformatted(value.c_str());
         };
 
-        drawRow("Velocity", std::format("{:.2f}, {:.2f}", playerState.velocity.x, playerState.velocity.y));
-        drawRow("Position", std::format("{:.2f}, {:.2f}", playerState.position.x, playerState.position.y));
+        drawRow("Velocity", std::format("{:.2f}, {:.2f}", playerAgentState.velocity.x, playerAgentState.velocity.y));
+        drawRow("Position", std::format("{:.2f}, {:.2f}", playerAgentState.position.x, playerAgentState.position.y));
 
-        drawRow("On Ground", playerState.onGround ? "true" : "false");
+        drawRow("On Ground", playerAgentState.onGround ? "true" : "false");
         drawRow("Facing Left", playerState.facingLeft ? "true" : "false");
-        drawRow("Touching Left Wall", playerState.touchingLeftWall ? "true" : "false");
-        drawRow("Touching Right Wall", playerState.touchingRightWall ? "true" : "false");
-        drawRow("Hit Ceiling", playerState.hitCeiling ? "true" : "false");
+        drawRow("Touching Left Wall", playerAgentState.touchingLeftWall ? "true" : "false");
+        drawRow("Touching Right Wall", playerAgentState.touchingRightWall ? "true" : "false");
+        drawRow("Hit Ceiling", playerAgentState.hitCeiling ? "true" : "false");
 
-        drawRow("Wall Sliding", playerState.wallSliding ? "true" : "false");
-        drawRow("Wall Jumping", playerState.wallJumping ? "true" : "false");
-        drawRow("Dashing", playerState.dashing ? "true" : "false");
-        drawRow("Climbing", playerState.climbing ? "true" : "false");
+        drawRow("Wall Sliding", playerAgentState.wallSliding ? "true" : "false");
+        drawRow("Wall Jumping", playerAgentState.wallJumping ? "true" : "false");
+        drawRow("Dashing", playerAgentState.dashing ? "true" : "false");
+        drawRow("Climbing", playerAgentState.climbing ? "true" : "false");
 
         drawRow("Animation", toString(playerState.currentAnimationState));
 

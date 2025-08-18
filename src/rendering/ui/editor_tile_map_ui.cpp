@@ -6,7 +6,7 @@
 
 void EditorTileMapUi::draw(
     const ImGuiManager &imGuiManager,
-    const TileMap &tileMap,
+    TileMap &tileMap,
     const Texture2D &tileSet,
     bool showTileMapEditor)
 {
@@ -103,6 +103,11 @@ void EditorTileMapUi::draw(
     {
         onLoadLevel(tileMap.getLevel());
         editing = false;
+    }
+
+    if (ImGui::Button("Build"))
+    {
+        tileMap.buildNavigationGraph();
     }
 
     ImGui::End();

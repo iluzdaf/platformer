@@ -1,36 +1,52 @@
 {
     "playerData": {
-        "moveAbilityData": {
-            "moveSpeed": 160.0
+        "agentData": {
+            "size": [
+                16.0,
+                16.0
+            ],
+            "moveAbilityData": {
+                "moveSpeed": 250.0
+            },
+            "jumpAbilityData": {
+                "jumpSpeed": -300.0,
+                "jumpBufferDuration": 0.15,
+                "jumpCoyoteDuration": 0.15,
+                "jumpDuration": 0.2
+            },
+            "dashAbilityData": {
+                "dashSpeed": 500,
+                "dashDuration": 0.2
+            },
+            "wallSlideAbilityData": {
+                "slideSpeed": 50
+            },
+            "wallJumpAbilityData": {
+                "wallJumpSpeed": -250,
+                "wallJumpHorizontalSpeed": 250,
+                "wallJumpDuration": 0.2,
+                "wallJumpBufferDuration": 0.15,
+                "wallJumpCoyoteDuration": 0.15
+            },
+            "climbAbilityData": {},
+            "climbMoveAbilityData": {
+                "climbSpeed": 80
+            },
+            "gravityAbilityData": {
+                "gravity": 5,
+                "maxFallSpeed": 600
+            },
+            "physicsBodyData": {
+                "colliderSize": [
+                    8,
+                    13
+                ],
+                "colliderOffset": [
+                    4,
+                    3
+                ]
+            }
         },
-        "jumpAbilityData": {
-            "jumpSpeed": -150.0,
-            "jumpBufferDuration": 0.15,
-            "jumpCoyoteDuration": 0.15,
-            "jumpDuration": 0.2
-        },
-        "dashAbilityData": {
-            "dashSpeed": 500,
-            "dashDuration": 0.25
-        },
-        "wallSlideAbilityData": {
-            "slideSpeed": 60
-        },
-        "wallJumpAbilityData": {
-            "wallJumpSpeed": -250,
-            "wallJumpHorizontalSpeed": 250,
-            "wallJumpDuration": 0.2,
-            "wallJumpBufferDuration": 0.15,
-            "wallJumpCoyoteDuration": 0.15
-        },
-        "climbAbilityData": {},
-        "climbMoveAbilityData": {
-            "climbSpeed": 80
-        },
-        "size": [
-            16.0,
-            16.0
-        ],
         "idleSpriteAnimationData": {
             "frameAnimationData": {
                 "frames": [
@@ -98,31 +114,20 @@
             "frameHeight": 16,
             "textureWidth": 96
         },
-        "colliderSize": [
-            8,
-            13
-        ],
-        "colliderOffset": [
-            4,
-            3
-        ],
-        "fallFromHeightThreshold": 600
+        "fallFromHeightThreshold": 599
     },
     "cameraData": {
-        "zoom": 3
-    },
-    "physicsData": {
-        "gravity": 980.0
+        "zoom": 4.5
     },
     "windowWidth": 800,
     "windowHeight": 600,
     "firstLevel": "../../assets/levels/level1.json",
     "debugData": {
-        "shouldDrawGrid": false,
+        "shouldDrawGrid": true,
         "shouldDrawPlayerAABBs": true,
-        "shouldDrawTileMapAABBs": false,
-        "showDebug": false,
-        "shouldDrawTileInfo": false,
+        "shouldDrawTileMapAABBs": true,
+        "showDebug": true,
+        "shouldDrawTileInfo": true,
         "showTileMapEditor": true
     }
 }

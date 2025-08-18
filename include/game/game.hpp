@@ -1,4 +1,5 @@
 #pragma once
+
 #include <memory>
 #include "game/game_data.hpp"
 #include "game/tile_map/tile_map.hpp"
@@ -37,6 +38,7 @@ public:
     void play();
     void loadLevel(const std::string &levelPath);
     void reload();
+    void rebuildPlayer();
 
 private:
     GameData loadGameData() const;
@@ -47,6 +49,7 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
+    void rebuildTileMap(const std::string &levelPath);
 
     GLFWwindow *window;
 
@@ -65,13 +68,11 @@ private:
     TileInteractionSystem tileInteractionSystem;
     ScoringSystem scoringSystem;
 
-    std::unique_ptr<Texture2D> tileSet;
-    std::unique_ptr<Shader> tileSetShader;
+    std::unique_ptr<Texture2D> tileSet, playerTexture;
+    std::unique_ptr<Shader> tileSetShader, screenTransitionShader;
     std::unique_ptr<SpriteRenderer> spriteRenderer;
     std::unique_ptr<TileMapRenderer> tileMapRenderer;
-    std::unique_ptr<Texture2D> playerTexture;
     std::unique_ptr<ScreenTransition> screenTransition;
-    std::unique_ptr<Shader> screenTransitionShader;
     std::unique_ptr<ImGuiManager> imGuiManager;
     DebugUi debugUi;
     DebugTileMapUi debugTileMapUi;
@@ -90,4 +91,6 @@ private:
          shouldDrawTileMapAABBs = false,
          showDebug = false,
          showTileMapEditor = false;
+
+    GameData gameData;
 };

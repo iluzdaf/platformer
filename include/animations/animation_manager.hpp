@@ -1,20 +1,18 @@
 #pragma once
+
 #include <unordered_map>
 #include "game/player/player_animation_state.hpp"
 #include "animations/sprite_animation.hpp"
 
-struct PlayerState;
+struct AgentState;
 
 class AnimationManager
 {
 public:
-    void update(float deltaTime, const PlayerState &playerState);
-
-    SpriteAnimation &getCurrentAnimation();
+    void update(float deltaTime, const AgentState &agentState);
+    const SpriteAnimation &getCurrentAnimation();
     void addAnimation(PlayerAnimationState state, const SpriteAnimation &anim);
     PlayerAnimationState getCurrentState() const;
-    void reset();
-    void clear();
 
 private:
     PlayerAnimationState currentState = PlayerAnimationState::Idle;

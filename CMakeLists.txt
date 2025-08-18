@@ -86,14 +86,6 @@ add_executable(platformer
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
     src/game/player/player.cpp
-    src/game/player/movement_abilities/jump_ability.cpp
-    src/game/player/movement_abilities/dash_ability.cpp
-    src/game/player/movement_abilities/move_ability.cpp
-    src/game/player/movement_abilities/wall_slide_ability.cpp
-    src/game/player/movement_abilities/wall_jump_ability.cpp
-    src/game/player/movement_abilities/climb_ability.cpp
-    src/game/player/movement_abilities/climb_move_ability.cpp
-    src/game/player/movement_abilities/movement_system.cpp
     src/game/game.cpp
     src/game/scoring_system.cpp
     src/physics/fixed_time_step.cpp
@@ -107,6 +99,16 @@ add_executable(platformer
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
+    src/agent/agent.cpp
+    src/agent/movement_abilities/jump_ability.cpp
+    src/agent/movement_abilities/dash_ability.cpp
+    src/agent/movement_abilities/move_ability.cpp
+    src/agent/movement_abilities/wall_slide_ability.cpp
+    src/agent/movement_abilities/wall_jump_ability.cpp
+    src/agent/movement_abilities/climb_ability.cpp
+    src/agent/movement_abilities/climb_move_ability.cpp
+    src/agent/movement_abilities/movement_system.cpp
+    src/agent/movement_abilities/gravity_ability.cpp
 )
 
 if(MSVC)
@@ -156,17 +158,6 @@ add_executable(tests
     tests/game/tile_map/test_tile.cpp
     tests/game/tile_map/test_tile_interaction_system.cpp
     tests/game/player/test_player.cpp
-    tests/game/player/movement_abilities/test_jump_ability.cpp
-    tests/game/player/movement_abilities/test_dash_ability.cpp
-    tests/game/player/movement_abilities/test_move_ability.cpp
-    tests/game/player/movement_abilities/test_wall_slide_ability.cpp
-    tests/game/player/movement_abilities/test_wall_jump_ability.cpp
-    tests/game/player/movement_abilities/test_climb_ability.cpp
-    tests/game/player/movement_abilities/test_climb_move_ability.cpp
-    tests/game/player/movement_abilities/test_coyote_time.cpp
-    tests/game/player/movement_abilities/test_action_buffer.cpp
-    tests/game/player/movement_abilities/test_direction_buffer.cpp
-    tests/game/player/movement_abilities/test_movement_system.cpp
     tests/physics/test_fixed_time_step.cpp
     tests/physics/tests_aabb.cpp
     tests/physics/tests_physics_body.cpp
@@ -177,6 +168,18 @@ add_executable(tests
     tests/animations/test_tile_animation.cpp
     tests/scripting/test_lua_script_system.cpp
     tests/navigation/test_navigation_graph.cpp
+    tests/agent/movement_abilities/test_jump_ability.cpp
+    tests/agent/movement_abilities/test_dash_ability.cpp
+    tests/agent/movement_abilities/test_move_ability.cpp
+    tests/agent/movement_abilities/test_wall_slide_ability.cpp
+    tests/agent/movement_abilities/test_wall_jump_ability.cpp
+    tests/agent/movement_abilities/test_climb_ability.cpp
+    tests/agent/movement_abilities/test_climb_move_ability.cpp
+    tests/agent/movement_abilities/test_coyote_time.cpp
+    tests/agent/movement_abilities/test_action_buffer.cpp
+    tests/agent/movement_abilities/test_direction_buffer.cpp
+    tests/agent/movement_abilities/test_movement_system.cpp
+    tests/agent/movement_abilities/test_gravity_ability.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp
     src/rendering/screen_transition.cpp
@@ -193,14 +196,6 @@ add_executable(tests
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
     src/game/player/player.cpp
-    src/game/player/movement_abilities/jump_ability.cpp
-    src/game/player/movement_abilities/dash_ability.cpp
-    src/game/player/movement_abilities/move_ability.cpp
-    src/game/player/movement_abilities/wall_slide_ability.cpp
-    src/game/player/movement_abilities/wall_jump_ability.cpp
-    src/game/player/movement_abilities/climb_ability.cpp
-    src/game/player/movement_abilities/climb_move_ability.cpp
-    src/game/player/movement_abilities/movement_system.cpp
     src/game/game.cpp
     src/game/scoring_system.cpp
     src/physics/fixed_time_step.cpp
@@ -214,6 +209,16 @@ add_executable(tests
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
+    src/agent/agent.cpp
+    src/agent/movement_abilities/jump_ability.cpp
+    src/agent/movement_abilities/dash_ability.cpp
+    src/agent/movement_abilities/move_ability.cpp
+    src/agent/movement_abilities/wall_slide_ability.cpp
+    src/agent/movement_abilities/wall_jump_ability.cpp
+    src/agent/movement_abilities/climb_ability.cpp
+    src/agent/movement_abilities/climb_move_ability.cpp
+    src/agent/movement_abilities/movement_system.cpp
+    src/agent/movement_abilities/gravity_ability.cpp
     external/stb/stb_image.cpp
 )
 

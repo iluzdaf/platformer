@@ -29,10 +29,4 @@ TEST_CASE("CoyoteTime basic behavior", "[CoyoteTime]")
         coyote.consume();
         REQUIRE_FALSE(coyote.isCoyoteAvailable());
     }
-
-    SECTION("Set duration updates duration")
-    {
-        coyote.setDuration(0.5f);
-        REQUIRE(coyote.coyoteDuration == Approx(0.5f));
-    }
 }

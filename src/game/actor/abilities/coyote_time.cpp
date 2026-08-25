@@ -26,8 +26,3 @@ void CoyoteTime::consume()
 {
     coyoteTimer = 0.0f;
 }
-
-void CoyoteTime::setDuration(float duration)
-{
-    coyoteDuration = duration;
-}

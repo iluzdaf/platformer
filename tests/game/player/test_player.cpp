@@ -8,18 +8,21 @@
 
 using Catch::Approx;
 
-void simulatePlayer(
-    Player &player,
-    ScriptedIntentions &input,
-    TileMap &tileMap,
-    float totalTime,
-    InputIntentions intentions = InputIntentions(),
-    float step = 0.01f)
+namespace
 {
-    FixedTimeStep timeStepper(step);
-    input.set(intentions);
-    timeStepper.run(totalTime, [&](float dt)
-                    { player.fixedUpdate(dt, tileMap); player.postFixedUpdate(); });
+    void simulatePlayer(
+        Player &player,
+        ScriptedIntentions &input,
+        TileMap &tileMap,
+        float totalTime,
+        InputIntentions intentions = InputIntentions(),
+        float step = 0.01f)
+    {
+        FixedTimeStep timeStepper(step);
+        input.set(intentions);
+        timeStepper.run(totalTime, [&](float dt)
+                        { player.fixedUpdate(dt, tileMap); player.postFixedUpdate(); });
+    }
 }
 
 TEST_CASE("Player falls under normal gravity", "[Player]")

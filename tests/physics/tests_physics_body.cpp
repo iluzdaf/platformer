@@ -5,17 +5,20 @@
 #include "test_helpers/test_tile_map_utils.hpp"
 using Catch::Approx;
 
-PhysicsBody setupBody(
-    glm::vec2 position = {0, 0},
-    glm::vec2 velocity = {0, 0},
-    glm::vec2 size = {16, 16},
-    glm::vec2 offset = {0, 0})
+namespace
 {
-    PhysicsBodyData data{size, offset};
-    PhysicsBody body(data);
-    body.setPosition(position);
-    body.setVelocity(velocity);
-    return body;
+    PhysicsBody setupBody(
+        glm::vec2 position = {0, 0},
+        glm::vec2 velocity = {0, 0},
+        glm::vec2 size = {16, 16},
+        glm::vec2 offset = {0, 0})
+    {
+        PhysicsBodyData data{size, offset};
+        PhysicsBody body(data);
+        body.setPosition(position);
+        body.setVelocity(velocity);
+        return body;
+    }
 }
 
 TEST_CASE("PhysicsBody resolves collisions with solid tiles", "[PhysicsBody]")

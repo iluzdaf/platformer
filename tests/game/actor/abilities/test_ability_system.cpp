@@ -15,15 +15,18 @@
 
 using Catch::Approx;
 
-void simulateMovement(
-    AbilitySystem &abilitySystem,
-    float deltaTime,
-    const InputIntentions &inputIntentions,
-    ActorMotionState &state)
+namespace
 {
-    abilitySystem.applyMovement(deltaTime, inputIntentions, state);
+    void simulateMovement(
+        AbilitySystem &abilitySystem,
+        float deltaTime,
+        const InputIntentions &inputIntentions,
+        ActorMotionState &state)
+    {
+        abilitySystem.applyMovement(deltaTime, inputIntentions, state);
 
-    state.velocity = state.targetVelocity;
+        state.velocity = state.targetVelocity;
+    }
 }
 
 TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")

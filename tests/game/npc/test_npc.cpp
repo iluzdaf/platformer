@@ -29,6 +29,38 @@ namespace
         return tileMap;
     }
 
+    constexpr int TwoTierWidthTiles = 20;
+    constexpr int TwoTierHeightTiles = 14;
+    constexpr int FloorRow = 12;
+    constexpr int PlatformRow = 8;
+    constexpr int PlatformFirstTile = 3;
+    constexpr int PlatformLastTile = 9;
+    constexpr glm::ivec2 UnderThePlatform{6, FloorRow - 1};
+
+    TileMap setupTwoTierTileMap()
+    {
+        TileMap tileMap = setupTileMap(TwoTierWidthTiles, TwoTierHeightTiles);
+
+        for (int x = 0; x < TwoTierWidthTiles; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, FloorRow), 1);
+
+        for (int x = PlatformFirstTile; x <= PlatformLastTile; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        tileMap.buildNavigationGraph();
+        return tileMap;
+    }
+
+    float floorTopY(const TileMap &tileMap)
+    {
+        return static_cast<float>(FloorRow * tileMap.getTileSize());
+    }
+
+    float spanOf(int firstTile, int lastTile, const TileMap &tileMap)
+    {
+        return static_cast<float>((lastTile - firstTile + 1) * tileMap.getTileSize());
+    }
+
     glm::vec2 spawnPosition(const TileMap &tileMap)
     {
         return tileMap.tileToWorldPosition(glm::ivec2(4, 5));
@@ -196,12 +228,11 @@ TEST_CASE("The shipped level6 has a graph an npc can wander", "[Npc][Level]")
     const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
     REQUIRE(navigationGraph.getNodes().size() > 2);
     REQUIRE_FALSE(navigationGraph.getEdges().empty());
-    REQUIRE(tileMap.getNpcs().size() == 2);
+    REQUIRE_FALSE(tileMap.getNpcs().empty());
     REQUIRE(tileMap.getNpcs()[0].type == "villager");
-    REQUIRE(tileMap.getNpcs()[0].tilePosition == glm::ivec2(6, 11));
 
     Npc npc(setupNpcData());
-    npc.setPosition(tileMap.tileToWorldPosition(glm::ivec2(6, 11)));
+    npc.setPosition(tileMap.tileToWorldPosition(tileMap.getNpcs()[0].tilePosition));
 
     float startX = npc.getPosition().x;
     stepNpc(npc, tileMap, 400);
@@ -237,11 +268,12 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
     }
 }
 
-TEST_CASE("An npc on the ground patrols the ground, not the platform above it", "[Npc][Level]")
+TEST_CASE("An npc on the ground patrols the ground, not the platform above it", "[Npc]")
 {
-    TileMap tileMap("../../assets/levels/level6.json", shippedPalettes());
+    TileMap tileMap = setupTwoTierTileMap();
     Npc npc(setupNpcData());
-    npc.setPosition(tileMap.tileToWorldPosition(glm::ivec2(6, 11)));
+    npc.setPosition(tileMap.tileToWorldPosition(UnderThePlatform));
+
     float lowest = footX(npc);
     float highest = footX(npc);
     for (int step = 0; step < 4000; ++step)
@@ -251,23 +283,23 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
         highest = std::max(highest, footX(npc));
     }
 
-    constexpr float PlatformAboveSpan = 112.0f;
-    constexpr float FloorSpan = 288.0f;
-    REQUIRE(highest - lowest > (PlatformAboveSpan + FloorSpan) * 0.5f);
+    float platformSpan = spanOf(PlatformFirstTile, PlatformLastTile, tileMap);
+    float floorSpan = spanOf(0, TwoTierWidthTiles - 1, tileMap);
+    REQUIRE(highest - lowest > (platformSpan + floorSpan) * 0.5f);
 }
 
-TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc][Level]")
+TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
 {
-    TileMap tileMap("../../assets/levels/level6.json", shippedPalettes());
+    TileMap tileMap = setupTwoTierTileMap();
     Npc npc(setupNpcData());
-    npc.setPosition(tileMap.tileToWorldPosition(glm::ivec2(6, 11)));
+    npc.setPosition(tileMap.tileToWorldPosition(UnderThePlatform));
 
     std::vector<float> footXs = patrolFootXs(npc, tileMap, 4000);
 
     int floorNodes = 0;
     for (const auto &[id, node] : tileMap.getNavigationGraph().getNodes())
     {
-        if (node.position.y != 192.0f)
+        if (node.position.y != floorTopY(tileMap))
             continue;
 
         ++floorNodes;

@@ -1,8 +1,10 @@
 #include "game/actor/actor.hpp"
 #include "input/input_intentions.hpp"
+#include "game/tile_map/tile_map.hpp"
 
 Actor::Actor(const AgentData &agentData, const ActorAnimationData &animationData)
-    : agent(agentData)
+    : agent(agentData),
+      physicsBody(agentData.physicsBodyData)
 {
     animationManager.addAnimation(ActorAnimationState::Idle, SpriteAnimation(animationData.idleSpriteAnimationData));
     animationManager.addAnimation(ActorAnimationState::Walk, SpriteAnimation(animationData.walkSpriteAnimationData));
@@ -25,7 +27,13 @@ void Actor::fixedUpdate(float deltaTime, const TileMap &tileMap)
 {
     InputIntentions inputIntentions = decideIntentions(deltaTime, tileMap);
 
-    agent.fixedUpdate(deltaTime, tileMap, inputIntentions);
+    agent.applyMovement(deltaTime, inputIntentions);
+
+    physicsBody.setVelocity(agent.getState().targetVelocity);
+    physicsBody.stepPhysics(deltaTime, tileMap);
+
+    agent.readContacts(physicsBody, tileMap);
+    agent.readMotion(physicsBody);
 
     animationManager.update(deltaTime, agent.getState());
 
@@ -46,14 +54,19 @@ const Agent &Actor::getAgent() const
     return agent;
 }
 
+const PhysicsBody &Actor::getPhysicsBody() const
+{
+    return physicsBody;
+}
+
 void Actor::setPosition(const glm::vec2 &position)
 {
+    physicsBody.setPosition(position);
     agent.setPosition(position);
 }
 
 glm::vec2 Actor::getFootOffset() const
 {
-    const PhysicsBody &physicsBody = agent.getPhysicsBody();
     return physicsBody.getColliderOffset() +
            glm::vec2(physicsBody.getColliderSize().x * 0.5f, physicsBody.getColliderSize().y);
 }

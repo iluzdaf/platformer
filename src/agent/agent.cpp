@@ -1,51 +1,19 @@
 #include "agent/agent.hpp"
+#include "physics/physics_body.hpp"
 #include "game/tile_map/tile_map.hpp"
 
 Agent::Agent(const AgentData &data)
     : data(data),
-      movementSystem(data),
-      physicsBody(data.physicsBodyData)
+      movementSystem(data)
 {
 }
 
-void Agent::resetCollisionAABB()
+void Agent::applyMovement(float deltaTime, const InputIntentions &inputIntentions)
 {
-    state.collisionAABBX = AABB();
-    state.collisionAABBY = AABB();
+    movementSystem.applyMovement(deltaTime, inputIntentions, state);
 }
 
-const AgentState &Agent::getState() const
-{
-    return state;
-}
-
-const PhysicsBody &Agent::getPhysicsBody() const
-{
-    return physicsBody;
-}
-
-const MovementSystem &Agent::getMovementSystem() const
-{
-    return movementSystem;
-}
-
-void Agent::setPosition(const glm::vec2 &position)
-{
-    physicsBody.setPosition(position);
-    state.position = position;
-}
-
-void Agent::updateState()
-{
-    state.position = physicsBody.getPosition();
-    state.previousVelocity = state.velocity;
-    state.velocity = physicsBody.getVelocity();
-    state.colliderSize = physicsBody.getColliderSize();
-    state.colliderOffset = physicsBody.getColliderOffset();
-    state.size = data.size;
-}
-
-void Agent::updatePhysicsState(const TileMap &tileMap)
+void Agent::readContacts(const PhysicsBody &physicsBody, const TileMap &tileMap)
 {
     state.wasOnGround = state.onGround;
     state.onGround = physicsBody.contactWithGround(tileMap);
@@ -63,16 +31,33 @@ void Agent::updatePhysicsState(const TileMap &tileMap)
         state.collisionAABBY.expandToInclude(physicsBody.getCollisionAABBY());
 }
 
-void Agent::fixedUpdate(
-    float deltaTime,
-    const TileMap &tileMap,
-    const InputIntentions &inputIntensions)
+void Agent::readMotion(const PhysicsBody &physicsBody)
 {
-    movementSystem.applyMovement(deltaTime, inputIntensions, state);
+    state.position = physicsBody.getPosition();
+    state.previousVelocity = state.velocity;
+    state.velocity = physicsBody.getVelocity();
+    state.colliderSize = physicsBody.getColliderSize();
+    state.colliderOffset = physicsBody.getColliderOffset();
+    state.size = data.size;
+}
 
-    physicsBody.setVelocity(state.targetVelocity);
-    physicsBody.stepPhysics(deltaTime, tileMap);
+void Agent::resetCollisionAABB()
+{
+    state.collisionAABBX = AABB();
+    state.collisionAABBY = AABB();
+}
 
-    updatePhysicsState(tileMap);
-    updateState();
+const AgentState &Agent::getState() const
+{
+    return state;
+}
+
+const MovementSystem &Agent::getMovementSystem() const
+{
+    return movementSystem;
+}
+
+void Agent::setPosition(const glm::vec2 &position)
+{
+    state.position = position;
 }

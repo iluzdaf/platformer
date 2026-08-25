@@ -176,7 +176,7 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
     }
 }
 
-bool PhysicsBody::contactWithLeftWall(const TileMap &tileMap)
+bool PhysicsBody::contactWithLeftWall(const TileMap &tileMap) const
 {
     glm::vec2 probeSize = getColliderSize();
     probeSize.y *= 0.5f;
@@ -189,7 +189,7 @@ bool PhysicsBody::contactWithLeftWall(const TileMap &tileMap)
         { return true; });
 }
 
-bool PhysicsBody::contactWithRightWall(const TileMap &tileMap)
+bool PhysicsBody::contactWithRightWall(const TileMap &tileMap) const
 {
     glm::vec2 probeSize = getColliderSize();
     probeSize.y *= 0.5f;
@@ -202,7 +202,7 @@ bool PhysicsBody::contactWithRightWall(const TileMap &tileMap)
         { return true; });
 }
 
-bool PhysicsBody::contactWithGround(const TileMap &tileMap)
+bool PhysicsBody::contactWithGround(const TileMap &tileMap) const
 {
     glm::vec2 probeSize = getColliderSize();
     probeSize.x *= 0.5f;

@@ -4,7 +4,7 @@
 
 void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 {
-    AABB playerAABB = player.getAgent().getPhysicsBody().getAABB();
+    AABB playerAABB = player.getPhysicsBody().getAABB();
     auto tilePositions = tileMap.worldToTilePositions(playerAABB.position, playerAABB.size);
 
     for (const auto &tilePosition : tilePositions)

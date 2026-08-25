@@ -18,9 +18,9 @@ public:
     const glm::vec2 &getColliderOffset() const;
     float getGravity() const;
     AABB getAABB() const;
-    bool contactWithLeftWall(const TileMap &tileMap);
-    bool contactWithRightWall(const TileMap &tileMap);
-    bool contactWithGround(const TileMap &tileMap);
+    bool contactWithLeftWall(const TileMap &tileMap) const;
+    bool contactWithRightWall(const TileMap &tileMap) const;
+    bool contactWithGround(const TileMap &tileMap) const;
     bool contactWithCeiling(const TileMap &tileMap) const;
     void stepPhysics(float deltaTime, const TileMap &tileMap);
     const AABB &getCollisionAABBX() const;

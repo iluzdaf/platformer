@@ -27,7 +27,7 @@ InputIntentions Npc::decideIntentions(float deltaTime, const TileMap &tileMap)
     NpcBehaviorContext context{
         tileMap.getNavigationGraph(),
         agent.getState().position + getFootOffset(),
-        agent.getPhysicsBody().getColliderSize()};
+        physicsBody.getColliderSize()};
 
     return behavior->decide(deltaTime, context);
 }
@@ -44,7 +44,7 @@ void Npc::spawnAt(
     NpcBehaviorContext context{
         navigationGraph,
         position + getFootOffset(),
-        agent.getPhysicsBody().getColliderSize()};
+        physicsBody.getColliderSize()};
     behavior->reset(context);
 }
 

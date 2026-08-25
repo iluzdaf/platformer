@@ -1,17 +1,10 @@
 #include "game/player/player.hpp"
 
-Player::Player(const PlayerData &data)
+Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
     : Actor(data.motionData, data.animationData),
       data(data)
 {
-    std::unique_ptr<InputBehavior> newInputBehavior = std::make_unique<InputBehavior>();
-    inputBehavior = newInputBehavior.get();
-    setBehavior(std::move(newInputBehavior));
-}
-
-void Player::setInputIntentions(const InputIntentions &intentions)
-{
-    inputBehavior->setIntentions(intentions);
+    setBehavior(std::make_unique<InputBehavior>(intentionSource));
 }
 
 void Player::postFixedUpdate()

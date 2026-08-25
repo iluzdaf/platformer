@@ -4,13 +4,12 @@
 #include "game/player/player_data.hpp"
 #include "game/actor/actor.hpp"
 #include "game/actor/behaviors/input_behavior.hpp"
-#include "input/input_intentions.hpp"
+#include "input/intention_source.hpp"
 
 class Player : public Actor
 {
 public:
-    explicit Player(const PlayerData &data);
-    void setInputIntentions(const InputIntentions &inputIntentions);
+    Player(const PlayerData &data, const IntentionSource &intentionSource);
     void postFixedUpdate() override;
 
     fteng::signal<void()>
@@ -26,5 +25,4 @@ public:
 
 private:
     PlayerData data;
-    InputBehavior *inputBehavior = nullptr;
 };

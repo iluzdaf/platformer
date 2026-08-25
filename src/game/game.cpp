@@ -214,8 +214,6 @@ void Game::preFixedUpdate()
 {
     inputManager.process(window);
 
-    player->setInputIntentions(inputManager.getIntentions());
-
     for (Actor *actor : actors)
         actor->preFixedUpdate();
 }
@@ -417,7 +415,7 @@ void Game::rebuildPlayer()
     if (!tileMap)
         throw std::runtime_error("Cannot rebuild the player before the tile map");
 
-    std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData);
+    std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
     player = std::move(newPlayer);
     player->setPosition(tileMap->getPlayerStartWorldPosition());
     player->onDeath.connect([this]

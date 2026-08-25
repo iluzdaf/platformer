@@ -10,23 +10,25 @@ using Catch::Approx;
 
 void simulatePlayer(
     Player &player,
+    ScriptedIntentions &input,
     TileMap &tileMap,
     float totalTime,
     InputIntentions intentions = InputIntentions(),
     float step = 0.01f)
 {
     FixedTimeStep timeStepper(step);
-    player.setInputIntentions(intentions);
+    input.set(intentions);
     timeStepper.run(totalTime, [&](float dt)
                     { player.fixedUpdate(dt, tileMap); player.postFixedUpdate(); });
 }
 
 TEST_CASE("Player falls under normal gravity", "[Player]")
 {
-    Player player = setupPlayer();
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
     const float gravity = GravityAbilityData().gravity;
     TileMap tileMap = setupTileMap(1, static_cast<int>(gravity / 16.0f) + 2);
-    simulatePlayer(player, tileMap, 1.0f);
+    simulatePlayer(player, input, tileMap, 1.0f);
     const ActorMotionState &state = player.getMotion().getState();
     REQUIRE(state.velocity.y == Approx(gravity));
     REQUIRE(player.getPosition().y == Approx(0.5f * gravity).margin(5));
@@ -35,12 +37,13 @@ TEST_CASE("Player falls under normal gravity", "[Player]")
 TEST_CASE("Player sets onGround correctly", "[Player]")
 {
     TileMap tileMap = setupTileMap();
-    Player player = setupPlayer();
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
 
     SECTION("Player lands on solid tile")
     {
         tileMap.setTileIndex(glm::ivec2(0, 5), 1);
-        simulatePlayer(player, tileMap, 1.0f);
+        simulatePlayer(player, input, tileMap, 1.0f);
         float expectedY = static_cast<float>(4 * tileMap.getTileSize());
         const ActorMotionState &state = player.getMotion().getState();
         REQUIRE(player.getPosition().y == Approx(expectedY));
@@ -53,12 +56,12 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
         tileMap.setTileIndex(glm::ivec2(1, 5), 1);
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         player.setPosition({2 * 16, 4 * 16});
-        simulatePlayer(player, tileMap, 0.1f);
+        simulatePlayer(player, input, tileMap, 0.1f);
         const ActorMotionState &state = player.getMotion().getState();
         REQUIRE(state.contacts.onGround);
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
-        simulatePlayer(player, tileMap, 0.2f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.2f, inputIntentions);
         REQUIRE_FALSE(state.contacts.onGround);
     }
 }
@@ -66,12 +69,13 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
 TEST_CASE("Player uses correct animation state", "[Player]")
 {
     TileMap tileMap = setupTileMap();
-    Player player = setupPlayer();
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
     player.setPosition({5 * 16, 9 * 16});
 
     SECTION("Player is idle by default")
     {
-        simulatePlayer(player, tileMap, 0.1f);
+        simulatePlayer(player, input, tileMap, 0.1f);
         REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Idle);
     }
 
@@ -79,13 +83,13 @@ TEST_CASE("Player uses correct animation state", "[Player]")
     {
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Walk);
-        simulatePlayer(player, tileMap, 0.1f);
+        simulatePlayer(player, input, tileMap, 0.1f);
         REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Idle);
         inputIntentions = InputIntentions();
         inputIntentions.direction.x = -1;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Walk);
     }
 
@@ -93,9 +97,9 @@ TEST_CASE("Player uses correct animation state", "[Player]")
     {
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         glm::vec2 uvBefore = player.getState().currentAnimationUVStart;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         glm::vec2 uvAfter = player.getState().currentAnimationUVStart;
         REQUIRE(uvBefore.x != Approx(uvAfter.x));
     }
@@ -103,7 +107,8 @@ TEST_CASE("Player uses correct animation state", "[Player]")
 
 TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 {
-    Player player = setupPlayer();
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
     TileMap tileMap = setupTileMap();
 
     SECTION("Starts facing right")
@@ -116,10 +121,10 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
     {
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         const ActorState &playerState = player.getState();
         REQUIRE(playerState.facingLeft);
-        simulatePlayer(player, tileMap, 0.1f);
+        simulatePlayer(player, input, tileMap, 0.1f);
         REQUIRE(playerState.facingLeft);
     }
 
@@ -127,10 +132,10 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
     {
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         const ActorState &playerState = player.getState();
         REQUIRE_FALSE(playerState.facingLeft);
-        simulatePlayer(player, tileMap, 0.1f);
+        simulatePlayer(player, input, tileMap, 0.1f);
         REQUIRE_FALSE(playerState.facingLeft);
     }
 }
@@ -138,7 +143,8 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 TEST_CASE("Player and tilemap bounds", "[Player]")
 {
     TileMap tileMap = setupTileMap();
-    Player player = setupPlayer();
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
 
     SECTION("Player stays within bounds")
     {
@@ -146,7 +152,7 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
 
         SECTION("While falling")
         {
-            simulatePlayer(player, tileMap, 10.0f);
+            simulatePlayer(player, input, tileMap, 10.0f);
             REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
             REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
         }
@@ -155,7 +161,7 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
         {
             InputIntentions inputIntentions;
             inputIntentions.direction.x = -1;
-            simulatePlayer(player, tileMap, 10.0f, inputIntentions);
+            simulatePlayer(player, input, tileMap, 10.0f, inputIntentions);
             REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
             REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
         }
@@ -164,7 +170,7 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
         {
             InputIntentions inputIntentions;
             inputIntentions.direction.x = 1;
-            simulatePlayer(player, tileMap, 10.0f, inputIntentions);
+            simulatePlayer(player, input, tileMap, 10.0f, inputIntentions);
             REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
             REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
         }
@@ -174,7 +180,8 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
 TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 {
     TileMap tileMap = setupTileMap();
-    Player player = setupPlayer();
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
     const ActorMotionState &state = player.getMotion().getState();
 
     SECTION("Touching right wall")
@@ -186,7 +193,7 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         player.setPosition(glm::vec2(5 * 16.0f, 16.0f));
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         REQUIRE(state.contacts.touchingRightWall);
         REQUIRE_FALSE(state.contacts.touchingLeftWall);
     }
@@ -200,7 +207,7 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         player.setPosition(glm::vec2(4 * 16.0f, 16.0f));
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         REQUIRE(state.contacts.touchingLeftWall);
         REQUIRE_FALSE(state.contacts.touchingRightWall);
     }
@@ -213,7 +220,8 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
     {
         tileMap.setTileIndex(glm::ivec2(x, 19), 1);
     }
-    Player player = setupPlayer();
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
 
     SECTION("onFallFromHeight")
     {
@@ -221,7 +229,7 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
         bool fallFromHeightTriggered = false;
         player.onFallFromHeight.connect([&]
                                         { fallFromHeightTriggered = true; });
-        simulatePlayer(player, tileMap, 1.5f);
+        simulatePlayer(player, input, tileMap, 1.5f);
         REQUIRE(fallFromHeightTriggered);
     }
 
@@ -230,13 +238,13 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
         tileMap.setTileIndex(glm::ivec2(2, 2), 1);
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         player.setPosition({2 * 16, 4 * 16});
-        simulatePlayer(player, tileMap, 0.01f);
+        simulatePlayer(player, input, tileMap, 0.01f);
         bool hitCeilingTriggered = false;
         player.onHitCeiling.connect([&]
                                     { hitCeilingTriggered = true; });
         InputIntentions inputIntentions;
         inputIntentions.jumpRequested = true;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         REQUIRE(hitCeilingTriggered);
     }
 }
@@ -244,7 +252,8 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
 TEST_CASE("Player movement ability integration", "[Player]")
 {
     TileMap tileMap = setupTileMap(20, 10);
-    Player player = setupPlayer();
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
     InputIntentions inputIntentions;
 
     SECTION("Player cannot move into solid tile")
@@ -258,14 +267,14 @@ TEST_CASE("Player movement ability integration", "[Player]")
         SECTION("Moving right into solid tile")
         {
             inputIntentions.direction.x = 1;
-            simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+            simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
             REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize()));
         }
 
         SECTION("Moving left into solid tile")
         {
             inputIntentions.direction.x = -1;
-            simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+            simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
             REQUIRE(player.getPosition().x >= Approx(1 * tileMap.getTileSize()));
         }
     }
@@ -278,7 +287,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         player.setPosition({2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()});
         inputIntentions.jumpRequested = true;
-        simulatePlayer(player, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         float playerTopY = player.getPosition().y;
         float ceilingBottomY = static_cast<float>(ceilingTileY + 1);
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));

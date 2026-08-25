@@ -10,8 +10,32 @@
 #include "game/actor/abilities/climb_move_ability_data.hpp"
 #include "game/actor/abilities/gravity_ability_data.hpp"
 #include "animations/sprite_animation_data.hpp"
+#include "input/intention_source.hpp"
 
-inline Player setupPlayer()
+class ScriptedIntentions : public IntentionSource
+{
+public:
+    void set(const InputIntentions &newIntentions)
+    {
+        intentions = newIntentions;
+    }
+
+    InputIntentions getIntentions() const override
+    {
+        return intentions;
+    }
+
+private:
+    InputIntentions intentions;
+};
+
+inline const IntentionSource &noIntentions()
+{
+    static const ScriptedIntentions source;
+    return source;
+}
+
+inline Player setupPlayer(const IntentionSource &intentionSource = noIntentions())
 {
     PlayerData playerData;
     playerData.animationData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
@@ -24,5 +48,5 @@ inline Player setupPlayer()
     playerData.motionData.climbAbilityData = ClimbAbilityData();
     playerData.motionData.climbMoveAbilityData = ClimbMoveAbilityData();
     playerData.motionData.gravityAbilityData = GravityAbilityData();
-    return Player(playerData);
+    return Player(playerData, intentionSource);
 }

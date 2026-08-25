@@ -1,13 +1,14 @@
 #pragma once
 
 #include "game/actor/actor_behavior.hpp"
+#include "input/intention_source.hpp"
 
 class InputBehavior : public ActorBehavior
 {
 public:
-    void setIntentions(const InputIntentions &intentions);
+    explicit InputBehavior(const IntentionSource &intentionSource);
     InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
 
 private:
-    InputIntentions intentions;
+    const IntentionSource *intentionSource;
 };

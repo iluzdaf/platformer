@@ -9,6 +9,7 @@
 void DebugUi::draw(
     const ImGuiManager &imGuiManager,
     const AgentState &playerAgentState,
+    const glm::vec2 &playerPosition,
     const ActorState &actorState,
     const Camera2D &camera,
     bool showDebug)
@@ -57,7 +58,7 @@ void DebugUi::draw(
         };
 
         drawRow("Velocity", std::format("{:.2f}, {:.2f}", playerAgentState.velocity.x, playerAgentState.velocity.y));
-        drawRow("Position", std::format("{:.2f}, {:.2f}", playerAgentState.position.x, playerAgentState.position.y));
+        drawRow("Position", std::format("{:.2f}, {:.2f}", playerPosition.x, playerPosition.y));
 
         drawRow("On Ground", playerAgentState.onGround ? "true" : "false");
         drawRow("Facing Left", actorState.facingLeft ? "true" : "false");

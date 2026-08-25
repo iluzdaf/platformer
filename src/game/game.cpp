@@ -202,8 +202,7 @@ void Game::run()
             stepFrame = false;
         }
 
-        const AgentState &playerAgentState = player->getAgent().getState();
-        camera->follow(playerAgentState.position);
+        camera->follow(player->getPosition());
 
         render();
 
@@ -259,13 +258,12 @@ void Game::render()
     for (const Actor *actor : actors)
     {
         const ActorState &actorState = actor->getState();
-        const AgentState &agentState = actor->getAgent().getState();
         spriteRenderer->drawWithUV(
             *tileSetShader.get(),
             *playerTexture.get(),
             projection,
-            agentState.position,
-            agentState.size,
+            actor->getPosition(),
+            actorState.size,
             actorState.currentAnimationUVStart,
             actorState.currentAnimationUVEnd,
             actorState.facingLeft);
@@ -296,6 +294,7 @@ void Game::render()
     debugUi.draw(
         *imGuiManager.get(),
         player->getAgent().getState(),
+        player->getPosition(),
         player->getState(),
         *camera.get(),
         showDebug);

@@ -26,7 +26,7 @@ InputIntentions Npc::decideIntentions(float deltaTime, const TileMap &tileMap)
 
     NpcBehaviorContext context{
         tileMap.getNavigationGraph(),
-        agent.getState().position + getFootOffset(),
+        physicsBody.getPosition() + getFootOffset(),
         physicsBody.getColliderSize()};
 
     return behavior->decide(deltaTime, context);

@@ -6,6 +6,8 @@ Actor::Actor(const AgentData &agentData, const ActorAnimationData &animationData
     : agent(agentData),
       physicsBody(agentData.physicsBodyData)
 {
+    actorState.size = agentData.size;
+
     animationManager.addAnimation(ActorAnimationState::Idle, SpriteAnimation(animationData.idleSpriteAnimationData));
     animationManager.addAnimation(ActorAnimationState::Walk, SpriteAnimation(animationData.walkSpriteAnimationData));
     animationManager.addAnimation(ActorAnimationState::Dash, SpriteAnimation(animationData.dashSpriteAnimationData));
@@ -59,10 +61,14 @@ const PhysicsBody &Actor::getPhysicsBody() const
     return physicsBody;
 }
 
+const glm::vec2 &Actor::getPosition() const
+{
+    return physicsBody.getPosition();
+}
+
 void Actor::setPosition(const glm::vec2 &position)
 {
     physicsBody.setPosition(position);
-    agent.setPosition(position);
 }
 
 glm::vec2 Actor::getFootOffset() const

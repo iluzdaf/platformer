@@ -19,6 +19,7 @@ public:
     const ActorState &getState() const;
     const Agent &getAgent() const;
     const PhysicsBody &getPhysicsBody() const;
+    const glm::vec2 &getPosition() const;
     void setPosition(const glm::vec2 &position);
     glm::vec2 getFootOffset() const;
 

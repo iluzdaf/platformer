@@ -51,7 +51,7 @@ TEST_CASE("Spawns where the level places it", "[Npc]")
     glm::vec2 placed = spawnPosition(tileMap);
     npc.spawnAt(placed, tileMap.getNavigationGraph());
 
-    REQUIRE(npc.getAgent().getState().position == placed);
+    REQUIRE(npc.getPosition() == placed);
 }
 
 TEST_CASE("Starts from the navigation node nearest where it was placed", "[Npc]")
@@ -92,10 +92,10 @@ TEST_CASE("Walks along the graph without being told to", "[Npc]")
     Npc npc(setupNpcData());
     npc.spawnAt(spawnPosition(tileMap), tileMap.getNavigationGraph());
 
-    float startX = npc.getAgent().getState().position.x;
+    float startX = npc.getPosition().x;
     stepNpc(npc, tileMap, 200);
 
-    REQUIRE(std::abs(npc.getAgent().getState().position.x - startX) > 1.0f);
+    REQUIRE(std::abs(npc.getPosition().x - startX) > 1.0f);
 }
 
 TEST_CASE("Patrols between both ends of its platform", "[Npc]")
@@ -105,20 +105,20 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
     npc.spawnAt(spawnPosition(tileMap), tileMap.getNavigationGraph());
 
     std::unordered_set<int> visited;
-    float lowestFootY = npc.getAgent().getState().position.y + npc.getFootOffset().y;
+    float lowestFootY = npc.getPosition().y + npc.getFootOffset().y;
 
     for (int step = 0; step < 4000; ++step)
     {
         stepNpc(npc, tileMap, 1);
         visited.insert(*npc.getCurrentNodeId());
-        lowestFootY = std::max(lowestFootY, npc.getAgent().getState().position.y + npc.getFootOffset().y);
+        lowestFootY = std::max(lowestFootY, npc.getPosition().y + npc.getFootOffset().y);
     }
 
     REQUIRE(visited.size() == tileMap.getNavigationGraph().getNodes().size());
 
     REQUIRE(lowestFootY <= 6.0f * tileMap.getTileSize());
 
-    glm::vec2 position = npc.getAgent().getState().position;
+    glm::vec2 position = npc.getPosition();
     REQUIRE(position.x >= -static_cast<float>(tileMap.getTileSize()));
     REQUIRE(position.x <= static_cast<float>(tileMap.getWorldWidth()));
 }
@@ -135,7 +135,7 @@ TEST_CASE("Stands still on a tile map with no navigation graph", "[Npc]")
     npc.setPosition(glm::vec2(48.0f, 64.0f));
     stepNpc(npc, tileMap, 100);
 
-    REQUIRE(npc.getAgent().getState().position.x == 48.0f);
+    REQUIRE(npc.getPosition().x == 48.0f);
 }
 
 TEST_CASE("Patrolling is deterministic, so where you place them is what differs", "[Npc]")
@@ -150,7 +150,7 @@ TEST_CASE("Patrolling is deterministic, so where you place them is what differs"
     stepNpc(first, tileMap, 600);
     stepNpc(second, tileMap, 600);
 
-    REQUIRE(first.getAgent().getState().position == second.getAgent().getState().position);
+    REQUIRE(first.getPosition() == second.getPosition());
 }
 
 TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
@@ -186,10 +186,10 @@ TEST_CASE("The shipped level6 has a graph an npc can wander", "[Npc][Level]")
     npc.spawnAt(tileMap.tileToWorldPosition(glm::ivec2(6, 11)), navigationGraph);
     REQUIRE(npc.getCurrentNodeId().has_value());
 
-    float startX = npc.getAgent().getState().position.x;
+    float startX = npc.getPosition().x;
     stepNpc(npc, tileMap, 400);
 
-    REQUIRE(std::abs(npc.getAgent().getState().position.x - startX) > 1.0f);
+    REQUIRE(std::abs(npc.getPosition().x - startX) > 1.0f);
 }
 
 TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Level]")
@@ -228,7 +228,7 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
 
     REQUIRE(npc.getCurrentNodeId().has_value());
 
-    glm::vec2 footPosition = npc.getAgent().getState().position + npc.getFootOffset();
+    glm::vec2 footPosition = npc.getPosition() + npc.getFootOffset();
     NavigationNode anchor = tileMap.getNavigationGraph().getNode(*npc.getCurrentNodeId());
     REQUIRE(anchor.position.y == footPosition.y);
 
@@ -237,7 +237,7 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
     for (int step = 0; step < 4000; ++step)
     {
         stepNpc(npc, tileMap, 1);
-        float footX = npc.getAgent().getState().position.x + npc.getFootOffset().x;
+        float footX = npc.getPosition().x + npc.getFootOffset().x;
         lowest = std::min(lowest, footX);
         highest = std::max(highest, footX);
     }
@@ -283,5 +283,5 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
 
     stepNpc(npc, tileMap, 400);
 
-    REQUIRE(npc.getAgent().getState().position.x == placed.x);
+    REQUIRE(npc.getPosition().x == placed.x);
 }

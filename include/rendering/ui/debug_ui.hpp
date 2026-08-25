@@ -1,6 +1,7 @@
 #pragma once
 
 #include <signals.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 struct AgentState;
 struct ActorState;
@@ -13,6 +14,7 @@ public:
     void draw(
         const ImGuiManager &imGuiManager,
         const AgentState &playerAgentState,
+        const glm::vec2 &playerPosition,
         const ActorState &actorState,
         const Camera2D &camera,
         bool showDebug);

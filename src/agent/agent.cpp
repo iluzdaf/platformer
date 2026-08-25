@@ -3,8 +3,7 @@
 #include "game/tile_map/tile_map.hpp"
 
 Agent::Agent(const AgentData &data)
-    : data(data),
-      movementSystem(data)
+    : movementSystem(data)
 {
 }
 
@@ -33,12 +32,8 @@ void Agent::readContacts(const PhysicsBody &physicsBody, const TileMap &tileMap)
 
 void Agent::readMotion(const PhysicsBody &physicsBody)
 {
-    state.position = physicsBody.getPosition();
     state.previousVelocity = state.velocity;
     state.velocity = physicsBody.getVelocity();
-    state.colliderSize = physicsBody.getColliderSize();
-    state.colliderOffset = physicsBody.getColliderOffset();
-    state.size = data.size;
 }
 
 void Agent::resetCollisionAABB()
@@ -55,9 +50,4 @@ const AgentState &Agent::getState() const
 const MovementSystem &Agent::getMovementSystem() const
 {
     return movementSystem;
-}
-
-void Agent::setPosition(const glm::vec2 &position)
-{
-    state.position = position;
 }

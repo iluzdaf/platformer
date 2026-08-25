@@ -28,7 +28,7 @@ TEST_CASE("Player falls under normal gravity", "[Player]")
     simulatePlayer(player, tileMap, 1.0f);
     const AgentState &state = player.getAgent().getState();
     REQUIRE(state.velocity.y == Approx(980));
-    REQUIRE(state.position.y == Approx(0.5f * 980).margin(5));
+    REQUIRE(player.getPosition().y == Approx(0.5f * 980).margin(5));
 }
 
 TEST_CASE("Player sets onGround correctly", "[Player]")
@@ -42,7 +42,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
         simulatePlayer(player, tileMap, 1.0f);
         float expectedY = 4 * tileMap.getTileSize();
         const AgentState &state = player.getAgent().getState();
-        REQUIRE(state.position.y == Approx(expectedY));
+        REQUIRE(player.getPosition().y == Approx(expectedY));
         REQUIRE(state.onGround);
         REQUIRE(state.velocity.y == Approx(0.0f).margin(0.01f));
     }
@@ -138,14 +138,13 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
 {
     TileMap tileMap = setupTileMap();
     Player player = setupPlayer();
-    const AgentState &state = player.getAgent().getState();
 
     // SECTION("Player that spawns outside of the tileMap is clamped inside the tileMap")
     // {
     //     player.setPosition(glm::vec2(10.0f, 1000.0f));
     //     simulatePlayer(player, tileMap, 0.1f);
-    //     REQUIRE(state.position.x <= tileMap.getWorldWidth());
-    //     REQUIRE(state.position.y <= tileMap.getWorldHeight());
+    //     REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
+    //     REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
 
     //     SECTION("Player can jump after being clamped")
     //     {
@@ -165,8 +164,8 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
         SECTION("While falling")
         {
             simulatePlayer(player, tileMap, 10.0f);
-            REQUIRE(state.position.x <= tileMap.getWorldWidth());
-            REQUIRE(state.position.y <= tileMap.getWorldHeight());
+            REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
+            REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
         }
 
         SECTION("While moving left")
@@ -174,8 +173,8 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
             InputIntentions inputIntentions;
             inputIntentions.direction.x = -1;
             simulatePlayer(player, tileMap, 10.0f, inputIntentions);
-            REQUIRE(state.position.x <= tileMap.getWorldWidth());
-            REQUIRE(state.position.y <= tileMap.getWorldHeight());
+            REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
+            REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
         }
 
         SECTION("While moving right")
@@ -183,8 +182,8 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
             InputIntentions inputIntentions;
             inputIntentions.direction.x = 1;
             simulatePlayer(player, tileMap, 10.0f, inputIntentions);
-            REQUIRE(state.position.x <= tileMap.getWorldWidth());
-            REQUIRE(state.position.y <= tileMap.getWorldHeight());
+            REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
+            REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
         }
     }
 }
@@ -264,7 +263,6 @@ TEST_CASE("Player movement ability integration", "[Player]")
     TileMap tileMap = setupTileMap(20, 10);
     Player player = setupPlayer();
     InputIntentions inputIntentions;
-    const AgentState &state = player.getAgent().getState();
 
     SECTION("Player cannot move into solid tile")
     {
@@ -277,14 +275,14 @@ TEST_CASE("Player movement ability integration", "[Player]")
         {
             inputIntentions.direction.x = 1;
             simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-            REQUIRE(state.position.x <= Approx(3 * tileMap.getTileSize()));
+            REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize()));
         }
 
         SECTION("Moving left into solid tile")
         {
             inputIntentions.direction.x = -1;
             simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-            REQUIRE(state.position.x >= Approx(1 * tileMap.getTileSize()));
+            REQUIRE(player.getPosition().x >= Approx(1 * tileMap.getTileSize()));
         }
     }
 
@@ -297,7 +295,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
         player.setPosition({2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()});
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        float playerTopY = state.position.y;
+        float playerTopY = player.getPosition().y;
         float ceilingBottomY = (ceilingTileY + 1);
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
     }

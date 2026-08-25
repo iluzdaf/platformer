@@ -18,10 +18,8 @@ public:
     void resetCollisionAABB();
     const AgentState &getState() const;
     const MovementSystem &getMovementSystem() const;
-    void setPosition(const glm::vec2 &position);
 
 private:
-    AgentData data;
     AgentState state;
     MovementSystem movementSystem;
 };

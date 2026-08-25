@@ -20,7 +20,7 @@ void JumpAbility::applyMovement(
     state.jumpVelocity = glm::vec2(0.0f);
 
     jumpBuffer.update(deltaTime);
-    coyoteTime.update(state.onGround, deltaTime);
+    coyoteTime.update(state.contacts.onGround, deltaTime);
 
     if (!state.jumping)
     {
@@ -28,7 +28,7 @@ void JumpAbility::applyMovement(
             jumpBuffer.press();
 
         if (jumpBuffer.isBuffered() &&
-            (state.onGround || coyoteTime.isCoyoteAvailable()))
+            (state.contacts.onGround || coyoteTime.isCoyoteAvailable()))
         {
             state.jumping = true;
             state.jumpHoldTime = 0.0f;

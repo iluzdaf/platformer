@@ -12,7 +12,7 @@ void GravityAbility::applyMovement(
     const InputIntentions &,
     ActorMotionState &state)
 {
-    if (state.onGround || state.climbing || state.wallSliding)
+    if (state.contacts.onGround || state.climbing || state.wallSliding)
         state.gravityVelocity.y = 0.0f;
     else
     {

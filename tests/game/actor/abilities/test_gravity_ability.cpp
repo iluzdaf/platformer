@@ -16,7 +16,7 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
 
     SECTION("Gravity accumulates when airborne")
     {
-        state.onGround = false;
+        state.contacts.onGround = false;
         state.climbing = false;
         state.wallSliding = false;
         ability.applyMovement(0.01f, inputIntentions, state);
@@ -27,7 +27,7 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
 
     SECTION("Gravity is capped at max fall speed")
     {
-        state.onGround = false;
+        state.contacts.onGround = false;
         state.climbing = false;
         state.wallSliding = false;
 
@@ -42,15 +42,15 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
 
     SECTION("Gravity resets to 0 if onGround, climbing or wallSliding")
     {
-        state.onGround = false;
+        state.contacts.onGround = false;
         ability.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.gravityVelocity.y > 0.0f);
 
-        state.onGround = true;
+        state.contacts.onGround = true;
         ability.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.gravityVelocity.y == 0.0f);
 
-        state.onGround = false;
+        state.contacts.onGround = false;
         state.climbing = true;
         ability.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.gravityVelocity.y == 0.0f);

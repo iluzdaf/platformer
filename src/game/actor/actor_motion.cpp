@@ -14,20 +14,20 @@ void ActorMotion::applyMovement(float deltaTime, const InputIntentions &inputInt
 
 void ActorMotion::readContacts(const PhysicsBody &physicsBody, const TileMap &tileMap)
 {
-    state.wasOnGround = state.onGround;
-    state.onGround = physicsBody.contactWithGround(tileMap);
-    state.wasHitCeiling = state.hitCeiling;
-    state.hitCeiling = physicsBody.contactWithCeiling(tileMap);
-    state.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
-    state.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
-    if (state.touchingLeftWall)
-        state.wasLastWallLeft = true;
-    else if (state.touchingRightWall)
-        state.wasLastWallLeft = false;
+    state.contacts.wasOnGround = state.contacts.onGround;
+    state.contacts.onGround = physicsBody.contactWithGround(tileMap);
+    state.contacts.wasHitCeiling = state.contacts.hitCeiling;
+    state.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
+    state.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
+    state.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+    if (state.contacts.touchingLeftWall)
+        state.contacts.wasLastWallLeft = true;
+    else if (state.contacts.touchingRightWall)
+        state.contacts.wasLastWallLeft = false;
     if (!physicsBody.getCollisionAABBX().isEmpty())
-        state.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());
+        state.contacts.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());
     if (!physicsBody.getCollisionAABBY().isEmpty())
-        state.collisionAABBY.expandToInclude(physicsBody.getCollisionAABBY());
+        state.contacts.collisionAABBY.expandToInclude(physicsBody.getCollisionAABBY());
 }
 
 void ActorMotion::readMotion(const PhysicsBody &physicsBody)
@@ -38,8 +38,8 @@ void ActorMotion::readMotion(const PhysicsBody &physicsBody)
 
 void ActorMotion::resetCollisionAABB()
 {
-    state.collisionAABBX = AABB();
-    state.collisionAABBY = AABB();
+    state.contacts.collisionAABBX = AABB();
+    state.contacts.collisionAABBY = AABB();
 }
 
 const ActorMotionState &ActorMotion::getState() const

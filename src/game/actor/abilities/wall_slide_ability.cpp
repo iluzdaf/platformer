@@ -19,8 +19,8 @@ void WallSlideAbility::applyMovement(
     state.wallSlideVelocity = glm::vec2(0.0f);
     state.wallSliding = false;
 
-    if (state.onGround ||
-        !(state.touchingLeftWall || state.touchingRightWall) ||
+    if (state.contacts.onGround ||
+        !(state.contacts.touchingLeftWall || state.contacts.touchingRightWall) ||
         state.velocity.y <= 0.0f)
         return;
 

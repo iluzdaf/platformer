@@ -15,8 +15,8 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 
     SECTION("Can wall slide")
     {
-        state.touchingLeftWall = true;
-        state.onGround = false;
+        state.contacts.touchingLeftWall = true;
+        state.contacts.onGround = false;
         state.velocity.y = 980.0f;
         slideAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.wallSliding);
@@ -25,7 +25,7 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 
     SECTION("Cannot wall slide if not touching wall")
     {
-        state.onGround = false;
+        state.contacts.onGround = false;
         slideAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE_FALSE(state.wallSliding);
         REQUIRE(state.wallSlideVelocity.y == Approx(0.0f));
@@ -33,8 +33,8 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 
     SECTION("Cannot wall slide when on ground")
     {
-        state.touchingLeftWall = true;
-        state.onGround = true;
+        state.contacts.touchingLeftWall = true;
+        state.contacts.onGround = true;
         slideAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE_FALSE(state.wallSliding);
         REQUIRE(state.wallSlideVelocity.y == Approx(0.0f));
@@ -42,8 +42,8 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 
     SECTION("Cannot wall slide if not falling")
     {
-        state.touchingLeftWall = true;
-        state.onGround = false;
+        state.contacts.touchingLeftWall = true;
+        state.contacts.onGround = false;
         state.velocity.y = 0.0f;
         slideAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE_FALSE(state.wallSliding);

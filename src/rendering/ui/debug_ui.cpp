@@ -60,11 +60,11 @@ void DebugUi::draw(
         drawRow("Velocity", std::format("{:.2f}, {:.2f}", playerMotionState.velocity.x, playerMotionState.velocity.y));
         drawRow("Position", std::format("{:.2f}, {:.2f}", playerPosition.x, playerPosition.y));
 
-        drawRow("On Ground", playerMotionState.onGround ? "true" : "false");
+        drawRow("On Ground", playerMotionState.contacts.onGround ? "true" : "false");
         drawRow("Facing Left", actorState.facingLeft ? "true" : "false");
-        drawRow("Touching Left Wall", playerMotionState.touchingLeftWall ? "true" : "false");
-        drawRow("Touching Right Wall", playerMotionState.touchingRightWall ? "true" : "false");
-        drawRow("Hit Ceiling", playerMotionState.hitCeiling ? "true" : "false");
+        drawRow("Touching Left Wall", playerMotionState.contacts.touchingLeftWall ? "true" : "false");
+        drawRow("Touching Right Wall", playerMotionState.contacts.touchingRightWall ? "true" : "false");
+        drawRow("Hit Ceiling", playerMotionState.contacts.hitCeiling ? "true" : "false");
 
         drawRow("Wall Sliding", playerMotionState.wallSliding ? "true" : "false");
         drawRow("Wall Jumping", playerMotionState.wallJumping ? "true" : "false");

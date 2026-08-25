@@ -20,14 +20,14 @@ void DashAbility::applyMovement(
     state.emitDash = false;
     state.dashVelocity = glm::vec2(0.0f);
 
-    if (state.onGround && state.dashTimeLeft <= 0.0f)
+    if (state.contacts.onGround && state.dashTimeLeft <= 0.0f)
         state.canDash = true;
 
     if (inputIntentions.dashRequested &&
         std::abs(inputIntentions.direction.x) > 0.0f &&
         state.canDash &&
-        !state.touchingLeftWall &&
-        !state.touchingRightWall)
+        !state.contacts.touchingLeftWall &&
+        !state.contacts.touchingRightWall)
     {
         state.dashDirection = inputIntentions.direction.x;
         state.dashTimeLeft = data.dashDuration;
@@ -38,7 +38,7 @@ void DashAbility::applyMovement(
 
     if (state.dashTimeLeft > 0.0f && state.dashing)
     {
-        if (state.touchingLeftWall || state.touchingRightWall)
+        if (state.contacts.touchingLeftWall || state.contacts.touchingRightWall)
         {
             state.dashTimeLeft = 0.0f;
             state.dashing = false;

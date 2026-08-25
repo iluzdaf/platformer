@@ -12,7 +12,7 @@ TEST_CASE("ClimbAbility basic movement behaviour", "[ClimbAbility]")
 
     SECTION("Can climb")
     {
-        state.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = true;
         inputIntentions.climbRequested = true;
         climbAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.climbing);

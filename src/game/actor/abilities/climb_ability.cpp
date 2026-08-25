@@ -17,7 +17,7 @@ void ClimbAbility::applyMovement(
     if (!inputIntentions.climbRequested)
         return;
 
-    if (!(state.touchingLeftWall || state.touchingRightWall))
+    if (!(state.contacts.touchingLeftWall || state.contacts.touchingRightWall))
         return;
 
     state.climbing = true;

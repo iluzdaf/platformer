@@ -28,10 +28,10 @@ void Player::postFixedUpdate()
     if (motionState.emitWallSliding)
         onWallSliding();
 
-    if (!motionState.wasOnGround && motionState.onGround &&
+    if (!motionState.contacts.wasOnGround && motionState.contacts.onGround &&
         motionState.previousVelocity.y > data.fallFromHeightThreshold)
         onFallFromHeight();
 
-    if (!motionState.wasHitCeiling && motionState.hitCeiling)
+    if (!motionState.contacts.wasHitCeiling && motionState.contacts.hitCeiling)
         onHitCeiling();
 }

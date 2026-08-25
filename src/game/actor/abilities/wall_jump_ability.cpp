@@ -23,9 +23,9 @@ void WallJumpAbility::applyMovement(
     state.wallJumpVelocity = glm::vec2(0.0f);
 
     wallJumpBuffer.update(deltaTime);
-    wallJumpCoyote.update(state.touchingLeftWall || state.touchingRightWall, deltaTime);
+    wallJumpCoyote.update(state.contacts.touchingLeftWall || state.contacts.touchingRightWall, deltaTime);
 
-    if (state.onGround)
+    if (state.contacts.onGround)
     {
         wallJumpCoyote.consume();
         return;
@@ -42,16 +42,16 @@ void WallJumpAbility::applyMovement(
         if (wallJumpBuffer.isBuffered())
         {
             int desiredDirection = 0;
-            if (state.touchingLeftWall)
+            if (state.contacts.touchingLeftWall)
                 desiredDirection = 1;
-            else if (state.touchingRightWall)
+            else if (state.contacts.touchingRightWall)
                 desiredDirection = -1;
             else
-                desiredDirection = state.wasLastWallLeft ? 1 : -1;
+                desiredDirection = state.contacts.wasLastWallLeft ? 1 : -1;
 
             float bufferedDirection = wallJumpDirectionBuffer.getBufferedDirectionX();
             bool jumpInputCorrect = desiredDirection * bufferedDirection > 0;
-            bool touchingWallNow = state.touchingLeftWall || state.touchingRightWall;
+            bool touchingWallNow = state.contacts.touchingLeftWall || state.contacts.touchingRightWall;
             if (touchingWallNow && jumpInputCorrect)
                 startWallJump(state, desiredDirection);
             else if (!touchingWallNow && wallJumpCoyote.isCoyoteAvailable() && jumpInputCorrect)
@@ -62,8 +62,8 @@ void WallJumpAbility::applyMovement(
     if (state.wallJumping)
     {
         bool switchedSides =
-            (state.touchingLeftWall && state.wallJumpDirection == -1) ||
-            (state.touchingRightWall && state.wallJumpDirection == 1);
+            (state.contacts.touchingLeftWall && state.wallJumpDirection == -1) ||
+            (state.contacts.touchingRightWall && state.wallJumpDirection == 1);
 
         if (switchedSides)
         {

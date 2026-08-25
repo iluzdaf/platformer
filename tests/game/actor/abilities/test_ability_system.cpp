@@ -43,7 +43,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
 
     SECTION("Can move and jump")
     {
-        state.onGround = true;
+        state.contacts.onGround = true;
         inputIntentions.direction = glm::vec2(1.0f, 0.0f);
         inputIntentions.jumpRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
@@ -54,11 +54,11 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
 
     SECTION("Can jump, wall slide then wall jump")
     {
-        state.onGround = true;
-        state.touchingLeftWall = true;
+        state.contacts.onGround = true;
+        state.contacts.touchingLeftWall = true;
         inputIntentions.jumpRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        state.onGround = false;
+        state.contacts.onGround = false;
         REQUIRE(state.jumping);
         REQUIRE_FALSE(state.wallJumping);
         REQUIRE(state.targetVelocity.y == Approx(motionData.jumpAbilityData->jumpSpeed));
@@ -80,14 +80,14 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
 
     SECTION("Can dash into wall then wall jump")
     {
-        state.onGround = false;
-        state.touchingLeftWall = false;
+        state.contacts.onGround = false;
+        state.contacts.touchingLeftWall = false;
         inputIntentions.dashRequested = true;
         inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.dashing);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
-        state.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = true;
         inputIntentions = InputIntentions();
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE_FALSE(state.dashing);
@@ -130,7 +130,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
 
     SECTION("Can jump and dash")
     {
-        state.onGround = true;
+        state.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.jumping);

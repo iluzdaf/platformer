@@ -47,8 +47,8 @@ void DebugAABBUi::drawPlayerAABBs(
 {
     drawAABB(drawList, imGuiManager, player.getPhysicsBody().getAABB(), camera, IM_COL32(0, 255, 0, 255));
     ActorMotionState state = player.getMotion().getState();
-    addDebugAABB(state.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
-    addDebugAABB(state.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
+    addDebugAABB(state.contacts.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
+    addDebugAABB(state.contacts.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
 }
 
 void DebugAABBUi::drawTileMapAABBs(

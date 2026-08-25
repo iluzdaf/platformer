@@ -44,7 +44,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
         float expectedY = static_cast<float>(4 * tileMap.getTileSize());
         const ActorMotionState &state = player.getMotion().getState();
         REQUIRE(player.getPosition().y == Approx(expectedY));
-        REQUIRE(state.onGround);
+        REQUIRE(state.contacts.onGround);
         REQUIRE(state.velocity.y == Approx(0.0f).margin(0.01f));
     }
 
@@ -55,11 +55,11 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, tileMap, 0.1f);
         const ActorMotionState &state = player.getMotion().getState();
-        REQUIRE(state.onGround);
+        REQUIRE(state.contacts.onGround);
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.2f, inputIntentions);
-        REQUIRE_FALSE(state.onGround);
+        REQUIRE_FALSE(state.contacts.onGround);
     }
 }
 
@@ -205,8 +205,8 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        REQUIRE(state.touchingRightWall);
-        REQUIRE_FALSE(state.touchingLeftWall);
+        REQUIRE(state.contacts.touchingRightWall);
+        REQUIRE_FALSE(state.contacts.touchingLeftWall);
     }
 
     SECTION("Touching left wall")
@@ -219,8 +219,8 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        REQUIRE(state.touchingLeftWall);
-        REQUIRE_FALSE(state.touchingRightWall);
+        REQUIRE(state.contacts.touchingLeftWall);
+        REQUIRE_FALSE(state.contacts.touchingRightWall);
     }
 }
 

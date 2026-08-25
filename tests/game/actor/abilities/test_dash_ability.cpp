@@ -78,7 +78,7 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        state.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = true;
         inputIntentions = InputIntentions();
         dashAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.dashVelocity.x == Approx(0.0f));
@@ -87,7 +87,7 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
 
     SECTION("Cannot dash while touching wall")
     {
-        state.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = true;
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
         dashAbility.applyMovement(0.01f, inputIntentions, state);

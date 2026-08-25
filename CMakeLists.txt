@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 project(Platformer)
 
-#The project targets C++ 23, requested per target with cxx_std_23 further down.
 #These are the compilers it is built and tested with; anything else may work but
 #is not covered by CI.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

@@ -99,3 +99,20 @@ ActorBehaviorContext Actor::behaviorContextAt(
         position + physicsBody.getBottomCenterOffset(),
         physicsBody.getColliderSize()};
 }
+
+void Actor::spawnAt(
+    const glm::vec2 &position,
+    const NavigationGraph &navigationGraph)
+{
+    setPosition(position);
+
+    if (!behavior)
+        return;
+
+    behavior->reset(behaviorContextAt(position, navigationGraph));
+}
+
+const ActorBehavior *Actor::getBehavior() const
+{
+    return behavior.get();
+}

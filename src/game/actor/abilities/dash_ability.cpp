@@ -17,45 +17,45 @@ void DashAbility::applyMovement(
     const InputIntentions &inputIntentions,
     ActorMotionState &state)
 {
-    state.emitDash = false;
-    state.dashVelocity = glm::vec2(0.0f);
+    state.dash.emit = false;
+    state.dash.velocity = glm::vec2(0.0f);
 
-    if (state.contacts.onGround && state.dashTimeLeft <= 0.0f)
-        state.canDash = true;
+    if (state.contacts.onGround && state.dash.timeLeft <= 0.0f)
+        state.dash.available = true;
 
     if (inputIntentions.dashRequested &&
         std::abs(inputIntentions.direction.x) > 0.0f &&
-        state.canDash &&
+        state.dash.available &&
         !state.contacts.touchingLeftWall &&
         !state.contacts.touchingRightWall)
     {
-        state.dashDirection = inputIntentions.direction.x;
-        state.dashTimeLeft = data.dashDuration;
-        state.canDash = false;
-        state.emitDash = true;
-        state.dashing = true;
+        state.dash.direction = inputIntentions.direction.x;
+        state.dash.timeLeft = data.dashDuration;
+        state.dash.available = false;
+        state.dash.emit = true;
+        state.dash.active = true;
     }
 
-    if (state.dashTimeLeft > 0.0f && state.dashing)
+    if (state.dash.timeLeft > 0.0f && state.dash.active)
     {
         if (state.contacts.touchingLeftWall || state.contacts.touchingRightWall)
         {
-            state.dashTimeLeft = 0.0f;
-            state.dashing = false;
+            state.dash.timeLeft = 0.0f;
+            state.dash.active = false;
         }
         else
         {
-            state.dashTimeLeft -= deltaTime;
+            state.dash.timeLeft -= deltaTime;
 
-            if (state.dashTimeLeft > 0.0f)
-                state.dashVelocity.x = data.dashSpeed * state.dashDirection;
+            if (state.dash.timeLeft > 0.0f)
+                state.dash.velocity.x = data.dashSpeed * state.dash.direction;
             else
             {
-                state.dashTimeLeft = 0.0f;
-                state.dashing = false;
+                state.dash.timeLeft = 0.0f;
+                state.dash.active = false;
             }
         }
     }
-    else if (state.dashTimeLeft <= 0.0f)
-        state.dashing = false;
+    else if (state.dash.timeLeft <= 0.0f)
+        state.dash.active = false;
 }

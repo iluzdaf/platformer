@@ -15,16 +15,16 @@ void WallSlideAbility::applyMovement(
     const InputIntentions &,
     ActorMotionState &state)
 {
-    state.emitWallSliding = false;
-    state.wallSlideVelocity = glm::vec2(0.0f);
-    state.wallSliding = false;
+    state.wallSlide.emit = false;
+    state.wallSlide.velocity = glm::vec2(0.0f);
+    state.wallSlide.active = false;
 
     if (state.contacts.onGround ||
         !(state.contacts.touchingLeftWall || state.contacts.touchingRightWall) ||
         state.velocity.y <= 0.0f)
         return;
 
-    state.wallSlideVelocity.y = data.slideSpeed;
-    state.wallSliding = true;
-    state.emitWallSliding = true;
+    state.wallSlide.velocity.y = data.slideSpeed;
+    state.wallSlide.active = true;
+    state.wallSlide.emit = true;
 }

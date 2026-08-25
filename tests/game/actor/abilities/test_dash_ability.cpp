@@ -18,14 +18,14 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.dashVelocity.x == Approx(-dashAbilityData.dashSpeed));
-        REQUIRE(state.dashing);
-        REQUIRE(state.dashDirection == -1);
+        REQUIRE(state.dash.velocity.x == Approx(-dashAbilityData.dashSpeed));
+        REQUIRE(state.dash.active);
+        REQUIRE(state.dash.direction == -1);
         inputIntentions = InputIntentions();
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.dashVelocity.x == Approx(-dashAbilityData.dashSpeed));
-        REQUIRE(state.dashing);
-        REQUIRE(state.dashDirection == -1);
+        REQUIRE(state.dash.velocity.x == Approx(-dashAbilityData.dashSpeed));
+        REQUIRE(state.dash.active);
+        REQUIRE(state.dash.direction == -1);
     }
 
     SECTION("Can dash right")
@@ -33,22 +33,22 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.dashVelocity.x == Approx(dashAbilityData.dashSpeed));
-        REQUIRE(state.dashing);
-        REQUIRE(state.dashDirection == 1);
+        REQUIRE(state.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
+        REQUIRE(state.dash.active);
+        REQUIRE(state.dash.direction == 1);
         inputIntentions = InputIntentions();
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.dashVelocity.x == Approx(dashAbilityData.dashSpeed));
-        REQUIRE(state.dashing);
-        REQUIRE(state.dashDirection == 1);
+        REQUIRE(state.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
+        REQUIRE(state.dash.active);
+        REQUIRE(state.dash.direction == 1);
     }
 
     SECTION("Cannot dash if no direction given")
     {
         inputIntentions.dashRequested = true;
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE_FALSE(state.dashing);
-        REQUIRE(state.dashVelocity.x == Approx(0.0f));
+        REQUIRE_FALSE(state.dash.active);
+        REQUIRE(state.dash.velocity.x == Approx(0.0f));
     }
 
     SECTION("Dash ends after duration")
@@ -56,8 +56,8 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
         dashAbility.applyMovement(dashAbilityData.dashDuration + 0.01f, inputIntentions, state);
-        REQUIRE_FALSE(state.dashing);
-        REQUIRE(state.dashVelocity.x == Approx(0.0f));
+        REQUIRE_FALSE(state.dash.active);
+        REQUIRE(state.dash.velocity.x == Approx(0.0f));
     }
 
     SECTION("Requesting to dash mid-dash should not change dashTimeLeft")
@@ -68,9 +68,9 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         inputIntentions = InputIntentions();
         inputIntentions.dashRequested = true;
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.dashVelocity.x == Approx(dashAbilityData.dashSpeed));
-        REQUIRE(state.dashing);
-        REQUIRE(state.dashTimeLeft == Approx(dashAbilityData.dashDuration - 0.02f));
+        REQUIRE(state.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
+        REQUIRE(state.dash.active);
+        REQUIRE(state.dash.timeLeft == Approx(dashAbilityData.dashDuration - 0.02f));
     }
 
     SECTION("Dash cancels when touching wall")
@@ -81,8 +81,8 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         state.contacts.touchingLeftWall = true;
         inputIntentions = InputIntentions();
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.dashVelocity.x == Approx(0.0f));
-        REQUIRE_FALSE(state.dashing);
+        REQUIRE(state.dash.velocity.x == Approx(0.0f));
+        REQUIRE_FALSE(state.dash.active);
     }
 
     SECTION("Cannot dash while touching wall")
@@ -91,7 +91,7 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
         dashAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.dashVelocity.x == Approx(0.0f));
-        REQUIRE_FALSE(state.dashing);
+        REQUIRE(state.dash.velocity.x == Approx(0.0f));
+        REQUIRE_FALSE(state.dash.active);
     }
 }

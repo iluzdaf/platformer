@@ -12,7 +12,7 @@ void ClimbAbility::applyMovement(
     const InputIntentions &inputIntentions,
     ActorMotionState &state)
 {
-    state.climbing = false;
+    state.climb.active = false;
 
     if (!inputIntentions.climbRequested)
         return;
@@ -20,5 +20,5 @@ void ClimbAbility::applyMovement(
     if (!(state.contacts.touchingLeftWall || state.contacts.touchingRightWall))
         return;
 
-    state.climbing = true;
+    state.climb.active = true;
 }

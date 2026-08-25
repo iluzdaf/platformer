@@ -66,10 +66,10 @@ void DebugUi::draw(
         drawRow("Touching Right Wall", playerMotionState.contacts.touchingRightWall ? "true" : "false");
         drawRow("Hit Ceiling", playerMotionState.contacts.hitCeiling ? "true" : "false");
 
-        drawRow("Wall Sliding", playerMotionState.wallSliding ? "true" : "false");
-        drawRow("Wall Jumping", playerMotionState.wallJumping ? "true" : "false");
-        drawRow("Dashing", playerMotionState.dashing ? "true" : "false");
-        drawRow("Climbing", playerMotionState.climbing ? "true" : "false");
+        drawRow("Wall Sliding", playerMotionState.wallSlide.active ? "true" : "false");
+        drawRow("Wall Jumping", playerMotionState.wallJump.active ? "true" : "false");
+        drawRow("Dashing", playerMotionState.dash.active ? "true" : "false");
+        drawRow("Climbing", playerMotionState.climb.active ? "true" : "false");
 
         drawRow("Animation", toString(actorState.currentAnimationState));
 

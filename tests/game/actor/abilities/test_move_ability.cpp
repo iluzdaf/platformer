@@ -17,19 +17,19 @@ TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
     {
         inputIntentions.direction.x = -1;
         moveAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.moveVelocity.x == Approx(-moveAbilityData.moveSpeed));
+        REQUIRE(state.move.velocity.x == Approx(-moveAbilityData.moveSpeed));
     }
 
     SECTION("Can move right")
     {
         inputIntentions.direction.x = 1;
         moveAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.moveVelocity.x == Approx(moveAbilityData.moveSpeed));
+        REQUIRE(state.move.velocity.x == Approx(moveAbilityData.moveSpeed));
     }
 
     SECTION("If no direction requested, no movement applied")
     {
         moveAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.moveVelocity.x == Approx(0.0f));
+        REQUIRE(state.move.velocity.x == Approx(0.0f));
     }
 }

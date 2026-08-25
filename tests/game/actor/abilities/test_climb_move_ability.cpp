@@ -15,38 +15,38 @@ TEST_CASE("ClimbMoveAbility basic movement behaviour", "[ClimbMoveAbility]")
 
     SECTION("Can climb up")
     {
-        state.climbing = true;
+        state.climb.active = true;
         inputIntentions.direction.y = -1;
         climbMoveAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.climbMoveVelocity.y == Approx(-climbMoveAbilityData.climbSpeed));
+        REQUIRE(state.climbMove.velocity.y == Approx(-climbMoveAbilityData.climbSpeed));
     }
 
     SECTION("Can climb down")
     {
-        state.climbing = true;
+        state.climb.active = true;
         inputIntentions.direction.y = 1;
         climbMoveAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.climbMoveVelocity.y == Approx(climbMoveAbilityData.climbSpeed));
+        REQUIRE(state.climbMove.velocity.y == Approx(climbMoveAbilityData.climbSpeed));
     }
 
     SECTION("Cannot climb up if not climbing")
     {
         inputIntentions.direction.y = -1;
         climbMoveAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.climbMoveVelocity.y == Approx(0.0f));
+        REQUIRE(state.climbMove.velocity.y == Approx(0.0f));
     }
 
     SECTION("Cannot climb down if not climbing")
     {
         inputIntentions.direction.y = 1;
         climbMoveAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.climbMoveVelocity.y == Approx(0.0f));
+        REQUIRE(state.climbMove.velocity.y == Approx(0.0f));
     }
 
     SECTION("If no direction requested, no movement applied")
     {
-        state.climbing = true;
+        state.climb.active = true;
         climbMoveAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.climbMoveVelocity.y == Approx(0.0f));
+        REQUIRE(state.climbMove.velocity.y == Approx(0.0f));
     }
 }

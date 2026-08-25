@@ -12,11 +12,11 @@ void GravityAbility::applyMovement(
     const InputIntentions &,
     ActorMotionState &state)
 {
-    if (state.contacts.onGround || state.climbing || state.wallSliding)
-        state.gravityVelocity.y = 0.0f;
+    if (state.contacts.onGround || state.climb.active || state.wallSlide.active)
+        state.gravity.velocity.y = 0.0f;
     else
     {
-        state.gravityVelocity.y += data.gravity * deltaTime;
-        state.gravityVelocity.y = std::min(state.gravityVelocity.y, data.maxFallSpeed);
+        state.gravity.velocity.y += data.gravity * deltaTime;
+        state.gravity.velocity.y = std::min(state.gravity.velocity.y, data.maxFallSpeed);
     }
 }

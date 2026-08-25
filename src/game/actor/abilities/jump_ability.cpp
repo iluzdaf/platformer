@@ -17,12 +17,12 @@ void JumpAbility::applyMovement(
     const InputIntentions &inputIntentions,
     ActorMotionState &state)
 {
-    state.jumpVelocity = glm::vec2(0.0f);
+    state.jump.velocity = glm::vec2(0.0f);
 
     jumpBuffer.update(deltaTime);
     coyoteTime.update(state.contacts.onGround, deltaTime);
 
-    if (!state.jumping)
+    if (!state.jump.active)
     {
         if (inputIntentions.jumpRequested)
             jumpBuffer.press();
@@ -30,20 +30,20 @@ void JumpAbility::applyMovement(
         if (jumpBuffer.isBuffered() &&
             (state.contacts.onGround || coyoteTime.isCoyoteAvailable()))
         {
-            state.jumping = true;
-            state.jumpHoldTime = 0.0f;
+            state.jump.active = true;
+            state.jump.holdTime = 0.0f;
             jumpBuffer.consume();
             coyoteTime.consume();
         }
     }
 
-    if (state.jumping)
+    if (state.jump.active)
     {
-        state.jumpHoldTime += deltaTime;
-        if (state.jumpHoldTime <= data.jumpDuration &&
+        state.jump.holdTime += deltaTime;
+        if (state.jump.holdTime <= data.jumpDuration &&
             (inputIntentions.jumpHeld || inputIntentions.jumpRequested))
-            state.jumpVelocity.y = data.jumpSpeed;
+            state.jump.velocity.y = data.jumpSpeed;
         else
-            state.jumping = false;
+            state.jump.active = false;
     }
 }

@@ -38,22 +38,22 @@ void AbilitySystem::applyMovement(
     for (auto &ability : abilities)
         ability->applyMovement(deltaTime, inputIntentions, state);
 
-    glm::vec2 finalVelocity = state.gravityVelocity;
+    glm::vec2 finalVelocity = state.gravity.velocity;
 
-    if (state.dashing)
-        finalVelocity = state.dashVelocity;
+    if (state.dash.active)
+        finalVelocity = state.dash.velocity;
     else
     {
-        finalVelocity.x = state.moveVelocity.x;
+        finalVelocity.x = state.move.velocity.x;
 
-        if (state.jumping)
-            finalVelocity.y = state.jumpVelocity.y;
-        else if (state.wallJumping)
-            finalVelocity = state.wallJumpVelocity;
-        else if (state.climbing)
-            finalVelocity.y = state.climbMoveVelocity.y;
-        else if (state.wallSliding)
-            finalVelocity.y = state.wallSlideVelocity.y;
+        if (state.jump.active)
+            finalVelocity.y = state.jump.velocity.y;
+        else if (state.wallJump.active)
+            finalVelocity = state.wallJump.velocity;
+        else if (state.climb.active)
+            finalVelocity.y = state.climbMove.velocity.y;
+        else if (state.wallSlide.active)
+            finalVelocity.y = state.wallSlide.velocity.y;
     }
 
     state.targetVelocity = finalVelocity;

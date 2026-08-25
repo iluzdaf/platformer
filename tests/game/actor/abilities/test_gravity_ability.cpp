@@ -17,19 +17,19 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
     SECTION("Gravity accumulates when airborne")
     {
         state.contacts.onGround = false;
-        state.climbing = false;
-        state.wallSliding = false;
+        state.climb.active = false;
+        state.wallSlide.active = false;
         ability.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.gravityVelocity.y == Approx(data.gravity * 0.01f));
+        REQUIRE(state.gravity.velocity.y == Approx(data.gravity * 0.01f));
         ability.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.gravityVelocity.y == Approx(2 * data.gravity * 0.01f));
+        REQUIRE(state.gravity.velocity.y == Approx(2 * data.gravity * 0.01f));
     }
 
     SECTION("Gravity is capped at max fall speed")
     {
         state.contacts.onGround = false;
-        state.climbing = false;
-        state.wallSliding = false;
+        state.climb.active = false;
+        state.wallSlide.active = false;
 
         int iterationsToMaxFallSpeed = static_cast<int>(std::ceil(data.maxFallSpeed / (data.gravity * 0.01f)));
         for (int i = 0; i < iterationsToMaxFallSpeed + 10; ++i)
@@ -37,27 +37,27 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
             ability.applyMovement(0.01f, inputIntentions, state);
         }
 
-        REQUIRE(state.gravityVelocity.y == Approx(data.maxFallSpeed));
+        REQUIRE(state.gravity.velocity.y == Approx(data.maxFallSpeed));
     }
 
     SECTION("Gravity resets to 0 if onGround, climbing or wallSliding")
     {
         state.contacts.onGround = false;
         ability.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.gravityVelocity.y > 0.0f);
+        REQUIRE(state.gravity.velocity.y > 0.0f);
 
         state.contacts.onGround = true;
         ability.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.gravityVelocity.y == 0.0f);
+        REQUIRE(state.gravity.velocity.y == 0.0f);
 
         state.contacts.onGround = false;
-        state.climbing = true;
+        state.climb.active = true;
         ability.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.gravityVelocity.y == 0.0f);
+        REQUIRE(state.gravity.velocity.y == 0.0f);
 
-        state.climbing = false;
-        state.wallSliding = true;
+        state.climb.active = false;
+        state.wallSlide.active = true;
         ability.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.gravityVelocity.y == 0.0f);
+        REQUIRE(state.gravity.velocity.y == 0.0f);
     }
 }

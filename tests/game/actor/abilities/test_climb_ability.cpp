@@ -15,13 +15,13 @@ TEST_CASE("ClimbAbility basic movement behaviour", "[ClimbAbility]")
         state.contacts.touchingLeftWall = true;
         inputIntentions.climbRequested = true;
         climbAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE(state.climbing);
+        REQUIRE(state.climb.active);
     }
 
     SECTION("Cannot climb without touching wall")
     {
         inputIntentions.climbRequested = true;
         climbAbility.applyMovement(0.01f, inputIntentions, state);
-        REQUIRE_FALSE(state.climbing);
+        REQUIRE_FALSE(state.climb.active);
     }
 }

@@ -15,13 +15,13 @@ void ClimbMoveAbility::applyMovement(
     const InputIntentions &inputIntentions,
     ActorMotionState &state)
 {
-    state.climbMoveVelocity = glm::vec2(0.0f);
+    state.climbMove.velocity = glm::vec2(0.0f);
 
-    if (!state.climbing)
+    if (!state.climb.active)
         return;
 
     if (inputIntentions.direction.y < 0)
-        state.climbMoveVelocity.y = -data.climbSpeed;
+        state.climbMove.velocity.y = -data.climbSpeed;
     else if (inputIntentions.direction.y > 0)
-        state.climbMoveVelocity.y = data.climbSpeed;
+        state.climbMove.velocity.y = data.climbSpeed;
 }

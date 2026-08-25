@@ -19,13 +19,13 @@ InputIntentions Player::decideIntentions(float, const TileMap &)
 void Player::postFixedUpdate()
 {
     const ActorMotionState &motionState = motion.getState();
-    if (motionState.emitDash)
+    if (motionState.dash.emit)
         onDash();
 
-    if (motionState.emitWallJump)
+    if (motionState.wallJump.emit)
         onWallJump();
 
-    if (motionState.emitWallSliding)
+    if (motionState.wallSlide.emit)
         onWallSliding();
 
     if (!motionState.contacts.wasOnGround && motionState.contacts.onGround &&

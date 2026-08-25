@@ -49,7 +49,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.targetVelocity.x == Approx(motionData.moveAbilityData->moveSpeed));
         REQUIRE(state.targetVelocity.y == Approx(motionData.jumpAbilityData->jumpSpeed));
-        REQUIRE(state.jumping == true);
+        REQUIRE(state.jump.active == true);
     }
 
     SECTION("Can jump, wall slide then wall jump")
@@ -59,23 +59,23 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         inputIntentions.jumpRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         state.contacts.onGround = false;
-        REQUIRE(state.jumping);
-        REQUIRE_FALSE(state.wallJumping);
+        REQUIRE(state.jump.active);
+        REQUIRE_FALSE(state.wallJump.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.jumpAbilityData->jumpSpeed));
         REQUIRE(state.targetVelocity.x == Approx(0.0f));
         inputIntentions = InputIntentions();
         simulateMovement(abilitySystem, motionData.jumpAbilityData->jumpDuration, inputIntentions, state);
-        REQUIRE_FALSE(state.jumping);
+        REQUIRE_FALSE(state.jump.active);
         simulateMovement(abilitySystem, motionData.jumpAbilityData->jumpDuration, inputIntentions, state);
-        REQUIRE(state.wallSliding);
+        REQUIRE(state.wallSlide.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.wallSlideAbilityData->slideSpeed));
         REQUIRE(state.targetVelocity.x == Approx(0.0f));
         inputIntentions.jumpHeld = true;
         inputIntentions.direction = glm::vec2(1.0f, 0.0f);
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.wallJumping);
+        REQUIRE(state.wallJump.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.wallJumpAbilityData->wallJumpSpeed));
-        REQUIRE(state.targetVelocity.x == Approx(state.wallJumpDirection * motionData.wallJumpAbilityData->wallJumpHorizontalSpeed));
+        REQUIRE(state.targetVelocity.x == Approx(state.wallJump.direction * motionData.wallJumpAbilityData->wallJumpHorizontalSpeed));
     }
 
     SECTION("Can dash into wall then wall jump")
@@ -85,22 +85,22 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         inputIntentions.dashRequested = true;
         inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.dashing);
+        REQUIRE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
         state.contacts.touchingLeftWall = true;
         inputIntentions = InputIntentions();
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE_FALSE(state.dashing);
+        REQUIRE_FALSE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(0.0f));
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.wallSliding);
+        REQUIRE(state.wallSlide.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.wallSlideAbilityData->slideSpeed));
         inputIntentions.jumpHeld = true;
         inputIntentions.direction = glm::vec2(1.0f, 0.0f);
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.wallJumping);
+        REQUIRE(state.wallJump.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.wallJumpAbilityData->wallJumpSpeed));
-        REQUIRE(state.targetVelocity.x == Approx(state.wallJumpDirection * motionData.wallJumpAbilityData->wallJumpHorizontalSpeed));
+        REQUIRE(state.targetVelocity.x == Approx(state.wallJump.direction * motionData.wallJumpAbilityData->wallJumpHorizontalSpeed));
     }
 
     SECTION("Cannot jump while dashing")
@@ -108,12 +108,12 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         inputIntentions.dashRequested = true;
         inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.dashing);
+        REQUIRE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
         inputIntentions.jumpRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE_FALSE(state.jumping);
-        REQUIRE(state.dashing);
+        REQUIRE_FALSE(state.jump.active);
+        REQUIRE(state.dash.active);
     }
 
     SECTION("Cannot move while dashing")
@@ -121,7 +121,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         inputIntentions.dashRequested = true;
         inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.dashing);
+        REQUIRE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
         inputIntentions.direction = glm::vec2(1.0f, 0.0f);
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
@@ -133,13 +133,13 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         state.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.jumping);
+        REQUIRE(state.jump.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.jumpAbilityData->jumpSpeed));
         inputIntentions = InputIntentions();
         inputIntentions.dashRequested = true;
         inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.dashing);
+        REQUIRE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
         REQUIRE(state.targetVelocity.y == Approx(0.0f));
     }
@@ -151,7 +151,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         REQUIRE(state.targetVelocity.x == Approx(motionData.moveAbilityData->moveSpeed));
         inputIntentions.dashRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.dashing);
+        REQUIRE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
     }
 
@@ -162,7 +162,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         REQUIRE(state.targetVelocity.x == Approx(-motionData.moveAbilityData->moveSpeed));
         inputIntentions.dashRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.dashing);
+        REQUIRE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(-motionData.dashAbilityData->dashSpeed));
     }
 

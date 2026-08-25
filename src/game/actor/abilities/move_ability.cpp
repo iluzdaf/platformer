@@ -15,10 +15,10 @@ void MoveAbility::applyMovement(
     const InputIntentions &inputIntentions,
     ActorMotionState &state)
 {
-    state.moveVelocity = glm::vec2(0.0f);
+    state.move.velocity = glm::vec2(0.0f);
 
     if (inputIntentions.direction.x > 0)
-        state.moveVelocity.x = data.moveSpeed;
+        state.move.velocity.x = data.moveSpeed;
     else if (inputIntentions.direction.x < 0)
-        state.moveVelocity.x = -data.moveSpeed;
+        state.move.velocity.x = -data.moveSpeed;
 }

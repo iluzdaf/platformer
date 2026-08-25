@@ -19,8 +19,8 @@ void WallJumpAbility::applyMovement(
     const InputIntentions &inputIntentions,
     ActorMotionState &state)
 {
-    state.emitWallJump = false;
-    state.wallJumpVelocity = glm::vec2(0.0f);
+    state.wallJump.emit = false;
+    state.wallJump.velocity = glm::vec2(0.0f);
 
     wallJumpBuffer.update(deltaTime);
     wallJumpCoyote.update(state.contacts.touchingLeftWall || state.contacts.touchingRightWall, deltaTime);
@@ -31,7 +31,7 @@ void WallJumpAbility::applyMovement(
         return;
     }
 
-    if (!state.wallJumping)
+    if (!state.wallJump.active)
     {
         if (inputIntentions.jumpHeld)
         {
@@ -59,28 +59,28 @@ void WallJumpAbility::applyMovement(
         }
     }
 
-    if (state.wallJumping)
+    if (state.wallJump.active)
     {
         bool switchedSides =
-            (state.contacts.touchingLeftWall && state.wallJumpDirection == -1) ||
-            (state.contacts.touchingRightWall && state.wallJumpDirection == 1);
+            (state.contacts.touchingLeftWall && state.wallJump.direction == -1) ||
+            (state.contacts.touchingRightWall && state.wallJump.direction == 1);
 
         if (switchedSides)
         {
-            state.wallJumpTimeLeft = 0.0f;
-            state.wallJumping = false;
+            state.wallJump.timeLeft = 0.0f;
+            state.wallJump.active = false;
             return;
         }
 
-        state.wallJumpTimeLeft -= deltaTime;
-        if (state.wallJumpTimeLeft <= 0.0f)
+        state.wallJump.timeLeft -= deltaTime;
+        if (state.wallJump.timeLeft <= 0.0f)
         {
-            state.wallJumping = false;
+            state.wallJump.active = false;
             return;
         }
 
-        state.wallJumpVelocity = {
-            data.wallJumpHorizontalSpeed * state.wallJumpDirection,
+        state.wallJump.velocity = {
+            data.wallJumpHorizontalSpeed * state.wallJump.direction,
             data.wallJumpSpeed};
     }
 }
@@ -89,10 +89,10 @@ void WallJumpAbility::startWallJump(
     ActorMotionState &state,
     int direction)
 {
-    state.wallJumpDirection = static_cast<float>(direction);
-    state.wallJumpTimeLeft = data.wallJumpDuration;
-    state.wallJumping = true;
-    state.emitWallJump = true;
+    state.wallJump.direction = static_cast<float>(direction);
+    state.wallJump.timeLeft = data.wallJumpDuration;
+    state.wallJump.active = true;
+    state.wallJump.emit = true;
     wallJumpBuffer.consume();
     wallJumpDirectionBuffer.consume();
     wallJumpCoyote.consume();

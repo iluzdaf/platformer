@@ -5,11 +5,11 @@ void AnimationManager::update(float deltaTime, const ActorMotionState &motionSta
 {
     ActorAnimationState newState = currentState;
 
-    if (motionState.dashing)
+    if (motionState.dash.active)
         newState = ActorAnimationState::Dash;
     else if (!motionState.contacts.onGround)
     {
-        if (motionState.wallSliding || motionState.climbing)
+        if (motionState.wallSlide.active || motionState.climb.active)
             newState = ActorAnimationState::WallSlide;
         else if (motionState.velocity.y < 0.0f)
             newState = ActorAnimationState::Jump;

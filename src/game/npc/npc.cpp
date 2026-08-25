@@ -14,7 +14,7 @@ namespace
 } // namespace
 
 Npc::Npc(const NpcData &data)
-    : Actor(data.agentData, data.animationData),
+    : Actor(data.motionData, data.animationData),
       behavior(makeBehavior(data))
 {
 }

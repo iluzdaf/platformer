@@ -4,12 +4,12 @@
 #include "game/actor/actor_animation_state.hpp"
 #include "animations/sprite_animation.hpp"
 
-struct AgentState;
+struct ActorMotionState;
 
 class AnimationManager
 {
 public:
-    void update(float deltaTime, const AgentState &agentState);
+    void update(float deltaTime, const ActorMotionState &motionState);
     const SpriteAnimation &getCurrentAnimation();
     void addAnimation(ActorAnimationState state, const SpriteAnimation &anim);
     ActorAnimationState getCurrentState() const;

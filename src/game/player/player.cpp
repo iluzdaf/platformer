@@ -1,7 +1,7 @@
 #include "game/player/player.hpp"
 
 Player::Player(const PlayerData &data)
-    : Actor(data.agentData, data.animationData),
+    : Actor(data.motionData, data.animationData),
       data(data)
 {
 }
@@ -18,20 +18,20 @@ InputIntentions Player::decideIntentions(float, const TileMap &)
 
 void Player::postFixedUpdate()
 {
-    const AgentState &agentState = agent.getState();
-    if (agentState.emitDash)
+    const ActorMotionState &motionState = motion.getState();
+    if (motionState.emitDash)
         onDash();
 
-    if (agentState.emitWallJump)
+    if (motionState.emitWallJump)
         onWallJump();
 
-    if (agentState.emitWallSliding)
+    if (motionState.emitWallSliding)
         onWallSliding();
 
-    if (!agentState.wasOnGround && agentState.onGround &&
-        agentState.previousVelocity.y > data.fallFromHeightThreshold)
+    if (!motionState.wasOnGround && motionState.onGround &&
+        motionState.previousVelocity.y > data.fallFromHeightThreshold)
         onFallFromHeight();
 
-    if (!agentState.wasHitCeiling && agentState.hitCeiling)
+    if (!motionState.wasHitCeiling && motionState.hitCeiling)
         onHitCeiling();
 }

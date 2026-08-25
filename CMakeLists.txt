@@ -117,19 +117,19 @@ add_executable(platformer
     src/navigation/navigation_graph.cpp
     src/game/npc/behaviors/patrol_behavior.cpp
     src/game/npc/npc.cpp
-    src/agent/agent.cpp
-    src/agent/movement_abilities/jump_ability.cpp
-    src/agent/movement_abilities/dash_ability.cpp
-    src/agent/movement_abilities/move_ability.cpp
-    src/agent/movement_abilities/wall_slide_ability.cpp
-    src/agent/movement_abilities/wall_jump_ability.cpp
-    src/agent/movement_abilities/climb_ability.cpp
-    src/agent/movement_abilities/climb_move_ability.cpp
-    src/agent/movement_abilities/action_buffer.cpp
-    src/agent/movement_abilities/coyote_time.cpp
-    src/agent/movement_abilities/direction_buffer.cpp
-    src/agent/movement_abilities/movement_system.cpp
-    src/agent/movement_abilities/gravity_ability.cpp
+    src/game/actor/actor_motion.cpp
+    src/game/actor/abilities/jump_ability.cpp
+    src/game/actor/abilities/dash_ability.cpp
+    src/game/actor/abilities/move_ability.cpp
+    src/game/actor/abilities/wall_slide_ability.cpp
+    src/game/actor/abilities/wall_jump_ability.cpp
+    src/game/actor/abilities/climb_ability.cpp
+    src/game/actor/abilities/climb_move_ability.cpp
+    src/game/actor/abilities/action_buffer.cpp
+    src/game/actor/abilities/coyote_time.cpp
+    src/game/actor/abilities/direction_buffer.cpp
+    src/game/actor/abilities/ability_system.cpp
+    src/game/actor/abilities/gravity_ability.cpp
 )
 
 target_compile_features(platformer PRIVATE cxx_std_23)
@@ -196,18 +196,18 @@ add_executable(tests
     tests/game/npc/behaviors/test_patrol_behavior.cpp
     tests/game/npc/test_npc.cpp
     tests/game/tile_map/test_tile_map_navigation.cpp
-    tests/agent/movement_abilities/test_jump_ability.cpp
-    tests/agent/movement_abilities/test_dash_ability.cpp
-    tests/agent/movement_abilities/test_move_ability.cpp
-    tests/agent/movement_abilities/test_wall_slide_ability.cpp
-    tests/agent/movement_abilities/test_wall_jump_ability.cpp
-    tests/agent/movement_abilities/test_climb_ability.cpp
-    tests/agent/movement_abilities/test_climb_move_ability.cpp
-    tests/agent/movement_abilities/test_coyote_time.cpp
-    tests/agent/movement_abilities/test_action_buffer.cpp
-    tests/agent/movement_abilities/test_direction_buffer.cpp
-    tests/agent/movement_abilities/test_movement_system.cpp
-    tests/agent/movement_abilities/test_gravity_ability.cpp
+    tests/game/actor/abilities/test_jump_ability.cpp
+    tests/game/actor/abilities/test_dash_ability.cpp
+    tests/game/actor/abilities/test_move_ability.cpp
+    tests/game/actor/abilities/test_wall_slide_ability.cpp
+    tests/game/actor/abilities/test_wall_jump_ability.cpp
+    tests/game/actor/abilities/test_climb_ability.cpp
+    tests/game/actor/abilities/test_climb_move_ability.cpp
+    tests/game/actor/abilities/test_coyote_time.cpp
+    tests/game/actor/abilities/test_action_buffer.cpp
+    tests/game/actor/abilities/test_direction_buffer.cpp
+    tests/game/actor/abilities/test_ability_system.cpp
+    tests/game/actor/abilities/test_gravity_ability.cpp
     src/rendering/texture2d.cpp
     src/rendering/shader.cpp
     src/rendering/screen_transition.cpp
@@ -240,19 +240,19 @@ add_executable(tests
     src/navigation/navigation_graph.cpp
     src/game/npc/behaviors/patrol_behavior.cpp
     src/game/npc/npc.cpp
-    src/agent/agent.cpp
-    src/agent/movement_abilities/jump_ability.cpp
-    src/agent/movement_abilities/dash_ability.cpp
-    src/agent/movement_abilities/move_ability.cpp
-    src/agent/movement_abilities/wall_slide_ability.cpp
-    src/agent/movement_abilities/wall_jump_ability.cpp
-    src/agent/movement_abilities/climb_ability.cpp
-    src/agent/movement_abilities/climb_move_ability.cpp
-    src/agent/movement_abilities/action_buffer.cpp
-    src/agent/movement_abilities/coyote_time.cpp
-    src/agent/movement_abilities/direction_buffer.cpp
-    src/agent/movement_abilities/movement_system.cpp
-    src/agent/movement_abilities/gravity_ability.cpp
+    src/game/actor/actor_motion.cpp
+    src/game/actor/abilities/jump_ability.cpp
+    src/game/actor/abilities/dash_ability.cpp
+    src/game/actor/abilities/move_ability.cpp
+    src/game/actor/abilities/wall_slide_ability.cpp
+    src/game/actor/abilities/wall_jump_ability.cpp
+    src/game/actor/abilities/climb_ability.cpp
+    src/game/actor/abilities/climb_move_ability.cpp
+    src/game/actor/abilities/action_buffer.cpp
+    src/game/actor/abilities/coyote_time.cpp
+    src/game/actor/abilities/direction_buffer.cpp
+    src/game/actor/abilities/ability_system.cpp
+    src/game/actor/abilities/gravity_ability.cpp
     external/stb/stb_image.cpp
 )
 

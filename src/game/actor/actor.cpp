@@ -2,11 +2,11 @@
 #include "input/input_intentions.hpp"
 #include "game/tile_map/tile_map.hpp"
 
-Actor::Actor(const AgentData &agentData, const ActorAnimationData &animationData)
-    : agent(agentData),
-      physicsBody(agentData.physicsBodyData)
+Actor::Actor(const ActorMotionData &motionData, const ActorAnimationData &animationData)
+    : motion(motionData),
+      physicsBody(motionData.physicsBodyData)
 {
-    actorState.size = agentData.size;
+    actorState.size = motionData.size;
 
     animationManager.addAnimation(ActorAnimationState::Idle, SpriteAnimation(animationData.idleSpriteAnimationData));
     animationManager.addAnimation(ActorAnimationState::Walk, SpriteAnimation(animationData.walkSpriteAnimationData));
@@ -22,25 +22,25 @@ void Actor::postFixedUpdate()
 
 void Actor::preFixedUpdate()
 {
-    agent.resetCollisionAABB();
+    motion.resetCollisionAABB();
 }
 
 void Actor::fixedUpdate(float deltaTime, const TileMap &tileMap)
 {
     InputIntentions inputIntentions = decideIntentions(deltaTime, tileMap);
 
-    agent.applyMovement(deltaTime, inputIntentions);
+    motion.applyMovement(deltaTime, inputIntentions);
 
-    physicsBody.setVelocity(agent.getState().targetVelocity);
+    physicsBody.setVelocity(motion.getState().targetVelocity);
     physicsBody.stepPhysics(deltaTime, tileMap);
 
-    agent.readContacts(physicsBody, tileMap);
-    agent.readMotion(physicsBody);
+    motion.readContacts(physicsBody, tileMap);
+    motion.readMotion(physicsBody);
 
-    animationManager.update(deltaTime, agent.getState());
+    animationManager.update(deltaTime, motion.getState());
 
-    const AgentState &agentState = agent.getState();
-    actorState.facingLeft = agentState.velocity.x > 0 ? false : (agentState.velocity.x < 0 ? true : actorState.facingLeft);
+    const ActorMotionState &motionState = motion.getState();
+    actorState.facingLeft = motionState.velocity.x > 0 ? false : (motionState.velocity.x < 0 ? true : actorState.facingLeft);
     actorState.currentAnimationUVStart = animationManager.getCurrentAnimation().getUVStart();
     actorState.currentAnimationUVEnd = animationManager.getCurrentAnimation().getUVEnd();
     actorState.currentAnimationState = animationManager.getCurrentState();
@@ -51,9 +51,9 @@ const ActorState &Actor::getState() const
     return actorState;
 }
 
-const Agent &Actor::getAgent() const
+const ActorMotion &Actor::getMotion() const
 {
-    return agent;
+    return motion;
 }
 
 const PhysicsBody &Actor::getPhysicsBody() const

@@ -1,6 +1,6 @@
 {
     "playerData":{
-        "agentData":{
+        "motionData":{
             "size":[16.0,16.0],
             "moveAbilityData":{"moveSpeed":250.0},
             "jumpAbilityData":{
@@ -65,7 +65,7 @@
     },
     "npcData":{
         "villager":{
-            "agentData":{
+            "motionData":{
                 "size":[16.0,16.0],
                 "moveAbilityData":{"moveSpeed":60.0},
                 "gravityAbilityData":{"gravity":5,"maxFallSpeed":600},

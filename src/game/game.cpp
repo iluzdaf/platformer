@@ -293,7 +293,7 @@ void Game::render()
 
     debugUi.draw(
         *imGuiManager.get(),
-        player->getAgent().getState(),
+        player->getMotion().getState(),
         player->getPosition(),
         player->getState(),
         *camera.get(),

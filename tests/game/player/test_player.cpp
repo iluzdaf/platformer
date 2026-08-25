@@ -26,7 +26,7 @@ TEST_CASE("Player falls under normal gravity", "[Player]")
     Player player = setupPlayer();
     TileMap tileMap = setupTileMap(1, static_cast<int>(980.0f / 16.0f) + 2);
     simulatePlayer(player, tileMap, 1.0f);
-    const AgentState &state = player.getAgent().getState();
+    const ActorMotionState &state = player.getMotion().getState();
     REQUIRE(state.velocity.y == Approx(980));
     REQUIRE(player.getPosition().y == Approx(0.5f * 980).margin(5));
 }
@@ -41,7 +41,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
         tileMap.setTileIndex(glm::ivec2(0, 5), 1);
         simulatePlayer(player, tileMap, 1.0f);
         float expectedY = 4 * tileMap.getTileSize();
-        const AgentState &state = player.getAgent().getState();
+        const ActorMotionState &state = player.getMotion().getState();
         REQUIRE(player.getPosition().y == Approx(expectedY));
         REQUIRE(state.onGround);
         REQUIRE(state.velocity.y == Approx(0.0f).margin(0.01f));
@@ -53,7 +53,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, tileMap, 0.1f);
-        const AgentState &state = player.getAgent().getState();
+        const ActorMotionState &state = player.getMotion().getState();
         REQUIRE(state.onGround);
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
@@ -192,7 +192,7 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 {
     TileMap tileMap = setupTileMap();
     Player player = setupPlayer();
-    const AgentState &state = player.getAgent().getState();
+    const ActorMotionState &state = player.getMotion().getState();
 
     SECTION("Touching right wall")
     {
@@ -304,13 +304,13 @@ TEST_CASE("Player movement ability integration", "[Player]")
 // SECTION("Movement System event callbacks are triggered")
 // {
 //     bool wallJumpTriggered = false;
-//     movementSystem.onWallJump.connect([&]
+//     abilitySystem.onWallJump.connect([&]
 //                                       { wallJumpTriggered = true; });
 //     bool dashTriggered = false;
-//     movementSystem.onDash.connect([&]
+//     abilitySystem.onDash.connect([&]
 //                                   { dashTriggered = true; });
 //     bool wallSlideTriggered = false;
-//     movementSystem.onWallSliding.connect([&]
+//     abilitySystem.onWallSliding.connect([&]
 //                                          { wallSlideTriggered = true; });
 
 //     SECTION("onWallJump")
@@ -319,7 +319,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
 //         playerState.touchingLeftWall = true;
 //         inputIntentions.jumpHeld = true;
 //         inputIntentions.direction = glm::vec2(1.0f, 0.0f);
-//         simulateMovement(playerState, inputIntentions, movementSystem, 0.01f);
+//         simulateMovement(playerState, inputIntentions, abilitySystem, 0.01f);
 //         REQUIRE(wallJumpTriggered);
 //         REQUIRE_FALSE(dashTriggered);
 //         REQUIRE_FALSE(wallSlideTriggered);
@@ -329,7 +329,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
 //     {
 //         playerState.touchingLeftWall = false;
 //         inputIntentions.dashRequested = true;
-//         simulateMovement(playerState, inputIntentions, movementSystem, 0.01f);
+//         simulateMovement(playerState, inputIntentions, abilitySystem, 0.01f);
 //         REQUIRE_FALSE(wallJumpTriggered);
 //         REQUIRE(dashTriggered);
 //         REQUIRE_FALSE(wallSlideTriggered);
@@ -339,8 +339,8 @@ TEST_CASE("Player movement ability integration", "[Player]")
 //     {
 //         playerState.onGround = false;
 //         playerState.touchingLeftWall = true;
-//         simulateMovement(playerState, inputIntentions, movementSystem, 0.01f);
-//         simulateMovement(playerState, inputIntentions, movementSystem, 0.01f);
+//         simulateMovement(playerState, inputIntentions, abilitySystem, 0.01f);
+//         simulateMovement(playerState, inputIntentions, abilitySystem, 0.01f);
 //         REQUIRE_FALSE(wallJumpTriggered);
 //         REQUIRE_FALSE(dashTriggered);
 //         REQUIRE(wallSlideTriggered);

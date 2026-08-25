@@ -1,22 +1,22 @@
 #include "animations/animation_manager.hpp"
-#include "agent/agent_state.hpp"
+#include "game/actor/actor_motion_state.hpp"
 
-void AnimationManager::update(float deltaTime, const AgentState &agentState)
+void AnimationManager::update(float deltaTime, const ActorMotionState &motionState)
 {
     ActorAnimationState newState = currentState;
 
-    if (agentState.dashing)
+    if (motionState.dashing)
         newState = ActorAnimationState::Dash;
-    else if (!agentState.onGround)
+    else if (!motionState.onGround)
     {
-        if (agentState.wallSliding || agentState.climbing)
+        if (motionState.wallSliding || motionState.climbing)
             newState = ActorAnimationState::WallSlide;
-        else if (agentState.velocity.y < 0.0f)
+        else if (motionState.velocity.y < 0.0f)
             newState = ActorAnimationState::Jump;
-        else if (agentState.velocity.y > 0.0f)
+        else if (motionState.velocity.y > 0.0f)
             newState = ActorAnimationState::Fall;
     }
-    else if (std::abs(agentState.velocity.x) > 0.1f)
+    else if (std::abs(motionState.velocity.x) > 0.1f)
         newState = ActorAnimationState::Walk;
     else
         newState = ActorAnimationState::Idle;

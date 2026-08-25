@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 project(Platformer)
 
-#These are the compilers it is built and tested with; anything else may work but
-#is not covered by CI.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 20)
         message(FATAL_ERROR "clang 20 or newer is required for C++23, found ${CMAKE_CXX_COMPILER_VERSION}")
@@ -23,44 +21,33 @@ if(SKIP_OPENGL_TESTS)
     add_compile_definitions(SKIP_OPENGL_TESTS)
 endif()
 
-#GLAD
 add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
-#STB
 add_library(stb STATIC external/stb/stb_image.cpp)
 target_include_directories(stb PUBLIC external/stb)
 target_compile_features(stb PUBLIC cxx_std_23)
 set_target_properties(stb PROPERTIES CXX_EXTENSIONS OFF)
 
-#GLFW
 add_subdirectory(external/glfw)
 
-#GLM(Header - only)
 include_directories(external/glm)
 
-#TheWisp / signals(Header - only)
 include_directories(external/signals)
 
-#Catch2(for tests only)
 add_subdirectory(external/catch2)
 
-#Glaze
 add_subdirectory(external/glaze)
 
-#Lua
-#add_subdirectory(external / lua)
 file(GLOB LUA_SOURCES
     external/lua/lua-5.4.7/src/*.c
 )
 add_library(lua STATIC ${LUA_SOURCES})
 target_include_directories(lua PUBLIC external/lua/lua-5.4.7/include)
 
-# sol2 (header-only)
 add_subdirectory(external/sol2)
 include_directories(external/sol2/include)
 
-# IMGUI
 file(GLOB IMGUI_SRC
     external/imgui/imgui.cpp
     external/imgui/imgui_draw.cpp
@@ -78,10 +65,8 @@ target_compile_features(imgui PUBLIC cxx_std_23)
 set_target_properties(imgui PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(imgui PRIVATE glfw glad)
 
-#esfw
 add_subdirectory(external/efsw)
 
-# Platformer Executable
 add_executable(platformer
     src/main.cpp
     src/rendering/texture2d.cpp
@@ -176,7 +161,6 @@ target_link_libraries(platformer
     ${CMAKE_DL_LIBS}
 )
 
-# Tests
 add_executable(tests
     tests/test_main.cpp
     tests/rendering/test_texture2d.cpp

@@ -3,5 +3,6 @@ ColumnLimit: 0
 SortIncludes: false
 AccessModifierOffset: -4
 NamespaceIndentation: All
+FixNamespaceComments: false
 BraceWrapping:
   BeforeLambdaBody: true

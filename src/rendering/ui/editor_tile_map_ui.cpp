@@ -12,7 +12,7 @@ namespace
     {
         return levelPath.substr(levelPath.find_last_of("/\\") + 1);
     }
-} // namespace
+}
 
 void EditorTileMapUi::draw(
     const ImGuiManager &imGuiManager,

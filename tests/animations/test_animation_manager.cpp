@@ -18,7 +18,7 @@ namespace
         state.velocity = glm::vec2(50.0f, 0.0f);
         return state;
     }
-} // namespace
+}
 
 TEST_CASE("Plays the animation for the state it is in", "[AnimationManager]")
 {

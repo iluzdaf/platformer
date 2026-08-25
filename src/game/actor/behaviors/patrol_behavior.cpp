@@ -20,7 +20,7 @@ namespace
 
         return false;
     }
-} // namespace
+}
 
 PatrolBehavior::PatrolBehavior(const PatrolBehaviorData &data)
     : data(data)

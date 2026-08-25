@@ -204,7 +204,7 @@ namespace
 
         return out;
     }
-} // namespace
+}
 
 TileMap::TileMap(const std::string &jsonFilePath, const TilePalettes &tilePalettes) : level(jsonFilePath)
 {

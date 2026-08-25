@@ -77,7 +77,7 @@ namespace
         }
         return false;
     }
-} // namespace
+}
 
 TEST_CASE("Walk edges are bidirectional along a floor", "[TileMap][Navigation]")
 {

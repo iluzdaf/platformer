@@ -41,7 +41,7 @@ namespace
             npc.fixedUpdate(0.01f, tileMap);
         }
     }
-} // namespace
+}
 
 TEST_CASE("Spawns where the level places it", "[Npc]")
 {

@@ -49,7 +49,7 @@ namespace
         }
         return visited;
     }
-} // namespace
+}
 
 TEST_CASE("Starts at the nearest node with somewhere to walk", "[PatrolBehavior]")
 {

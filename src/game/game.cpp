@@ -445,8 +445,6 @@ void Game::rebuildNpcs()
 {
     npcs.clear();
 
-    const NavigationGraph &navigationGraph = tileMap->getNavigationGraph();
-
     for (const NpcSpawnData &spawn : tileMap->getNpcs())
     {
         auto it = gameData.npcData.find(spawn.type);
@@ -457,7 +455,7 @@ void Game::rebuildNpcs()
         }
 
         std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second);
-        newNpc->spawnAt(tileMap->tileToWorldPosition(spawn.tilePosition), navigationGraph);
+        newNpc->setPosition(tileMap->tileToWorldPosition(spawn.tilePosition));
         npcs.push_back(std::move(newNpc));
     }
 

@@ -7,6 +7,6 @@ class ActorBehavior
 {
 public:
     virtual ~ActorBehavior() = default;
-    virtual void reset(const ActorBehaviorContext &context);
+    virtual void reset();
     virtual InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) = 0;
 };

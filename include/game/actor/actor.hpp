@@ -23,18 +23,12 @@ public:
     const PhysicsBody &getPhysicsBody() const;
     const glm::vec2 &getPosition() const;
     void setPosition(const glm::vec2 &position);
-    void spawnAt(
-        const glm::vec2 &position,
-        const NavigationGraph &navigationGraph);
     const ActorBehavior *getBehavior() const;
 
 protected:
     explicit Actor(const ActorData &data);
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
     ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
-    ActorBehaviorContext behaviorContextAt(
-        const glm::vec2 &position,
-        const NavigationGraph &navigationGraph) const;
 
     ActorMotion motion;
     PhysicsBody physicsBody;

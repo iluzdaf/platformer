@@ -55,7 +55,7 @@ TEST_CASE("Spawns where the level places it", "[Npc]")
     Npc npc(setupNpcData());
 
     glm::vec2 placed = spawnPosition(tileMap);
-    npc.spawnAt(placed, tileMap.getNavigationGraph());
+    npc.setPosition(placed);
 
     REQUIRE(npc.getPosition() == placed);
 }
@@ -67,7 +67,8 @@ TEST_CASE("Starts from the navigation node nearest where it was placed", "[Npc]"
 
     Npc npc(setupNpcData());
     glm::vec2 placed = spawnPosition(tileMap);
-    npc.spawnAt(placed, navigationGraph);
+    npc.setPosition(placed);
+    stepNpc(npc, tileMap, 1);
 
     REQUIRE(patrolOf(npc).getCurrentNodeId().has_value());
 
@@ -86,8 +87,10 @@ TEST_CASE("Two npcs placed apart start on different nodes", "[Npc]")
 
     Npc left(setupNpcData());
     Npc right(setupNpcData());
-    left.spawnAt(tileMap.tileToWorldPosition(glm::ivec2(0, 5)), tileMap.getNavigationGraph());
-    right.spawnAt(tileMap.tileToWorldPosition(glm::ivec2(9, 5)), tileMap.getNavigationGraph());
+    left.setPosition(tileMap.tileToWorldPosition(glm::ivec2(0, 5)));
+    right.setPosition(tileMap.tileToWorldPosition(glm::ivec2(9, 5)));
+    stepNpc(left, tileMap, 1);
+    stepNpc(right, tileMap, 1);
 
     REQUIRE(patrolOf(left).getCurrentNodeId() != patrolOf(right).getCurrentNodeId());
 }
@@ -96,7 +99,7 @@ TEST_CASE("Walks along the graph without being told to", "[Npc]")
 {
     TileMap tileMap = setupWalkableTileMap();
     Npc npc(setupNpcData());
-    npc.spawnAt(spawnPosition(tileMap), tileMap.getNavigationGraph());
+    npc.setPosition(spawnPosition(tileMap));
 
     float startX = npc.getPosition().x;
     stepNpc(npc, tileMap, 200);
@@ -108,7 +111,7 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
 {
     TileMap tileMap = setupWalkableTileMap();
     Npc npc(setupNpcData());
-    npc.spawnAt(spawnPosition(tileMap), tileMap.getNavigationGraph());
+    npc.setPosition(spawnPosition(tileMap));
 
     std::unordered_set<int> visited;
     float lowestFootY = npc.getPosition().y + npc.getPhysicsBody().getBottomCenterOffset().y;
@@ -136,7 +139,7 @@ TEST_CASE("Stands still on a tile map with no navigation graph", "[Npc]")
         tileMap.setTileIndex(glm::ivec2(x, 6), 1);
 
     Npc npc(setupNpcData());
-    npc.spawnAt(spawnPosition(tileMap), tileMap.getNavigationGraph());
+    npc.setPosition(spawnPosition(tileMap));
 
     npc.setPosition(glm::vec2(48.0f, 64.0f));
     stepNpc(npc, tileMap, 100);
@@ -150,8 +153,8 @@ TEST_CASE("Patrolling is deterministic, so where you place them is what differs"
 
     Npc first(setupNpcData());
     Npc second(setupNpcData());
-    first.spawnAt(spawnPosition(tileMap), tileMap.getNavigationGraph());
-    second.spawnAt(spawnPosition(tileMap), tileMap.getNavigationGraph());
+    first.setPosition(spawnPosition(tileMap));
+    second.setPosition(spawnPosition(tileMap));
 
     stepNpc(first, tileMap, 600);
     stepNpc(second, tileMap, 600);
@@ -189,7 +192,8 @@ TEST_CASE("The shipped level6 has a graph an npc can wander", "[Npc][Level]")
     REQUIRE(tileMap.getNpcs()[0].tilePosition == glm::ivec2(6, 11));
 
     Npc npc(setupNpcData());
-    npc.spawnAt(tileMap.tileToWorldPosition(glm::ivec2(6, 11)), navigationGraph);
+    npc.setPosition(tileMap.tileToWorldPosition(glm::ivec2(6, 11)));
+    stepNpc(npc, tileMap, 1);
     REQUIRE(patrolOf(npc).getCurrentNodeId().has_value());
 
     float startX = npc.getPosition().x;
@@ -230,11 +234,12 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
 {
     TileMap tileMap("../../assets/levels/level6.json", shippedPalettes());
     Npc npc(setupNpcData());
-    npc.spawnAt(tileMap.tileToWorldPosition(glm::ivec2(6, 11)), tileMap.getNavigationGraph());
+    npc.setPosition(tileMap.tileToWorldPosition(glm::ivec2(6, 11)));
+    glm::vec2 footPosition = npc.getPosition() + npc.getPhysicsBody().getBottomCenterOffset();
+    stepNpc(npc, tileMap, 1);
 
     REQUIRE(patrolOf(npc).getCurrentNodeId().has_value());
 
-    glm::vec2 footPosition = npc.getPosition() + npc.getPhysicsBody().getBottomCenterOffset();
     NavigationNode anchor = tileMap.getNavigationGraph().getNode(*patrolOf(npc).getCurrentNodeId());
     REQUIRE(anchor.position.y == footPosition.y);
 
@@ -257,7 +262,7 @@ TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc][Level
 {
     TileMap tileMap("../../assets/levels/level6.json", shippedPalettes());
     Npc npc(setupNpcData());
-    npc.spawnAt(tileMap.tileToWorldPosition(glm::ivec2(6, 11)), tileMap.getNavigationGraph());
+    npc.setPosition(tileMap.tileToWorldPosition(glm::ivec2(6, 11)));
 
     std::unordered_set<int> reached;
     for (int step = 0; step < 4000; ++step)
@@ -283,7 +288,7 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
 
     Npc npc(npcData);
     glm::vec2 placed = spawnPosition(tileMap);
-    npc.spawnAt(placed, tileMap.getNavigationGraph());
+    npc.setPosition(placed);
 
     REQUIRE(npc.getBehavior() == nullptr);
 

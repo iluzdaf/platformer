@@ -78,6 +78,9 @@ const glm::vec2 &Actor::getPosition() const
 void Actor::setPosition(const glm::vec2 &position)
 {
     physicsBody.setPosition(position);
+
+    if (behavior)
+        behavior->reset();
 }
 
 void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
@@ -87,29 +90,10 @@ void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
 
 ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGraph) const
 {
-    return behaviorContextAt(physicsBody.getPosition(), navigationGraph);
-}
-
-ActorBehaviorContext Actor::behaviorContextAt(
-    const glm::vec2 &position,
-    const NavigationGraph &navigationGraph) const
-{
     return ActorBehaviorContext{
         navigationGraph,
-        position + physicsBody.getBottomCenterOffset(),
+        physicsBody.getPosition() + physicsBody.getBottomCenterOffset(),
         physicsBody.getColliderSize()};
-}
-
-void Actor::spawnAt(
-    const glm::vec2 &position,
-    const NavigationGraph &navigationGraph)
-{
-    setPosition(position);
-
-    if (!behavior)
-        return;
-
-    behavior->reset(behaviorContextAt(position, navigationGraph));
 }
 
 const ActorBehavior *Actor::getBehavior() const

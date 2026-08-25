@@ -32,6 +32,15 @@ namespace
         return data;
     }
 
+    void anchorAt(
+        PatrolBehavior &behavior,
+        const NavigationGraph &navigationGraph,
+        glm::vec2 position)
+    {
+        behavior.reset();
+        behavior.decide(0.01f, at(navigationGraph, position));
+    }
+
     std::vector<int> walk(
         PatrolBehavior &behavior,
         const NavigationGraph &navigationGraph,
@@ -56,7 +65,7 @@ TEST_CASE("Starts at the nearest node with somewhere to walk", "[PatrolBehavior]
     NavigationGraph navigationGraph = setupPlatform();
     PatrolBehavior behavior(setupData());
 
-    behavior.reset(at(navigationGraph, {90.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {90.0f, 192.0f});
 
     REQUIRE(behavior.getCurrentNodeId() == 1);
 }
@@ -69,7 +78,7 @@ TEST_CASE("Has nothing to do on a graph with no walk edges", "[PatrolBehavior]")
     navigationGraph.addEdge(0, 1, EdgeType::Jump);
 
     PatrolBehavior behavior(setupData());
-    behavior.reset(at(navigationGraph, {0, 0}));
+    anchorAt(behavior, navigationGraph, {0, 0});
 
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
     REQUIRE(behavior.decide(0.01f, at(navigationGraph, {0, 0})).direction.x == 0.0f);
@@ -79,8 +88,6 @@ TEST_CASE("Patrols a two node platform end to end", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupPlatform();
     PatrolBehavior behavior(setupData());
-    behavior.reset(at(navigationGraph, {0.0f, 192.0f}));
-
     std::vector<int> visited = walk(behavior, navigationGraph, {0.0f, 192.0f}, 600);
 
     REQUIRE(visited.size() > 4);
@@ -92,8 +99,6 @@ TEST_CASE("Walks to the far end of a longer run before turning", "[PatrolBehavio
 {
     NavigationGraph navigationGraph = setupPlatform(4);
     PatrolBehavior behavior(setupData());
-    behavior.reset(at(navigationGraph, {0.0f, 192.0f}));
-
     std::vector<int> visited = walk(behavior, navigationGraph, {0.0f, 192.0f}, 1200);
 
     REQUIRE(visited.size() > 8);
@@ -106,8 +111,6 @@ TEST_CASE("Emits no input other than a walk direction", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupPlatform();
     PatrolBehavior behavior(setupData());
-    behavior.reset(at(navigationGraph, {0.0f, 192.0f}));
-
     InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, {0.0f, 192.0f}));
 
     REQUIRE(inputIntentions.direction.x != 0.0f);
@@ -134,19 +137,19 @@ TEST_CASE("Anchors to the run underfoot, not a nearer one above", "[PatrolBehavi
 
     SECTION("standing on the lower run, with the upper run nearer in 2d")
     {
-        behavior.reset(at(navigationGraph, {104.0f, 192.0f}));
+        anchorAt(behavior, navigationGraph, {104.0f, 192.0f});
         REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 192.0f);
     }
 
     SECTION("standing on the upper run")
     {
-        behavior.reset(at(navigationGraph, {104.0f, 128.0f}));
+        anchorAt(behavior, navigationGraph, {104.0f, 128.0f});
         REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
     }
 
     SECTION("falling towards a run below")
     {
-        behavior.reset(at(navigationGraph, {104.0f, 60.0f}));
+        anchorAt(behavior, navigationGraph, {104.0f, 60.0f});
         REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
     }
 }

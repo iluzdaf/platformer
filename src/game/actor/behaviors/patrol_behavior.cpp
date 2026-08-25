@@ -27,12 +27,15 @@ PatrolBehavior::PatrolBehavior(const PatrolBehaviorData &data)
 {
 }
 
-void PatrolBehavior::reset(const ActorBehaviorContext &context)
+void PatrolBehavior::reset()
 {
     currentNodeId.reset();
     targetNodeId.reset();
     previousNodeId.reset();
+}
 
+void PatrolBehavior::anchor(const ActorBehaviorContext &context)
+{
     float nearestDrop = 0.0f;
     float nearestDistance = 0.0f;
     for (const auto &[id, node] : context.navigationGraph.getNodes())
@@ -62,6 +65,9 @@ InputIntentions PatrolBehavior::decide(
     const ActorBehaviorContext &context)
 {
     InputIntentions inputIntentions;
+
+    if (!currentNodeId)
+        anchor(context);
 
     if (!currentNodeId)
         return inputIntentions;

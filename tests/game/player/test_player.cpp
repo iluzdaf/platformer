@@ -140,24 +140,6 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
     TileMap tileMap = setupTileMap();
     Player player = setupPlayer();
 
-    // SECTION("Player that spawns outside of the tileMap is clamped inside the tileMap")
-    // {
-    //     player.setPosition(glm::vec2(10.0f, 1000.0f));
-    //     simulatePlayer(player, tileMap, 0.1f);
-    //     REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
-    //     REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
-
-    //     SECTION("Player can jump after being clamped")
-    //     {
-    //         InputIntentions inputIntentions;
-    //         inputIntentions.jumpRequested = true;
-    //         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-    //         REQUIRE(state.velocity.y < 0.0f);
-    //     }
-    // }
-
-    // Exception if player is setPositioned outside of the tileMap bounds
-
     SECTION("Player stays within bounds")
     {
         player.setPosition(glm::vec2(16, 32));
@@ -302,49 +284,3 @@ TEST_CASE("Player movement ability integration", "[Player]")
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
     }
 }
-
-// SECTION("Movement System event callbacks are triggered")
-// {
-//     bool wallJumpTriggered = false;
-//     abilitySystem.onWallJump.connect([&]
-//                                       { wallJumpTriggered = true; });
-//     bool dashTriggered = false;
-//     abilitySystem.onDash.connect([&]
-//                                   { dashTriggered = true; });
-//     bool wallSlideTriggered = false;
-//     abilitySystem.onWallSliding.connect([&]
-//                                          { wallSlideTriggered = true; });
-
-//     SECTION("onWallJump")
-//     {
-//         playerState.onGround = false;
-//         playerState.touchingLeftWall = true;
-//         inputIntentions.jumpHeld = true;
-//         inputIntentions.direction = glm::vec2(1.0f, 0.0f);
-//         simulateMovement(playerState, inputIntentions, abilitySystem, 0.01f);
-//         REQUIRE(wallJumpTriggered);
-//         REQUIRE_FALSE(dashTriggered);
-//         REQUIRE_FALSE(wallSlideTriggered);
-//     }
-
-//     SECTION("onDash")
-//     {
-//         playerState.touchingLeftWall = false;
-//         inputIntentions.dashRequested = true;
-//         simulateMovement(playerState, inputIntentions, abilitySystem, 0.01f);
-//         REQUIRE_FALSE(wallJumpTriggered);
-//         REQUIRE(dashTriggered);
-//         REQUIRE_FALSE(wallSlideTriggered);
-//     }
-
-//     SECTION("onWallSliding")
-//     {
-//         playerState.onGround = false;
-//         playerState.touchingLeftWall = true;
-//         simulateMovement(playerState, inputIntentions, abilitySystem, 0.01f);
-//         simulateMovement(playerState, inputIntentions, abilitySystem, 0.01f);
-//         REQUIRE_FALSE(wallJumpTriggered);
-//         REQUIRE_FALSE(dashTriggered);
-//         REQUIRE(wallSlideTriggered);
-//     }
-// }

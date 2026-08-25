@@ -23,7 +23,6 @@ public:
     const PhysicsBody &getPhysicsBody() const;
     const glm::vec2 &getPosition() const;
     void setPosition(const glm::vec2 &position);
-    const ActorBehavior *getBehavior() const;
 
 protected:
     explicit Actor(const ActorData &data);

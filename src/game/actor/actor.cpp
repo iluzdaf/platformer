@@ -95,8 +95,3 @@ ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGra
         physicsBody.getPosition() + physicsBody.getBottomCenterOffset(),
         physicsBody.getColliderSize()};
 }
-
-const ActorBehavior *Actor::getBehavior() const
-{
-    return behavior.get();
-}

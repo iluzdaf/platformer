@@ -21,7 +21,7 @@ jobs:
           lfs: true
           submodules: recursive
 
-      - name: Check json assets are minified
+      - name: Check json assets are formatted
         if: runner.os == 'Linux'
         run: python3 tools/format_json.py --check
 
@@ -97,7 +97,8 @@ jobs:
       - name: Run tests for Windows
         if: runner.os == 'Windows'
         shell: cmd
-        run: build\release\tests.exe
+        working-directory: build/release
+        run: tests.exe
 
       - name: Run tests for macOS and Linux
         if: runner.os != 'Windows'

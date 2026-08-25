@@ -16,8 +16,9 @@ void simulatePlayer(
     float step = 0.01f)
 {
     FixedTimeStep timeStepper(step);
+    player.setInputIntentions(intentions);
     timeStepper.run(totalTime, [&](float dt)
-                    { player.fixedUpdate(dt, tileMap, intentions); });
+                    { player.fixedUpdate(dt, tileMap); player.postFixedUpdate(); });
 }
 
 TEST_CASE("Player falls under normal gravity", "[Player]")
@@ -40,7 +41,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
         tileMap.setTileIndex(glm::ivec2(0, 5), 1);
         simulatePlayer(player, tileMap, 1.0f);
         float expectedY = 4 * tileMap.getTileSize();
-        const AgentState& state = player.getAgent().getState();
+        const AgentState &state = player.getAgent().getState();
         REQUIRE(state.position.y == Approx(expectedY));
         REQUIRE(state.onGround);
         REQUIRE(state.velocity.y == Approx(0.0f).margin(0.01f));
@@ -52,7 +53,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
         tileMap.setTileIndex(glm::ivec2(2, 5), 1);
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, tileMap, 0.1f);
-        const AgentState& state = player.getAgent().getState();
+        const AgentState &state = player.getAgent().getState();
         REQUIRE(state.onGround);
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
@@ -70,7 +71,7 @@ TEST_CASE("Player uses correct animation state", "[Player]")
     SECTION("Player is idle by default")
     {
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(player.getState().currentAnimationState == PlayerAnimationState::Idle);
+        REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Idle);
     }
 
     SECTION("Player walking triggers walk animation")
@@ -78,13 +79,13 @@ TEST_CASE("Player uses correct animation state", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.getState().currentAnimationState == PlayerAnimationState::Walk);
+        REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Walk);
         simulatePlayer(player, tileMap, 0.1f);
-        REQUIRE(player.getState().currentAnimationState == PlayerAnimationState::Idle);
+        REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Idle);
         inputIntentions = InputIntentions();
         inputIntentions.direction.x = -1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.getState().currentAnimationState == PlayerAnimationState::Walk);
+        REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Walk);
     }
 
     SECTION("Animation frame advances over time")
@@ -106,7 +107,7 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 
     SECTION("Starts facing right")
     {
-        const PlayerState &playerState = player.getState();
+        const ActorState &playerState = player.getState();
         REQUIRE_FALSE(playerState.facingLeft);
     }
 
@@ -115,7 +116,7 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        const PlayerState &playerState = player.getState();
+        const ActorState &playerState = player.getState();
         REQUIRE(playerState.facingLeft);
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE(playerState.facingLeft);
@@ -126,7 +127,7 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
-        const PlayerState &playerState = player.getState();
+        const ActorState &playerState = player.getState();
         REQUIRE_FALSE(playerState.facingLeft);
         simulatePlayer(player, tileMap, 0.1f);
         REQUIRE_FALSE(playerState.facingLeft);

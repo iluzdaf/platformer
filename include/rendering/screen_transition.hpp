@@ -12,8 +12,8 @@ public:
     bool isActive() const;
 
 private:
-    unsigned int VAO,
-        VBO;
+    unsigned int vertexArrayObject,
+        vertexBufferObject;
     float duration = 1.0f,
           timer = 0.0f,
           alpha = 0.0f;

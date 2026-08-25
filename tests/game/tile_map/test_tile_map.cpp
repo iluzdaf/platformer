@@ -57,10 +57,10 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 3;
     tileMapData.height = 3;
-    tileMapData.tileData = {{1, solidTileData},
-                            {0, emptyTileData},
-                            {3, emptyTileData}};
-    TileMap tileMap(tileMapData);
+    TilePalette palette = {{1, solidTileData},
+                           {0, emptyTileData},
+                           {3, emptyTileData}};
+    TileMap tileMap(tileMapData, palettesFrom(palette));
 
     SECTION("Known indices")
     {
@@ -92,11 +92,11 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    tileMapData.tileData = {
+    TilePalette palette = {
         {1, animatedTileData1},
         {0, emptyTileData},
         {3, animatedTileData2}};
-    TileMap tileMap(tileMapData);
+    TileMap tileMap(tileMapData, palettesFrom(palette));
     tileMap.setTileIndex(glm::ivec2(0, 0), 1);
     tileMap.setTileIndex(glm::ivec2(0, 1), 0);
     tileMap.setTileIndex(glm::ivec2(1, 1), 3);
@@ -131,9 +131,9 @@ TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    tileMapData.tileData = {{0, emptyTileData},
-                            {5, pickupTileData}};
-    TileMap tileMap(tileMapData);
+    TilePalette palette = {{0, emptyTileData},
+                           {5, pickupTileData}};
+    TileMap tileMap(tileMapData, palettesFrom(palette));
     tileMap.setTileIndex(glm::ivec2(1, 1), 5);
     const Tile &tile = tileMap.getTile(5);
     REQUIRE(tile.isPickup());

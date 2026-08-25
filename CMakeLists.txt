@@ -1,12 +1,23 @@
 cmake_minimum_required(VERSION 3.31)
 project(Platformer)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(MSVC)
-    add_compile_options(/Zc:preprocessor /std:c++23)
+# The project targets C++23, requested per target with cxx_std_23 further down.
+# These are the compilers it is built and tested with; anything else may work but
+# is not covered by CI.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 20)
+        message(FATAL_ERROR "clang 20 or newer is required for C++23, found ${CMAKE_CXX_COMPILER_VERSION}")
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 21)
+        message(FATAL_ERROR "Apple clang 21 or newer is required for C++23, found ${CMAKE_CXX_COMPILER_VERSION}")
+    endif()
+elseif(MSVC)
+    if(MSVC_VERSION LESS 1938)
+        message(FATAL_ERROR "Visual Studio 2022 17.8 or newer is required for C++23, found ${MSVC_VERSION}")
+    endif()
+else()
+    message(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}; this project targets C++23 with clang, Apple clang or MSVC")
 endif()
 
 if(SKIP_OPENGL_TESTS)
@@ -20,6 +31,8 @@ target_include_directories(glad PUBLIC external/glad/include)
 # STB
 add_library(stb STATIC external/stb/stb_image.cpp)
 target_include_directories(stb PUBLIC external/stb)
+target_compile_features(stb PUBLIC cxx_std_23)
+set_target_properties(stb PROPERTIES CXX_EXTENSIONS OFF)
 
 # GLFW
 add_subdirectory(external/glfw)
@@ -62,6 +75,8 @@ target_include_directories(imgui PUBLIC
     external/imgui
     external/imgui/backends
 )
+target_compile_features(imgui PUBLIC cxx_std_23)
+set_target_properties(imgui PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(imgui PRIVATE glfw glad)
 
 #esfw
@@ -86,6 +101,7 @@ add_executable(platformer
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
     src/game/player/player.cpp
+    src/game/actor/actor.cpp
     src/game/game.cpp
     src/game/scoring_system.cpp
     src/physics/fixed_time_step.cpp
@@ -99,6 +115,8 @@ add_executable(platformer
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
+    src/game/npc/behaviors/patrol_behavior.cpp
+    src/game/npc/npc.cpp
     src/agent/agent.cpp
     src/agent/movement_abilities/jump_ability.cpp
     src/agent/movement_abilities/dash_ability.cpp
@@ -107,12 +125,19 @@ add_executable(platformer
     src/agent/movement_abilities/wall_jump_ability.cpp
     src/agent/movement_abilities/climb_ability.cpp
     src/agent/movement_abilities/climb_move_ability.cpp
+    src/agent/movement_abilities/action_buffer.cpp
+    src/agent/movement_abilities/coyote_time.cpp
+    src/agent/movement_abilities/direction_buffer.cpp
     src/agent/movement_abilities/movement_system.cpp
     src/agent/movement_abilities/gravity_ability.cpp
 )
 
+target_compile_features(platformer PRIVATE cxx_std_23)
+set_target_properties(platformer PROPERTIES CXX_EXTENSIONS OFF)
+
 if(MSVC)
     target_compile_options(platformer PRIVATE
+        /Zc:preprocessor
         /external:W0
         /external:anglebrackets
         /W4
@@ -168,6 +193,9 @@ add_executable(tests
     tests/animations/test_tile_animation.cpp
     tests/scripting/test_lua_script_system.cpp
     tests/navigation/test_navigation_graph.cpp
+    tests/game/npc/behaviors/test_patrol_behavior.cpp
+    tests/game/npc/test_npc.cpp
+    tests/game/tile_map/test_tile_map_navigation.cpp
     tests/agent/movement_abilities/test_jump_ability.cpp
     tests/agent/movement_abilities/test_dash_ability.cpp
     tests/agent/movement_abilities/test_move_ability.cpp
@@ -196,6 +224,7 @@ add_executable(tests
     src/game/tile_map/tile.cpp
     src/game/tile_map/tile_interaction_system.cpp
     src/game/player/player.cpp
+    src/game/actor/actor.cpp
     src/game/game.cpp
     src/game/scoring_system.cpp
     src/physics/fixed_time_step.cpp
@@ -209,6 +238,8 @@ add_executable(tests
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
+    src/game/npc/behaviors/patrol_behavior.cpp
+    src/game/npc/npc.cpp
     src/agent/agent.cpp
     src/agent/movement_abilities/jump_ability.cpp
     src/agent/movement_abilities/dash_ability.cpp
@@ -217,13 +248,20 @@ add_executable(tests
     src/agent/movement_abilities/wall_jump_ability.cpp
     src/agent/movement_abilities/climb_ability.cpp
     src/agent/movement_abilities/climb_move_ability.cpp
+    src/agent/movement_abilities/action_buffer.cpp
+    src/agent/movement_abilities/coyote_time.cpp
+    src/agent/movement_abilities/direction_buffer.cpp
     src/agent/movement_abilities/movement_system.cpp
     src/agent/movement_abilities/gravity_ability.cpp
     external/stb/stb_image.cpp
 )
 
+target_compile_features(tests PRIVATE cxx_std_23)
+set_target_properties(tests PROPERTIES CXX_EXTENSIONS OFF)
+
 if(MSVC)
     target_compile_options(tests PRIVATE
+        /Zc:preprocessor
         /external:W0
         /external:anglebrackets
         /W4

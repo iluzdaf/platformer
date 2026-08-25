@@ -246,17 +246,17 @@ void PhysicsBody::stepPhysics(float deltaTime, const TileMap &tileMap)
     velocity = nextVelocity;
 }
 
-const glm::vec2& PhysicsBody::getColliderOffset() const
+const glm::vec2 &PhysicsBody::getColliderOffset() const
 {
     return data.colliderOffset;
 }
 
-const AABB& PhysicsBody::getCollisionAABBX() const
+const AABB &PhysicsBody::getCollisionAABBX() const
 {
     return collisionAABBX;
 }
 
-const AABB& PhysicsBody::getCollisionAABBY() const
+const AABB &PhysicsBody::getCollisionAABBY() const
 {
     return collisionAABBY;
 }

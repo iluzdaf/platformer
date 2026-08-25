@@ -1,20 +1,13 @@
 #pragma once
 
-#include <algorithm>
-#include <stdexcept>
-
 struct ActionBuffer
 {
-    ActionBuffer(float duration = 0.1f) : bufferDuration(duration)
-    {
-        if (duration <= 0)
-            throw std::runtime_error("duration must be greater than 0");
-    }
+    explicit ActionBuffer(float duration = 0.1f);
 
-    void press() { bufferTimer = bufferDuration; }
-    void update(float dt) { bufferTimer = std::max(0.0f, bufferTimer - dt); }
-    bool isBuffered() const { return bufferTimer > 0.0f; }
-    void consume() { bufferTimer = 0.0f; }
+    void press();
+    void update(float dt);
+    bool isBuffered() const;
+    void consume();
 
     float bufferDuration = 0.1f;
     float bufferTimer = 0.0f;

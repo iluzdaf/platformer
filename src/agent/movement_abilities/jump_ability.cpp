@@ -18,7 +18,7 @@ void JumpAbility::applyMovement(
     AgentState &state)
 {
     state.jumpVelocity = glm::vec2(0.0f);
-    
+
     jumpBuffer.update(deltaTime);
     coyoteTime.update(state.onGround, deltaTime);
 

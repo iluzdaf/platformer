@@ -5,7 +5,7 @@
 class TileAnimation
 {
 public:
-    explicit TileAnimation(const TileAnimationData& tileAnimationData);
+    explicit TileAnimation(const TileAnimationData &tileAnimationData);
     void update(float deltaTime);
     int getCurrentFrame() const;
     TileAnimationData toTileAnimationData() const;

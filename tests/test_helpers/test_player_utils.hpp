@@ -14,8 +14,8 @@
 inline Player setupPlayer()
 {
     PlayerData playerData;
-    playerData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
-    playerData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
+    playerData.animationData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
+    playerData.animationData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
     playerData.agentData.moveAbilityData = MoveAbilityData();
     playerData.agentData.jumpAbilityData = JumpAbilityData();
     playerData.agentData.dashAbilityData = DashAbilityData();

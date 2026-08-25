@@ -12,8 +12,8 @@
 class TileMap
 {
 public:
-    explicit TileMap(const std::string &jsonFilePath);
-    explicit TileMap(const TileMapData &tileMapData);
+    TileMap(const std::string &jsonFilePath, const TilePalettes &tilePalettes);
+    TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
     void setTileIndex(glm::ivec2 tilePosition, int tileIndex);
     void setTileIndexAt(glm::vec2 worldPosition, int tileIndex);
     int tilePositionToTileIndex(glm::ivec2 tilePosition) const;
@@ -43,6 +43,7 @@ public:
         const std::function<bool(const AABB &)> &callback) const;
     const NavigationGraph &getNavigationGraph() const;
     void buildNavigationGraph();
+    const std::vector<NpcSpawnData> &getNpcs() const;
 
 private:
     int width = 0, height = 0, tileSize = 0;
@@ -52,7 +53,9 @@ private:
     std::string nextLevel = "../assets/levels/level1.json",
                 level = "../assets/levels/new_level.json";
     NavigationGraph navigationGraph;
+    std::vector<NpcSpawnData> npcs;
+    std::string tilePalette;
 
-    void initByData(const TileMapData &tileMapData);
+    void initByData(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
     bool isWalkableBetween(glm::vec2 start, glm::vec2 end);
 };

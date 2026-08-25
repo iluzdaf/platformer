@@ -23,8 +23,8 @@ public:
     bool contactWithGround(const TileMap &tileMap);
     bool contactWithCeiling(const TileMap &tileMap) const;
     void stepPhysics(float deltaTime, const TileMap &tileMap);
-    const AABB& getCollisionAABBX() const;
-    const AABB& getCollisionAABBY() const;
+    const AABB &getCollisionAABBX() const;
+    const AABB &getCollisionAABBY() const;
 
 private:
     PhysicsBodyData data;
@@ -40,7 +40,7 @@ private:
     void resolveCollisionAgainstTile(
         const AABB &proposedAABB,
         const AABB &tileAABB,
-        const glm::vec2& axisMask,
+        const glm::vec2 &axisMask,
         float &velocityComponent,
         glm::vec2 &positionWithOffset,
         AABB &collisionAABB);

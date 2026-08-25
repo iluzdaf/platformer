@@ -9,35 +9,47 @@ TEST_CASE("KeyboardManager tracks key press and release", "[keyboard]")
 
     SECTION("Key press is detected")
     {
-        keyboardManager.poll([](int _) { return GLFW_RELEASE; });
-        keyboardManager.poll([](int key) { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
+        keyboardManager.poll([](int _)
+                             { return GLFW_RELEASE; });
+        keyboardManager.poll([](int key)
+                             { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
         REQUIRE(keyboardManager.isPressed(GLFW_KEY_SPACE));
     }
 
     SECTION("Key release is detected")
     {
-        keyboardManager.poll([](int _) { return GLFW_RELEASE; });
-        keyboardManager.poll([](int key) { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
-        keyboardManager.poll([](int _) { return GLFW_RELEASE; });
+        keyboardManager.poll([](int _)
+                             { return GLFW_RELEASE; });
+        keyboardManager.poll([](int key)
+                             { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
+        keyboardManager.poll([](int _)
+                             { return GLFW_RELEASE; });
         REQUIRE(keyboardManager.isReleased(GLFW_KEY_SPACE));
     }
 
     SECTION("Key press state resets correctly")
     {
-        keyboardManager.poll([](int _) { return GLFW_RELEASE; });
-        keyboardManager.poll([](int key) { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
+        keyboardManager.poll([](int _)
+                             { return GLFW_RELEASE; });
+        keyboardManager.poll([](int key)
+                             { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
         REQUIRE(keyboardManager.isPressed(GLFW_KEY_SPACE));
-        keyboardManager.poll([](int key) { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
+        keyboardManager.poll([](int key)
+                             { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
         REQUIRE_FALSE(keyboardManager.isPressed(GLFW_KEY_SPACE));
     }
 
     SECTION("Key release state resets correctly")
     {
-        keyboardManager.poll([](int _) { return GLFW_RELEASE; });
-        keyboardManager.poll([](int key) { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
-        keyboardManager.poll([](int _) { return GLFW_RELEASE; });
+        keyboardManager.poll([](int _)
+                             { return GLFW_RELEASE; });
+        keyboardManager.poll([](int key)
+                             { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
+        keyboardManager.poll([](int _)
+                             { return GLFW_RELEASE; });
         REQUIRE(keyboardManager.isReleased(GLFW_KEY_SPACE));
-        keyboardManager.poll([](int _) { return GLFW_RELEASE; });
+        keyboardManager.poll([](int _)
+                             { return GLFW_RELEASE; });
         REQUIRE_FALSE(keyboardManager.isReleased(GLFW_KEY_SPACE));
     }
 }

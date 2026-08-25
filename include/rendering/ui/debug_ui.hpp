@@ -3,7 +3,7 @@
 #include <signals.hpp>
 
 struct AgentState;
-struct PlayerState;
+struct ActorState;
 class Camera2D;
 class ImGuiManager;
 
@@ -13,7 +13,7 @@ public:
     void draw(
         const ImGuiManager &imGuiManager,
         const AgentState &playerAgentState,
-        const PlayerState &playerState,
+        const ActorState &actorState,
         const Camera2D &camera,
         bool showDebug);
 

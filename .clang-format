@@ -1,0 +1,7 @@
+BasedOnStyle: Microsoft
+ColumnLimit: 0
+SortIncludes: false
+AccessModifierOffset: -4
+NamespaceIndentation: All
+BraceWrapping:
+  BeforeLambdaBody: true

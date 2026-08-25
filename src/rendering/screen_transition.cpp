@@ -20,11 +20,11 @@ void ScreenTransition::initQuad()
         1.0f, -1.0f,
         1.0f, 1.0f};
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &vertexArrayObject);
+    glGenBuffers(1, &vertexBufferObject);
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindVertexArray(vertexArrayObject);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -65,7 +65,7 @@ void ScreenTransition::draw(const Shader &shader)
     shader.setFloat("uAlpha", alpha);
     shader.setVec4("uColor", glm::vec4(0, 0, 0, 1.0f));
 
-    glBindVertexArray(VAO);
+    glBindVertexArray(vertexArrayObject);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 }
@@ -77,6 +77,6 @@ bool ScreenTransition::isActive() const
 
 ScreenTransition::~ScreenTransition()
 {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &vertexArrayObject);
+    glDeleteBuffers(1, &vertexBufferObject);
 }

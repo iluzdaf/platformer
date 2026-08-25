@@ -20,6 +20,10 @@ jobs:
           lfs: true
           submodules: recursive
 
+      - name: Check json assets are minified
+        if: runner.os == 'Linux'
+        run: python3 tools/format_json.py --check
+
       - name: Set up CMake
         uses: lukka/get-cmake@latest
 

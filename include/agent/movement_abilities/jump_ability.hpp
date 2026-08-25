@@ -11,7 +11,7 @@ struct AgentState;
 class JumpAbility : public MovementAbility
 {
 public:
-    explicit JumpAbility(const JumpAbilityData& data);
+    explicit JumpAbility(const JumpAbilityData &data);
     void applyMovement(
         float deltaTime,
         const InputIntentions &inputIntentions,

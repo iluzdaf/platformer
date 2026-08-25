@@ -3,14 +3,14 @@
 #include "rendering/ui/debug_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "agent/agent_state.hpp"
-#include "game/player/player_state.hpp"
+#include "game/actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
 
 void DebugUi::draw(
     const ImGuiManager &imGuiManager,
     const AgentState &playerAgentState,
-    const PlayerState &playerState,
-    const Camera2D &camera, 
+    const ActorState &actorState,
+    const Camera2D &camera,
     bool showDebug)
 {
     if (!showDebug)
@@ -60,7 +60,7 @@ void DebugUi::draw(
         drawRow("Position", std::format("{:.2f}, {:.2f}", playerAgentState.position.x, playerAgentState.position.y));
 
         drawRow("On Ground", playerAgentState.onGround ? "true" : "false");
-        drawRow("Facing Left", playerState.facingLeft ? "true" : "false");
+        drawRow("Facing Left", actorState.facingLeft ? "true" : "false");
         drawRow("Touching Left Wall", playerAgentState.touchingLeftWall ? "true" : "false");
         drawRow("Touching Right Wall", playerAgentState.touchingRightWall ? "true" : "false");
         drawRow("Hit Ceiling", playerAgentState.hitCeiling ? "true" : "false");
@@ -70,7 +70,7 @@ void DebugUi::draw(
         drawRow("Dashing", playerAgentState.dashing ? "true" : "false");
         drawRow("Climbing", playerAgentState.climbing ? "true" : "false");
 
-        drawRow("Animation", toString(playerState.currentAnimationState));
+        drawRow("Animation", toString(actorState.currentAnimationState));
 
         drawRow("Camera Shaking", camera.shaking() ? "true" : "false");
 

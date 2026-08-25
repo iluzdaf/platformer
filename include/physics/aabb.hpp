@@ -6,10 +6,22 @@ struct AABB
     glm::vec2 position{0, 0};
     glm::vec2 size{0, 0};
 
-    float left() const { return position.x; }
-    float right() const { return position.x + size.x; }
-    float top() const { return position.y; }
-    float bottom() const { return position.y + size.y; }
+    float left() const
+    {
+        return position.x;
+    }
+    float right() const
+    {
+        return position.x + size.x;
+    }
+    float top() const
+    {
+        return position.y;
+    }
+    float bottom() const
+    {
+        return position.y + size.y;
+    }
 
     bool intersects(const AABB &other) const
     {

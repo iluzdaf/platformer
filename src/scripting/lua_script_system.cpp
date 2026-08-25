@@ -28,9 +28,9 @@ LuaScriptSystem::LuaScriptSystem()
     lua.set_function("startCoroutine", [this](sol::function func)
                      {
         sol::thread thread = sol::thread::create(lua.lua_state());
-        sol::state_view thread_state = thread.state();
-        thread_state["f"] = func;
-        sol::function co = thread_state.load("return coroutine.wrap(f)")();
+        sol::state_view threadState = thread.state();
+        threadState["f"] = func;
+        sol::function co = threadState.load("return coroutine.wrap(f)")();
         sol::object result = co();
         if (result.valid() && result.is<float>())
         {

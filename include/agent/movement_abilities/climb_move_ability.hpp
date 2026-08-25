@@ -9,7 +9,7 @@ struct AgentState;
 class ClimbMoveAbility : public MovementAbility
 {
 public:
-    explicit ClimbMoveAbility(const ClimbMoveAbilityData& data);
+    explicit ClimbMoveAbility(const ClimbMoveAbilityData &data);
     void applyMovement(
         float deltaTime,
         const InputIntentions &inputIntentions,

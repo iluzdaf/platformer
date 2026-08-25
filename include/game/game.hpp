@@ -4,7 +4,9 @@
 #include "game/game_data.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/tile_map/tile_interaction_system.hpp"
+#include "game/actor/actor.hpp"
 #include "game/player/player.hpp"
+#include "game/npc/npc.hpp"
 #include "game/scoring_system.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/texture2d.hpp"
@@ -39,6 +41,8 @@ public:
     void loadLevel(const std::string &levelPath);
     void reload();
     void rebuildPlayer();
+    void rebuildNpcs();
+    void refreshActors();
 
 private:
     GameData loadGameData() const;
@@ -46,13 +50,13 @@ private:
     void initGlad();
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);
+    void postFixedUpdate();
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
     void rebuildTileMap(const std::string &levelPath);
 
     GLFWwindow *window;
-
     std::unique_ptr<Camera2D> camera;
     KeyboardManager keyboardManager;
     InputManager inputManager;
@@ -62,12 +66,12 @@ private:
     AssetWatcher assetWatcher;
     GameDataWatcher gameDataWatcher;
     ScriptWatcher scriptWatcher;
-
     std::unique_ptr<TileMap> tileMap;
     std::unique_ptr<Player> player;
+    std::vector<std::unique_ptr<Npc>> npcs;
+    std::vector<Actor *> actors;
     TileInteractionSystem tileInteractionSystem;
     ScoringSystem scoringSystem;
-
     std::unique_ptr<Texture2D> tileSet, playerTexture;
     std::unique_ptr<Shader> tileSetShader, screenTransitionShader;
     std::unique_ptr<SpriteRenderer> spriteRenderer;
@@ -80,9 +84,7 @@ private:
     EditorTileMapUi editorTileMapUi;
     ScoreUi scoreUi;
     DebugNavigationUi debugNavigationUi;
-
     fteng::connection onLevelCompleteConnection;
-
     bool paused = false,
          stepFrame = false,
          shouldDrawGrid = false,
@@ -91,6 +93,5 @@ private:
          shouldDrawTileMapAABBs = false,
          showDebug = false,
          showTileMapEditor = false;
-
     GameData gameData;
 };

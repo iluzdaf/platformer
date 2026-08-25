@@ -9,7 +9,7 @@ void KeyboardManager::registerKey(int key)
 void KeyboardManager::poll(GLFWwindow *window)
 {
     poll([window](int key)
-           { return glfwGetKey(window, key); });
+         { return glfwGetKey(window, key); });
 }
 
 void KeyboardManager::poll(const InputPoller &poller)

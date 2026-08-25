@@ -2,25 +2,15 @@
 
 #include <signals.hpp>
 #include "game/player/player_data.hpp"
-#include "game/player/player_state.hpp"
-#include "agent/agent.hpp"
-#include "animations/animation_manager.hpp"
+#include "game/actor/actor.hpp"
+#include "input/input_intentions.hpp"
 
-class TileMap;
-struct InputIntentions;
-
-class Player
+class Player : public Actor
 {
 public:
     explicit Player(const PlayerData &data);
-    void preFixedUpdate();
-    void fixedUpdate(
-        float deltaTime,
-        const TileMap &tileMap,
-        const InputIntentions &inputIntentions);
-    const PlayerState &getState() const;
-    const Agent &getAgent() const;
-    void setPosition(const glm::vec2 &position);
+    void setInputIntentions(const InputIntentions &inputIntentions);
+    void postFixedUpdate() override;
 
     fteng::signal<void()>
         onLevelComplete,
@@ -33,12 +23,10 @@ public:
     fteng::signal<void(int)>
         onPickup;
 
+protected:
+    InputIntentions decideIntentions(float deltaTime, const TileMap &tileMap) override;
+
 private:
     PlayerData data;
-    Agent agent;
-    PlayerState playerState;
-    AnimationManager animationManager;
-
-    void updateState();
-    void emitSignals();
+    InputIntentions inputIntentions;
 };

@@ -9,9 +9,14 @@ Makefile
 *.out
 
 # Editor stuff
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 .vs/
+
+# Python tooling
+__pycache__/
 
 # OS clutter
 .DS_Store

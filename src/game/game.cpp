@@ -189,12 +189,13 @@ void Game::run()
             {
                 float dt = std::min(deltaTime, 0.01f);
                 fixedUpdate(dt);
+                postFixedUpdate();
                 update(dt);
             }
             else
             {
                 timestepper.run(deltaTime, [&](float dt)
-                                { fixedUpdate(dt); });
+                                { fixedUpdate(dt); postFixedUpdate(); });
                 update(deltaTime);
             }
 
@@ -215,19 +216,26 @@ void Game::preFixedUpdate()
 {
     inputManager.process(window);
 
-    player->preFixedUpdate();
+    player->setInputIntentions(inputManager.getIntentions());
+
+    for (Actor *actor : actors)
+        actor->preFixedUpdate();
 }
 
 void Game::fixedUpdate(float deltaTime)
 {
-    player->fixedUpdate(
-        deltaTime,
-        *tileMap.get(),
-        inputManager.getIntentions());
+    for (Actor *actor : actors)
+        actor->fixedUpdate(deltaTime, *tileMap.get());
 
     tileInteractionSystem.fixedUpdate(
         *player.get(),
         *tileMap.get());
+}
+
+void Game::postFixedUpdate()
+{
+    for (Actor *actor : actors)
+        actor->postFixedUpdate();
 }
 
 void Game::update(float deltaTime)
@@ -248,17 +256,20 @@ void Game::render()
         *tileSetShader.get(),
         *tileSet.get());
 
-    const PlayerState &playerState = player->getState();
-    const AgentState &playerAgentState = player->getAgent().getState();
-    spriteRenderer->drawWithUV(
-        *tileSetShader.get(),
-        *playerTexture.get(),
-        projection,
-        playerAgentState.position,
-        playerAgentState.size,
-        playerState.currentAnimationUVStart,
-        playerState.currentAnimationUVEnd,
-        playerState.facingLeft);
+    for (const Actor *actor : actors)
+    {
+        const ActorState &actorState = actor->getState();
+        const AgentState &agentState = actor->getAgent().getState();
+        spriteRenderer->drawWithUV(
+            *tileSetShader.get(),
+            *playerTexture.get(),
+            projection,
+            agentState.position,
+            agentState.size,
+            actorState.currentAnimationUVStart,
+            actorState.currentAnimationUVEnd,
+            actorState.facingLeft);
+    }
 
     imGuiManager->newFrame();
 
@@ -284,8 +295,8 @@ void Game::render()
 
     debugUi.draw(
         *imGuiManager.get(),
-        playerAgentState,
-        playerState,
+        player->getAgent().getState(),
+        player->getState(),
         *camera.get(),
         showDebug);
 
@@ -376,6 +387,8 @@ void Game::loadLevel(const std::string &levelPath)
 
     rebuildPlayer();
     player->setPosition(tileMap->getPlayerStartWorldPosition());
+
+    rebuildNpcs();
 }
 
 void Game::pause()
@@ -397,7 +410,7 @@ void Game::play()
 
 void Game::rebuildTileMap(const std::string &levelPath)
 {
-    std::unique_ptr<TileMap> newTileMap = std::make_unique<TileMap>(levelPath);
+    std::unique_ptr<TileMap> newTileMap = std::make_unique<TileMap>(levelPath, gameData.tilePalettes);
     tileMap = std::move(newTileMap);
     luaScriptSystem->bindTileMap(tileMap.get());
 }
@@ -425,4 +438,40 @@ void Game::rebuildPlayer()
     player->onPickup.connect([this](int scoreDelta)
                              { scoringSystem.addScore(scoreDelta); });
     luaScriptSystem->bindPlayer(player.get());
+
+    refreshActors();
+}
+
+void Game::rebuildNpcs()
+{
+    npcs.clear();
+
+    const NavigationGraph &navigationGraph = tileMap->getNavigationGraph();
+
+    for (const NpcSpawnData &spawn : tileMap->getNpcs())
+    {
+        auto it = gameData.npcData.find(spawn.type);
+        if (it == gameData.npcData.end())
+        {
+            std::cerr << "Unknown npc \"" << spawn.type << "\" in " << tileMap->getLevel() << std::endl;
+            continue;
+        }
+
+        std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second);
+        newNpc->spawnAt(tileMap->tileToWorldPosition(spawn.tilePosition), navigationGraph);
+        npcs.push_back(std::move(newNpc));
+    }
+
+    refreshActors();
+}
+
+void Game::refreshActors()
+{
+    actors.clear();
+
+    for (auto &npc : npcs)
+        actors.push_back(npc.get());
+
+    if (player)
+        actors.push_back(player.get());
 }

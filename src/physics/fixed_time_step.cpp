@@ -2,7 +2,9 @@
 #include "physics/fixed_time_step.hpp"
 
 FixedTimeStep::FixedTimeStep(float maxStep)
-    : maxStep(maxStep) {}
+    : maxStep(maxStep)
+{
+}
 
 void FixedTimeStep::run(float deltaTime, const std::function<void(float)> &stepFunc) const
 {

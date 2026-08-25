@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cmath>
+#include <filesystem>
 #include <vector>
 #include "game/npc/npc.hpp"
 #include "game/tile_map/tile_map.hpp"
@@ -209,23 +210,32 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
     REQUIRE(tileMap.toTileMapData().npcs == tileMapData.npcs);
 }
 
-TEST_CASE("The shipped level6 has a graph an npc can wander", "[Npc][Level]")
+TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level]")
 {
-    TileMap tileMap("../../assets/levels/level6.json", shippedPalettes());
+    int placed = 0;
+    for (const auto &entry : std::filesystem::directory_iterator("../../assets/levels"))
+    {
+        if (entry.path().extension() != ".json")
+            continue;
 
-    const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
-    REQUIRE(navigationGraph.getNodes().size() > 2);
-    REQUIRE_FALSE(navigationGraph.getEdges().empty());
-    REQUIRE_FALSE(tileMap.getNpcs().empty());
-    REQUIRE(tileMap.getNpcs()[0].type == "villager");
+        TileMap tileMap(entry.path().string(), shippedPalettes());
+        for (const NpcSpawnData &spawn : tileMap.getNpcs())
+        {
+            ++placed;
+            INFO("npc \"" << spawn.type << "\" at " << spawn.tilePosition.x << "," << spawn.tilePosition.y
+                          << " in " << entry.path().filename().string() << " has nowhere to walk");
 
-    Npc npc(setupNpcData());
-    npc.setPosition(tileMap.tileToWorldPosition(tileMap.getNpcs()[0].tilePosition));
+            Npc npc(setupNpcData());
+            npc.setPosition(tileMap.tileToWorldPosition(spawn.tilePosition));
 
-    float startX = npc.getPosition().x;
-    stepNpc(npc, tileMap, 400);
+            float startX = npc.getPosition().x;
+            stepNpc(npc, tileMap, 400);
 
-    REQUIRE(std::abs(npc.getPosition().x - startX) > 1.0f);
+            REQUIRE(std::abs(npc.getPosition().x - startX) > 1.0f);
+        }
+    }
+
+    REQUIRE(placed > 0);
 }
 
 TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Level]")

@@ -8,7 +8,7 @@ GravityAbility::GravityAbility(const GravityAbilityData &data)
 }
 
 void GravityAbility::applyMovement(
-    float,
+    float deltaTime,
     const InputIntentions &,
     ActorMotionState &state)
 {
@@ -16,7 +16,7 @@ void GravityAbility::applyMovement(
         state.gravityVelocity.y = 0.0f;
     else
     {
-        state.gravityVelocity.y += data.gravity;
+        state.gravityVelocity.y += data.gravity * deltaTime;
         state.gravityVelocity.y = std::min(state.gravityVelocity.y, data.maxFallSpeed);
     }
 }

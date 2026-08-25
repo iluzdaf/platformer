@@ -16,7 +16,6 @@ public:
     const glm::vec2 &getVelocity() const;
     const glm::vec2 &getColliderSize() const;
     const glm::vec2 &getColliderOffset() const;
-    float getGravity() const;
     AABB getAABB() const;
     bool contactWithLeftWall(const TileMap &tileMap) const;
     bool contactWithRightWall(const TileMap &tileMap) const;
@@ -32,7 +31,6 @@ private:
               nextPosition = glm::vec2(0, 0),
               velocity = glm::vec2(0, 0),
               nextVelocity = glm::vec2(0, 0);
-    float gravity = 980;
     AABB collisionAABBX, collisionAABBY;
 
     void resolveHorizontalCollision(const TileMap &tileMap);

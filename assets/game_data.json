@@ -20,7 +20,7 @@
             },
             "climbAbilityData":{},
             "climbMoveAbilityData":{"climbSpeed":80},
-            "gravityAbilityData":{"gravity":5,"maxFallSpeed":600},
+            "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600},
             "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]}
         },
         "animationData":{
@@ -68,7 +68,7 @@
             "motionData":{
                 "size":[16.0,16.0],
                 "moveAbilityData":{"moveSpeed":60.0},
-                "gravityAbilityData":{"gravity":5,"maxFallSpeed":600},
+                "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600},
                 "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]}
             },
             "animationData":{

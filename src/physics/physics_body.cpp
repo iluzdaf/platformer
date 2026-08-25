@@ -32,11 +32,6 @@ const glm::vec2 &PhysicsBody::getColliderSize() const
     return data.colliderSize;
 }
 
-float PhysicsBody::getGravity() const
-{
-    return gravity;
-}
-
 AABB PhysicsBody::getAABB() const
 {
     return AABB(position + getColliderOffset(), getColliderSize());

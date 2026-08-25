@@ -24,11 +24,12 @@ void simulatePlayer(
 TEST_CASE("Player falls under normal gravity", "[Player]")
 {
     Player player = setupPlayer();
-    TileMap tileMap = setupTileMap(1, static_cast<int>(980.0f / 16.0f) + 2);
+    const float gravity = GravityAbilityData().gravity;
+    TileMap tileMap = setupTileMap(1, static_cast<int>(gravity / 16.0f) + 2);
     simulatePlayer(player, tileMap, 1.0f);
     const ActorMotionState &state = player.getMotion().getState();
-    REQUIRE(state.velocity.y == Approx(980));
-    REQUIRE(player.getPosition().y == Approx(0.5f * 980).margin(5));
+    REQUIRE(state.velocity.y == Approx(gravity));
+    REQUIRE(player.getPosition().y == Approx(0.5f * gravity).margin(5));
 }
 
 TEST_CASE("Player sets onGround correctly", "[Player]")
@@ -238,7 +239,7 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
         bool fallFromHeightTriggered = false;
         player.onFallFromHeight.connect([&]
                                         { fallFromHeightTriggered = true; });
-        simulatePlayer(player, tileMap, 1.0f);
+        simulatePlayer(player, tileMap, 1.5f);
         REQUIRE(fallFromHeightTriggered);
     }
 
@@ -269,6 +270,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
         tileMap.setTileIndex(glm::ivec2(3, 5), 1);
         tileMap.setTileIndex(glm::ivec2(2, 4), 1);
         tileMap.setTileIndex(glm::ivec2(1, 4), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 5), 1);
         player.setPosition(glm::vec2(2 * tileMap.getTileSize(), 5 * tileMap.getTileSize()));
 
         SECTION("Moving right into solid tile")

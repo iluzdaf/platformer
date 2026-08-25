@@ -8,5 +8,5 @@ struct PlayerData
     ActorMotionData motionData;
     ActorAnimationData animationData;
 
-    float fallFromHeightThreshold = 600;
+    float fallFromHeightThreshold = 400;
 };

@@ -2,6 +2,6 @@
 
 struct GravityAbilityData
 {
-    float gravity = 5.0f;
+    float gravity = 500.0f;
     float maxFallSpeed = 600.0f;
 };

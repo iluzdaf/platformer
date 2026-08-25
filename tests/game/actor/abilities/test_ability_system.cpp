@@ -83,6 +83,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         state.onGround = false;
         state.touchingLeftWall = false;
         inputIntentions.dashRequested = true;
+        inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.dashing);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
@@ -105,6 +106,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     SECTION("Cannot jump while dashing")
     {
         inputIntentions.dashRequested = true;
+        inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.dashing);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
@@ -117,6 +119,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     SECTION("Cannot move while dashing")
     {
         inputIntentions.dashRequested = true;
+        inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.dashing);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
@@ -134,6 +137,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         REQUIRE(state.targetVelocity.y == Approx(motionData.jumpAbilityData->jumpSpeed));
         inputIntentions = InputIntentions();
         inputIntentions.dashRequested = true;
+        inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.dashing);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
@@ -165,6 +169,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     SECTION("Gravity is not applied when dashing")
     {
         inputIntentions.dashRequested = true;
+        inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.targetVelocity.y == Approx(0.0f));
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
@@ -174,9 +179,10 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     SECTION("Gravity is applied when not dashing")
     {
         inputIntentions.dashRequested = true;
+        inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, motionData.dashAbilityData->dashDuration + 0.01f, inputIntentions, state);
-        REQUIRE(state.targetVelocity.y == Approx(980.0f * (motionData.dashAbilityData->dashDuration + 0.01f)));
+        REQUIRE(state.targetVelocity.y == Approx(motionData.gravityAbilityData->gravity * (motionData.dashAbilityData->dashDuration + 0.01f)));
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.targetVelocity.y == Approx(980.0f * 0.01f));
+        REQUIRE(state.targetVelocity.y == Approx(motionData.gravityAbilityData->gravity * (motionData.dashAbilityData->dashDuration + 0.02f)));
     }
 }

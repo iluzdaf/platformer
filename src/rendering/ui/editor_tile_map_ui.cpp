@@ -3,10 +3,20 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "cameras/camera2d.hpp"
+#include "navigation/navigation_graph.hpp"
+#include "game/npc/npc_spawn_data.hpp"
+
+namespace
+{
+    std::string levelName(const std::string &levelPath)
+    {
+        return levelPath.substr(levelPath.find_last_of("/\\") + 1);
+    }
+}
 
 void EditorTileMapUi::draw(
     const ImGuiManager &imGuiManager,
-    const TileMap &tileMap,
+    TileMap &tileMap,
     const Texture2D &tileSet,
     bool showTileMapEditor)
 {
@@ -18,9 +28,42 @@ void EditorTileMapUi::draw(
     ImGui::SetNextWindowSize(ImVec2(200, displaySize.y));
     ImGui::Begin("TileMap Editor");
 
-    std::string tileMapLevel = tileMap.getLevel();
-    tileMapLevel = tileMapLevel.substr(tileMapLevel.find_last_of("/\\") + 1);
-    ImGui::Text("%s w%dxh%dxs%d", tileMapLevel.c_str(), tileMap.getWidth(), tileMap.getHeight(), tileMap.getTileSize());
+    ImGui::Text(
+        "%s w%dxh%dxs%d",
+        levelName(tileMap.getLevel()).c_str(),
+        tileMap.getWidth(),
+        tileMap.getHeight(),
+        tileMap.getTileSize());
+
+    ImGui::Text("next %s", levelName(tileMap.getNextLevel()).c_str());
+    ImGui::SameLine();
+    if (ImGui::SmallButton("go"))
+    {
+        std::string nextLevel = tileMap.getNextLevel();
+        editing = false;
+        ImGui::End();
+        onLoadLevel(nextLevel);
+        return;
+    }
+
+    const std::vector<NpcSpawnData> &npcs = tileMap.getNpcs();
+    std::string npcsLabel = "npcs " + std::to_string(npcs.size()) + "###npcs";
+    if (ImGui::CollapsingHeader(npcsLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (npcs.empty())
+            ImGui::TextDisabled("none");
+        else
+            for (const NpcSpawnData &npc : npcs)
+                ImGui::Text("%s %d,%d", npc.type.c_str(), npc.tilePosition.x, npc.tilePosition.y);
+    }
+
+    const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+    ImGui::Text(
+        "nav %zu nodes %zu edges",
+        navigationGraph.getNodes().size(),
+        navigationGraph.getEdges().size());
+
+    ImGui::Separator();
 
     if (!editing)
     {
@@ -129,7 +172,10 @@ void EditorTileMapUi::update(
             tileMap.setPlayerStartTile(tilePosition);
             editingPlayerStartTile = false;
         }
-        else
+        else if (tileMap.tilePositionToTileIndex(tilePosition) != selectedTileIndex)
+        {
             tileMap.setTileIndex(tilePosition, selectedTileIndex);
+            tileMap.buildNavigationGraph();
+        }
     }
 }

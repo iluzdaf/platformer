@@ -1,128 +1,154 @@
 {
-    "playerData": {
-        "moveAbilityData": {
-            "moveSpeed": 160.0
-        },
-        "jumpAbilityData": {
-            "jumpSpeed": -150.0,
-            "jumpBufferDuration": 0.15,
-            "jumpCoyoteDuration": 0.15,
-            "jumpDuration": 0.2
-        },
-        "dashAbilityData": {
-            "dashSpeed": 500,
-            "dashDuration": 0.25
-        },
-        "wallSlideAbilityData": {
-            "slideSpeed": 60
-        },
-        "wallJumpAbilityData": {
-            "wallJumpSpeed": -250,
-            "wallJumpHorizontalSpeed": 250,
-            "wallJumpDuration": 0.2,
-            "wallJumpBufferDuration": 0.15,
-            "wallJumpCoyoteDuration": 0.15
-        },
-        "climbAbilityData": {},
-        "climbMoveAbilityData": {
-            "climbSpeed": 80
-        },
-        "size": [
-            16.0,
-            16.0
-        ],
-        "idleSpriteAnimationData": {
-            "frameAnimationData": {
-                "frames": [
-                    30
-                ],
-                "frameDuration": 1
+    "playerData":{
+        "actorData":{
+            "size":[16.0,16.0],
+            "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
+            "motionData":{
+                "moveAbilityData":{"moveSpeed":250.0},
+                "jumpAbilityData":{
+                    "jumpSpeed":-300.0,
+                    "jumpBufferDuration":0.15,
+                    "jumpCoyoteDuration":0.15,
+                    "jumpDuration":0.2
+                },
+                "dashAbilityData":{"dashSpeed":500,"dashDuration":0.2},
+                "wallSlideAbilityData":{"slideSpeed":50},
+                "wallJumpAbilityData":{
+                    "wallJumpSpeed":-250,
+                    "wallJumpHorizontalSpeed":250,
+                    "wallJumpDuration":0.2,
+                    "wallJumpBufferDuration":0.15,
+                    "wallJumpCoyoteDuration":0.15
+                },
+                "climbAbilityData":{},
+                "climbMoveAbilityData":{"climbSpeed":80},
+                "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600}
             },
-            "frameWidth": 16,
-            "frameHeight": 16,
-            "textureWidth": 96
+            "animationData":{
+                "idleSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[30],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
+                "walkSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[35,26],"frameDuration":0.15},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
+                "dashSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[18],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
+                "jumpSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[29],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
+                "fallSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[19],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
+                "wallSlideSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[10],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                }
+            }
         },
-        "walkSpriteAnimationData": {
-            "frameAnimationData": {
-                "frames": [
-                    35,
-                    26
-                ],
-                "frameDuration": 0.15
-            },
-            "frameWidth": 16,
-            "frameHeight": 16,
-            "textureWidth": 96
-        },
-        "jumpSpriteAnimationData": {
-            "frameAnimationData": {
-                "frames": [
-                    29
-                ],
-                "frameDuration": 1
-            },
-            "frameWidth": 16,
-            "frameHeight": 16,
-            "textureWidth": 96
-        },
-        "fallSpriteAnimationData": {
-            "frameAnimationData": {
-                "frames": [
-                    19
-                ],
-                "frameDuration": 1
-            },
-            "frameWidth": 16,
-            "frameHeight": 16,
-            "textureWidth": 96
-        },
-        "dashSpriteAnimationData": {
-            "frameAnimationData": {
-                "frames": [
-                    18
-                ],
-                "frameDuration": 1
-            },
-            "frameWidth": 16,
-            "frameHeight": 16,
-            "textureWidth": 96
-        },
-        "wallSlideSpriteAnimationData": {
-            "frameAnimationData": {
-                "frames": [
-                    10
-                ],
-                "frameDuration": 1
-            },
-            "frameWidth": 16,
-            "frameHeight": 16,
-            "textureWidth": 96
-        },
-        "colliderSize": [
-            8,
-            13
-        ],
-        "colliderOffset": [
-            4,
-            3
-        ],
-        "fallFromHeightThreshold": 600
+        "fallFromHeightThreshold":599
     },
-    "cameraData": {
-        "zoom": 3
+    "npcData":{
+        "villager":{
+            "actorData":{
+                "size":[16.0,16.0],
+                "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
+                "motionData":{
+                    "moveAbilityData":{"moveSpeed":60.0},
+                    "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600}
+                },
+                "animationData":{
+                    "idleSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[30],"frameDuration":1},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    },
+                    "walkSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[35,26],"frameDuration":0.15},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    },
+                    "fallSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[19],"frameDuration":1},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    }
+                }
+            },
+            "patrolBehaviorData":{"arrivalThreshold":2.0}
+        }
     },
-    "physicsData": {
-        "gravity": 980.0
+    "tilePalettes":{
+        "default":{
+            "0":{"kind":0,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "1":{"kind":3,"colliderOffset":[0,12],"colliderSize":[16,4]},
+            "2":{"kind":3,"colliderOffset":[0,0],"colliderSize":[4,16]},
+            "3":{"kind":3,"colliderOffset":[12,0],"colliderSize":[4,16]},
+            "4":{"kind":3,"colliderOffset":[0,0],"colliderSize":[16,4]},
+            "5":{"kind":4,"colliderOffset":[4,4],"colliderSize":[8,8]},
+            "7":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "8":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "9":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "14":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "16":{"kind":1,"colliderOffset":[2,0],"colliderSize":[14,16]},
+            "19":{"kind":1,"colliderOffset":[0,0],"colliderSize":[14,16]},
+            "21":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "22":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "25":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "26":{"kind":1,"colliderOffset":[2,0],"colliderSize":[12,16]},
+            "28":{"kind":1,"colliderOffset":[2,1],"colliderSize":[14,15]},
+            "29":{"kind":1,"colliderOffset":[0,1],"colliderSize":[16,15]},
+            "31":{"kind":1,"colliderOffset":[0,1],"colliderSize":[14,15]},
+            "32":{"kind":1,"colliderOffset":[2,1],"colliderSize":[12,15]},
+            "33":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "34":{"kind":1,"colliderOffset":[0,1],"colliderSize":[16,15]},
+            "39":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "40":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "41":{"kind":1,"colliderOffset":[0,0],"colliderSize":[16,16]},
+            "42":{
+                "kind":2,
+                "animationData":{
+                    "frameAnimationData":{
+                        "frames":[42,43,44,45,46,47,48,35,36,37],
+                        "frameDuration":0.075
+                    }
+                },
+                "pickupReplaceIndex":0,
+                "colliderOffset":[4,4],
+                "colliderSize":[8,8]
+            }
+        }
     },
-    "windowWidth": 800,
-    "windowHeight": 600,
-    "firstLevel": "../../assets/levels/level1.json",
-    "debugData": {
-        "shouldDrawGrid": false,
-        "shouldDrawPlayerAABBs": false,
-        "shouldDrawTileMapAABBs": false,
-        "showDebug": false,
-        "shouldDrawTileInfo": false,
-        "showTileMapEditor": true
+    "cameraData":{"zoom":4.5},
+    "windowWidth":800,
+    "windowHeight":600,
+    "firstLevel":"../../assets/levels/level1.json",
+    "debugData":{
+        "shouldDrawGrid":true,
+        "shouldDrawPlayerAABBs":true,
+        "shouldDrawTileMapAABBs":true,
+        "showDebug":true,
+        "shouldDrawTileInfo":true,
+        "showTileMapEditor":true
     }
 }

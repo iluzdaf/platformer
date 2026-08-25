@@ -1,28 +1,52 @@
 #pragma once
 #include "game/player/player.hpp"
 #include "game/player/player_data.hpp"
-#include "game/player/movement_abilities/jump_ability_data.hpp"
-#include "game/player/movement_abilities/dash_ability_data.hpp"
-#include "game/player/movement_abilities/move_ability_data.hpp"
-#include "game/player/movement_abilities/wall_slide_ability_data.hpp"
-#include "game/player/movement_abilities/wall_jump_ability_data.hpp"
-#include "game/player/movement_abilities/climb_ability.hpp"
-#include "game/player/movement_abilities/climb_move_ability.hpp"
-#include "physics/physics_data.hpp"
+#include "game/actor/abilities/jump_ability_data.hpp"
+#include "game/actor/abilities/dash_ability_data.hpp"
+#include "game/actor/abilities/move_ability_data.hpp"
+#include "game/actor/abilities/wall_slide_ability_data.hpp"
+#include "game/actor/abilities/wall_jump_ability_data.hpp"
+#include "game/actor/abilities/climb_ability_data.hpp"
+#include "game/actor/abilities/climb_move_ability_data.hpp"
+#include "game/actor/abilities/gravity_ability_data.hpp"
 #include "animations/sprite_animation_data.hpp"
+#include "input/intention_source.hpp"
 
-inline Player setupPlayer()
+class ScriptedIntentions : public IntentionSource
+{
+public:
+    void set(const InputIntentions &newIntentions)
+    {
+        intentions = newIntentions;
+    }
+
+    InputIntentions getIntentions() const override
+    {
+        return intentions;
+    }
+
+private:
+    InputIntentions intentions;
+};
+
+inline const IntentionSource &noIntentions()
+{
+    static const ScriptedIntentions source;
+    return source;
+}
+
+inline Player setupPlayer(const IntentionSource &intentionSource = noIntentions())
 {
     PlayerData playerData;
-    playerData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
-    playerData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
-    playerData.moveAbilityData = MoveAbilityData();
-    playerData.jumpAbilityData = JumpAbilityData();
-    playerData.dashAbilityData = DashAbilityData();
-    playerData.wallSlideAbilityData = WallSlideAbilityData();
-    playerData.wallJumpAbilityData = WallJumpAbilityData();
-    playerData.climbAbilityData = ClimbAbilityData();
-    playerData.climbMoveAbilityData = ClimbMoveAbilityData();
-    PhysicsData physicsData;
-    return Player(playerData, physicsData);
+    playerData.actorData.animationData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
+    playerData.actorData.animationData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
+    playerData.actorData.motionData.moveAbilityData = MoveAbilityData();
+    playerData.actorData.motionData.jumpAbilityData = JumpAbilityData();
+    playerData.actorData.motionData.dashAbilityData = DashAbilityData();
+    playerData.actorData.motionData.wallSlideAbilityData = WallSlideAbilityData();
+    playerData.actorData.motionData.wallJumpAbilityData = WallJumpAbilityData();
+    playerData.actorData.motionData.climbAbilityData = ClimbAbilityData();
+    playerData.actorData.motionData.climbMoveAbilityData = ClimbMoveAbilityData();
+    playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
+    return Player(playerData, intentionSource);
 }

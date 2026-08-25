@@ -1,75 +1,51 @@
 #include "animations/animation_manager.hpp"
-#include "game/player/player_state.hpp"
+#include "game/actor/actor_motion_state.hpp"
 
-void AnimationManager::update(float deltaTime, const PlayerState &playerState)
+void AnimationManager::update(float deltaTime, const ActorMotionState &motionState)
 {
-    PlayerAnimationState newState = currentState;
+    ActorAnimationState newState = currentState;
 
-    if (playerState.dashing)
+    if (motionState.dash.active)
+        newState = ActorAnimationState::Dash;
+    else if (!motionState.contacts.onGround)
     {
-        newState = PlayerAnimationState::Dash;
+        if (motionState.wallSlide.active || motionState.climb.active)
+            newState = ActorAnimationState::WallSlide;
+        else if (motionState.velocity.y < 0.0f)
+            newState = ActorAnimationState::Jump;
+        else if (motionState.velocity.y > 0.0f)
+            newState = ActorAnimationState::Fall;
     }
-    else if (!playerState.onGround)
-    {
-        if (playerState.wallSliding || playerState.climbing)
-        {
-            newState = PlayerAnimationState::WallSlide;
-        }
-        else if (playerState.velocity.y < 0.0f)
-        {
-            newState = PlayerAnimationState::Jump;
-        }
-        else if (playerState.velocity.y > 0.0f)
-        {
-            newState = PlayerAnimationState::Fall;
-        }
-    }
-    else if (std::abs(playerState.velocity.x) > 0.1f)
-    {
-        newState = PlayerAnimationState::Walk;
-    }
+    else if (std::abs(motionState.velocity.x) > 0.1f)
+        newState = ActorAnimationState::Walk;
     else
-    {
-        newState = PlayerAnimationState::Idle;
-    }
+        newState = ActorAnimationState::Idle;
+
+    if (!animations.contains(newState))
+        newState = ActorAnimationState::Idle;
 
     if (newState != currentState)
     {
         currentState = newState;
-        getCurrentAnimation().reset();
+        animations.at(currentState).reset();
     }
 
-    getCurrentAnimation().update(deltaTime);
+    animations.at(currentState).update(deltaTime);
 }
 
-SpriteAnimation &AnimationManager::getCurrentAnimation()
+const SpriteAnimation &AnimationManager::getCurrentAnimation()
 {
     return animations.at(currentState);
 }
 
-PlayerAnimationState AnimationManager::getCurrentState() const
+ActorAnimationState AnimationManager::getCurrentState() const
 {
     return currentState;
 }
 
 void AnimationManager::addAnimation(
-    PlayerAnimationState state,
+    ActorAnimationState state,
     const SpriteAnimation &animation)
 {
     animations.insert_or_assign(state, animation);
-}
-
-void AnimationManager::reset()
-{
-    currentState = PlayerAnimationState::Idle;
-
-    for (auto &[state, animation] : animations)
-    {
-        animation.reset();
-    }
-}
-
-void AnimationManager::clear()
-{
-    animations.clear();
 }

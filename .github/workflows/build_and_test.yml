@@ -1,13 +1,14 @@
 name: Build and Test
 
 on:
-  push:
   pull_request:
+    branches: [master]
 
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
@@ -19,6 +20,10 @@ jobs:
         with:
           lfs: true
           submodules: recursive
+
+      - name: Check json assets are formatted
+        if: runner.os == 'Linux'
+        run: python3 tools/format_json.py --check
 
       - name: Set up CMake
         uses: lukka/get-cmake@latest
@@ -57,9 +62,14 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cmake -G "Ninja" -B build/release -DCMAKE_CONFIGURATION_TYPES=Release -DSKIP_OPENGL_TESTS=ON
-          cmake --build build/release --config Release
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do set VSPATH=%%i
+          call "%VSPATH%\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
+          cmake -G "Ninja" -B build/release ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DSKIP_OPENGL_TESTS=ON
+          cmake --build build/release
 
       - name: Configure & Build for macOS and Linux
         if: runner.os != 'Windows'
@@ -87,7 +97,8 @@ jobs:
       - name: Run tests for Windows
         if: runner.os == 'Windows'
         shell: cmd
-        run: build\release\tests.exe
+        working-directory: build/release
+        run: tests.exe
 
       - name: Run tests for macOS and Linux
         if: runner.os != 'Windows'

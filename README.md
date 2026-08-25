@@ -8,86 +8,102 @@ A simple 2D platformer built in modern C++ using OpenGL. This project is designe
 
 ![alt text](https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnltbXlwdmw0eWM5OGo4ZzRjd3d3NXQzMXdxd3hhaGN5dzl4NHdweiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/AYZJkrDUkgunRRcqNP/giphy.gif)
 
+## 🖥 Supported Setups
+
+Targets **C++23**. CI builds and tests all three platforms on every push.
+
+| | Windows | macOS | Linux |
+|---|---|---|---|
+| Compiler | MSVC, Visual Studio 2022 17.8+ | Apple clang 21+, or LLVM clang 20+ | LLVM clang 20+ with libc++ |
+| Editor | Visual Studio 2022, or VS Code | VS Code | VS Code |
+| Build | the editor's CMake support | the editor's CMake support | the editor's CMake support |
+| Debug | Visual Studio's Run button | CMake Tools' debug button | CMake Tools' debug button |
+
+Terminal commands below assume a Unix shell. On Windows use Git Bash, and `python`
+where they say `python3`.
+
+## 🧰 What The Repository Configures
+
+Both editors drive the same CMake build, so setup is the same on every platform.
+
+- `CMakeLists.txt` — the `platformer` and `tests` targets. Neither editor needs a
+  project file.
+- `.vscode/extensions.json` — the extensions VS Code should install.
+- `.vscode/settings.json` — CMake Tools as the compile flag provider, clang-tidy in
+  the editor, the generator and the build directory.
+- `.clang-format`, `.clang-tidy` — formatting and naming, applied on save.
+
+No `launch.json` is needed; CMake Tools runs and debugs the selected target from its
+own build directory, which is where the game looks for assets. Format on save is
+off for json only, since no formatter has been found that reproduces the format the
+game writes.
+
 ## 🛠 Setup
 
-1. Install dependencies if needed:
-    - CMake — for configuring builds
-    - Ninja — for making faster builds
-    - git-lfs — for downloading large assets
-    - llvm — for compiling mordern c++
+1. Install the prerequisites.
 
-    For macOS and Linux, use your package manager of choice.
+    For Windows, Visual Studio 2022 with **CMake** and **Git for Windows** added
+    through *Tools and Features → Individual Components*.
 
-    For Windows, make sure CMake and Git for Windows are installed in Visual Studio via:
+    For macOS and Linux, **CMake**, **Ninja** and **git-lfs**. Linux also needs LLVM
+    clang; macOS builds with Apple clang.
 
-    ```markdown
-    Tools and Features -> Individual Components
-    ```
-
-2. Clone the repository:
-
-    For macOS and Linux,
+2. Clone with submodules:
 
     ```bash
     git clone https://github.com/iluzdaf/platformer.git
     git submodule update --init --recursive
     ```
 
-    For Windows, use the Visual Studio UI or your favourite git client.
+3. Open the repository folder in your editor. Both configure CMake on open; VS Code
+    also offers to install the recommended extensions.
 
-3. Build the project:
-
-    For macOS and Linux,
-
-    ```bash
-    cmake -G Ninja -B build/debug \
-    -DCMAKE_BUILD_TYPE=Debug \
-    -DCMAKE_C_COMPILER="/opt/homebrew/opt/llvm/bin/clang" \
-    -DCMAKE_CXX_COMPILER="/opt/homebrew/opt/llvm/bin/clang++"
-
-    cmake --build build/debug --config Debug
-    ```
-
-    For Windows,
-    - once you open the repository folder using Visual Studio, it will automatically detect the CMake settings and setup the project folder accordingly.
-    - You can choose **Debug** or **Release** in the dropdown near the Run button.
-
-4. Run tests:
-
-    For macOS and Linux,
+4. Install the git hooks:
 
     ```bash
-    ./tests
+    python3 tools/hooks/install.py
     ```
 
-    For Windows, choose the project in the Visual Studio **Startup Project** selector near the run button and run it.
-
-5. Run the game executable:
-
-    For macOS and Linux,
-
-    ```bash
-    ./platformer 
-    ```
-
-    For Windows, choose the project in the Visual Studio **Startup Project** near the run button and run it.
+5. Pick `platformer` or `tests` as the target, choose **Debug** or **Release**, and
+    use the run and debug buttons. The game reads its assets relative to the build
+    directory, which is where both editors run it from.
 
 ## 🎨 Style Guide
 
-### Naming Conventions
+Formatting is defined by [.clang-format](.clang-format) and naming by
+[.clang-tidy](.clang-tidy). Both editors apply them on save; to sweep the whole tree:
 
-| Element         | Style         | Example              |
-|------------------|---------------|-----------------------|
-| Variable         | `camelCase`   | `tileIndex`          |
-| Function         | `camelCase`   | `moveLeft()`         |
-| Class/Struct     | `PascalCase`  | `Player`, `TileMap`  |
-| Enum             | `PascalCase`  | `TileKind::Solid`    |
-| Constant         | `CamelCase`  | `Gravity`           |
-| File Name       | `snake_case`  | `tile_map.hpp`          |
+```bash
+clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
+clang-tidy -p build/Debug $(find src -name '*.cpp')
+```
 
-### Code Formatting
+Two conventions those tools cannot express:
 
-Install and setup the ms-vscode.cpptools for VS Code to format on save.
+- File names are `snake_case`, as in `tile_map.hpp`.
+- `glz::meta::value` must keep that name because Glaze requires it, so it carries a
+  `NOLINTNEXTLINE`.
+
+### Json Assets
+
+Levels and `game_data.json` share one format, written both by `TileMap::save` and by
+`tools/format_json.py`. Structure goes on its own lines, leaves stay compact:
+
+```json
+"indices":[
+    [14, 0, 0, 0, 0,14],
+    [14,34,34,34,34,14]
+]
+```
+
+No formatter has been found that reproduces this, so json formatting is turned off in
+the workspace settings.
+The pre commit hook normalises anything that drifts, and CI checks it:
+
+```bash
+python3 tools/format_json.py --format   # write the format
+python3 tools/format_json.py --check    # verify it
+```
 
 ## 🧱 Project Structure
 

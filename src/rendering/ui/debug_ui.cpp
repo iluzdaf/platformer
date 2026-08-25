@@ -2,13 +2,16 @@
 #include <format>
 #include "rendering/ui/debug_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
-#include "game/player/player_state.hpp"
+#include "game/actor/actor_motion_state.hpp"
+#include "game/actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
 
 void DebugUi::draw(
     const ImGuiManager &imGuiManager,
-    const PlayerState &playerState,
-    const Camera2D &camera, 
+    const ActorMotionState &playerMotionState,
+    const glm::vec2 &playerPosition,
+    const ActorState &actorState,
+    const Camera2D &camera,
     bool showDebug)
 {
     if (!showDebug)
@@ -54,21 +57,21 @@ void DebugUi::draw(
             ImGui::TextUnformatted(value.c_str());
         };
 
-        drawRow("Velocity", std::format("{:.2f}, {:.2f}", playerState.velocity.x, playerState.velocity.y));
-        drawRow("Position", std::format("{:.2f}, {:.2f}", playerState.position.x, playerState.position.y));
+        drawRow("Velocity", std::format("{:.2f}, {:.2f}", playerMotionState.velocity.x, playerMotionState.velocity.y));
+        drawRow("Position", std::format("{:.2f}, {:.2f}", playerPosition.x, playerPosition.y));
 
-        drawRow("On Ground", playerState.onGround ? "true" : "false");
-        drawRow("Facing Left", playerState.facingLeft ? "true" : "false");
-        drawRow("Touching Left Wall", playerState.touchingLeftWall ? "true" : "false");
-        drawRow("Touching Right Wall", playerState.touchingRightWall ? "true" : "false");
-        drawRow("Hit Ceiling", playerState.hitCeiling ? "true" : "false");
+        drawRow("On Ground", playerMotionState.contacts.onGround ? "true" : "false");
+        drawRow("Facing Left", actorState.facingLeft ? "true" : "false");
+        drawRow("Touching Left Wall", playerMotionState.contacts.touchingLeftWall ? "true" : "false");
+        drawRow("Touching Right Wall", playerMotionState.contacts.touchingRightWall ? "true" : "false");
+        drawRow("Hit Ceiling", playerMotionState.contacts.hitCeiling ? "true" : "false");
 
-        drawRow("Wall Sliding", playerState.wallSliding ? "true" : "false");
-        drawRow("Wall Jumping", playerState.wallJumping ? "true" : "false");
-        drawRow("Dashing", playerState.dashing ? "true" : "false");
-        drawRow("Climbing", playerState.climbing ? "true" : "false");
+        drawRow("Wall Sliding", playerMotionState.wallSlide.active ? "true" : "false");
+        drawRow("Wall Jumping", playerMotionState.wallJump.active ? "true" : "false");
+        drawRow("Dashing", playerMotionState.dash.active ? "true" : "false");
+        drawRow("Climbing", playerMotionState.climb.active ? "true" : "false");
 
-        drawRow("Animation", toString(playerState.currentAnimationState));
+        drawRow("Animation", toString(actorState.currentAnimationState));
 
         drawRow("Camera Shaking", camera.shaking() ? "true" : "false");
 

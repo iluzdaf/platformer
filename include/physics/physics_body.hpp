@@ -1,41 +1,37 @@
 #pragma once
+
 #include <glm/gtc/matrix_transform.hpp>
 #include "physics/aabb.hpp"
+#include "physics/physics_body_data.hpp"
 
 class TileMap;
 
 class PhysicsBody
 {
 public:
-    void setPosition(glm::vec2 position);
-    glm::vec2 getPosition() const;
-    void setVelocity(glm::vec2 velocity);
-    glm::vec2 getVelocity() const;
-    void setColliderSize(glm::vec2 size);
-    glm::vec2 getColliderSize() const;
-    void setColliderOffset(glm::vec2 offset);
-    glm::vec2 getColliderOffset() const;
-    void setGravity(float gravity);
-    float getGravity() const;
+    explicit PhysicsBody(const PhysicsBodyData &data);
+    void setPosition(const glm::vec2 &position);
+    void setVelocity(const glm::vec2 &velocity);
+    const glm::vec2 &getPosition() const;
+    const glm::vec2 &getVelocity() const;
+    const glm::vec2 &getColliderSize() const;
+    const glm::vec2 &getColliderOffset() const;
     AABB getAABB() const;
-    bool contactWithLeftWall(const TileMap &tileMap);
-    bool contactWithRightWall(const TileMap &tileMap);
-    bool contactWithGround(const TileMap &tileMap);
+    glm::vec2 getBottomCenterOffset() const;
+    bool contactWithLeftWall(const TileMap &tileMap) const;
+    bool contactWithRightWall(const TileMap &tileMap) const;
+    bool contactWithGround(const TileMap &tileMap) const;
     bool contactWithCeiling(const TileMap &tileMap) const;
-    void applyGravity(float deltaTime);
     void stepPhysics(float deltaTime, const TileMap &tileMap);
-    AABB getCollisionAABBX() const;
-    AABB getCollisionAABBY() const;
-    void reset();
+    const AABB &getCollisionAABBX() const;
+    const AABB &getCollisionAABBY() const;
 
 private:
+    PhysicsBodyData data;
     glm::vec2 position = glm::vec2(0, 0),
               nextPosition = glm::vec2(0, 0),
               velocity = glm::vec2(0, 0),
-              nextVelocity = glm::vec2(0, 0),
-              colliderSize = glm::vec2(16, 16),
-              colliderOffset = glm::vec2(0, 0);
-    float gravity = 980;
+              nextVelocity = glm::vec2(0, 0);
     AABB collisionAABBX, collisionAABBY;
 
     void resolveHorizontalCollision(const TileMap &tileMap);
@@ -43,7 +39,7 @@ private:
     void resolveCollisionAgainstTile(
         const AABB &proposedAABB,
         const AABB &tileAABB,
-        glm::vec2 axisMask,
+        const glm::vec2 &axisMask,
         float &velocityComponent,
         glm::vec2 &positionWithOffset,
         AABB &collisionAABB);

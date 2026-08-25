@@ -9,7 +9,8 @@ public:
 
     GameDataWatcher()
     {
-        listener.onFileModified = [&](const std::string& path) {
+        listener.onFileModified = [&](const std::string &path)
+        {
             if (path.compare("../../assets/game_data.json") == 0)
             {
                 onGameDataChanged();

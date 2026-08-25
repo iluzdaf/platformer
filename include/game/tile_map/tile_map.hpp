@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp>
@@ -6,12 +7,13 @@
 #include "game/tile_map/tile.hpp"
 #include "game/tile_map/tile_map_data.hpp"
 #include "physics/aabb.hpp"
+#include "navigation/navigation_graph.hpp"
 
 class TileMap
 {
 public:
-    explicit TileMap(const std::string &jsonFilePath);
-    explicit TileMap(const TileMapData &tileMapData);
+    TileMap(const std::string &jsonFilePath, const TilePalettes &tilePalettes);
+    TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
     void setTileIndex(glm::ivec2 tilePosition, int tileIndex);
     void setTileIndexAt(glm::vec2 worldPosition, int tileIndex);
     int tilePositionToTileIndex(glm::ivec2 tilePosition) const;
@@ -39,13 +41,21 @@ public:
     bool probeSolidTiles(
         const AABB &probeAABB,
         const std::function<bool(const AABB &)> &callback) const;
+    const NavigationGraph &getNavigationGraph() const;
+    void buildNavigationGraph();
+    const std::vector<NpcSpawnData> &getNpcs() const;
 
 private:
     int width = 0, height = 0, tileSize = 0;
     std::vector<std::vector<int>> tileIndices;
     std::unordered_map<int, Tile> tiles;
-    void initByData(const TileMapData &tileMapData);
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
-    std::string nextLevel = "../assets/levels/level1.json";
-    std::string level = "../assets/levels/new_level.json";
+    std::string nextLevel = "../assets/levels/level1.json",
+                level = "../assets/levels/new_level.json";
+    NavigationGraph navigationGraph;
+    std::vector<NpcSpawnData> npcs;
+    std::string tilePalette;
+
+    void initByData(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
+    bool isWalkableBetween(glm::vec2 start, glm::vec2 end);
 };

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <signals.hpp>
 #include <string>
 
@@ -12,7 +13,7 @@ class EditorTileMapUi
 public:
     void draw(
         const ImGuiManager &imGuiManager,
-        const TileMap &tileMap,
+        TileMap &tileMap,
         const Texture2D &tileSet,
         bool shouldDrawTileMapEditor);
     void update(

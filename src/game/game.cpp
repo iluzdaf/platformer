@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <glaze/glaze.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -8,7 +9,7 @@
 
 Game::Game()
 {
-    GameData gameData = loadGameData();
+    gameData = loadGameData();
     shouldDrawGrid = gameData.debugData.shouldDrawGrid;
     shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
     shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
@@ -95,26 +96,6 @@ Game::Game()
         } });
     scriptWatcher.onScriptsChanged.connect([this]
                                            { luaScriptSystem->loadScripts(); });
-
-    player = std::make_unique<Player>(gameData.playerData, gameData.physicsData);
-    player->onDeath.connect([this]
-                            { luaScriptSystem->triggerDeath(); });
-    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
-                                                                {
-        onLevelCompleteConnection.block();
-        luaScriptSystem->triggerLevelComplete(); });
-    player->getMovementSystem().onWallJump.connect([this]
-                                                   { luaScriptSystem->triggerWallJump(); });
-    player->getMovementSystem().onDash.connect([this]
-                                               { luaScriptSystem->triggerDash(); });
-    player->getMovementSystem().onWallSliding.connect([this]
-                                                      { luaScriptSystem->triggerWallSliding(); });
-    player->onFallFromHeight.connect([this]
-                                     { luaScriptSystem->triggerFallFromHeight(); });
-    player->onHitCeiling.connect([this]
-                                 { luaScriptSystem->triggerHitCeiling(); });
-    player->onPickup.connect([this](int scoreDelta)
-                             { scoringSystem.addScore(scoreDelta); });
     loadLevel(gameData.firstLevel);
 
     tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
@@ -134,9 +115,7 @@ Game::Game()
     debugUi.onStep.connect([this]
                            { step(); });
     debugUi.onRespawn.connect([this]
-                              {
-        player->reset();
-        player->setPosition(tileMap->getPlayerStartWorldPosition()); });
+                              { rebuildPlayer(); });
     debugUi.onToggleZoom.connect([this]
                                  {
         static float originalZoom = camera->getZoom();
@@ -156,7 +135,7 @@ Game::Game()
     editorTileMapUi.onLoadLevel.connect([this](const std::string &levelPath)
                                         { loadLevel(levelPath); });
 
-    luaScriptSystem->bindGameObjects(this, camera.get(), player.get(), screenTransition.get());
+    luaScriptSystem->bindGameObjects(this, camera.get(), screenTransition.get());
 
     luaScriptSystem->triggerGameLoaded();
 }
@@ -209,20 +188,20 @@ void Game::run()
             {
                 float dt = std::min(deltaTime, 0.01f);
                 fixedUpdate(dt);
+                postFixedUpdate();
                 update(dt);
             }
             else
             {
                 timestepper.run(deltaTime, [&](float dt)
-                                { fixedUpdate(dt); });
+                                { fixedUpdate(dt); postFixedUpdate(); });
                 update(deltaTime);
             }
 
             stepFrame = false;
         }
 
-        const PlayerState &playerState = player->getPlayerState();
-        camera->follow(playerState.position);
+        camera->follow(player->getPosition());
 
         render();
 
@@ -235,19 +214,24 @@ void Game::preFixedUpdate()
 {
     inputManager.process(window);
 
-    player->preFixedUpdate();
+    for (Actor *actor : actors)
+        actor->preFixedUpdate();
 }
 
 void Game::fixedUpdate(float deltaTime)
 {
-    player->fixedUpdate(
-        deltaTime,
-        *tileMap.get(),
-        inputManager.getIntentions());
+    for (Actor *actor : actors)
+        actor->fixedUpdate(deltaTime, *tileMap.get());
 
     tileInteractionSystem.fixedUpdate(
         *player.get(),
         *tileMap.get());
+}
+
+void Game::postFixedUpdate()
+{
+    for (Actor *actor : actors)
+        actor->postFixedUpdate();
 }
 
 void Game::update(float deltaTime)
@@ -268,16 +252,19 @@ void Game::render()
         *tileSetShader.get(),
         *tileSet.get());
 
-    PlayerState playerState = player->getPlayerState();
-    spriteRenderer->drawWithUV(
-        *tileSetShader.get(),
-        *playerTexture.get(),
-        projection,
-        playerState.position,
-        playerState.size,
-        playerState.currentAnimationUVStart,
-        playerState.currentAnimationUVEnd,
-        playerState.facingLeft);
+    for (const Actor *actor : actors)
+    {
+        const ActorState &actorState = actor->getState();
+        spriteRenderer->drawWithUV(
+            *tileSetShader.get(),
+            *playerTexture.get(),
+            projection,
+            actor->getPosition(),
+            actorState.size,
+            actorState.currentAnimationUVStart,
+            actorState.currentAnimationUVEnd,
+            actorState.facingLeft);
+    }
 
     imGuiManager->newFrame();
 
@@ -303,7 +290,9 @@ void Game::render()
 
     debugUi.draw(
         *imGuiManager.get(),
-        playerState,
+        player->getMotion().getState(),
+        player->getPosition(),
+        player->getState(),
         *camera.get(),
         showDebug);
 
@@ -312,6 +301,11 @@ void Game::render()
         *tileMap.get(),
         *tileSet.get(),
         showTileMapEditor);
+
+    debugNavigationUi.draw(
+        *imGuiManager.get(),
+        tileMap->getNavigationGraph(),
+        *camera.get());
 
     imGuiManager->render();
 
@@ -356,16 +350,16 @@ void Game::initGlad()
 
 GameData Game::loadGameData() const
 {
-    GameData gameData;
-    auto ec = glz::read_file_json(gameData, "../../assets/game_data.json", std::string{});
+    GameData loaded;
+    auto ec = glz::read_file_json(loaded, "../../assets/game_data.json", std::string{});
     if (ec)
         throw std::runtime_error("Failed to read game data json file");
-    return gameData;
+    return loaded;
 }
 
 void Game::reload()
 {
-    GameData gameData = loadGameData();
+    gameData = loadGameData();
 
     shouldDrawGrid = gameData.debugData.shouldDrawGrid;
     shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
@@ -378,20 +372,18 @@ void Game::reload()
 
     camera->setZoom(gameData.cameraData.zoom);
 
-    player->initFromData(gameData.playerData, gameData.physicsData);
-
     loadLevel(gameData.firstLevel);
 }
 
 void Game::loadLevel(const std::string &levelPath)
 {
-    std::unique_ptr<TileMap> newTileMap = std::make_unique<TileMap>(levelPath);
-    tileMap = std::move(newTileMap);
-    luaScriptSystem->bindTileMap(tileMap.get());
+    rebuildTileMap(levelPath);
+
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
-    onLevelCompleteConnection.unblock();
-    player->reset();
-    player->setPosition(tileMap->getPlayerStartWorldPosition());
+
+    rebuildPlayer();
+
+    rebuildNpcs();
 }
 
 void Game::pause()
@@ -409,4 +401,74 @@ void Game::play()
 {
     paused = false;
     stepFrame = false;
+}
+
+void Game::rebuildTileMap(const std::string &levelPath)
+{
+    std::unique_ptr<TileMap> newTileMap = std::make_unique<TileMap>(levelPath, gameData.tilePalettes);
+    tileMap = std::move(newTileMap);
+    luaScriptSystem->bindTileMap(tileMap.get());
+}
+
+void Game::rebuildPlayer()
+{
+    if (!tileMap)
+        throw std::runtime_error("Cannot rebuild the player before the tile map");
+
+    std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
+    player = std::move(newPlayer);
+    player->setPosition(tileMap->getPlayerStartWorldPosition());
+    player->onDeath.connect([this]
+                            { luaScriptSystem->triggerDeath(); });
+    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
+                                                                {
+        onLevelCompleteConnection.block();
+        luaScriptSystem->triggerLevelComplete(); });
+    player->onWallJump.connect([this]
+                               { luaScriptSystem->triggerWallJump(); });
+    player->onDash.connect([this]
+                           { luaScriptSystem->triggerDash(); });
+    player->onWallSliding.connect([this]
+                                  { luaScriptSystem->triggerWallSliding(); });
+    player->onFallFromHeight.connect([this]
+                                     { luaScriptSystem->triggerFallFromHeight(); });
+    player->onHitCeiling.connect([this]
+                                 { luaScriptSystem->triggerHitCeiling(); });
+    player->onPickup.connect([this](int scoreDelta)
+                             { scoringSystem.addScore(scoreDelta); });
+    luaScriptSystem->bindPlayer(player.get());
+
+    refreshActors();
+}
+
+void Game::rebuildNpcs()
+{
+    npcs.clear();
+
+    for (const NpcSpawnData &spawn : tileMap->getNpcs())
+    {
+        auto it = gameData.npcData.find(spawn.type);
+        if (it == gameData.npcData.end())
+        {
+            std::cerr << "Unknown npc \"" << spawn.type << "\" in " << tileMap->getLevel() << std::endl;
+            continue;
+        }
+
+        std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second);
+        newNpc->setPosition(tileMap->tileToWorldPosition(spawn.tilePosition));
+        npcs.push_back(std::move(newNpc));
+    }
+
+    refreshActors();
+}
+
+void Game::refreshActors()
+{
+    actors.clear();
+
+    for (auto &npc : npcs)
+        actors.push_back(npc.get());
+
+    if (player)
+        actors.push_back(player.get());
 }

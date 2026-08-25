@@ -1,7 +1,212 @@
+#include <stdexcept>
+#include <algorithm>
+#include <cmath>
+#include <string>
+#include <vector>
 #include <glaze/glaze.hpp>
 #include "game/tile_map/tile_map.hpp"
 
-TileMap::TileMap(const std::string &jsonFilePath) : level(jsonFilePath)
+namespace
+{
+    constexpr float NodeTileNudge = 0.5f;
+
+    constexpr int NestingOnLines = 2;
+    constexpr size_t InlineWidthLimit = 100;
+
+    std::string withPaddedGrid(const std::string &json)
+    {
+        const std::string key = "\"indices\":[";
+        size_t start = json.find(key);
+        if (start == std::string::npos)
+            return json;
+
+        size_t cursor = start + key.size();
+        std::vector<std::vector<std::string>> rows;
+
+        while (cursor < json.size() && json[cursor] == '[')
+        {
+            size_t end = json.find(']', cursor);
+            if (end == std::string::npos)
+                return json;
+
+            std::vector<std::string> cells;
+            for (size_t cell = cursor + 1; cell < end;)
+            {
+                size_t comma = json.find(',', cell);
+                if (comma == std::string::npos || comma > end)
+                    comma = end;
+
+                cells.push_back(json.substr(cell, comma - cell));
+                cell = comma + 1;
+            }
+            rows.push_back(std::move(cells));
+
+            cursor = end + 1;
+            if (cursor < json.size() && json[cursor] == ',')
+                ++cursor;
+        }
+
+        size_t width = 0;
+        for (const auto &row : rows)
+            for (const auto &cell : row)
+                width = std::max(width, cell.size());
+
+        std::string out = json.substr(0, start + key.size());
+        for (size_t row = 0; row < rows.size(); ++row)
+        {
+            out += "[";
+            for (size_t cell = 0; cell < rows[row].size(); ++cell)
+            {
+                if (cell > 0)
+                    out += ",";
+
+                out += std::string(width - rows[row][cell].size(), ' ') + rows[row][cell];
+            }
+            out += "]";
+
+            if (row + 1 < rows.size())
+                out += ",";
+        }
+
+        return out + json.substr(cursor);
+    }
+
+    struct Span
+    {
+        bool holdsContainer = false;
+        size_t length = 0;
+    };
+
+    Span spanOf(const std::string &json, size_t opening)
+    {
+        Span span;
+        int depth = 0;
+        bool inString = false;
+        bool escaped = false;
+
+        for (size_t at = opening; at < json.size(); ++at)
+        {
+            char character = json[at];
+
+            if (escaped)
+                escaped = false;
+            else if (inString)
+            {
+                if (character == '\\')
+                    escaped = true;
+                else if (character == '"')
+                    inString = false;
+            }
+            else if (character == '"')
+                inString = true;
+            else if (character == '{' || character == '[')
+            {
+                if (++depth > 1)
+                    span.holdsContainer = true;
+            }
+            else if (character == '}' || character == ']')
+            {
+                if (--depth == 0)
+                {
+                    span.length = at - opening + 1;
+                    return span;
+                }
+            }
+        }
+
+        return span;
+    }
+
+    std::string withStructureOnLines(const std::string &json)
+    {
+        std::string out;
+        std::vector<bool> expanded;
+        int depth = 0;
+        bool inString = false;
+        bool escaped = false;
+
+        for (size_t at = 0; at < json.size(); ++at)
+        {
+            char character = json[at];
+
+            if (escaped)
+            {
+                out += character;
+                escaped = false;
+                continue;
+            }
+
+            if (inString)
+            {
+                out += character;
+                if (character == '\\')
+                    escaped = true;
+                else if (character == '"')
+                    inString = false;
+                continue;
+            }
+
+            if (character == '"')
+            {
+                out += character;
+                inString = true;
+            }
+            else if (character == '{' || character == '[')
+            {
+                char closing = character == '{' ? '}' : ']';
+                if (at + 1 < json.size() && json[at + 1] == closing)
+                {
+                    out += character;
+                    out += closing;
+                    ++at;
+                    continue;
+                }
+
+                size_t lineStart = out.rfind('\n');
+                size_t column = lineStart == std::string::npos ? out.size() : out.size() - lineStart - 1;
+
+                Span span = spanOf(json, at);
+                bool nearTop = span.holdsContainer && depth + 1 <= NestingOnLines;
+                bool tooLong = column + span.length > InlineWidthLimit;
+                bool scalarArray = character == '[' && !span.holdsContainer;
+
+                bool onLines = !scalarArray && (nearTop || tooLong);
+                out += character;
+                ++depth;
+                expanded.push_back(onLines);
+
+                if (onLines)
+                    out += "\n" + std::string(4 * depth, ' ');
+            }
+            else if (character == '}' || character == ']')
+            {
+                bool onLines = !expanded.empty() && expanded.back();
+                if (!expanded.empty())
+                    expanded.pop_back();
+
+                --depth;
+                if (onLines)
+                    out += "\n" + std::string(4 * depth, ' ');
+
+                out += character;
+            }
+            else if (character == ',')
+            {
+                out += character;
+                if (!expanded.empty() && expanded.back())
+                    out += "\n" + std::string(4 * depth, ' ');
+            }
+            else
+            {
+                out += character;
+            }
+        }
+
+        return out;
+    }
+}
+
+TileMap::TileMap(const std::string &jsonFilePath, const TilePalettes &tilePalettes) : level(jsonFilePath)
 {
     if (jsonFilePath.empty())
     {
@@ -15,15 +220,15 @@ TileMap::TileMap(const std::string &jsonFilePath) : level(jsonFilePath)
         throw std::runtime_error("Failed to read Tile Map json file");
     }
 
-    initByData(tileMapData);
+    initByData(tileMapData, tilePalettes);
 }
 
-TileMap::TileMap(const TileMapData &tileMapData)
+TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
 {
-    initByData(tileMapData);
+    initByData(tileMapData, tilePalettes);
 }
 
-void TileMap::initByData(const TileMapData &tileMapData)
+void TileMap::initByData(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
 {
     tileSize = tileMapData.size;
 
@@ -70,8 +275,13 @@ void TileMap::initByData(const TileMapData &tileMapData)
     if (width == 0 || height == 0)
         throw std::runtime_error("TileMapData has invalid dimensions");
 
+    tilePalette = tileMapData.tilePalette;
+    auto palette = tilePalettes.find(tilePalette);
+    if (palette == tilePalettes.end())
+        throw std::runtime_error("Unknown tile palette \"" + tilePalette + "\"");
+
     tiles.insert_or_assign(0, Tile(0, TileData(TileKind::Empty)));
-    for (const auto &[tileIndex, tileData] : tileMapData.tileData)
+    for (const auto &[tileIndex, tileData] : palette->second)
         tiles.insert_or_assign(tileIndex, Tile(tileIndex, tileData));
 
     playerStartTilePosition = tileMapData.playerStartTilePosition;
@@ -90,15 +300,26 @@ void TileMap::initByData(const TileMapData &tileMapData)
     nextLevel = tileMapData.nextLevel;
     if (nextLevel.empty())
         throw std::runtime_error("nextLevel must not be empty");
+
+    npcs = tileMapData.npcs;
+    for (const auto &npc : npcs)
+    {
+        if (!validTilePosition(npc.tilePosition))
+            throw std::runtime_error("Npc start position is out of bounds");
+        if (getTileAtTilePosition(npc.tilePosition).isSolid())
+            throw std::runtime_error("Npc start position is on a solid tile");
+    }
+
+    buildNavigationGraph();
 }
 
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
 {
     if (!validTilePosition(tilePosition))
-        throw std::out_of_range("Tile coordinates out of bounds");
+        throw std::runtime_error("Tile coordinates out of bounds");
 
     if (tileIndex < 0)
-        throw std::invalid_argument("Tile index must be greater or equals to 0");
+        throw std::runtime_error("Tile index must be greater or equals to 0");
 
     tileIndices[tilePosition.x][tilePosition.y] = tileIndex;
 }
@@ -119,7 +340,7 @@ bool TileMap::validTilePosition(glm::ivec2 tilePosition) const
 int TileMap::tilePositionToTileIndex(glm::ivec2 tilePosition) const
 {
     if (!validTilePosition(tilePosition))
-        throw std::out_of_range("Tile coordinates out of bounds");
+        throw std::runtime_error("Tile coordinates out of bounds");
 
     return tileIndices[tilePosition.x][tilePosition.y];
 }
@@ -148,7 +369,7 @@ const Tile &TileMap::getTile(int tileIndex) const
 {
     auto it = tiles.find(tileIndex);
     if (it == tiles.end())
-        throw std::out_of_range("Invalid tile index");
+        throw std::runtime_error("Invalid tile index");
     return it->second;
 }
 
@@ -236,8 +457,8 @@ TileMapData TileMap::toTileMapData() const
     for (int y = 0; y < height; ++y)
         for (int x = 0; x < width; ++x)
             (*data.indices)[y][x] = tileIndices[x][y];
-    for (const auto &[index, tile] : tiles)
-        data.tileData[index] = tile.toTileData();
+    data.tilePalette = tilePalette;
+    data.npcs = npcs;
     return data;
 }
 
@@ -249,7 +470,7 @@ void TileMap::save() const
     if (result)
         throw std::runtime_error("Failed to serialize TileMapData to JSON");
     std::ofstream outFile(level);
-    outFile << json;
+    outFile << withStructureOnLines(withPaddedGrid(json));
     outFile.close();
 }
 
@@ -283,4 +504,136 @@ bool TileMap::probeSolidTiles(
             return true;
     }
     return false;
+}
+
+const NavigationGraph &TileMap::getNavigationGraph() const
+{
+    return navigationGraph;
+}
+
+const std::vector<NpcSpawnData> &TileMap::getNpcs() const
+{
+    return npcs;
+}
+
+void TileMap::buildNavigationGraph()
+{
+    navigationGraph.clear();
+
+    int nextNodeId = 0;
+
+    for (int y = 0; y < height; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            glm::ivec2 tilePosition(x, y);
+            const Tile &tile = getTileAtTilePosition(tilePosition);
+
+            if (tile.isSolid())
+            {
+                glm::ivec2 tilePositionAbove = tilePosition + glm::ivec2(0, -1);
+                bool canWalkAbove = validTilePosition(tilePositionAbove) &&
+                                    !getTileAtTilePosition(tilePositionAbove).isSolid() &&
+                                    !getTileAtTilePosition(tilePositionAbove).isSpikes();
+                glm::ivec2 tilePositionLeft = tilePosition + glm::ivec2(-1, 0);
+                bool isLeftCliff = validTilePosition(tilePositionLeft) &&
+                                   !getTileAtTilePosition(tilePositionLeft).isSolid();
+                glm::ivec2 tilePositionRight = tilePosition + glm::ivec2(1, 0);
+                bool isRightCliff = validTilePosition(tilePositionRight) &&
+                                    !getTileAtTilePosition(tilePositionRight).isSolid();
+                glm::ivec2 tilePositionAboveLeft = tilePositionAbove + glm::ivec2(-1, 0);
+                bool canWalkAboveLeft = !isLeftCliff &&
+                                        validTilePosition(tilePositionAboveLeft) &&
+                                        !getTileAtTilePosition(tilePositionAboveLeft).isSolid() &&
+                                        !getTileAtTilePosition(tilePositionAboveLeft).isSpikes();
+                glm::ivec2 tilePositionAboveRight = tilePositionAbove + glm::ivec2(1, 0);
+                bool canWalkAboveRight = !isRightCliff &&
+                                         validTilePosition(tilePositionAboveRight) &&
+                                         !getTileAtTilePosition(tilePositionAboveRight).isSolid() &&
+                                         !getTileAtTilePosition(tilePositionAboveRight).isSpikes();
+
+                if (canWalkAbove && (isLeftCliff || isRightCliff || !canWalkAboveLeft || !canWalkAboveRight))
+                {
+                    glm::vec2 worldPosition = tileToWorldPosition(tilePosition);
+                    glm::vec2 nodeOffset(0.0f);
+
+                    if (canWalkAboveLeft && !canWalkAboveRight)
+                        nodeOffset = glm::vec2(tileSize, 0.0f);
+                    else if (!canWalkAboveLeft && canWalkAboveRight)
+                        nodeOffset = glm::vec2(0.0f, 0.0f);
+                    else
+                        nodeOffset = glm::vec2(tileSize / 2.0f, 0.f);
+
+                    glm::vec2 nodePosition = worldPosition + nodeOffset;
+                    navigationGraph.addNode(nextNodeId++, nodePosition);
+                }
+            }
+        }
+    }
+
+    std::unordered_map<int, std::vector<NavigationNode>> nodesByRow;
+
+    for (const auto &[id, node] : navigationGraph.getNodes())
+        nodesByRow[static_cast<int>(std::round(node.position.y))].push_back(node);
+
+    std::vector<int> rows;
+    for (const auto &[y, nodesInRow] : nodesByRow)
+        rows.push_back(y);
+    std::sort(rows.begin(), rows.end());
+
+    for (int y : rows)
+    {
+        std::vector<NavigationNode> &nodesInRow = nodesByRow[y];
+        std::sort(
+            nodesInRow.begin(),
+            nodesInRow.end(),
+            [](const NavigationNode &left, const NavigationNode &right)
+            { return left.position.x < right.position.x; });
+
+        for (size_t index = 1; index < nodesInRow.size(); ++index)
+        {
+            const NavigationNode &left = nodesInRow[index - 1];
+            const NavigationNode &right = nodesInRow[index];
+
+            if (!isWalkableBetween(left.position, right.position))
+                continue;
+
+            navigationGraph.addEdge(left.id, right.id, EdgeType::Walk);
+            navigationGraph.addEdge(right.id, left.id, EdgeType::Walk);
+        }
+    }
+}
+
+bool TileMap::isWalkableBetween(glm::vec2 start, glm::vec2 end)
+{
+    if (start == end)
+        return false;
+
+    glm::vec2 inwards = glm::normalize(end - start) * NodeTileNudge;
+    glm::ivec2 startTilePosition = worldToTilePosition(start + inwards);
+    glm::ivec2 endTilePosition = worldToTilePosition(end - inwards);
+
+    if (startTilePosition.y != endTilePosition.y)
+        return false;
+
+    int fromX = std::min(startTilePosition.x, endTilePosition.x);
+    int toX = std::max(startTilePosition.x, endTilePosition.x);
+
+    for (int x = fromX; x <= toX; ++x)
+    {
+        glm::ivec2 groundTilePosition(x, startTilePosition.y);
+        if (!validTilePosition(groundTilePosition) ||
+            !getTileAtTilePosition(groundTilePosition).isSolid())
+            return false;
+
+        glm::ivec2 standTilePosition = groundTilePosition + glm::ivec2(0, -1);
+        if (!validTilePosition(standTilePosition))
+            return false;
+
+        const Tile &standTile = getTileAtTilePosition(standTilePosition);
+        if (standTile.isSolid() || standTile.isSpikes())
+            return false;
+    }
+
+    return true;
 }

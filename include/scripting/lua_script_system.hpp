@@ -1,5 +1,7 @@
 #pragma once
+
 #include <sol/sol.hpp>
+
 class Game;
 class Camera2D;
 class TileMap;
@@ -15,12 +17,12 @@ public:
         sol::function co;
         float remainingTime;
     };
+
     LuaScriptSystem();
     void update(float deltaTime);
     void bindGameObjects(
         Game *game,
         Camera2D *camera,
-        Player *player,
         ScreenTransition *screenTransition);
     void triggerLevelComplete();
     void triggerDeath();
@@ -35,6 +37,7 @@ public:
     void triggerWallSliding();
     void triggerGameLoaded();
     void loadScripts();
+    void bindPlayer(Player *player);
 
 private:
     sol::state lua;

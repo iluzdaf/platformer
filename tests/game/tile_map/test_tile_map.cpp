@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "physics/aabb.hpp"
 
@@ -31,32 +32,35 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 
     SECTION("tilePositionToTileIndex handles out of bounds by throwing out of range")
     {
-        REQUIRE_THROWS_AS(tileMap.tilePositionToTileIndex(glm::ivec2(-1, 0)), std::out_of_range);
-        REQUIRE_THROWS_AS(tileMap.tilePositionToTileIndex(glm::ivec2(0, -1)), std::out_of_range);
-        REQUIRE_THROWS_AS(tileMap.tilePositionToTileIndex(glm::ivec2(13, 0)), std::out_of_range);
-        REQUIRE_THROWS_AS(tileMap.tilePositionToTileIndex(glm::ivec2(0, 23)), std::out_of_range);
+        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(-1, 0)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(0, -1)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(13, 0)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(0, 23)), "Tile coordinates out of bounds");
     }
 
     SECTION("setTileIndex handles out of bounds")
     {
-        REQUIRE_THROWS_AS(tileMap.setTileIndex(glm::ivec2(13, 0), 1), std::out_of_range);
+        REQUIRE_THROWS_WITH(tileMap.setTileIndex(glm::ivec2(13, 0), 1), "Tile coordinates out of bounds");
     }
 
     SECTION("setTileIndex Throws on negative value")
     {
-        REQUIRE_THROWS_AS(tileMap.setTileIndex(glm::ivec2(2, 2), -5), std::invalid_argument);
+        REQUIRE_THROWS_WITH(tileMap.setTileIndex(glm::ivec2(2, 2), -5), "Tile index must be greater or equals to 0");
     }
 }
 
 TEST_CASE("TileMap returns correct tile", "[TileMap]")
 {
+    TileData solidTileData, emptyTileData;
+    solidTileData.kind = TileKind::Solid;
+    emptyTileData.kind = TileKind::Empty;
     TileMapData tileMapData;
     tileMapData.width = 3;
     tileMapData.height = 3;
-    tileMapData.tileData = {{1, {TileKind::Solid}},
-                            {0, {TileKind::Empty}},
-                            {3, {TileKind::Empty}}};
-    TileMap tileMap(tileMapData);
+    TilePalette palette = {{1, solidTileData},
+                           {0, emptyTileData},
+                           {3, emptyTileData}};
+    TileMap tileMap(tileMapData, palettesFrom(palette));
 
     SECTION("Known indices")
     {
@@ -75,20 +79,24 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
 
     SECTION("Unknown indices")
     {
-        REQUIRE_THROWS_AS(tileMap.getTile(999), std::out_of_range);
+        REQUIRE_THROWS_WITH(tileMap.getTile(999), "Invalid tile index");
     }
 }
 
 TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 {
+    TileData animatedTileData1, animatedTileData2, emptyTileData;
+    animatedTileData1.kind = animatedTileData2.kind = emptyTileData.kind = TileKind::Empty;
+    animatedTileData1.animationData = {{{10, 11, 12}, 0.1f}};
+    animatedTileData2.animationData = {{{5, 6}, 0.1f}};
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    tileMapData.tileData = {
-        {1, {TileKind::Empty, TileAnimationData{{{10, 11, 12}, 0.1f}}}},
-        {0, {TileKind::Empty}},
-        {3, {TileKind::Empty, TileAnimationData{{{5, 6}, 0.1f}}}}};
-    TileMap tileMap(tileMapData);
+    TilePalette palette = {
+        {1, animatedTileData1},
+        {0, emptyTileData},
+        {3, animatedTileData2}};
+    TileMap tileMap(tileMapData, palettesFrom(palette));
     tileMap.setTileIndex(glm::ivec2(0, 0), 1);
     tileMap.setTileIndex(glm::ivec2(0, 1), 0);
     tileMap.setTileIndex(glm::ivec2(1, 1), 3);
@@ -115,12 +123,17 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 
 TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
 {
+    TileData emptyTileData, pickupTileData;
+    emptyTileData.kind = TileKind::Empty;
+    pickupTileData.kind = TileKind::Pickup;
+    pickupTileData.pickupReplaceIndex = 0;
+    pickupTileData.animationData = std::nullopt;
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    tileMapData.tileData = {{0, {TileKind::Empty}},
-                            {5, {TileKind::Pickup, std::nullopt, 0}}};
-    TileMap tileMap(tileMapData);
+    TilePalette palette = {{0, emptyTileData},
+                           {5, pickupTileData}};
+    TileMap tileMap(tileMapData, palettesFrom(palette));
     tileMap.setTileIndex(glm::ivec2(1, 1), 5);
     const Tile &tile = tileMap.getTile(5);
     REQUIRE(tile.isPickup());
@@ -153,9 +166,158 @@ TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]
 
     AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
 
-    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &tileAABB) {
-        return true;
-    });
+    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &)
+                                          { return true; });
 
     REQUIRE(result == true);
+}
+
+TEST_CASE("Build Navigation Graph", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+
+    SECTION("Single Tile Platform at left side of TileMap")
+    {
+        tileMap.setTileIndex(glm::ivec2(0, 9), 1);
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({tileSize / 2, 9 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform at right side of TileMap")
+    {
+        tileMap.setTileIndex(glm::ivec2(9, 9), 1);
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({9 * tileSize + tileSize / 2, 9 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform where both sides are cliffs")
+    {
+        tileMap.setTileIndex(glm::ivec2(1, 9), 1);
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 9 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform where left side is a cliff and right side is a wall")
+    {
+        tileMap.setTileIndex(glm::ivec2(2, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform where right side is a cliff and left side is a wall")
+    {
+        tileMap.setTileIndex(glm::ivec2(0, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(0, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform where both sides are walls")
+    {
+        tileMap.setTileIndex(glm::ivec2(0, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(0, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 1), 1);
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
+    }
+
+    SECTION("2 Tile Platforms")
+    {
+        for (int x = 0; x < 2; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
+        }
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 2);
+        REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
+        REQUIRE(navigationGraph.hasNodeAtPosition({2 * tileSize, 1 * tileSize}));
+    }
+
+    SECTION("3 Tile Platforms")
+    {
+        for (int x = 0; x < 3; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
+        }
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 2);
+        REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
+        REQUIRE(navigationGraph.hasNodeAtPosition({3 * tileSize, 1 * tileSize}));
+    }
+
+    SECTION("5 Tile Platforms")
+    {
+        for (int x = 0; x < 5; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
+        }
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 2);
+        REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
+        REQUIRE(navigationGraph.hasNodeAtPosition({5 * tileSize, 1 * tileSize}));
+    }
+
+    SECTION("10 Tile Platforms")
+    {
+        for (int x = 0; x < 10; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
+        }
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 2);
+        REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
+        REQUIRE(navigationGraph.hasNodeAtPosition({10 * tileSize, 1 * tileSize}));
+    }
+
+    SECTION("No nodes")
+    {
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 0);
+    }
+
+    SECTION("No walkable tiles")
+    {
+        for (int x = 0; x < 3; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 0), 1);
+        }
+        tileMap.buildNavigationGraph();
+
+        const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
+        REQUIRE(navigationGraph.getNodes().size() == 0);
+    }
 }

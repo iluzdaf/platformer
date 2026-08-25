@@ -11,10 +11,10 @@ Tile::Tile(int tileIndex, const TileData &tileData)
       tileIndex(tileIndex)
 {
     if (kind == TileKind::Pickup && !pickupReplaceIndex.has_value())
-        throw std::invalid_argument("Pickup tile must define a pickupReplaceIndex");
+        throw std::runtime_error("Pickup tile must define a pickupReplaceIndex");
 
     if (tileIndex < 0)
-        throw std::invalid_argument("TileIndex must be 0 or more");
+        throw std::runtime_error("TileIndex must be 0 or more");
 
     if (tileData.animationData.has_value())
         animation = TileAnimation(tileData.animationData.value());

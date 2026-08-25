@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <algorithm>
 #include <cmath>
 #include <string>

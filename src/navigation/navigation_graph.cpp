@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "navigation/navigation_graph.hpp"
 
 void NavigationGraph::addNode(int id, glm::vec2 position)

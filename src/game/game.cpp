@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <glaze/glaze.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -353,11 +354,11 @@ void Game::initGlad()
 
 GameData Game::loadGameData() const
 {
-    GameData gameData;
-    auto ec = glz::read_file_json(gameData, "../../assets/game_data.json", std::string{});
+    GameData loaded;
+    auto ec = glz::read_file_json(loaded, "../../assets/game_data.json", std::string{});
     if (ec)
         throw std::runtime_error("Failed to read game data json file");
-    return gameData;
+    return loaded;
 }
 
 void Game::reload()

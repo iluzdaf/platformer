@@ -189,6 +189,7 @@ add_executable(tests
     tests/physics/tests_physics_body.cpp
     tests/cameras/test_camera2d.cpp
     tests/input/test_keyboard_manager.cpp
+    tests/animations/test_animation_manager.cpp
     tests/animations/test_frame_animation.cpp
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp

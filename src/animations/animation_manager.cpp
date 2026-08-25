@@ -21,6 +21,9 @@ void AnimationManager::update(float deltaTime, const ActorMotionState &motionSta
     else
         newState = ActorAnimationState::Idle;
 
+    if (!animations.contains(newState))
+        newState = ActorAnimationState::Idle;
+
     if (newState != currentState)
     {
         currentState = newState;

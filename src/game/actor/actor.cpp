@@ -9,11 +9,16 @@ Actor::Actor(const ActorMotionData &motionData, const ActorAnimationData &animat
     actorState.size = motionData.size;
 
     animationManager.addAnimation(ActorAnimationState::Idle, SpriteAnimation(animationData.idleSpriteAnimationData));
-    animationManager.addAnimation(ActorAnimationState::Walk, SpriteAnimation(animationData.walkSpriteAnimationData));
-    animationManager.addAnimation(ActorAnimationState::Dash, SpriteAnimation(animationData.dashSpriteAnimationData));
-    animationManager.addAnimation(ActorAnimationState::Jump, SpriteAnimation(animationData.jumpSpriteAnimationData));
-    animationManager.addAnimation(ActorAnimationState::Fall, SpriteAnimation(animationData.fallSpriteAnimationData));
-    animationManager.addAnimation(ActorAnimationState::WallSlide, SpriteAnimation(animationData.wallSlideSpriteAnimationData));
+    if (animationData.walkSpriteAnimationData)
+        animationManager.addAnimation(ActorAnimationState::Walk, SpriteAnimation(animationData.walkSpriteAnimationData.value()));
+    if (animationData.dashSpriteAnimationData)
+        animationManager.addAnimation(ActorAnimationState::Dash, SpriteAnimation(animationData.dashSpriteAnimationData.value()));
+    if (animationData.jumpSpriteAnimationData)
+        animationManager.addAnimation(ActorAnimationState::Jump, SpriteAnimation(animationData.jumpSpriteAnimationData.value()));
+    if (animationData.fallSpriteAnimationData)
+        animationManager.addAnimation(ActorAnimationState::Fall, SpriteAnimation(animationData.fallSpriteAnimationData.value()));
+    if (animationData.wallSlideSpriteAnimationData)
+        animationManager.addAnimation(ActorAnimationState::WallSlide, SpriteAnimation(animationData.wallSlideSpriteAnimationData.value()));
 }
 
 void Actor::postFixedUpdate()

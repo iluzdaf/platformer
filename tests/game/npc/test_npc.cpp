@@ -65,7 +65,7 @@ TEST_CASE("Starts from the navigation node nearest where it was placed", "[Npc]"
 
     REQUIRE(npc.getCurrentNodeId().has_value());
 
-    glm::vec2 footPosition = placed + npc.getFootOffset();
+    glm::vec2 footPosition = placed + npc.getPhysicsBody().getBottomCenterOffset();
     float chosen = glm::distance(
         navigationGraph.getNode(*npc.getCurrentNodeId()).position,
         footPosition);
@@ -105,13 +105,13 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
     npc.spawnAt(spawnPosition(tileMap), tileMap.getNavigationGraph());
 
     std::unordered_set<int> visited;
-    float lowestFootY = npc.getPosition().y + npc.getFootOffset().y;
+    float lowestFootY = npc.getPosition().y + npc.getPhysicsBody().getBottomCenterOffset().y;
 
     for (int step = 0; step < 4000; ++step)
     {
         stepNpc(npc, tileMap, 1);
         visited.insert(*npc.getCurrentNodeId());
-        lowestFootY = std::max(lowestFootY, npc.getPosition().y + npc.getFootOffset().y);
+        lowestFootY = std::max(lowestFootY, npc.getPosition().y + npc.getPhysicsBody().getBottomCenterOffset().y);
     }
 
     REQUIRE(visited.size() == tileMap.getNavigationGraph().getNodes().size());
@@ -228,7 +228,7 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
 
     REQUIRE(npc.getCurrentNodeId().has_value());
 
-    glm::vec2 footPosition = npc.getPosition() + npc.getFootOffset();
+    glm::vec2 footPosition = npc.getPosition() + npc.getPhysicsBody().getBottomCenterOffset();
     NavigationNode anchor = tileMap.getNavigationGraph().getNode(*npc.getCurrentNodeId());
     REQUIRE(anchor.position.y == footPosition.y);
 
@@ -237,7 +237,7 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
     for (int step = 0; step < 4000; ++step)
     {
         stepNpc(npc, tileMap, 1);
-        float footX = npc.getPosition().x + npc.getFootOffset().x;
+        float footX = npc.getPosition().x + npc.getPhysicsBody().getBottomCenterOffset().x;
         lowest = std::min(lowest, footX);
         highest = std::max(highest, footX);
     }

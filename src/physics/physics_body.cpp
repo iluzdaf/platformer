@@ -37,6 +37,11 @@ AABB PhysicsBody::getAABB() const
     return AABB(position + getColliderOffset(), getColliderSize());
 }
 
+glm::vec2 PhysicsBody::getBottomCenterOffset() const
+{
+    return getColliderOffset() + glm::vec2(getColliderSize().x * 0.5f, getColliderSize().y);
+}
+
 void PhysicsBody::resolveCollisionAgainstTile(
     const AABB &proposedAABB,
     const AABB &tileAABB,

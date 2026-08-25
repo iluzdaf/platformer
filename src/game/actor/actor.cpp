@@ -70,9 +70,3 @@ void Actor::setPosition(const glm::vec2 &position)
 {
     physicsBody.setPosition(position);
 }
-
-glm::vec2 Actor::getFootOffset() const
-{
-    return physicsBody.getColliderOffset() +
-           glm::vec2(physicsBody.getColliderSize().x * 0.5f, physicsBody.getColliderSize().y);
-}

@@ -17,6 +17,7 @@ public:
     const glm::vec2 &getColliderSize() const;
     const glm::vec2 &getColliderOffset() const;
     AABB getAABB() const;
+    glm::vec2 getBottomCenterOffset() const;
     bool contactWithLeftWall(const TileMap &tileMap) const;
     bool contactWithRightWall(const TileMap &tileMap) const;
     bool contactWithGround(const TileMap &tileMap) const;

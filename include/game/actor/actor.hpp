@@ -21,7 +21,6 @@ public:
     const PhysicsBody &getPhysicsBody() const;
     const glm::vec2 &getPosition() const;
     void setPosition(const glm::vec2 &position);
-    glm::vec2 getFootOffset() const;
 
 protected:
     Actor(const ActorMotionData &motionData, const ActorAnimationData &animationData);

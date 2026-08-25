@@ -10,5 +10,5 @@ public:
     InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
 
 private:
-    const IntentionSource *intentionSource;
+    const IntentionSource &intentionSource;
 };

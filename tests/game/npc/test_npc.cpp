@@ -242,8 +242,9 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
         highest = std::max(highest, footX);
     }
 
-    // The floor spans roughly 288, the platform above it only 112.
-    REQUIRE(highest - lowest > 200.0f);
+    constexpr float PlatformAboveSpan = 112.0f;
+    constexpr float FloorSpan = 288.0f;
+    REQUIRE(highest - lowest > (PlatformAboveSpan + FloorSpan) * 0.5f);
 }
 
 TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc][Level]")

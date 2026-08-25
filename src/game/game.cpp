@@ -418,7 +418,7 @@ void Game::rebuildTileMap(const std::string &levelPath)
 void Game::rebuildPlayer()
 {
     std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData);
-    player = std::make_unique<Player>(gameData.playerData);
+    player = std::move(newPlayer);
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()

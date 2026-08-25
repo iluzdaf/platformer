@@ -1,75 +1,28 @@
 {
     "playerData":{
-        "motionData":{
+        "actorData":{
             "size":[16.0,16.0],
-            "moveAbilityData":{"moveSpeed":250.0},
-            "jumpAbilityData":{
-                "jumpSpeed":-300.0,
-                "jumpBufferDuration":0.15,
-                "jumpCoyoteDuration":0.15,
-                "jumpDuration":0.2
-            },
-            "dashAbilityData":{"dashSpeed":500,"dashDuration":0.2},
-            "wallSlideAbilityData":{"slideSpeed":50},
-            "wallJumpAbilityData":{
-                "wallJumpSpeed":-250,
-                "wallJumpHorizontalSpeed":250,
-                "wallJumpDuration":0.2,
-                "wallJumpBufferDuration":0.15,
-                "wallJumpCoyoteDuration":0.15
-            },
-            "climbAbilityData":{},
-            "climbMoveAbilityData":{"climbSpeed":80},
-            "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600},
-            "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]}
-        },
-        "animationData":{
-            "idleSpriteAnimationData":{
-                "frameAnimationData":{"frames":[30],"frameDuration":1},
-                "frameWidth":16,
-                "frameHeight":16,
-                "textureWidth":96
-            },
-            "walkSpriteAnimationData":{
-                "frameAnimationData":{"frames":[35,26],"frameDuration":0.15},
-                "frameWidth":16,
-                "frameHeight":16,
-                "textureWidth":96
-            },
-            "dashSpriteAnimationData":{
-                "frameAnimationData":{"frames":[18],"frameDuration":1},
-                "frameWidth":16,
-                "frameHeight":16,
-                "textureWidth":96
-            },
-            "jumpSpriteAnimationData":{
-                "frameAnimationData":{"frames":[29],"frameDuration":1},
-                "frameWidth":16,
-                "frameHeight":16,
-                "textureWidth":96
-            },
-            "fallSpriteAnimationData":{
-                "frameAnimationData":{"frames":[19],"frameDuration":1},
-                "frameWidth":16,
-                "frameHeight":16,
-                "textureWidth":96
-            },
-            "wallSlideSpriteAnimationData":{
-                "frameAnimationData":{"frames":[10],"frameDuration":1},
-                "frameWidth":16,
-                "frameHeight":16,
-                "textureWidth":96
-            }
-        },
-        "fallFromHeightThreshold":599
-    },
-    "npcData":{
-        "villager":{
+            "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
             "motionData":{
-                "size":[16.0,16.0],
-                "moveAbilityData":{"moveSpeed":60.0},
-                "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600},
-                "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]}
+                "moveAbilityData":{"moveSpeed":250.0},
+                "jumpAbilityData":{
+                    "jumpSpeed":-300.0,
+                    "jumpBufferDuration":0.15,
+                    "jumpCoyoteDuration":0.15,
+                    "jumpDuration":0.2
+                },
+                "dashAbilityData":{"dashSpeed":500,"dashDuration":0.2},
+                "wallSlideAbilityData":{"slideSpeed":50},
+                "wallJumpAbilityData":{
+                    "wallJumpSpeed":-250,
+                    "wallJumpHorizontalSpeed":250,
+                    "wallJumpDuration":0.2,
+                    "wallJumpBufferDuration":0.15,
+                    "wallJumpCoyoteDuration":0.15
+                },
+                "climbAbilityData":{},
+                "climbMoveAbilityData":{"climbSpeed":80},
+                "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600}
             },
             "animationData":{
                 "idleSpriteAnimationData":{
@@ -84,11 +37,62 @@
                     "frameHeight":16,
                     "textureWidth":96
                 },
+                "dashSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[18],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
+                "jumpSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[29],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
                 "fallSpriteAnimationData":{
                     "frameAnimationData":{"frames":[19],"frameDuration":1},
                     "frameWidth":16,
                     "frameHeight":16,
                     "textureWidth":96
+                },
+                "wallSlideSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[10],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                }
+            }
+        },
+        "fallFromHeightThreshold":599
+    },
+    "npcData":{
+        "villager":{
+            "actorData":{
+                "size":[16.0,16.0],
+                "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
+                "motionData":{
+                    "moveAbilityData":{"moveSpeed":60.0},
+                    "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600}
+                },
+                "animationData":{
+                    "idleSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[30],"frameDuration":1},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    },
+                    "walkSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[35,26],"frameDuration":0.15},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    },
+                    "fallSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[19],"frameDuration":1},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    }
                 }
             },
             "patrolBehaviorData":{"arrivalThreshold":2.0}

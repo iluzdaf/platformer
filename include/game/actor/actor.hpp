@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "game/actor/actor_state.hpp"
-#include "game/actor/actor_animation_data.hpp"
+#include "game/actor/actor_data.hpp"
 #include "game/actor/actor_motion.hpp"
 #include "game/actor/actor_behavior.hpp"
 #include "animations/animation_manager.hpp"
@@ -25,7 +25,7 @@ public:
     void setPosition(const glm::vec2 &position);
 
 protected:
-    Actor(const ActorMotionData &motionData, const ActorAnimationData &animationData);
+    explicit Actor(const ActorData &data);
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
     ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
     ActorBehaviorContext behaviorContextAt(

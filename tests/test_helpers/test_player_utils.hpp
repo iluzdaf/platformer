@@ -38,15 +38,15 @@ inline const IntentionSource &noIntentions()
 inline Player setupPlayer(const IntentionSource &intentionSource = noIntentions())
 {
     PlayerData playerData;
-    playerData.animationData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
-    playerData.animationData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
-    playerData.motionData.moveAbilityData = MoveAbilityData();
-    playerData.motionData.jumpAbilityData = JumpAbilityData();
-    playerData.motionData.dashAbilityData = DashAbilityData();
-    playerData.motionData.wallSlideAbilityData = WallSlideAbilityData();
-    playerData.motionData.wallJumpAbilityData = WallJumpAbilityData();
-    playerData.motionData.climbAbilityData = ClimbAbilityData();
-    playerData.motionData.climbMoveAbilityData = ClimbMoveAbilityData();
-    playerData.motionData.gravityAbilityData = GravityAbilityData();
+    playerData.actorData.animationData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
+    playerData.actorData.animationData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
+    playerData.actorData.motionData.moveAbilityData = MoveAbilityData();
+    playerData.actorData.motionData.jumpAbilityData = JumpAbilityData();
+    playerData.actorData.motionData.dashAbilityData = DashAbilityData();
+    playerData.actorData.motionData.wallSlideAbilityData = WallSlideAbilityData();
+    playerData.actorData.motionData.wallJumpAbilityData = WallJumpAbilityData();
+    playerData.actorData.motionData.climbAbilityData = ClimbAbilityData();
+    playerData.actorData.motionData.climbMoveAbilityData = ClimbMoveAbilityData();
+    playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
     return Player(playerData, intentionSource);
 }

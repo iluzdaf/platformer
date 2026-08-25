@@ -1,12 +1,10 @@
 #pragma once
 
-#include "game/actor/actor_motion_data.hpp"
-#include "game/actor/actor_animation_data.hpp"
+#include "game/actor/actor_data.hpp"
 
 struct PlayerData
 {
-    ActorMotionData motionData;
-    ActorAnimationData animationData;
+    ActorData actorData;
 
     float fallFromHeightThreshold = 400;
 };

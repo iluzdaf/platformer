@@ -2,7 +2,7 @@
 #include "game/tile_map/tile_map.hpp"
 
 Npc::Npc(const NpcData &data)
-    : Actor(data.motionData, data.animationData)
+    : Actor(data.actorData)
 {
     if (data.patrolBehaviorData)
     {

@@ -10,11 +10,11 @@ namespace
     NpcData setupNpcData()
     {
         NpcData npcData;
-        npcData.motionData.size = glm::vec2(16.0f);
-        npcData.motionData.moveAbilityData = MoveAbilityData{60.0f};
-        npcData.motionData.gravityAbilityData = GravityAbilityData{};
-        npcData.motionData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
-        npcData.motionData.physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);
+        npcData.actorData.size = glm::vec2(16.0f);
+        npcData.actorData.motionData.moveAbilityData = MoveAbilityData{60.0f};
+        npcData.actorData.motionData.gravityAbilityData = GravityAbilityData{};
+        npcData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
+        npcData.actorData.physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);
         npcData.patrolBehaviorData = PatrolBehaviorData();
         return npcData;
     }

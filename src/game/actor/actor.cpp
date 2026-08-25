@@ -3,11 +3,13 @@
 #include "input/input_intentions.hpp"
 #include "game/tile_map/tile_map.hpp"
 
-Actor::Actor(const ActorMotionData &motionData, const ActorAnimationData &animationData)
-    : motion(motionData),
-      physicsBody(motionData.physicsBodyData)
+Actor::Actor(const ActorData &data)
+    : motion(data.motionData),
+      physicsBody(data.physicsBodyData)
 {
-    actorState.size = motionData.size;
+    actorState.size = data.size;
+
+    const ActorAnimationData &animationData = data.animationData;
 
     animationManager.addAnimation(ActorAnimationState::Idle, SpriteAnimation(animationData.idleSpriteAnimationData));
     if (animationData.walkSpriteAnimationData)

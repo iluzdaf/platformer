@@ -30,11 +30,11 @@ Both editors drive the same CMake build, so setup is the same on every platform.
   project file.
 - `.vscode/extensions.json` — the extensions VS Code should install.
 - `.vscode/settings.json` — CMake Tools as the compile flag provider, clang-tidy in
-  the editor, the generator, the build directory, and the working directory the game
-  needs to find its assets.
+  the editor, the generator and the build directory.
 - `.clang-format`, `.clang-tidy` — formatting and naming, applied on save.
 
-No `launch.json` is needed; CMake Tools debugs the selected target. Format on save is
+No `launch.json` is needed; CMake Tools runs and debugs the selected target from its
+own build directory, which is where the game looks for assets. Format on save is
 off for json only, since no formatter has been found that reproduces the format the
 game writes.
 
@@ -65,8 +65,8 @@ game writes.
     ```
 
 5. Pick `platformer` or `tests` as the target, choose **Debug** or **Release**, and
-    use the run and debug buttons. The game must run from the build directory to find
-    its assets, which both editors already do.
+    use the run and debug buttons. The game reads its assets relative to the build
+    directory, which is where both editors run it from.
 
 ## 🎨 Style Guide
 

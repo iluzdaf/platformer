@@ -73,9 +73,6 @@
         "editor.formatOnSave": false
     },
     "cmake.generator": "Ninja",
-    "cmake.debugConfig": {
-        "cwd": "${command:cmake.buildDirectory}"
-    },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "C_Cpp.codeAnalysis.runAutomatically": true,

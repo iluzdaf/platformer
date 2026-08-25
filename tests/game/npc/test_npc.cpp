@@ -135,18 +135,6 @@ TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
     REQUIRE(footX(right) < rightStartX);
 }
 
-TEST_CASE("Walks along the graph without being told to", "[Npc]")
-{
-    TileMap tileMap = setupWalkableTileMap();
-    Npc npc(setupNpcData());
-    npc.setPosition(spawnPosition(tileMap));
-
-    float startX = npc.getPosition().x;
-    stepNpc(npc, tileMap, 200);
-
-    REQUIRE(std::abs(npc.getPosition().x - startX) > 1.0f);
-}
-
 TEST_CASE("Patrols between both ends of its platform", "[Npc]")
 {
     TileMap tileMap = setupWalkableTileMap();

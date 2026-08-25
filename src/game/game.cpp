@@ -115,9 +115,7 @@ Game::Game()
     debugUi.onStep.connect([this]
                            { step(); });
     debugUi.onRespawn.connect([this]
-                              {
-        rebuildPlayer();
-        player->setPosition(tileMap->getPlayerStartWorldPosition()); });
+                              { rebuildPlayer(); });
     debugUi.onToggleZoom.connect([this]
                                  {
         static float originalZoom = camera->getZoom();
@@ -386,7 +384,6 @@ void Game::loadLevel(const std::string &levelPath)
     camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
 
     rebuildPlayer();
-    player->setPosition(tileMap->getPlayerStartWorldPosition());
 
     rebuildNpcs();
 }
@@ -417,8 +414,12 @@ void Game::rebuildTileMap(const std::string &levelPath)
 
 void Game::rebuildPlayer()
 {
+    if (!tileMap)
+        throw std::runtime_error("Cannot rebuild the player before the tile map");
+
     std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData);
     player = std::move(newPlayer);
+    player->setPosition(tileMap->getPlayerStartWorldPosition());
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()

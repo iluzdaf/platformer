@@ -1,4 +1,5 @@
 #include "game/actor/actor.hpp"
+#include "navigation/navigation_graph.hpp"
 #include "input/input_intentions.hpp"
 #include "game/tile_map/tile_map.hpp"
 
@@ -32,7 +33,8 @@ void Actor::preFixedUpdate()
 
 void Actor::fixedUpdate(float deltaTime, const TileMap &tileMap)
 {
-    InputIntentions inputIntentions = decideIntentions(deltaTime, tileMap);
+    ActorBehaviorContext context = behaviorContext(tileMap.getNavigationGraph());
+    InputIntentions inputIntentions = behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
     motion.applyMovement(deltaTime, inputIntentions);
 
@@ -74,4 +76,24 @@ const glm::vec2 &Actor::getPosition() const
 void Actor::setPosition(const glm::vec2 &position)
 {
     physicsBody.setPosition(position);
+}
+
+void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
+{
+    behavior = std::move(newBehavior);
+}
+
+ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGraph) const
+{
+    return behaviorContextAt(physicsBody.getPosition(), navigationGraph);
+}
+
+ActorBehaviorContext Actor::behaviorContextAt(
+    const glm::vec2 &position,
+    const NavigationGraph &navigationGraph) const
+{
+    return ActorBehaviorContext{
+        navigationGraph,
+        position + physicsBody.getBottomCenterOffset(),
+        physicsBody.getColliderSize()};
 }

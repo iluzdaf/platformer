@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.31)
 project(Platformer)
 
-# The project targets C++23, requested per target with cxx_std_23 further down.
-# These are the compilers it is built and tested with; anything else may work but
-# is not covered by CI.
+#The project targets C++ 23, requested per target with cxx_std_23 further down.
+#These are the compilers it is built and tested with; anything else may work but
+#is not covered by CI.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 20)
         message(FATAL_ERROR "clang 20 or newer is required for C++23, found ${CMAKE_CXX_COMPILER_VERSION}")
@@ -24,33 +24,33 @@ if(SKIP_OPENGL_TESTS)
     add_compile_definitions(SKIP_OPENGL_TESTS)
 endif()
 
-# GLAD
+#GLAD
 add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
-# STB
+#STB
 add_library(stb STATIC external/stb/stb_image.cpp)
 target_include_directories(stb PUBLIC external/stb)
 target_compile_features(stb PUBLIC cxx_std_23)
 set_target_properties(stb PROPERTIES CXX_EXTENSIONS OFF)
 
-# GLFW
+#GLFW
 add_subdirectory(external/glfw)
 
-# GLM (Header-only)
+#GLM(Header - only)
 include_directories(external/glm)
 
-# TheWisp/signals (Header-only)
+#TheWisp / signals(Header - only)
 include_directories(external/signals)
 
-# Catch2 (for tests only)
+#Catch2(for tests only)
 add_subdirectory(external/catch2)
 
-# Glaze
+#Glaze
 add_subdirectory(external/glaze)
 
-# Lua
-# add_subdirectory(external/lua)
+#Lua
+#add_subdirectory(external / lua)
 file(GLOB LUA_SOURCES
     external/lua/lua-5.4.7/src/*.c
 )
@@ -116,7 +116,9 @@ add_executable(platformer
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
-    src/game/npc/behaviors/patrol_behavior.cpp
+    src/game/actor/actor_behavior.cpp
+    src/game/actor/behaviors/input_behavior.cpp
+    src/game/actor/behaviors/patrol_behavior.cpp
     src/game/npc/npc.cpp
     src/game/actor/actor_motion.cpp
     src/game/actor/abilities/jump_ability.cpp
@@ -194,7 +196,7 @@ add_executable(tests
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp
     tests/navigation/test_navigation_graph.cpp
-    tests/game/npc/behaviors/test_patrol_behavior.cpp
+    tests/game/actor/behaviors/test_patrol_behavior.cpp
     tests/game/npc/test_npc.cpp
     tests/game/tile_map/test_tile_map_navigation.cpp
     tests/game/actor/abilities/test_jump_ability.cpp
@@ -240,7 +242,9 @@ add_executable(tests
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
-    src/game/npc/behaviors/patrol_behavior.cpp
+    src/game/actor/actor_behavior.cpp
+    src/game/actor/behaviors/input_behavior.cpp
+    src/game/actor/behaviors/patrol_behavior.cpp
     src/game/npc/npc.cpp
     src/game/actor/actor_motion.cpp
     src/game/actor/abilities/jump_ability.cpp

@@ -4,16 +4,14 @@ Player::Player(const PlayerData &data)
     : Actor(data.motionData, data.animationData),
       data(data)
 {
+    std::unique_ptr<InputBehavior> newInputBehavior = std::make_unique<InputBehavior>();
+    inputBehavior = newInputBehavior.get();
+    setBehavior(std::move(newInputBehavior));
 }
 
 void Player::setInputIntentions(const InputIntentions &intentions)
 {
-    inputIntentions = intentions;
-}
-
-InputIntentions Player::decideIntentions(float, const TileMap &)
-{
-    return inputIntentions;
+    inputBehavior->setIntentions(intentions);
 }
 
 void Player::postFixedUpdate()

@@ -1,5 +1,5 @@
 #include <cmath>
-#include "game/npc/behaviors/patrol_behavior.hpp"
+#include "game/actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_graph.hpp"
 
 namespace
@@ -27,7 +27,7 @@ PatrolBehavior::PatrolBehavior(const PatrolBehaviorData &data)
 {
 }
 
-void PatrolBehavior::reset(const NpcBehaviorContext &context)
+void PatrolBehavior::reset(const ActorBehaviorContext &context)
 {
     currentNodeId.reset();
     targetNodeId.reset();
@@ -59,7 +59,7 @@ void PatrolBehavior::reset(const NpcBehaviorContext &context)
 
 InputIntentions PatrolBehavior::decide(
     float,
-    const NpcBehaviorContext &context)
+    const ActorBehaviorContext &context)
 {
     InputIntentions inputIntentions;
 
@@ -98,7 +98,7 @@ std::optional<int> PatrolBehavior::getTargetNodeId() const
     return targetNodeId;
 }
 
-void PatrolBehavior::pickTarget(const NpcBehaviorContext &context)
+void PatrolBehavior::pickTarget(const ActorBehaviorContext &context)
 {
     targetNodeId.reset();
 
@@ -126,7 +126,7 @@ void PatrolBehavior::pickTarget(const NpcBehaviorContext &context)
         targetNodeId = wayBack;
 }
 
-bool PatrolBehavior::hasArrived(const NpcBehaviorContext &context) const
+bool PatrolBehavior::hasArrived(const ActorBehaviorContext &context) const
 {
     if (!currentNodeId || !targetNodeId)
         return false;

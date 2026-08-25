@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <unordered_set>
 #include <vector>
-#include "game/npc/behaviors/patrol_behavior.hpp"
+#include "game/actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_graph.hpp"
 
 namespace
@@ -20,7 +20,7 @@ namespace
         return navigationGraph;
     }
 
-    NpcBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
+    ActorBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
     {
         return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f)};
     }

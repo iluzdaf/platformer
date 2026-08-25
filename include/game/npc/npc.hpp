@@ -1,10 +1,9 @@
 #pragma once
 
-#include <memory>
 #include <optional>
 #include "game/npc/npc_data.hpp"
-#include "game/npc/npc_behavior.hpp"
 #include "game/actor/actor.hpp"
+#include "game/actor/behaviors/patrol_behavior.hpp"
 
 class NavigationGraph;
 
@@ -18,9 +17,6 @@ public:
     std::optional<int> getCurrentNodeId() const;
     std::optional<int> getTargetNodeId() const;
 
-protected:
-    InputIntentions decideIntentions(float deltaTime, const TileMap &tileMap) override;
-
 private:
-    std::unique_ptr<NpcBehavior> behavior;
+    PatrolBehavior *patrolBehavior = nullptr;
 };

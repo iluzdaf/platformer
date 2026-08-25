@@ -1,35 +1,16 @@
 #include "game/npc/npc.hpp"
-#include "game/npc/behaviors/patrol_behavior.hpp"
 #include "game/tile_map/tile_map.hpp"
 
-namespace
-{
-    std::unique_ptr<NpcBehavior> makeBehavior(const NpcData &data)
-    {
-        if (data.patrolBehaviorData)
-            return std::make_unique<PatrolBehavior>(data.patrolBehaviorData.value());
-
-        return nullptr;
-    }
-} // namespace
-
 Npc::Npc(const NpcData &data)
-    : Actor(data.motionData, data.animationData),
-      behavior(makeBehavior(data))
+    : Actor(data.motionData, data.animationData)
 {
-}
-
-InputIntentions Npc::decideIntentions(float deltaTime, const TileMap &tileMap)
-{
-    if (!behavior)
-        return InputIntentions();
-
-    NpcBehaviorContext context{
-        tileMap.getNavigationGraph(),
-        physicsBody.getPosition() + physicsBody.getBottomCenterOffset(),
-        physicsBody.getColliderSize()};
-
-    return behavior->decide(deltaTime, context);
+    if (data.patrolBehaviorData)
+    {
+        std::unique_ptr<PatrolBehavior> newPatrolBehavior =
+            std::make_unique<PatrolBehavior>(data.patrolBehaviorData.value());
+        patrolBehavior = newPatrolBehavior.get();
+        setBehavior(std::move(newPatrolBehavior));
+    }
 }
 
 void Npc::spawnAt(
@@ -41,19 +22,15 @@ void Npc::spawnAt(
     if (!behavior)
         return;
 
-    NpcBehaviorContext context{
-        navigationGraph,
-        position + physicsBody.getBottomCenterOffset(),
-        physicsBody.getColliderSize()};
-    behavior->reset(context);
+    behavior->reset(behaviorContextAt(position, navigationGraph));
 }
 
 std::optional<int> Npc::getCurrentNodeId() const
 {
-    return behavior ? behavior->getCurrentNodeId() : std::nullopt;
+    return patrolBehavior ? patrolBehavior->getCurrentNodeId() : std::nullopt;
 }
 
 std::optional<int> Npc::getTargetNodeId() const
 {
-    return behavior ? behavior->getTargetNodeId() : std::nullopt;
+    return patrolBehavior ? patrolBehavior->getTargetNodeId() : std::nullopt;
 }

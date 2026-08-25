@@ -3,6 +3,7 @@
 #include <signals.hpp>
 #include "game/player/player_data.hpp"
 #include "game/actor/actor.hpp"
+#include "game/actor/behaviors/input_behavior.hpp"
 #include "input/input_intentions.hpp"
 
 class Player : public Actor
@@ -23,10 +24,7 @@ public:
     fteng::signal<void(int)>
         onPickup;
 
-protected:
-    InputIntentions decideIntentions(float deltaTime, const TileMap &tileMap) override;
-
 private:
     PlayerData data;
-    InputIntentions inputIntentions;
+    InputBehavior *inputBehavior = nullptr;
 };

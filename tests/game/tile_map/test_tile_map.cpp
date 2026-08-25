@@ -166,7 +166,7 @@ TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]
 
     AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
 
-    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &_)
+    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &)
                                           { return true; });
 
     REQUIRE(result == true);
@@ -175,7 +175,7 @@ TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]
 TEST_CASE("Build Navigation Graph", "[TileMap]")
 {
     TileMap tileMap = setupTileMap();
-    float tileSize = tileMap.getTileSize();
+    float tileSize = static_cast<float>(tileMap.getTileSize());
 
     SECTION("Single Tile Platform at left side of TileMap")
     {

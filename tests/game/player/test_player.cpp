@@ -41,7 +41,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
     {
         tileMap.setTileIndex(glm::ivec2(0, 5), 1);
         simulatePlayer(player, tileMap, 1.0f);
-        float expectedY = 4 * tileMap.getTileSize();
+        float expectedY = static_cast<float>(4 * tileMap.getTileSize());
         const ActorMotionState &state = player.getMotion().getState();
         REQUIRE(player.getPosition().y == Approx(expectedY));
         REQUIRE(state.onGround);
@@ -298,7 +298,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, tileMap, 0.1f, inputIntentions);
         float playerTopY = player.getPosition().y;
-        float ceilingBottomY = (ceilingTileY + 1);
+        float ceilingBottomY = static_cast<float>(ceilingTileY + 1);
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
     }
 }

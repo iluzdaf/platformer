@@ -104,6 +104,7 @@ add_executable(platformer
     src/game/actor/actor.cpp
     src/game/game.cpp
     src/game/scoring_system.cpp
+    src/physics/aabb.cpp
     src/physics/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp
@@ -226,6 +227,7 @@ add_executable(tests
     src/game/actor/actor.cpp
     src/game/game.cpp
     src/game/scoring_system.cpp
+    src/physics/aabb.cpp
     src/physics/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp

@@ -16,7 +16,8 @@ struct ActorMotionState
     ActorContactState contacts;
 
     glm::vec2 previousVelocity = glm::vec2(0.0f),
-              velocity = glm::vec2(0.0f);
+              velocity = glm::vec2(0.0f),
+              targetVelocity = glm::vec2(0.0f);
 
     MoveAbilityState move;
     DashAbilityState dash;
@@ -26,6 +27,4 @@ struct ActorMotionState
     ClimbAbilityState climb;
     ClimbMoveAbilityState climbMove;
     GravityAbilityState gravity;
-
-    glm::vec2 targetVelocity = glm::vec2(0.0f);
 };

@@ -92,11 +92,26 @@ game writes.
 ## 🎨 Style Guide
 
 Formatting is defined by [.clang-format](.clang-format) and naming by
-[.clang-tidy](.clang-tidy). Both editors apply them on save; to sweep the whole tree:
+[.clang-tidy](.clang-tidy), which also asks whether a file includes what it uses.
+Both editors apply them on save; to sweep the whole tree:
 
 ```bash
 clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
 clang-tidy -p build/Debug $(find src -name '*.cpp')
+```
+
+That last one wants **clang-tidy 21 or newer**. The include check is unbearable
+untuned, reporting the header that defines a symbol rather than the umbrella a
+library ships, and the options that quiet it down do not exist before 21. Older
+clang-tidy ignores options it does not recognise rather than complaining, so it
+runs the untuned check and buries you.
+
+A header should also compile on its own, rather than relying on whoever includes
+it having included something else first. There is no tool for that, so there is a
+target: one generated file per header that includes only that header.
+
+```bash
+cmake --build build/Debug --target header_self_containment
 ```
 
 Two conventions those tools cannot express:

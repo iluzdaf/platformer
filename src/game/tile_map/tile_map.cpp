@@ -8,10 +8,10 @@
 
 TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
 {
-    initByData(tileMapData, tilePalettes);
+    initFrom(tileMapData, tilePalettes);
 }
 
-void TileMap::initByData(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
+void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
 {
     tileSize = tileMapData.size;
 

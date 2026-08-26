@@ -23,6 +23,6 @@ private:
     std::string compileLinkLog;
 
     std::string loadFile(const std::string &path) const;
-    void initByShaderFile(const std::string &vertexPath, const std::string &fragmentPath);
-    void initByCode(const std::string &vertexCode, const std::string &fragmentCode);
+    void initFromShaderFile(const std::string &vertexPath, const std::string &fragmentPath);
+    void initFromCode(const std::string &vertexCode, const std::string &fragmentCode);
 };

@@ -1,4 +1,7 @@
 #pragma once
+
+#include <glm/gtc/matrix_transform.hpp>
+
 class ImGuiManager;
 class NavigationGraph;
 struct NavigationNode;

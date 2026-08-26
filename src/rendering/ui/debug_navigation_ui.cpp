@@ -13,7 +13,7 @@ void DebugNavigationUi::draw(
     for (const auto &[id, node] : navigationGraph.getNodes())
         drawNode(imGuiManager, camera, node);
 
-    for (auto edge : navigationGraph.getEdges())
+    for (const auto &edge : navigationGraph.getEdges())
         drawEdge(imGuiManager, navigationGraph, camera, edge);
 }
 
@@ -53,6 +53,19 @@ void DebugNavigationUi::drawEdge(
         break;
     }
 
+    ImDrawList *drawList = imGuiManager.getDrawList();
+
+    if (!edge.path.empty())
+    {
+        for (const glm::vec2 &position : edge.path)
+            drawList->PathLineTo(imGuiManager.worldToScreen(
+                position,
+                camera.getZoom(),
+                camera.getTopLeftPosition()));
+        drawList->PathStroke(color, ImDrawFlags_None, 1.0f);
+        return;
+    }
+
     NavigationNode fromNode = navigationGraph.getNode(edge.fromId);
     ImVec2 fromPosition = imGuiManager.worldToScreen(
         fromNode.position,
@@ -63,7 +76,6 @@ void DebugNavigationUi::drawEdge(
         toNode.position,
         camera.getZoom(),
         camera.getTopLeftPosition());
-    ImDrawList *drawList = imGuiManager.getDrawList();
     drawList->AddLine(
         fromPosition,
         toPosition,

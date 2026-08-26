@@ -628,3 +628,53 @@ TEST_CASE("A jumper still walks the platform it stands on", "[NavigationGraphBui
 
     REQUIRE(countEdgesOfType(graph, EdgeType::Walk) > 0);
 }
+
+TEST_CASE("A jump edge carries the arc that produced it", "[NavigationGraphBuilder][Jump]")
+{
+    constexpr int GapTiles = 3;
+    TileMap tileMap = setupTwoPlatforms(GapTiles);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Jump)
+            continue;
+
+        REQUIRE(edge.path.size() > 2);
+        REQUIRE(edge.path.front() == graph.getNode(edge.fromId).position);
+        REQUIRE(edge.path.back().y == graph.getNode(edge.toId).position.y);
+    }
+}
+
+TEST_CASE("An arc on an edge rises above both of its ends", "[NavigationGraphBuilder][Jump]")
+{
+    constexpr int GapTiles = 3;
+    TileMap tileMap = setupTwoPlatforms(GapTiles);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Jump)
+            continue;
+
+        float highest = edge.path.front().y;
+        for (const glm::vec2 &position : edge.path)
+            highest = std::min(highest, position.y);
+
+        REQUIRE(highest < graph.getNode(edge.fromId).position.y);
+        REQUIRE(highest < graph.getNode(edge.toId).position.y);
+    }
+}
+
+TEST_CASE("A walk edge is drawn straight", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupTwoPlatforms(3);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Walk)
+            REQUIRE(edge.path.empty());
+}

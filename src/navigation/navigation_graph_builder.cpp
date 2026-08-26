@@ -181,7 +181,13 @@ namespace
         return true;
     }
 
-    std::optional<glm::vec2> landingOf(
+    struct JumpLanding
+    {
+        glm::vec2 position;
+        std::vector<glm::vec2> path;
+    };
+
+    std::optional<JumpLanding> landingOf(
         const TileMap &tileMap,
         glm::vec2 takeOff,
         const std::vector<glm::vec2> &arc,
@@ -189,21 +195,27 @@ namespace
         const NavigationProfile &profile)
     {
         float previousY = takeOff.y;
+        std::vector<glm::vec2> path{takeOff};
 
         for (size_t index = 1; index < arc.size(); ++index)
         {
             glm::vec2 position = takeOff + glm::vec2(direction * arc[index].x, arc[index].y);
             bool descending = position.y >= previousY;
             previousY = position.y;
+            path.push_back(position);
 
             if (descending)
             {
                 glm::ivec2 underfoot = tileMap.worldToTilePosition(position + glm::vec2(0.0f, 1.0f));
                 if (tileMap.validTilePosition(underfoot) &&
                     tileMap.getTileAtTilePosition(underfoot).isSolid())
-                    return glm::vec2(
+                {
+                    glm::vec2 landing(
                         position.x,
                         static_cast<float>(underfoot.y * tileMap.getTileSize()));
+                    path.back() = landing;
+                    return JumpLanding{landing, path};
+                }
             }
 
             if (!clearAt(tileMap, position, profile))
@@ -267,13 +279,13 @@ namespace
             for (const std::vector<glm::vec2> &arc : profile.jumpArcs)
                 for (float direction : {1.0f, -1.0f})
                 {
-                    std::optional<glm::vec2> landing =
+                    std::optional<JumpLanding> landing =
                         landingOf(tileMap, takeOff, arc, direction, profile);
-                    if (!landing || landing->y > takeOff.y)
+                    if (!landing || landing->position.y > takeOff.y)
                         continue;
 
                     std::optional<int> toId =
-                        nodeGoverning(navigationGraph, tileMap, *landing, headroom);
+                        nodeGoverning(navigationGraph, tileMap, landing->position, headroom);
                     if (!toId || *toId == fromId)
                         continue;
 
@@ -281,7 +293,8 @@ namespace
                         continue;
 
                     if (added.insert({fromId, *toId}).second)
-                        navigationGraph.addEdge(fromId, *toId, EdgeType::Jump);
+                        navigationGraph.addEdge(
+                            {fromId, *toId, EdgeType::Jump, landing->path});
                 }
     }
 }

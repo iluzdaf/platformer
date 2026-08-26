@@ -5,6 +5,7 @@
 #include <vector>
 #include "game/npc/npc.hpp"
 #include "game/tile_map/tile_map.hpp"
+#include "game/level.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
 
@@ -22,13 +23,28 @@ namespace
         return npcData;
     }
 
-    TileMap setupWalkableTileMap()
+    std::unordered_map<std::string, NpcData> npcCatalogue()
+    {
+        return {{"villager", setupNpcData()}};
+    }
+
+    Level levelOf(TileMap &tileMap, glm::ivec2 npcTile)
+    {
+        TileMapData tileMapData = tileMap.toTileMapData();
+        tileMapData.npcs = {{"villager", npcTile}};
+        return Level(
+            tileMapData,
+            palettesFrom(getDefaultTileDataMap()),
+            PlayerData(),
+            npcCatalogue());
+    }
+
+    Level setupWalkableLevel()
     {
         TileMap tileMap = setupTileMap();
         for (int x = 0; x < 10; ++x)
             tileMap.setTileIndex(glm::ivec2(x, 6), 1);
-        tileMap.buildNavigationGraph();
-        return tileMap;
+        return levelOf(tileMap, glm::ivec2(4, 5));
     }
 
     constexpr int TwoTierWidthTiles = 20;
@@ -39,7 +55,7 @@ namespace
     constexpr int PlatformLastTile = 9;
     constexpr glm::ivec2 UnderThePlatform{6, FloorRow - 1};
 
-    TileMap setupTwoTierTileMap()
+    Level setupTwoTierLevel()
     {
         TileMap tileMap = setupTileMap(TwoTierWidthTiles, TwoTierHeightTiles);
 
@@ -49,8 +65,7 @@ namespace
         for (int x = PlatformFirstTile; x <= PlatformLastTile; ++x)
             tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
 
-        tileMap.buildNavigationGraph();
-        return tileMap;
+        return levelOf(tileMap, UnderThePlatform);
     }
 
     float floorTopY(const TileMap &tileMap)
@@ -68,12 +83,12 @@ namespace
         return tileMap.tileToWorldPosition(glm::ivec2(4, 5));
     }
 
-    void stepNpc(Npc &npc, const TileMap &tileMap, int steps)
+    void stepNpc(Npc &npc, const Level &level, int steps)
     {
         for (int step = 0; step < steps; ++step)
         {
             npc.preFixedUpdate();
-            npc.fixedUpdate(0.01f, tileMap);
+            npc.fixedUpdate(0.01f, level);
         }
     }
 
@@ -87,12 +102,12 @@ namespace
         return npc.getPhysicsBody().getColliderSize().x * 0.5f + PatrolBehaviorData().arrivalThreshold;
     }
 
-    std::vector<float> patrolFootXs(Npc &npc, const TileMap &tileMap, int steps)
+    std::vector<float> patrolFootXs(Npc &npc, const Level &level, int steps)
     {
         std::vector<float> samples;
         for (int step = 0; step < steps; ++step)
         {
-            stepNpc(npc, tileMap, 1);
+            stepNpc(npc, level, 1);
             samples.push_back(footX(npc));
         }
         return samples;
@@ -110,7 +125,8 @@ namespace
 
 TEST_CASE("Spawns where the level places it", "[Npc]")
 {
-    TileMap tileMap = setupWalkableTileMap();
+    Level level = setupWalkableLevel();
+    const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
 
     glm::vec2 placed = spawnPosition(tileMap);
@@ -121,7 +137,8 @@ TEST_CASE("Spawns where the level places it", "[Npc]")
 
 TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
 {
-    TileMap tileMap = setupWalkableTileMap();
+    Level level = setupWalkableLevel();
+    const TileMap &tileMap = level.getTileMap();
 
     Npc left(setupNpcData());
     Npc right(setupNpcData());
@@ -130,8 +147,8 @@ TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
 
     float leftStartX = footX(left);
     float rightStartX = footX(right);
-    stepNpc(left, tileMap, 100);
-    stepNpc(right, tileMap, 100);
+    stepNpc(left, level, 100);
+    stepNpc(right, level, 100);
 
     REQUIRE(footX(left) > leftStartX);
     REQUIRE(footX(right) < rightStartX);
@@ -139,7 +156,8 @@ TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
 
 TEST_CASE("Patrols between both ends of its platform", "[Npc]")
 {
-    TileMap tileMap = setupWalkableTileMap();
+    Level level = setupWalkableLevel();
+    const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
     npc.setPosition(spawnPosition(tileMap));
 
@@ -148,12 +166,12 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
 
     for (int step = 0; step < 4000; ++step)
     {
-        stepNpc(npc, tileMap, 1);
+        stepNpc(npc, level, 1);
         footXs.push_back(footX(npc));
         lowestFootY = std::max(lowestFootY, npc.getPosition().y + npc.getPhysicsBody().getBottomCenterOffset().y);
     }
 
-    for (const auto &[id, node] : tileMap.getNavigationGraph().getNodes())
+    for (const auto &[id, node] : level.graphFor(npc.getNavigationProfile()).getNodes())
         REQUIRE(cameWithin(footXs, node.position.x, reachOf(npc)));
 
     REQUIRE(lowestFootY <= 6.0f * tileMap.getTileSize());
@@ -163,32 +181,29 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
     REQUIRE(position.x <= static_cast<float>(tileMap.getWorldWidth()));
 }
 
-TEST_CASE("Stands still on a tile map with no navigation graph", "[Npc]")
+TEST_CASE("Stands still in a level with nothing to walk on", "[Npc]")
 {
-    TileMap tileMap = setupTileMap();
-    for (int x = 0; x < 10; ++x)
-        tileMap.setTileIndex(glm::ivec2(x, 6), 1);
+    TileMap tiles = setupTileMap();
+    Level level = levelOf(tiles, glm::ivec2(3, 4));
 
     Npc npc(setupNpcData());
-    npc.setPosition(spawnPosition(tileMap));
-
     npc.setPosition(glm::vec2(48.0f, 64.0f));
-    stepNpc(npc, tileMap, 100);
+    stepNpc(npc, level, 100);
 
     REQUIRE(npc.getPosition().x == 48.0f);
 }
-
 TEST_CASE("Patrolling is deterministic, so where you place them is what differs", "[Npc]")
 {
-    TileMap tileMap = setupWalkableTileMap();
+    Level level = setupWalkableLevel();
+    const TileMap &tileMap = level.getTileMap();
 
     Npc first(setupNpcData());
     Npc second(setupNpcData());
     first.setPosition(spawnPosition(tileMap));
     second.setPosition(spawnPosition(tileMap));
 
-    stepNpc(first, tileMap, 600);
-    stepNpc(second, tileMap, 600);
+    stepNpc(first, level, 600);
+    stepNpc(second, level, 600);
 
     REQUIRE(first.getPosition() == second.getPosition());
 }
@@ -219,7 +234,8 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
         if (entry.path().extension() != ".json")
             continue;
 
-        TileMap tileMap(entry.path().string(), shippedPalettes());
+        Level level(entry.path().string(), shippedPalettes(), PlayerData(), npcCatalogue());
+        const TileMap &tileMap = level.getTileMap();
         for (const NpcSpawnData &spawn : tileMap.getNpcs())
         {
             ++placed;
@@ -230,7 +246,7 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
             npc.setPosition(tileMap.tileToWorldPosition(spawn.tilePosition));
 
             float startX = npc.getPosition().x;
-            stepNpc(npc, tileMap, 400);
+            stepNpc(npc, level, 400);
 
             REQUIRE(std::abs(npc.getPosition().x - startX) > 1.0f);
         }
@@ -269,7 +285,8 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
 
 TEST_CASE("An npc on the ground patrols the ground, not the platform above it", "[Npc]")
 {
-    TileMap tileMap = setupTwoTierTileMap();
+    Level level = setupTwoTierLevel();
+    const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
     npc.setPosition(tileMap.tileToWorldPosition(UnderThePlatform));
 
@@ -277,7 +294,7 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
     float highest = footX(npc);
     for (int step = 0; step < 4000; ++step)
     {
-        stepNpc(npc, tileMap, 1);
+        stepNpc(npc, level, 1);
         lowest = std::min(lowest, footX(npc));
         highest = std::max(highest, footX(npc));
     }
@@ -289,14 +306,15 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
 
 TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
 {
-    TileMap tileMap = setupTwoTierTileMap();
+    Level level = setupTwoTierLevel();
+    const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
     npc.setPosition(tileMap.tileToWorldPosition(UnderThePlatform));
 
-    std::vector<float> footXs = patrolFootXs(npc, tileMap, 4000);
+    std::vector<float> footXs = patrolFootXs(npc, level, 4000);
 
     int floorNodes = 0;
-    for (const auto &[id, node] : tileMap.getNavigationGraph().getNodes())
+    for (const auto &[id, node] : level.graphFor(npc.getNavigationProfile()).getNodes())
     {
         if (node.position.y != floorTopY(tileMap))
             continue;
@@ -310,7 +328,8 @@ TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
 
 TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
 {
-    TileMap tileMap = setupWalkableTileMap();
+    Level level = setupWalkableLevel();
+    const TileMap &tileMap = level.getTileMap();
 
     NpcData npcData = setupNpcData();
     npcData.patrolBehaviorData.reset();
@@ -319,7 +338,7 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     glm::vec2 placed = spawnPosition(tileMap);
     npc.setPosition(placed);
 
-    stepNpc(npc, tileMap, 400);
+    stepNpc(npc, level, 400);
 
     REQUIRE(npc.getPosition().x == placed.x);
 }

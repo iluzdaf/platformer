@@ -7,7 +7,6 @@
 #include "game/tile_map/tile.hpp"
 #include "game/tile_map/tile_map_data.hpp"
 #include "physics/aabb.hpp"
-#include "navigation/navigation_graph.hpp"
 
 class TileMap
 {
@@ -41,8 +40,6 @@ public:
     bool probeSolidTiles(
         const AABB &probeAABB,
         const std::function<bool(const AABB &)> &callback) const;
-    const NavigationGraph &getNavigationGraph() const;
-    void buildNavigationGraph();
     const std::vector<NpcSpawnData> &getNpcs() const;
 
 private:
@@ -52,7 +49,6 @@ private:
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
     std::string nextLevel = "../assets/levels/level1.json",
                 level = "../assets/levels/new_level.json";
-    NavigationGraph navigationGraph;
     std::vector<NpcSpawnData> npcs;
     std::string tilePalette;
 

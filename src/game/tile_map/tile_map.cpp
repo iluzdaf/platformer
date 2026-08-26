@@ -5,7 +5,6 @@
 #include <vector>
 #include <glaze/glaze.hpp>
 #include "game/tile_map/tile_map.hpp"
-#include "navigation/navigation_graph_builder.hpp"
 
 namespace
 {
@@ -308,8 +307,6 @@ void TileMap::initByData(const TileMapData &tileMapData, const TilePalettes &til
         if (getTileAtTilePosition(npc.tilePosition).isSolid())
             throw std::runtime_error("Npc start position is on a solid tile");
     }
-
-    buildNavigationGraph();
 }
 
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
@@ -505,17 +502,7 @@ bool TileMap::probeSolidTiles(
     return false;
 }
 
-const NavigationGraph &TileMap::getNavigationGraph() const
-{
-    return navigationGraph;
-}
-
 const std::vector<NpcSpawnData> &TileMap::getNpcs() const
 {
     return npcs;
-}
-
-void TileMap::buildNavigationGraph()
-{
-    navigationGraph = ::buildNavigationGraph(*this, NavigationProfile());
 }

@@ -35,7 +35,7 @@ inline const IntentionSource &noIntentions()
     return source;
 }
 
-inline Player setupPlayer(const IntentionSource &intentionSource = noIntentions())
+inline PlayerData setupPlayerData()
 {
     PlayerData playerData;
     playerData.actorData.animationData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
@@ -48,5 +48,10 @@ inline Player setupPlayer(const IntentionSource &intentionSource = noIntentions(
     playerData.actorData.motionData.climbAbilityData = ClimbAbilityData();
     playerData.actorData.motionData.climbMoveAbilityData = ClimbMoveAbilityData();
     playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
-    return Player(playerData, intentionSource);
+    return playerData;
+}
+
+inline Player setupPlayer(const IntentionSource &intentionSource = noIntentions())
+{
+    return Player(setupPlayerData(), intentionSource);
 }

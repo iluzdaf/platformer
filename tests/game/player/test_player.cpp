@@ -5,6 +5,7 @@
 #include "input/input_intentions.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/test_player_utils.hpp"
+#include "game/level.hpp"
 
 using Catch::Approx;
 
@@ -18,10 +19,16 @@ namespace
         InputIntentions intentions = InputIntentions(),
         float step = 0.01f)
     {
+        Level level(
+            tileMap.toTileMapData(),
+            palettesFrom(getDefaultTileDataMap()),
+            setupPlayerData(),
+            {});
+
         FixedTimeStep timeStepper(step);
         input.set(intentions);
         timeStepper.run(totalTime, [&](float dt)
-                        { player.fixedUpdate(dt, tileMap); player.postFixedUpdate(); });
+                        { player.fixedUpdate(dt, level); player.postFixedUpdate(); });
     }
 }
 

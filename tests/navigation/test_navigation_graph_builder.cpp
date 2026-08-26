@@ -316,3 +316,129 @@ TEST_CASE("Every shipped level gives the standard actor somewhere to walk", "[Na
         REQUIRE_FALSE(buildNavigationGraph(tileMap, standardProfile()).getEdges().empty());
     }
 }
+
+TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
+{
+    TileMap tileMap = setupTileMap();
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+
+    SECTION("Single Tile Platform at left side of TileMap")
+    {
+        tileMap.setTileIndex(glm::ivec2(0, 9), 1);
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({tileSize / 2, 9 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform at right side of TileMap")
+    {
+        tileMap.setTileIndex(glm::ivec2(9, 9), 1);
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({9 * tileSize + tileSize / 2, 9 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform where both sides are cliffs")
+    {
+        tileMap.setTileIndex(glm::ivec2(1, 9), 1);
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 9 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform where left side is a cliff and right side is a wall")
+    {
+        tileMap.setTileIndex(glm::ivec2(2, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform where right side is a cliff and left side is a wall")
+    {
+        tileMap.setTileIndex(glm::ivec2(0, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(0, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
+    }
+
+    SECTION("Single Tile Platform where both sides are walls")
+    {
+        tileMap.setTileIndex(glm::ivec2(0, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(0, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 0), 1);
+        tileMap.setTileIndex(glm::ivec2(2, 1), 1);
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 1);
+        REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
+    }
+
+    SECTION("2 Tile Platforms")
+    {
+        for (int x = 0; x < 2; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
+        }
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 2);
+        REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
+        REQUIRE(navigationGraph.hasNodeAtPosition({2 * tileSize, 1 * tileSize}));
+    }
+
+    SECTION("3 Tile Platforms")
+    {
+        for (int x = 0; x < 3; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
+        }
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 2);
+        REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
+        REQUIRE(navigationGraph.hasNodeAtPosition({3 * tileSize, 1 * tileSize}));
+    }
+
+    SECTION("5 Tile Platforms")
+    {
+        for (int x = 0; x < 5; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
+        }
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 2);
+        REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
+        REQUIRE(navigationGraph.hasNodeAtPosition({5 * tileSize, 1 * tileSize}));
+    }
+
+    SECTION("10 Tile Platforms")
+    {
+        for (int x = 0; x < 10; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
+        }
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 2);
+        REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
+        REQUIRE(navigationGraph.hasNodeAtPosition({10 * tileSize, 1 * tileSize}));
+    }
+
+    SECTION("No nodes")
+    {
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 0);
+    }
+
+    SECTION("No walkable tiles")
+    {
+        for (int x = 0; x < 3; ++x)
+        {
+            tileMap.setTileIndex(glm::ivec2(x, 0), 1);
+        }
+        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        REQUIRE(navigationGraph.getNodes().size() == 0);
+    }
+}

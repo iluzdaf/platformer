@@ -54,7 +54,7 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
-    void rebuildTileMap(const std::string &levelPath);
+    void rebuildLevel(const std::string &levelPath);
 
     GLFWwindow *window;
     std::unique_ptr<Camera2D> camera;
@@ -66,7 +66,7 @@ private:
     AssetWatcher assetWatcher;
     GameDataWatcher gameDataWatcher;
     ScriptWatcher scriptWatcher;
-    std::unique_ptr<TileMap> tileMap;
+    std::unique_ptr<Level> level;
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Npc>> npcs;
     std::vector<Actor *> actors;

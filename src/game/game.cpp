@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include "game/game.hpp"
+#include "game/level.hpp"
 #include "rendering/shader_data.hpp"
 
 Game::Game()
@@ -32,7 +33,7 @@ Game::Game()
     keyboardManager.registerKey(GLFW_KEY_S);
     levelWatcher.onLevelChanged.connect([this](const std::string &levelPath)
                                         {
-        if (levelPath.compare(tileMap->getLevel()) == 0)
+        if (levelPath.compare(level->getTileMap().getLevel()) == 0)
             try
             {
                 loadLevel(levelPath);
@@ -186,7 +187,7 @@ void Game::run()
         editorTileMapUi.update(
             *imGuiManager.get(),
             *camera.get(),
-            *tileMap.get());
+            *level.get());
 
         if (!paused || stepFrame)
         {
@@ -229,11 +230,11 @@ void Game::preFixedUpdate()
 void Game::fixedUpdate(float deltaTime)
 {
     for (Actor *actor : actors)
-        actor->fixedUpdate(deltaTime, *tileMap.get());
+        actor->fixedUpdate(deltaTime, *level.get());
 
     tileInteractionSystem.fixedUpdate(
         *player.get(),
-        *tileMap.get());
+        level->getTileMap());
 }
 
 void Game::postFixedUpdate()
@@ -244,7 +245,7 @@ void Game::postFixedUpdate()
 
 void Game::update(float deltaTime)
 {
-    tileMap->update(deltaTime);
+    level->getTileMap().update(deltaTime);
 }
 
 void Game::render()
@@ -255,7 +256,7 @@ void Game::render()
     glm::mat4 projection = camera->getProjection();
 
     tileMapRenderer->draw(
-        *tileMap.get(),
+        level->getTileMap(),
         projection,
         *tileSetShader.get(),
         *tileSet.get());
@@ -284,14 +285,14 @@ void Game::render()
     debugTileMapUi.draw(
         *imGuiManager.get(),
         *camera.get(),
-        *tileMap.get(),
+        level->getTileMap(),
         shouldDrawGrid,
         shouldDrawTileInfo);
 
     debugAABBUi.draw(
         *imGuiManager.get(),
         *player.get(),
-        *tileMap.get(),
+        level->getTileMap(),
         *camera.get(),
         shouldDrawPlayerAABBs,
         shouldDrawTileMapAABBs);
@@ -306,13 +307,13 @@ void Game::render()
 
     editorTileMapUi.draw(
         *imGuiManager.get(),
-        *tileMap.get(),
+        *level.get(),
         *tileSet.get(),
         showTileMapEditor);
 
     debugNavigationUi.draw(
         *imGuiManager.get(),
-        tileMap->getNavigationGraph(),
+        level->graphFor(player->getNavigationProfile()),
         *camera.get());
 
     imGuiManager->render();
@@ -385,9 +386,9 @@ void Game::reload()
 
 void Game::loadLevel(const std::string &levelPath)
 {
-    rebuildTileMap(levelPath);
+    rebuildLevel(levelPath);
 
-    camera->setWorldBounds(glm::vec2(0), glm::vec2(tileMap->getWorldWidth(), tileMap->getWorldHeight()));
+    camera->setWorldBounds(glm::vec2(0), glm::vec2(level->getTileMap().getWorldWidth(), level->getTileMap().getWorldHeight()));
 
     rebuildPlayer();
 
@@ -411,21 +412,25 @@ void Game::play()
     stepFrame = false;
 }
 
-void Game::rebuildTileMap(const std::string &levelPath)
+void Game::rebuildLevel(const std::string &levelPath)
 {
-    std::unique_ptr<TileMap> newTileMap = std::make_unique<TileMap>(levelPath, gameData.tilePalettes);
-    tileMap = std::move(newTileMap);
-    luaScriptSystem->bindTileMap(tileMap.get());
+    std::unique_ptr<Level> newLevel = std::make_unique<Level>(
+        levelPath,
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData);
+    level = std::move(newLevel);
+    luaScriptSystem->bindTileMap(&level->getTileMap());
 }
 
 void Game::rebuildPlayer()
 {
-    if (!tileMap)
+    if (!level)
         throw std::runtime_error("Cannot rebuild the player before the tile map");
 
     std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
     player = std::move(newPlayer);
-    player->setPosition(tileMap->getPlayerStartWorldPosition());
+    player->setPosition(level->getTileMap().getPlayerStartWorldPosition());
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()
@@ -453,17 +458,12 @@ void Game::rebuildNpcs()
 {
     npcs.clear();
 
-    for (const NpcSpawnData &spawn : tileMap->getNpcs())
+    for (const NpcSpawnData &spawn : level->getTileMap().getNpcs())
     {
         auto it = gameData.npcData.find(spawn.type);
-        if (it == gameData.npcData.end())
-        {
-            std::cerr << "Unknown npc \"" << spawn.type << "\" in " << tileMap->getLevel() << std::endl;
-            continue;
-        }
 
         std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second);
-        newNpc->setPosition(tileMap->tileToWorldPosition(spawn.tilePosition));
+        newNpc->setPosition(level->getTileMap().tileToWorldPosition(spawn.tilePosition));
         npcs.push_back(std::move(newNpc));
     }
 

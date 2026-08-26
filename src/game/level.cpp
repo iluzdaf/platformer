@@ -12,11 +12,28 @@ namespace
 }
 
 Level::Level(
+    const std::string &jsonFilePath,
+    const TilePalettes &tilePalettes,
+    const PlayerData &playerData,
+    const std::unordered_map<std::string, NpcData> &npcData)
+    : tileMap(jsonFilePath, tilePalettes)
+{
+    buildGraphs(playerData, npcData);
+}
+
+Level::Level(
     const TileMapData &tileMapData,
     const TilePalettes &tilePalettes,
     const PlayerData &playerData,
     const std::unordered_map<std::string, NpcData> &npcData)
     : tileMap(tileMapData, tilePalettes)
+{
+    buildGraphs(playerData, npcData);
+}
+
+void Level::buildGraphs(
+    const PlayerData &playerData,
+    const std::unordered_map<std::string, NpcData> &npcData)
 {
     addGraphFor(profileOf(playerData.actorData));
 
@@ -43,6 +60,23 @@ void Level::addGraphFor(const NavigationProfile &profile)
 const TileMap &Level::getTileMap() const
 {
     return tileMap;
+}
+
+TileMap &Level::getTileMap()
+{
+    return tileMap;
+}
+
+const std::vector<NavigationGraph> &Level::getGraphs() const
+{
+    return graphs;
+}
+
+void Level::rebuildGraphs()
+{
+    graphs.clear();
+    for (const NavigationProfile &profile : profiles)
+        graphs.push_back(buildNavigationGraph(tileMap, profile));
 }
 
 const NavigationGraph &Level::graphFor(const NavigationProfile &profile) const

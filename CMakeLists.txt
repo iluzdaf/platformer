@@ -139,10 +139,9 @@ else()
     )
 endif()
 
-target_include_directories(platformer
-    PRIVATE
-    include
-    SYSTEM PRIVATE
+target_include_directories(platformer PRIVATE include)
+
+target_include_directories(platformer SYSTEM PRIVATE
     external/glad/include
     external/glfw/include
     external/glaze/include

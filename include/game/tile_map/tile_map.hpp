@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
 #include "game/tile_map/tile.hpp"

@@ -2,7 +2,6 @@
 
 #include <memory>
 #include "game/game_data.hpp"
-#include "game/tile_map/tile_map.hpp"
 #include "game/tile_map/tile_interaction_system.hpp"
 #include "game/actor/actor.hpp"
 #include "game/player/player.hpp"

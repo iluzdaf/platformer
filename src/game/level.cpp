@@ -23,7 +23,8 @@ Level::Level(
     {
         auto npc = npcData.find(spawn.type);
         if (npc == npcData.end())
-            throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
+            throw std::runtime_error(
+                "Unknown npc \"" + spawn.type + "\" in " + tileMap.getLevel());
 
         NavigationProfile profile = profileOf(npc->second);
         auto existing = std::find(profiles.begin(), profiles.end(), profile);

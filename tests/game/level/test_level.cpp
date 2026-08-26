@@ -109,5 +109,6 @@ TEST_CASE("A level naming an npc that does not exist fails to load", "[Level]")
 {
     REQUIRE_THROWS_WITH(
         levelPlacing({{"nobody", StandingTile}}),
-        Catch::Matchers::ContainsSubstring("nobody"));
+        Catch::Matchers::ContainsSubstring("nobody") &&
+            Catch::Matchers::ContainsSubstring("new_level.json"));
 }

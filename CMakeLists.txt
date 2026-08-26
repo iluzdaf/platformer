@@ -176,22 +176,27 @@ target_link_libraries(platformer
     ${CMAKE_DL_LIBS}
 )
 
-file(GLOB_RECURSE selfContainmentHeaders CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/include/*.hpp)
 set(selfContainmentSources)
 
-foreach(header ${selfContainmentHeaders})
-    file(RELATIVE_PATH includedPath ${CMAKE_SOURCE_DIR}/include ${header})
-    string(REPLACE "/" "_" translationUnitName ${includedPath})
-    set(translationUnit ${CMAKE_BINARY_DIR}/header_self_containment/${translationUnitName}.cpp)
-    file(WRITE ${translationUnit} "#include \"${includedPath}\"\n")
-    list(APPEND selfContainmentSources ${translationUnit})
+foreach(headerRoot include tests)
+    file(GLOB_RECURSE selfContainmentHeaders CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/${headerRoot}/*.hpp)
+
+    foreach(header ${selfContainmentHeaders})
+        file(RELATIVE_PATH includedPath ${CMAKE_SOURCE_DIR}/${headerRoot} ${header})
+        string(REPLACE "/" "_" translationUnitName ${includedPath})
+        set(translationUnit ${CMAKE_BINARY_DIR}/header_self_containment/${translationUnitName}.cpp)
+        file(WRITE ${translationUnit} "#include \"${includedPath}\"\n")
+        list(APPEND selfContainmentSources ${translationUnit})
+    endforeach()
 endforeach()
 
 add_library(header_self_containment OBJECT EXCLUDE_FROM_ALL ${selfContainmentSources})
 
 target_compile_features(header_self_containment PRIVATE cxx_std_23)
 
-target_include_directories(header_self_containment PRIVATE include)
+target_compile_definitions(header_self_containment PRIVATE PLATFORMER_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets")
+
+target_include_directories(header_self_containment PRIVATE include tests)
 
 target_include_directories(header_self_containment SYSTEM PRIVATE
     external/glad/include

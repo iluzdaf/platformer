@@ -108,7 +108,8 @@ runs the untuned check and buries you.
 
 A header should also compile on its own, rather than relying on whoever includes
 it having included something else first. There is no tool for that, so there is a
-target: one generated file per header that includes only that header.
+target: one generated file per header under `include` and `tests`, including only
+that header.
 
 ```bash
 cmake --build build/Debug --target header_self_containment

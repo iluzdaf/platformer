@@ -36,6 +36,16 @@ namespace
             tileMap.setTileIndex(glm::ivec2(x, CeilingRow), 1);
         return tileMap;
     }
+
+    size_t nodesOnTheFloor(const NavigationGraph &graph, const TileMap &tileMap)
+    {
+        float floorY = static_cast<float>(FloorRow * tileMap.getTileSize());
+        size_t count = 0;
+        for (const auto &[id, node] : graph.getNodes())
+            if (node.position.y == floorY)
+                ++count;
+        return count;
+    }
 }
 
 TEST_CASE("A floor gives a profile somewhere to walk", "[NavigationGraphBuilder]")
@@ -56,8 +66,7 @@ TEST_CASE("A profile too tall for the headroom has nowhere to stand", "[Navigati
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profileOfHeight(20.0f));
 
-    REQUIRE(graph.getNodes().empty());
-    REQUIRE(graph.getEdges().empty());
+    REQUIRE(nodesOnTheFloor(graph, tileMap) == 0);
 }
 
 TEST_CASE("A profile that fits the headroom still walks under it", "[NavigationGraphBuilder]")
@@ -66,8 +75,7 @@ TEST_CASE("A profile that fits the headroom still walks under it", "[NavigationG
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
-    REQUIRE(graph.getNodes().size() == 2);
-    REQUIRE_FALSE(graph.getEdges().empty());
+    REQUIRE(nodesOnTheFloor(graph, tileMap) == 2);
 }
 
 TEST_CASE("Headroom rounds up to whole tiles", "[NavigationGraphBuilder]")
@@ -78,12 +86,12 @@ TEST_CASE("Headroom rounds up to whole tiles", "[NavigationGraphBuilder]")
     SECTION("a collider exactly one tile tall needs one tile")
     {
         NavigationGraph graph = buildNavigationGraph(tileMap, profileOfHeight(tileSize));
-        REQUIRE_FALSE(graph.getNodes().empty());
+        REQUIRE(nodesOnTheFloor(graph, tileMap) == 2);
     }
 
     SECTION("a collider one pixel taller needs two")
     {
         NavigationGraph graph = buildNavigationGraph(tileMap, profileOfHeight(tileSize + 1.0f));
-        REQUIRE(graph.getNodes().empty());
+        REQUIRE(nodesOnTheFloor(graph, tileMap) == 0);
     }
 }

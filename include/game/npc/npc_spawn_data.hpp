@@ -2,7 +2,7 @@
 
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
-#include "serialization/glm_ivec2_meta.hpp"
+#include "serialization/glm_ivec2_meta.hpp" // IWYU pragma: keep
 
 struct NpcSpawnData
 {

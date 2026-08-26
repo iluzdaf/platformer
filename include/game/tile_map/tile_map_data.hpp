@@ -1,9 +1,8 @@
 #pragma once
-#include <map>
+
 #include <string>
 #include <vector>
 #include <optional>
-#include "game/tile_map/tile_palette.hpp"
 
 struct TileMapData
 {

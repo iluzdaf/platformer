@@ -4,7 +4,7 @@
 #include <vector>
 #include "game/tile_map/tile_map_data.hpp"
 #include "game/npc/npc_spawn_data.hpp"
-#include "serialization/glm_ivec2_meta.hpp"
+#include "serialization/glm_ivec2_meta.hpp" // IWYU pragma: keep
 
 struct LevelData
 {

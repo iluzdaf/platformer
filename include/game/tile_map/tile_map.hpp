@@ -6,6 +6,7 @@
 #include <string>
 #include "game/tile_map/tile.hpp"
 #include "game/tile_map/tile_map_data.hpp"
+#include "game/tile_map/tile_palette.hpp"
 #include "physics/aabb.hpp"
 
 class TileMap

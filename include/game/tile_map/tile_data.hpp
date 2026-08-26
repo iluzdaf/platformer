@@ -1,6 +1,6 @@
 #pragma once
 #include <optional>
-#include "serialization/glm_vec2_meta.hpp"
+#include "serialization/glm_vec2_meta.hpp" // IWYU pragma: keep
 #include "game/tile_map/tile_kind.hpp"
 #include "animations/tile_animation_data.hpp"
 

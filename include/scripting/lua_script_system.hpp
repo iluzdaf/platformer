@@ -1,10 +1,12 @@
 #pragma once
 
+#include <string>
 #include <sol/sol.hpp>
 
 class Game;
 class Camera2D;
 class TileMap;
+class Level;
 class Player;
 class ScreenTransition;
 
@@ -18,7 +20,7 @@ public:
         float remainingTime;
     };
 
-    LuaScriptSystem();
+    explicit LuaScriptSystem(const std::string &scriptPath = "../../assets/scripts/game_logic.lua");
     void update(float deltaTime);
     void bindGameObjects(
         Game *game,
@@ -26,7 +28,7 @@ public:
         ScreenTransition *screenTransition);
     void triggerLevelComplete();
     void triggerDeath();
-    void bindTileMap(TileMap *tileMap);
+    void bindLevel(Level *level);
     sol::state &getLua();
     const std::vector<WaitingCoroutine> &getWaitingCoroutines() const;
     void triggerWallJump();
@@ -40,6 +42,7 @@ public:
     void bindPlayer(Player *player);
 
 private:
+    std::string scriptPath;
     sol::state lua;
     sol::function
         onDeath,

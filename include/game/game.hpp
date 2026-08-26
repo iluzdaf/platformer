@@ -16,7 +16,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "rendering/ui/debug_tile_map_ui.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
-#include "rendering/ui/editor_tile_map_ui.hpp"
+#include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/score_ui.hpp"
 #include "rendering/ui/debug_navigation_ui.hpp"
 #include "cameras/camera2d.hpp"
@@ -54,7 +54,7 @@ private:
     void update(float deltaTime);
     void render();
     void resize(int width, int height);
-    void rebuildTileMap(const std::string &levelPath);
+    void rebuildLevel(const std::string &levelPath);
 
     GLFWwindow *window;
     std::unique_ptr<Camera2D> camera;
@@ -66,7 +66,7 @@ private:
     AssetWatcher assetWatcher;
     GameDataWatcher gameDataWatcher;
     ScriptWatcher scriptWatcher;
-    std::unique_ptr<TileMap> tileMap;
+    std::unique_ptr<Level> level;
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Npc>> npcs;
     std::vector<Actor *> actors;
@@ -81,7 +81,7 @@ private:
     DebugUi debugUi;
     DebugTileMapUi debugTileMapUi;
     DebugAABBUi debugAABBUi;
-    EditorTileMapUi editorTileMapUi;
+    LevelEditorUi levelEditorUi;
     ScoreUi scoreUi;
     DebugNavigationUi debugNavigationUi;
     fteng::connection onLevelCompleteConnection;
@@ -92,6 +92,6 @@ private:
          shouldDrawPlayerAABBs = false,
          shouldDrawTileMapAABBs = false,
          showDebug = false,
-         showTileMapEditor = false;
+         showLevelEditor = false;
     GameData gameData;
 };

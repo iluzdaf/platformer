@@ -3,20 +3,21 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "rendering/shader.hpp"
 #include "rendering/shader_data.hpp"
+#include "test_helpers/asset_path.hpp"
 
 TEST_CASE("Shader is valid", "[Shader]")
 {
     ShaderData shaderData;
-    shaderData.vertexPath = "../../assets/shaders/sprite.vs";
-    shaderData.fragmentPath = "../../assets/shaders/sprite.fs";
+    shaderData.vertexPath = assetPath("shaders/sprite.vs");
+    shaderData.fragmentPath = assetPath("shaders/sprite.fs");
     REQUIRE_NOTHROW(Shader(shaderData));
 }
 
 TEST_CASE("Shader does not exist", "[Shader]")
 {
     ShaderData shaderData;
-    shaderData.vertexPath = "../../assets/shaders/does_not_exist.vs";
-    shaderData.fragmentPath = "../../assets/shaders/does_not_exist.fs";
+    shaderData.vertexPath = assetPath("shaders/does_not_exist.vs");
+    shaderData.fragmentPath = assetPath("shaders/does_not_exist.fs");
     REQUIRE_THROWS_WITH(
         Shader(shaderData),
         "Vertex shader code is empty");

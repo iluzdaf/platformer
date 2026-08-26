@@ -96,6 +96,43 @@
                 }
             },
             "patrolBehaviorData":{"arrivalThreshold":2.0}
+        },
+        "explorer":{
+            "actorData":{
+                "size":[16.0,16.0],
+                "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
+                "motionData":{
+                    "moveAbilityData":{"moveSpeed":150.0},
+                    "jumpAbilityData":{
+                        "jumpSpeed":-300.0,
+                        "jumpBufferDuration":0.15,
+                        "jumpCoyoteDuration":0.15,
+                        "jumpDuration":0.2
+                    },
+                    "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600}
+                },
+                "animationData":{
+                    "idleSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[30],"frameDuration":1},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    },
+                    "walkSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[35,26],"frameDuration":0.15},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    },
+                    "fallSpriteAnimationData":{
+                        "frameAnimationData":{"frames":[19],"frameDuration":1},
+                        "frameWidth":16,
+                        "frameHeight":16,
+                        "textureWidth":96
+                    }
+                }
+            },
+            "patrolBehaviorData":{"arrivalThreshold":2.0}
         }
     },
     "tilePalettes":{
@@ -149,6 +186,6 @@
         "shouldDrawTileMapAABBs":true,
         "showDebug":true,
         "shouldDrawTileInfo":true,
-        "showTileMapEditor":true
+        "showLevelEditor":true
     }
 }

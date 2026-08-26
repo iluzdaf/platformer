@@ -1,11 +1,14 @@
 #include "game/actor/actor.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_profile_builder.hpp"
 #include "input/input_intentions.hpp"
 #include "game/tile_map/tile_map.hpp"
+#include "game/level.hpp"
 
 Actor::Actor(const ActorData &data)
     : motion(data.motionData),
-      physicsBody(data.physicsBodyData)
+      physicsBody(data.physicsBodyData),
+      navigationProfile(buildNavigationProfile(data))
 {
     actorState.size = data.size;
 
@@ -33,9 +36,10 @@ void Actor::preFixedUpdate()
     motion.resetCollisionAABB();
 }
 
-void Actor::fixedUpdate(float deltaTime, const TileMap &tileMap)
+void Actor::fixedUpdate(float deltaTime, const Level &level)
 {
-    ActorBehaviorContext context = behaviorContext(tileMap.getNavigationGraph());
+    const TileMap &tileMap = level.getTileMap();
+    ActorBehaviorContext context = behaviorContext(level.graphFor(navigationProfile));
     InputIntentions inputIntentions = behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
     motion.applyMovement(deltaTime, inputIntentions);
@@ -68,6 +72,11 @@ const ActorMotion &Actor::getMotion() const
 const PhysicsBody &Actor::getPhysicsBody() const
 {
     return physicsBody;
+}
+
+const NavigationProfile &Actor::getNavigationProfile() const
+{
+    return navigationProfile;
 }
 
 const glm::vec2 &Actor::getPosition() const

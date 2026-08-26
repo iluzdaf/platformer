@@ -7,5 +7,5 @@ struct DebugData
     bool shouldDrawTileMapAABBs = false;
     bool showDebug = false;
     bool shouldDrawTileInfo = false;
-    bool showTileMapEditor = false;
+    bool showLevelEditor = false;
 };

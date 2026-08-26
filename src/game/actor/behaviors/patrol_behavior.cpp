@@ -1,4 +1,5 @@
 #include <cmath>
+#include <optional>
 #include "game/actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_graph.hpp"
 
@@ -12,13 +13,21 @@ namespace
         return delta > 0.0f ? 1.0f : (delta < 0.0f ? -1.0f : 0.0f);
     }
 
-    bool hasWalkEdge(const NavigationGraph &navigationGraph, int nodeId)
+    bool hasSomewhereToGo(const NavigationGraph &navigationGraph, int nodeId)
     {
-        for (const auto &edge : navigationGraph.getOutgoingEdges(nodeId))
-            if (edge.type == EdgeType::Walk)
-                return true;
+        return !navigationGraph.getOutgoingEdges(nodeId).empty();
+    }
 
-        return false;
+    std::optional<EdgeType> edgeTypeBetween(
+        const NavigationGraph &navigationGraph,
+        int fromId,
+        int toId)
+    {
+        for (const auto &edge : navigationGraph.getOutgoingEdges(fromId))
+            if (edge.toId == toId)
+                return edge.type;
+
+        return std::nullopt;
     }
 }
 
@@ -40,7 +49,7 @@ void PatrolBehavior::anchor(const ActorBehaviorContext &context)
     float nearestDistance = 0.0f;
     for (const auto &[id, node] : context.navigationGraph.getNodes())
     {
-        if (!hasWalkEdge(context.navigationGraph, id))
+        if (!hasSomewhereToGo(context.navigationGraph, id))
             continue;
 
         float drop = node.position.y - context.worldPosition.y;
@@ -91,6 +100,13 @@ InputIntentions PatrolBehavior::decide(
 
     NavigationNode targetNode = context.navigationGraph.getNode(*targetNodeId);
     inputIntentions.direction.x = directionTowards(context.worldPosition.x, targetNode.position.x);
+
+    if (edgeTypeBetween(context.navigationGraph, *currentNodeId, *targetNodeId) == EdgeType::Jump)
+    {
+        inputIntentions.jumpRequested = true;
+        inputIntentions.jumpHeld = true;
+    }
+
     return inputIntentions;
 }
 
@@ -114,9 +130,6 @@ void PatrolBehavior::pickTarget(const ActorBehaviorContext &context)
     std::optional<int> wayBack;
     for (const auto &edge : context.navigationGraph.getOutgoingEdges(*currentNodeId))
     {
-        if (edge.type != EdgeType::Walk)
-            continue;
-
         if (previousNodeId && edge.toId == *previousNodeId)
         {
             if (!wayBack || edge.toId < *wayBack)
@@ -139,6 +152,9 @@ bool PatrolBehavior::hasArrived(const ActorBehaviorContext &context) const
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
     NavigationNode targetNode = navigationGraph.getNode(*targetNodeId);
+
+    if (std::abs(targetNode.position.y - context.worldPosition.y) > SurfaceTolerance)
+        return false;
 
     float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
     if (std::abs(targetNode.position.x - context.worldPosition.x) <= reach)

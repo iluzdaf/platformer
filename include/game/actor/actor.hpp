@@ -7,8 +7,10 @@
 #include "game/actor/actor_behavior.hpp"
 #include "animations/animation_manager.hpp"
 #include "physics/physics_body.hpp"
+#include "navigation/navigation_profile.hpp"
 
 class TileMap;
+class Level;
 class NavigationGraph;
 
 class Actor
@@ -16,12 +18,13 @@ class Actor
 public:
     virtual ~Actor() = default;
     void preFixedUpdate();
-    void fixedUpdate(float deltaTime, const TileMap &tileMap);
+    void fixedUpdate(float deltaTime, const Level &level);
     virtual void postFixedUpdate();
     const ActorState &getState() const;
     const ActorMotion &getMotion() const;
     const PhysicsBody &getPhysicsBody() const;
     const glm::vec2 &getPosition() const;
+    const NavigationProfile &getNavigationProfile() const;
     void setPosition(const glm::vec2 &position);
 
 protected:
@@ -33,5 +36,6 @@ protected:
     PhysicsBody physicsBody;
     AnimationManager animationManager;
     ActorState actorState;
+    NavigationProfile navigationProfile;
     std::unique_ptr<ActorBehavior> behavior;
 };

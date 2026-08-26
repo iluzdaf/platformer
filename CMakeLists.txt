@@ -83,7 +83,7 @@ add_executable(platformer
     src/rendering/ui/imgui_manager.cpp
     src/rendering/ui/debug_tile_map_ui.cpp
     src/rendering/ui/debug_aabb_ui.cpp
-    src/rendering/ui/editor_tile_map_ui.cpp
+    src/rendering/ui/level_editor_ui.cpp
     src/rendering/ui/score_ui.cpp
     src/rendering/ui/debug_navigation_ui.cpp
     src/game/tile_map/tile_map.cpp
@@ -92,6 +92,7 @@ add_executable(platformer
     src/game/player/player.cpp
     src/game/actor/actor.cpp
     src/game/game.cpp
+    src/game/level.cpp
     src/game/scoring_system.cpp
     src/physics/aabb.cpp
     src/physics/fixed_time_step.cpp
@@ -105,6 +106,9 @@ add_executable(platformer
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
+    src/navigation/navigation_graph_builder.cpp
+    src/navigation/jump_arc.cpp
+    src/navigation/navigation_profile_builder.cpp
     src/game/actor/actor_behavior.cpp
     src/game/actor/behaviors/input_behavior.cpp
     src/game/actor/behaviors/patrol_behavior.cpp
@@ -183,8 +187,12 @@ add_executable(tests
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp
     tests/navigation/test_navigation_graph.cpp
+    tests/scripting/test_lua_script_system.cpp
+    tests/navigation/test_navigation_graph_builder.cpp
+    tests/navigation/test_jump_arc.cpp
     tests/game/actor/behaviors/test_patrol_behavior.cpp
     tests/game/npc/test_npc.cpp
+    tests/game/level/test_level.cpp
     tests/game/tile_map/test_tile_map_navigation.cpp
     tests/game/actor/abilities/test_jump_ability.cpp
     tests/game/actor/abilities/test_dash_ability.cpp
@@ -207,7 +215,7 @@ add_executable(tests
     src/rendering/ui/imgui_manager.cpp
     src/rendering/ui/debug_tile_map_ui.cpp
     src/rendering/ui/debug_aabb_ui.cpp
-    src/rendering/ui/editor_tile_map_ui.cpp
+    src/rendering/ui/level_editor_ui.cpp
     src/rendering/ui/score_ui.cpp
     src/rendering/ui/debug_navigation_ui.cpp
     src/game/tile_map/tile_map.cpp
@@ -216,6 +224,7 @@ add_executable(tests
     src/game/player/player.cpp
     src/game/actor/actor.cpp
     src/game/game.cpp
+    src/game/level.cpp
     src/game/scoring_system.cpp
     src/physics/aabb.cpp
     src/physics/fixed_time_step.cpp
@@ -229,6 +238,9 @@ add_executable(tests
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
+    src/navigation/navigation_graph_builder.cpp
+    src/navigation/jump_arc.cpp
+    src/navigation/navigation_profile_builder.cpp
     src/game/actor/actor_behavior.cpp
     src/game/actor/behaviors/input_behavior.cpp
     src/game/actor/behaviors/patrol_behavior.cpp
@@ -268,6 +280,8 @@ else()
         -Wno-missing-braces
     )
 endif()
+
+target_compile_definitions(tests PRIVATE PLATFORMER_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets")
 
 target_include_directories(tests
     PRIVATE

@@ -1,7 +1,8 @@
-#include "rendering/ui/editor_tile_map_ui.hpp"
+#include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "game/tile_map/tile_map.hpp"
+#include "game/level.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "game/npc/npc_spawn_data.hpp"
@@ -14,13 +15,13 @@ namespace
     }
 }
 
-void EditorTileMapUi::draw(
+void LevelEditorUi::draw(
     const ImGuiManager &imGuiManager,
-    TileMap &tileMap,
+    Level &level,
     const Texture2D &tileSet,
-    bool showTileMapEditor)
+    bool showLevelEditor)
 {
-    if (!showTileMapEditor)
+    if (!showLevelEditor)
         return;
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
@@ -30,23 +31,23 @@ void EditorTileMapUi::draw(
 
     ImGui::Text(
         "%s w%dxh%dxs%d",
-        levelName(tileMap.getLevel()).c_str(),
-        tileMap.getWidth(),
-        tileMap.getHeight(),
-        tileMap.getTileSize());
+        levelName(level.getPath()).c_str(),
+        level.getTileMap().getWidth(),
+        level.getTileMap().getHeight(),
+        level.getTileMap().getTileSize());
 
-    ImGui::Text("next %s", levelName(tileMap.getNextLevel()).c_str());
+    ImGui::Text("next %s", levelName(level.getNextLevel()).c_str());
     ImGui::SameLine();
     if (ImGui::SmallButton("go"))
     {
-        std::string nextLevel = tileMap.getNextLevel();
+        std::string nextLevel = level.getNextLevel();
         editing = false;
         ImGui::End();
         onLoadLevel(nextLevel);
         return;
     }
 
-    const std::vector<NpcSpawnData> &npcs = tileMap.getNpcs();
+    const std::vector<NpcSpawnData> &npcs = level.getNpcs();
     std::string npcsLabel = "npcs " + std::to_string(npcs.size()) + "###npcs";
     if (ImGui::CollapsingHeader(npcsLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -57,11 +58,9 @@ void EditorTileMapUi::draw(
                 ImGui::Text("%s %d,%d", npc.type.c_str(), npc.tilePosition.x, npc.tilePosition.y);
     }
 
-    const NavigationGraph &navigationGraph = tileMap.getNavigationGraph();
-    ImGui::Text(
-        "nav %zu nodes %zu edges",
-        navigationGraph.getNodes().size(),
-        navigationGraph.getEdges().size());
+    ImGui::Text("nav %zu graphs", level.getGraphs().size());
+    for (const NavigationGraph &graph : level.getGraphs())
+        ImGui::Text("  %zu nodes %zu edges", graph.getNodes().size(), graph.getEdges().size());
 
     ImGui::Separator();
 
@@ -74,10 +73,10 @@ void EditorTileMapUi::draw(
         return;
     }
 
-    const auto &tiles = tileMap.getTiles();
+    const auto &tiles = level.getTileMap().getTiles();
     int columns = 4;
     int count = 0;
-    int tileSize = tileMap.getTileSize();
+    int tileSize = level.getTileMap().getTileSize();
     ImTextureID imguiTextureID = (ImTextureID)(intptr_t)tileSet.getTextureID();
 
     for (const auto &[tileIndex, tile] : tiles)
@@ -137,45 +136,45 @@ void EditorTileMapUi::draw(
     ImGui::SameLine();
     if (ImGui::Button("Save"))
     {
-        tileMap.save();
+        level.save();
         editing = false;
     }
 
     ImGui::SameLine();
     if (ImGui::Button("Reload"))
     {
-        onLoadLevel(tileMap.getLevel());
+        onLoadLevel(level.getPath());
         editing = false;
     }
 
     ImGui::End();
 }
 
-void EditorTileMapUi::update(
+void LevelEditorUi::update(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    TileMap &tileMap)
+    Level &level)
 {
     if (!editing)
         return;
 
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = imGuiManager.screenToWorld(mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
-    glm::ivec2 tilePosition = tileMap.worldToTilePosition(worldPosition);
-    if (!tileMap.validTilePosition(tilePosition))
+    glm::ivec2 tilePosition = level.getTileMap().worldToTilePosition(worldPosition);
+    if (!level.getTileMap().validTilePosition(tilePosition))
         return;
 
     if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !imGuiManager.getIO().WantCaptureMouse)
     {
         if (editingPlayerStartTile)
         {
-            tileMap.setPlayerStartTile(tilePosition);
+            level.setPlayerStartTile(tilePosition);
             editingPlayerStartTile = false;
         }
-        else if (tileMap.tilePositionToTileIndex(tilePosition) != selectedTileIndex)
+        else if (level.getTileMap().tilePositionToTileIndex(tilePosition) != selectedTileIndex)
         {
-            tileMap.setTileIndex(tilePosition, selectedTileIndex);
-            tileMap.buildNavigationGraph();
+            level.getTileMap().setTileIndex(tilePosition, selectedTileIndex);
+            level.rebuildGraphs();
         }
     }
 }

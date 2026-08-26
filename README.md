@@ -142,6 +142,21 @@ platformer/
 └── tools/               # scripts and toolin utilities
 ```
 
+## 🚧 Loading And Reloading
+
+Loading anything from `assets` throws when the data is wrong. What that means is left
+to whoever asked for the load.
+
+**The game starting up.** Nothing catches, so a bad level, script or game data stops the
+game with the error. The assets are expected to be right, and there is nothing to fall
+back to.
+
+**A file watcher, while the game runs.** These catch and log. A save you are halfway
+through should not cost you the session, so the game keeps what it already had — the
+whole previous level, the handlers that were working — rather than running on something
+half applied. That works because each reload builds the replacement before assigning it,
+so a failure leaves the old one untouched.
+
 ## 🔭 Future Plans
 
 - Fast, precise platforming

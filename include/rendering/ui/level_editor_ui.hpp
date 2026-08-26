@@ -5,21 +5,22 @@
 
 class ImGuiManager;
 class TileMap;
+class Level;
 class Texture2D;
 class Camera2D;
 
-class EditorTileMapUi
+class LevelEditorUi
 {
 public:
     void draw(
         const ImGuiManager &imGuiManager,
-        TileMap &tileMap,
+        Level &level,
         const Texture2D &tileSet,
-        bool shouldDrawTileMapEditor);
+        bool shouldDrawLevelEditor);
     void update(
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
-        TileMap &tileMap);
+        Level &level);
 
     fteng::signal<void(const std::string &)> onLoadLevel;
 

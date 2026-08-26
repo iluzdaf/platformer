@@ -9,11 +9,11 @@ Shader::Shader(const ShaderData &shaderData)
 {
     if (shaderData.vertexCode && shaderData.fragmentCode)
     {
-        initByCode(*shaderData.vertexCode, *shaderData.fragmentCode);
+        initFromCode(*shaderData.vertexCode, *shaderData.fragmentCode);
     }
     else if (shaderData.vertexPath && shaderData.fragmentPath)
     {
-        initByShaderFile(*shaderData.vertexPath, *shaderData.fragmentPath);
+        initFromShaderFile(*shaderData.vertexPath, *shaderData.fragmentPath);
     }
     else
     {
@@ -83,7 +83,7 @@ std::string Shader::loadFile(const std::string &path) const
     return buffer.str();
 }
 
-void Shader::initByShaderFile(const std::string &vertexPath, const std::string &fragmentPath)
+void Shader::initFromShaderFile(const std::string &vertexPath, const std::string &fragmentPath)
 {
     if (shaderID != 0)
     {
@@ -100,10 +100,10 @@ void Shader::initByShaderFile(const std::string &vertexPath, const std::string &
         throw std::runtime_error("Fragment shader path is empty");
     }
 
-    initByCode(loadFile(vertexPath), loadFile(fragmentPath));
+    initFromCode(loadFile(vertexPath), loadFile(fragmentPath));
 }
 
-void Shader::initByCode(const std::string &vertexCode, const std::string &fragmentCode)
+void Shader::initFromCode(const std::string &vertexCode, const std::string &fragmentCode)
 {
     if (shaderID != 0)
     {

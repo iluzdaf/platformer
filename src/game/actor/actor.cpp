@@ -1,5 +1,6 @@
 #include "game/actor/actor.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_profile_builder.hpp"
 #include "input/input_intentions.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/level.hpp"
@@ -7,7 +8,7 @@
 Actor::Actor(const ActorData &data)
     : motion(data.motionData),
       physicsBody(data.physicsBodyData),
-      navigationProfile{data.physicsBodyData.colliderSize}
+      navigationProfile(buildNavigationProfile(data))
 {
     actorState.size = data.size;
 

@@ -4,6 +4,8 @@
 #include <set>
 #include <vector>
 #include "navigation/navigation_graph_builder.hpp"
+#include "navigation/jump_arc.hpp"
+#include "game/actor/actor_motion_data.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
@@ -441,4 +443,188 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 0);
     }
+}
+
+namespace
+{
+    constexpr int PlatformRow = 8;
+    constexpr int LeftPlatformEnd = 4;
+    constexpr int WideMapHeightTiles = 12;
+
+    ActorMotionData jumperMotionData()
+    {
+        ActorMotionData motionData;
+        motionData.moveAbilityData = MoveAbilityData{};
+        motionData.gravityAbilityData = GravityAbilityData{};
+        motionData.jumpAbilityData = JumpAbilityData{};
+        return motionData;
+    }
+
+    NavigationProfile jumperProfile()
+    {
+        NavigationProfile profile = standardProfile();
+        profile.jumpArcs = simulateJumpArcs(jumperMotionData());
+        return profile;
+    }
+
+    TileMap setupTwoPlatforms(int gapTiles, int rowsUp = 0, int widthTiles = 20)
+    {
+        TileMap tileMap = setupTileMap(widthTiles, WideMapHeightTiles);
+
+        for (int x = 0; x <= LeftPlatformEnd; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        for (int x = LeftPlatformEnd + gapTiles + 1; x < widthTiles; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow - rowsUp), 1);
+
+        return tileMap;
+    }
+
+    glm::vec2 takeOffPosition(const TileMap &tileMap)
+    {
+        float tileSize = static_cast<float>(tileMap.getTileSize());
+        return glm::vec2(
+            static_cast<float>(LeftPlatformEnd + 1) * tileSize,
+            static_cast<float>(PlatformRow) * tileSize);
+    }
+
+    glm::vec2 landingPosition(const TileMap &tileMap, int gapTiles, int rowsUp = 0)
+    {
+        float tileSize = static_cast<float>(tileMap.getTileSize());
+        return glm::vec2(
+            static_cast<float>(LeftPlatformEnd + gapTiles + 1) * tileSize,
+            static_cast<float>(PlatformRow - rowsUp) * tileSize);
+    }
+
+    bool hasEdgeBetween(
+        const NavigationGraph &graph,
+        glm::vec2 from,
+        glm::vec2 to,
+        EdgeType type)
+    {
+        constexpr float Tolerance = 0.5f;
+        for (const auto &edge : graph.getEdges())
+        {
+            if (edge.type != type)
+                continue;
+
+            if (glm::distance(graph.getNode(edge.fromId).position, from) > Tolerance)
+                continue;
+
+            if (glm::distance(graph.getNode(edge.toId).position, to) <= Tolerance)
+                return true;
+        }
+
+        return false;
+    }
+
+    int countEdgesOfType(const NavigationGraph &graph, EdgeType type)
+    {
+        int count = 0;
+        for (const auto &edge : graph.getEdges())
+            if (edge.type == type)
+                ++count;
+        return count;
+    }
+}
+
+TEST_CASE("A profile that cannot jump gets no jump edges", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupTwoPlatforms(3);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Jump) == 0);
+}
+
+TEST_CASE("A jumper crosses a gap it can clear", "[NavigationGraphBuilder][Jump]")
+{
+    constexpr int GapTiles = 3;
+    TileMap tileMap = setupTwoPlatforms(GapTiles);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(hasEdgeBetween(
+        graph,
+        takeOffPosition(tileMap),
+        landingPosition(tileMap, GapTiles),
+        EdgeType::Jump));
+}
+
+TEST_CASE("A jumper crosses a gap in both directions", "[NavigationGraphBuilder][Jump]")
+{
+    constexpr int GapTiles = 3;
+    TileMap tileMap = setupTwoPlatforms(GapTiles);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(hasEdgeBetween(
+        graph,
+        landingPosition(tileMap, GapTiles),
+        takeOffPosition(tileMap),
+        EdgeType::Jump));
+}
+
+TEST_CASE("A jumper does not cross a gap beyond its reach", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupTwoPlatforms(14, 0, 30);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Jump) == 0);
+}
+
+TEST_CASE("A jumper reaches a ledge two tiles up", "[NavigationGraphBuilder][Jump]")
+{
+    constexpr int GapTiles = 2;
+    constexpr int RowsUp = 2;
+    TileMap tileMap = setupTwoPlatforms(GapTiles, RowsUp);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(hasEdgeBetween(
+        graph,
+        takeOffPosition(tileMap),
+        landingPosition(tileMap, GapTiles, RowsUp),
+        EdgeType::Jump));
+}
+
+TEST_CASE("A jumper does not reach a ledge six tiles up", "[NavigationGraphBuilder][Jump]")
+{
+    constexpr int GapTiles = 2;
+    constexpr int RowsUp = 6;
+    TileMap tileMap = setupTwoPlatforms(GapTiles, RowsUp);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE_FALSE(hasEdgeBetween(
+        graph,
+        takeOffPosition(tileMap),
+        landingPosition(tileMap, GapTiles, RowsUp),
+        EdgeType::Jump));
+}
+
+TEST_CASE("A ceiling over the gap blocks a jump that would otherwise clear it", "[NavigationGraphBuilder][Jump]")
+{
+    constexpr int GapTiles = 3;
+    TileMap tileMap = setupTwoPlatforms(GapTiles);
+    for (int x = LeftPlatformEnd + 1; x <= LeftPlatformEnd + GapTiles; ++x)
+        tileMap.setTileIndex(glm::ivec2(x, PlatformRow - 2), 1);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE_FALSE(hasEdgeBetween(
+        graph,
+        takeOffPosition(tileMap),
+        landingPosition(tileMap, GapTiles),
+        EdgeType::Jump));
+}
+
+TEST_CASE("A jumper still walks the platform it stands on", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupTwoPlatforms(3);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Walk) > 0);
 }

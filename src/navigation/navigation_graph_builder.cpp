@@ -1,4 +1,7 @@
 #include <algorithm>
+#include <optional>
+#include <set>
+#include <utility>
 #include <cmath>
 #include <unordered_map>
 #include <vector>
@@ -149,6 +152,138 @@ namespace
             }
         }
     }
+
+    bool clearAt(
+        const TileMap &tileMap,
+        glm::vec2 feetPosition,
+        const NavigationProfile &profile)
+    {
+        constexpr float Inset = 0.5f;
+        float halfWidth = profile.colliderSize.x * 0.5f - Inset;
+        glm::vec2 low(feetPosition.x - halfWidth, feetPosition.y - profile.colliderSize.y + Inset);
+        glm::vec2 high(feetPosition.x + halfWidth, feetPosition.y - Inset);
+
+        glm::ivec2 lowTilePosition = tileMap.worldToTilePosition(low);
+        glm::ivec2 highTilePosition = tileMap.worldToTilePosition(high);
+
+        for (int y = lowTilePosition.y; y <= highTilePosition.y; ++y)
+            for (int x = lowTilePosition.x; x <= highTilePosition.x; ++x)
+            {
+                glm::ivec2 tilePosition(x, y);
+                if (!tileMap.validTilePosition(tilePosition))
+                    return false;
+
+                const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
+                if (tile.isSolid() || tile.isSpikes())
+                    return false;
+            }
+
+        return true;
+    }
+
+    std::optional<glm::vec2> landingOf(
+        const TileMap &tileMap,
+        glm::vec2 takeOff,
+        const std::vector<glm::vec2> &arc,
+        float direction,
+        const NavigationProfile &profile)
+    {
+        float previousY = takeOff.y;
+
+        for (size_t index = 1; index < arc.size(); ++index)
+        {
+            glm::vec2 position = takeOff + glm::vec2(direction * arc[index].x, arc[index].y);
+            bool descending = position.y >= previousY;
+            previousY = position.y;
+
+            if (descending)
+            {
+                glm::ivec2 underfoot = tileMap.worldToTilePosition(position + glm::vec2(0.0f, 1.0f));
+                if (tileMap.validTilePosition(underfoot) &&
+                    tileMap.getTileAtTilePosition(underfoot).isSolid())
+                    return glm::vec2(
+                        position.x,
+                        static_cast<float>(underfoot.y * tileMap.getTileSize()));
+            }
+
+            if (!clearAt(tileMap, position, profile))
+                return std::nullopt;
+        }
+
+        return std::nullopt;
+    }
+
+    std::optional<int> nodeGoverning(
+        const NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        glm::vec2 landing,
+        int headroom)
+    {
+        constexpr float SameSurface = 0.5f;
+        std::optional<int> nearest;
+        float nearestDistance = 0.0f;
+
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            if (std::abs(node.position.y - landing.y) > SameSurface)
+                continue;
+
+            float distance = std::abs(node.position.x - landing.x);
+            if (distance > SameSurface &&
+                !isWalkableBetween(tileMap, landing, node.position, headroom))
+                continue;
+
+            if (nearest && distance >= nearestDistance)
+                continue;
+
+            nearest = id;
+            nearestDistance = distance;
+        }
+
+        return nearest;
+    }
+
+    bool alreadyWalkable(const NavigationGraph &navigationGraph, int fromId, int toId)
+    {
+        for (const auto &edge : navigationGraph.getOutgoingEdges(fromId))
+            if (edge.type == EdgeType::Walk && edge.toId == toId)
+                return true;
+
+        return false;
+    }
+
+    void addJumpEdges(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        std::set<std::pair<int, int>> added;
+        std::vector<std::pair<int, glm::vec2>> takeOffs;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+            takeOffs.emplace_back(id, node.position);
+
+        for (const auto &[fromId, takeOff] : takeOffs)
+            for (const std::vector<glm::vec2> &arc : profile.jumpArcs)
+                for (float direction : {1.0f, -1.0f})
+                {
+                    std::optional<glm::vec2> landing =
+                        landingOf(tileMap, takeOff, arc, direction, profile);
+                    if (!landing || landing->y > takeOff.y)
+                        continue;
+
+                    std::optional<int> toId =
+                        nodeGoverning(navigationGraph, tileMap, *landing, headroom);
+                    if (!toId || *toId == fromId)
+                        continue;
+
+                    if (alreadyWalkable(navigationGraph, fromId, *toId))
+                        continue;
+
+                    if (added.insert({fromId, *toId}).second)
+                        navigationGraph.addEdge(fromId, *toId, EdgeType::Jump);
+                }
+    }
 }
 
 NavigationGraph buildNavigationGraph(
@@ -160,6 +295,7 @@ NavigationGraph buildNavigationGraph(
 
     addNodes(navigationGraph, tileMap, headroom);
     addWalkEdges(navigationGraph, tileMap, headroom);
+    addJumpEdges(navigationGraph, tileMap, profile, headroom);
 
     return navigationGraph;
 }

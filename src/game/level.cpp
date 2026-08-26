@@ -3,15 +3,11 @@
 #include <stdexcept>
 #include <glaze/glaze.hpp>
 #include "game/level.hpp"
+#include "navigation/navigation_profile_builder.hpp"
 #include "navigation/navigation_graph_builder.hpp"
 
 namespace
 {
-    NavigationProfile profileOf(const ActorData &actorData)
-    {
-        return NavigationProfile{actorData.physicsBodyData.colliderSize};
-    }
-
     constexpr int NestingOnLines = 2;
     constexpr size_t InlineWidthLimit = 100;
 
@@ -281,7 +277,7 @@ void Level::initFrom(
             throw std::runtime_error("Npc start position is on a solid tile");
     }
 
-    addGraphFor(profileOf(playerData.actorData));
+    addGraphFor(buildNavigationProfile(playerData.actorData));
 
     for (const NpcSpawnData &spawn : npcs)
     {
@@ -289,7 +285,7 @@ void Level::initFrom(
         if (npc == npcData.end())
             throw std::runtime_error("Unknown npc \"" + spawn.type + "\" in " + path);
 
-        addGraphFor(profileOf(npc->second.actorData));
+        addGraphFor(buildNavigationProfile(npc->second.actorData));
     }
 }
 

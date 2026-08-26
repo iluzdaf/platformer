@@ -1,7 +1,8 @@
 # 🎮 Platformer
 
-A simple 2D platformer built in modern C++ using OpenGL. This project is designed as a learning and experimentation sandbox to explore:
+A simple 2D platformer built with OpenGL. This project is designed as a learning and experimentation sandbox to explore:
 
+- **Modern C++**
 - **Test-Driven Development (TDD)**
 - **Data-driven design**
 - **Platformer mechanics**
@@ -14,24 +15,45 @@ Targets **C++23**. CI builds and tests all three platforms on every push.
 
 | | Windows | macOS | Linux |
 |---|---|---|---|
-| Compiler | MSVC, Visual Studio 2022 17.8+ | Apple clang 21+, or LLVM clang 20+ | LLVM clang 20+ with libc++ |
-| Editor | Visual Studio 2022, or VS Code | VS Code | VS Code |
+| Compiler | MSVC, Visual Studio 2022 17.8+ | LLVM clang 20+ | LLVM clang 20+ with libc++ |
+| Editor | Visual Studio 2022 | VS Code | VS Code |
 | Build | the editor's CMake support | the editor's CMake support | the editor's CMake support |
 | Debug | Visual Studio's Run button | CMake Tools' debug button | CMake Tools' debug button |
+| Code intelligence | Visual Studio's own | clangd | clangd |
 
 Terminal commands below assume a Unix shell. On Windows use Git Bash, and `python`
 where they say `python3`.
 
 ## 🧰 What The Repository Configures
 
-Both editors drive the same CMake build, so setup is the same on every platform.
+Every platform builds the same way, from `CMakeLists.txt`, which defines the
+`platformer` and `tests` targets. No editor project files.
 
-- `CMakeLists.txt` — the `platformer` and `tests` targets. Neither editor needs a
-  project file.
-- `.vscode/extensions.json` — the extensions VS Code should install.
-- `.vscode/settings.json` — CMake Tools as the compile flag provider, clang-tidy in
-  the editor, the generator and the build directory.
+Visual Studio needs nothing further: it reads `CMakeLists.txt` directly and brings its
+own IntelliSense and debugger.
+
+VS Code divides the work between three extensions. **CMake Tools** configures and
+builds, **clangd** provides completion, navigation and diagnostics, and the **C/C++**
+extension provides the debugger. clangd reads the compile database CMake writes, so it
+sees the same flags the compiler does; the C/C++ extension parses with a front end of
+its own and can disagree, so its IntelliSense is switched off.
+
+- `.vscode/extensions.json` — the extensions to install.
+- `.vscode/settings.json` — the generator, the build directory, and clangd in place of
+  the C/C++ extension.
 - `.clang-format`, `.clang-tidy` — formatting and naming, applied on save.
+
+CMake writes the compile database and links it to the repository root, so clangd reads
+whichever configuration you last configured.
+
+One thing to check: clangd must come from the LLVM you build with — `PATH` often finds
+a different one first, so check that `clangd --version` matches your compiler, and name
+it in your user settings if it does not. Machine paths do not belong in the
+repository.
+
+```json
+"clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
+```
 
 No `launch.json` is needed; CMake Tools runs and debugs the selected target from its
 own build directory, which is where the game looks for assets. Format on save is
@@ -45,8 +67,7 @@ game writes.
     For Windows, Visual Studio 2022 with **CMake** and **Git for Windows** added
     through *Tools and Features → Individual Components*.
 
-    For macOS and Linux, **CMake**, **Ninja** and **git-lfs**. Linux also needs LLVM
-    clang; macOS builds with Apple clang.
+    For macOS and Linux, **CMake**, **Ninja**, **git-lfs** and **LLVM clang**.
 
 2. Clone with submodules:
 

@@ -5,16 +5,21 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 20)
         message(FATAL_ERROR "clang 20 or newer is required for C++23, found ${CMAKE_CXX_COMPILER_VERSION}")
     endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 21)
-        message(FATAL_ERROR "Apple clang 21 or newer is required for C++23, found ${CMAKE_CXX_COMPILER_VERSION}")
-    endif()
 elseif(MSVC)
     if(MSVC_VERSION LESS 1938)
         message(FATAL_ERROR "Visual Studio 2022 17.8 or newer is required for C++23, found ${MSVC_VERSION}")
     endif()
 else()
-    message(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}; this project targets C++23 with clang, Apple clang or MSVC")
+    message(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}; this project targets C++23 with LLVM clang or MSVC. Apple clang trails on C++23 and is not tested; on macOS use brew install llvm")
+endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if(NOT MSVC)
+    file(CREATE_LINK
+        ${CMAKE_BINARY_DIR}/compile_commands.json
+        ${CMAKE_SOURCE_DIR}/compile_commands.json
+        SYMBOLIC)
 endif()
 
 if(SKIP_OPENGL_TESTS)

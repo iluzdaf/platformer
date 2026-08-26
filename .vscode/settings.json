@@ -73,11 +73,11 @@
         "editor.formatOnSave": false
     },
     "cmake.generator": "Ninja",
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
-    "C_Cpp.codeAnalysis.runAutomatically": true,
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "clangd.arguments": [
+        "--background-index",
+        "--clang-tidy",
+        "--header-insertion=never"
+    ],
     "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
-    "cmake.configureSettings": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-    },
 }

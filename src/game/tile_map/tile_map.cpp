@@ -5,11 +5,10 @@
 #include <vector>
 #include <glaze/glaze.hpp>
 #include "game/tile_map/tile_map.hpp"
+#include "navigation/navigation_graph_builder.hpp"
 
 namespace
 {
-    constexpr float NodeTileNudge = 0.5f;
-
     constexpr int NestingOnLines = 2;
     constexpr size_t InlineWidthLimit = 100;
 
@@ -518,122 +517,5 @@ const std::vector<NpcSpawnData> &TileMap::getNpcs() const
 
 void TileMap::buildNavigationGraph()
 {
-    navigationGraph.clear();
-
-    int nextNodeId = 0;
-
-    for (int y = 0; y < height; ++y)
-    {
-        for (int x = 0; x < width; ++x)
-        {
-            glm::ivec2 tilePosition(x, y);
-            const Tile &tile = getTileAtTilePosition(tilePosition);
-
-            if (tile.isSolid())
-            {
-                glm::ivec2 tilePositionAbove = tilePosition + glm::ivec2(0, -1);
-                bool canWalkAbove = validTilePosition(tilePositionAbove) &&
-                                    !getTileAtTilePosition(tilePositionAbove).isSolid() &&
-                                    !getTileAtTilePosition(tilePositionAbove).isSpikes();
-                glm::ivec2 tilePositionLeft = tilePosition + glm::ivec2(-1, 0);
-                bool isLeftCliff = validTilePosition(tilePositionLeft) &&
-                                   !getTileAtTilePosition(tilePositionLeft).isSolid();
-                glm::ivec2 tilePositionRight = tilePosition + glm::ivec2(1, 0);
-                bool isRightCliff = validTilePosition(tilePositionRight) &&
-                                    !getTileAtTilePosition(tilePositionRight).isSolid();
-                glm::ivec2 tilePositionAboveLeft = tilePositionAbove + glm::ivec2(-1, 0);
-                bool canWalkAboveLeft = !isLeftCliff &&
-                                        validTilePosition(tilePositionAboveLeft) &&
-                                        !getTileAtTilePosition(tilePositionAboveLeft).isSolid() &&
-                                        !getTileAtTilePosition(tilePositionAboveLeft).isSpikes();
-                glm::ivec2 tilePositionAboveRight = tilePositionAbove + glm::ivec2(1, 0);
-                bool canWalkAboveRight = !isRightCliff &&
-                                         validTilePosition(tilePositionAboveRight) &&
-                                         !getTileAtTilePosition(tilePositionAboveRight).isSolid() &&
-                                         !getTileAtTilePosition(tilePositionAboveRight).isSpikes();
-
-                if (canWalkAbove && (isLeftCliff || isRightCliff || !canWalkAboveLeft || !canWalkAboveRight))
-                {
-                    glm::vec2 worldPosition = tileToWorldPosition(tilePosition);
-                    glm::vec2 nodeOffset(0.0f);
-
-                    if (canWalkAboveLeft && !canWalkAboveRight)
-                        nodeOffset = glm::vec2(tileSize, 0.0f);
-                    else if (!canWalkAboveLeft && canWalkAboveRight)
-                        nodeOffset = glm::vec2(0.0f, 0.0f);
-                    else
-                        nodeOffset = glm::vec2(tileSize / 2.0f, 0.f);
-
-                    glm::vec2 nodePosition = worldPosition + nodeOffset;
-                    navigationGraph.addNode(nextNodeId++, nodePosition);
-                }
-            }
-        }
-    }
-
-    std::unordered_map<int, std::vector<NavigationNode>> nodesByRow;
-
-    for (const auto &[id, node] : navigationGraph.getNodes())
-        nodesByRow[static_cast<int>(std::round(node.position.y))].push_back(node);
-
-    std::vector<int> rows;
-    for (const auto &[y, nodesInRow] : nodesByRow)
-        rows.push_back(y);
-    std::sort(rows.begin(), rows.end());
-
-    for (int y : rows)
-    {
-        std::vector<NavigationNode> &nodesInRow = nodesByRow[y];
-        std::sort(
-            nodesInRow.begin(),
-            nodesInRow.end(),
-            [](const NavigationNode &left, const NavigationNode &right)
-            { return left.position.x < right.position.x; });
-
-        for (size_t index = 1; index < nodesInRow.size(); ++index)
-        {
-            const NavigationNode &left = nodesInRow[index - 1];
-            const NavigationNode &right = nodesInRow[index];
-
-            if (!isWalkableBetween(left.position, right.position))
-                continue;
-
-            navigationGraph.addEdge(left.id, right.id, EdgeType::Walk);
-            navigationGraph.addEdge(right.id, left.id, EdgeType::Walk);
-        }
-    }
-}
-
-bool TileMap::isWalkableBetween(glm::vec2 start, glm::vec2 end)
-{
-    if (start == end)
-        return false;
-
-    glm::vec2 inwards = glm::normalize(end - start) * NodeTileNudge;
-    glm::ivec2 startTilePosition = worldToTilePosition(start + inwards);
-    glm::ivec2 endTilePosition = worldToTilePosition(end - inwards);
-
-    if (startTilePosition.y != endTilePosition.y)
-        return false;
-
-    int fromX = std::min(startTilePosition.x, endTilePosition.x);
-    int toX = std::max(startTilePosition.x, endTilePosition.x);
-
-    for (int x = fromX; x <= toX; ++x)
-    {
-        glm::ivec2 groundTilePosition(x, startTilePosition.y);
-        if (!validTilePosition(groundTilePosition) ||
-            !getTileAtTilePosition(groundTilePosition).isSolid())
-            return false;
-
-        glm::ivec2 standTilePosition = groundTilePosition + glm::ivec2(0, -1);
-        if (!validTilePosition(standTilePosition))
-            return false;
-
-        const Tile &standTile = getTileAtTilePosition(standTilePosition);
-        if (standTile.isSolid() || standTile.isSpikes())
-            return false;
-    }
-
-    return true;
+    navigationGraph = ::buildNavigationGraph(*this, NavigationProfile());
 }

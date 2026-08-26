@@ -57,5 +57,4 @@ private:
     std::string tilePalette;
 
     void initByData(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
-    bool isWalkableBetween(glm::vec2 start, glm::vec2 end);
 };

@@ -165,9 +165,8 @@ to whoever asked for the load.
 game with the error. The assets are expected to be right, and there is nothing to fall
 back to.
 
-**A file watcher, while the game runs.** These catch and log, so a half written save
-costs you nothing. Each reload builds the replacement before assigning it, leaving what
-you had untouched when it fails.
+**A file watcher, while the game runs.** These catch and log. Each reload builds the
+replacement before assigning it, so a failure leaves what you had untouched.
 
 ## 🔭 Future Plans
 

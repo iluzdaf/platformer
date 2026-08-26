@@ -6,6 +6,7 @@
 #include "game/npc/npc.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
+#include "test_helpers/asset_path.hpp"
 
 namespace
 {
@@ -213,7 +214,7 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
 TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level]")
 {
     int placed = 0;
-    for (const auto &entry : std::filesystem::directory_iterator("../../assets/levels"))
+    for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
     {
         if (entry.path().extension() != ".json")
             continue;

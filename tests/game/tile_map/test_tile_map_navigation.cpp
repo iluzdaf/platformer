@@ -6,6 +6,7 @@
 #include <set>
 #include "game/tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
+#include "test_helpers/asset_path.hpp"
 
 namespace
 {
@@ -191,7 +192,7 @@ TEST_CASE("A saved level carries no navigation data", "[TileMap][Navigation]")
 
 TEST_CASE("Every shipped level derives a graph from its tiles", "[TileMap][Navigation]")
 {
-    for (const auto &entry : std::filesystem::directory_iterator("../../assets/levels"))
+    for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
     {
         if (entry.path().extension() != ".json")
             continue;
@@ -207,7 +208,7 @@ TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unc
     std::filesystem::path savePath =
         std::filesystem::temp_directory_path() / "platformer_save_roundtrip.json";
     std::filesystem::copy_file(
-        "../../assets/levels/level6.json",
+        assetPath("levels/level6.json"),
         savePath,
         std::filesystem::copy_options::overwrite_existing);
 
@@ -257,7 +258,7 @@ TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unc
 
 TEST_CASE("Every shipped level is already in the format the editor saves", "[TileMap][Level]")
 {
-    for (const auto &entry : std::filesystem::directory_iterator("../../assets/levels"))
+    for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
     {
         if (entry.path().extension() != ".json")
             continue;
@@ -282,7 +283,7 @@ TEST_CASE("Every shipped level is already in the format the editor saves", "[Til
 
 TEST_CASE("A level knows where it heads next", "[TileMap][Level]")
 {
-    TileMap tileMap("../../assets/levels/level6.json", shippedPalettes());
+    TileMap tileMap(assetPath("levels/level6.json"), shippedPalettes());
 
     REQUIRE(tileMap.getNextLevel() == "../../assets/levels/level1.json");
     REQUIRE(tileMap.getNpcs().size() == 2);
@@ -290,7 +291,7 @@ TEST_CASE("A level knows where it heads next", "[TileMap][Level]")
     REQUIRE(tileMap.getNavigationGraph().getNodes().size() == 8);
     REQUIRE_FALSE(tileMap.getNavigationGraph().getEdges().empty());
 
-    for (const auto &entry : std::filesystem::directory_iterator("../../assets/levels"))
+    for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
         if (entry.path().extension() == ".json")
             REQUIRE_FALSE(TileMap(entry.path().string(), shippedPalettes()).getNextLevel().empty());
 }
@@ -310,7 +311,7 @@ TEST_CASE("A level naming a palette that does not exist fails to load", "[TileMa
 
 TEST_CASE("Every shipped level uses a palette that exists", "[TileMap][Level]")
 {
-    for (const auto &entry : std::filesystem::directory_iterator("../../assets/levels"))
+    for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
         if (entry.path().extension() == ".json")
             REQUIRE_NOTHROW(TileMap(entry.path().string(), shippedPalettes()));
 }

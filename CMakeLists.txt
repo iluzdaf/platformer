@@ -272,6 +272,8 @@ else()
     )
 endif()
 
+target_compile_definitions(tests PRIVATE PLATFORMER_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets")
+
 target_include_directories(tests
     PRIVATE
     include

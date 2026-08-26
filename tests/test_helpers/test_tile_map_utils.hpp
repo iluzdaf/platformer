@@ -4,6 +4,7 @@
 #include "game/tile_map/tile_map.hpp"
 #include "game/tile_map/tile_map_data.hpp"
 #include "game/game_data.hpp"
+#include "test_helpers/asset_path.hpp"
 
 inline const TilePalette &getDefaultTileDataMap()
 {
@@ -18,7 +19,7 @@ inline const TilePalettes &shippedPalettes()
     static const TilePalettes palettes = []
     {
         GameData gameData;
-        auto ec = glz::read_file_json(gameData, "../../assets/game_data.json", std::string{});
+        auto ec = glz::read_file_json(gameData, assetPath("game_data.json"), std::string{});
         if (ec)
             throw std::runtime_error("Failed to read game_data.json");
 

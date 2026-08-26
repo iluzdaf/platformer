@@ -32,3 +32,8 @@ glm::vec2 CameraShake::getOffset(float deltaTime)
 
     return glm::vec2(randomOffset(magnitude), randomOffset(magnitude));
 }
+
+bool CameraShake::isActive() const
+{
+    return active;
+}

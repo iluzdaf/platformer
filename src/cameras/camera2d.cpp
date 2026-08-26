@@ -116,5 +116,5 @@ glm::vec2 Camera2D::getWindowSize() const
 
 bool Camera2D::shaking() const
 {
-    return shake.active;
+    return shake.isActive();
 }

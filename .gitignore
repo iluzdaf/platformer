@@ -10,6 +10,7 @@ Makefile
 
 # Editor stuff
 /compile_commands.json
+.cache/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json

@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""Formats staged json assets so the repository keeps one format.
+"""Formats staged assets and sources so the repository keeps one format.
 
 Installed by tools/hooks/install.py as a plain .git/hooks file rather than
 through core.hooksPath, which would bypass this repository's LFS hooks.
 """
 
+import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 FORMATTER = ROOT / "tools" / "format_json.py"
+SOURCE_DIRECTORIES = ("src/", "include/", "tests/")
+SOURCE_SUFFIXES = (".cpp", ".hpp")
+CLANG_FORMAT_MAJOR = 22
 
 
 def git(*args):
@@ -19,34 +24,80 @@ def git(*args):
     ).stdout.splitlines()
 
 
-def main():
-    staged = [
-        path
-        for path in git("diff", "--cached", "--name-only", "--diff-filter=ACM")
-        if path.startswith("assets/") and path.endswith(".json")
-    ]
-    if not staged:
+def isJsonAsset(path):
+    return path.startswith("assets/") and path.endswith(".json")
+
+
+def isSource(path):
+    return path.startswith(SOURCE_DIRECTORIES) and path.endswith(SOURCE_SUFFIXES)
+
+
+def formatJsonAssets(paths):
+    return subprocess.run(
+        [sys.executable, str(FORMATTER), "--format", *paths], cwd=ROOT
+    ).returncode
+
+
+def majorVersionOf(clangFormat):
+    reported = subprocess.run(
+        [clangFormat, "--version"], capture_output=True, text=True
+    ).stdout
+    found = re.search(r"version (\d+)", reported)
+    return int(found.group(1)) if found else None
+
+
+def findClangFormat():
+    """Another major version reformats the tree back, and CI pins this one."""
+    for name in (f"clang-format-{CLANG_FORMAT_MAJOR}", "clang-format"):
+        found = shutil.which(name)
+        if found and majorVersionOf(found) == CLANG_FORMAT_MAJOR:
+            return found
+
+    return None
+
+
+def formatSources(paths):
+    clangFormat = findClangFormat()
+    if not clangFormat:
+        print(
+            f"pre-commit: no clang-format {CLANG_FORMAT_MAJOR} found, leaving sources alone. "
+            f"CI checks formatting with clang-format {CLANG_FORMAT_MAJOR}, and another "
+            "version disagrees about the same file.",
+            file=sys.stderr,
+        )
         return 0
+
+    return subprocess.run([clangFormat, "-i", *paths], cwd=ROOT).returncode
+
+
+def main():
+    staged = git("diff", "--cached", "--name-only", "--diff-filter=ACM")
 
     # Re-adding a file with unstaged edits would sweep them into the commit,
     # so those are reported instead.
     dirty = set(git("diff", "--name-only"))
-    clean = [path for path in staged if path not in dirty]
-    partial = [path for path in staged if path in dirty]
+    partial = []
 
-    if clean:
-        formatting = subprocess.run(
-            [sys.executable, str(FORMATTER), "--format", *clean], cwd=ROOT
-        )
-        if formatting.returncode != 0:
-            return formatting.returncode
+    for selects, format, hint in (
+        (isJsonAsset, formatJsonAssets, "python3 tools/format_json.py --format"),
+        (isSource, formatSources, "clang-format -i"),
+    ):
+        selected = [path for path in staged if selects(path)]
+        clean = [path for path in selected if path not in dirty]
+        partial += [(path, hint) for path in selected if path in dirty]
+
+        if not clean:
+            continue
+
+        failure = format(clean)
+        if failure:
+            return failure
 
         git("add", *clean)
 
-    if partial:
-        listed = " ".join(partial)
-        print(f"pre-commit: left as staged, they have unstaged edits: {listed}", file=sys.stderr)
-        print(f"pre-commit: run python3 tools/format_json.py --format {listed}", file=sys.stderr)
+    for path, hint in partial:
+        print(f"pre-commit: left as staged, it has unstaged edits: {path}", file=sys.stderr)
+        print(f"pre-commit: run {hint} {path}", file=sys.stderr)
 
     return 0
 

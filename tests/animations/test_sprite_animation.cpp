@@ -2,8 +2,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <catch2/catch_approx.hpp>
 #include "animations/sprite_animation.hpp"
-#include "animations/frame_animation_data.hpp"
-#include "animations/sprite_animation_data.hpp"
+#include "animations/frame_animation_data.hpp"  // IWYU pragma: keep
+#include "animations/sprite_animation_data.hpp" // IWYU pragma: keep
 using Catch::Approx;
 
 TEST_CASE("SpriteAnimation returns correct UVs", "[SpriteAnimation]")

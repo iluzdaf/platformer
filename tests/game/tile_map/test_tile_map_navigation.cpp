@@ -1,12 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
-#include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <set>
 #include "game/tile_map/tile_map.hpp"
 #include "game/level.hpp"
-#include "game/level_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
 

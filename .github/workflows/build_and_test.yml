@@ -130,7 +130,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           clang-tidy-22 -p build/release --warnings-as-errors='*' --quiet \
-            $(find src -name '*.cpp')
+            $(find src tests -name '*.cpp')
 
       - name: Run tests for Windows
         if: runner.os == 'Windows'

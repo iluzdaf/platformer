@@ -15,7 +15,7 @@ namespace
         return path;
     }
 
-    const std::string countingDeath =
+    const std::string CountingDeath =
         "deaths = 0\n"
         "function onDeath()\n"
         "    deaths = deaths + 1\n"
@@ -24,7 +24,7 @@ namespace
 
 TEST_CASE("A script that loads gives the game its handlers", "[LuaScriptSystem]")
 {
-    std::filesystem::path path = writeScript("platformer_lua_ok.lua", countingDeath);
+    std::filesystem::path path = writeScript("platformer_lua_ok.lua", CountingDeath);
 
     LuaScriptSystem luaScriptSystem(path.string());
     luaScriptSystem.triggerDeath();
@@ -52,7 +52,7 @@ TEST_CASE("A script that is not there is reported", "[LuaScriptSystem]")
 
 TEST_CASE("A reload that fails leaves the handlers that were working", "[LuaScriptSystem]")
 {
-    std::filesystem::path path = writeScript("platformer_lua_reload.lua", countingDeath);
+    std::filesystem::path path = writeScript("platformer_lua_reload.lua", CountingDeath);
     LuaScriptSystem luaScriptSystem(path.string());
 
     luaScriptSystem.triggerDeath();

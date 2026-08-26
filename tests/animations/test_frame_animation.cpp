@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "animations/frame_animation.hpp"
-#include "animations/frame_animation_data.hpp"
+#include "animations/frame_animation_data.hpp" // IWYU pragma: keep
 
 TEST_CASE("Default Constucted FrameAnimation behaves correctly", "[FrameAnimation]")
 {

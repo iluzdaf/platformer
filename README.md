@@ -97,7 +97,7 @@ Both editors apply them on save; to sweep the whole tree:
 
 ```bash
 clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
-clang-tidy -p build/Debug $(find src -name '*.cpp')
+clang-tidy -p build/Debug $(find src tests -name '*.cpp')
 ```
 
 That last one wants **clang-tidy 21 or newer**. The include check is unbearable

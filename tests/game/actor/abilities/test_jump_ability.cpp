@@ -3,7 +3,6 @@
 #include "game/actor/actor_motion_state.hpp"
 #include "game/actor/abilities/jump_ability.hpp"
 #include "input/input_intentions.hpp"
-#include "physics/fixed_time_step.hpp"
 
 using Catch::Approx;
 

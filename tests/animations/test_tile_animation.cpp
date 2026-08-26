@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "animations/tile_animation.hpp"
-#include "animations/tile_animation_data.hpp"
-#include "animations/frame_animation_data.hpp"
+#include "animations/tile_animation_data.hpp"  // IWYU pragma: keep
+#include "animations/frame_animation_data.hpp" // IWYU pragma: keep
 
 TEST_CASE("TileAnimation advances frames over time correctly", "[TileAnimation]")
 {

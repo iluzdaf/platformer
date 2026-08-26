@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include "game/level.hpp"
+#include "game/player/player_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 
 namespace
@@ -24,8 +25,19 @@ namespace
     {
         return {
             {"short", npcOfHeight(13.0f)},
-            {"alsoShort", npcOfHeight(13.0f)},
             {"tall", npcOfHeight(20.0f)}};
+    }
+
+    NavigationProfile profileOfHeight(float height)
+    {
+        return NavigationProfile{glm::vec2(8.0f, height)};
+    }
+
+    PlayerData playerOfHeight(float height)
+    {
+        PlayerData playerData;
+        playerData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, height);
+        return playerData;
     }
 
     TileMapData corridorPlacing(const std::vector<NpcSpawnData> &npcs)
@@ -43,11 +55,14 @@ namespace
         return tileMapData;
     }
 
-    Level levelPlacing(const std::vector<NpcSpawnData> &npcs)
+    Level levelPlacing(
+        const std::vector<NpcSpawnData> &npcs,
+        const PlayerData &playerData = playerOfHeight(13.0f))
     {
         return Level(
             corridorPlacing(npcs),
             palettesFrom(getDefaultTileDataMap()),
+            playerData,
             theUsualNpcs());
     }
 
@@ -73,32 +88,32 @@ TEST_CASE("A level builds a graph for an npc it places", "[Level]")
 {
     Level level = levelPlacing({{"short", StandingTile}});
 
-    const NavigationGraph &graph = level.graphFor("short");
+    const NavigationGraph &graph = level.graphFor(profileOfHeight(13.0f));
 
     REQUIRE(nodesOnTheFloor(graph) == 2);
     REQUIRE_FALSE(graph.getEdges().empty());
 }
 
-TEST_CASE("A level has no graph for an npc it does not place", "[Level]")
+TEST_CASE("A level has no graph for an actor it was not told about", "[Level]")
 {
     Level level = levelPlacing({});
 
-    REQUIRE_THROWS_WITH(level.graphFor("short"), Catch::Matchers::ContainsSubstring("short"));
+    REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(20.0f)), std::exception);
 }
 
-TEST_CASE("Npcs that move alike share one graph", "[Level]")
+TEST_CASE("A level builds a graph for the player as well", "[Level]")
 {
-    Level level = levelPlacing({{"short", StandingTile}, {"alsoShort", StandingTile}});
+    Level level = levelPlacing({}, playerOfHeight(20.0f));
 
-    REQUIRE(&level.graphFor("short") == &level.graphFor("alsoShort"));
+    REQUIRE(nodesOnTheFloor(level.graphFor(profileOfHeight(20.0f))) == 0);
 }
 
 TEST_CASE("Npcs that move differently get their own graphs", "[Level]")
 {
     Level level = levelPlacing({{"short", StandingTile}, {"tall", StandingTile}});
 
-    const NavigationGraph &shortGraph = level.graphFor("short");
-    const NavigationGraph &tallGraph = level.graphFor("tall");
+    const NavigationGraph &shortGraph = level.graphFor(profileOfHeight(13.0f));
+    const NavigationGraph &tallGraph = level.graphFor(profileOfHeight(20.0f));
 
     REQUIRE(&shortGraph != &tallGraph);
     REQUIRE(nodesOnTheFloor(shortGraph) == 2);

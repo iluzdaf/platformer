@@ -5,19 +5,20 @@
 
 namespace
 {
-    NavigationProfile profileOf(const NpcData &npcData)
+    NavigationProfile profileOf(const ActorData &actorData)
     {
-        return NavigationProfile{npcData.actorData.physicsBodyData.colliderSize};
+        return NavigationProfile{actorData.physicsBodyData.colliderSize};
     }
 }
 
 Level::Level(
     const TileMapData &tileMapData,
     const TilePalettes &tilePalettes,
+    const PlayerData &playerData,
     const std::unordered_map<std::string, NpcData> &npcData)
     : tileMap(tileMapData, tilePalettes)
 {
-    std::vector<NavigationProfile> profiles;
+    addGraphFor(profileOf(playerData.actorData));
 
     for (const NpcSpawnData &spawn : tileMap.getNpcs())
     {
@@ -26,19 +27,17 @@ Level::Level(
             throw std::runtime_error(
                 "Unknown npc \"" + spawn.type + "\" in " + tileMap.getLevel());
 
-        NavigationProfile profile = profileOf(npc->second);
-        auto existing = std::find(profiles.begin(), profiles.end(), profile);
-
-        if (existing == profiles.end())
-        {
-            profiles.push_back(profile);
-            graphs.push_back(buildNavigationGraph(tileMap, profile));
-            existing = profiles.end() - 1;
-        }
-
-        graphByNpcType[spawn.type] =
-            static_cast<size_t>(std::distance(profiles.begin(), existing));
+        addGraphFor(profileOf(npc->second.actorData));
     }
+}
+
+void Level::addGraphFor(const NavigationProfile &profile)
+{
+    if (std::find(profiles.begin(), profiles.end(), profile) != profiles.end())
+        return;
+
+    profiles.push_back(profile);
+    graphs.push_back(buildNavigationGraph(tileMap, profile));
 }
 
 const TileMap &Level::getTileMap() const
@@ -46,11 +45,11 @@ const TileMap &Level::getTileMap() const
     return tileMap;
 }
 
-const NavigationGraph &Level::graphFor(const std::string &npcType) const
+const NavigationGraph &Level::graphFor(const NavigationProfile &profile) const
 {
-    auto graph = graphByNpcType.find(npcType);
-    if (graph == graphByNpcType.end())
-        throw std::runtime_error("No npc \"" + npcType + "\" in this level");
+    auto found = std::find(profiles.begin(), profiles.end(), profile);
+    if (found == profiles.end())
+        throw std::runtime_error("This level has no navigation graph for that actor");
 
-    return graphs[graph->second];
+    return graphs[static_cast<size_t>(std::distance(profiles.begin(), found))];
 }

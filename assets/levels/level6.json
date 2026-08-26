@@ -23,6 +23,7 @@
     "nextLevel":"../../assets/levels/level1.json",
     "npcs":[
         {"type":"villager","tilePosition":[6,11]},
-        {"type":"villager","tilePosition":[15,7]}
+        {"type":"villager","tilePosition":[15,7]},
+        {"type":"explorer","tilePosition":[5,7]}
     ]
 }

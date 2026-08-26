@@ -4,7 +4,10 @@
 #include <set>
 #include <vector>
 #include "navigation/navigation_graph_builder.hpp"
+#include <glaze/glaze.hpp>
 #include "navigation/jump_arc.hpp"
+#include "navigation/navigation_profile_builder.hpp"
+#include "game/game_data.hpp"
 #include "game/actor/actor_motion_data.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
@@ -677,4 +680,46 @@ TEST_CASE("A walk edge is drawn straight", "[NavigationGraphBuilder][Jump]")
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Walk)
             REQUIRE(edge.path.empty());
+}
+
+TEST_CASE("The shipped explorer can cross the gap in level6", "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+
+    NavigationProfile explorer =
+        buildNavigationProfile(gameData.npcData.at("explorer").actorData);
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, explorer);
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Jump) > 0);
+}
+
+TEST_CASE("Every jump the explorer is offered is one it can hold out", "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+
+    NavigationProfile explorer =
+        buildNavigationProfile(gameData.npcData.at("explorer").actorData);
+    NavigationProfile holdingThroughout = explorer;
+    holdingThroughout.jumpArcs.resize(1);
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    REQUIRE(countEdgesOfType(buildNavigationGraph(tileMap, explorer), EdgeType::Jump) ==
+            countEdgesOfType(buildNavigationGraph(tileMap, holdingThroughout), EdgeType::Jump));
+}
+
+TEST_CASE("The shipped villager is offered no jumps at all", "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+
+    NavigationProfile villager =
+        buildNavigationProfile(gameData.npcData.at("villager").actorData);
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    REQUIRE(villager.jumpArcs.empty());
+    REQUIRE(countEdgesOfType(buildNavigationGraph(tileMap, villager), EdgeType::Jump) == 0);
 }

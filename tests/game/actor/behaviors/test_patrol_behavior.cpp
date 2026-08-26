@@ -20,6 +20,26 @@ namespace
         return navigationGraph;
     }
 
+    NavigationGraph setupGap()
+    {
+        NavigationGraph navigationGraph;
+        navigationGraph.addNode(0, {0.0f, 192.0f});
+        navigationGraph.addNode(1, {96.0f, 192.0f});
+        navigationGraph.addEdge(0, 1, EdgeType::Jump);
+        navigationGraph.addEdge(1, 0, EdgeType::Jump);
+        return navigationGraph;
+    }
+
+    NavigationGraph setupLedge()
+    {
+        NavigationGraph navigationGraph;
+        navigationGraph.addNode(0, {0.0f, 192.0f});
+        navigationGraph.addNode(1, {96.0f, 160.0f});
+        navigationGraph.addEdge(0, 1, EdgeType::Jump);
+        navigationGraph.addEdge(1, 0, EdgeType::Jump);
+        return navigationGraph;
+    }
+
     ActorBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
     {
         return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f)};
@@ -70,18 +90,80 @@ TEST_CASE("Starts at the nearest node with somewhere to walk", "[PatrolBehavior]
     REQUIRE(behavior.getCurrentNodeId() == 1);
 }
 
-TEST_CASE("Has nothing to do on a graph with no walk edges", "[PatrolBehavior]")
+TEST_CASE("Has nothing to do on a graph with no edges at all", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {0, 0});
     navigationGraph.addNode(1, {96, 0});
-    navigationGraph.addEdge(0, 1, EdgeType::Jump);
 
     PatrolBehavior behavior(setupData());
     anchorAt(behavior, navigationGraph, {0, 0});
 
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
     REQUIRE(behavior.decide(0.01f, at(navigationGraph, {0, 0})).direction.x == 0.0f);
+}
+
+TEST_CASE("Takes a jump edge when it is the only way on", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupGap();
+    PatrolBehavior behavior(setupData());
+
+    anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
+
+    REQUIRE(behavior.getCurrentNodeId() == 0);
+    REQUIRE(behavior.getTargetNodeId() == 1);
+}
+
+TEST_CASE("Asks to jump while crossing a jump edge", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupGap();
+    PatrolBehavior behavior(setupData());
+
+    anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
+    InputIntentions inputIntentions =
+        behavior.decide(0.01f, at(navigationGraph, {0.0f, 192.0f}));
+
+    REQUIRE(inputIntentions.jumpRequested);
+    REQUIRE(inputIntentions.direction.x > 0.0f);
+}
+
+TEST_CASE("Never asks to jump on a platform it can walk", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(4);
+    PatrolBehavior behavior(setupData());
+    glm::vec2 position(0.0f, 192.0f);
+
+    for (int step = 0; step < 1200; ++step)
+    {
+        InputIntentions inputIntentions =
+            behavior.decide(0.01f, at(navigationGraph, position));
+        REQUIRE_FALSE(inputIntentions.jumpRequested);
+        position.x += inputIntentions.direction.x * 2.0f;
+    }
+}
+
+TEST_CASE("Does not arrive at a ledge it is still below", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupLedge();
+    PatrolBehavior behavior(setupData());
+
+    anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
+    REQUIRE(behavior.getTargetNodeId() == 1);
+
+    behavior.decide(0.01f, at(navigationGraph, {96.0f, 192.0f}));
+
+    REQUIRE(behavior.getCurrentNodeId() == 0);
+}
+
+TEST_CASE("Arrives at a ledge once it stands on it", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupLedge();
+    PatrolBehavior behavior(setupData());
+
+    anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
+    behavior.decide(0.01f, at(navigationGraph, {96.0f, 160.0f}));
+
+    REQUIRE(behavior.getCurrentNodeId() == 1);
 }
 
 TEST_CASE("Patrols a two node platform end to end", "[PatrolBehavior]")

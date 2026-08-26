@@ -239,7 +239,7 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
         if (entry.path().extension() != ".json")
             continue;
 
-        Level level(entry.path().string(), shippedPalettes(), PlayerData(), npcCatalogue());
+        Level level(entry.path().string(), shippedPalettes(), PlayerData(), shippedNpcData());
         const TileMap &tileMap = level.getTileMap();
         for (const NpcSpawnData &spawn : level.getNpcs())
         {

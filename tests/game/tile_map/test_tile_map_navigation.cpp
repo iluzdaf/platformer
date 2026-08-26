@@ -12,14 +12,9 @@
 
 namespace
 {
-    std::unordered_map<std::string, NpcData> shippedNpcs()
-    {
-        return {{"villager", NpcData()}};
-    }
-
     Level loadLevel(const std::string &path)
     {
-        return Level(path, shippedPalettes(), PlayerData(), shippedNpcs());
+        return Level(path, shippedPalettes(), PlayerData(), shippedNpcData());
     }
 
     void layFloor(TileMap &tileMap, int groundY, int fromX, int toX)
@@ -127,8 +122,9 @@ TEST_CASE("A level knows where it heads next", "[TileMap][Level]")
     Level level = loadLevel(assetPath("levels/level6.json"));
 
     REQUIRE(level.getNextLevel() == "../../assets/levels/level1.json");
-    REQUIRE(level.getNpcs().size() == 2);
-    REQUIRE(level.getNpcs()[0].type == "villager");
+    REQUIRE_FALSE(level.getNpcs().empty());
+    for (const NpcSpawnData &spawn : level.getNpcs())
+        REQUIRE(shippedNpcData().contains(spawn.type));
 
     for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
         if (entry.path().extension() == ".json")

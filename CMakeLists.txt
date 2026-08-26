@@ -105,6 +105,7 @@ add_executable(platformer
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
+    src/navigation/navigation_graph_builder.cpp
     src/game/actor/actor_behavior.cpp
     src/game/actor/behaviors/input_behavior.cpp
     src/game/actor/behaviors/patrol_behavior.cpp
@@ -183,6 +184,7 @@ add_executable(tests
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp
     tests/navigation/test_navigation_graph.cpp
+    tests/navigation/test_navigation_graph_builder.cpp
     tests/game/actor/behaviors/test_patrol_behavior.cpp
     tests/game/npc/test_npc.cpp
     tests/game/tile_map/test_tile_map_navigation.cpp
@@ -229,6 +231,7 @@ add_executable(tests
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
+    src/navigation/navigation_graph_builder.cpp
     src/game/actor/actor_behavior.cpp
     src/game/actor/behaviors/input_behavior.cpp
     src/game/actor/behaviors/patrol_behavior.cpp

@@ -127,3 +127,28 @@ TEST_CASE("A level naming an npc that does not exist fails to load", "[Level]")
         Catch::Matchers::ContainsSubstring("nobody") &&
             Catch::Matchers::ContainsSubstring("new_level.json"));
 }
+
+TEST_CASE("Editing the tiles changes what the graphs describe", "[Level]")
+{
+    Level level = levelPlacing({{"short", StandingTile}});
+    NavigationProfile walker = profileOfHeight(13.0f);
+
+    REQUIRE(nodesOnTheFloor(level.graphFor(walker)) == 2);
+
+    level.getTileMap().setTileIndex(glm::ivec2(5, FloorRow), 0);
+    level.rebuildGraphs();
+
+    REQUIRE(nodesOnTheFloor(level.graphFor(walker)) == 4);
+}
+
+TEST_CASE("Rebuilding keeps a graph for every profile it had", "[Level]")
+{
+    Level level = levelPlacing({{"short", StandingTile}, {"tall", StandingTile}});
+    size_t before = level.getGraphs().size();
+
+    level.rebuildGraphs();
+
+    REQUIRE(level.getGraphs().size() == before);
+    REQUIRE(nodesOnTheFloor(level.graphFor(profileOfHeight(13.0f))) == 2);
+    REQUIRE(nodesOnTheFloor(level.graphFor(profileOfHeight(20.0f))) == 0);
+}

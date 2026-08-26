@@ -5,6 +5,10 @@ on:
     branches: [master]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
@@ -15,6 +19,7 @@ jobs:
 
     env:
       DISPLAY: ":99"
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
 
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +33,14 @@ jobs:
 
       - name: Set up CMake
         uses: lukka/get-cmake@latest
+
+      - name: Restore compiler cache
+        if: runner.os != 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ccache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-
 
       - name: Set up for Linux
         if: runner.os == 'Linux'
@@ -47,14 +60,15 @@ jobs:
             libxrandr-dev \
             libxinerama-dev \
             libxcursor-dev \
-            libxi-dev
+            libxi-dev \
+            ccache
           Xvfb :99 -screen 0 1024x768x24 &
 
       - name: Set up for macOS
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install llvm
+          brew install llvm ccache
 
       - name: Set up for Windows
         if: runner.os == 'Windows'
@@ -80,6 +94,8 @@ jobs:
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             cmake -G Ninja -B build/release \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -DGLFW_BUILD_WAYLAND=OFF \
               -DCMAKE_C_COMPILER=/usr/bin/clang-22 \
               -DCMAKE_CXX_COMPILER=/usr/bin/clang++-22 \
@@ -88,6 +104,8 @@ jobs:
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             cmake -G Ninja -B build/release \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -DCMAKE_C_COMPILER="/opt/homebrew/opt/llvm/bin/clang" \
               -DCMAKE_CXX_COMPILER="/opt/homebrew/opt/llvm/bin/clang++" \
               -DCMAKE_OSX_SYSROOT=$(xcrun --sdk macosx --show-sdk-path) \

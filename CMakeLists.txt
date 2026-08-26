@@ -189,6 +189,8 @@ endforeach()
 
 add_library(header_self_containment OBJECT EXCLUDE_FROM_ALL ${selfContainmentSources})
 
+target_compile_features(header_self_containment PRIVATE cxx_std_23)
+
 target_include_directories(header_self_containment PRIVATE include)
 
 target_include_directories(header_self_containment SYSTEM PRIVATE
@@ -197,9 +199,14 @@ target_include_directories(header_self_containment SYSTEM PRIVATE
     external/glaze/include
     external/sol2/include
     external/efsw/include
+    external/efsw/src
+    external/stb
+    external/lua/lua-5.4.7/include
+    external/imgui
+    external/imgui/backends
+    external/glm
+    external/signals
 )
-
-target_link_libraries(header_self_containment PRIVATE glad glfw stb lua imgui efsw)
 
 add_executable(tests
     tests/test_main.cpp

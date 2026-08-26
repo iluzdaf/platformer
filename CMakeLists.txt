@@ -15,7 +15,13 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if(NOT MSVC)
+set(intelliSenseBuildDirectories Debug Release RelWithDebInfo MinSizeRel)
+get_filename_component(buildDirectoryName ${CMAKE_BINARY_DIR} NAME)
+get_filename_component(buildDirectoryParent ${CMAKE_BINARY_DIR} DIRECTORY)
+
+if(NOT MSVC
+    AND buildDirectoryParent STREQUAL ${CMAKE_SOURCE_DIR}/build
+    AND buildDirectoryName IN_LIST intelliSenseBuildDirectories)
     file(CREATE_LINK
         ${CMAKE_BINARY_DIR}/compile_commands.json
         ${CMAKE_SOURCE_DIR}/compile_commands.json

@@ -41,10 +41,11 @@ its own and can disagree, so its IntelliSense is switched off.
 - `.vscode/extensions.json` — the extensions to install.
 - `.vscode/settings.json` — the generator, the build directory, and clangd in place of
   the C/C++ extension.
-- `.clang-format`, `.clang-tidy` — formatting and naming, applied on save.
+- `.clang-format`, `.clang-tidy` — formatting, naming and includes, applied on save.
 
 CMake writes the compile database and links it to the repository root, so clangd reads
-whichever configuration you last configured.
+whichever of `build/Debug` or `build/Release` you configured last. Other build
+directories leave the link alone, so a one off build cannot take it.
 
 One thing to check: clangd must come from the LLVM you build with — `PATH` often finds
 a different one first, so check that `clangd --version` matches your compiler, and name
@@ -67,16 +68,11 @@ game writes.
     For Windows, Visual Studio 2022 with **CMake** and **Git for Windows** added
     through *Tools and Features → Individual Components*.
 
-    For macOS and Linux, **CMake**, **Ninja**, **git-lfs** and **LLVM clang**.
-
-    LLVM ships `clang-format`, `clang-tidy` and `clangd`, but not always where
-    your shell will find them. Homebrew's `llvm` is keg-only, so nothing it
-    installs lands on `PATH`, and apt.llvm.org packages the tools separately from
-    the compiler. Whichever way you install them, they must be the same version
-    as each other and as the one CI pins:
+    For macOS and Linux, **CMake**, **Ninja**, **git-lfs**, and **LLVM 22** with
+    its tools, which install separately from the compiler:
 
     ```bash
-    brew install llvm clang-format          # macOS
+    brew install llvm clang-format                                # macOS
     sudo apt-get install clang-22 clang-format-22 clang-tidy-22   # Linux
     ```
 
@@ -104,27 +100,13 @@ game writes.
 
 Formatting is defined by [.clang-format](.clang-format) and naming by
 [.clang-tidy](.clang-tidy), which also asks whether a file includes what it uses.
-Both editors apply them on save; to sweep the whole tree:
+Editors apply them on save and the pre commit hook formats what you stage. Both
+tools must be version 22, the one CI pins, since others disagree. To sweep the
+whole tree, and to check that every header compiles on its own:
 
 ```bash
 clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
 clang-tidy -p build/Debug $(find src tests -name '*.cpp')
-```
-
-Both want the version CI pins, **22**. clang-format 21 and 22 disagree about the
-same file, so the pre commit hook only formats when it finds 22, and says so when
-it cannot. The include check is unbearable untuned, reporting the header that
-defines a symbol rather than the umbrella a library ships, and the options that
-quiet it down do not exist before clang-tidy 21. Older versions ignore options
-they do not recognise rather than complaining, so they run the untuned check and
-bury you.
-
-A header should also compile on its own, rather than relying on whoever includes
-it having included something else first. There is no tool for that, so there is a
-target: one generated file per header under `include` and `tests`, including only
-that header.
-
-```bash
 cmake --build build/Debug --target header_self_containment
 ```
 

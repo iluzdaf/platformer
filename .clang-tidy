@@ -1,7 +1,11 @@
-Checks: '-*,readability-identifier-naming'
+Checks: '-*,readability-identifier-naming,misc-include-cleaner'
 HeaderFilterRegex: '.*'
 ExcludeHeaderFilterRegex: '.*/external/.*'
 CheckOptions:
+  - key: misc-include-cleaner.MissingIncludes
+    value: 'false'
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: 'sol/.*;glaze/.*;imgui.*;glm/.*;glad/.*;GLFW/.*;efsw/.*;stb_.*'
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
   - key: readability-identifier-naming.StructCase

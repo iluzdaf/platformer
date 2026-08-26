@@ -176,6 +176,31 @@ target_link_libraries(platformer
     ${CMAKE_DL_LIBS}
 )
 
+file(GLOB_RECURSE selfContainmentHeaders CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/include/*.hpp)
+set(selfContainmentSources)
+
+foreach(header ${selfContainmentHeaders})
+    file(RELATIVE_PATH includedPath ${CMAKE_SOURCE_DIR}/include ${header})
+    string(REPLACE "/" "_" translationUnitName ${includedPath})
+    set(translationUnit ${CMAKE_BINARY_DIR}/header_self_containment/${translationUnitName}.cpp)
+    file(WRITE ${translationUnit} "#include \"${includedPath}\"\n")
+    list(APPEND selfContainmentSources ${translationUnit})
+endforeach()
+
+add_library(header_self_containment OBJECT EXCLUDE_FROM_ALL ${selfContainmentSources})
+
+target_include_directories(header_self_containment PRIVATE include)
+
+target_include_directories(header_self_containment SYSTEM PRIVATE
+    external/glad/include
+    external/glfw/include
+    external/glaze/include
+    external/sol2/include
+    external/efsw/include
+)
+
+target_link_libraries(header_self_containment PRIVATE glad glfw stb lua imgui efsw)
+
 add_executable(tests
     tests/test_main.cpp
     tests/rendering/test_texture2d.cpp

@@ -39,6 +39,7 @@ jobs:
           sudo ./llvm.sh 20
           sudo apt-get install -y \
             clang \
+            clang-tidy-20 \
             libc++-20-dev \
             libc++abi-20-dev \
             libgl1-mesa-dev \
@@ -94,6 +95,16 @@ jobs:
           fi
 
           cmake --build build/release --config Release
+
+      - name: Check headers stand on their own
+        if: runner.os == 'Linux'
+        run: cmake --build build/release --target header_self_containment
+
+      - name: Check naming and includes
+        if: runner.os == 'Linux'
+        run: |
+          clang-tidy-20 -p build/release --warnings-as-errors='*' --quiet \
+            $(find src -name '*.cpp')
 
       - name: Run tests for Windows
         if: runner.os == 'Windows'

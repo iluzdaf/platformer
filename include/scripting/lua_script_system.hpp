@@ -6,6 +6,7 @@
 class Game;
 class Camera2D;
 class TileMap;
+class Level;
 class Player;
 class ScreenTransition;
 
@@ -27,7 +28,7 @@ public:
         ScreenTransition *screenTransition);
     void triggerLevelComplete();
     void triggerDeath();
-    void bindTileMap(TileMap *tileMap);
+    void bindLevel(Level *level);
     sol::state &getLua();
     const std::vector<WaitingCoroutine> &getWaitingCoroutines() const;
     void triggerWallJump();

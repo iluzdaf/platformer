@@ -8,6 +8,7 @@ void DebugAABBUi::draw(
     const ImGuiManager &imGuiManager,
     const Player &player,
     const TileMap &tileMap,
+    glm::vec2 playerStartPosition,
     const Camera2D &camera,
     bool shouldDrawPlayerAABBs,
     bool shouldDrawTileMapAABBs)
@@ -21,7 +22,7 @@ void DebugAABBUi::draw(
 
     if (shouldDrawTileMapAABBs)
     {
-        drawTileMapAABBs(drawList, imGuiManager, tileMap, camera);
+        drawTileMapAABBs(drawList, imGuiManager, tileMap, playerStartPosition, camera);
     }
 
     drawDebugAABBs(drawList, imGuiManager, camera);
@@ -55,6 +56,7 @@ void DebugAABBUi::drawTileMapAABBs(
     ImDrawList *drawList,
     const ImGuiManager &imGuiManager,
     const TileMap &tileMap,
+    glm::vec2 playerStartPosition,
     const Camera2D &camera)
 {
     auto tilePositions = tileMap.worldToTilePositions(camera.getTopLeftPosition(), camera.getWindowSize());
@@ -82,7 +84,7 @@ void DebugAABBUi::drawTileMapAABBs(
         camera,
         IM_COL32(255, 255, 0, 255));
 
-    glm::vec2 playerStartWorldPosition = tileMap.getPlayerStartWorldPosition();
+    glm::vec2 playerStartWorldPosition = playerStartPosition;
     drawAABB(
         drawList,
         imGuiManager,

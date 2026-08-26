@@ -5,11 +5,23 @@
 #include <fstream>
 #include <set>
 #include "game/tile_map/tile_map.hpp"
+#include "game/level.hpp"
+#include "game/level_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
 
 namespace
 {
+    std::unordered_map<std::string, NpcData> shippedNpcs()
+    {
+        return {{"villager", NpcData()}};
+    }
+
+    Level loadLevel(const std::string &path)
+    {
+        return Level(path, shippedPalettes(), PlayerData(), shippedNpcs());
+    }
+
     void layFloor(TileMap &tileMap, int groundY, int fromX, int toX)
     {
         for (int x = fromX; x <= toX; ++x)
@@ -45,7 +57,7 @@ TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unc
         savePath,
         std::filesystem::copy_options::overwrite_existing);
 
-    TileMap loaded(savePath.string(), shippedPalettes());
+    Level loaded = loadLevel(savePath.string());
     loaded.save();
 
     std::string savedJson = readFile(savePath);
@@ -53,12 +65,12 @@ TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unc
     REQUIRE(savedJson.starts_with("{\n    \""));
     REQUIRE(savedJson.ends_with("\n}"));
 
-    REQUIRE(savedJson.find("\"indices\":[\n        [") != std::string::npos);
+    REQUIRE(savedJson.find("\"indices\":[\n            [") != std::string::npos);
 
     size_t rows = 0;
-    for (size_t at = savedJson.find("\n        ["); at != std::string::npos; at = savedJson.find("\n        [", at + 1))
+    for (size_t at = savedJson.find("\n            ["); at != std::string::npos; at = savedJson.find("\n            [", at + 1))
         ++rows;
-    REQUIRE(rows == static_cast<size_t>(loaded.getHeight()));
+    REQUIRE(rows == static_cast<size_t>(loaded.getTileMap().getHeight()));
 
     REQUIRE(savedJson.find("\"tilePalette\":\"default\"") != std::string::npos);
     REQUIRE(savedJson.find("\"tileData\"") == std::string::npos);
@@ -66,21 +78,21 @@ TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unc
     REQUIRE(savedJson.find("\"playerStartTilePosition\":[") != std::string::npos);
     REQUIRE(savedJson.find("\"playerStartTilePosition\":[\n") == std::string::npos);
 
-    TileMap reloaded(savePath.string(), shippedPalettes());
+    Level reloaded = loadLevel(savePath.string());
     reloaded.save();
     REQUIRE(readFile(savePath) == savedJson);
 
-    REQUIRE(reloaded.getWidth() == loaded.getWidth());
-    REQUIRE(reloaded.getHeight() == loaded.getHeight());
-    REQUIRE(reloaded.getTileSize() == loaded.getTileSize());
+    REQUIRE(reloaded.getTileMap().getWidth() == loaded.getTileMap().getWidth());
+    REQUIRE(reloaded.getTileMap().getHeight() == loaded.getTileMap().getHeight());
+    REQUIRE(reloaded.getTileMap().getTileSize() == loaded.getTileMap().getTileSize());
     REQUIRE(reloaded.getNextLevel() == loaded.getNextLevel());
     REQUIRE(reloaded.getNpcs() == loaded.getNpcs());
     REQUIRE(reloaded.getPlayerStartWorldPosition() == loaded.getPlayerStartWorldPosition());
 
-    for (int y = 0; y < loaded.getHeight(); ++y)
-        for (int x = 0; x < loaded.getWidth(); ++x)
-            REQUIRE(reloaded.tilePositionToTileIndex({x, y}) ==
-                    loaded.tilePositionToTileIndex({x, y}));
+    for (int y = 0; y < loaded.getTileMap().getHeight(); ++y)
+        for (int x = 0; x < loaded.getTileMap().getWidth(); ++x)
+            REQUIRE(reloaded.getTileMap().tilePositionToTileIndex({x, y}) ==
+                    loaded.getTileMap().tilePositionToTileIndex({x, y}));
 
     std::filesystem::remove(savePath);
 }
@@ -101,7 +113,7 @@ TEST_CASE("Every shipped level is already in the format the editor saves", "[Til
             savePath,
             std::filesystem::copy_options::overwrite_existing);
 
-        TileMap(savePath.string(), shippedPalettes()).save();
+        loadLevel(savePath.string()).save();
 
         INFO("level " << entry.path().filename().string() << " is not saved in the editor's format");
         REQUIRE(readFile(savePath) == original);
@@ -112,15 +124,15 @@ TEST_CASE("Every shipped level is already in the format the editor saves", "[Til
 
 TEST_CASE("A level knows where it heads next", "[TileMap][Level]")
 {
-    TileMap tileMap(assetPath("levels/level6.json"), shippedPalettes());
+    Level level = loadLevel(assetPath("levels/level6.json"));
 
-    REQUIRE(tileMap.getNextLevel() == "../../assets/levels/level1.json");
-    REQUIRE(tileMap.getNpcs().size() == 2);
-    REQUIRE(tileMap.getNpcs()[0].type == "villager");
+    REQUIRE(level.getNextLevel() == "../../assets/levels/level1.json");
+    REQUIRE(level.getNpcs().size() == 2);
+    REQUIRE(level.getNpcs()[0].type == "villager");
 
     for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
         if (entry.path().extension() == ".json")
-            REQUIRE_FALSE(TileMap(entry.path().string(), shippedPalettes()).getNextLevel().empty());
+            REQUIRE_FALSE(loadLevel(entry.path().string()).getNextLevel().empty());
 }
 
 TEST_CASE("A level naming a palette that does not exist fails to load", "[TileMap][Level]")
@@ -140,5 +152,5 @@ TEST_CASE("Every shipped level uses a palette that exists", "[TileMap][Level]")
 {
     for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
         if (entry.path().extension() == ".json")
-            REQUIRE_NOTHROW(TileMap(entry.path().string(), shippedPalettes()));
+            REQUIRE_NOTHROW(loadLevel(entry.path().string()));
 }

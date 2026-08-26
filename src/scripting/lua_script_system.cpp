@@ -2,6 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "scripting/lua_script_system.hpp"
 #include "game/game.hpp"
+#include "game/level.hpp"
 
 LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath)
     : scriptPath(scriptPath)
@@ -22,8 +23,8 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath)
                            "loadLevel", &Game::loadLevel,
                            "rebuildPlayer", &Game::rebuildPlayer);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
-    lua.new_usertype<TileMap>("TileMap", "getPlayerStartWorldPosition", &TileMap::getPlayerStartWorldPosition,
-                              "getNextLevel", &TileMap::getNextLevel);
+    lua.new_usertype<Level>("Level", "getPlayerStartWorldPosition", &Level::getPlayerStartWorldPosition,
+                            "getNextLevel", &Level::getNextLevel);
     lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition);
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
 
@@ -91,9 +92,9 @@ void LuaScriptSystem::triggerDeath()
         onDeath();
 }
 
-void LuaScriptSystem::bindTileMap(TileMap *tileMap)
+void LuaScriptSystem::bindLevel(Level *level)
 {
-    lua["tileMap"] = tileMap;
+    lua["level"] = level;
 }
 
 sol::state &LuaScriptSystem::getLua()

@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include "game/level.hpp"
+#include "game/level_data.hpp"
 #include "game/player/player_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 
@@ -40,19 +41,20 @@ namespace
         return playerData;
     }
 
-    TileMapData corridorPlacing(const std::vector<NpcSpawnData> &npcs)
+    LevelData corridorPlacing(const std::vector<NpcSpawnData> &npcs)
     {
-        TileMapData tileMapData;
-        tileMapData.size = 16;
-        tileMapData.indices =
+        LevelData levelData;
+        levelData.tileMapData.size = 16;
+        levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)
         {
-            (*tileMapData.indices)[FloorRow][x] = 1;
-            (*tileMapData.indices)[CeilingRow][x] = 1;
+            (*levelData.tileMapData.indices)[FloorRow][x] = 1;
+            (*levelData.tileMapData.indices)[CeilingRow][x] = 1;
         }
-        tileMapData.npcs = npcs;
-        return tileMapData;
+        levelData.playerStartTilePosition = glm::ivec2(1, FloorRow - 1);
+        levelData.npcs = npcs;
+        return levelData;
     }
 
     Level levelPlacing(

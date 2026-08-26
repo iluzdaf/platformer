@@ -21,6 +21,7 @@ public:
         const ImGuiManager &imGuiManager,
         const Player &player,
         const TileMap &tileMap,
+        glm::vec2 playerStartPosition,
         const Camera2D &camera,
         bool shouldDrawPlayerAABBs,
         bool shouldDrawTileMapAABBs);
@@ -46,6 +47,7 @@ private:
         ImDrawList *drawList,
         const ImGuiManager &imGuiManager,
         const TileMap &tileMap,
+        glm::vec2 playerStartPosition,
         const Camera2D &camera);
     void drawAABB(
         ImDrawList *drawList,

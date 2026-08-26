@@ -16,7 +16,7 @@ Game::Game()
     shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
     shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
     showDebug = gameData.debugData.showDebug;
-    showTileMapEditor = gameData.debugData.showTileMapEditor;
+    showLevelEditor = gameData.debugData.showLevelEditor;
 
     initGLFW(gameData.windowWidth, gameData.windowHeight);
 
@@ -33,7 +33,7 @@ Game::Game()
     keyboardManager.registerKey(GLFW_KEY_S);
     levelWatcher.onLevelChanged.connect([this](const std::string &levelPath)
                                         {
-        if (levelPath.compare(level->getTileMap().getLevel()) == 0)
+        if (levelPath.compare(level->getPath()) == 0)
             try
             {
                 loadLevel(levelPath);
@@ -141,8 +141,8 @@ Game::Game()
     debugUi.onGameReload.connect([this]
                                  { reload(); });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
-    editorTileMapUi.onLoadLevel.connect([this](const std::string &levelPath)
-                                        { loadLevel(levelPath); });
+    levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
+                                      { loadLevel(levelPath); });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), screenTransition.get());
 
@@ -184,7 +184,7 @@ void Game::run()
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
         debugAABBUi.update(deltaTime);
-        editorTileMapUi.update(
+        levelEditorUi.update(
             *imGuiManager.get(),
             *camera.get(),
             *level.get());
@@ -293,6 +293,7 @@ void Game::render()
         *imGuiManager.get(),
         *player.get(),
         level->getTileMap(),
+        level->getPlayerStartWorldPosition(),
         *camera.get(),
         shouldDrawPlayerAABBs,
         shouldDrawTileMapAABBs);
@@ -305,11 +306,11 @@ void Game::render()
         *camera.get(),
         showDebug);
 
-    editorTileMapUi.draw(
+    levelEditorUi.draw(
         *imGuiManager.get(),
         *level.get(),
         *tileSet.get(),
-        showTileMapEditor);
+        showLevelEditor);
 
     debugNavigationUi.draw(
         *imGuiManager.get(),
@@ -375,7 +376,7 @@ void Game::reload()
     shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
     shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
     showDebug = gameData.debugData.showDebug;
-    showTileMapEditor = gameData.debugData.showTileMapEditor;
+    showLevelEditor = gameData.debugData.showLevelEditor;
 
     glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
 
@@ -420,7 +421,7 @@ void Game::rebuildLevel(const std::string &levelPath)
         gameData.playerData,
         gameData.npcData);
     level = std::move(newLevel);
-    luaScriptSystem->bindTileMap(&level->getTileMap());
+    luaScriptSystem->bindLevel(level.get());
 }
 
 void Game::rebuildPlayer()
@@ -430,7 +431,7 @@ void Game::rebuildPlayer()
 
     std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
     player = std::move(newPlayer);
-    player->setPosition(level->getTileMap().getPlayerStartWorldPosition());
+    player->setPosition(level->getPlayerStartWorldPosition());
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()
@@ -458,7 +459,7 @@ void Game::rebuildNpcs()
 {
     npcs.clear();
 
-    for (const NpcSpawnData &spawn : level->getTileMap().getNpcs())
+    for (const NpcSpawnData &spawn : level->getNpcs())
     {
         auto it = gameData.npcData.find(spawn.type);
 

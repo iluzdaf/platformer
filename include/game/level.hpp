@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "game/level_data.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/npc/npc_data.hpp"
 #include "game/player/player_data.hpp"
@@ -18,24 +19,45 @@ public:
         const PlayerData &playerData,
         const std::unordered_map<std::string, NpcData> &npcData);
     Level(
-        const TileMapData &tileMapData,
+        const LevelData &levelData,
         const TilePalettes &tilePalettes,
         const PlayerData &playerData,
         const std::unordered_map<std::string, NpcData> &npcData);
 
     const TileMap &getTileMap() const;
     TileMap &getTileMap();
+
+    const NavigationGraph &graphFor(const NavigationProfile &profile) const;
     const std::vector<NavigationGraph> &getGraphs() const;
     void rebuildGraphs();
-    const NavigationGraph &graphFor(const NavigationProfile &profile) const;
+
+    glm::vec2 getPlayerStartWorldPosition() const;
+    const std::string &getNextLevel() const;
+    const std::vector<NpcSpawnData> &getNpcs() const;
+    const std::string &getPath() const;
+    void setPlayerStartTile(glm::ivec2 tilePosition);
+    LevelData toLevelData() const;
+    void save() const;
 
 private:
+    Level(
+        const LevelData &levelData,
+        const TilePalettes &tilePalettes,
+        const PlayerData &playerData,
+        const std::unordered_map<std::string, NpcData> &npcData,
+        const std::string &jsonFilePath);
+
     TileMap tileMap;
+    glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
+    std::string nextLevel;
+    std::vector<NpcSpawnData> npcs;
+    std::string path;
     std::vector<NavigationProfile> profiles;
     std::vector<NavigationGraph> graphs;
 
-    void addGraphFor(const NavigationProfile &profile);
-    void buildGraphs(
+    void initFrom(
+        const LevelData &levelData,
         const PlayerData &playerData,
         const std::unordered_map<std::string, NpcData> &npcData);
+    void addGraphFor(const NavigationProfile &profile);
 };

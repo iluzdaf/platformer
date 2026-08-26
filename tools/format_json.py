@@ -25,6 +25,21 @@ NESTING_ON_LINES = 2
 INLINE_WIDTH_LIMIT = 100
 
 
+def grid_of(data):
+    if not isinstance(data, dict):
+        return None
+
+    if isinstance(data.get("indices"), list):
+        return data["indices"]
+
+    for value in data.values():
+        found = grid_of(value)
+        if found is not None:
+            return found
+
+    return None
+
+
 def with_padded_grid(compact, grid):
     key = '"indices":['
     start = compact.find(key)
@@ -151,7 +166,7 @@ def formatted(data):
     """
     compact = json.dumps(data, separators=(",", ":"))
 
-    grid = data.get("indices")
+    grid = grid_of(data)
     if isinstance(grid, list) and grid:
         compact = with_padded_grid(compact, grid)
 

@@ -6,6 +6,7 @@
 #include "game/npc/npc.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/level_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
 
@@ -30,10 +31,11 @@ namespace
 
     Level levelOf(TileMap &tileMap, glm::ivec2 npcTile)
     {
-        TileMapData tileMapData = tileMap.toTileMapData();
-        tileMapData.npcs = {{"villager", npcTile}};
+        LevelData levelData;
+        levelData.tileMapData = tileMap.toTileMapData();
+        levelData.npcs = {{"villager", npcTile}};
         return Level(
-            tileMapData,
+            levelData,
             palettesFrom(getDefaultTileDataMap()),
             PlayerData(),
             npcCatalogue());
@@ -210,20 +212,23 @@ TEST_CASE("Patrolling is deterministic, so where you place them is what differs"
 
 TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
 {
-    TileMapData tileMapData;
-    tileMapData.size = 16;
-    tileMapData.width = 10;
-    tileMapData.height = 10;
-    TilePalette palette = getDefaultTileDataMap();
-    tileMapData.npcs = {{"villager", {1, 1}}, {"villager", {2, 1}}};
+    LevelData levelData;
+    levelData.tileMapData.size = 16;
+    levelData.tileMapData.width = 10;
+    levelData.tileMapData.height = 10;
+    levelData.npcs = {{"villager", {1, 1}}, {"villager", {2, 1}}};
 
-    TileMap tileMap(tileMapData, palettesFrom(palette));
+    Level level(
+        levelData,
+        palettesFrom(getDefaultTileDataMap()),
+        PlayerData(),
+        npcCatalogue());
 
-    REQUIRE(tileMap.getNpcs().size() == 2);
-    REQUIRE(tileMap.getNpcs()[0].type == "villager");
-    REQUIRE(tileMap.getNpcs()[0].tilePosition == glm::ivec2(1, 1));
-    REQUIRE(tileMap.getNpcs()[1].tilePosition == glm::ivec2(2, 1));
-    REQUIRE(tileMap.toTileMapData().npcs == tileMapData.npcs);
+    REQUIRE(level.getNpcs().size() == 2);
+    REQUIRE(level.getNpcs()[0].type == "villager");
+    REQUIRE(level.getNpcs()[0].tilePosition == glm::ivec2(1, 1));
+    REQUIRE(level.getNpcs()[1].tilePosition == glm::ivec2(2, 1));
+    REQUIRE(level.toLevelData().npcs == levelData.npcs);
 }
 
 TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level]")
@@ -236,7 +241,7 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
 
         Level level(entry.path().string(), shippedPalettes(), PlayerData(), npcCatalogue());
         const TileMap &tileMap = level.getTileMap();
-        for (const NpcSpawnData &spawn : tileMap.getNpcs())
+        for (const NpcSpawnData &spawn : level.getNpcs())
         {
             ++placed;
             INFO("npc \"" << spawn.type << "\" at " << spawn.tilePosition.x << "," << spawn.tilePosition.y
@@ -257,29 +262,32 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
 
 TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Level]")
 {
-    TileMapData tileMapData;
-    tileMapData.size = 16;
+    LevelData levelData;
+    levelData.tileMapData.size = 16;
     TilePalette palette = getDefaultTileDataMap();
-    tileMapData.indices = std::vector<std::vector<int>>(10, std::vector<int>(10, 0));
+    levelData.tileMapData.indices = std::vector<std::vector<int>>(10, std::vector<int>(10, 0));
     for (int x = 0; x < 10; ++x)
-        (*tileMapData.indices)[6][x] = 1;
+        (*levelData.tileMapData.indices)[6][x] = 1;
+
+    auto levelWith = [&](std::vector<NpcSpawnData> npcs)
+    {
+        levelData.npcs = std::move(npcs);
+        return Level(levelData, palettesFrom(palette), PlayerData(), npcCatalogue());
+    };
 
     SECTION("out of bounds")
     {
-        tileMapData.npcs = {{"villager", {99, 99}}};
-        REQUIRE_THROWS_WITH(TileMap(tileMapData, palettesFrom(palette)), "Npc start position is out of bounds");
+        REQUIRE_THROWS_WITH(levelWith({{"villager", {99, 99}}}), "Npc start position is out of bounds");
     }
 
     SECTION("inside a solid tile")
     {
-        tileMapData.npcs = {{"villager", {3, 6}}};
-        REQUIRE_THROWS_WITH(TileMap(tileMapData, palettesFrom(palette)), "Npc start position is on a solid tile");
+        REQUIRE_THROWS_WITH(levelWith({{"villager", {3, 6}}}), "Npc start position is on a solid tile");
     }
 
     SECTION("somewhere it can stand")
     {
-        tileMapData.npcs = {{"villager", {3, 5}}};
-        REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));
+        REQUIRE_NOTHROW(levelWith({{"villager", {3, 5}}}));
     }
 }
 

@@ -16,7 +16,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "rendering/ui/debug_tile_map_ui.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
-#include "rendering/ui/editor_tile_map_ui.hpp"
+#include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/score_ui.hpp"
 #include "rendering/ui/debug_navigation_ui.hpp"
 #include "cameras/camera2d.hpp"
@@ -81,7 +81,7 @@ private:
     DebugUi debugUi;
     DebugTileMapUi debugTileMapUi;
     DebugAABBUi debugAABBUi;
-    EditorTileMapUi editorTileMapUi;
+    LevelEditorUi levelEditorUi;
     ScoreUi scoreUi;
     DebugNavigationUi debugNavigationUi;
     fteng::connection onLevelCompleteConnection;
@@ -92,6 +92,6 @@ private:
          shouldDrawPlayerAABBs = false,
          shouldDrawTileMapAABBs = false,
          showDebug = false,
-         showTileMapEditor = false;
+         showLevelEditor = false;
     GameData gameData;
 };

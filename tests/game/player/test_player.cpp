@@ -6,6 +6,7 @@
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/test_player_utils.hpp"
 #include "game/level.hpp"
+#include "game/level_data.hpp"
 
 using Catch::Approx;
 
@@ -19,8 +20,11 @@ namespace
         InputIntentions intentions = InputIntentions(),
         float step = 0.01f)
     {
+        LevelData levelData;
+        levelData.tileMapData = tileMap.toTileMapData();
+
         Level level(
-            tileMap.toTileMapData(),
+            levelData,
             palettesFrom(getDefaultTileDataMap()),
             setupPlayerData(),
             {});

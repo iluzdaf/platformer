@@ -19,7 +19,7 @@ end
 function levelCompleteCoroutine()    
     waitSeconds(0);
     game:pause()
-    game:loadLevel(tileMap:getNextLevel())
+    game:loadLevel(level:getNextLevel())
     screenTransition:start(0.5, true)
     waitSeconds(0.5)
     game:play()

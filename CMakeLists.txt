@@ -83,7 +83,7 @@ add_executable(platformer
     src/rendering/ui/imgui_manager.cpp
     src/rendering/ui/debug_tile_map_ui.cpp
     src/rendering/ui/debug_aabb_ui.cpp
-    src/rendering/ui/editor_tile_map_ui.cpp
+    src/rendering/ui/level_editor_ui.cpp
     src/rendering/ui/score_ui.cpp
     src/rendering/ui/debug_navigation_ui.cpp
     src/game/tile_map/tile_map.cpp
@@ -212,7 +212,7 @@ add_executable(tests
     src/rendering/ui/imgui_manager.cpp
     src/rendering/ui/debug_tile_map_ui.cpp
     src/rendering/ui/debug_aabb_ui.cpp
-    src/rendering/ui/editor_tile_map_ui.cpp
+    src/rendering/ui/level_editor_ui.cpp
     src/rendering/ui/score_ui.cpp
     src/rendering/ui/debug_navigation_ui.cpp
     src/game/tile_map/tile_map.cpp

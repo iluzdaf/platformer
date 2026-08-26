@@ -1,4 +1,4 @@
-#include "rendering/ui/editor_tile_map_ui.hpp"
+#include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "game/tile_map/tile_map.hpp"
@@ -15,13 +15,13 @@ namespace
     }
 }
 
-void EditorTileMapUi::draw(
+void LevelEditorUi::draw(
     const ImGuiManager &imGuiManager,
     Level &level,
     const Texture2D &tileSet,
-    bool showTileMapEditor)
+    bool showLevelEditor)
 {
-    if (!showTileMapEditor)
+    if (!showLevelEditor)
         return;
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
@@ -31,23 +31,23 @@ void EditorTileMapUi::draw(
 
     ImGui::Text(
         "%s w%dxh%dxs%d",
-        levelName(level.getTileMap().getLevel()).c_str(),
+        levelName(level.getPath()).c_str(),
         level.getTileMap().getWidth(),
         level.getTileMap().getHeight(),
         level.getTileMap().getTileSize());
 
-    ImGui::Text("next %s", levelName(level.getTileMap().getNextLevel()).c_str());
+    ImGui::Text("next %s", levelName(level.getNextLevel()).c_str());
     ImGui::SameLine();
     if (ImGui::SmallButton("go"))
     {
-        std::string nextLevel = level.getTileMap().getNextLevel();
+        std::string nextLevel = level.getNextLevel();
         editing = false;
         ImGui::End();
         onLoadLevel(nextLevel);
         return;
     }
 
-    const std::vector<NpcSpawnData> &npcs = level.getTileMap().getNpcs();
+    const std::vector<NpcSpawnData> &npcs = level.getNpcs();
     std::string npcsLabel = "npcs " + std::to_string(npcs.size()) + "###npcs";
     if (ImGui::CollapsingHeader(npcsLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -136,21 +136,21 @@ void EditorTileMapUi::draw(
     ImGui::SameLine();
     if (ImGui::Button("Save"))
     {
-        level.getTileMap().save();
+        level.save();
         editing = false;
     }
 
     ImGui::SameLine();
     if (ImGui::Button("Reload"))
     {
-        onLoadLevel(level.getTileMap().getLevel());
+        onLoadLevel(level.getPath());
         editing = false;
     }
 
     ImGui::End();
 }
 
-void EditorTileMapUi::update(
+void LevelEditorUi::update(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     Level &level)
@@ -168,7 +168,7 @@ void EditorTileMapUi::update(
     {
         if (editingPlayerStartTile)
         {
-            level.getTileMap().setPlayerStartTile(tilePosition);
+            level.setPlayerStartTile(tilePosition);
             editingPlayerStartTile = false;
         }
         else if (level.getTileMap().tilePositionToTileIndex(tilePosition) != selectedTileIndex)

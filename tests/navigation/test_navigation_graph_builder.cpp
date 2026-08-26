@@ -311,7 +311,7 @@ TEST_CASE("Every shipped level gives the standard actor somewhere to walk", "[Na
         if (entry.path().extension() != ".json")
             continue;
 
-        TileMap tileMap(entry.path().string(), shippedPalettes());
+        TileMap tileMap = tilesOfLevel(entry.path().string());
         INFO("level " << entry.path().filename().string() << " has no walkable graph");
         REQUIRE_FALSE(buildNavigationGraph(tileMap, standardProfile()).getEdges().empty());
     }

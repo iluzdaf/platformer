@@ -11,7 +11,6 @@
 class TileMap
 {
 public:
-    TileMap(const std::string &jsonFilePath, const TilePalettes &tilePalettes);
     TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
     void setTileIndex(glm::ivec2 tilePosition, int tileIndex);
     void setTileIndexAt(glm::vec2 worldPosition, int tileIndex);
@@ -27,29 +26,19 @@ public:
     int getWorldHeight() const;
     int getTileSize() const;
     void update(float deltaTime);
-    glm::vec2 getPlayerStartWorldPosition() const;
-    const std::string &getNextLevel() const;
     std::vector<glm::ivec2> worldToTilePositions(glm::vec2 worldPosition, glm::vec2 size) const;
     glm::vec2 tileToWorldPosition(glm::ivec2 tilePosition) const;
     const std::unordered_map<int, Tile> &getTiles() const;
     TileMapData toTileMapData() const;
-    void save() const;
-    void setPlayerStartTile(glm::ivec2 tilePosition);
     bool validTilePosition(glm::ivec2 tilePosition) const;
-    const std::string &getLevel() const;
     bool probeSolidTiles(
         const AABB &probeAABB,
         const std::function<bool(const AABB &)> &callback) const;
-    const std::vector<NpcSpawnData> &getNpcs() const;
 
 private:
     int width = 0, height = 0, tileSize = 0;
     std::vector<std::vector<int>> tileIndices;
     std::unordered_map<int, Tile> tiles;
-    glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
-    std::string nextLevel = "../assets/levels/level1.json",
-                level = "../assets/levels/new_level.json";
-    std::vector<NpcSpawnData> npcs;
     std::string tilePalette;
 
     void initByData(const TileMapData &tileMapData, const TilePalettes &tilePalettes);

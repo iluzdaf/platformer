@@ -2,6 +2,7 @@
 
 #include <glaze/glaze.hpp>
 #include "game/tile_map/tile_map.hpp"
+#include "game/level_data.hpp"
 #include "game/tile_map/tile_map_data.hpp"
 #include "game/game_data.hpp"
 #include "test_helpers/asset_path.hpp"
@@ -44,4 +45,14 @@ inline TileMap setupTileMap(
     tileMapData.width = width;
     tileMapData.height = height;
     return TileMap(tileMapData, palettesFrom(palette));
+}
+
+inline TileMap tilesOfLevel(const std::string &jsonFilePath)
+{
+    LevelData levelData;
+    auto error = glz::read_file_json(levelData, jsonFilePath, std::string{});
+    if (error)
+        throw std::runtime_error("Failed to read " + jsonFilePath);
+
+    return TileMap(levelData.tileMapData, shippedPalettes());
 }

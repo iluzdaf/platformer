@@ -46,6 +46,22 @@ namespace
                 ++count;
         return count;
     }
+
+    bool walksTheFloorEndToEnd(const NavigationGraph &graph, const TileMap &tileMap)
+    {
+        float floorY = static_cast<float>(FloorRow * tileMap.getTileSize());
+        for (const auto &edge : graph.getEdges())
+        {
+            if (edge.type != EdgeType::Walk)
+                continue;
+
+            NavigationNode from = graph.getNode(edge.fromId);
+            NavigationNode to = graph.getNode(edge.toId);
+            if (from.position.y == floorY && to.position.y == floorY)
+                return true;
+        }
+        return false;
+    }
 }
 
 TEST_CASE("A floor gives a profile somewhere to walk", "[NavigationGraphBuilder]")
@@ -76,6 +92,15 @@ TEST_CASE("A profile that fits the headroom still walks under it", "[NavigationG
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
     REQUIRE(nodesOnTheFloor(graph, tileMap) == 2);
+}
+
+TEST_CASE("A profile that fits walks the length of a one tile corridor", "[NavigationGraphBuilder]")
+{
+    TileMap tileMap = setupFloorUnderOneTileOfHeadroom();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
+
+    REQUIRE(walksTheFloorEndToEnd(graph, tileMap));
 }
 
 TEST_CASE("Headroom rounds up to whole tiles", "[NavigationGraphBuilder]")

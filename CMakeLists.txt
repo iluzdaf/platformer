@@ -104,6 +104,7 @@ add_executable(platformer
     src/physics/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp
+    src/cameras/camera_shake.cpp
     src/input/keyboard_manager.cpp
     src/input/input_manager.cpp
     src/animations/frame_animation.cpp
@@ -236,6 +237,7 @@ add_executable(tests
     src/physics/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp
+    src/cameras/camera_shake.cpp
     src/input/keyboard_manager.cpp
     src/input/input_manager.cpp
     src/animations/frame_animation.cpp

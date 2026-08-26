@@ -69,6 +69,17 @@ game writes.
 
     For macOS and Linux, **CMake**, **Ninja**, **git-lfs** and **LLVM clang**.
 
+    LLVM ships `clang-format`, `clang-tidy` and `clangd`, but not always where
+    your shell will find them. Homebrew's `llvm` is keg-only, so nothing it
+    installs lands on `PATH`, and apt.llvm.org packages the tools separately from
+    the compiler. Whichever way you install them, they must be the same version
+    as each other and as the one CI pins:
+
+    ```bash
+    brew install llvm clang-format          # macOS
+    sudo apt-get install clang-22 clang-format-22 clang-tidy-22   # Linux
+    ```
+
 2. Clone with submodules:
 
     ```bash
@@ -100,11 +111,13 @@ clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
 clang-tidy -p build/Debug $(find src tests -name '*.cpp')
 ```
 
-That last one wants **clang-tidy 21 or newer**. The include check is unbearable
-untuned, reporting the header that defines a symbol rather than the umbrella a
-library ships, and the options that quiet it down do not exist before 21. Older
-clang-tidy ignores options it does not recognise rather than complaining, so it
-runs the untuned check and buries you.
+Both want the version CI pins, **22**. clang-format 21 and 22 disagree about the
+same file, so the pre commit hook only formats when it finds 22, and says so when
+it cannot. The include check is unbearable untuned, reporting the header that
+defines a symbol rather than the umbrella a library ships, and the options that
+quiet it down do not exist before clang-tidy 21. Older versions ignore options
+they do not recognise rather than complaining, so they run the untuned check and
+bury you.
 
 A header should also compile on its own, rather than relying on whoever includes
 it having included something else first. There is no tool for that, so there is a

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <algorithm>
 #include "navigation/navigation_graph_builder.hpp"
 #include "game/tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
@@ -35,6 +36,39 @@ namespace
         for (int x = 0; x < MapWidthTiles; ++x)
             tileMap.setTileIndex(glm::ivec2(x, CeilingRow), 1);
         return tileMap;
+    }
+
+    constexpr int HighCeilingRow = 2;
+    constexpr int PinchColumn = 5;
+
+    TileMap setupCorridorThatPinches()
+    {
+        TileMap tileMap = setupFloor();
+        for (int x = 0; x < MapWidthTiles; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, HighCeilingRow), 1);
+
+        tileMap.setTileIndex(glm::ivec2(PinchColumn, FloorRow - 2), 1);
+        return tileMap;
+    }
+
+    bool anEdgeSpansThePinch(const NavigationGraph &graph, const TileMap &tileMap)
+    {
+        float tileSize = static_cast<float>(tileMap.getTileSize());
+        float pinchX = (static_cast<float>(PinchColumn) + 0.5f) * tileSize;
+        float floorY = static_cast<float>(FloorRow) * tileSize;
+        for (const auto &edge : graph.getEdges())
+        {
+            NavigationNode from = graph.getNode(edge.fromId);
+            NavigationNode to = graph.getNode(edge.toId);
+            if (from.position.y != floorY || to.position.y != floorY)
+                continue;
+
+            float low = std::min(from.position.x, to.position.x);
+            float high = std::max(from.position.x, to.position.x);
+            if (low < pinchX && high > pinchX)
+                return true;
+        }
+        return false;
     }
 
     size_t nodesOnTheFloor(const NavigationGraph &graph, const TileMap &tileMap)
@@ -118,5 +152,26 @@ TEST_CASE("Headroom rounds up to whole tiles", "[NavigationGraphBuilder]")
     {
         NavigationGraph graph = buildNavigationGraph(tileMap, profileOfHeight(tileSize + 1.0f));
         REQUIRE(nodesOnTheFloor(graph, tileMap) == 0);
+    }
+}
+
+TEST_CASE("A corridor that pinches stops a profile that no longer fits", "[NavigationGraphBuilder]")
+{
+    TileMap tileMap = setupCorridorThatPinches();
+
+    SECTION("a profile needing two tiles cannot pass the pinch")
+    {
+        NavigationGraph graph = buildNavigationGraph(tileMap, profileOfHeight(20.0f));
+
+        REQUIRE(nodesOnTheFloor(graph, tileMap) == 4);
+        REQUIRE_FALSE(anEdgeSpansThePinch(graph, tileMap));
+    }
+
+    SECTION("a profile needing one tile walks straight through")
+    {
+        NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
+
+        REQUIRE(nodesOnTheFloor(graph, tileMap) == 2);
+        REQUIRE(anEdgeSpansThePinch(graph, tileMap));
     }
 }

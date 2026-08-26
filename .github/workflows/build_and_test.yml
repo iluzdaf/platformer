@@ -27,11 +27,6 @@ jobs:
           lfs: true
           submodules: recursive
 
-      - name: Check json assets are formatted
-        if: runner.os == 'Linux'
-        run: python3 tools/format_json.py --check
-
-
       - name: Set up CMake
         uses: lukka/get-cmake@latest
 
@@ -40,8 +35,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ccache
-          key: ccache-${{ runner.os }}-${{ github.sha }}
-          restore-keys: ccache-${{ runner.os }}-
+          key: ccache-build-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-build-${{ runner.os }}-
 
       - name: Set up for Linux
         if: runner.os == 'Linux'
@@ -116,22 +111,6 @@ jobs:
 
           cmake --build build/release --config Release
 
-      - name: Check sources are formatted
-        if: runner.os == 'Linux'
-        run: |
-          clang-format-22 --dry-run --Werror \
-            $(find src include tests -name '*.cpp' -o -name '*.hpp')
-
-      - name: Check headers stand on their own
-        if: runner.os == 'Linux'
-        run: cmake --build build/release --target header_self_containment
-
-      - name: Check naming and includes
-        if: runner.os == 'Linux'
-        run: |
-          clang-tidy-22 -p build/release --warnings-as-errors='*' --quiet \
-            $(find src tests -name '*.cpp')
-
       - name: Run tests for Windows
         if: runner.os == 'Windows'
         shell: cmd
@@ -144,3 +123,77 @@ jobs:
         run: |
           cd build/release
           ./tests
+
+  checks:
+    runs-on: ubuntu-latest
+
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+
+      - name: Check json assets are formatted
+        run: python3 tools/format_json.py --check
+
+      - name: Set up CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Restore compiler cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ccache-checks-${{ github.sha }}
+          restore-keys: |
+            ccache-checks-
+            ccache-build-Linux-
+
+      - name: Set up LLVM
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget lsb-release gnupg
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 22
+          sudo apt-get install -y \
+            clang-22 \
+            clang-tidy-22 \
+            clang-format-22 \
+            libc++-22-dev \
+            libc++abi-22-dev \
+            libgl1-mesa-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev \
+            ccache
+
+      - name: Check sources are formatted
+        run: |
+          clang-format-22 --dry-run --Werror \
+            $(find src include tests -name '*.cpp' -o -name '*.hpp')
+
+      - name: Configure
+        run: |
+          cmake -G Ninja -B build/release \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_SCAN_FOR_MODULES=OFF \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DGLFW_BUILD_WAYLAND=OFF \
+            -DCMAKE_C_COMPILER=/usr/bin/clang-22 \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-22 \
+            -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
+            -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
+
+      - name: Check headers stand on their own
+        run: cmake --build build/release --target header_self_containment
+
+      - name: Check naming and includes
+        run: |
+          find src tests -name '*.cpp' \
+            | xargs -P"$(nproc)" -n1 clang-tidy-22 -p build/release --warnings-as-errors='*' --quiet

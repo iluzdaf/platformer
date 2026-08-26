@@ -92,6 +92,7 @@ add_executable(platformer
     src/game/player/player.cpp
     src/game/actor/actor.cpp
     src/game/game.cpp
+    src/game/level.cpp
     src/game/scoring_system.cpp
     src/physics/aabb.cpp
     src/physics/fixed_time_step.cpp
@@ -188,6 +189,7 @@ add_executable(tests
     tests/navigation/test_navigation_graph_builder.cpp
     tests/game/actor/behaviors/test_patrol_behavior.cpp
     tests/game/npc/test_npc.cpp
+    tests/game/level/test_level.cpp
     tests/game/tile_map/test_tile_map_navigation.cpp
     tests/game/actor/abilities/test_jump_ability.cpp
     tests/game/actor/abilities/test_dash_ability.cpp
@@ -219,6 +221,7 @@ add_executable(tests
     src/game/player/player.cpp
     src/game/actor/actor.cpp
     src/game/game.cpp
+    src/game/level.cpp
     src/game/scoring_system.cpp
     src/physics/aabb.cpp
     src/physics/fixed_time_step.cpp

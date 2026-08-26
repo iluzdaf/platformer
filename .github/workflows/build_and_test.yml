@@ -36,12 +36,12 @@ jobs:
           sudo apt-get install -y wget lsb-release gnupg
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 20
+          sudo ./llvm.sh 22
           sudo apt-get install -y \
-            clang \
-            clang-tidy-20 \
-            libc++-20-dev \
-            libc++abi-20-dev \
+            clang-22 \
+            clang-tidy-22 \
+            libc++-22-dev \
+            libc++abi-22-dev \
             libgl1-mesa-dev \
             libx11-dev \
             libxrandr-dev \
@@ -81,8 +81,8 @@ jobs:
             cmake -G Ninja -B build/release \
               -DCMAKE_BUILD_TYPE=Release \
               -DGLFW_BUILD_WAYLAND=OFF \
-              -DCMAKE_C_COMPILER=/usr/bin/clang-20 \
-              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 \
+              -DCMAKE_C_COMPILER=/usr/bin/clang-22 \
+              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-22 \
               -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
               -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
@@ -100,11 +100,10 @@ jobs:
         if: runner.os == 'Linux'
         run: cmake --build build/release --target header_self_containment
 
-      - name: Check naming
+      - name: Check naming and includes
         if: runner.os == 'Linux'
         run: |
-          clang-tidy-20 -p build/release --warnings-as-errors='*' --quiet \
-            --checks='-*,readability-identifier-naming' \
+          clang-tidy-22 -p build/release --warnings-as-errors='*' --quiet \
             $(find src -name '*.cpp')
 
       - name: Run tests for Windows

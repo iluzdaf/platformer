@@ -95,7 +95,15 @@ Game::Game()
             std::cerr << e.what() << std::endl;
         } });
     scriptWatcher.onScriptsChanged.connect([this]
-                                           { luaScriptSystem->loadScripts(); });
+                                           {
+        try
+        {
+            luaScriptSystem->loadScripts();
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << std::endl;
+        } });
     loadLevel(gameData.firstLevel);
 
     tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");

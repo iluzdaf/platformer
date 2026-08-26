@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <sol/sol.hpp>
 
 class Game;
@@ -18,7 +19,7 @@ public:
         float remainingTime;
     };
 
-    LuaScriptSystem();
+    explicit LuaScriptSystem(const std::string &scriptPath = "../../assets/scripts/game_logic.lua");
     void update(float deltaTime);
     void bindGameObjects(
         Game *game,
@@ -40,6 +41,7 @@ public:
     void bindPlayer(Player *player);
 
 private:
+    std::string scriptPath;
     sol::state lua;
     sol::function
         onDeath,

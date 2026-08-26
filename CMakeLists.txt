@@ -184,6 +184,7 @@ add_executable(tests
     tests/animations/test_sprite_animation.cpp
     tests/animations/test_tile_animation.cpp
     tests/navigation/test_navigation_graph.cpp
+    tests/scripting/test_lua_script_system.cpp
     tests/navigation/test_navigation_graph_builder.cpp
     tests/game/actor/behaviors/test_patrol_behavior.cpp
     tests/game/npc/test_npc.cpp

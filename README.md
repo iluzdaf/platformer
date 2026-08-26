@@ -15,7 +15,7 @@ Targets **C++23**. CI builds and tests all three platforms on every push.
 
 | | Windows | macOS | Linux |
 |---|---|---|---|
-| Compiler | MSVC, Visual Studio 2022 17.8+ | LLVM clang 20+ | LLVM clang 20+ with libc++ |
+| Compiler | MSVC | LLVM clang | LLVM clang with libc++ |
 | Editor | Visual Studio 2022 | VS Code | VS Code |
 | Build | the editor's CMake support | the editor's CMake support | the editor's CMake support |
 | Debug | Visual Studio's Run button | CMake Tools' debug button | CMake Tools' debug button |
@@ -49,8 +49,7 @@ directories leave the link alone, so a one off build cannot take it.
 
 One thing to check: clangd must come from the LLVM you build with — `PATH` often finds
 a different one first, so check that `clangd --version` matches your compiler, and name
-it in your user settings if it does not. Machine paths do not belong in the
-repository.
+it in your user settings if it does not.
 
 ```json
 "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
@@ -68,13 +67,17 @@ game writes.
     For Windows, Visual Studio 2022 with **CMake** and **Git for Windows** added
     through *Tools and Features → Individual Components*.
 
-    For macOS and Linux, **CMake**, **Ninja**, **git-lfs**, and **LLVM 22** with
-    its tools, which install separately from the compiler:
+    For macOS and Linux, **CMake**, **Ninja**, **git-lfs**, and **LLVM** with its
+    tools, which install separately from the compiler:
 
     ```bash
-    brew install llvm clang-format                                # macOS
-    sudo apt-get install clang-22 clang-format-22 clang-tidy-22   # Linux
+    brew install llvm clang-format                       # macOS
+    sudo apt-get install clang clang-format clang-tidy   # Linux
     ```
+
+    [The workflow](.github/workflows/build_and_test.yml) names the versions CI
+    builds and checks with. Match them, and `CMakeLists.txt` will tell you if
+    what you have is too old.
 
 2. Clone with submodules:
 
@@ -101,8 +104,8 @@ game writes.
 Formatting is defined by [.clang-format](.clang-format) and naming by
 [.clang-tidy](.clang-tidy), which also asks whether a file includes what it uses.
 Editors apply them on save and the pre commit hook formats what you stage. Both
-tools must be version 22, the one CI pins, since others disagree. To sweep the
-whole tree, and to check that every header compiles on its own:
+tools must be the version CI uses, since others disagree. To sweep the whole tree,
+and to check that every header compiles on its own:
 
 ```bash
 clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
@@ -162,11 +165,9 @@ to whoever asked for the load.
 game with the error. The assets are expected to be right, and there is nothing to fall
 back to.
 
-**A file watcher, while the game runs.** These catch and log. A save you are halfway
-through should not cost you the session, so the game keeps what it already had — the
-whole previous level, the handlers that were working — rather than running on something
-half applied. That works because each reload builds the replacement before assigning it,
-so a failure leaves the old one untouched.
+**A file watcher, while the game runs.** These catch and log, so a half written save
+costs you nothing. Each reload builds the replacement before assigning it, leaving what
+you had untouched when it fails.
 
 ## 🔭 Future Plans
 

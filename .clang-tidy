@@ -4,6 +4,8 @@ ExcludeHeaderFilterRegex: '.*/external/.*'
 CheckOptions:
   - key: misc-include-cleaner.MissingIncludes
     value: 'false'
+  - key: misc-include-cleaner.UnusedIncludes
+    value: 'true'
   - key: misc-include-cleaner.IgnoreHeaders
     value: 'sol/.*;glaze/.*;imgui.*;glm/.*;glad/.*;GLFW/.*;efsw/.*;stb_.*'
   - key: readability-identifier-naming.ClassCase

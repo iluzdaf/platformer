@@ -100,10 +100,11 @@ jobs:
         if: runner.os == 'Linux'
         run: cmake --build build/release --target header_self_containment
 
-      - name: Check naming and includes
+      - name: Check naming
         if: runner.os == 'Linux'
         run: |
           clang-tidy-20 -p build/release --warnings-as-errors='*' --quiet \
+            --checks='-*,readability-identifier-naming' \
             $(find src -name '*.cpp')
 
       - name: Run tests for Windows

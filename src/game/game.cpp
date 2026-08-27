@@ -6,6 +6,7 @@
 #include <iostream>
 #include "game/game.hpp"
 #include "game/level.hpp"
+#include "game/levels.hpp"
 #include "rendering/shader_data.hpp"
 
 Game::Game()
@@ -105,7 +106,7 @@ Game::Game()
         {
             std::cerr << e.what() << std::endl;
         } });
-    loadLevel(gameData.firstLevel);
+    loadLevel(Levels("../../assets/levels.json").getFirst());
 
     tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
     ShaderData shaderData;
@@ -133,6 +134,11 @@ Game::Game()
                                       { loadLevel(levelPath); });
     levelEditorUi.onRespawn.connect([this]
                                     { rebuildPlayer(); });
+    levelEditorUi.onSetFirstLevel.connect([this]
+                                          {
+        Levels levels("../../assets/levels.json");
+        levels.setFirst(level->getPath());
+        levels.save(); });
     levelEditorUi.onToggleDrawGrid.connect([this]
                                            { shouldDrawGrid = !shouldDrawGrid; });
     levelEditorUi.onToggleDrawTileInfo.connect([this]
@@ -383,7 +389,7 @@ void Game::reload()
 
     camera->setZoom(gameData.cameraData.zoom);
 
-    loadLevel(gameData.firstLevel);
+    loadLevel(Levels("../../assets/levels.json").getFirst());
 }
 
 void Game::loadLevel(const std::string &levelPath)

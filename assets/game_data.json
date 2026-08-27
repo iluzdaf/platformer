@@ -179,7 +179,6 @@
     "cameraData":{"zoom":4.5},
     "windowWidth":800,
     "windowHeight":600,
-    "firstLevel":"../../assets/levels/level1.json",
     "debugData":{
         "shouldDrawGrid":true,
         "shouldDrawPlayerAABBs":true,

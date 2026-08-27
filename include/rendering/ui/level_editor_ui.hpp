@@ -26,6 +26,7 @@ public:
 
     fteng::signal<void(const std::string &)> onLoadLevel;
     fteng::signal<void()> onRespawn,
+        onSetFirstLevel,
         onToggleDrawGrid,
         onToggleDrawTileInfo,
         onToggleDrawPlayerAABBs,
@@ -44,4 +45,5 @@ private:
     std::optional<std::pair<int, int>> selectedEdge;
 
     void drawGraphs(const Level &level);
+    std::optional<std::string> drawLevelChooser(const Level &level);
 };

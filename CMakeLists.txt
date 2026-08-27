@@ -100,6 +100,7 @@ add_library(platformer_lib OBJECT
     src/actor/actor.cpp
     src/game/game.cpp
     src/game/level.cpp
+    src/game/levels.cpp
     src/game/scoring_system.cpp
     src/physics/aabb.cpp
     src/physics/fixed_time_step.cpp
@@ -227,6 +228,7 @@ add_executable(tests
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/npc/test_npc.cpp
     tests/game/test_level.cpp
+    tests/game/test_levels.cpp
     tests/tile_map/test_tile_map_navigation.cpp
     tests/actor/abilities/test_jump_ability.cpp
     tests/actor/abilities/test_dash_ability.cpp

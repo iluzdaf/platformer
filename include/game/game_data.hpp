@@ -16,6 +16,5 @@ struct GameData
     Camera2DData cameraData;
     int windowWidth = 800;
     int windowHeight = 600;
-    std::string firstLevel = "../assets/levels/level1.json";
     DebugData debugData;
 };

@@ -4,6 +4,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -38,6 +39,15 @@ void LevelEditorUi::draw(
         level.getTileMap().getWidth(),
         level.getTileMap().getHeight(),
         level.getTileMap().getTileSize());
+
+    std::optional<std::string> chosenLevel = drawLevelChooser(level);
+    if (chosenLevel)
+    {
+        editing = false;
+        ImGui::End();
+        onLoadLevel(*chosenLevel);
+        return;
+    }
 
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
@@ -167,6 +177,28 @@ void LevelEditorUi::draw(
     }
 
     ImGui::End();
+}
+
+std::optional<std::string> LevelEditorUi::drawLevelChooser(const Level &level)
+{
+    std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
+    std::optional<std::string> chosen;
+
+    if (ImGui::BeginCombo("level", levelName(level.getPath()).c_str()))
+    {
+        for (const std::string &path : levelPathsIn(directory))
+        {
+            bool current = path == level.getPath();
+            if (ImGui::Selectable(levelName(path).c_str(), current) && !current)
+                chosen = path;
+        }
+        ImGui::EndCombo();
+    }
+
+    if (ImGui::SmallButton("make first"))
+        onSetFirstLevel();
+
+    return chosen;
 }
 
 void LevelEditorUi::drawGraphs(const Level &level)

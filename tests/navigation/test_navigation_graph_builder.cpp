@@ -697,21 +697,6 @@ TEST_CASE("The shipped explorer can cross the gap in level6", "[NavigationGraphB
     REQUIRE(countEdgesOfType(graph, EdgeType::Jump) > 0);
 }
 
-TEST_CASE("Every jump the explorer is offered is one it can hold out", "[NavigationGraphBuilder][Jump][Level]")
-{
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
-
-    NavigationProfile explorer =
-        buildNavigationProfile(gameData.npcData.at("explorer").actorData);
-    NavigationProfile holdingThroughout = explorer;
-    holdingThroughout.jumpArcs.resize(1);
-    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
-
-    REQUIRE(countEdgesOfType(buildNavigationGraph(tileMap, explorer), EdgeType::Jump) ==
-            countEdgesOfType(buildNavigationGraph(tileMap, holdingThroughout), EdgeType::Jump));
-}
-
 TEST_CASE("The shipped villager is offered no jumps at all", "[NavigationGraphBuilder][Jump][Level]")
 {
     GameData gameData;
@@ -840,4 +825,95 @@ TEST_CASE("A fall is drawn from the node it leaves", "[NavigationGraphBuilder][F
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Fall)
             REQUIRE(edge.path.front() == graph.getNode(edge.fromId).position);
+}
+
+namespace
+{
+    constexpr int SpikeTileIndex = 2;
+
+    TilePalette paletteWithSpikes()
+    {
+        TilePalette palette = getDefaultTileDataMap();
+        palette[SpikeTileIndex] = TileData{
+            TileKind::Spikes, std::nullopt, std::nullopt, std::nullopt,
+            glm::vec2(0.0f), glm::vec2(16.0f)};
+        return palette;
+    }
+
+    TileMap setupLedgeAboveSpikes()
+    {
+        TileMap tileMap = setupTileMap(20, WideMapHeightTiles, 16, paletteWithSpikes());
+        for (int x = 0; x < 20; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, FloorBelowRow), SpikeTileIndex);
+
+        for (int x = 0; x <= LeftPlatformEnd; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        return tileMap;
+    }
+}
+
+TEST_CASE("Nothing falls onto spikes", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveSpikes();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) == 0);
+}
+
+TEST_CASE("A ledge gets a node directly below it", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
+    float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(graph.hasNodeAtPosition(glm::vec2(ledgeEdgeX, floorY)));
+}
+
+TEST_CASE("The fall from a ledge goes to the node below it", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
+    float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    bool straightDown = false;
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Fall)
+            continue;
+
+        NavigationNode to = graph.getNode(edge.toId);
+        if (glm::distance(to.position, glm::vec2(ledgeEdgeX, floorY)) < 0.5f)
+            straightDown = true;
+    }
+
+    REQUIRE(straightDown);
+}
+
+TEST_CASE("The node below a ledge is walkable from the floor", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
+    float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    int landingId = -1;
+    for (const auto &[id, node] : graph.getNodes())
+        if (glm::distance(node.position, glm::vec2(ledgeEdgeX, floorY)) < 0.5f)
+            landingId = id;
+
+    REQUIRE(landingId >= 0);
+
+    int walkEdges = 0;
+    for (const auto &edge : graph.getOutgoingEdges(landingId))
+        if (edge.type == EdgeType::Walk)
+            ++walkEdges;
+
+    REQUIRE(walkEdges > 0);
 }

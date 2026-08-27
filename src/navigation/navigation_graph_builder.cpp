@@ -307,6 +307,62 @@ namespace
                 }
     }
 
+    std::optional<glm::vec2> surfaceBelow(
+        const TileMap &tileMap,
+        glm::vec2 from,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        float tileSize = static_cast<float>(tileMap.getTileSize());
+        glm::ivec2 startTilePosition = tileMap.worldToTilePosition(from);
+
+        for (int y = startTilePosition.y + 1; y < tileMap.getHeight(); ++y)
+        {
+            glm::ivec2 groundTilePosition(startTilePosition.x, y);
+            if (!tileMap.validTilePosition(groundTilePosition))
+                return std::nullopt;
+
+            if (!tileMap.getTileAtTilePosition(groundTilePosition).isSolid())
+                continue;
+
+            if (!canStandOn(tileMap, groundTilePosition, headroom))
+                return std::nullopt;
+
+            glm::vec2 standing(from.x, static_cast<float>(y) * tileSize);
+            return clearAt(tileMap, standing, profile) ? std::optional(standing) : std::nullopt;
+        }
+
+        return std::nullopt;
+    }
+
+    void addFallLandingNodes(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        if (profile.fallArcs.empty())
+            return;
+
+        int nextNodeId = 0;
+        std::vector<glm::vec2> takeOffs;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            nextNodeId = std::max(nextNodeId, id + 1);
+            takeOffs.push_back(node.position);
+        }
+
+        for (glm::vec2 takeOff : takeOffs)
+        {
+            std::optional<glm::vec2> landing =
+                surfaceBelow(tileMap, takeOff, profile, headroom);
+            if (!landing || navigationGraph.hasNodeAtPosition(*landing))
+                continue;
+
+            navigationGraph.addNode(nextNodeId++, *landing);
+        }
+    }
+
     void addFallEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -351,6 +407,7 @@ NavigationGraph buildNavigationGraph(
     int headroom = tilesOfHeadroom(tileMap, profile);
 
     addNodes(navigationGraph, tileMap, headroom);
+    addFallLandingNodes(navigationGraph, tileMap, profile, headroom);
     addWalkEdges(navigationGraph, tileMap, headroom);
     addJumpEdges(navigationGraph, tileMap, profile, headroom);
     addFallEdges(navigationGraph, tileMap, profile, headroom);

@@ -21,8 +21,7 @@ Targets **C++23**.
 | Debug | Visual Studio's Run button | CMake Tools' debug button | CMake Tools' debug button |
 | Code intelligence | Visual Studio's own | clangd | clangd |
 
-Terminal commands below assume a Unix shell. On Windows use Git Bash, and `python`
-where they say `python3`.
+Terminal commands below assume a Unix shell. On Windows use Git Bash.
 
 ## 🧰 What The Repository Configures
 

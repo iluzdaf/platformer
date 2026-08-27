@@ -91,8 +91,7 @@ target from its build directory, which is where the game looks for its assets.
 ## 🎨 Style Guide
 
 Formatting is defined by [.clang-format](.clang-format) and naming by
-[.clang-tidy](.clang-tidy), which also asks whether a file includes what it uses. Two
-conventions those cannot express:
+[.clang-tidy](.clang-tidy). Two conventions those cannot express:
 
 - File names are `snake_case`, as in `tile_map.hpp`.
 - `glz::meta::value` must keep that name because Glaze requires it, so it carries a

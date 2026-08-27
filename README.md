@@ -11,7 +11,8 @@ A simple 2D platformer built with OpenGL. This project is designed as a learning
 
 ## 🖥 Supported Setups
 
-Targets **C++23**. CI builds and tests all three platforms on every push.
+Targets **C++23**. Every pull request builds and tests all three platforms, and
+checks formatting, naming, includes, and that headers stand on their own.
 
 | | Windows | macOS | Linux |
 |---|---|---|---|

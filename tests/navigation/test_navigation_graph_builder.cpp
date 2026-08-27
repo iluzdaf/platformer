@@ -724,6 +724,36 @@ TEST_CASE("The shipped explorer can get up to level6's top platform and back",
     REQUIRE(reachable.size() > 2);
 }
 
+TEST_CASE("The shipped actors can reach every surface in level6",
+          "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    auto reachesEverySurface = [&](const ActorData &actorData)
+    {
+        NavigationGraph graph = buildNavigationGraph(tileMap, buildNavigationProfile(actorData));
+
+        std::set<float> surfaces;
+        for (const auto &[id, node] : graph.getNodes())
+            surfaces.insert(node.position.y);
+
+        for (const auto &[id, node] : graph.getNodes())
+        {
+            std::set<float> fromHere;
+            for (int to : roundTripFrom(graph, id))
+                fromHere.insert(graph.getNode(to).position.y);
+            if (fromHere == surfaces)
+                return true;
+        }
+        return false;
+    };
+
+    REQUIRE(reachesEverySurface(gameData.playerData.actorData));
+    REQUIRE(reachesEverySurface(gameData.npcData.at("explorer").actorData));
+}
+
 TEST_CASE("The shipped villager is offered no jumps at all", "[NavigationGraphBuilder][Jump][Level]")
 {
     GameData gameData;

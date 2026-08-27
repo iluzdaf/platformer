@@ -30,29 +30,18 @@ Every platform builds the same way, from `CMakeLists.txt`.
 
 | | |
 |---|---|
-| [CMakeLists.txt](CMakeLists.txt) | the `platformer_lib`, `platformer` and `tests` targets |
-| [.vscode/extensions.json](.vscode/extensions.json) | the extensions VS Code should install |
-| [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension |
+| [CMakeLists.txt](CMakeLists.txt) | the `platformer_lib`, `platformer` and `tests` targets, and the compile database, linked to the repository root from whichever of `build/Debug` or `build/Release` you configured last |
+| [.vscode/extensions.json](.vscode/extensions.json) | CMake Tools to build, clangd for code intelligence, C/C++ for the debugger |
+| [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension's IntelliSense |
 | [.clang-format](.clang-format) | formatting, applied on save |
 | [.clang-tidy](.clang-tidy) | naming and includes, applied on save |
 | [.llvm-version](.llvm-version) | the LLVM the tools must come from |
 | [tools/hooks/pre-commit](tools/hooks/pre-commit) | formats staged json and sources |
 
-Visual Studio needs nothing further: it reads `CMakeLists.txt` directly and brings its
-own IntelliSense and debugger. VS Code divides the work between three extensions.
-**CMake Tools** configures and builds, **clangd** provides completion, navigation and
-diagnostics, and the **C/C++** extension provides the debugger. clangd reads the compile
-database CMake writes, so it sees the same flags the compiler does; the C/C++ extension
-parses with a front end of its own and can disagree, so its IntelliSense is switched off.
-
-CMake writes that database and links it to the repository root, so clangd reads
-whichever of `build/Debug` or `build/Release` you configured last. Other build
-directories leave the link alone, so a one off build cannot take it.
-
-No `launch.json` is needed; CMake Tools runs and debugs the selected target from its
-own build directory, which is where the game looks for assets. Format on save is
-off for json only, since no formatter has been found that reproduces the format the
-game writes.
+Visual Studio reads `CMakeLists.txt` directly and needs none of this. In VS Code the
+C/C++ extension's IntelliSense is off because it parses with a front end of its own and
+disagrees with the compiler, and no `launch.json` is needed because CMake Tools runs the
+target from its build directory, which is where the game looks for its assets.
 
 ## 🛠 Setup
 

@@ -203,10 +203,13 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(
         ImGui::EndCombo();
     }
 
-    ImGui::SameLine();
-    bool isFirst = level.getPath() == firstLevel;
-    if (ImGui::Checkbox("first", &isFirst) && isFirst)
-        onSetFirstLevel();
+    if (editing)
+    {
+        ImGui::SameLine();
+        bool isFirst = level.getPath() == firstLevel;
+        if (ImGui::Checkbox("first", &isFirst) && isFirst)
+            onSetFirstLevel();
+    }
 
     return chosen;
 }

@@ -144,10 +144,10 @@ Every platform builds the same way, from `CMakeLists.txt`.
 | [.llvm-version](.llvm-version) | the LLVM the tools must come from |
 | [tools/hooks/pre-commit](tools/hooks/pre-commit) | formats staged json and sources |
 
-Visual Studio reads `CMakeLists.txt` directly and needs none of this. In VS Code the
-C/C++ extension's IntelliSense is off because it parses with a front end of its own and
-disagrees with the compiler, and no `launch.json` is needed because CMake Tools runs
-the target from its build directory, which is where the game looks for its assets.
+In VS Code the C/C++ extension's IntelliSense is off because it parses with a front end
+of its own and disagrees with the compiler, and no `launch.json` is needed because CMake
+Tools runs the target from its build directory, which is where the game looks for its
+assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 
 ## 🧭 Decisions
 

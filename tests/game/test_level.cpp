@@ -179,3 +179,21 @@ TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
     REQUIRE(names.size() == 1);
     REQUIRE(names.front() == "player, short, alsoShort");
 }
+
+TEST_CASE("A level can be pointed at a different level next", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    level.setNextLevel("../../assets/levels/level4.json");
+
+    REQUIRE(level.getNextLevel() == "../../assets/levels/level4.json");
+    REQUIRE(level.toLevelData().nextLevel == "../../assets/levels/level4.json");
+}
+
+TEST_CASE("A level refuses to have no level next", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    REQUIRE_THROWS(level.setNextLevel(""));
+    REQUIRE_FALSE(level.getNextLevel().empty());
+}

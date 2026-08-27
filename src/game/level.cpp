@@ -359,6 +359,14 @@ void Level::setPlayerStartTile(glm::ivec2 tilePosition)
     playerStartTilePosition = tilePosition;
 }
 
+void Level::setNextLevel(const std::string &levelPath)
+{
+    if (levelPath.empty())
+        throw std::runtime_error("nextLevel must not be empty");
+
+    nextLevel = levelPath;
+}
+
 LevelData Level::toLevelData() const
 {
     LevelData levelData;

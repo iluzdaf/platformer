@@ -37,6 +37,7 @@ public:
     const std::vector<NpcSpawnData> &getNpcs() const;
     const std::string &getPath() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
+    void setNextLevel(const std::string &levelPath);
     LevelData toLevelData() const;
     void save() const;
 

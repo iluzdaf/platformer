@@ -51,13 +51,21 @@ void LevelEditorUi::draw(
 
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
-    if (ImGui::SmallButton(levelName(level.getNextLevel()).c_str()))
+    if (!editing)
+        ImGui::TextUnformatted(levelName(level.getNextLevel()).c_str());
+    else
     {
-        std::string nextLevel = level.getNextLevel();
-        editing = false;
-        ImGui::End();
-        onLoadLevel(nextLevel);
-        return;
+        ImGui::SetNextItemWidth(110.0f);
+        if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
+        {
+            std::string directory =
+                level.getPath().substr(0, level.getPath().find_last_of("/\\"));
+            for (const std::string &path : levelPathsIn(directory))
+                if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
+                    level.setNextLevel(path);
+
+            ImGui::EndCombo();
+        }
     }
 
     const std::vector<NpcSpawnData> &npcs = level.getNpcs();

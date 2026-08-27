@@ -178,7 +178,7 @@ platformer/
 └── tools/               # scripts and toolin utilities
 ```
 
-## 🧭 Approach
+## 🧭 Decisions
 
 **Loading and reloading.** Loading anything from `assets` throws when the data is wrong.
 What that means is left to whoever asked for the load. At startup nothing catches, so a

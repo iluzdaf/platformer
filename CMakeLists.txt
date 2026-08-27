@@ -116,6 +116,7 @@ add_library(platformer_lib OBJECT
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
     src/navigation/navigation_graph_builder.cpp
+    src/navigation/navigation_path.cpp
     src/navigation/motion_arcs.cpp
     src/navigation/navigation_profile_builder.cpp
     src/actor/actor_behavior.cpp
@@ -224,6 +225,7 @@ add_executable(tests
     tests/navigation/test_navigation_graph.cpp
     tests/scripting/test_lua_script_system.cpp
     tests/navigation/test_navigation_graph_builder.cpp
+    tests/navigation/test_navigation_path.cpp
     tests/navigation/test_motion_arcs.cpp
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/npc/test_npc.cpp

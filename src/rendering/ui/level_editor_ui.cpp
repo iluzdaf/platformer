@@ -232,17 +232,23 @@ void LevelEditorUi::drawGraphs(const Level &level)
     const NamedNavigationGraph &shown = graphs[selectedGraphIndex];
 
     ImGui::SetNextItemWidth(170.0f);
+    bool choosingGraph = false;
     if (ImGui::BeginCombo("##graph", shown.name.c_str()))
     {
         for (size_t index = 0; index < graphs.size(); ++index)
             if (ImGui::Selectable(graphs[index].name.c_str(), index == selectedGraphIndex))
             {
                 selectedGraphIndex = index;
-                selectedNodeId.reset();
-                selectedEdge.reset();
+                choosingGraph = true;
             }
 
         ImGui::EndCombo();
+    }
+
+    if (choosingGraph)
+    {
+        selectedNodeId.reset();
+        selectedEdge.reset();
     }
 
     std::vector<int> nodeIds;
@@ -264,7 +270,7 @@ void LevelEditorUi::drawGraphs(const Level &level)
             flags |= ImGuiTreeNodeFlags_Selected;
 
         bool open = ImGui::TreeNodeEx(nodeLabel.c_str(), flags);
-        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        if (!choosingGraph && ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
         {
             selectedNodeId = nodeId;
             selectedEdge.reset();

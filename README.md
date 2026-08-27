@@ -100,7 +100,7 @@ Formatting is defined by [.clang-format](.clang-format) and naming by
 ### Json Assets
 
 Levels and `game_data.json` share one format, written both by `TileMap::save` and by
-`tools/format_json.py`. Structure goes on its own lines, leaves stay compact:
+`tools/format_json.py`:
 
 ```json
 "indices":[

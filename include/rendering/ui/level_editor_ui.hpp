@@ -10,7 +10,6 @@ class Level;
 class Texture2D;
 class Camera2D;
 class NavigationGraph;
-struct DebugView;
 
 class LevelEditorUi
 {
@@ -19,8 +18,9 @@ public:
         const ImGuiManager &imGuiManager,
         Level &level,
         const Texture2D &tileSet,
+        const Camera2D &camera,
         const std::string &firstLevel,
-        DebugView &debug);
+        bool showEditors);
     void update(
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
@@ -30,6 +30,7 @@ public:
     fteng::signal<void()> onRespawn,
         onSetFirstLevel;
 
+    bool drawsTileMapAABBs() const;
     const NavigationGraph *selectedGraph(const Level &level) const;
     std::optional<int> getSelectedNodeId() const;
     std::optional<std::pair<int, int>> getSelectedEdge() const;
@@ -38,7 +39,10 @@ private:
     bool editing = false,
          editingPlayerStartTile = false;
     int selectedTileIndex = 0;
-    bool showNavigation = true;
+    bool showNavigation = true,
+         drawGrid = false,
+         drawTileInfo = false,
+         drawTileMapAABBs = false;
     size_t selectedGraphIndex = 0;
     std::optional<int> selectedNodeId;
     std::optional<std::pair<int, int>> selectedEdge;

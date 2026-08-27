@@ -13,7 +13,7 @@ Game::Game()
     : levels("../../assets/levels.json")
 {
     gameData = loadGameData();
-    debugView.showEditors = gameData.debug;
+    showEditors = gameData.debug;
 
     initGLFW(gameData.windowWidth, gameData.windowHeight);
 
@@ -273,21 +273,13 @@ void Game::render()
         scoringSystem,
         *tileSet.get());
 
-    debugTileMapUi.draw(
+    levelEditorUi.draw(
         *imGuiManager.get(),
+        *level.get(),
+        *tileSet.get(),
         *camera.get(),
-        level->getTileMap(),
-        debugView.drawGrid,
-        debugView.drawTileInfo);
-
-    debugAABBUi.draw(
-        *imGuiManager.get(),
-        *player.get(),
-        level->getTileMap(),
-        level->getPlayerStartWorldPosition(),
-        *camera.get(),
-        debugView.drawPlayerAABBs,
-        debugView.drawTileMapAABBs);
+        levels.getFirst(),
+        showEditors);
 
     debugUi.draw(
         *imGuiManager.get(),
@@ -295,14 +287,16 @@ void Game::render()
         player->getPosition(),
         player->getState(),
         *camera.get(),
-        debugView);
+        showEditors);
 
-    levelEditorUi.draw(
+    debugAABBUi.draw(
         *imGuiManager.get(),
-        *level.get(),
-        *tileSet.get(),
-        levels.getFirst(),
-        debugView);
+        *player.get(),
+        level->getTileMap(),
+        level->getPlayerStartWorldPosition(),
+        *camera.get(),
+        debugUi.drawsPlayerAABBs(),
+        levelEditorUi.drawsTileMapAABBs());
 
     const NavigationGraph *shownGraph = levelEditorUi.selectedGraph(*level.get());
     if (shownGraph)
@@ -366,7 +360,7 @@ void Game::reload()
 {
     gameData = loadGameData();
 
-    debugView.showEditors = gameData.debug;
+    showEditors = gameData.debug;
 
     glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
 

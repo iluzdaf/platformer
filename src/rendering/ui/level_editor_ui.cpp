@@ -4,7 +4,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
-#include "rendering/ui/debug_view.hpp"
+#include "rendering/ui/tile_map_overlays.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -24,11 +24,18 @@ void LevelEditorUi::draw(
     const ImGuiManager &imGuiManager,
     Level &level,
     const Texture2D &tileSet,
+    const Camera2D &camera,
     const std::string &firstLevel,
-    DebugView &debug)
+    bool showEditors)
 {
-    if (!debug.showEditors)
+    if (!showEditors)
         return;
+
+    if (drawGrid)
+        drawTileGrid(imGuiManager, camera, level.getTileMap());
+
+    if (drawTileInfo)
+        ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
     ImGui::SetNextWindowPos(ImVec2(displaySize.x - 200, 0));
@@ -60,10 +67,10 @@ void LevelEditorUi::draw(
 
     ImGui::Separator();
 
-    ImGui::Checkbox("Tile Info", &debug.drawTileInfo);
+    ImGui::Checkbox("Tile Info", &drawTileInfo);
     ImGui::SameLine();
-    ImGui::Checkbox("Grid", &debug.drawGrid);
-    ImGui::Checkbox("TileMap", &debug.drawTileMapAABBs);
+    ImGui::Checkbox("Grid", &drawGrid);
+    ImGui::Checkbox("TileMap", &drawTileMapAABBs);
     ImGui::SameLine();
     if (ImGui::Button("Respawn"))
         onRespawn();
@@ -323,6 +330,11 @@ void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
     for (const NavigationEdge &edge : graph.getEdges())
         if (edge.toId == nodeId)
             drawEdge(edge, false);
+}
+
+bool LevelEditorUi::drawsTileMapAABBs() const
+{
+    return drawTileMapAABBs;
 }
 
 const NavigationGraph *LevelEditorUi::selectedGraph(const Level &level) const

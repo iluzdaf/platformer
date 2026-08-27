@@ -2,7 +2,6 @@
 
 #include <memory>
 #include "game/game_data.hpp"
-#include "rendering/ui/debug_view.hpp"
 #include "game/levels.hpp"
 #include "tile_map/tile_interaction_system.hpp"
 #include "actor/actor.hpp"
@@ -15,7 +14,6 @@
 #include "rendering/screen_transition.hpp"
 #include "rendering/ui/debug_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
-#include "rendering/ui/debug_tile_map_ui.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/score_ui.hpp"
@@ -81,7 +79,6 @@ private:
     std::unique_ptr<ImGuiManager> imGuiManager;
     Levels levels;
     DebugUi debugUi;
-    DebugTileMapUi debugTileMapUi;
     DebugAABBUi debugAABBUi;
     LevelEditorUi levelEditorUi;
     ScoreUi scoreUi;
@@ -89,6 +86,6 @@ private:
     fteng::connection onLevelCompleteConnection;
     bool paused = false,
          stepFrame = false;
-    DebugView debugView;
+    bool showEditors = false;
     GameData gameData;
 };

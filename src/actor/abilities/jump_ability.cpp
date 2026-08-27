@@ -40,8 +40,14 @@ void JumpAbility::applyMovement(
     if (state.jump.active)
     {
         state.jump.holdTime += deltaTime;
-        if (state.jump.holdTime <= data.jumpDuration &&
-            (inputIntentions.jumpHeld || inputIntentions.jumpRequested))
+
+        // A jump is a held velocity, not a shove, so a head against a ceiling
+        // would go on being pushed into it for the rest of the hold.
+        bool stillGoingUp = state.jump.holdTime <= data.jumpDuration &&
+                            (inputIntentions.jumpHeld || inputIntentions.jumpRequested) &&
+                            !state.contacts.hitCeiling;
+
+        if (stillGoingUp)
             state.jump.velocity.y = data.jumpSpeed;
         else
             state.jump.active = false;

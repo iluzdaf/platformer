@@ -3,10 +3,12 @@
 #include <cmath>
 #include <filesystem>
 #include <vector>
+#include <glaze/glaze.hpp>
 #include "npc/npc.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
+#include "game/game_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
 
@@ -349,4 +351,32 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     stepNpc(npc, level, 400);
 
     REQUIRE(npc.getPosition().x == placed.x);
+}
+
+TEST_CASE("The shipped explorer patrols level6 without falling off it", "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    // Where level6 puts it: on the mid platform, under the top one, so its first
+    // jump has a ceiling 19px above its head.
+    constexpr glm::ivec2 ExplorerTile{5, 7};
+    Npc npc(gameData.npcData.at("explorer"));
+    npc.setPosition(level.getTileMap().tileToWorldPosition(ExplorerTile));
+
+    float floorY = level.getTileMap().tileToWorldPosition(glm::ivec2(0, 11)).y;
+    float lowest = 0.0f;
+    for (int step = 0; step < 4000; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level);
+        lowest = std::max(lowest, npc.getPosition().y);
+    }
+
+    INFO("explorer dropped to " << lowest << ", the floor is at " << floorY);
+    REQUIRE(lowest < floorY);
 }

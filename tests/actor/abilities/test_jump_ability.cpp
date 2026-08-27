@@ -27,6 +27,28 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
         REQUIRE(state.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
     }
 
+    SECTION("A head against a ceiling ends the jump rather than pushing on")
+    {
+        state.contacts.onGround = true;
+        inputIntentions.jumpRequested = true;
+        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        state.contacts.onGround = false;
+        REQUIRE(state.jump.active);
+
+        inputIntentions = InputIntentions();
+        inputIntentions.jumpHeld = true;
+        state.contacts.hitCeiling = true;
+        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+
+        REQUIRE_FALSE(state.jump.active);
+        REQUIRE(state.jump.velocity.y == Approx(0.0f));
+
+        // Still held, and well inside the hold, but the jump is spent.
+        state.contacts.hitCeiling = false;
+        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        REQUIRE(state.jump.velocity.y == Approx(0.0f));
+    }
+
     SECTION("Cannot jump if not on ground")
     {
         state.contacts.onGround = false;

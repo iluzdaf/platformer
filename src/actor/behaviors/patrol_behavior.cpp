@@ -73,11 +73,31 @@ void PatrolBehavior::anchor(const ActorBehaviorContext &context)
     }
 }
 
+// Anchoring picks the nearest node, which is rarely the one being stood on, and
+// a route can be lost outright by falling off it. Either way what the graph
+// believes and where the actor is have parted company.
+bool PatrolBehavior::hasLostTheRoute(const ActorBehaviorContext &context) const
+{
+    if (!currentNodeId || !context.onGround)
+        return false;
+
+    NavigationNode node = context.navigationGraph.getNode(*currentNodeId);
+    return std::abs(node.position.y - context.worldPosition.y) > SurfaceTolerance;
+}
+
 InputIntentions PatrolBehavior::decide(
     float deltaTime,
     const ActorBehaviorContext &context)
 {
     InputIntentions inputIntentions;
+
+    if (hasLostTheRoute(context))
+    {
+        currentNodeId.reset();
+        targetNodeId.reset();
+        legsLeft.clear();
+        jumpHeldFor = 0.0f;
+    }
 
     if (!currentNodeId)
         anchor(context);
@@ -111,6 +131,20 @@ InputIntentions PatrolBehavior::decide(
 
     const NavigationEdge *leg =
         edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
+
+    // A jump was simulated from the node, so it has to be made from the node.
+    // Started early it clears less than it was promised it would.
+    if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)
+    {
+        NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
+        float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
+        if (std::abs(takeOff.position.x - context.worldPosition.x) > reach)
+        {
+            inputIntentions.direction.x =
+                directionTowards(context.worldPosition.x, takeOff.position.x);
+            return inputIntentions;
+        }
+    }
 
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor < leg->holdDuration)
     {

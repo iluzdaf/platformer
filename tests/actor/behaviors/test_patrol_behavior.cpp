@@ -44,6 +44,13 @@ namespace
         return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f)};
     }
 
+    ActorBehaviorContext standingAt(
+        const NavigationGraph &navigationGraph,
+        glm::vec2 worldPosition)
+    {
+        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), true};
+    }
+
     PatrolBehaviorData setupData()
     {
         PatrolBehaviorData data;
@@ -355,4 +362,20 @@ TEST_CASE("Roams to the far platform when it can get back", "[PatrolBehavior]")
 
     REQUIRE(behavior.getCurrentNodeId() == 0);
     REQUIRE(behavior.getTargetNodeId() == 1);
+}
+
+TEST_CASE("Picks itself up again after coming off its route", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatformOverAnother();
+    PatrolBehavior behavior(setupRoamingData());
+
+    anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
+    REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
+
+    // Put down on the platform below, nowhere near where the route says it is.
+    ActorBehaviorContext knockedDown = standingAt(navigationGraph, {288.0f, 192.0f});
+    behavior.decide(0.01f, knockedDown);
+
+    REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 192.0f);
+    REQUIRE(behavior.decide(0.01f, knockedDown).direction.x != 0.0f);
 }

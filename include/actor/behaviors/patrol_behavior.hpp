@@ -23,4 +23,5 @@ private:
     void anchor(const ActorBehaviorContext &context);
     void planRoute(const ActorBehaviorContext &context);
     bool hasArrived(const ActorBehaviorContext &context) const;
+    bool hasLostTheRoute(const ActorBehaviorContext &context) const;
 };

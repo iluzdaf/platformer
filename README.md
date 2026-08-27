@@ -43,8 +43,7 @@ Terminal commands below assume a Unix shell. On Windows use Git Bash.
     sudo apt-get install clang clang-format clang-tidy   # Linux
     ```
 
-    [.llvm-version](.llvm-version) is the version CI builds and checks with, and
-    the one the pre commit hook looks for.
+    [.llvm-version](.llvm-version) is the version CI builds and checks with.
 
     On macOS and Linux, `PATH` often finds a different clangd first, so check that
     `clangd --version` matches your compiler. Name it in your user settings if it
@@ -114,6 +113,22 @@ Levels and `game_data.json` share one format, written both by `TileMap::save` an
 No formatter has been found that reproduces this, so json formatting is turned off in
 the workspace settings.
 
+## 🪝 Pre Commit Hook
+
+Installed by step 4 above, and run on every commit.
+
+- Formats staged json under `assets`, and staged `.cpp` and `.hpp` under `src`,
+  `include` and `tests`, then stages what it changed.
+- Leaves a file alone and says so if it has unstaged edits, since staging the fix would
+  sweep the rest of your work into the commit.
+- Formats nothing and says so if it cannot find clang-format at the version in
+  [.llvm-version](.llvm-version), because formatting to another version is what CI would
+  then reject.
+- Never runs clang-tidy. Its answer is sometimes wrong: dropping a `glz::meta` include
+  it calls unused compiles fine, and surfaces later as two translation units disagreeing
+  about how a type serializes. Checks whose fix can be wrong are left to CI, which
+  reports rather than applies them.
+
 ## 🤖 What CI Does
 
 Every pull request runs two jobs at once. All four results must be green to merge.
@@ -142,7 +157,6 @@ Every platform builds the same way, from `CMakeLists.txt`.
 | [.clang-format](.clang-format) | formatting, applied on save |
 | [.clang-tidy](.clang-tidy) | naming and includes, applied on save |
 | [.llvm-version](.llvm-version) | the LLVM the tools must come from |
-| [tools/hooks/pre-commit](tools/hooks/pre-commit) | formats staged json and sources |
 
 In VS Code the C/C++ extension's IntelliSense is off because it parses with a front end
 of its own and disagrees with the compiler, and no `launch.json` is needed because CMake
@@ -157,15 +171,6 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - A file watcher catches and logs instead.
 - Each reload builds the replacement before assigning it, so a failure leaves what you
   had.
-
-**The hook only applies fixes that cannot be wrong.**
-
-- It formats staged json and sources.
-- It does not run clang-tidy. Dropping a `glz::meta` include it calls unused compiles
-  fine, and surfaces later as two translation units disagreeing about how a type
-  serializes.
-- A file with unstaged edits is reported rather than formatted, since staging the fix
-  would sweep the rest of your work into the commit.
 
 **No C++20 modules.**
 

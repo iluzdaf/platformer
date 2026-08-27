@@ -92,7 +92,7 @@ add_library(platformer_lib OBJECT
     src/rendering/ui/debug_aabb_ui.cpp
     src/rendering/ui/level_editor_ui.cpp
     src/rendering/ui/score_ui.cpp
-    src/rendering/ui/debug_navigation_ui.cpp
+    src/rendering/ui/navigation_overlay.cpp
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/tile_interaction_system.cpp

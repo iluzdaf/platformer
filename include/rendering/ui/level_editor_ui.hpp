@@ -31,9 +31,6 @@ public:
         onSetFirstLevel;
 
     bool drawsTileMapAABBs() const;
-    const NavigationGraph *selectedGraph(const Level &level) const;
-    std::optional<int> getSelectedNodeId() const;
-    std::optional<std::pair<int, int>> getSelectedEdge() const;
 
 private:
     bool editing = false,
@@ -47,7 +44,7 @@ private:
     std::optional<int> selectedNodeId;
     std::optional<std::pair<int, int>> selectedEdge;
 
-    void drawGraphs(const Level &level);
+    void drawGraphs(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
     void drawEdgesOf(const NavigationGraph &graph, int nodeId);
     std::optional<std::string> drawLevelChooser(const Level &level, const std::string &firstLevel);
 };

@@ -5,6 +5,7 @@
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "rendering/ui/tile_map_overlays.hpp"
+#include "rendering/ui/navigation_overlay.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -122,7 +123,7 @@ void LevelEditorUi::draw(
         ImGui::Unindent();
     }
 
-    drawGraphs(level);
+    drawGraphs(imGuiManager, camera, level);
 
     if (!editing)
     {
@@ -229,7 +230,10 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(
     return chosen;
 }
 
-void LevelEditorUi::drawGraphs(const Level &level)
+void LevelEditorUi::drawGraphs(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Level &level)
 {
     if (!ImGui::CollapsingHeader("navigation", ImGuiTreeNodeFlags_DefaultOpen))
         return;
@@ -269,6 +273,14 @@ void LevelEditorUi::drawGraphs(const Level &level)
         selectedNodeId.reset();
         selectedEdge.reset();
     }
+
+    if (showNavigation)
+        drawNavigationGraph(
+            imGuiManager,
+            camera,
+            shown.graph,
+            selectedNodeId,
+            selectedEdge);
 
     std::vector<int> nodeIds;
     for (const auto &[nodeId, node] : shown.graph.getNodes())
@@ -335,28 +347,6 @@ void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
 bool LevelEditorUi::drawsTileMapAABBs() const
 {
     return drawTileMapAABBs;
-}
-
-const NavigationGraph *LevelEditorUi::selectedGraph(const Level &level) const
-{
-    if (!showNavigation)
-        return nullptr;
-
-    const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
-    if (selectedGraphIndex >= graphs.size())
-        return graphs.empty() ? nullptr : &graphs.front().graph;
-
-    return &graphs[selectedGraphIndex].graph;
-}
-
-std::optional<int> LevelEditorUi::getSelectedNodeId() const
-{
-    return selectedNodeId;
-}
-
-std::optional<std::pair<int, int>> LevelEditorUi::getSelectedEdge() const
-{
-    return selectedEdge;
 }
 
 void LevelEditorUi::update(

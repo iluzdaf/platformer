@@ -298,14 +298,6 @@ void Game::render()
         gameEditorUi.drawsPlayerAABBs(),
         levelEditorUi.drawsTileMapAABBs());
 
-    const NavigationGraph *shownGraph = levelEditorUi.selectedGraph(*level.get());
-    if (shownGraph)
-        debugNavigationUi.draw(
-            *imGuiManager.get(),
-            *shownGraph,
-            *camera.get(),
-            {levelEditorUi.getSelectedNodeId(), levelEditorUi.getSelectedEdge()});
-
     imGuiManager->render();
 
     screenTransition->draw(*screenTransitionShader.get());

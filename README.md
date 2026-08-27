@@ -149,40 +149,24 @@ the target from its build directory, which is where the game looks for its asset
 
 ## 🧭 Decisions
 
-**Loading and reloading.** Loading anything from `assets` throws when the data is wrong.
-What that means is left to whoever asked for the load. At startup nothing catches, so a
-bad level, script or game data stops the game with the error; the assets are expected to
-be right and there is nothing to fall back to. A file watcher catches and logs instead,
-and each reload builds the replacement before assigning it, so a failure leaves what you
-had untouched.
-
-**One library, two executables.** Everything but `main.cpp` is compiled once into
-`platformer_lib`, which the game and the tests both link. Listing those sources in both
-executables built them twice, linted them twice, and meant adding a new file in two
-places.
-
-**The hook only fixes what is safe to fix.** It formats staged json and sources,
-because a formatter's answer is never wrong. It does not run clang-tidy, whose answer
-sometimes is: dropping an include it calls unused takes out `glz::meta`
-specializations, which are reached by instantiation rather than by name, and nothing
-fails until two translation units disagree about how a type serializes. Checks whose fix
-can be wrong are left to CI, where they are read rather than applied. A file with
-unstaged edits is reported rather than formatted, since staging the fix would sweep the
-rest of your work into the commit.
-
-**Developed on two platforms, built on three.** Every check the project enforces —
-formatting, naming, includes — is an LLVM tool pinned to one version. Windows compiles
-with MSVC, so a contributor there would install a second toolchain purely to run tools
-that never compile anything, and still have to match a clang-format version Visual
-Studio does not ship. CI keeps building and testing Windows, because MSVC reads the same
-code differently and finds what clang does not.
-
-**No C++20 modules.** Every dependency is a header library and clangd is still catching
-up, so scanning for modules buys nothing and costs a compiler pass per file. It also
-writes an argument into every compile command naming a file that only exists once you
-have built, which leaves anything reading the database — clang-tidy, or your own scripts
-— broken until then. Turn it back on with `-DCMAKE_CXX_SCAN_FOR_MODULES=ON` to
-experiment.
+- **Loading throws, and the caller decides what that means.** At startup nothing
+  catches, so bad data stops the game. A file watcher catches and logs, and each reload
+  builds the replacement before assigning it, so a failure leaves what you had.
+- **One library, two executables.** Everything but `main.cpp` compiles once into
+  `platformer_lib`. Listing those sources in both built them twice, linted them twice,
+  and meant adding a new file in two places.
+- **The hook only applies fixes that cannot be wrong.** It formats staged json and
+  sources. It does not run clang-tidy, which calls the `glz::meta` includes unused —
+  dropping one compiles fine and surfaces later as two translation units disagreeing
+  about how a type serializes. A file with unstaged edits is reported, not formatted,
+  since staging the fix would sweep the rest of your work into the commit.
+- **Developed on macOS and Linux, built on three.** Every enforced check is an LLVM tool
+  pinned to a version, and Windows compiles with MSVC. CI keeps building and testing
+  Windows, which reads the same code differently and finds what clang does not.
+- **No C++20 modules.** Every dependency is a header library and clangd is still
+  catching up. Scanning also writes an argument into every compile command naming a file
+  that exists only after a build, which breaks anything reading the compile database.
+  `-DCMAKE_CXX_SCAN_FOR_MODULES=ON` turns it back on.
 
 ## 🔭 Future Plans
 

@@ -407,3 +407,31 @@ TEST_CASE("Does not steer while falling", "[PatrolBehavior]")
         REQUIRE(behavior.decide(0.01f, at(navigationGraph, {x, 300.0f})).direction.x == 0.0f);
     }
 }
+
+TEST_CASE("Notices it is on a different platform at the same height", "[PatrolBehavior]")
+{
+    // Two platforms level with one another, which is what level6 had before its
+    // right hand one was lowered.
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {48.0f, 128.0f});
+    navigationGraph.addNode(1, {160.0f, 128.0f});
+    navigationGraph.addNode(2, {208.0f, 128.0f});
+    navigationGraph.addNode(3, {304.0f, 128.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    navigationGraph.addEdge(2, 3, EdgeType::Walk);
+    navigationGraph.addEdge(3, 2, EdgeType::Walk);
+    navigationGraph.addEdge({1, 2, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({2, 1, EdgeType::Jump, {}, 0.2f});
+
+    PatrolBehavior behavior(setupRoamingData());
+    anchorAt(behavior, navigationGraph, {48.0f, 128.0f});
+    REQUIRE(behavior.getCurrentNodeId() == 0);
+
+    // Put down on the far platform, level with where the route thinks it is.
+    ActorBehaviorContext elsewhere = standingAt(navigationGraph, {304.0f, 128.0f});
+    behavior.decide(0.01f, elsewhere);
+
+    REQUIRE(behavior.getCurrentNodeId() == 3);
+    REQUIRE(behavior.decide(0.01f, elsewhere).direction.x != 0.0f);
+}

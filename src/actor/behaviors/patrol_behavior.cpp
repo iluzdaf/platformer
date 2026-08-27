@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <optional>
 #include <glm/geometric.hpp>
@@ -81,8 +82,28 @@ bool PatrolBehavior::hasLostTheRoute(const ActorBehaviorContext &context) const
     if (!currentNodeId || !context.onGround)
         return false;
 
-    NavigationNode node = context.navigationGraph.getNode(*currentNodeId);
-    return std::abs(node.position.y - context.worldPosition.y) > SurfaceTolerance;
+    const NavigationGraph &navigationGraph = context.navigationGraph;
+    NavigationNode node = navigationGraph.getNode(*currentNodeId);
+    if (std::abs(node.position.y - context.worldPosition.y) > SurfaceTolerance)
+        return true;
+
+    // The same height is not the same platform. Another one level with this one
+    // would otherwise pass for being where the route says the actor is, and it
+    // would spend the rest of its life walking at a node it cannot reach.
+    float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
+    float leftEnd = node.position.x;
+    float rightEnd = node.position.x;
+    for (int id : walkableFrom(navigationGraph, *currentNodeId))
+    {
+        NavigationNode onFoot = navigationGraph.getNode(id);
+        if (std::abs(onFoot.position.y - node.position.y) > SurfaceTolerance)
+            continue;
+
+        leftEnd = std::min(leftEnd, onFoot.position.x);
+        rightEnd = std::max(rightEnd, onFoot.position.x);
+    }
+
+    return context.worldPosition.x < leftEnd - reach || context.worldPosition.x > rightEnd + reach;
 }
 
 InputIntentions PatrolBehavior::decide(

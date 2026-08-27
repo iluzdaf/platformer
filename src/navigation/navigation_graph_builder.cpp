@@ -316,23 +316,52 @@ namespace
         float tileSize = static_cast<float>(tileMap.getTileSize());
         glm::ivec2 startTilePosition = tileMap.worldToTilePosition(from);
 
-        for (int y = startTilePosition.y + 1; y < tileMap.getHeight(); ++y)
+        for (int y = startTilePosition.y; y < tileMap.getHeight(); ++y)
         {
             glm::ivec2 groundTilePosition(startTilePosition.x, y);
             if (!tileMap.validTilePosition(groundTilePosition))
                 return std::nullopt;
 
-            if (!tileMap.getTileAtTilePosition(groundTilePosition).isSolid())
-                continue;
-
-            if (!canStandOn(tileMap, groundTilePosition, headroom))
-                return std::nullopt;
-
             glm::vec2 standing(from.x, static_cast<float>(y) * tileSize);
-            return clearAt(tileMap, standing, profile) ? std::optional(standing) : std::nullopt;
+
+            if (tileMap.getTileAtTilePosition(groundTilePosition).isSolid())
+            {
+                if (y == startTilePosition.y)
+                    return std::nullopt;
+
+                return canStandOn(tileMap, groundTilePosition, headroom) &&
+                               clearAt(tileMap, standing, profile)
+                           ? std::optional(standing)
+                           : std::nullopt;
+            }
+
+            if (!clearAt(tileMap, standing, profile))
+                return std::nullopt;
         }
 
         return std::nullopt;
+    }
+
+    // A fall starts just past the ledge. Dropping from the node itself would go
+    // through the platform it stands on, which is solid under half of them.
+    std::vector<glm::vec2> fallLandings(
+        const TileMap &tileMap,
+        glm::vec2 takeOff,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        float stride = profile.colliderSize.x * 0.5f + 1.0f;
+
+        std::vector<glm::vec2> landings;
+        for (float direction : {-1.0f, 1.0f})
+        {
+            glm::vec2 steppedOff(takeOff.x + direction * stride, takeOff.y);
+            if (std::optional<glm::vec2> landing =
+                    surfaceBelow(tileMap, steppedOff, profile, headroom))
+                landings.push_back(*landing);
+        }
+
+        return landings;
     }
 
     void addFallLandingNodes(
@@ -357,15 +386,14 @@ namespace
                 takeOffs.push_back(node.position);
 
             for (glm::vec2 takeOff : takeOffs)
-            {
-                std::optional<glm::vec2> landing =
-                    surfaceBelow(tileMap, takeOff, profile, headroom);
-                if (!landing || navigationGraph.hasNodeAtPosition(*landing))
-                    continue;
+                for (glm::vec2 landing : fallLandings(tileMap, takeOff, profile, headroom))
+                {
+                    if (navigationGraph.hasNodeAtPosition(landing))
+                        continue;
 
-                navigationGraph.addNode(nextNodeId++, *landing);
-                added = true;
-            }
+                    navigationGraph.addNode(nextNodeId++, landing);
+                    added = true;
+                }
         }
     }
 
@@ -383,22 +411,18 @@ namespace
             takeOffs.emplace_back(id, node.position);
 
         for (const auto &[fromId, takeOff] : takeOffs)
-        {
-            std::optional<glm::vec2> landing =
-                surfaceBelow(tileMap, takeOff, profile, headroom);
-            if (!landing)
-                continue;
+            for (glm::vec2 landing : fallLandings(tileMap, takeOff, profile, headroom))
+            {
+                std::optional<int> toId =
+                    nodeGoverning(navigationGraph, tileMap, landing, headroom);
+                if (!toId || *toId == fromId)
+                    continue;
 
-            std::optional<int> toId =
-                nodeGoverning(navigationGraph, tileMap, *landing, headroom);
-            if (!toId || *toId == fromId)
-                continue;
+                if (alreadyConnected(navigationGraph, fromId, *toId))
+                    continue;
 
-            if (alreadyConnected(navigationGraph, fromId, *toId))
-                continue;
-
-            navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, {}, 0.0f});
-        }
+                navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, {}, 0.0f});
+            }
     }
 }
 

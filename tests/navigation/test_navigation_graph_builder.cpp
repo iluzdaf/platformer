@@ -870,6 +870,22 @@ namespace
     }
 }
 
+namespace
+{
+    // A fall steps off the ledge before dropping, so the landing sits just
+    // beyond the platform edge rather than under it.
+    int nodeJustPastTheLedge(const NavigationGraph &graph, float floorY)
+    {
+        float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
+        for (const auto &[id, node] : graph.getNodes())
+            if (std::abs(node.position.y - floorY) < 0.5f &&
+                node.position.x > ledgeEdgeX && node.position.x < ledgeEdgeX + 8.0f)
+                return id;
+
+        return -1;
+    }
+}
+
 TEST_CASE("Nothing falls onto spikes", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = setupLedgeAboveSpikes();
@@ -882,32 +898,26 @@ TEST_CASE("Nothing falls onto spikes", "[NavigationGraphBuilder][Fall]")
 TEST_CASE("A ledge gets a node directly below it", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = setupLedgeAboveFloor();
-    float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
     float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    REQUIRE(graph.hasNodeAtPosition(glm::vec2(ledgeEdgeX, floorY)));
+    REQUIRE(nodeJustPastTheLedge(graph, floorY) >= 0);
 }
 
 TEST_CASE("The fall from a ledge goes to the node below it", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = setupLedgeAboveFloor();
-    float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
     float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+    int landingId = nodeJustPastTheLedge(graph, floorY);
+    REQUIRE(landingId >= 0);
 
     bool straightDown = false;
     for (const auto &edge : graph.getEdges())
-    {
-        if (edge.type != EdgeType::Fall)
-            continue;
-
-        NavigationNode to = graph.getNode(edge.toId);
-        if (glm::distance(to.position, glm::vec2(ledgeEdgeX, floorY)) < 0.5f)
+        if (edge.type == EdgeType::Fall && edge.toId == landingId)
             straightDown = true;
-    }
 
     REQUIRE(straightDown);
 }
@@ -915,16 +925,11 @@ TEST_CASE("The fall from a ledge goes to the node below it", "[NavigationGraphBu
 TEST_CASE("The node below a ledge is walkable from the floor", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = setupLedgeAboveFloor();
-    float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
     float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    int landingId = -1;
-    for (const auto &[id, node] : graph.getNodes())
-        if (glm::distance(node.position, glm::vec2(ledgeEdgeX, floorY)) < 0.5f)
-            landingId = id;
-
+    int landingId = nodeJustPastTheLedge(graph, floorY);
     REQUIRE(landingId >= 0);
 
     int walkEdges = 0;
@@ -935,7 +940,7 @@ TEST_CASE("The node below a ledge is walkable from the floor", "[NavigationGraph
     REQUIRE(walkEdges > 0);
 }
 
-TEST_CASE("A fall goes straight down", "[NavigationGraphBuilder][Fall]")
+TEST_CASE("A fall clears the platform it leaves", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = setupLedgeAboveFloor();
 
@@ -948,6 +953,8 @@ TEST_CASE("A fall goes straight down", "[NavigationGraphBuilder][Fall]")
 
         NavigationNode from = graph.getNode(edge.fromId);
         NavigationNode to = graph.getNode(edge.toId);
-        REQUIRE(std::abs(to.position.x - from.position.x) < 0.5f);
+        float stepOff = std::abs(to.position.x - from.position.x);
+        REQUIRE(stepOff > 0.0f);
+        REQUIRE(stepOff < 8.0f);
     }
 }

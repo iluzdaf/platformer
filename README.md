@@ -175,10 +175,12 @@ the target from its build directory, which is where the game looks for its asset
 
 **No C++20 modules.**
 
-- Every dependency is a header library, and clangd is still catching up.
-- Scanning writes an argument into every compile command naming a file that exists only
-  after a build, which breaks anything reading the compile database.
-- `-DCMAKE_CXX_SCAN_FOR_MODULES=ON` turns it back on.
+- The tooling is not ready. clangd, which this repo leans on for code intelligence,
+  handles them poorly.
+- Every dependency is a header library, so modules would sit beside includes rather than
+  replace them.
+- Scanning for them writes an argument into every compile command naming a file that
+  exists only after a build, which breaks anything reading the compile database.
 
 ## 🔭 Future Plans
 

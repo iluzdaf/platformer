@@ -27,33 +27,28 @@ where they say `python3`.
 
 ## 🧰 What The Repository Configures
 
-Every platform builds the same way, from `CMakeLists.txt`, which defines the
-`platformer` and `tests` targets. No editor project files.
+Every platform builds the same way, from `CMakeLists.txt`. No editor project files.
+
+| | |
+|---|---|
+| [CMakeLists.txt](CMakeLists.txt) | the `platformer_lib`, `platformer` and `tests` targets |
+| [.vscode/extensions.json](.vscode/extensions.json) | the extensions VS Code should install |
+| [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension |
+| [.clang-format](.clang-format) | formatting, applied on save |
+| [.clang-tidy](.clang-tidy) | naming and includes, applied on save |
+| [.llvm-version](.llvm-version) | the LLVM the tools must come from |
+| [tools/hooks/pre-commit](tools/hooks/pre-commit) | formats staged json and sources |
 
 Visual Studio needs nothing further: it reads `CMakeLists.txt` directly and brings its
-own IntelliSense and debugger.
+own IntelliSense and debugger. VS Code divides the work between three extensions.
+**CMake Tools** configures and builds, **clangd** provides completion, navigation and
+diagnostics, and the **C/C++** extension provides the debugger. clangd reads the compile
+database CMake writes, so it sees the same flags the compiler does; the C/C++ extension
+parses with a front end of its own and can disagree, so its IntelliSense is switched off.
 
-VS Code divides the work between three extensions. **CMake Tools** configures and
-builds, **clangd** provides completion, navigation and diagnostics, and the **C/C++**
-extension provides the debugger. clangd reads the compile database CMake writes, so it
-sees the same flags the compiler does; the C/C++ extension parses with a front end of
-its own and can disagree, so its IntelliSense is switched off.
-
-- `.vscode/extensions.json` — the extensions to install.
-- `.vscode/settings.json` — the generator, the build directory, and clangd in place of
-  the C/C++ extension.
-- `.clang-format`, `.clang-tidy` — formatting, naming and includes, applied on save.
-
-CMake writes the compile database and links it to the repository root, so clangd reads
+CMake writes that database and links it to the repository root, so clangd reads
 whichever of `build/Debug` or `build/Release` you configured last. Other build
 directories leave the link alone, so a one off build cannot take it.
-
-Module scanning is off. Nothing here is a C++20 module, since every dependency is a
-header library and clangd is still catching up, and scanning costs a compiler pass per
-file. It also writes an argument into every compile command naming a file that only
-exists once you have built, which leaves anything reading the database — clang-tidy, or
-your own scripts — broken until then. Turn it back on with
-`-DCMAKE_CXX_SCAN_FOR_MODULES=ON` if you want to try modules.
 
 One thing to check: clangd must come from the LLVM you build with — `PATH` often finds
 a different one first, so check that `clangd --version` matches your compiler, and name
@@ -148,6 +143,25 @@ python3 tools/format_json.py --format   # write the format
 python3 tools/format_json.py --check    # verify it
 ```
 
+## 🤖 What CI Does
+
+Every pull request runs two jobs at once. All four results must be green to merge.
+
+| job | runs on | does |
+|---|---|---|
+| `build-and-test` | Windows, macOS, Linux | configures, builds under `-Werror`, runs the test suite |
+| `checks` | Linux | the four questions below, which are about source text and so only need answering once |
+
+| check | run by |
+|---|---|
+| json assets are formatted | `tools/format_json.py --check` |
+| sources are formatted | `clang-format` |
+| naming, and includes that are used | `clang-tidy` |
+| headers compile on their own | the `header_self_containment` target |
+
+`checks` needs no build. clang-tidy reads the compile database CMake writes at
+configure, and the header target compiles files of its own.
+
 ## 🧱 Project Structure
 
 ```bash
@@ -164,17 +178,26 @@ platformer/
 └── tools/               # scripts and toolin utilities
 ```
 
-## 🚧 Loading And Reloading
+## 🧭 Approach
 
-Loading anything from `assets` throws when the data is wrong. What that means is left
-to whoever asked for the load.
+**Loading and reloading.** Loading anything from `assets` throws when the data is wrong.
+What that means is left to whoever asked for the load. At startup nothing catches, so a
+bad level, script or game data stops the game with the error; the assets are expected to
+be right and there is nothing to fall back to. A file watcher catches and logs instead,
+and each reload builds the replacement before assigning it, so a failure leaves what you
+had untouched.
 
-**The game starting up.** Nothing catches, so a bad level, script or game data stops the
-game with the error. The assets are expected to be right, and there is nothing to fall
-back to.
+**One library, two executables.** Everything but `main.cpp` is compiled once into
+`platformer_lib`, which the game and the tests both link. Listing those sources in both
+executables built them twice, linted them twice, and meant adding a new file in two
+places.
 
-**A file watcher, while the game runs.** These catch and log. Each reload builds the
-replacement before assigning it, so a failure leaves what you had untouched.
+**No C++20 modules.** Every dependency is a header library and clangd is still catching
+up, so scanning for modules buys nothing and costs a compiler pass per file. It also
+writes an argument into every compile command naming a file that only exists once you
+have built, which leaves anything reading the database — clang-tidy, or your own scripts
+— broken until then. Turn it back on with `-DCMAKE_CXX_SCAN_FOR_MODULES=ON` to
+experiment.
 
 ## 🔭 Future Plans
 

@@ -1,7 +1,7 @@
 #include <imgui.h>
 #include <format>
 #include "rendering/ui/debug_ui.hpp"
-#include "game/debug_data.hpp"
+#include "rendering/ui/debug_view.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
@@ -13,9 +13,9 @@ void DebugUi::draw(
     const glm::vec2 &playerPosition,
     const ActorState &actorState,
     const Camera2D &camera,
-    DebugData &debug)
+    DebugView &debug)
 {
-    if (!debug.showDebug)
+    if (!debug.showEditors)
         return;
 
     ImGui::SetNextWindowSize(ImVec2(200, imGuiManager.getUiDimensions().y));
@@ -47,7 +47,7 @@ void DebugUi::draw(
         return;
     }
 
-    ImGui::Checkbox("AABBs", &debug.shouldDrawPlayerAABBs);
+    ImGui::Checkbox("AABBs", &debug.drawPlayerAABBs);
 
     if (ImGui::BeginTable("Inspector", 2, ImGuiTableFlags_BordersInnerV))
     {

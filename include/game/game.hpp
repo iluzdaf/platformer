@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "game/game_data.hpp"
-#include "game/debug_data.hpp"
+#include "rendering/ui/debug_view.hpp"
 #include "game/levels.hpp"
 #include "tile_map/tile_interaction_system.hpp"
 #include "actor/actor.hpp"
@@ -89,6 +89,6 @@ private:
     fteng::connection onLevelCompleteConnection;
     bool paused = false,
          stepFrame = false;
-    DebugData debug;
+    DebugView debugView;
     GameData gameData;
 };

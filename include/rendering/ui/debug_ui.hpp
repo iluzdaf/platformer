@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct ActorMotionState;
-struct DebugData;
+struct DebugView;
 struct ActorState;
 class Camera2D;
 class ImGuiManager;
@@ -18,7 +18,7 @@ public:
         const glm::vec2 &playerPosition,
         const ActorState &actorState,
         const Camera2D &camera,
-        DebugData &debug);
+        DebugView &debug);
 
     fteng::signal<void()> onPlay,
         onStep,

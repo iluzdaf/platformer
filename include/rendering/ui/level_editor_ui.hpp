@@ -10,7 +10,7 @@ class Level;
 class Texture2D;
 class Camera2D;
 class NavigationGraph;
-struct DebugData;
+struct DebugView;
 
 class LevelEditorUi
 {
@@ -20,7 +20,7 @@ public:
         Level &level,
         const Texture2D &tileSet,
         const std::string &firstLevel,
-        DebugData &debug);
+        DebugView &debug);
     void update(
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,

@@ -4,7 +4,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
-#include "game/debug_data.hpp"
+#include "rendering/ui/debug_view.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -25,9 +25,9 @@ void LevelEditorUi::draw(
     Level &level,
     const Texture2D &tileSet,
     const std::string &firstLevel,
-    DebugData &debug)
+    DebugView &debug)
 {
-    if (!debug.showLevelEditor)
+    if (!debug.showEditors)
         return;
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
@@ -60,10 +60,10 @@ void LevelEditorUi::draw(
 
     ImGui::Separator();
 
-    ImGui::Checkbox("Tile Info", &debug.shouldDrawTileInfo);
+    ImGui::Checkbox("Tile Info", &debug.drawTileInfo);
     ImGui::SameLine();
-    ImGui::Checkbox("Grid", &debug.shouldDrawGrid);
-    ImGui::Checkbox("TileMap", &debug.shouldDrawTileMapAABBs);
+    ImGui::Checkbox("Grid", &debug.drawGrid);
+    ImGui::Checkbox("TileMap", &debug.drawTileMapAABBs);
     ImGui::SameLine();
     if (ImGui::Button("Respawn"))
         onRespawn();

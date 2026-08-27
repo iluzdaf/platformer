@@ -5,7 +5,6 @@
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
 #include "tile_map/tile_palette.hpp"
-#include "game/debug_data.hpp"
 #include "cameras/camera2d_data.hpp"
 
 struct GameData
@@ -16,5 +15,5 @@ struct GameData
     Camera2DData cameraData;
     int windowWidth = 800;
     int windowHeight = 600;
-    DebugData debugData;
+    bool debug = false;
 };

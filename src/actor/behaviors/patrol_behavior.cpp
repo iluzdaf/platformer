@@ -1,7 +1,10 @@
 #include <cmath>
 #include <optional>
+#include <glm/geometric.hpp>
+#include <vector>
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_path.hpp"
 
 namespace
 {
@@ -40,7 +43,7 @@ void PatrolBehavior::reset()
 {
     currentNodeId.reset();
     targetNodeId.reset();
-    previousNodeId.reset();
+    legsLeft.clear();
     jumpHeldFor = 0.0f;
 }
 
@@ -83,18 +86,21 @@ InputIntentions PatrolBehavior::decide(
         return inputIntentions;
 
     if (!targetNodeId)
-        pickTarget(context);
+        planRoute(context);
 
     if (!targetNodeId)
         return inputIntentions;
 
     if (hasArrived(context))
     {
-        previousNodeId = currentNodeId;
         currentNodeId = targetNodeId;
-        targetNodeId.reset();
         jumpHeldFor = 0.0f;
-        pickTarget(context);
+
+        legsLeft.erase(legsLeft.begin());
+        if (legsLeft.empty())
+            planRoute(context);
+        else
+            targetNodeId = legsLeft.front();
 
         if (!targetNodeId)
             return inputIntentions;
@@ -126,29 +132,47 @@ std::optional<int> PatrolBehavior::getTargetNodeId() const
     return targetNodeId;
 }
 
-void PatrolBehavior::pickTarget(const ActorBehaviorContext &context)
+// Walk to the furthest node worth going to, then, on arrival, to the furthest
+// from there, which is back the way it came.
+void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
 {
     targetNodeId.reset();
+    legsLeft.clear();
 
     if (!currentNodeId)
         return;
 
-    std::optional<int> wayBack;
-    for (const auto &edge : context.navigationGraph.getOutgoingEdges(*currentNodeId))
-    {
-        if (previousNodeId && edge.toId == *previousNodeId)
-        {
-            if (!wayBack || edge.toId < *wayBack)
-                wayBack = edge.toId;
-            continue;
-        }
+    const NavigationGraph &navigationGraph = context.navigationGraph;
+    std::vector<int> worthGoingTo = data.roams
+                                        ? roundTripFrom(navigationGraph, *currentNodeId)
+                                        : walkableFrom(navigationGraph, *currentNodeId);
 
-        if (!targetNodeId || edge.toId < *targetNodeId)
-            targetNodeId = edge.toId;
+    glm::vec2 here = navigationGraph.getNode(*currentNodeId).position;
+
+    std::optional<int> destination;
+    float furthest = 0.0f;
+    for (int id : worthGoingTo)
+    {
+        if (id == *currentNodeId)
+            continue;
+
+        float distance = glm::distance(navigationGraph.getNode(id).position, here);
+        if (destination && distance <= furthest)
+            continue;
+
+        destination = id;
+        furthest = distance;
     }
 
-    if (!targetNodeId)
-        targetNodeId = wayBack;
+    if (!destination)
+        return;
+
+    std::vector<int> route = findPath(navigationGraph, *currentNodeId, *destination);
+    if (route.size() < 2)
+        return;
+
+    legsLeft.assign(route.begin() + 1, route.end());
+    targetNodeId = legsLeft.front();
 }
 
 bool PatrolBehavior::hasArrived(const ActorBehaviorContext &context) const

@@ -89,3 +89,23 @@ TEST_CASE("A route to a node that is not there is an error", "[NavigationPath]")
 {
     REQUIRE_THROWS(findPath(setupTwoFloors(), 0, 99));
 }
+
+TEST_CASE("A round trip leaves out what is past a one way drop", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph = setupTwoFloors();
+
+    // Node 0 can reach every node, but the lower floor can only be left by the
+    // jump at node 3, so all of it is still worth going to.
+    REQUIRE(roundTripFrom(navigationGraph, 0) == std::vector{0, 1, 2, 3, 4, 5});
+
+    navigationGraph.addNode(6, glm::vec2(150.0f, 50.0f));
+    navigationGraph.addEdge(5, 6, EdgeType::Fall);
+
+    REQUIRE(roundTripFrom(navigationGraph, 0) == std::vector{0, 1, 2, 3, 4, 5});
+}
+
+TEST_CASE("A walk stays on the platform", "[NavigationPath]")
+{
+    REQUIRE(walkableFrom(setupTwoFloors(), 0) == std::vector{0, 1, 2});
+    REQUIRE(walkableFrom(setupTwoFloors(), 4) == std::vector{3, 4, 5});
+}

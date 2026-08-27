@@ -95,7 +95,7 @@
                     }
                 }
             },
-            "patrolBehaviorData":{"arrivalThreshold":2.0}
+            "patrolBehaviorData":{"arrivalThreshold":2.0,"roams":false}
         },
         "explorer":{
             "actorData":{
@@ -132,7 +132,7 @@
                     }
                 }
             },
-            "patrolBehaviorData":{"arrivalThreshold":2.0}
+            "patrolBehaviorData":{"arrivalThreshold":2.0,"roams":true}
         }
     },
     "tilePalettes":{

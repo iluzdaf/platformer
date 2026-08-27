@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <vector>
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 
@@ -15,10 +16,11 @@ public:
 
 private:
     PatrolBehaviorData data;
-    std::optional<int> currentNodeId, targetNodeId, previousNodeId;
+    std::optional<int> currentNodeId, targetNodeId;
+    std::vector<int> legsLeft;
     float jumpHeldFor = 0.0f;
 
     void anchor(const ActorBehaviorContext &context);
-    void pickTarget(const ActorBehaviorContext &context);
+    void planRoute(const ActorBehaviorContext &context);
     bool hasArrived(const ActorBehaviorContext &context) const;
 };

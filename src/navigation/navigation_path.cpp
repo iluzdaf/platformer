@@ -20,6 +20,56 @@ namespace
         return step.estimate > against.estimate;
     }
 
+    using Ways = std::unordered_map<int, std::vector<int>>;
+
+    Ways waysOn(const NavigationGraph &navigationGraph, bool onFoot)
+    {
+        Ways ways;
+        for (const NavigationEdge &edge : navigationGraph.getEdges())
+            if (!onFoot || edge.type == EdgeType::Walk)
+                ways[edge.fromId].push_back(edge.toId);
+
+        return ways;
+    }
+
+    Ways waysBack(const NavigationGraph &navigationGraph)
+    {
+        Ways ways;
+        for (const NavigationEdge &edge : navigationGraph.getEdges())
+            ways[edge.toId].push_back(edge.fromId);
+
+        return ways;
+    }
+
+    std::unordered_set<int> spreadFrom(int fromId, const Ways &ways)
+    {
+        std::unordered_set<int> found{fromId};
+
+        std::vector<int> pending{fromId};
+        while (!pending.empty())
+        {
+            int at = pending.back();
+            pending.pop_back();
+
+            auto onward = ways.find(at);
+            if (onward == ways.end())
+                continue;
+
+            for (int toId : onward->second)
+                if (found.insert(toId).second)
+                    pending.push_back(toId);
+        }
+
+        return found;
+    }
+
+    std::vector<int> inIdOrder(const std::unordered_set<int> &ids)
+    {
+        std::vector<int> ordered(ids.begin(), ids.end());
+        std::ranges::sort(ordered);
+        return ordered;
+    }
+
     std::vector<int> retrace(const std::unordered_map<int, int> &arrivedFrom, int fromId, int toId)
     {
         std::vector<int> route{toId};
@@ -79,4 +129,26 @@ std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, in
     }
 
     return {};
+}
+
+std::vector<int> roundTripFrom(const NavigationGraph &navigationGraph, int fromId)
+{
+    navigationGraph.getNode(fromId);
+
+    std::unordered_set<int> out = spreadFrom(fromId, waysOn(navigationGraph, false));
+    std::unordered_set<int> back = spreadFrom(fromId, waysBack(navigationGraph));
+
+    std::unordered_set<int> both;
+    for (int id : out)
+        if (back.contains(id))
+            both.insert(id);
+
+    return inIdOrder(both);
+}
+
+std::vector<int> walkableFrom(const NavigationGraph &navigationGraph, int fromId)
+{
+    navigationGraph.getNode(fromId);
+
+    return inIdOrder(spreadFrom(fromId, waysOn(navigationGraph, true)));
 }

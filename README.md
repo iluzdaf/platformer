@@ -11,21 +11,32 @@ A simple 2D platformer built with OpenGL. This project is designed as a learning
 
 ## 🖥 Supported Setups
 
-Targets **C++23**. Developed on macOS and Linux. It [builds on
-Windows](#-building-on-windows) too, which CI checks, but the tooling is LLVM only.
+Targets **C++23**.
 
-| | macOS | Linux |
-|---|---|---|
-| Compiler | LLVM clang | LLVM clang with libc++ |
-| Editor | VS Code | VS Code |
-| Build | the editor's CMake support | the editor's CMake support |
-| Debug | CMake Tools' debug button | CMake Tools' debug button |
-| Code intelligence | clangd | clangd |
+| | Windows | macOS | Linux |
+|---|---|---|---|
+| Compiler | MSVC | LLVM clang | LLVM clang with libc++ |
+| Editor | Visual Studio 2022 | VS Code | VS Code |
+| Build | the editor's CMake support | the editor's CMake support | the editor's CMake support |
+| Debug | Visual Studio's Run button | CMake Tools' debug button | CMake Tools' debug button |
+| Code intelligence | Visual Studio's own | clangd | clangd |
+
+Terminal commands below assume a Unix shell. On Windows use Git Bash.
 
 ## 🛠 Setup
 
-1. Install **CMake**, **Ninja**, **git-lfs**, and **LLVM** with its tools, which
-    install separately from the compiler:
+1. Install the prerequisites.
+
+    For Windows, Visual Studio 2022 with **CMake** and **Git for Windows** added
+    through *Tools and Features → Individual Components*, and clang-format, which
+    Visual Studio does not ship at the version this project pins:
+
+    ```bash
+    pip install clang-format==$(cat .llvm-version).*
+    ```
+
+    For macOS and Linux, **CMake**, **Ninja**, **git-lfs**, and **LLVM** with its
+    tools, which install separately from the compiler:
 
     ```bash
     brew install llvm clang-format                       # macOS
@@ -35,8 +46,9 @@ Windows](#-building-on-windows) too, which CI checks, but the tooling is LLVM on
     [.llvm-version](.llvm-version) is the version CI builds and checks with, and
     the one the pre commit hook looks for.
 
-    `PATH` often finds a different clangd first, so check that `clangd --version`
-    matches your compiler. Name it in your user settings if it does not:
+    On macOS and Linux, `PATH` often finds a different clangd first, so check that
+    `clangd --version` matches your compiler. Name it in your user settings if it
+    does not:
 
     ```json
     "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
@@ -61,17 +73,6 @@ Windows](#-building-on-windows) too, which CI checks, but the tooling is LLVM on
 5. Pick `platformer` or `tests` as the target, choose **Debug** or **Release**, and
     use the run and debug buttons. The game reads its assets relative to the build
     directory, which is where both editors run it from.
-
-## 🪟 Building On Windows
-
-The game builds and runs on Windows, and CI checks that on every pull request. The
-checks the project enforces are LLVM tools, which Windows does not compile with, so this
-is for building and playing rather than contributing.
-
-Install Visual Studio 2022 with **CMake** and **Git for Windows** from *Tools and
-Features → Individual Components*, clone with submodules as above, and open the
-repository folder. Visual Studio reads `CMakeLists.txt` directly, so pick `platformer`
-and use the Run button.
 
 ## 🧱 Project Structure
 
@@ -143,8 +144,9 @@ Every platform builds the same way, from `CMakeLists.txt`.
 | [.llvm-version](.llvm-version) | the LLVM the tools must come from |
 | [tools/hooks/pre-commit](tools/hooks/pre-commit) | formats staged json and sources |
 
-The C/C++ extension's IntelliSense is off because it parses with a front end of its own
-and disagrees with the compiler, and no `launch.json` is needed because CMake Tools runs
+Visual Studio reads `CMakeLists.txt` directly and needs none of this. In VS Code the
+C/C++ extension's IntelliSense is off because it parses with a front end of its own and
+disagrees with the compiler, and no `launch.json` is needed because CMake Tools runs
 the target from its build directory, which is where the game looks for its assets.
 
 ## 🧭 Decisions
@@ -164,14 +166,6 @@ the target from its build directory, which is where the game looks for its asset
   serializes.
 - A file with unstaged edits is reported rather than formatted, since staging the fix
   would sweep the rest of your work into the commit.
-
-**Developed on macOS and Linux, built on three.**
-
-- Every enforced check is an LLVM tool pinned to a version.
-- Windows compiles with MSVC, so developing there means a second toolchain that compiles
-  nothing.
-- CI keeps building and testing Windows, which reads the same code differently and finds
-  what clang does not.
 
 **No C++20 modules.**
 

@@ -156,13 +156,6 @@ the target from its build directory, which is where the game looks for its asset
 - Each reload builds the replacement before assigning it, so a failure leaves what you
   had.
 
-**One library, two executables.**
-
-- Everything but `main.cpp` compiles once into `platformer_lib`, which the game and the
-  tests both link.
-- Listing those sources in both built them twice and linted them twice.
-- It also meant adding every new file in two places.
-
 **The hook only applies fixes that cannot be wrong.**
 
 - It formats staged json and sources.

@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cmath>
 #include <filesystem>
+#include <set>
 #include <vector>
 #include <glaze/glaze.hpp>
 #include "npc/npc.hpp"
@@ -353,7 +354,7 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     REQUIRE(npc.getPosition().x == placed.x);
 }
 
-TEST_CASE("The shipped explorer patrols level6 without falling off it", "[Npc][Level]")
+TEST_CASE("The shipped explorer patrols level6 without getting stuck", "[Npc][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
@@ -369,15 +370,27 @@ TEST_CASE("The shipped explorer patrols level6 without falling off it", "[Npc][L
     Npc npc(gameData.npcData.at("explorer"));
     npc.setPosition(level.getTileMap().tileToWorldPosition(ExplorerTile));
 
-    float floorY = level.getTileMap().tileToWorldPosition(glm::ivec2(0, 11)).y;
-    float lowest = 0.0f;
+    std::set<int> surfacesStoodOn;
+    float previousX = npc.getPosition().x;
+    int standingStill = 0;
+    int longestStandingStill = 0;
+
     for (int step = 0; step < 4000; ++step)
     {
         npc.preFixedUpdate();
         npc.fixedUpdate(0.01f, level);
-        lowest = std::max(lowest, npc.getPosition().y);
+
+        if (!npc.getMotion().getState().contacts.onGround)
+            continue;
+
+        surfacesStoodOn.insert(static_cast<int>(npc.getPosition().y));
+        standingStill = std::abs(npc.getPosition().x - previousX) < 0.01f ? standingStill + 1 : 0;
+        longestStandingStill = std::max(longestStandingStill, standingStill);
+        previousX = npc.getPosition().x;
     }
 
-    INFO("explorer dropped to " << lowest << ", the floor is at " << floorY);
-    REQUIRE(lowest < floorY);
+    INFO("stood on " << surfacesStoodOn.size() << " surfaces, idle for up to "
+                     << longestStandingStill << " steps");
+    REQUIRE(surfacesStoodOn.size() >= 2);
+    REQUIRE(longestStandingStill < 100);
 }

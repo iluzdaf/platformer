@@ -1,7 +1,15 @@
+#include <set>
 #include "rendering/ui/debug_navigation_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "cameras/camera2d.hpp"
+
+namespace
+{
+    constexpr unsigned int NodeColour = IM_COL32(0, 255, 0, 255);
+    constexpr unsigned int OriginColour = IM_COL32(0, 255, 0, 255);
+    constexpr unsigned int DestinationColour = IM_COL32(0, 200, 255, 255);
+}
 
 void DebugNavigationUi::draw(
     ImGuiManager &imGuiManager,
@@ -10,8 +18,6 @@ void DebugNavigationUi::draw(
     const Selection &selection)
 {
     imGuiManager.setNextFullscreenWindow();
-
-    bool selecting = selection.nodeId.has_value() || selection.edge.has_value();
 
     auto edgeShown = [&](const NavigationEdge &edge)
     {
@@ -22,18 +28,30 @@ void DebugNavigationUi::draw(
         return true;
     };
 
-    auto nodeShown = [&](int id)
-    {
-        if (selection.edge)
-            return id == selection.edge->first || id == selection.edge->second;
-        if (selection.nodeId)
-            return id == *selection.nodeId;
-        return true;
-    };
+    std::optional<int> origin = selection.nodeId;
+    if (selection.edge)
+        origin = selection.edge->first;
+
+    std::set<int> otherEnds;
+    if (origin)
+        for (const auto &edge : navigationGraph.getEdges())
+            if (edgeShown(edge))
+            {
+                if (edge.fromId != *origin)
+                    otherEnds.insert(edge.fromId);
+                if (edge.toId != *origin)
+                    otherEnds.insert(edge.toId);
+            }
 
     for (const auto &[id, node] : navigationGraph.getNodes())
-        if (!selecting || nodeShown(id))
-            drawNode(imGuiManager, camera, node);
+    {
+        if (!origin)
+            drawNode(imGuiManager, camera, node, NodeColour);
+        else if (id == *origin)
+            drawNode(imGuiManager, camera, node, OriginColour);
+        else if (otherEnds.contains(id))
+            drawNode(imGuiManager, camera, node, DestinationColour);
+    }
 
     for (const auto &edge : navigationGraph.getEdges())
         if (edgeShown(edge))
@@ -43,14 +61,15 @@ void DebugNavigationUi::draw(
 void DebugNavigationUi::drawNode(
     ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    const NavigationNode &node)
+    const NavigationNode &node,
+    unsigned int colour)
 {
     ImVec2 position = imGuiManager.worldToScreen(
         node.position,
         camera.getZoom(),
         camera.getTopLeftPosition());
     ImDrawList *drawList = imGuiManager.getDrawList();
-    drawList->AddCircle(position, 5, IM_COL32(0, 255, 0, 255), 16);
+    drawList->AddCircleFilled(position, 5, colour, 16);
 }
 
 void DebugNavigationUi::drawEdge(

@@ -28,11 +28,11 @@ namespace
     }
 }
 
-std::vector<glm::vec2> simulateJumpArc(
-    const ActorMotionData &motionData,
-    float holdFraction)
+JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
 {
-    AbilitySystem abilitySystem(releasedAfter(motionData, holdFraction));
+    ActorMotionData shortened = releasedAfter(motionData, holdFraction);
+    float holdDuration = shortened.jumpAbilityData ? shortened.jumpAbilityData->jumpDuration : 0.0f;
+    AbilitySystem abilitySystem(shortened);
     ActorMotionState state;
     InputIntentions inputIntentions = holdingJumpAndRunning();
 
@@ -41,32 +41,32 @@ std::vector<glm::vec2> simulateJumpArc(
     if (state.targetVelocity.y >= 0.0f)
         return {};
 
-    std::vector<glm::vec2> arc{glm::vec2(0.0f)};
+    std::vector<glm::vec2> offsets{glm::vec2(0.0f)};
     glm::vec2 offset = state.targetVelocity * SimulationTimeStep;
-    arc.push_back(offset);
+    offsets.push_back(offset);
 
     state.contacts.onGround = false;
     for (int step = 1; step < MaximumSteps; ++step)
     {
         abilitySystem.applyMovement(SimulationTimeStep, inputIntentions, state);
         offset += state.targetVelocity * SimulationTimeStep;
-        arc.push_back(offset);
+        offsets.push_back(offset);
 
         if (offset.y >= 0.0f)
-            return arc;
+            return JumpArc{holdDuration, offsets};
     }
 
     return {};
 }
 
-std::vector<std::vector<glm::vec2>> simulateJumpArcs(const ActorMotionData &motionData)
+std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData)
 {
-    std::vector<std::vector<glm::vec2>> arcs;
+    std::vector<JumpArc> arcs;
 
     for (float holdFraction : HoldFractions)
     {
-        std::vector<glm::vec2> arc = simulateJumpArc(motionData, holdFraction);
-        if (!arc.empty())
+        JumpArc arc = simulateJumpArc(motionData, holdFraction);
+        if (!arc.offsets.empty())
             arcs.push_back(arc);
     }
 

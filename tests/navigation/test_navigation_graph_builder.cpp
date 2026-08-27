@@ -723,3 +723,37 @@ TEST_CASE("The shipped villager is offered no jumps at all", "[NavigationGraphBu
     REQUIRE(villager.jumpArcs.empty());
     REQUIRE(countEdgesOfType(buildNavigationGraph(tileMap, villager), EdgeType::Jump) == 0);
 }
+
+TEST_CASE("A jump edge records the hold that made it", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupTwoPlatforms(3);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Jump)
+            REQUIRE(edge.holdDuration > 0.0f);
+}
+
+TEST_CASE("A walk edge is held for nothing", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupTwoPlatforms(3);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Walk)
+            REQUIRE(edge.holdDuration == 0.0f);
+}
+
+TEST_CASE("A gap needing less than a full jump records less", "[NavigationGraphBuilder][Jump]")
+{
+    NavigationProfile profile = jumperProfile();
+    TileMap tileMap = setupTwoPlatforms(1);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Jump)
+            REQUIRE(edge.holdDuration <= profile.jumpArcs.front().holdDuration);
+}

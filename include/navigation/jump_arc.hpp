@@ -5,8 +5,14 @@
 
 struct ActorMotionData;
 
-std::vector<glm::vec2> simulateJumpArc(
-    const ActorMotionData &motionData,
-    float holdFraction = 1.0f);
+struct JumpArc
+{
+    float holdDuration = 0.0f;
+    std::vector<glm::vec2> offsets;
 
-std::vector<std::vector<glm::vec2>> simulateJumpArcs(const ActorMotionData &motionData);
+    bool operator==(const JumpArc &) const = default;
+};
+
+JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction = 1.0f);
+
+std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData);

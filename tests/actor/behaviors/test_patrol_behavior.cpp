@@ -24,8 +24,8 @@ namespace
         NavigationGraph navigationGraph;
         navigationGraph.addNode(0, {0.0f, 192.0f});
         navigationGraph.addNode(1, {96.0f, 192.0f});
-        navigationGraph.addEdge(0, 1, EdgeType::Jump);
-        navigationGraph.addEdge(1, 0, EdgeType::Jump);
+        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
+        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
         return navigationGraph;
     }
 
@@ -34,8 +34,8 @@ namespace
         NavigationGraph navigationGraph;
         navigationGraph.addNode(0, {0.0f, 192.0f});
         navigationGraph.addNode(1, {96.0f, 160.0f});
-        navigationGraph.addEdge(0, 1, EdgeType::Jump);
-        navigationGraph.addEdge(1, 0, EdgeType::Jump);
+        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
+        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
         return navigationGraph;
     }
 
@@ -233,4 +233,54 @@ TEST_CASE("Anchors to the run underfoot, not a nearer one above", "[PatrolBehavi
         anchorAt(behavior, navigationGraph, {104.0f, 60.0f});
         REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
     }
+}
+
+TEST_CASE("Stops asking to jump once the hold is spent", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, 192.0f});
+    navigationGraph.addNode(1, {96.0f, 192.0f});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.05f});
+    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.05f});
+
+    PatrolBehavior behavior(setupData());
+    anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
+
+    glm::vec2 position(0.0f, 192.0f);
+    std::vector<bool> asked;
+    for (int step = 0; step < 10; ++step)
+    {
+        asked.push_back(behavior.decide(0.01f, at(navigationGraph, position)).jumpRequested);
+        position.x += 1.0f;
+    }
+
+    REQUIRE(asked.front());
+    REQUIRE_FALSE(asked.back());
+}
+
+TEST_CASE("Holds a longer jump for longer", "[PatrolBehavior]")
+{
+    auto askedFor = [](float holdDuration)
+    {
+        NavigationGraph navigationGraph;
+        navigationGraph.addNode(0, {0.0f, 192.0f});
+        navigationGraph.addNode(1, {96.0f, 192.0f});
+        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, holdDuration});
+        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, holdDuration});
+
+        PatrolBehavior behavior(setupData());
+        anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
+
+        int steps = 0;
+        glm::vec2 position(0.0f, 192.0f);
+        for (int step = 0; step < 40; ++step)
+        {
+            if (behavior.decide(0.01f, at(navigationGraph, position)).jumpRequested)
+                ++steps;
+            position.x += 1.0f;
+        }
+        return steps;
+    };
+
+    REQUIRE(askedFor(0.20f) > askedFor(0.05f));
 }

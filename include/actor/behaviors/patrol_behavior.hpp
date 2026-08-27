@@ -16,6 +16,7 @@ public:
 private:
     PatrolBehaviorData data;
     std::optional<int> currentNodeId, targetNodeId, previousNodeId;
+    float jumpHeldFor = 0.0f;
 
     void anchor(const ActorBehaviorContext &context);
     void pickTarget(const ActorBehaviorContext &context);

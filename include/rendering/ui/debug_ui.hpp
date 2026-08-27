@@ -21,11 +21,5 @@ public:
 
     fteng::signal<void()> onPlay,
         onStep,
-        onRespawn,
-        onToggleZoom,
-        onToggleDrawGrid,
-        onToggleDrawTileInfo,
-        onToggleDrawPlayerAABBs,
-        onToggleDrawTileMapAABBs,
-        onGameReload;
+        onToggleZoom;
 };

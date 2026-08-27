@@ -26,7 +26,8 @@ namespace
     {
         return {
             {"short", npcOfHeight(13.0f)},
-            {"tall", npcOfHeight(20.0f)}};
+            {"tall", npcOfHeight(20.0f)},
+            {"alsoShort", npcOfHeight(13.0f)}};
     }
 
     NavigationProfile profileOfHeight(float height)
@@ -153,4 +154,28 @@ TEST_CASE("Rebuilding keeps a graph for every profile it had", "[Level]")
     REQUIRE(level.getGraphs().size() == before);
     REQUIRE(nodesOnTheFloor(level.graphFor(profileOfHeight(13.0f))) == 2);
     REQUIRE(nodesOnTheFloor(level.graphFor(profileOfHeight(20.0f))) == 0);
+}
+
+TEST_CASE("A graph is named for the actor that needed it", "[Level]")
+{
+    Level level = levelPlacing({{"tall", StandingTile}});
+
+    std::vector<std::string> names;
+    for (const NamedNavigationGraph &graph : level.getGraphs())
+        names.push_back(graph.name);
+
+    REQUIRE(std::find(names.begin(), names.end(), "player") != names.end());
+    REQUIRE(std::find(names.begin(), names.end(), "tall") != names.end());
+}
+
+TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
+{
+    Level level = levelPlacing({{"short", StandingTile}, {"alsoShort", StandingTile}});
+
+    std::vector<std::string> names;
+    for (const NamedNavigationGraph &graph : level.getGraphs())
+        names.push_back(graph.name);
+
+    REQUIRE(names.size() == 1);
+    REQUIRE(names.front() == "player, short, alsoShort");
 }

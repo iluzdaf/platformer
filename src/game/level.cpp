@@ -277,7 +277,7 @@ void Level::initFrom(
             throw std::runtime_error("Npc start position is on a solid tile");
     }
 
-    addGraphFor(buildNavigationProfile(playerData.actorData));
+    addGraphFor("player", buildNavigationProfile(playerData.actorData));
 
     for (const NpcSpawnData &spawn : npcs)
     {
@@ -285,17 +285,20 @@ void Level::initFrom(
         if (npc == npcData.end())
             throw std::runtime_error("Unknown npc \"" + spawn.type + "\" in " + path);
 
-        addGraphFor(buildNavigationProfile(npc->second.actorData));
+        addGraphFor(spawn.type, buildNavigationProfile(npc->second.actorData));
     }
 }
 
-void Level::addGraphFor(const NavigationProfile &profile)
+void Level::addGraphFor(const std::string &name, const NavigationProfile &profile)
 {
-    if (std::find(profiles.begin(), profiles.end(), profile) != profiles.end())
-        return;
+    for (NamedNavigationGraph &existing : graphs)
+        if (existing.profile == profile)
+        {
+            existing.name += ", " + name;
+            return;
+        }
 
-    profiles.push_back(profile);
-    graphs.push_back(buildNavigationGraph(tileMap, profile));
+    graphs.push_back({name, profile, buildNavigationGraph(tileMap, profile)});
 }
 
 const TileMap &Level::getTileMap() const
@@ -308,25 +311,24 @@ TileMap &Level::getTileMap()
     return tileMap;
 }
 
-const std::vector<NavigationGraph> &Level::getGraphs() const
+const std::vector<NamedNavigationGraph> &Level::getGraphs() const
 {
     return graphs;
 }
 
 void Level::rebuildGraphs()
 {
-    graphs.clear();
-    for (const NavigationProfile &profile : profiles)
-        graphs.push_back(buildNavigationGraph(tileMap, profile));
+    for (NamedNavigationGraph &named : graphs)
+        named.graph = buildNavigationGraph(tileMap, named.profile);
 }
 
 const NavigationGraph &Level::graphFor(const NavigationProfile &profile) const
 {
-    auto found = std::find(profiles.begin(), profiles.end(), profile);
-    if (found == profiles.end())
-        throw std::runtime_error("This level has no navigation graph for that actor");
+    for (const NamedNavigationGraph &named : graphs)
+        if (named.profile == profile)
+            return named.graph;
 
-    return graphs[static_cast<size_t>(std::distance(profiles.begin(), found))];
+    throw std::runtime_error("This level has no navigation graph for that actor");
 }
 
 glm::vec2 Level::getPlayerStartWorldPosition() const

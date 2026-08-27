@@ -123,26 +123,24 @@ Game::Game()
                            { play(); });
     debugUi.onStep.connect([this]
                            { step(); });
-    debugUi.onRespawn.connect([this]
-                              { rebuildPlayer(); });
     debugUi.onToggleZoom.connect([this]
                                  {
         static float originalZoom = camera->getZoom();
         float currentZoom = camera->getZoom();
         camera->setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom); });
-    debugUi.onToggleDrawGrid.connect([this]
-                                     { shouldDrawGrid = !shouldDrawGrid; });
-    debugUi.onToggleDrawTileInfo.connect([this]
-                                         { shouldDrawTileInfo = !shouldDrawTileInfo; });
-    debugUi.onToggleDrawPlayerAABBs.connect([this]
-                                            { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
-    debugUi.onToggleDrawTileMapAABBs.connect([this]
-                                             { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
-    debugUi.onGameReload.connect([this]
-                                 { reload(); });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
     levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
                                       { loadLevel(levelPath); });
+    levelEditorUi.onRespawn.connect([this]
+                                    { rebuildPlayer(); });
+    levelEditorUi.onToggleDrawGrid.connect([this]
+                                           { shouldDrawGrid = !shouldDrawGrid; });
+    levelEditorUi.onToggleDrawTileInfo.connect([this]
+                                               { shouldDrawTileInfo = !shouldDrawTileInfo; });
+    levelEditorUi.onToggleDrawPlayerAABBs.connect([this]
+                                                  { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
+    levelEditorUi.onToggleDrawTileMapAABBs.connect([this]
+                                                   { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), screenTransition.get());
 
@@ -312,10 +310,13 @@ void Game::render()
         *tileSet.get(),
         showLevelEditor);
 
-    debugNavigationUi.draw(
-        *imGuiManager.get(),
-        level->graphFor(player->getNavigationProfile()),
-        *camera.get());
+    const NavigationGraph *shownGraph = levelEditorUi.selectedGraph(*level.get());
+    if (shownGraph)
+        debugNavigationUi.draw(
+            *imGuiManager.get(),
+            *shownGraph,
+            *camera.get(),
+            {levelEditorUi.getSelectedNodeId(), levelEditorUi.getSelectedEdge()});
 
     imGuiManager->render();
 

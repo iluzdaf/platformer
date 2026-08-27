@@ -1,5 +1,8 @@
 #pragma once
 
+#include <optional>
+#include <utility>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 class ImGuiManager;
@@ -12,10 +15,17 @@ class Camera2D;
 class DebugNavigationUi
 {
 public:
+    struct Selection
+    {
+        std::optional<int> nodeId;
+        std::optional<std::pair<int, int>> edge;
+    };
+
     void draw(
         ImGuiManager &imGuiManager,
         const NavigationGraph &navigationGraph,
-        const Camera2D &camera);
+        const Camera2D &camera,
+        const Selection &selection = {});
 
 private:
     void drawNode(

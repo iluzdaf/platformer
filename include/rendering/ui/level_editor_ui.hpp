@@ -1,6 +1,7 @@
 #pragma once
 
 #include <signals.hpp>
+#include <optional>
 #include <string>
 
 class ImGuiManager;
@@ -8,6 +9,7 @@ class TileMap;
 class Level;
 class Texture2D;
 class Camera2D;
+class NavigationGraph;
 
 class LevelEditorUi
 {
@@ -23,9 +25,23 @@ public:
         Level &level);
 
     fteng::signal<void(const std::string &)> onLoadLevel;
+    fteng::signal<void()> onRespawn,
+        onToggleDrawGrid,
+        onToggleDrawTileInfo,
+        onToggleDrawPlayerAABBs,
+        onToggleDrawTileMapAABBs;
+
+    const NavigationGraph *selectedGraph(const Level &level) const;
+    std::optional<int> getSelectedNodeId() const;
+    std::optional<std::pair<int, int>> getSelectedEdge() const;
 
 private:
     bool editing = false,
          editingPlayerStartTile = false;
     int selectedTileIndex = 0;
+    size_t selectedGraphIndex = 0;
+    std::optional<int> selectedNodeId;
+    std::optional<std::pair<int, int>> selectedEdge;
+
+    void drawGraphs(const Level &level);
 };

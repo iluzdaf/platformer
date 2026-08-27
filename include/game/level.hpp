@@ -8,6 +8,7 @@
 #include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_profile.hpp"
 
 class Level
@@ -28,7 +29,7 @@ public:
     TileMap &getTileMap();
 
     const NavigationGraph &graphFor(const NavigationProfile &profile) const;
-    const std::vector<NavigationGraph> &getGraphs() const;
+    const std::vector<NamedNavigationGraph> &getGraphs() const;
     void rebuildGraphs();
 
     glm::vec2 getPlayerStartWorldPosition() const;
@@ -52,12 +53,11 @@ private:
     std::string nextLevel;
     std::vector<NpcSpawnData> npcs;
     std::string path;
-    std::vector<NavigationProfile> profiles;
-    std::vector<NavigationGraph> graphs;
+    std::vector<NamedNavigationGraph> graphs;
 
     void initFrom(
         const LevelData &levelData,
         const PlayerData &playerData,
         const std::unordered_map<std::string, NpcData> &npcData);
-    void addGraphFor(const NavigationProfile &profile);
+    void addGraphFor(const std::string &name, const NavigationProfile &profile);
 };

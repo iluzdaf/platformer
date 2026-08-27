@@ -6,15 +6,38 @@
 void DebugNavigationUi::draw(
     ImGuiManager &imGuiManager,
     const NavigationGraph &navigationGraph,
-    const Camera2D &camera)
+    const Camera2D &camera,
+    const Selection &selection)
 {
     imGuiManager.setNextFullscreenWindow();
 
+    bool selecting = selection.nodeId.has_value() || selection.edge.has_value();
+
+    auto edgeShown = [&](const NavigationEdge &edge)
+    {
+        if (selection.edge)
+            return std::pair<int, int>{edge.fromId, edge.toId} == *selection.edge;
+        if (selection.nodeId)
+            return edge.fromId == *selection.nodeId || edge.toId == *selection.nodeId;
+        return true;
+    };
+
+    auto nodeShown = [&](int id)
+    {
+        if (selection.edge)
+            return id == selection.edge->first || id == selection.edge->second;
+        if (selection.nodeId)
+            return id == *selection.nodeId;
+        return true;
+    };
+
     for (const auto &[id, node] : navigationGraph.getNodes())
-        drawNode(imGuiManager, camera, node);
+        if (!selecting || nodeShown(id))
+            drawNode(imGuiManager, camera, node);
 
     for (const auto &edge : navigationGraph.getEdges())
-        drawEdge(imGuiManager, navigationGraph, camera, edge);
+        if (edgeShown(edge))
+            drawEdge(imGuiManager, navigationGraph, camera, edge);
 }
 
 void DebugNavigationUi::drawNode(

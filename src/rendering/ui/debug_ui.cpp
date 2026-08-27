@@ -25,26 +25,8 @@ void DebugUi::draw(
     if (ImGui::Button("Play"))
         onPlay();
     ImGui::SameLine();
-    if (ImGui::Button("Respawn"))
-        onRespawn();
-    ImGui::SameLine();
     if (ImGui::Button("Zoom"))
         onToggleZoom();
-
-    if (ImGui::Button("Tile Info"))
-        onToggleDrawTileInfo();
-    ImGui::SameLine();
-    if (ImGui::Button("Grid"))
-        onToggleDrawGrid();
-    ImGui::SameLine();
-    if (ImGui::Button("Player"))
-        onToggleDrawPlayerAABBs();
-
-    if (ImGui::Button("TileMap"))
-        onToggleDrawTileMapAABBs();
-    ImGui::SameLine();
-    if (ImGui::Button("Reload"))
-        onGameReload();
 
     if (ImGui::BeginTable("Inspector", 2, ImGuiTableFlags_BordersInnerV))
     {

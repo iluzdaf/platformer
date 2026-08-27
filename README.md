@@ -26,7 +26,7 @@ where they say `python3`.
 
 ## 🧰 What The Repository Configures
 
-Every platform builds the same way, from `CMakeLists.txt`. No editor project files.
+Every platform builds the same way, from `CMakeLists.txt`.
 
 | | |
 |---|---|
@@ -48,14 +48,6 @@ parses with a front end of its own and can disagree, so its IntelliSense is swit
 CMake writes that database and links it to the repository root, so clangd reads
 whichever of `build/Debug` or `build/Release` you configured last. Other build
 directories leave the link alone, so a one off build cannot take it.
-
-One thing to check: clangd must come from the LLVM you build with — `PATH` often finds
-a different one first, so check that `clangd --version` matches your compiler, and name
-it in your user settings if it does not.
-
-```json
-"clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
-```
 
 No `launch.json` is needed; CMake Tools runs and debugs the selected target from its
 own build directory, which is where the game looks for assets. Format on save is
@@ -80,6 +72,13 @@ game writes.
     [.llvm-version](.llvm-version) is the version CI builds and checks with, and
     the one the pre commit hook looks for. Match it, and `CMakeLists.txt` will
     tell you if what you have is too old.
+
+    `PATH` often finds a different clangd first, so check that `clangd --version`
+    matches your compiler. Name it in your user settings if it does not:
+
+    ```json
+    "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
+    ```
 
 2. Clone with submodules:
 

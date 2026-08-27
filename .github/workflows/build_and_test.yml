@@ -20,6 +20,7 @@ jobs:
     env:
       DISPLAY: ":99"
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+      SCCACHE_DIR: ${{ github.workspace }}/.sccache
 
     steps:
       - uses: actions/checkout@v4
@@ -31,10 +32,11 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore compiler cache
-        if: runner.os != 'Windows'
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/.ccache
+          path: |
+            ${{ github.workspace }}/.ccache
+            ${{ github.workspace }}/.sccache
           key: ccache-build-${{ runner.os }}-${{ github.sha }}
           restore-keys: ccache-build-${{ runner.os }}-
 
@@ -73,6 +75,10 @@ jobs:
         if: runner.os == 'Windows'
         uses: microsoft/setup-msbuild@v1.3.1
 
+      - name: Install sccache for Windows
+        if: runner.os == 'Windows'
+        run: choco install sccache --no-progress
+
       - name: Configure & Build for Windows
         if: runner.os == 'Windows'
         shell: cmd
@@ -83,8 +89,17 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_C_COMPILER=cl ^
             -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DSKIP_OPENGL_TESTS=ON
           cmake --build build/release
+
+      - name: Compiler cache stats for Windows
+        if: always() && runner.os == 'Windows'
+        shell: cmd
+        run: |
+          sccache --show-stats
+          sccache --stop-server
 
       - name: Configure & Build for macOS and Linux
         if: runner.os != 'Windows'

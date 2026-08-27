@@ -23,6 +23,7 @@ void LevelEditorUi::draw(
     const ImGuiManager &imGuiManager,
     Level &level,
     const Texture2D &tileSet,
+    const std::string &firstLevel,
     bool showLevelEditor)
 {
     if (!showLevelEditor)
@@ -33,14 +34,7 @@ void LevelEditorUi::draw(
     ImGui::SetNextWindowSize(ImVec2(200, displaySize.y));
     ImGui::Begin("Level Editor");
 
-    ImGui::Text(
-        "%s w%dxh%dxs%d",
-        levelName(level.getPath()).c_str(),
-        level.getTileMap().getWidth(),
-        level.getTileMap().getHeight(),
-        level.getTileMap().getTileSize());
-
-    std::optional<std::string> chosenLevel = drawLevelChooser(level);
+    std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel);
     if (chosenLevel)
     {
         editing = false;
@@ -48,6 +42,12 @@ void LevelEditorUi::draw(
         onLoadLevel(*chosenLevel);
         return;
     }
+
+    ImGui::Text(
+        "w%dxh%dxs%d",
+        level.getTileMap().getWidth(),
+        level.getTileMap().getHeight(),
+        level.getTileMap().getTileSize());
 
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
@@ -82,9 +82,6 @@ void LevelEditorUi::draw(
     if (ImGui::Button("Grid"))
         onToggleDrawGrid();
 
-    if (ImGui::Button("Player"))
-        onToggleDrawPlayerAABBs();
-    ImGui::SameLine();
     if (ImGui::Button("TileMap"))
         onToggleDrawTileMapAABBs();
 
@@ -179,12 +176,15 @@ void LevelEditorUi::draw(
     ImGui::End();
 }
 
-std::optional<std::string> LevelEditorUi::drawLevelChooser(const Level &level)
+std::optional<std::string> LevelEditorUi::drawLevelChooser(
+    const Level &level,
+    const std::string &firstLevel)
 {
     std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
     std::optional<std::string> chosen;
 
-    if (ImGui::BeginCombo("level", levelName(level.getPath()).c_str()))
+    ImGui::SetNextItemWidth(110.0f);
+    if (ImGui::BeginCombo("##level", levelName(level.getPath()).c_str()))
     {
         for (const std::string &path : levelPathsIn(directory))
         {
@@ -195,7 +195,9 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(const Level &level)
         ImGui::EndCombo();
     }
 
-    if (ImGui::SmallButton("make first"))
+    ImGui::SameLine();
+    bool isFirst = level.getPath() == firstLevel;
+    if (ImGui::Checkbox("first", &isFirst) && isFirst)
         onSetFirstLevel();
 
     return chosen;

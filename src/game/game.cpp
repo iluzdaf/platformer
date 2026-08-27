@@ -10,6 +10,7 @@
 #include "rendering/shader_data.hpp"
 
 Game::Game()
+    : levels("../../assets/levels.json")
 {
     gameData = loadGameData();
     shouldDrawGrid = gameData.debugData.shouldDrawGrid;
@@ -106,7 +107,7 @@ Game::Game()
         {
             std::cerr << e.what() << std::endl;
         } });
-    loadLevel(Levels("../../assets/levels.json").getFirst());
+    loadLevel(levels.getFirst());
 
     tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
     ShaderData shaderData;
@@ -124,6 +125,8 @@ Game::Game()
                            { play(); });
     debugUi.onStep.connect([this]
                            { step(); });
+    debugUi.onToggleDrawPlayerAABBs.connect([this]
+                                            { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
     debugUi.onToggleZoom.connect([this]
                                  {
         static float originalZoom = camera->getZoom();
@@ -136,15 +139,12 @@ Game::Game()
                                     { rebuildPlayer(); });
     levelEditorUi.onSetFirstLevel.connect([this]
                                           {
-        Levels levels("../../assets/levels.json");
         levels.setFirst(level->getPath());
         levels.save(); });
     levelEditorUi.onToggleDrawGrid.connect([this]
                                            { shouldDrawGrid = !shouldDrawGrid; });
     levelEditorUi.onToggleDrawTileInfo.connect([this]
                                                { shouldDrawTileInfo = !shouldDrawTileInfo; });
-    levelEditorUi.onToggleDrawPlayerAABBs.connect([this]
-                                                  { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
     levelEditorUi.onToggleDrawTileMapAABBs.connect([this]
                                                    { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
 
@@ -314,6 +314,7 @@ void Game::render()
         *imGuiManager.get(),
         *level.get(),
         *tileSet.get(),
+        levels.getFirst(),
         showLevelEditor);
 
     const NavigationGraph *shownGraph = levelEditorUi.selectedGraph(*level.get());
@@ -389,7 +390,7 @@ void Game::reload()
 
     camera->setZoom(gameData.cameraData.zoom);
 
-    loadLevel(Levels("../../assets/levels.json").getFirst());
+    loadLevel(levels.getFirst());
 }
 
 void Game::loadLevel(const std::string &levelPath)

@@ -18,6 +18,7 @@ public:
         const ImGuiManager &imGuiManager,
         Level &level,
         const Texture2D &tileSet,
+        const std::string &firstLevel,
         bool shouldDrawLevelEditor);
     void update(
         const ImGuiManager &imGuiManager,
@@ -29,7 +30,6 @@ public:
         onSetFirstLevel,
         onToggleDrawGrid,
         onToggleDrawTileInfo,
-        onToggleDrawPlayerAABBs,
         onToggleDrawTileMapAABBs;
 
     const NavigationGraph *selectedGraph(const Level &level) const;
@@ -45,5 +45,5 @@ private:
     std::optional<std::pair<int, int>> selectedEdge;
 
     void drawGraphs(const Level &level);
-    std::optional<std::string> drawLevelChooser(const Level &level);
+    std::optional<std::string> drawLevelChooser(const Level &level, const std::string &firstLevel);
 };

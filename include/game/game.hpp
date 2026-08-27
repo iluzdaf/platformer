@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "game/game_data.hpp"
+#include "game/levels.hpp"
 #include "tile_map/tile_interaction_system.hpp"
 #include "actor/actor.hpp"
 #include "player/player.hpp"
@@ -77,6 +78,7 @@ private:
     std::unique_ptr<TileMapRenderer> tileMapRenderer;
     std::unique_ptr<ScreenTransition> screenTransition;
     std::unique_ptr<ImGuiManager> imGuiManager;
+    Levels levels;
     DebugUi debugUi;
     DebugTileMapUi debugTileMapUi;
     DebugAABBUi debugAABBUi;

@@ -21,5 +21,6 @@ public:
 
     fteng::signal<void()> onPlay,
         onStep,
-        onToggleZoom;
+        onToggleZoom,
+        onToggleDrawPlayerAABBs;
 };

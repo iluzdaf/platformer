@@ -18,15 +18,32 @@ void DebugUi::draw(
         return;
 
     ImGui::SetNextWindowSize(ImVec2(200, imGuiManager.getUiDimensions().y));
-    ImGui::Begin("Debug");
-    if (ImGui::Button("Step"))
-        onStep();
-    ImGui::SameLine();
-    if (ImGui::Button("Play"))
-        onPlay();
-    ImGui::SameLine();
-    if (ImGui::Button("Zoom"))
-        onToggleZoom();
+    ImGui::Begin("Game Editor");
+    if (ImGui::CollapsingHeader("Play", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (ImGui::Button("Step"))
+            onStep();
+        ImGui::SameLine();
+        if (ImGui::Button("Play"))
+            onPlay();
+    }
+
+    if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (ImGui::Button("Zoom"))
+            onToggleZoom();
+        ImGui::SameLine();
+        ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
+    }
+
+    if (!ImGui::CollapsingHeader("Player", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::End();
+        return;
+    }
+
+    if (ImGui::Button("AABBs"))
+        onToggleDrawPlayerAABBs();
 
     if (ImGui::BeginTable("Inspector", 2, ImGuiTableFlags_BordersInnerV))
     {
@@ -54,8 +71,6 @@ void DebugUi::draw(
         drawRow("Climbing", playerMotionState.climb.active ? "true" : "false");
 
         drawRow("Animation", toString(actorState.currentAnimationState));
-
-        drawRow("Camera Shaking", camera.shaking() ? "true" : "false");
 
         ImGui::EndTable();
     }

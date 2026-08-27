@@ -35,6 +35,31 @@ void LevelEditorUi::draw(
     ImGui::SetNextWindowSize(ImVec2(200, displaySize.y));
     ImGui::Begin("Level Editor");
 
+    if (!editing)
+    {
+        if (ImGui::Button("edit"))
+            editing = true;
+    }
+    else
+    {
+        if (ImGui::Button("save"))
+        {
+            level.save();
+            editing = false;
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("cancel"))
+        {
+            editing = false;
+            ImGui::End();
+            onLoadLevel(level.getPath());
+            return;
+        }
+    }
+
+    ImGui::Separator();
+
     ImGui::Checkbox("Tile Info", &debug.shouldDrawTileInfo);
     ImGui::SameLine();
     ImGui::Checkbox("Grid", &debug.shouldDrawGrid);
@@ -92,13 +117,14 @@ void LevelEditorUi::draw(
 
     drawGraphs(level);
 
-    ImGui::Separator();
-
     if (!editing)
     {
-        if (ImGui::Button("edit"))
-            editing = true;
+        ImGui::End();
+        return;
+    }
 
+    if (!ImGui::CollapsingHeader("tile palette", ImGuiTreeNodeFlags_DefaultOpen))
+    {
         ImGui::End();
         return;
     }
@@ -162,20 +188,6 @@ void LevelEditorUi::draw(
 
     if (previouslyEditingPlayerStartTile)
         ImGui::PopStyleColor(3);
-
-    ImGui::SameLine();
-    if (ImGui::Button("Save"))
-    {
-        level.save();
-        editing = false;
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Reload"))
-    {
-        onLoadLevel(level.getPath());
-        editing = false;
-    }
 
     ImGui::End();
 }

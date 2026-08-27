@@ -153,6 +153,13 @@ InputIntentions PatrolBehavior::decide(
     const NavigationEdge *leg =
         edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
+    // A jump that fell short puts the actor back on the ground with its hold
+    // spent. Without giving that back it can neither jump again nor ever
+    // arrive, and it walks at a node on another platform for good.
+    if (leg && leg->type == EdgeType::Jump && context.onGround &&
+        jumpHeldFor >= leg->holdDuration)
+        jumpHeldFor = 0.0f;
+
     // A jump was simulated from the node, so it has to be made from the node.
     // Started early it clears less than it was promised it would.
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)

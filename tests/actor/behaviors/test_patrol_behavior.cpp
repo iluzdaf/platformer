@@ -435,3 +435,28 @@ TEST_CASE("Notices it is on a different platform at the same height", "[PatrolBe
     REQUIRE(behavior.getCurrentNodeId() == 3);
     REQUIRE(behavior.decide(0.01f, elsewhere).direction.x != 0.0f);
 }
+
+TEST_CASE("Tries the jump again after coming up short", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, 128.0f});
+    navigationGraph.addNode(1, {96.0f, 64.0f});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
+
+    PatrolBehavior behavior(setupRoamingData());
+    anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
+    REQUIRE(behavior.getCurrentNodeId() == 0);
+    REQUIRE(behavior.getTargetNodeId() == 1);
+
+    // Back on the ledge it left, which is where a jump that falls short puts it.
+    ActorBehaviorContext backWhereItStarted = standingAt(navigationGraph, {0.0f, 128.0f});
+    for (int step = 0; step < 40; ++step)
+        behavior.decide(0.01f, backWhereItStarted);
+
+    bool asksAgain = false;
+    for (int step = 0; step < 60 && !asksAgain; ++step)
+        asksAgain = behavior.decide(0.01f, backWhereItStarted).jumpRequested;
+
+    REQUIRE(asksAgain);
+}

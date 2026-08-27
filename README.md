@@ -11,8 +11,8 @@ A simple 2D platformer built with OpenGL. This project is designed as a learning
 
 ## 🖥 Supported Setups
 
-Targets **C++23**. Developed on macOS and Linux; Windows is a build target, checked in
-CI with MSVC.
+Targets **C++23**. Developed on macOS and Linux. It [builds on
+Windows](#-building-on-windows) too, which CI checks, but the tooling is LLVM only.
 
 | | macOS | Linux |
 |---|---|---|
@@ -79,6 +79,17 @@ the target from its build directory, which is where the game looks for its asset
 5. Pick `platformer` or `tests` as the target, choose **Debug** or **Release**, and
     use the run and debug buttons. The game reads its assets relative to the build
     directory, which is where both editors run it from.
+
+## 🪟 Building On Windows
+
+The game builds and runs on Windows, and CI checks that on every pull request. The
+checks the project enforces are LLVM tools, which Windows does not compile with, so this
+is for building and playing rather than contributing.
+
+Install Visual Studio 2022 with **CMake** and **Git for Windows** from *Tools and
+Features → Individual Components*, clone with submodules as above, and open the
+repository folder. Visual Studio reads `CMakeLists.txt` directly, so pick `platformer`
+and use the Run button.
 
 ## 🎨 Style Guide
 

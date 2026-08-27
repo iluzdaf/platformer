@@ -22,24 +22,6 @@ Windows](#-building-on-windows) too, which CI checks, but the tooling is LLVM on
 | Debug | CMake Tools' debug button | CMake Tools' debug button |
 | Code intelligence | clangd | clangd |
 
-## 🧰 What The Repository Configures
-
-Every platform builds the same way, from `CMakeLists.txt`.
-
-| | |
-|---|---|
-| [CMakeLists.txt](CMakeLists.txt) | the `platformer_lib`, `platformer` and `tests` targets, and the compile database, linked to the repository root from whichever of `build/Debug` or `build/Release` you configured last |
-| [.vscode/extensions.json](.vscode/extensions.json) | CMake Tools to build, clangd for code intelligence, C/C++ for the debugger |
-| [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension's IntelliSense |
-| [.clang-format](.clang-format) | formatting, applied on save |
-| [.clang-tidy](.clang-tidy) | naming and includes, applied on save |
-| [.llvm-version](.llvm-version) | the LLVM the tools must come from |
-| [tools/hooks/pre-commit](tools/hooks/pre-commit) | formats staged json and sources |
-
-The C/C++ extension's IntelliSense is off because it parses with a front end of its own
-and disagrees with the compiler, and no `launch.json` is needed because CMake Tools runs
-the target from its build directory, which is where the game looks for its assets.
-
 ## 🛠 Setup
 
 1. Install **CMake**, **Ninja**, **git-lfs**, and **LLVM** with its tools, which
@@ -91,6 +73,22 @@ Features → Individual Components*, clone with submodules as above, and open th
 repository folder. Visual Studio reads `CMakeLists.txt` directly, so pick `platformer`
 and use the Run button.
 
+## 🧱 Project Structure
+
+```bash
+platformer/
+├── assets/              # JSON configuration, textures, tile maps
+├── include/             # Header files
+│   └── game/            # Game-related classes (Player, TileMap, etc.)
+├── src/                 # Source files
+│   └── game/            # Implementations of game logic
+├── tests/               # Catch2 test cases
+├── external/            # Third-party libraries (e.g., GLFW, Glaze)
+├── CMakeLists.txt       # Build configuration
+├── README.md            # Project documentation
+└── tools/               # scripts and toolin utilities
+```
+
 ## 🎨 Style Guide
 
 Formatting is defined by [.clang-format](.clang-format) and naming by
@@ -131,21 +129,23 @@ Every pull request runs two jobs at once. All four results must be green to merg
 | naming, and includes that are used | `clang-tidy` |
 | headers compile on their own | the `header_self_containment` target |
 
-## 🧱 Project Structure
+## 🧰 What The Repository Configures
 
-```bash
-platformer/
-├── assets/              # JSON configuration, textures, tile maps
-├── include/             # Header files
-│   └── game/            # Game-related classes (Player, TileMap, etc.)
-├── src/                 # Source files
-│   └── game/            # Implementations of game logic
-├── tests/               # Catch2 test cases
-├── external/            # Third-party libraries (e.g., GLFW, Glaze)
-├── CMakeLists.txt       # Build configuration
-├── README.md            # Project documentation
-└── tools/               # scripts and toolin utilities
-```
+Every platform builds the same way, from `CMakeLists.txt`.
+
+| | |
+|---|---|
+| [CMakeLists.txt](CMakeLists.txt) | the `platformer_lib`, `platformer` and `tests` targets, and the compile database, linked to the repository root from whichever of `build/Debug` or `build/Release` you configured last |
+| [.vscode/extensions.json](.vscode/extensions.json) | CMake Tools to build, clangd for code intelligence, C/C++ for the debugger |
+| [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension's IntelliSense |
+| [.clang-format](.clang-format) | formatting, applied on save |
+| [.clang-tidy](.clang-tidy) | naming and includes, applied on save |
+| [.llvm-version](.llvm-version) | the LLVM the tools must come from |
+| [tools/hooks/pre-commit](tools/hooks/pre-commit) | formats staged json and sources |
+
+The C/C++ extension's IntelliSense is off because it parses with a front end of its own
+and disagrees with the compiler, and no `launch.json` is needed because CMake Tools runs
+the target from its build directory, which is where the game looks for its assets.
 
 ## 🧭 Decisions
 

@@ -9,8 +9,6 @@ namespace
     constexpr float SimulationTimeStep = 0.01f;
     constexpr int MaximumSteps = 1000;
     constexpr float HoldFractions[] = {1.0f, 0.75f, 0.5f, 0.25f};
-    constexpr float SpeedFractions[] = {1.0f, 0.5f, 0.0f};
-    constexpr float MaximumDrop = 320.0f;
 
     InputIntentions holdingJumpAndRunning()
     {
@@ -19,15 +17,6 @@ namespace
         inputIntentions.jumpRequested = true;
         inputIntentions.jumpHeld = true;
         return inputIntentions;
-    }
-
-    ActorMotionData walkingAt(const ActorMotionData &motionData, float speedFraction)
-    {
-        ActorMotionData slowed = motionData;
-        if (slowed.moveAbilityData && speedFraction > 0.0f)
-            slowed.moveAbilityData->moveSpeed *= speedFraction;
-
-        return slowed;
     }
 
     ActorMotionData releasedAfter(const ActorMotionData &motionData, float holdFraction)
@@ -78,43 +67,6 @@ std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData)
     {
         JumpArc arc = simulateJumpArc(motionData, holdFraction);
         if (!arc.offsets.empty())
-            arcs.push_back(arc);
-    }
-
-    return arcs;
-}
-
-std::vector<glm::vec2> simulateFallArc(const ActorMotionData &motionData, float speedFraction)
-{
-    AbilitySystem abilitySystem(walkingAt(motionData, speedFraction));
-    ActorMotionState state;
-    InputIntentions inputIntentions;
-    inputIntentions.direction.x = speedFraction > 0.0f ? 1.0f : 0.0f;
-
-    std::vector<glm::vec2> offsets{glm::vec2(0.0f)};
-    glm::vec2 offset(0.0f);
-
-    for (int step = 0; step < MaximumSteps; ++step)
-    {
-        abilitySystem.applyMovement(SimulationTimeStep, inputIntentions, state);
-        offset += state.targetVelocity * SimulationTimeStep;
-        offsets.push_back(offset);
-
-        if (offset.y >= MaximumDrop)
-            return offsets;
-    }
-
-    return {};
-}
-
-std::vector<std::vector<glm::vec2>> simulateFallArcs(const ActorMotionData &motionData)
-{
-    std::vector<std::vector<glm::vec2>> arcs;
-
-    for (float speedFraction : SpeedFractions)
-    {
-        std::vector<glm::vec2> arc = simulateFallArc(motionData, speedFraction);
-        if (!arc.empty())
             arcs.push_back(arc);
     }
 

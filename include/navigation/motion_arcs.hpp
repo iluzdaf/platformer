@@ -16,9 +16,3 @@ struct JumpArc
 JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction = 1.0f);
 
 std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData);
-
-std::vector<glm::vec2> simulateFallArc(
-    const ActorMotionData &motionData,
-    float speedFraction = 1.0f);
-
-std::vector<std::vector<glm::vec2>> simulateFallArcs(const ActorMotionData &motionData);

@@ -467,7 +467,7 @@ namespace
     {
         NavigationProfile profile = standardProfile();
         profile.jumpArcs = simulateJumpArcs(jumperMotionData());
-        profile.fallArcs = simulateFallArcs(jumperMotionData());
+        profile.falls = true;
         return profile;
     }
 
@@ -794,7 +794,7 @@ TEST_CASE("A profile that cannot move still falls", "[NavigationGraphBuilder][Fa
 {
     TileMap tileMap = setupLedgeAboveFloor();
     NavigationProfile profile = standardProfile();
-    profile.fallArcs = simulateFallArcs(jumperMotionData());
+    profile.falls = true;
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profile);
 
@@ -808,7 +808,7 @@ TEST_CASE("A slow actor can still step off a ledge", "[NavigationGraphBuilder][F
     slow.moveAbilityData->moveSpeed = 60.0f;
 
     NavigationProfile profile = standardProfile();
-    profile.fallArcs = simulateFallArcs(slow);
+    profile.falls = true;
     TileMap tileMap = setupLedgeAboveFloor();
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profile);
@@ -816,7 +816,7 @@ TEST_CASE("A slow actor can still step off a ledge", "[NavigationGraphBuilder][F
     REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
 }
 
-TEST_CASE("A fall is drawn from the node it leaves", "[NavigationGraphBuilder][Fall]")
+TEST_CASE("A fall is drawn as the straight drop it is", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = setupLedgeAboveFloor();
 
@@ -824,7 +824,24 @@ TEST_CASE("A fall is drawn from the node it leaves", "[NavigationGraphBuilder][F
 
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Fall)
-            REQUIRE(edge.path.front() == graph.getNode(edge.fromId).position);
+            REQUIRE(edge.path.empty());
+}
+
+TEST_CASE("A node falls to the one below it and nowhere else", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &[id, node] : graph.getNodes())
+    {
+        int falls = 0;
+        for (const auto &edge : graph.getOutgoingEdges(id))
+            if (edge.type == EdgeType::Fall)
+                ++falls;
+
+        REQUIRE(falls <= 1);
+    }
 }
 
 namespace
@@ -916,4 +933,21 @@ TEST_CASE("The node below a ledge is walkable from the floor", "[NavigationGraph
             ++walkEdges;
 
     REQUIRE(walkEdges > 0);
+}
+
+TEST_CASE("A fall goes straight down", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Fall)
+            continue;
+
+        NavigationNode from = graph.getNode(edge.fromId);
+        NavigationNode to = graph.getNode(edge.toId);
+        REQUIRE(std::abs(to.position.x - from.position.x) < 0.5f);
+    }
 }

@@ -7,5 +7,5 @@ NavigationProfile buildNavigationProfile(const ActorData &actorData)
     return NavigationProfile{
         actorData.physicsBodyData.colliderSize,
         simulateJumpArcs(actorData.motionData),
-        simulateFallArcs(actorData.motionData)};
+        actorData.motionData.gravityAbilityData.has_value()};
 }

@@ -32,7 +32,7 @@ namespace
 
     NavigationProfile profileOfHeight(float height)
     {
-        return NavigationProfile{glm::vec2(8.0f, height), {}, {}};
+        return NavigationProfile{glm::vec2(8.0f, height), {}, false};
     }
 
     PlayerData playerOfHeight(float height)

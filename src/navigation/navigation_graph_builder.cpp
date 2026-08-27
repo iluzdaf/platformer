@@ -341,25 +341,31 @@ namespace
         const NavigationProfile &profile,
         int headroom)
     {
-        if (profile.fallArcs.empty())
+        if (!profile.falls)
             return;
 
         int nextNodeId = 0;
-        std::vector<glm::vec2> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
-        {
             nextNodeId = std::max(nextNodeId, id + 1);
-            takeOffs.push_back(node.position);
-        }
 
-        for (glm::vec2 takeOff : takeOffs)
+        // A landing can itself be a ledge over something else, so this settles.
+        for (bool added = true; added;)
         {
-            std::optional<glm::vec2> landing =
-                surfaceBelow(tileMap, takeOff, profile, headroom);
-            if (!landing || navigationGraph.hasNodeAtPosition(*landing))
-                continue;
+            added = false;
+            std::vector<glm::vec2> takeOffs;
+            for (const auto &[id, node] : navigationGraph.getNodes())
+                takeOffs.push_back(node.position);
 
-            navigationGraph.addNode(nextNodeId++, *landing);
+            for (glm::vec2 takeOff : takeOffs)
+            {
+                std::optional<glm::vec2> landing =
+                    surfaceBelow(tileMap, takeOff, profile, headroom);
+                if (!landing || navigationGraph.hasNodeAtPosition(*landing))
+                    continue;
+
+                navigationGraph.addNode(nextNodeId++, *landing);
+                added = true;
+            }
         }
     }
 
@@ -369,33 +375,30 @@ namespace
         const NavigationProfile &profile,
         int headroom)
     {
+        if (!profile.falls)
+            return;
+
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
             takeOffs.emplace_back(id, node.position);
 
         for (const auto &[fromId, takeOff] : takeOffs)
-            for (const std::vector<glm::vec2> &arc : profile.fallArcs)
-                for (float direction : {1.0f, -1.0f})
-                {
-                    glm::vec2 steppedOff = takeOff + glm::vec2(
-                                                         direction * (profile.colliderSize.x * 0.5f + 1.0f), 0.0f);
+        {
+            std::optional<glm::vec2> landing =
+                surfaceBelow(tileMap, takeOff, profile, headroom);
+            if (!landing)
+                continue;
 
-                    std::optional<JumpLanding> landing =
-                        landingOf(tileMap, steppedOff, arc, direction, profile);
-                    if (!landing || landing->position.y <= takeOff.y)
-                        continue;
+            std::optional<int> toId =
+                nodeGoverning(navigationGraph, tileMap, *landing, headroom);
+            if (!toId || *toId == fromId)
+                continue;
 
-                    std::optional<int> toId =
-                        nodeGoverning(navigationGraph, tileMap, landing->position, headroom);
-                    if (!toId || *toId == fromId)
-                        continue;
+            if (alreadyConnected(navigationGraph, fromId, *toId))
+                continue;
 
-                    if (alreadyConnected(navigationGraph, fromId, *toId))
-                        continue;
-
-                    landing->path.front() = takeOff;
-                    navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, landing->path, 0.0f});
-                }
+            navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, {}, 0.0f});
+        }
     }
 }
 

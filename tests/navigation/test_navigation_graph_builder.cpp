@@ -882,6 +882,8 @@ namespace
     }
     constexpr int TallMapHeightTiles = 18;
     constexpr int DeepFloorRow = 16;
+    constexpr int FarLedgeStart = 6;
+    constexpr int FarLedgeEnd = 8;
 
     // Two ledges over one long floor, high enough that a jump along the floor
     // passes under them. Their landings leave enough nodes on the floor that a
@@ -895,11 +897,42 @@ namespace
         for (int x = 0; x <= 2; ++x)
             tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
 
-        for (int x = 6; x <= 8; ++x)
+        for (int x = FarLedgeStart; x <= FarLedgeEnd; ++x)
             tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
 
         return tileMap;
     }
+
+    int nodeAt(const NavigationGraph &graph, glm::vec2 position)
+    {
+        for (const auto &[id, node] : graph.getNodes())
+            if (glm::distance(node.position, position) < 0.5f)
+                return id;
+
+        return -1;
+    }
+}
+
+TEST_CASE("A jump crosses to a platform once", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupLedgesAboveFloor();
+    float ledgeY = static_cast<float>(PlatformRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    int takeOffId = nodeAt(graph, glm::vec2(0.0f, ledgeY));
+    int nearEdgeId = nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeStart) * 16.0f, ledgeY));
+    REQUIRE(takeOffId >= 0);
+    REQUIRE(nearEdgeId >= 0);
+    REQUIRE(nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeEnd + 1) * 16.0f, ledgeY)) >= 0);
+
+    std::vector<int> jumps;
+    for (const auto &edge : graph.getOutgoingEdges(takeOffId))
+        if (edge.type == EdgeType::Jump)
+            jumps.push_back(edge.toId);
+
+    REQUIRE(jumps.size() == 1);
+    REQUIRE(jumps.front() == nearEdgeId);
 }
 
 TEST_CASE("Nothing jumps to where it could walk", "[NavigationGraphBuilder][Jump]")

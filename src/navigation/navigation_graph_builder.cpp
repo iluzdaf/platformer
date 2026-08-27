@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <optional>
-#include <set>
+#include <map>
 #include <utility>
 #include <cmath>
 #include <unordered_map>
@@ -300,6 +300,14 @@ namespace
         return false;
     }
 
+    struct JumpCandidate
+    {
+        int toId = 0;
+        std::vector<glm::vec2> path;
+        float holdDuration = 0.0f;
+        float reach = 0.0f;
+    };
+
     void addJumpEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -308,7 +316,10 @@ namespace
     {
         std::unordered_map<int, int> components = walkComponents(navigationGraph);
 
-        std::set<std::pair<int, int>> added;
+        // Landing anywhere on a platform is as good as landing at its near
+        // edge and walking in, so a node offers one jump per platform.
+        std::map<std::pair<int, int>, JumpCandidate> nearest;
+
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
             takeOffs.emplace_back(id, node.position);
@@ -330,10 +341,24 @@ namespace
                     if (components.at(fromId) == components.at(*toId))
                         continue;
 
-                    if (added.insert({fromId, *toId}).second)
-                        navigationGraph.addEdge(
-                            {fromId, *toId, EdgeType::Jump, landing->path, arc.holdDuration});
+                    float reach =
+                        std::abs(navigationGraph.getNode(*toId).position.x - takeOff.x);
+
+                    std::pair<int, int> platform(fromId, components.at(*toId));
+                    auto found = nearest.find(platform);
+                    if (found != nearest.end() && found->second.reach <= reach)
+                        continue;
+
+                    nearest[platform] =
+                        JumpCandidate{*toId, landing->path, arc.holdDuration, reach};
                 }
+
+        for (const auto &[platform, candidate] : nearest)
+            navigationGraph.addEdge({platform.first,
+                                     candidate.toId,
+                                     EdgeType::Jump,
+                                     candidate.path,
+                                     candidate.holdDuration});
     }
 
     std::optional<glm::vec2> surfaceBelow(

@@ -23,7 +23,7 @@ jobs:
       SCCACHE_DIR: ${{ github.workspace }}/.sccache
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           submodules: recursive
@@ -32,7 +32,7 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore compiler cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ github.workspace }}/.ccache
@@ -73,7 +73,7 @@ jobs:
 
       - name: Set up for Windows
         if: runner.os == 'Windows'
-        uses: microsoft/setup-msbuild@v1.3.1
+        uses: microsoft/setup-msbuild@v3
 
       - name: Install sccache for Windows
         if: runner.os == 'Windows'
@@ -148,7 +148,7 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           submodules: recursive
@@ -160,7 +160,7 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore compiler cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.ccache
           key: ccache-checks-${{ github.sha }}

@@ -281,9 +281,8 @@ void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
     {
         ImGui::PushID(leaving ? edge.toId : -edge.fromId - 1);
         std::pair<int, int> ends{edge.fromId, edge.toId};
-        std::string label = std::string(edge.type == EdgeType::Jump ? "jump" : "walk") +
-                            (leaving ? " to " : " from ") +
-                            std::to_string(leaving ? edge.toId : edge.fromId);
+        std::string label = std::string(edge.type == EdgeType::Jump ? "jump" : "walk") + " " +
+                            std::to_string(edge.fromId) + " to " + std::to_string(edge.toId);
 
         if (ImGui::Selectable(label.c_str(), selectedEdge == ends))
         {

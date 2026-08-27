@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <glaze/glaze.hpp>
 #include <catch2/catch_approx.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "physics/fixed_time_step.hpp"
@@ -7,6 +8,8 @@
 #include "test_helpers/test_player_utils.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
+#include "test_helpers/asset_path.hpp"
+#include "game/game_data.hpp"
 
 using Catch::Approx;
 
@@ -346,4 +349,141 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
     INFO("collider top ended at " << colliderTop << ", the ledge spans "
                                   << ledgeTop << " to " << ledgeTop + 16.0f);
     REQUIRE(colliderTop > ledgeTop + 16.0f);
+}
+
+namespace
+{
+    constexpr int PitMapWidth = 30;
+    constexpr int PitMapHeight = 12;
+    constexpr int PitFloorRow = 8;
+    constexpr int PitHazardRow = 7;
+    constexpr int PitStart = 12;
+
+    enum class Pit
+    {
+        Spikes,
+        Hole
+    };
+
+    GameData shippedGameData()
+    {
+        GameData gameData;
+        REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+        return gameData;
+    }
+
+    TileMapData pitOf(int tiles, Pit kind, const TilePalettes &tilePalettes)
+    {
+        constexpr int SolidTile = 14;
+        constexpr int SpikeTile = 1;
+        REQUIRE(tilePalettes.at("default").at(SolidTile).kind == TileKind::Solid);
+        REQUIRE(tilePalettes.at("default").at(SpikeTile).kind == TileKind::Spikes);
+
+        std::vector<std::vector<int>> rows(PitMapHeight, std::vector<int>(PitMapWidth, 0));
+        for (int x = 0; x < PitMapWidth; ++x)
+            rows[PitFloorRow][x] = SolidTile;
+
+        for (int x = PitStart; x < PitStart + tiles; ++x)
+        {
+            if (kind == Pit::Spikes)
+                rows[PitHazardRow][x] = SpikeTile;
+            else
+                rows[PitFloorRow][x] = 0;
+        }
+
+        TileMapData tileMapData;
+        tileMapData.size = 16;
+        tileMapData.indices = rows;
+        tileMapData.tilePalette = "default";
+        return tileMapData;
+    }
+
+    // Runs at the pit and tries the technique, trying every take off point on
+    // the way in, since clearing it means clearing it with the best timing.
+    bool getsAcross(const GameData &gameData, int tiles, Pit kind, bool jump, bool dash)
+    {
+        LevelData levelData;
+        levelData.tileMapData = pitOf(tiles, kind, gameData.tilePalettes);
+        Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+        float pitLeft = static_cast<float>(PitStart) * 16.0f;
+        float pitRight = static_cast<float>(PitStart + tiles) * 16.0f;
+        float floorY = static_cast<float>(PitFloorRow) * 16.0f;
+
+        for (float triggerAt = pitLeft - 80.0f; triggerAt <= pitLeft; triggerAt += 1.0f)
+            for (float dashAfter = 0.0f; dashAfter <= (jump && dash ? 0.45f : 0.0f); dashAfter += 0.025f)
+            {
+                ScriptedIntentions input;
+                Player player(gameData.playerData, input);
+                player.setPosition(glm::vec2(4.0f * 16.0f, floorY - 16.0f));
+
+                FixedTimeStep timestepper;
+                float triggered = -1.0f;
+
+                for (int frame = 0; frame < 240; ++frame)
+                {
+                    float now = frame / 60.0f;
+                    InputIntentions intentions;
+                    intentions.direction.x = 1.0f;
+
+                    if (triggered < 0.0f && player.getPosition().x + 8.0f >= triggerAt)
+                    {
+                        triggered = now;
+                        intentions.jumpRequested = jump;
+                        intentions.dashRequested = dash && dashAfter <= 0.0f;
+                    }
+                    else if (triggered >= 0.0f)
+                    {
+                        intentions.jumpHeld = jump && now - triggered < 0.25f;
+                        intentions.dashRequested = dash && dashAfter > 0.0f &&
+                                                   now - triggered >= dashAfter &&
+                                                   now - triggered < dashAfter + 1.0f / 60.0f;
+                    }
+                    input.set(intentions);
+
+                    player.preFixedUpdate();
+                    timestepper.run(1.0f / 60.0f, [&](float dt)
+                                    { player.fixedUpdate(dt, level); });
+                    player.postFixedUpdate();
+
+                    glm::vec2 position = player.getPosition();
+                    bool onSpikes = kind == Pit::Spikes &&
+                                    position.x + 12.0f > pitLeft && position.x + 4.0f < pitRight &&
+                                    position.y + 16.0f > static_cast<float>(PitHazardRow) * 16.0f &&
+                                    position.y + 3.0f < floorY;
+                    if (onSpikes || position.y > floorY)
+                        break;
+
+                    if (player.getMotion().getState().contacts.onGround &&
+                        position.x + 4.0f > pitRight)
+                        return true;
+                }
+            }
+
+        return false;
+    }
+}
+
+TEST_CASE("The shipped player just clears four tiles of spikes with a jump", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+
+    REQUIRE(getsAcross(gameData, 4, Pit::Spikes, true, false));
+    REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Spikes, true, false));
+}
+
+TEST_CASE("The shipped player just dashes a six tile hole without jumping", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+
+    REQUIRE(getsAcross(gameData, 6, Pit::Hole, false, true));
+    REQUIRE_FALSE(getsAcross(gameData, 7, Pit::Hole, false, true));
+}
+
+TEST_CASE("The shipped player needs the dash for eight tiles of spikes", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+
+    REQUIRE(getsAcross(gameData, 8, Pit::Spikes, true, true));
+    REQUIRE_FALSE(getsAcross(gameData, 8, Pit::Spikes, true, false));
 }

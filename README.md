@@ -116,10 +116,10 @@ the workspace settings.
 
 Every pull request runs two jobs at once. All four results must be green to merge.
 
-| job | runs on | does |
+| job | runs on | description |
 |---|---|---|
 | `build-and-test` | Windows, macOS, Linux | configures, builds under `-Werror`, runs the test suite |
-| `checks` | Linux | the four questions below, which are about source text and so only need answering once |
+| `checks` | Linux | the four checks below |
 
 | check | run by |
 |---|---|
@@ -127,13 +127,6 @@ Every pull request runs two jobs at once. All four results must be green to merg
 | sources are formatted | `clang-format` |
 | naming, and includes that are used | `clang-tidy` |
 | headers compile on their own | the `header_self_containment` target |
-
-`checks` needs no build. clang-tidy reads the compile database CMake writes at
-configure, and the header target compiles files of its own.
-
-The pre commit hook formats staged json and sources, so two of these rarely have
-anything to say by the time CI runs. [The workflow](.github/workflows/build_and_test.yml)
-has the exact commands if you want to run them yourself.
 
 ## 🧱 Project Structure
 

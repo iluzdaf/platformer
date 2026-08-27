@@ -5,7 +5,7 @@
 #include <vector>
 #include "navigation/navigation_graph_builder.hpp"
 #include <glaze/glaze.hpp>
-#include "navigation/jump_arc.hpp"
+#include "navigation/motion_arcs.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/game_data.hpp"
 #include "actor/actor_motion_data.hpp"
@@ -467,6 +467,7 @@ namespace
     {
         NavigationProfile profile = standardProfile();
         profile.jumpArcs = simulateJumpArcs(jumperMotionData());
+        profile.fallArcs = simulateFallArcs(jumperMotionData());
         return profile;
     }
 
@@ -756,4 +757,87 @@ TEST_CASE("A gap needing less than a full jump records less", "[NavigationGraphB
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Jump)
             REQUIRE(edge.holdDuration <= profile.jumpArcs.front().holdDuration);
+}
+
+namespace
+{
+    constexpr int FloorBelowRow = PlatformRow + 3;
+
+    TileMap setupLedgeAboveFloor()
+    {
+        TileMap tileMap = setupTileMap(20, WideMapHeightTiles);
+        for (int x = 0; x < 20; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, FloorBelowRow), 1);
+
+        for (int x = 0; x <= LeftPlatformEnd; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        return tileMap;
+    }
+}
+
+TEST_CASE("Walking off a ledge is an edge to the floor below", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
+}
+
+TEST_CASE("A fall only ever goes down", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Fall)
+            REQUIRE(graph.getNode(edge.toId).position.y > graph.getNode(edge.fromId).position.y);
+}
+
+TEST_CASE("Falling is not offered where you could walk", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) == 0);
+}
+
+TEST_CASE("A profile that cannot move still falls", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    NavigationProfile profile = standardProfile();
+    profile.fallArcs = simulateFallArcs(jumperMotionData());
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
+    REQUIRE(countEdgesOfType(graph, EdgeType::Jump) == 0);
+}
+
+TEST_CASE("A slow actor can still step off a ledge", "[NavigationGraphBuilder][Fall]")
+{
+    ActorMotionData slow = jumperMotionData();
+    slow.moveAbilityData->moveSpeed = 60.0f;
+
+    NavigationProfile profile = standardProfile();
+    profile.fallArcs = simulateFallArcs(slow);
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
+}
+
+TEST_CASE("A fall is drawn from the node it leaves", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Fall)
+            REQUIRE(edge.path.front() == graph.getNode(edge.fromId).position);
 }

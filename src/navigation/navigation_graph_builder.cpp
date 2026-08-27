@@ -264,6 +264,15 @@ namespace
         return false;
     }
 
+    bool alreadyConnected(const NavigationGraph &navigationGraph, int fromId, int toId)
+    {
+        for (const auto &edge : navigationGraph.getOutgoingEdges(fromId))
+            if (edge.toId == toId)
+                return true;
+
+        return false;
+    }
+
     void addJumpEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -297,6 +306,41 @@ namespace
                             {fromId, *toId, EdgeType::Jump, landing->path, arc.holdDuration});
                 }
     }
+
+    void addFallEdges(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        std::vector<std::pair<int, glm::vec2>> takeOffs;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+            takeOffs.emplace_back(id, node.position);
+
+        for (const auto &[fromId, takeOff] : takeOffs)
+            for (const std::vector<glm::vec2> &arc : profile.fallArcs)
+                for (float direction : {1.0f, -1.0f})
+                {
+                    glm::vec2 steppedOff = takeOff + glm::vec2(
+                                                         direction * (profile.colliderSize.x * 0.5f + 1.0f), 0.0f);
+
+                    std::optional<JumpLanding> landing =
+                        landingOf(tileMap, steppedOff, arc, direction, profile);
+                    if (!landing || landing->position.y <= takeOff.y)
+                        continue;
+
+                    std::optional<int> toId =
+                        nodeGoverning(navigationGraph, tileMap, landing->position, headroom);
+                    if (!toId || *toId == fromId)
+                        continue;
+
+                    if (alreadyConnected(navigationGraph, fromId, *toId))
+                        continue;
+
+                    landing->path.front() = takeOff;
+                    navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, landing->path, 0.0f});
+                }
+    }
 }
 
 NavigationGraph buildNavigationGraph(
@@ -309,6 +353,7 @@ NavigationGraph buildNavigationGraph(
     addNodes(navigationGraph, tileMap, headroom);
     addWalkEdges(navigationGraph, tileMap, headroom);
     addJumpEdges(navigationGraph, tileMap, profile, headroom);
+    addFallEdges(navigationGraph, tileMap, profile, headroom);
 
     return navigationGraph;
 }

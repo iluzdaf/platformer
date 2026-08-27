@@ -363,10 +363,10 @@ TEST_CASE("The shipped explorer patrols level6 without getting stuck", "[Npc][Le
 
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    // On the mid platform directly under the top one, so its first jump has a
-    // ceiling 19px above its head. Where the level happens to spawn it is a
-    // level editing decision, but this is the corner it has to cope with.
-    constexpr glm::ivec2 ExplorerTile{5, 7};
+    // On the left middle platform directly under the top one, so its first jump
+    // has a ceiling close above its head. Where the level happens to spawn it is
+    // a level editing decision, but this is the corner it has to cope with.
+    constexpr glm::ivec2 ExplorerTile{5, 6};
     Npc npc(gameData.npcData.at("explorer"));
     npc.setPosition(level.getTileMap().tileToWorldPosition(ExplorerTile));
 

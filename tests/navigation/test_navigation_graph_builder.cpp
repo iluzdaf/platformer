@@ -6,6 +6,7 @@
 #include "navigation/navigation_graph_builder.hpp"
 #include <glaze/glaze.hpp>
 #include "navigation/motion_arcs.hpp"
+#include "navigation/navigation_path.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/game_data.hpp"
 #include "actor/actor_motion_data.hpp"
@@ -695,6 +696,32 @@ TEST_CASE("The shipped explorer can cross the gap in level6", "[NavigationGraphB
     NavigationGraph graph = buildNavigationGraph(tileMap, explorer);
 
     REQUIRE(countEdgesOfType(graph, EdgeType::Jump) > 0);
+}
+
+TEST_CASE("The shipped explorer can get up to level6's top platform and back",
+          "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+
+    NavigationProfile explorer =
+        buildNavigationProfile(gameData.npcData.at("explorer").actorData);
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, explorer);
+
+    // The explorer only carries itself far enough sideways during a jump to
+    // clear the 48px up to the top platform because it moves at 200. At 150 it
+    // is already on its way down by the time it has crossed the gap.
+    int topPlatformId = -1;
+    for (const auto &[id, node] : graph.getNodes())
+        if (node.position.y < 100.0f)
+            topPlatformId = id;
+
+    REQUIRE(topPlatformId >= 0);
+
+    std::vector<int> reachable = roundTripFrom(graph, topPlatformId);
+    REQUIRE(reachable.size() > 2);
 }
 
 TEST_CASE("The shipped villager is offered no jumps at all", "[NavigationGraphBuilder][Jump][Level]")

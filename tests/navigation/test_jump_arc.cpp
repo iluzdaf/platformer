@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
 #include "navigation/jump_arc.hpp"
-#include "game/actor/actor_motion_data.hpp"
+#include "actor/actor_motion_data.hpp"
 
 namespace
 {

@@ -1,6 +1,6 @@
 #include <functional>
 #include "physics/physics_body.hpp"
-#include "game/tile_map/tile_map.hpp"
+#include "tile_map/tile_map.hpp"
 
 PhysicsBody::PhysicsBody(const PhysicsBodyData &data)
     : data(data)

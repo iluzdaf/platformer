@@ -1,0 +1,41 @@
+#pragma once
+
+#include <memory>
+#include "actor/actor_state.hpp"
+#include "actor/actor_data.hpp"
+#include "actor/actor_motion.hpp"
+#include "actor/actor_behavior.hpp"
+#include "animations/animation_manager.hpp"
+#include "physics/physics_body.hpp"
+#include "navigation/navigation_profile.hpp"
+
+class TileMap;
+class Level;
+class NavigationGraph;
+
+class Actor
+{
+public:
+    virtual ~Actor() = default;
+    void preFixedUpdate();
+    void fixedUpdate(float deltaTime, const Level &level);
+    virtual void postFixedUpdate();
+    const ActorState &getState() const;
+    const ActorMotion &getMotion() const;
+    const PhysicsBody &getPhysicsBody() const;
+    const glm::vec2 &getPosition() const;
+    const NavigationProfile &getNavigationProfile() const;
+    void setPosition(const glm::vec2 &position);
+
+protected:
+    explicit Actor(const ActorData &data);
+    void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
+    ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
+
+    ActorMotion motion;
+    PhysicsBody physicsBody;
+    AnimationManager animationManager;
+    ActorState actorState;
+    NavigationProfile navigationProfile;
+    std::unique_ptr<ActorBehavior> behavior;
+};

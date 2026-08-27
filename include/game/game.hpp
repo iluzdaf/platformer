@@ -2,10 +2,10 @@
 
 #include <memory>
 #include "game/game_data.hpp"
-#include "game/tile_map/tile_interaction_system.hpp"
-#include "game/actor/actor.hpp"
-#include "game/player/player.hpp"
-#include "game/npc/npc.hpp"
+#include "tile_map/tile_interaction_system.hpp"
+#include "actor/actor.hpp"
+#include "player/player.hpp"
+#include "npc/npc.hpp"
 #include "game/scoring_system.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/texture2d.hpp"

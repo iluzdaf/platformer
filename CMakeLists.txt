@@ -93,11 +93,11 @@ add_library(platformer_lib OBJECT
     src/rendering/ui/level_editor_ui.cpp
     src/rendering/ui/score_ui.cpp
     src/rendering/ui/debug_navigation_ui.cpp
-    src/game/tile_map/tile_map.cpp
-    src/game/tile_map/tile.cpp
-    src/game/tile_map/tile_interaction_system.cpp
-    src/game/player/player.cpp
-    src/game/actor/actor.cpp
+    src/tile_map/tile_map.cpp
+    src/tile_map/tile.cpp
+    src/tile_map/tile_interaction_system.cpp
+    src/player/player.cpp
+    src/actor/actor.cpp
     src/game/game.cpp
     src/game/level.cpp
     src/game/scoring_system.cpp
@@ -117,23 +117,23 @@ add_library(platformer_lib OBJECT
     src/navigation/navigation_graph_builder.cpp
     src/navigation/jump_arc.cpp
     src/navigation/navigation_profile_builder.cpp
-    src/game/actor/actor_behavior.cpp
-    src/game/actor/behaviors/input_behavior.cpp
-    src/game/actor/behaviors/patrol_behavior.cpp
-    src/game/npc/npc.cpp
-    src/game/actor/actor_motion.cpp
-    src/game/actor/abilities/jump_ability.cpp
-    src/game/actor/abilities/dash_ability.cpp
-    src/game/actor/abilities/move_ability.cpp
-    src/game/actor/abilities/wall_slide_ability.cpp
-    src/game/actor/abilities/wall_jump_ability.cpp
-    src/game/actor/abilities/climb_ability.cpp
-    src/game/actor/abilities/climb_move_ability.cpp
-    src/game/actor/abilities/action_buffer.cpp
-    src/game/actor/abilities/coyote_time.cpp
-    src/game/actor/abilities/direction_buffer.cpp
-    src/game/actor/abilities/ability_system.cpp
-    src/game/actor/abilities/gravity_ability.cpp
+    src/actor/actor_behavior.cpp
+    src/actor/behaviors/input_behavior.cpp
+    src/actor/behaviors/patrol_behavior.cpp
+    src/npc/npc.cpp
+    src/actor/actor_motion.cpp
+    src/actor/abilities/jump_ability.cpp
+    src/actor/abilities/dash_ability.cpp
+    src/actor/abilities/move_ability.cpp
+    src/actor/abilities/wall_slide_ability.cpp
+    src/actor/abilities/wall_jump_ability.cpp
+    src/actor/abilities/climb_ability.cpp
+    src/actor/abilities/climb_move_ability.cpp
+    src/actor/abilities/action_buffer.cpp
+    src/actor/abilities/coyote_time.cpp
+    src/actor/abilities/direction_buffer.cpp
+    src/actor/abilities/ability_system.cpp
+    src/actor/abilities/gravity_ability.cpp
 )
 
 add_executable(platformer src/main.cpp)
@@ -207,10 +207,10 @@ add_executable(tests
     tests/test_main.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_shader.cpp
-    tests/game/tile_map/test_tile_map.cpp
-    tests/game/tile_map/test_tile.cpp
-    tests/game/tile_map/test_tile_interaction_system.cpp
-    tests/game/player/test_player.cpp
+    tests/tile_map/test_tile_map.cpp
+    tests/tile_map/test_tile.cpp
+    tests/tile_map/test_tile_interaction_system.cpp
+    tests/player/test_player.cpp
     tests/physics/test_fixed_time_step.cpp
     tests/physics/tests_aabb.cpp
     tests/physics/tests_physics_body.cpp
@@ -224,22 +224,22 @@ add_executable(tests
     tests/scripting/test_lua_script_system.cpp
     tests/navigation/test_navigation_graph_builder.cpp
     tests/navigation/test_jump_arc.cpp
-    tests/game/actor/behaviors/test_patrol_behavior.cpp
-    tests/game/npc/test_npc.cpp
-    tests/game/level/test_level.cpp
-    tests/game/tile_map/test_tile_map_navigation.cpp
-    tests/game/actor/abilities/test_jump_ability.cpp
-    tests/game/actor/abilities/test_dash_ability.cpp
-    tests/game/actor/abilities/test_move_ability.cpp
-    tests/game/actor/abilities/test_wall_slide_ability.cpp
-    tests/game/actor/abilities/test_wall_jump_ability.cpp
-    tests/game/actor/abilities/test_climb_ability.cpp
-    tests/game/actor/abilities/test_climb_move_ability.cpp
-    tests/game/actor/abilities/test_coyote_time.cpp
-    tests/game/actor/abilities/test_action_buffer.cpp
-    tests/game/actor/abilities/test_direction_buffer.cpp
-    tests/game/actor/abilities/test_ability_system.cpp
-    tests/game/actor/abilities/test_gravity_ability.cpp
+    tests/actor/behaviors/test_patrol_behavior.cpp
+    tests/npc/test_npc.cpp
+    tests/game/test_level.cpp
+    tests/tile_map/test_tile_map_navigation.cpp
+    tests/actor/abilities/test_jump_ability.cpp
+    tests/actor/abilities/test_dash_ability.cpp
+    tests/actor/abilities/test_move_ability.cpp
+    tests/actor/abilities/test_wall_slide_ability.cpp
+    tests/actor/abilities/test_wall_jump_ability.cpp
+    tests/actor/abilities/test_climb_ability.cpp
+    tests/actor/abilities/test_climb_move_ability.cpp
+    tests/actor/abilities/test_coyote_time.cpp
+    tests/actor/abilities/test_action_buffer.cpp
+    tests/actor/abilities/test_direction_buffer.cpp
+    tests/actor/abilities/test_ability_system.cpp
+    tests/actor/abilities/test_gravity_ability.cpp
     external/stb/stb_image.cpp
 )
 

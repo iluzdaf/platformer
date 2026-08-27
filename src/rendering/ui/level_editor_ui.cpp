@@ -1,11 +1,11 @@
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
-#include "game/tile_map/tile_map.hpp"
+#include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
-#include "game/npc/npc_spawn_data.hpp"
+#include "npc/npc_spawn_data.hpp"
 
 namespace
 {

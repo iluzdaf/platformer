@@ -2,7 +2,7 @@
 #include "animations/animation_manager.hpp"
 #include "animations/sprite_animation.hpp"
 #include "animations/sprite_animation_data.hpp"
-#include "game/actor/actor_motion_state.hpp"
+#include "actor/actor_motion_state.hpp"
 
 namespace
 {

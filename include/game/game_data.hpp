@@ -2,9 +2,9 @@
 
 #include <string>
 #include <unordered_map>
-#include "game/player/player_data.hpp"
-#include "game/npc/npc_data.hpp"
-#include "game/tile_map/tile_palette.hpp"
+#include "player/player_data.hpp"
+#include "npc/npc_data.hpp"
+#include "tile_map/tile_palette.hpp"
 #include "game/debug_data.hpp"
 #include "cameras/camera2d_data.hpp"
 

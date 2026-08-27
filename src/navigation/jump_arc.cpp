@@ -1,7 +1,7 @@
 #include "navigation/jump_arc.hpp"
-#include "game/actor/actor_motion_data.hpp"
-#include "game/actor/actor_motion_state.hpp"
-#include "game/actor/abilities/ability_system.hpp"
+#include "actor/actor_motion_data.hpp"
+#include "actor/actor_motion_state.hpp"
+#include "actor/abilities/ability_system.hpp"
 #include "input/input_intentions.hpp"
 
 namespace

@@ -75,18 +75,24 @@ Terminal commands below assume a Unix shell. On Windows use Git Bash.
 
 ## 🧱 Project Structure
 
+`include` and `src` mirror each other, one folder per subject.
+
 ```bash
 platformer/
-├── assets/              # JSON configuration, textures, tile maps
-├── include/             # Header files
-│   └── game/            # Game-related classes (Player, TileMap, etc.)
-├── src/                 # Source files
-│   └── game/            # Implementations of game logic
-├── tests/               # Catch2 test cases
-├── external/            # Third-party libraries (e.g., GLFW, Glaze)
-├── CMakeLists.txt       # Build configuration
-├── README.md            # Project documentation
-└── tools/               # scripts and toolin utilities
+├── assets/          json configuration, textures, tile maps
+├── include/         headers, by subject
+│   ├── actor/       movement abilities, behaviors, animation state
+│   ├── tile_map/    the grid, its tiles, and what they do on contact
+│   ├── navigation/  the graph actors path over, and how it is built
+│   ├── player/      npc/            the two kinds of actor
+│   ├── physics/     rendering/      animations/     cameras/
+│   ├── input/       scripting/      reloading/      serialization/
+│   └── game/        the game itself: Game, Level, and the data they load
+├── src/             implementations, same folders
+├── tests/           Catch2 cases, same folders
+├── external/        third party libraries
+├── tools/           formatting and hook scripts
+└── CMakeLists.txt
 ```
 
 ## 🎨 Style Guide

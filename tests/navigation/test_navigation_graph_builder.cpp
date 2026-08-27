@@ -882,8 +882,9 @@ namespace
     }
     constexpr int TallMapHeightTiles = 18;
     constexpr int DeepFloorRow = 16;
+    constexpr int NearLedgeEnd = 2;
     constexpr int FarLedgeStart = 6;
-    constexpr int FarLedgeEnd = 8;
+    constexpr int FarLedgeEnd = 12;
 
     // Two ledges over one long floor, high enough that a jump along the floor
     // passes under them. Their landings leave enough nodes on the floor that a
@@ -894,13 +895,22 @@ namespace
         for (int x = 0; x < 20; ++x)
             tileMap.setTileIndex(glm::ivec2(x, DeepFloorRow), 1);
 
-        for (int x = 0; x <= 2; ++x)
+        for (int x = 0; x <= NearLedgeEnd; ++x)
             tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
 
         for (int x = FarLedgeStart; x <= FarLedgeEnd; ++x)
             tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
 
         return tileMap;
+    }
+
+    const NavigationEdge *edgeBetween(const NavigationGraph &graph, int fromId, int toId)
+    {
+        for (const auto &edge : graph.getOutgoingEdges(fromId))
+            if (edge.toId == toId)
+                return &edge;
+
+        return nullptr;
     }
 
     int nodeAt(const NavigationGraph &graph, glm::vec2 position)
@@ -911,6 +921,31 @@ namespace
 
         return -1;
     }
+}
+
+TEST_CASE("A jump is the smallest one that reaches", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupLedgesAboveFloor();
+    float ledgeY = static_cast<float>(PlatformRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    int acrossTheGap = nodeAt(graph, glm::vec2(static_cast<float>(NearLedgeEnd + 1) * 16.0f, ledgeY));
+    int farSide = nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeStart) * 16.0f, ledgeY));
+    int longWayOff = nodeAt(graph, glm::vec2(0.0f, ledgeY));
+    REQUIRE(acrossTheGap >= 0);
+    REQUIRE(farSide >= 0);
+    REQUIRE(longWayOff >= 0);
+
+    const NavigationEdge *there = edgeBetween(graph, acrossTheGap, farSide);
+    const NavigationEdge *back = edgeBetween(graph, farSide, acrossTheGap);
+    REQUIRE(there);
+    REQUIRE(back);
+    REQUIRE(there->holdDuration == back->holdDuration);
+
+    const NavigationEdge *further = edgeBetween(graph, longWayOff, farSide);
+    REQUIRE(further);
+    REQUIRE(there->holdDuration < further->holdDuration);
 }
 
 TEST_CASE("A jump crosses to a platform once", "[NavigationGraphBuilder][Jump]")

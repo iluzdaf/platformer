@@ -1,4 +1,8 @@
 #include <algorithm>
+#include <string_view>
+#include <tuple>
+#include <utility>
+#include <vector>
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
@@ -13,6 +17,23 @@
 
 namespace
 {
+    std::string_view nameOf(EdgeType type)
+    {
+        switch (type)
+        {
+        case EdgeType::Walk:
+            return "walk";
+        case EdgeType::Jump:
+            return "jump";
+        case EdgeType::Fall:
+            return "fall";
+        case EdgeType::Climb:
+            return "climb";
+        }
+
+        return "?";
+    }
+
     std::string levelName(const std::string &levelPath)
     {
         std::string name = levelPath.substr(levelPath.find_last_of("/\\") + 1);
@@ -321,11 +342,29 @@ void LevelEditorUi::drawGraphs(
 
 void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
 {
-    auto drawEdge = [&](const NavigationEdge &edge, bool leaving)
+    std::vector<std::pair<NavigationEdge, bool>> edges;
+    for (const NavigationEdge &edge : graph.getOutgoingEdges(nodeId))
+        edges.emplace_back(edge, true);
+
+    for (const NavigationEdge &edge : graph.getEdges())
+        if (edge.toId == nodeId)
+            edges.emplace_back(edge, false);
+
+    std::ranges::sort(
+        edges,
+        [](const auto &left, const auto &right)
+        {
+            const NavigationEdge &leftEdge = left.first;
+            const NavigationEdge &rightEdge = right.first;
+            return std::tie(leftEdge.type, left.second, leftEdge.fromId, leftEdge.toId) <
+                   std::tie(rightEdge.type, right.second, rightEdge.fromId, rightEdge.toId);
+        });
+
+    for (const auto &[edge, leaving] : edges)
     {
         ImGui::PushID(leaving ? edge.toId : -edge.fromId - 1);
         std::pair<int, int> ends{edge.fromId, edge.toId};
-        std::string label = std::string(edge.type == EdgeType::Jump ? "jump" : "walk") + " " +
+        std::string label = std::string(nameOf(edge.type)) + " " +
                             std::to_string(edge.fromId) + " to " + std::to_string(edge.toId);
 
         if (ImGui::Selectable(label.c_str(), selectedEdge == ends))
@@ -334,14 +373,7 @@ void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
             selectedNodeId.reset();
         }
         ImGui::PopID();
-    };
-
-    for (const NavigationEdge &edge : graph.getOutgoingEdges(nodeId))
-        drawEdge(edge, true);
-
-    for (const NavigationEdge &edge : graph.getEdges())
-        if (edge.toId == nodeId)
-            drawEdge(edge, false);
+    }
 }
 
 bool LevelEditorUi::drawsTileMapAABBs() const

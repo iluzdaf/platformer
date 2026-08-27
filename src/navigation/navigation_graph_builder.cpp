@@ -308,6 +308,14 @@ namespace
         float reach = 0.0f;
     };
 
+    bool easierThan(const JumpCandidate &candidate, const JumpCandidate &against)
+    {
+        if (candidate.holdDuration != against.holdDuration)
+            return candidate.holdDuration < against.holdDuration;
+
+        return candidate.reach < against.reach;
+    }
+
     void addJumpEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -317,8 +325,12 @@ namespace
         std::unordered_map<int, int> components = walkComponents(navigationGraph);
 
         // Landing anywhere on a platform is as good as landing at its near
-        // edge and walking in, so a node offers one jump per platform.
-        std::map<std::pair<int, int>, JumpCandidate> nearest;
+        // edge and walking in, so a node offers one jump per platform, the one
+        // it has to hold the least to make. Preferring the nearest landing
+        // instead leaves the same gap crossed by a different arc each way,
+        // because which arc lands nearest depends on where the far platform
+        // happens to have its nodes.
+        std::map<std::pair<int, int>, JumpCandidate> easiest;
 
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
@@ -344,16 +356,17 @@ namespace
                     float reach =
                         std::abs(navigationGraph.getNode(*toId).position.x - takeOff.x);
 
+                    JumpCandidate candidate{*toId, landing->path, arc.holdDuration, reach};
+
                     std::pair<int, int> platform(fromId, components.at(*toId));
-                    auto found = nearest.find(platform);
-                    if (found != nearest.end() && found->second.reach <= reach)
+                    auto found = easiest.find(platform);
+                    if (found != easiest.end() && !easierThan(candidate, found->second))
                         continue;
 
-                    nearest[platform] =
-                        JumpCandidate{*toId, landing->path, arc.holdDuration, reach};
+                    easiest[platform] = candidate;
                 }
 
-        for (const auto &[platform, candidate] : nearest)
+        for (const auto &[platform, candidate] : easiest)
             navigationGraph.addEdge({platform.first,
                                      candidate.toId,
                                      EdgeType::Jump,

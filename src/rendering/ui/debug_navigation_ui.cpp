@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <set>
 #include <string>
 #include "rendering/ui/debug_navigation_ui.hpp"
@@ -106,14 +107,26 @@ void DebugNavigationUi::drawEdge(
 
     ImDrawList *drawList = imGuiManager.getDrawList();
 
+    NavigationNode takeOff = navigationGraph.getNode(edge.fromId);
+    NavigationNode landing = navigationGraph.getNode(edge.toId);
+
     if (!edge.path.empty())
     {
+        float chordY = (takeOff.position.y + landing.position.y) * 0.5f;
+        float apexY = chordY;
         for (const glm::vec2 &position : edge.path)
-            drawList->PathLineTo(imGuiManager.worldToScreen(
-                position,
-                camera.getZoom(),
-                camera.getTopLeftPosition()));
-        drawList->PathStroke(color, ImDrawFlags_None, 1.0f);
+            apexY = std::min(apexY, position.y);
+
+        glm::vec2 control(
+            (takeOff.position.x + landing.position.x) * 0.5f,
+            chordY - 2.0f * (chordY - apexY));
+
+        auto screen = [&](glm::vec2 world)
+        { return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition()); };
+
+        drawList->PathLineTo(screen(takeOff.position));
+        drawList->PathBezierQuadraticCurveTo(screen(control), screen(landing.position));
+        drawList->PathStroke(color, ImDrawFlags_None, 1.5f);
         return;
     }
 

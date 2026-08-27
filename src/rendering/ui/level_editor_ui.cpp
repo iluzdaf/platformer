@@ -258,15 +258,24 @@ void LevelEditorUi::drawGraphs(const Level &level)
                                 std::to_string(static_cast<int>(node.position.x)) + "," +
                                 std::to_string(static_cast<int>(node.position.y));
 
-        if (ImGui::Selectable(nodeLabel.c_str(), selectedNodeId == nodeId))
+        ImGuiTreeNodeFlags flags =
+            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        if (selectedNodeId == nodeId)
+            flags |= ImGuiTreeNodeFlags_Selected;
+
+        bool open = ImGui::TreeNodeEx(nodeLabel.c_str(), flags);
+        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
         {
             selectedNodeId = nodeId;
             selectedEdge.reset();
         }
 
-        ImGui::Indent();
-        drawEdgesOf(shown.graph, nodeId);
-        ImGui::Unindent();
+        if (open)
+        {
+            drawEdgesOf(shown.graph, nodeId);
+            ImGui::TreePop();
+        }
+
         ImGui::PopID();
     }
 

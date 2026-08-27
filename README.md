@@ -158,6 +158,15 @@ had untouched.
 executables built them twice, linted them twice, and meant adding a new file in two
 places.
 
+**The hook only fixes what is safe to fix.** It formats staged json and sources,
+because a formatter's answer is never wrong. It does not run clang-tidy, whose answer
+sometimes is: dropping an include it calls unused takes out `glz::meta`
+specializations, which are reached by instantiation rather than by name, and nothing
+fails until two translation units disagree about how a type serializes. Checks whose fix
+can be wrong are left to CI, where they are read rather than applied. A file with
+unstaged edits is reported rather than formatted, since staging the fix would sweep the
+rest of your work into the commit.
+
 **No C++20 modules.** Every dependency is a header library and clangd is still catching
 up, so scanning for modules buys nothing and costs a compiler pass per file. It also
 writes an argument into every compile command naming a file that only exists once you

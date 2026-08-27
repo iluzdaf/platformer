@@ -868,10 +868,6 @@ namespace
 
         return tileMap;
     }
-}
-
-namespace
-{
     // A fall steps off the ledge before dropping, so the landing sits just
     // beyond the platform edge rather than under it.
     int nodeJustPastTheLedge(const NavigationGraph &graph, float floorY)
@@ -884,6 +880,54 @@ namespace
 
         return -1;
     }
+    constexpr int TallMapHeightTiles = 18;
+    constexpr int DeepFloorRow = 16;
+
+    // Two ledges over one long floor, high enough that a jump along the floor
+    // passes under them. Their landings leave enough nodes on the floor that a
+    // jump can reach one without being next to it.
+    TileMap setupLedgesAboveFloor()
+    {
+        TileMap tileMap = setupTileMap(20, TallMapHeightTiles);
+        for (int x = 0; x < 20; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, DeepFloorRow), 1);
+
+        for (int x = 0; x <= 2; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        for (int x = 6; x <= 8; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        return tileMap;
+    }
+}
+
+TEST_CASE("Nothing jumps to where it could walk", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupLedgesAboveFloor();
+    float floorY = static_cast<float>(DeepFloorRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    size_t onTheFloor = 0;
+    for (const auto &[id, node] : graph.getNodes())
+        if (std::abs(node.position.y - floorY) < 0.5f)
+            ++onTheFloor;
+
+    REQUIRE(onTheFloor >= 4);
+
+    int jumpsAlongTheFloor = 0;
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Jump)
+            continue;
+
+        if (std::abs(graph.getNode(edge.fromId).position.y - floorY) < 0.5f &&
+            std::abs(graph.getNode(edge.toId).position.y - floorY) < 0.5f)
+            ++jumpsAlongTheFloor;
+    }
+
+    REQUIRE(jumpsAlongTheFloor == 0);
 }
 
 TEST_CASE("Nothing falls onto spikes", "[NavigationGraphBuilder][Fall]")

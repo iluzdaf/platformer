@@ -255,13 +255,40 @@ namespace
         return nearest;
     }
 
-    bool alreadyWalkable(const NavigationGraph &navigationGraph, int fromId, int toId)
+    // Walk edges are cut by gaps and by spikes, so anything reachable on foot
+    // shares a component. A jump within one would have nothing to clear.
+    std::unordered_map<int, int> walkComponents(const NavigationGraph &navigationGraph)
     {
-        for (const auto &edge : navigationGraph.getOutgoingEdges(fromId))
-            if (edge.type == EdgeType::Walk && edge.toId == toId)
-                return true;
+        std::unordered_map<int, int> components;
 
-        return false;
+        int nextComponent = 0;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            if (components.contains(id))
+                continue;
+
+            components[id] = nextComponent;
+
+            std::vector<int> pending{id};
+            while (!pending.empty())
+            {
+                int at = pending.back();
+                pending.pop_back();
+
+                for (const auto &edge : navigationGraph.getOutgoingEdges(at))
+                {
+                    if (edge.type != EdgeType::Walk || components.contains(edge.toId))
+                        continue;
+
+                    components[edge.toId] = nextComponent;
+                    pending.push_back(edge.toId);
+                }
+            }
+
+            ++nextComponent;
+        }
+
+        return components;
     }
 
     bool alreadyConnected(const NavigationGraph &navigationGraph, int fromId, int toId)
@@ -279,6 +306,8 @@ namespace
         const NavigationProfile &profile,
         int headroom)
     {
+        std::unordered_map<int, int> components = walkComponents(navigationGraph);
+
         std::set<std::pair<int, int>> added;
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
@@ -298,7 +327,7 @@ namespace
                     if (!toId || *toId == fromId)
                         continue;
 
-                    if (alreadyWalkable(navigationGraph, fromId, *toId))
+                    if (components.at(fromId) == components.at(*toId))
                         continue;
 
                     if (added.insert({fromId, *toId}).second)

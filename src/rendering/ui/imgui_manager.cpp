@@ -79,13 +79,7 @@ ImVec2 ImGuiManager::getUiDimensions() const
     return getIO().DisplaySize;
 }
 
-ImDrawList *ImGuiManager::getDrawList()
+ImDrawList *ImGuiManager::getDrawList() const
 {
     return ImGui::GetBackgroundDrawList();
-}
-
-void ImGuiManager::setNextFullscreenWindow()
-{
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(getUiDimensions());
 }

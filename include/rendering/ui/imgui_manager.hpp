@@ -28,8 +28,7 @@ public:
     glm::vec2 getUiScale() const;
     void resize(int windowWidth, int windowHeight);
     ImVec2 getUiDimensions() const;
-    ImDrawList *getDrawList();
-    void setNextFullscreenWindow();
+    ImDrawList *getDrawList() const;
 
 private:
     int windowWidth = 800, windowHeight = 600;

@@ -1,50 +1,52 @@
 #include <imgui.h>
 #include <format>
-#include "rendering/ui/debug_ui.hpp"
+#include "rendering/ui/game_editor_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
 
-void DebugUi::draw(
+void GameEditorUi::draw(
     const ImGuiManager &imGuiManager,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
     const ActorState &actorState,
     const Camera2D &camera,
-    bool showDebug)
+    bool showEditors)
 {
-    if (!showDebug)
+    if (!showEditors)
         return;
 
     ImGui::SetNextWindowSize(ImVec2(200, imGuiManager.getUiDimensions().y));
-    ImGui::Begin("Debug");
-    if (ImGui::Button("Step"))
-        onStep();
-    ImGui::SameLine();
-    if (ImGui::Button("Play"))
-        onPlay();
-    ImGui::SameLine();
-    if (ImGui::Button("Respawn"))
-        onRespawn();
-    ImGui::SameLine();
-    if (ImGui::Button("Zoom"))
-        onToggleZoom();
+    ImGui::Begin("Game Editor");
+    if (ImGui::CollapsingHeader("Playback", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::PushID("play");
+        if (ImGui::Button("Step"))
+            onStep();
+        ImGui::SameLine();
+        if (ImGui::Button("Play"))
+            onPlay();
+        ImGui::PopID();
+    }
 
-    if (ImGui::Button("Tile Info"))
-        onToggleDrawTileInfo();
-    ImGui::SameLine();
-    if (ImGui::Button("Grid"))
-        onToggleDrawGrid();
-    ImGui::SameLine();
-    if (ImGui::Button("Player"))
-        onToggleDrawPlayerAABBs();
+    if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::PushID("camera");
+        if (ImGui::Button("Zoom"))
+            onToggleZoom();
+        ImGui::SameLine();
+        ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
+        ImGui::PopID();
+    }
 
-    if (ImGui::Button("TileMap"))
-        onToggleDrawTileMapAABBs();
-    ImGui::SameLine();
-    if (ImGui::Button("Reload"))
-        onGameReload();
+    if (!ImGui::CollapsingHeader("Player", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::Checkbox("AABBs", &drawPlayerAABBs);
 
     if (ImGui::BeginTable("Inspector", 2, ImGuiTableFlags_BordersInnerV))
     {
@@ -73,10 +75,12 @@ void DebugUi::draw(
 
         drawRow("Animation", toString(actorState.currentAnimationState));
 
-        drawRow("Camera Shaking", camera.shaking() ? "true" : "false");
-
         ImGui::EndTable();
     }
 
     ImGui::End();
+}
+bool GameEditorUi::drawsPlayerAABBs() const
+{
+    return drawPlayerAABBs;
 }

@@ -86,13 +86,13 @@ add_library(platformer_lib OBJECT
     src/rendering/shader.cpp
     src/rendering/tile_map_renderer.cpp
     src/rendering/screen_transition.cpp
-    src/rendering/ui/debug_ui.cpp
+    src/rendering/ui/game_editor_ui.cpp
     src/rendering/ui/imgui_manager.cpp
-    src/rendering/ui/debug_tile_map_ui.cpp
+    src/rendering/ui/tile_map_overlays.cpp
     src/rendering/ui/debug_aabb_ui.cpp
     src/rendering/ui/level_editor_ui.cpp
     src/rendering/ui/score_ui.cpp
-    src/rendering/ui/debug_navigation_ui.cpp
+    src/rendering/ui/navigation_overlay.cpp
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/tile_interaction_system.cpp
@@ -100,6 +100,7 @@ add_library(platformer_lib OBJECT
     src/actor/actor.cpp
     src/game/game.cpp
     src/game/level.cpp
+    src/game/levels.cpp
     src/game/scoring_system.cpp
     src/physics/aabb.cpp
     src/physics/fixed_time_step.cpp
@@ -227,6 +228,7 @@ add_executable(tests
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/npc/test_npc.cpp
     tests/game/test_level.cpp
+    tests/game/test_levels.cpp
     tests/tile_map/test_tile_map_navigation.cpp
     tests/actor/abilities/test_jump_ability.cpp
     tests/actor/abilities/test_dash_ability.cpp

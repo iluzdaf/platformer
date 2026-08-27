@@ -6,17 +6,13 @@
 #include <iostream>
 #include "game/game.hpp"
 #include "game/level.hpp"
+#include "game/levels.hpp"
 #include "rendering/shader_data.hpp"
 
 Game::Game()
+    : levels("../../assets/levels.json")
 {
     gameData = loadGameData();
-    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
-    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
-    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
-    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
-    showDebug = gameData.debugData.showDebug;
-    showLevelEditor = gameData.debugData.showLevelEditor;
 
     initGLFW(gameData.windowWidth, gameData.windowHeight);
 
@@ -105,7 +101,7 @@ Game::Game()
         {
             std::cerr << e.what() << std::endl;
         } });
-    loadLevel(gameData.firstLevel);
+    loadLevel(levels.getFirst());
 
     tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
     ShaderData shaderData;
@@ -119,30 +115,24 @@ Game::Game()
     shaderData.fragmentPath = "../../assets/shaders/transition.fs";
     screenTransitionShader = std::make_unique<Shader>(shaderData);
     screenTransition = std::make_unique<ScreenTransition>();
-    debugUi.onPlay.connect([this]
-                           { play(); });
-    debugUi.onStep.connect([this]
-                           { step(); });
-    debugUi.onRespawn.connect([this]
-                              { rebuildPlayer(); });
-    debugUi.onToggleZoom.connect([this]
-                                 {
+    gameEditorUi.onPlay.connect([this]
+                                { play(); });
+    gameEditorUi.onStep.connect([this]
+                                { step(); });
+    gameEditorUi.onToggleZoom.connect([this]
+                                      {
         static float originalZoom = camera->getZoom();
         float currentZoom = camera->getZoom();
         camera->setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom); });
-    debugUi.onToggleDrawGrid.connect([this]
-                                     { shouldDrawGrid = !shouldDrawGrid; });
-    debugUi.onToggleDrawTileInfo.connect([this]
-                                         { shouldDrawTileInfo = !shouldDrawTileInfo; });
-    debugUi.onToggleDrawPlayerAABBs.connect([this]
-                                            { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
-    debugUi.onToggleDrawTileMapAABBs.connect([this]
-                                             { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
-    debugUi.onGameReload.connect([this]
-                                 { reload(); });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
     levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
                                       { loadLevel(levelPath); });
+    levelEditorUi.onRespawn.connect([this]
+                                    { rebuildPlayer(); });
+    levelEditorUi.onSetFirstLevel.connect([this]
+                                          {
+        levels.setFirst(level->getPath());
+        levels.save(); });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), screenTransition.get());
 
@@ -282,12 +272,21 @@ void Game::render()
         scoringSystem,
         *tileSet.get());
 
-    debugTileMapUi.draw(
+    levelEditorUi.draw(
         *imGuiManager.get(),
+        *level.get(),
+        *tileSet.get(),
         *camera.get(),
-        level->getTileMap(),
-        shouldDrawGrid,
-        shouldDrawTileInfo);
+        levels.getFirst(),
+        gameData.debug);
+
+    gameEditorUi.draw(
+        *imGuiManager.get(),
+        player->getMotion().getState(),
+        player->getPosition(),
+        player->getState(),
+        *camera.get(),
+        gameData.debug);
 
     debugAABBUi.draw(
         *imGuiManager.get(),
@@ -295,27 +294,8 @@ void Game::render()
         level->getTileMap(),
         level->getPlayerStartWorldPosition(),
         *camera.get(),
-        shouldDrawPlayerAABBs,
-        shouldDrawTileMapAABBs);
-
-    debugUi.draw(
-        *imGuiManager.get(),
-        player->getMotion().getState(),
-        player->getPosition(),
-        player->getState(),
-        *camera.get(),
-        showDebug);
-
-    levelEditorUi.draw(
-        *imGuiManager.get(),
-        *level.get(),
-        *tileSet.get(),
-        showLevelEditor);
-
-    debugNavigationUi.draw(
-        *imGuiManager.get(),
-        level->graphFor(player->getNavigationProfile()),
-        *camera.get());
+        gameEditorUi.drawsPlayerAABBs(),
+        levelEditorUi.drawsTileMapAABBs());
 
     imGuiManager->render();
 
@@ -371,18 +351,11 @@ void Game::reload()
 {
     gameData = loadGameData();
 
-    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
-    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
-    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
-    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
-    showDebug = gameData.debugData.showDebug;
-    showLevelEditor = gameData.debugData.showLevelEditor;
-
     glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
 
     camera->setZoom(gameData.cameraData.zoom);
 
-    loadLevel(gameData.firstLevel);
+    loadLevel(levels.getFirst());
 }
 
 void Game::loadLevel(const std::string &levelPath)

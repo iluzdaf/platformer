@@ -276,11 +276,11 @@ namespace
             takeOffs.emplace_back(id, node.position);
 
         for (const auto &[fromId, takeOff] : takeOffs)
-            for (const std::vector<glm::vec2> &arc : profile.jumpArcs)
+            for (const JumpArc &arc : profile.jumpArcs)
                 for (float direction : {1.0f, -1.0f})
                 {
                     std::optional<JumpLanding> landing =
-                        landingOf(tileMap, takeOff, arc, direction, profile);
+                        landingOf(tileMap, takeOff, arc.offsets, direction, profile);
                     if (!landing || landing->position.y > takeOff.y)
                         continue;
 
@@ -294,7 +294,7 @@ namespace
 
                     if (added.insert({fromId, *toId}).second)
                         navigationGraph.addEdge(
-                            {fromId, *toId, EdgeType::Jump, landing->path});
+                            {fromId, *toId, EdgeType::Jump, landing->path, arc.holdDuration});
                 }
     }
 }

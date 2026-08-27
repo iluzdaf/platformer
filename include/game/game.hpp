@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "game/game_data.hpp"
+#include "game/levels.hpp"
 #include "tile_map/tile_interaction_system.hpp"
 #include "actor/actor.hpp"
 #include "player/player.hpp"
@@ -11,13 +12,11 @@
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/screen_transition.hpp"
-#include "rendering/ui/debug_ui.hpp"
+#include "rendering/ui/game_editor_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
-#include "rendering/ui/debug_tile_map_ui.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/score_ui.hpp"
-#include "rendering/ui/debug_navigation_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "input/input_manager.hpp"
@@ -77,20 +76,13 @@ private:
     std::unique_ptr<TileMapRenderer> tileMapRenderer;
     std::unique_ptr<ScreenTransition> screenTransition;
     std::unique_ptr<ImGuiManager> imGuiManager;
-    DebugUi debugUi;
-    DebugTileMapUi debugTileMapUi;
+    Levels levels;
+    GameEditorUi gameEditorUi;
     DebugAABBUi debugAABBUi;
     LevelEditorUi levelEditorUi;
     ScoreUi scoreUi;
-    DebugNavigationUi debugNavigationUi;
     fteng::connection onLevelCompleteConnection;
     bool paused = false,
-         stepFrame = false,
-         shouldDrawGrid = false,
-         shouldDrawTileInfo = false,
-         shouldDrawPlayerAABBs = false,
-         shouldDrawTileMapAABBs = false,
-         showDebug = false,
-         showLevelEditor = false;
+         stepFrame = false;
     GameData gameData;
 };

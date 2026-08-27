@@ -18,16 +18,16 @@ namespace
         return !navigationGraph.getOutgoingEdges(nodeId).empty();
     }
 
-    std::optional<EdgeType> edgeTypeBetween(
+    const NavigationEdge *edgeBetween(
         const NavigationGraph &navigationGraph,
         int fromId,
         int toId)
     {
         for (const auto &edge : navigationGraph.getOutgoingEdges(fromId))
             if (edge.toId == toId)
-                return edge.type;
+                return &edge;
 
-        return std::nullopt;
+        return nullptr;
     }
 }
 
@@ -41,6 +41,7 @@ void PatrolBehavior::reset()
     currentNodeId.reset();
     targetNodeId.reset();
     previousNodeId.reset();
+    jumpHeldFor = 0.0f;
 }
 
 void PatrolBehavior::anchor(const ActorBehaviorContext &context)
@@ -70,7 +71,7 @@ void PatrolBehavior::anchor(const ActorBehaviorContext &context)
 }
 
 InputIntentions PatrolBehavior::decide(
-    float,
+    float deltaTime,
     const ActorBehaviorContext &context)
 {
     InputIntentions inputIntentions;
@@ -92,6 +93,7 @@ InputIntentions PatrolBehavior::decide(
         previousNodeId = currentNodeId;
         currentNodeId = targetNodeId;
         targetNodeId.reset();
+        jumpHeldFor = 0.0f;
         pickTarget(context);
 
         if (!targetNodeId)
@@ -101,8 +103,12 @@ InputIntentions PatrolBehavior::decide(
     NavigationNode targetNode = context.navigationGraph.getNode(*targetNodeId);
     inputIntentions.direction.x = directionTowards(context.worldPosition.x, targetNode.position.x);
 
-    if (edgeTypeBetween(context.navigationGraph, *currentNodeId, *targetNodeId) == EdgeType::Jump)
+    const NavigationEdge *leg =
+        edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
+
+    if (leg && leg->type == EdgeType::Jump && jumpHeldFor < leg->holdDuration)
     {
+        jumpHeldFor += deltaTime;
         inputIntentions.jumpRequested = true;
         inputIntentions.jumpHeld = true;
     }

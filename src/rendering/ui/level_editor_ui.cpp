@@ -1,8 +1,12 @@
+#include <algorithm>
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "rendering/ui/tile_map_overlays.hpp"
+#include "rendering/ui/navigation_overlay.hpp"
+#include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -11,7 +15,9 @@ namespace
 {
     std::string levelName(const std::string &levelPath)
     {
-        return levelPath.substr(levelPath.find_last_of("/\\") + 1);
+        std::string name = levelPath.substr(levelPath.find_last_of("/\\") + 1);
+        size_t extension = name.rfind(".json");
+        return extension == std::string::npos ? name : name.substr(0, extension);
     }
 }
 
@@ -19,56 +25,114 @@ void LevelEditorUi::draw(
     const ImGuiManager &imGuiManager,
     Level &level,
     const Texture2D &tileSet,
-    bool showLevelEditor)
+    const Camera2D &camera,
+    const std::string &firstLevel,
+    bool showEditors)
 {
-    if (!showLevelEditor)
+    if (!showEditors)
         return;
+
+    if (drawGrid)
+        drawTileGrid(imGuiManager, camera, level.getTileMap());
+
+    if (drawTileInfo)
+        ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
     ImGui::SetNextWindowPos(ImVec2(displaySize.x - 200, 0));
     ImGui::SetNextWindowSize(ImVec2(200, displaySize.y));
-    ImGui::Begin("TileMap Editor");
-
-    ImGui::Text(
-        "%s w%dxh%dxs%d",
-        levelName(level.getPath()).c_str(),
-        level.getTileMap().getWidth(),
-        level.getTileMap().getHeight(),
-        level.getTileMap().getTileSize());
-
-    ImGui::Text("next %s", levelName(level.getNextLevel()).c_str());
-    ImGui::SameLine();
-    if (ImGui::SmallButton("go"))
-    {
-        std::string nextLevel = level.getNextLevel();
-        editing = false;
-        ImGui::End();
-        onLoadLevel(nextLevel);
-        return;
-    }
-
-    const std::vector<NpcSpawnData> &npcs = level.getNpcs();
-    std::string npcsLabel = "npcs " + std::to_string(npcs.size()) + "###npcs";
-    if (ImGui::CollapsingHeader(npcsLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        if (npcs.empty())
-            ImGui::TextDisabled("none");
-        else
-            for (const NpcSpawnData &npc : npcs)
-                ImGui::Text("%s %d,%d", npc.type.c_str(), npc.tilePosition.x, npc.tilePosition.y);
-    }
-
-    ImGui::Text("nav %zu graphs", level.getGraphs().size());
-    for (const NavigationGraph &graph : level.getGraphs())
-        ImGui::Text("  %zu nodes %zu edges", graph.getNodes().size(), graph.getEdges().size());
-
-    ImGui::Separator();
+    ImGui::Begin("Level Editor");
 
     if (!editing)
     {
         if (ImGui::Button("edit"))
             editing = true;
+    }
+    else
+    {
+        if (ImGui::Button("save"))
+        {
+            level.save();
+            editing = false;
+        }
 
+        ImGui::SameLine();
+        if (ImGui::Button("cancel"))
+        {
+            editing = false;
+            ImGui::End();
+            onLoadLevel(level.getPath());
+            return;
+        }
+    }
+
+    ImGui::Separator();
+
+    ImGui::Checkbox("Tile Info", &drawTileInfo);
+    ImGui::SameLine();
+    ImGui::Checkbox("Grid", &drawGrid);
+    ImGui::Checkbox("TileMap", &drawTileMapAABBs);
+    ImGui::SameLine();
+    if (ImGui::Button("Respawn"))
+        onRespawn();
+    ImGui::Separator();
+
+    std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel);
+    if (chosenLevel)
+    {
+        editing = false;
+        ImGui::End();
+        onLoadLevel(*chosenLevel);
+        return;
+    }
+
+    ImGui::Text(
+        "w%dxh%dxs%d",
+        level.getTileMap().getWidth(),
+        level.getTileMap().getHeight(),
+        level.getTileMap().getTileSize());
+
+    ImGui::TextUnformatted("next");
+    ImGui::SameLine();
+    if (!editing)
+        ImGui::TextUnformatted(levelName(level.getNextLevel()).c_str());
+    else
+    {
+        ImGui::SetNextItemWidth(110.0f);
+        if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
+        {
+            std::string directory =
+                level.getPath().substr(0, level.getPath().find_last_of("/\\"));
+            for (const std::string &path : levelPathsIn(directory))
+                if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
+                    level.setNextLevel(path);
+
+            ImGui::EndCombo();
+        }
+    }
+
+    const std::vector<NpcSpawnData> &npcs = level.getNpcs();
+    if (ImGui::CollapsingHeader("npcs", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Indent();
+        if (npcs.empty())
+            ImGui::TextDisabled("none");
+        else
+            for (const NpcSpawnData &npc : npcs)
+                ImGui::TextUnformatted(npc.type.c_str());
+        ImGui::Unindent();
+    }
+
+    drawGraphs(imGuiManager, camera, level);
+
+    if (!editing)
+    {
+        ImGui::End();
+        return;
+    }
+
+    if (!ImGui::CollapsingHeader("tile palette", ImGuiTreeNodeFlags_DefaultOpen))
+    {
         ImGui::End();
         return;
     }
@@ -133,21 +197,156 @@ void LevelEditorUi::draw(
     if (previouslyEditingPlayerStartTile)
         ImGui::PopStyleColor(3);
 
-    ImGui::SameLine();
-    if (ImGui::Button("Save"))
-    {
-        level.save();
-        editing = false;
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Reload"))
-    {
-        onLoadLevel(level.getPath());
-        editing = false;
-    }
-
     ImGui::End();
+}
+
+std::optional<std::string> LevelEditorUi::drawLevelChooser(
+    const Level &level,
+    const std::string &firstLevel)
+{
+    std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
+    std::optional<std::string> chosen;
+
+    ImGui::SetNextItemWidth(110.0f);
+    if (ImGui::BeginCombo("##level", levelName(level.getPath()).c_str()))
+    {
+        for (const std::string &path : levelPathsIn(directory))
+        {
+            bool current = path == level.getPath();
+            if (ImGui::Selectable(levelName(path).c_str(), current) && !current)
+                chosen = path;
+        }
+        ImGui::EndCombo();
+    }
+
+    if (editing)
+    {
+        ImGui::SameLine();
+        bool isFirst = level.getPath() == firstLevel;
+        if (ImGui::Checkbox("first", &isFirst) && isFirst)
+            onSetFirstLevel();
+    }
+
+    return chosen;
+}
+
+void LevelEditorUi::drawGraphs(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Level &level)
+{
+    if (!ImGui::CollapsingHeader("navigation", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
+
+    const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
+    ImGui::Indent();
+    ImGui::Checkbox("render", &showNavigation);
+
+    if (graphs.empty())
+    {
+        ImGui::TextDisabled("none");
+        ImGui::Unindent();
+        return;
+    }
+
+    if (selectedGraphIndex >= graphs.size())
+        selectedGraphIndex = 0;
+
+    const NamedNavigationGraph &shown = graphs[selectedGraphIndex];
+
+    ImGui::SetNextItemWidth(170.0f);
+    bool choosingGraph = false;
+    if (ImGui::BeginCombo("##graph", shown.name.c_str()))
+    {
+        for (size_t index = 0; index < graphs.size(); ++index)
+            if (ImGui::Selectable(graphs[index].name.c_str(), index == selectedGraphIndex))
+            {
+                selectedGraphIndex = index;
+                choosingGraph = true;
+            }
+
+        ImGui::EndCombo();
+    }
+
+    if (choosingGraph)
+    {
+        selectedNodeId.reset();
+        selectedEdge.reset();
+    }
+
+    if (showNavigation)
+        drawNavigationGraph(
+            imGuiManager,
+            camera,
+            shown.graph,
+            selectedNodeId,
+            selectedEdge);
+
+    std::vector<int> nodeIds;
+    for (const auto &[nodeId, node] : shown.graph.getNodes())
+        nodeIds.push_back(nodeId);
+    std::sort(nodeIds.begin(), nodeIds.end());
+
+    for (int nodeId : nodeIds)
+    {
+        ImGui::PushID(nodeId);
+        NavigationNode node = shown.graph.getNode(nodeId);
+        std::string nodeLabel = std::to_string(nodeId) + " at " +
+                                std::to_string(static_cast<int>(node.position.x)) + "," +
+                                std::to_string(static_cast<int>(node.position.y));
+
+        ImGuiTreeNodeFlags flags =
+            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        if (selectedNodeId == nodeId)
+            flags |= ImGuiTreeNodeFlags_Selected;
+
+        bool open = ImGui::TreeNodeEx(nodeLabel.c_str(), flags);
+        if (!choosingGraph && ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        {
+            selectedNodeId = nodeId;
+            selectedEdge.reset();
+        }
+
+        if (open)
+        {
+            drawEdgesOf(shown.graph, nodeId);
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
+
+    ImGui::Unindent();
+}
+
+void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
+{
+    auto drawEdge = [&](const NavigationEdge &edge, bool leaving)
+    {
+        ImGui::PushID(leaving ? edge.toId : -edge.fromId - 1);
+        std::pair<int, int> ends{edge.fromId, edge.toId};
+        std::string label = std::string(edge.type == EdgeType::Jump ? "jump" : "walk") + " " +
+                            std::to_string(edge.fromId) + " to " + std::to_string(edge.toId);
+
+        if (ImGui::Selectable(label.c_str(), selectedEdge == ends))
+        {
+            selectedEdge = ends;
+            selectedNodeId.reset();
+        }
+        ImGui::PopID();
+    };
+
+    for (const NavigationEdge &edge : graph.getOutgoingEdges(nodeId))
+        drawEdge(edge, true);
+
+    for (const NavigationEdge &edge : graph.getEdges())
+        if (edge.toId == nodeId)
+            drawEdge(edge, false);
+}
+
+bool LevelEditorUi::drawsTileMapAABBs() const
+{
+    return drawTileMapAABBs;
 }
 
 void LevelEditorUi::update(

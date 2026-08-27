@@ -8,7 +8,7 @@ struct ActorState;
 class Camera2D;
 class ImGuiManager;
 
-class DebugUi
+class GameEditorUi
 {
 public:
     void draw(
@@ -17,15 +17,14 @@ public:
         const glm::vec2 &playerPosition,
         const ActorState &actorState,
         const Camera2D &camera,
-        bool showDebug);
+        bool showEditors);
+
+    bool drawsPlayerAABBs() const;
 
     fteng::signal<void()> onPlay,
         onStep,
-        onRespawn,
-        onToggleZoom,
-        onToggleDrawGrid,
-        onToggleDrawTileInfo,
-        onToggleDrawPlayerAABBs,
-        onToggleDrawTileMapAABBs,
-        onGameReload;
+        onToggleZoom;
+
+private:
+    bool drawPlayerAABBs = false;
 };

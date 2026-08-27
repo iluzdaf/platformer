@@ -229,12 +229,9 @@ void LevelEditorUi::drawGraphs(const Level &level)
         selectedGraphIndex = 0;
 
     const NamedNavigationGraph &shown = graphs[selectedGraphIndex];
-    std::string preview = shown.name + " (" +
-                          std::to_string(shown.graph.getNodes().size()) + " nodes, " +
-                          std::to_string(shown.graph.getEdges().size()) + " edges)";
 
     ImGui::SetNextItemWidth(170.0f);
-    if (ImGui::BeginCombo("##graph", preview.c_str()))
+    if (ImGui::BeginCombo("##graph", shown.name.c_str()))
     {
         for (size_t index = 0; index < graphs.size(); ++index)
             if (ImGui::Selectable(graphs[index].name.c_str(), index == selectedGraphIndex))

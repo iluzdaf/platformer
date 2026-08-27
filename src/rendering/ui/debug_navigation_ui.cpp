@@ -1,4 +1,5 @@
 #include <set>
+#include <string>
 #include "rendering/ui/debug_navigation_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -46,11 +47,11 @@ void DebugNavigationUi::draw(
     for (const auto &[id, node] : navigationGraph.getNodes())
     {
         if (!origin)
-            drawNode(imGuiManager, camera, node, NodeColour);
+            drawNode(imGuiManager, camera, node, id, NodeColour);
         else if (id == *origin)
-            drawNode(imGuiManager, camera, node, OriginColour);
+            drawNode(imGuiManager, camera, node, id, OriginColour);
         else if (otherEnds.contains(id))
-            drawNode(imGuiManager, camera, node, DestinationColour);
+            drawNode(imGuiManager, camera, node, id, DestinationColour);
     }
 
     for (const auto &edge : navigationGraph.getEdges())
@@ -62,6 +63,7 @@ void DebugNavigationUi::drawNode(
     ImGuiManager &imGuiManager,
     const Camera2D &camera,
     const NavigationNode &node,
+    int id,
     unsigned int colour)
 {
     ImVec2 position = imGuiManager.worldToScreen(
@@ -70,6 +72,10 @@ void DebugNavigationUi::drawNode(
         camera.getTopLeftPosition());
     ImDrawList *drawList = imGuiManager.getDrawList();
     drawList->AddCircleFilled(position, 5, colour, 16);
+    drawList->AddText(
+        ImVec2(position.x + 6, position.y - 6),
+        colour,
+        std::to_string(id).c_str());
 }
 
 void DebugNavigationUi::drawEdge(

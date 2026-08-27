@@ -197,3 +197,11 @@ TEST_CASE("A level refuses to have no level next", "[Level]")
     REQUIRE_THROWS(level.setNextLevel(""));
     REQUIRE_FALSE(level.getNextLevel().empty());
 }
+
+TEST_CASE("A graph does not name the same actor twice", "[Level]")
+{
+    Level level = levelPlacing({{"short", StandingTile}, {"short", {2, FloorRow - 1}}});
+
+    for (const NamedNavigationGraph &graph : level.getGraphs())
+        REQUIRE(graph.name == "player, short");
+}

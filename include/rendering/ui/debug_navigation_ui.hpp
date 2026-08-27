@@ -32,6 +32,7 @@ private:
         ImGuiManager &imGuiManager,
         const Camera2D &camera,
         const NavigationNode &node,
+        int id,
         unsigned int colour);
     void drawEdge(
         ImGuiManager &imGuiManager,

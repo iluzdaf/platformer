@@ -294,7 +294,11 @@ void Level::addGraphFor(const std::string &name, const NavigationProfile &profil
     for (NamedNavigationGraph &existing : graphs)
         if (existing.profile == profile)
         {
-            existing.name += ", " + name;
+            if (existing.name != name &&
+                existing.name.find(", " + name) == std::string::npos &&
+                !existing.name.starts_with(name + ","))
+                existing.name += ", " + name;
+
             return;
         }
 

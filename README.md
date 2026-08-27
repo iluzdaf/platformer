@@ -59,8 +59,7 @@ target from its build directory, which is where the game looks for its assets.
     ```
 
     [.llvm-version](.llvm-version) is the version CI builds and checks with, and
-    the one the pre commit hook looks for. Match it, and `CMakeLists.txt` will
-    tell you if what you have is too old.
+    the one the pre commit hook looks for.
 
     `PATH` often finds a different clangd first, so check that `clangd --version`
     matches your compiler. Name it in your user settings if it does not:
@@ -92,18 +91,8 @@ target from its build directory, which is where the game looks for its assets.
 ## 🎨 Style Guide
 
 Formatting is defined by [.clang-format](.clang-format) and naming by
-[.clang-tidy](.clang-tidy), which also asks whether a file includes what it uses.
-Editors apply them on save and the pre commit hook formats what you stage. Both
-tools must be the version CI uses, since others disagree. To sweep the whole tree,
-and to check that every header compiles on its own:
-
-```bash
-clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
-clang-tidy -p build/Debug $(find src tests -name '*.cpp')
-cmake --build build/Debug --target header_self_containment
-```
-
-Two conventions those tools cannot express:
+[.clang-tidy](.clang-tidy), which also asks whether a file includes what it uses. Two
+conventions those cannot express:
 
 - File names are `snake_case`, as in `tile_map.hpp`.
 - `glz::meta::value` must keep that name because Glaze requires it, so it carries a
@@ -123,12 +112,6 @@ Levels and `game_data.json` share one format, written both by `TileMap::save` an
 
 No formatter has been found that reproduces this, so json formatting is turned off in
 the workspace settings.
-The pre commit hook normalises anything that drifts, and CI checks it:
-
-```bash
-python3 tools/format_json.py --format   # write the format
-python3 tools/format_json.py --check    # verify it
-```
 
 ## 🤖 What CI Does
 
@@ -148,6 +131,23 @@ Every pull request runs two jobs at once. All four results must be green to merg
 
 `checks` needs no build. clang-tidy reads the compile database CMake writes at
 configure, and the header target compiles files of its own.
+
+To ask the same questions before pushing:
+
+```bash
+python3 tools/format_json.py --check
+clang-format --dry-run --Werror $(find src include tests -name '*.cpp' -o -name '*.hpp')
+clang-tidy -p build/Debug $(find src tests -name '*.cpp')
+cmake --build build/Debug --target header_self_containment
+```
+
+The pre commit hook already formats what you stage, so the first two rarely have
+anything to say. Writing the formats rather than checking them:
+
+```bash
+python3 tools/format_json.py --format
+clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
+```
 
 ## 🧱 Project Structure
 

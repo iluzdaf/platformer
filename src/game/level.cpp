@@ -202,10 +202,7 @@ namespace
 
         return out;
     }
-}
 
-namespace
-{
     LevelData readLevelData(const std::string &jsonFilePath)
     {
         LevelData levelData;

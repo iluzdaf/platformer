@@ -19,21 +19,25 @@ void DebugUi::draw(
 
     ImGui::SetNextWindowSize(ImVec2(200, imGuiManager.getUiDimensions().y));
     ImGui::Begin("Game Editor");
-    if (ImGui::CollapsingHeader("Play", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Playback", ImGuiTreeNodeFlags_DefaultOpen))
     {
+        ImGui::PushID("play");
         if (ImGui::Button("Step"))
             onStep();
         ImGui::SameLine();
         if (ImGui::Button("Play"))
             onPlay();
+        ImGui::PopID();
     }
 
     if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
     {
+        ImGui::PushID("camera");
         if (ImGui::Button("Zoom"))
             onToggleZoom();
         ImGui::SameLine();
         ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
+        ImGui::PopID();
     }
 
     if (!ImGui::CollapsingHeader("Player", ImGuiTreeNodeFlags_DefaultOpen))
@@ -42,8 +46,10 @@ void DebugUi::draw(
         return;
     }
 
+    ImGui::PushID("player");
     if (ImGui::Button("AABBs"))
         onToggleDrawPlayerAABBs();
+    ImGui::PopID();
 
     if (ImGui::BeginTable("Inspector", 2, ImGuiTableFlags_BordersInnerV))
     {

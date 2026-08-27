@@ -116,12 +116,12 @@ Game::Game()
     shaderData.fragmentPath = "../../assets/shaders/transition.fs";
     screenTransitionShader = std::make_unique<Shader>(shaderData);
     screenTransition = std::make_unique<ScreenTransition>();
-    debugUi.onPlay.connect([this]
-                           { play(); });
-    debugUi.onStep.connect([this]
-                           { step(); });
-    debugUi.onToggleZoom.connect([this]
-                                 {
+    gameEditorUi.onPlay.connect([this]
+                                { play(); });
+    gameEditorUi.onStep.connect([this]
+                                { step(); });
+    gameEditorUi.onToggleZoom.connect([this]
+                                      {
         static float originalZoom = camera->getZoom();
         float currentZoom = camera->getZoom();
         camera->setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom); });
@@ -281,7 +281,7 @@ void Game::render()
         levels.getFirst(),
         showEditors);
 
-    debugUi.draw(
+    gameEditorUi.draw(
         *imGuiManager.get(),
         player->getMotion().getState(),
         player->getPosition(),
@@ -295,7 +295,7 @@ void Game::render()
         level->getTileMap(),
         level->getPlayerStartWorldPosition(),
         *camera.get(),
-        debugUi.drawsPlayerAABBs(),
+        gameEditorUi.drawsPlayerAABBs(),
         levelEditorUi.drawsTileMapAABBs());
 
     const NavigationGraph *shownGraph = levelEditorUi.selectedGraph(*level.get());

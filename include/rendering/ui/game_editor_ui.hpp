@@ -8,7 +8,7 @@ struct ActorState;
 class Camera2D;
 class ImGuiManager;
 
-class DebugUi
+class GameEditorUi
 {
 public:
     void draw(

@@ -1,12 +1,12 @@
 #include <imgui.h>
 #include <format>
-#include "rendering/ui/debug_ui.hpp"
+#include "rendering/ui/game_editor_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
 
-void DebugUi::draw(
+void GameEditorUi::draw(
     const ImGuiManager &imGuiManager,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
@@ -80,7 +80,7 @@ void DebugUi::draw(
 
     ImGui::End();
 }
-bool DebugUi::drawsPlayerAABBs() const
+bool GameEditorUi::drawsPlayerAABBs() const
 {
     return drawPlayerAABBs;
 }

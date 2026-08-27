@@ -86,7 +86,7 @@ add_library(platformer_lib OBJECT
     src/rendering/shader.cpp
     src/rendering/tile_map_renderer.cpp
     src/rendering/screen_transition.cpp
-    src/rendering/ui/debug_ui.cpp
+    src/rendering/ui/game_editor_ui.cpp
     src/rendering/ui/imgui_manager.cpp
     src/rendering/ui/tile_map_overlays.cpp
     src/rendering/ui/debug_aabb_ui.cpp

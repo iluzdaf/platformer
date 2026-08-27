@@ -12,7 +12,7 @@
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/screen_transition.hpp"
-#include "rendering/ui/debug_ui.hpp"
+#include "rendering/ui/game_editor_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
@@ -78,7 +78,7 @@ private:
     std::unique_ptr<ScreenTransition> screenTransition;
     std::unique_ptr<ImGuiManager> imGuiManager;
     Levels levels;
-    DebugUi debugUi;
+    GameEditorUi gameEditorUi;
     DebugAABBUi debugAABBUi;
     LevelEditorUi levelEditorUi;
     ScoreUi scoreUi;

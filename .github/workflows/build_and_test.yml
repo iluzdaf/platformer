@@ -41,17 +41,19 @@ jobs:
       - name: Set up for Linux
         if: runner.os == 'Linux'
         run: |
+          LLVM=$(cat .llvm-version)
+          echo "LLVM=$LLVM" >> "$GITHUB_ENV"
           sudo apt-get update
           sudo apt-get install -y wget lsb-release gnupg
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 22
+          sudo ./llvm.sh "$LLVM"
           sudo apt-get install -y \
-            clang-22 \
-            clang-tidy-22 \
-            clang-format-22 \
-            libc++-22-dev \
-            libc++abi-22-dev \
+            clang-$LLVM \
+            clang-tidy-$LLVM \
+            clang-format-$LLVM \
+            libc++-$LLVM-dev \
+            libc++abi-$LLVM-dev \
             libgl1-mesa-dev \
             libx11-dev \
             libxrandr-dev \
@@ -94,8 +96,8 @@ jobs:
               -DCMAKE_C_COMPILER_LAUNCHER=ccache \
               -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -DGLFW_BUILD_WAYLAND=OFF \
-              -DCMAKE_C_COMPILER=/usr/bin/clang-22 \
-              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-22 \
+              -DCMAKE_C_COMPILER=/usr/bin/clang-${LLVM} \
+              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${LLVM} \
               -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
               -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
@@ -153,17 +155,19 @@ jobs:
 
       - name: Set up LLVM
         run: |
+          LLVM=$(cat .llvm-version)
+          echo "LLVM=$LLVM" >> "$GITHUB_ENV"
           sudo apt-get update
           sudo apt-get install -y wget lsb-release gnupg
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 22
+          sudo ./llvm.sh "$LLVM"
           sudo apt-get install -y \
-            clang-22 \
-            clang-tidy-22 \
-            clang-format-22 \
-            libc++-22-dev \
-            libc++abi-22-dev \
+            clang-$LLVM \
+            clang-tidy-$LLVM \
+            clang-format-$LLVM \
+            libc++-$LLVM-dev \
+            libc++abi-$LLVM-dev \
             libgl1-mesa-dev \
             libx11-dev \
             libxrandr-dev \
@@ -174,19 +178,18 @@ jobs:
 
       - name: Check sources are formatted
         run: |
-          clang-format-22 --dry-run --Werror \
+          clang-format-"${LLVM}" --dry-run --Werror \
             $(find src include tests -name '*.cpp' -o -name '*.hpp')
 
       - name: Configure
         run: |
           cmake -G Ninja -B build/release \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_SCAN_FOR_MODULES=OFF \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DGLFW_BUILD_WAYLAND=OFF \
-            -DCMAKE_C_COMPILER=/usr/bin/clang-22 \
-            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-22 \
+            -DCMAKE_C_COMPILER=/usr/bin/clang-${LLVM} \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${LLVM} \
             -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
             -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
 
@@ -196,4 +199,4 @@ jobs:
       - name: Check naming and includes
         run: |
           find src tests -name '*.cpp' \
-            | xargs -P"$(nproc)" -n1 clang-tidy-22 -p build/release --warnings-as-errors='*' --quiet
+            | xargs -P"$(nproc)" -n1 clang-tidy-"${LLVM}" -p build/release --warnings-as-errors='*' --quiet

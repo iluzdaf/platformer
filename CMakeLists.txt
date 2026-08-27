@@ -13,6 +13,8 @@ else()
     message(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}; this project targets C++23 with LLVM clang or MSVC. Apple clang trails on C++23 and is not tested; on macOS use brew install llvm")
 endif()
 
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF CACHE BOOL "Scan sources for C++20 module dependencies")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(intelliSenseBuildDirectories Debug Release RelWithDebInfo MinSizeRel)

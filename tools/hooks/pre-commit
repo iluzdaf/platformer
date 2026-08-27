@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 FORMATTER = ROOT / "tools" / "format_json.py"
 SOURCE_DIRECTORIES = ("src/", "include/", "tests/")
 SOURCE_SUFFIXES = (".cpp", ".hpp")
-CLANG_FORMAT_MAJOR = 22
+LLVM_MAJOR = int((ROOT / ".llvm-version").read_text().strip())
 
 
 def git(*args):
@@ -48,9 +48,9 @@ def majorVersionOf(clangFormat):
 
 def findClangFormat():
     """Another major version reformats the tree back, and CI pins this one."""
-    for name in (f"clang-format-{CLANG_FORMAT_MAJOR}", "clang-format"):
+    for name in (f"clang-format-{LLVM_MAJOR}", "clang-format"):
         found = shutil.which(name)
-        if found and majorVersionOf(found) == CLANG_FORMAT_MAJOR:
+        if found and majorVersionOf(found) == LLVM_MAJOR:
             return found
 
     return None
@@ -60,8 +60,8 @@ def formatSources(paths):
     clangFormat = findClangFormat()
     if not clangFormat:
         print(
-            f"pre-commit: no clang-format {CLANG_FORMAT_MAJOR} found, leaving sources alone. "
-            f"CI checks formatting with clang-format {CLANG_FORMAT_MAJOR}, and another "
+            f"pre-commit: no clang-format {LLVM_MAJOR} found, leaving sources alone. "
+            f"CI checks formatting with clang-format {LLVM_MAJOR}, and another "
             "version disagrees about the same file.",
             file=sys.stderr,
         )

@@ -48,6 +48,13 @@ CMake writes the compile database and links it to the repository root, so clangd
 whichever of `build/Debug` or `build/Release` you configured last. Other build
 directories leave the link alone, so a one off build cannot take it.
 
+Module scanning is off. Nothing here is a C++20 module, since every dependency is a
+header library and clangd is still catching up, and scanning costs a compiler pass per
+file. It also writes an argument into every compile command naming a file that only
+exists once you have built, which leaves anything reading the database — clang-tidy, or
+your own scripts — broken until then. Turn it back on with
+`-DCMAKE_CXX_SCAN_FOR_MODULES=ON` if you want to try modules.
+
 One thing to check: clangd must come from the LLVM you build with — `PATH` often finds
 a different one first, so check that `clangd --version` matches your compiler, and name
 it in your user settings if it does not.
@@ -76,9 +83,9 @@ game writes.
     sudo apt-get install clang clang-format clang-tidy   # Linux
     ```
 
-    [The workflow](.github/workflows/build_and_test.yml) names the versions CI
-    builds and checks with. Match them, and `CMakeLists.txt` will tell you if
-    what you have is too old.
+    [.llvm-version](.llvm-version) is the version CI builds and checks with, and
+    the one the pre commit hook looks for. Match it, and `CMakeLists.txt` will
+    tell you if what you have is too old.
 
 2. Clone with submodules:
 

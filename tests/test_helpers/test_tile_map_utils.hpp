@@ -1,9 +1,9 @@
 #pragma once
 
 #include <glaze/glaze.hpp>
-#include "game/tile_map/tile_map.hpp"
+#include "tile_map/tile_map.hpp"
 #include "game/level_data.hpp"
-#include "game/tile_map/tile_map_data.hpp"
+#include "tile_map/tile_map_data.hpp"
 #include "game/game_data.hpp"
 #include "test_helpers/asset_path.hpp"
 

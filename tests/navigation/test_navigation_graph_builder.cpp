@@ -8,8 +8,8 @@
 #include "navigation/jump_arc.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/game_data.hpp"
-#include "game/actor/actor_motion_data.hpp"
-#include "game/tile_map/tile_map.hpp"
+#include "actor/actor_motion_data.hpp"
+#include "tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
 

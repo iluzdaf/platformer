@@ -5,6 +5,10 @@ on:
     branches: [master]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
@@ -15,49 +19,65 @@ jobs:
 
     env:
       DISPLAY: ":99"
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      SCCACHE_DIR: ${{ github.workspace }}/.sccache
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           submodules: recursive
 
-      - name: Check json assets are formatted
-        if: runner.os == 'Linux'
-        run: python3 tools/format_json.py --check
-
       - name: Set up CMake
-        uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+
+      - name: Restore compiler cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            ${{ github.workspace }}/.ccache
+            ${{ github.workspace }}/.sccache
+          key: ccache-build-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-build-${{ runner.os }}-
 
       - name: Set up for Linux
         if: runner.os == 'Linux'
         run: |
+          LLVM=$(cat .llvm-version)
+          echo "LLVM=$LLVM" >> "$GITHUB_ENV"
           sudo apt-get update
           sudo apt-get install -y wget lsb-release gnupg
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 20
+          sudo ./llvm.sh "$LLVM"
           sudo apt-get install -y \
-            clang \
-            libc++-20-dev \
-            libc++abi-20-dev \
+            clang-$LLVM \
+            clang-tidy-$LLVM \
+            clang-format-$LLVM \
+            libc++-$LLVM-dev \
+            libc++abi-$LLVM-dev \
             libgl1-mesa-dev \
             libx11-dev \
             libxrandr-dev \
             libxinerama-dev \
             libxcursor-dev \
-            libxi-dev
+            libxi-dev \
+            ccache
           Xvfb :99 -screen 0 1024x768x24 &
 
       - name: Set up for macOS
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install llvm
+          brew install llvm ccache
 
       - name: Set up for Windows
         if: runner.os == 'Windows'
-        uses: microsoft/setup-msbuild@v1.3.1
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Install sccache for Windows
+        if: runner.os == 'Windows'
+        run: choco install sccache --no-progress
 
       - name: Configure & Build for Windows
         if: runner.os == 'Windows'
@@ -69,8 +89,17 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_C_COMPILER=cl ^
             -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DSKIP_OPENGL_TESTS=ON
           cmake --build build/release
+
+      - name: Compiler cache stats for Windows
+        if: always() && runner.os == 'Windows'
+        shell: cmd
+        run: |
+          sccache --show-stats
+          sccache --stop-server
 
       - name: Configure & Build for macOS and Linux
         if: runner.os != 'Windows'
@@ -79,14 +108,18 @@ jobs:
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             cmake -G Ninja -B build/release \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -DGLFW_BUILD_WAYLAND=OFF \
-              -DCMAKE_C_COMPILER=/usr/bin/clang-20 \
-              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 \
+              -DCMAKE_C_COMPILER=/usr/bin/clang-${LLVM} \
+              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${LLVM} \
               -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
               -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             cmake -G Ninja -B build/release \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -DCMAKE_C_COMPILER="/opt/homebrew/opt/llvm/bin/clang" \
               -DCMAKE_CXX_COMPILER="/opt/homebrew/opt/llvm/bin/clang++" \
               -DCMAKE_OSX_SYSROOT=$(xcrun --sdk macosx --show-sdk-path) \
@@ -107,3 +140,78 @@ jobs:
         run: |
           cd build/release
           ./tests
+
+  checks:
+    runs-on: ubuntu-latest
+
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          submodules: recursive
+
+      - name: Check json assets are formatted
+        run: python3 tools/format_json.py --check
+
+      - name: Set up CMake
+        uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+
+      - name: Restore compiler cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ccache-checks-${{ github.sha }}
+          restore-keys: |
+            ccache-checks-
+            ccache-build-Linux-
+
+      - name: Set up LLVM
+        run: |
+          LLVM=$(cat .llvm-version)
+          echo "LLVM=$LLVM" >> "$GITHUB_ENV"
+          sudo apt-get update
+          sudo apt-get install -y wget lsb-release gnupg
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh "$LLVM"
+          sudo apt-get install -y \
+            clang-$LLVM \
+            clang-tidy-$LLVM \
+            clang-format-$LLVM \
+            libc++-$LLVM-dev \
+            libc++abi-$LLVM-dev \
+            libgl1-mesa-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev \
+            ccache
+
+      - name: Check sources are formatted
+        run: |
+          clang-format-"${LLVM}" --dry-run --Werror \
+            $(find src include tests -name '*.cpp' -o -name '*.hpp')
+
+      - name: Configure
+        run: |
+          cmake -G Ninja -B build/release \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DGLFW_BUILD_WAYLAND=OFF \
+            -DCMAKE_C_COMPILER=/usr/bin/clang-${LLVM} \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${LLVM} \
+            -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
+            -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
+
+      - name: Check headers stand on their own
+        run: cmake --build build/release --target header_self_containment
+
+      - name: Check naming and includes
+        run: |
+          find src tests -name '*.cpp' \
+            | xargs -P"$(nproc)" -n1 clang-tidy-"${LLVM}" -p build/release --warnings-as-errors='*' --quiet

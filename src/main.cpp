@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sol/sol.hpp>
 #include "game/game.hpp"
 
 int main()

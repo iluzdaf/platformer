@@ -1,7 +1,7 @@
 #include <cassert>
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/texture2d.hpp"
-#include "game/tile_map/tile_map.hpp"
+#include "tile_map/tile_map.hpp"
 
 TileMapRenderer::TileMapRenderer(const SpriteRenderer &spriteRenderer)
     : spriteRenderer(spriteRenderer)

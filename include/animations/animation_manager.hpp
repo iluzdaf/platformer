@@ -1,7 +1,7 @@
 #pragma once
 
 #include <unordered_map>
-#include "game/actor/actor_animation_state.hpp"
+#include "actor/actor_animation_state.hpp"
 #include "animations/sprite_animation.hpp"
 
 struct ActorMotionState;

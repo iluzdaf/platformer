@@ -2,8 +2,8 @@
 #include <format>
 #include "rendering/ui/debug_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
-#include "game/actor/actor_motion_state.hpp"
-#include "game/actor/actor_state.hpp"
+#include "actor/actor_motion_state.hpp"
+#include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
 
 void DebugUi::draw(

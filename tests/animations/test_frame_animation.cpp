@@ -16,7 +16,7 @@ TEST_CASE("Default Constucted FrameAnimation behaves correctly", "[FrameAnimatio
 
 TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
 {
-    FrameAnimation frameAnimation({{1, 2, 3}, 0.5f});
+    FrameAnimation frameAnimation(FrameAnimationData{{1, 2, 3}, 0.5f});
 
     SECTION("Starts at first frame")
     {

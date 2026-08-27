@@ -1,5 +1,5 @@
 #include "animations/animation_manager.hpp"
-#include "game/actor/actor_motion_state.hpp"
+#include "actor/actor_motion_state.hpp"
 
 void AnimationManager::update(float deltaTime, const ActorMotionState &motionState)
 {

@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include <vector>
 #include "game/level_data.hpp"
-#include "game/tile_map/tile_map.hpp"
-#include "game/npc/npc_data.hpp"
-#include "game/player/player_data.hpp"
+#include "tile_map/tile_map.hpp"
+#include "npc/npc_data.hpp"
+#include "player/player_data.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_profile.hpp"
 

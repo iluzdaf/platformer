@@ -1,6 +1,6 @@
 #include "rendering/ui/debug_tile_map_ui.hpp"
 #include "cameras/camera2d.hpp"
-#include "game/tile_map/tile_map.hpp"
+#include "tile_map/tile_map.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 
 void DebugTileMapUi::draw(

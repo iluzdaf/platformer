@@ -11,63 +11,47 @@ A simple 2D platformer built with OpenGL. This project is designed as a learning
 
 ## 🖥 Supported Setups
 
-Targets **C++23**. CI builds and tests all three platforms on every push.
+Targets **C++23**.
 
 | | Windows | macOS | Linux |
 |---|---|---|---|
-| Compiler | MSVC, Visual Studio 2022 17.8+ | LLVM clang 20+ | LLVM clang 20+ with libc++ |
+| Compiler | MSVC | LLVM clang | LLVM clang with libc++ |
 | Editor | Visual Studio 2022 | VS Code | VS Code |
 | Build | the editor's CMake support | the editor's CMake support | the editor's CMake support |
 | Debug | Visual Studio's Run button | CMake Tools' debug button | CMake Tools' debug button |
 | Code intelligence | Visual Studio's own | clangd | clangd |
 
-Terminal commands below assume a Unix shell. On Windows use Git Bash, and `python`
-where they say `python3`.
-
-## 🧰 What The Repository Configures
-
-Every platform builds the same way, from `CMakeLists.txt`, which defines the
-`platformer` and `tests` targets. No editor project files.
-
-Visual Studio needs nothing further: it reads `CMakeLists.txt` directly and brings its
-own IntelliSense and debugger.
-
-VS Code divides the work between three extensions. **CMake Tools** configures and
-builds, **clangd** provides completion, navigation and diagnostics, and the **C/C++**
-extension provides the debugger. clangd reads the compile database CMake writes, so it
-sees the same flags the compiler does; the C/C++ extension parses with a front end of
-its own and can disagree, so its IntelliSense is switched off.
-
-- `.vscode/extensions.json` — the extensions to install.
-- `.vscode/settings.json` — the generator, the build directory, and clangd in place of
-  the C/C++ extension.
-- `.clang-format`, `.clang-tidy` — formatting and naming, applied on save.
-
-CMake writes the compile database and links it to the repository root, so clangd reads
-whichever configuration you last configured.
-
-One thing to check: clangd must come from the LLVM you build with — `PATH` often finds
-a different one first, so check that `clangd --version` matches your compiler, and name
-it in your user settings if it does not. Machine paths do not belong in the
-repository.
-
-```json
-"clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
-```
-
-No `launch.json` is needed; CMake Tools runs and debugs the selected target from its
-own build directory, which is where the game looks for assets. Format on save is
-off for json only, since no formatter has been found that reproduces the format the
-game writes.
+Terminal commands below assume a Unix shell. On Windows use Git Bash.
 
 ## 🛠 Setup
 
 1. Install the prerequisites.
 
     For Windows, Visual Studio 2022 with **CMake** and **Git for Windows** added
-    through *Tools and Features → Individual Components*.
+    through *Tools and Features → Individual Components*, and clang-format, which
+    Visual Studio does not ship at the version this project pins:
 
-    For macOS and Linux, **CMake**, **Ninja**, **git-lfs** and **LLVM clang**.
+    ```bash
+    pip install clang-format==$(cat .llvm-version).*
+    ```
+
+    For macOS and Linux, **CMake**, **Ninja**, **git-lfs**, and **LLVM** with its
+    tools, which install separately from the compiler:
+
+    ```bash
+    brew install llvm clang-format                       # macOS
+    sudo apt-get install clang clang-format clang-tidy   # Linux
+    ```
+
+    [.llvm-version](.llvm-version) is the version CI builds and checks with.
+
+    On macOS and Linux, `PATH` often finds a different clangd first, so check that
+    `clangd --version` matches your compiler. Name it in your user settings if it
+    does not:
+
+    ```json
+    "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
+    ```
 
 2. Clone with submodules:
 
@@ -89,17 +73,32 @@ game writes.
     use the run and debug buttons. The game reads its assets relative to the build
     directory, which is where both editors run it from.
 
+## 🧱 Project Structure
+
+`include` and `src` mirror each other, one folder per subject.
+
+```bash
+platformer/
+├── assets/          json configuration, textures, tile maps
+├── include/         headers, by subject
+│   ├── actor/       movement abilities, behaviors, animation state
+│   ├── tile_map/    the grid, its tiles, and what they do on contact
+│   ├── navigation/  the graph actors path over, and how it is built
+│   ├── player/      npc/            the two kinds of actor
+│   ├── physics/     rendering/      animations/     cameras/
+│   ├── input/       scripting/      reloading/      serialization/
+│   └── game/        the game itself: Game, Level, and the data they load
+├── src/             implementations, same folders
+├── tests/           Catch2 cases, same folders
+├── external/        third party libraries
+├── tools/           formatting and hook scripts
+└── CMakeLists.txt
+```
+
 ## 🎨 Style Guide
 
 Formatting is defined by [.clang-format](.clang-format) and naming by
-[.clang-tidy](.clang-tidy). Both editors apply them on save; to sweep the whole tree:
-
-```bash
-clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
-clang-tidy -p build/Debug $(find src -name '*.cpp')
-```
-
-Two conventions those tools cannot express:
+[.clang-tidy](.clang-tidy). Two conventions those cannot express:
 
 - File names are `snake_case`, as in `tile_map.hpp`.
 - `glz::meta::value` must keep that name because Glaze requires it, so it carries a
@@ -108,7 +107,7 @@ Two conventions those tools cannot express:
 ### Json Assets
 
 Levels and `game_data.json` share one format, written both by `TileMap::save` and by
-`tools/format_json.py`. Structure goes on its own lines, leaves stay compact:
+`tools/format_json.py`:
 
 ```json
 "indices":[
@@ -119,43 +118,74 @@ Levels and `game_data.json` share one format, written both by `TileMap::save` an
 
 No formatter has been found that reproduces this, so json formatting is turned off in
 the workspace settings.
-The pre commit hook normalises anything that drifts, and CI checks it:
 
-```bash
-python3 tools/format_json.py --format   # write the format
-python3 tools/format_json.py --check    # verify it
-```
+## 🪝 Pre Commit Hook
 
-## 🧱 Project Structure
+Installed by step 4 above, and run on every commit.
 
-```bash
-platformer/
-├── assets/              # JSON configuration, textures, tile maps
-├── include/             # Header files
-│   └── game/            # Game-related classes (Player, TileMap, etc.)
-├── src/                 # Source files
-│   └── game/            # Implementations of game logic
-├── tests/               # Catch2 test cases
-├── external/            # Third-party libraries (e.g., GLFW, Glaze)
-├── CMakeLists.txt       # Build configuration
-├── README.md            # Project documentation
-└── tools/               # scripts and toolin utilities
-```
+- Formats staged json under `assets`, and staged `.cpp` and `.hpp` under `src`,
+  `include` and `tests`, then stages what it changed.
+- Leaves a file alone and says so if it has unstaged edits, since staging the fix would
+  sweep the rest of your work into the commit.
+- Formats nothing and says so if it cannot find clang-format at the version in
+  [.llvm-version](.llvm-version), because formatting to another version is what CI would
+  then reject.
+- Never runs clang-tidy. Its answer is sometimes wrong: dropping a `glz::meta` include
+  it calls unused compiles fine, and surfaces later as two translation units disagreeing
+  about how a type serializes. Checks whose fix can be wrong are left to CI, which
+  reports rather than applies them.
 
-## 🚧 Loading And Reloading
+## 🤖 What CI Does
 
-Loading anything from `assets` throws when the data is wrong. What that means is left
-to whoever asked for the load.
+Every pull request runs two jobs at once. All four results must be green to merge.
 
-**The game starting up.** Nothing catches, so a bad level, script or game data stops the
-game with the error. The assets are expected to be right, and there is nothing to fall
-back to.
+| job | runs on | description |
+|---|---|---|
+| `build-and-test` | Windows, macOS, Linux | configures, builds under `-Werror`, runs the test suite |
+| `checks` | Linux | the four checks below |
 
-**A file watcher, while the game runs.** These catch and log. A save you are halfway
-through should not cost you the session, so the game keeps what it already had — the
-whole previous level, the handlers that were working — rather than running on something
-half applied. That works because each reload builds the replacement before assigning it,
-so a failure leaves the old one untouched.
+| check | run by |
+|---|---|
+| json assets are formatted | `tools/format_json.py --check` |
+| sources are formatted | `clang-format` |
+| naming, and includes that are used | `clang-tidy` |
+| headers compile on their own | the `header_self_containment` target |
+
+## 🧰 What The Repository Configures
+
+Every platform builds the same way, from `CMakeLists.txt`.
+
+| | |
+|---|---|
+| [CMakeLists.txt](CMakeLists.txt) | the `platformer_lib`, `platformer` and `tests` targets, and the compile database, linked to the repository root from whichever of `build/Debug` or `build/Release` you configured last |
+| [.vscode/extensions.json](.vscode/extensions.json) | CMake Tools to build, clangd for code intelligence, C/C++ for the debugger |
+| [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension's IntelliSense |
+| [.clang-format](.clang-format) | formatting, applied on save |
+| [.clang-tidy](.clang-tidy) | naming and includes, applied on save |
+| [.llvm-version](.llvm-version) | the LLVM the tools must come from |
+
+In VS Code the C/C++ extension's IntelliSense is off because it parses with a front end
+of its own and disagrees with the compiler, and no `launch.json` is needed because CMake
+Tools runs the target from its build directory, which is where the game looks for its
+assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
+
+## 🧭 Decisions
+
+**Loading throws, and the caller decides what that means.**
+
+- At startup nothing catches, so bad data stops the game with the error.
+- A file watcher catches and logs instead.
+- Each reload builds the replacement before assigning it, so a failure leaves what you
+  had.
+
+**No C++20 modules.**
+
+- The tooling is not ready. clangd, which this repo leans on for code intelligence,
+  handles them poorly.
+- Every dependency is a header library, so modules would sit beside includes rather than
+  replace them.
+- Scanning for them writes an argument into every compile command naming a file that
+  exists only after a build, which breaks anything reading the compile database.
 
 ## 🔭 Future Plans
 

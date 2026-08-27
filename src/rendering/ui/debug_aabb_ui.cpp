@@ -1,6 +1,6 @@
 #include "rendering/ui/debug_aabb_ui.hpp"
-#include "game/player/player.hpp"
-#include "game/tile_map/tile_map.hpp"
+#include "player/player.hpp"
+#include "tile_map/tile_map.hpp"
 #include "cameras/camera2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 

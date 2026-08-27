@@ -43,5 +43,6 @@ private:
     std::optional<std::pair<int, int>> selectedEdge;
 
     void drawGraphs(const Level &level);
+    void drawEdgesOf(const NavigationGraph &graph, int nodeId);
     std::optional<std::string> drawLevelChooser(const Level &level, const std::string &firstLevel);
 };

@@ -267,25 +267,38 @@ void LevelEditorUi::drawGraphs(const Level &level)
         }
 
         ImGui::Indent();
-        for (const NavigationEdge &edge : shown.graph.getOutgoingEdges(nodeId))
-        {
-            ImGui::PushID(edge.toId);
-            std::pair<int, int> ends{edge.fromId, edge.toId};
-            std::string edgeLabel = std::string(edge.type == EdgeType::Jump ? "jump" : "walk") +
-                                    " to " + std::to_string(edge.toId);
-
-            if (ImGui::Selectable(edgeLabel.c_str(), selectedEdge == ends))
-            {
-                selectedEdge = ends;
-                selectedNodeId.reset();
-            }
-            ImGui::PopID();
-        }
+        drawEdgesOf(shown.graph, nodeId);
         ImGui::Unindent();
         ImGui::PopID();
     }
 
     ImGui::Unindent();
+}
+
+void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
+{
+    auto drawEdge = [&](const NavigationEdge &edge, bool leaving)
+    {
+        ImGui::PushID(leaving ? edge.toId : -edge.fromId - 1);
+        std::pair<int, int> ends{edge.fromId, edge.toId};
+        std::string label = std::string(edge.type == EdgeType::Jump ? "jump" : "walk") +
+                            (leaving ? " to " : " from ") +
+                            std::to_string(leaving ? edge.toId : edge.fromId);
+
+        if (ImGui::Selectable(label.c_str(), selectedEdge == ends))
+        {
+            selectedEdge = ends;
+            selectedNodeId.reset();
+        }
+        ImGui::PopID();
+    };
+
+    for (const NavigationEdge &edge : graph.getOutgoingEdges(nodeId))
+        drawEdge(edge, true);
+
+    for (const NavigationEdge &edge : graph.getEdges())
+        if (edge.toId == nodeId)
+            drawEdge(edge, false);
 }
 
 const NavigationGraph *LevelEditorUi::selectedGraph(const Level &level) const

@@ -38,6 +38,7 @@ private:
     bool editing = false,
          editingPlayerStartTile = false;
     int selectedTileIndex = 0;
+    bool showNavigation = true;
     size_t selectedGraphIndex = 0;
     std::optional<int> selectedNodeId;
     std::optional<std::pair<int, int>> selectedEdge;

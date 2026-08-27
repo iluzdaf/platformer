@@ -72,10 +72,13 @@ void DebugNavigationUi::drawNode(
         camera.getTopLeftPosition());
     ImDrawList *drawList = imGuiManager.getDrawList();
     drawList->AddCircleFilled(position, 5, colour, 16);
+
+    std::string label = std::to_string(id);
+    ImVec2 labelSize = ImGui::CalcTextSize(label.c_str());
     drawList->AddText(
-        ImVec2(position.x + 6, position.y - 6),
+        ImVec2(position.x - labelSize.x * 0.5f, position.y - 6 - labelSize.y),
         colour,
-        std::to_string(id).c_str());
+        label.c_str());
 }
 
 void DebugNavigationUi::drawEdge(

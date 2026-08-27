@@ -217,6 +217,7 @@ void LevelEditorUi::drawGraphs(const Level &level)
 
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
     ImGui::Indent();
+    ImGui::Checkbox("render", &showNavigation);
 
     if (graphs.empty())
     {
@@ -299,6 +300,9 @@ void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
 
 const NavigationGraph *LevelEditorUi::selectedGraph(const Level &level) const
 {
+    if (!showNavigation)
+        return nullptr;
+
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
     if (selectedGraphIndex >= graphs.size())
         return graphs.empty() ? nullptr : &graphs.front().graph;

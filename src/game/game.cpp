@@ -273,6 +273,13 @@ void Game::render()
         scoringSystem,
         *tileSet.get());
 
+    debugTileMapUi.draw(
+        *imGuiManager.get(),
+        *camera.get(),
+        level->getTileMap(),
+        debug.shouldDrawGrid,
+        debug.shouldDrawTileInfo);
+
     debugAABBUi.draw(
         *imGuiManager.get(),
         *player.get(),
@@ -281,13 +288,6 @@ void Game::render()
         *camera.get(),
         debug.shouldDrawPlayerAABBs,
         debug.shouldDrawTileMapAABBs);
-
-    debugTileMapUi.draw(
-        *imGuiManager.get(),
-        *camera.get(),
-        level->getTileMap(),
-        debug.shouldDrawGrid,
-        debug.shouldDrawTileInfo);
 
     debugUi.draw(
         *imGuiManager.get(),

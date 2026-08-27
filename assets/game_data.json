@@ -4,9 +4,9 @@
             "size":[16.0,16.0],
             "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
             "motionData":{
-                "moveAbilityData":{"moveSpeed":250.0},
+                "moveAbilityData":{"moveSpeed":150.0},
                 "jumpAbilityData":{
-                    "jumpSpeed":-300.0,
+                    "jumpSpeed":-530.0,
                     "jumpBufferDuration":0.15,
                     "jumpCoyoteDuration":0.15,
                     "jumpDuration":0.2
@@ -102,9 +102,9 @@
                 "size":[16.0,16.0],
                 "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
                 "motionData":{
-                    "moveAbilityData":{"moveSpeed":150.0},
+                    "moveAbilityData":{"moveSpeed":110.0},
                     "jumpAbilityData":{
-                        "jumpSpeed":-400.0,
+                        "jumpSpeed":-740.0,
                         "jumpBufferDuration":0.15,
                         "jumpCoyoteDuration":0.15,
                         "jumpDuration":0.2

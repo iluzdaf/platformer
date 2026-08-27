@@ -132,22 +132,9 @@ Every pull request runs two jobs at once. All four results must be green to merg
 `checks` needs no build. clang-tidy reads the compile database CMake writes at
 configure, and the header target compiles files of its own.
 
-To ask the same questions before pushing:
-
-```bash
-python3 tools/format_json.py --check
-clang-format --dry-run --Werror $(find src include tests -name '*.cpp' -o -name '*.hpp')
-clang-tidy -p build/Debug $(find src tests -name '*.cpp')
-cmake --build build/Debug --target header_self_containment
-```
-
-The pre commit hook already formats what you stage, so the first two rarely have
-anything to say. Writing the formats rather than checking them:
-
-```bash
-python3 tools/format_json.py --format
-clang-format -i $(find src include tests -name '*.cpp' -o -name '*.hpp')
-```
+The pre commit hook formats staged json and sources, so two of these rarely have
+anything to say by the time CI runs. [The workflow](.github/workflows/build_and_test.yml)
+has the exact commands if you want to run them yourself.
 
 ## 🧱 Project Structure
 

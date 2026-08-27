@@ -13,7 +13,6 @@ Game::Game()
     : levels("../../assets/levels.json")
 {
     gameData = loadGameData();
-    showEditors = gameData.debug;
 
     initGLFW(gameData.windowWidth, gameData.windowHeight);
 
@@ -279,7 +278,7 @@ void Game::render()
         *tileSet.get(),
         *camera.get(),
         levels.getFirst(),
-        showEditors);
+        gameData.debug);
 
     gameEditorUi.draw(
         *imGuiManager.get(),
@@ -287,7 +286,7 @@ void Game::render()
         player->getPosition(),
         player->getState(),
         *camera.get(),
-        showEditors);
+        gameData.debug);
 
     debugAABBUi.draw(
         *imGuiManager.get(),
@@ -351,8 +350,6 @@ GameData Game::loadGameData() const
 void Game::reload()
 {
     gameData = loadGameData();
-
-    showEditors = gameData.debug;
 
     glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
 

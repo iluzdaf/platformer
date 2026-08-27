@@ -84,6 +84,5 @@ private:
     fteng::connection onLevelCompleteConnection;
     bool paused = false,
          stepFrame = false;
-    bool showEditors = false;
     GameData gameData;
 };

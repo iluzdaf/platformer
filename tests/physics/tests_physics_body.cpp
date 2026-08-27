@@ -54,9 +54,19 @@ TEST_CASE("PhysicsBody detects contact with ground", "[PhysicsBody]")
 TEST_CASE("PhysicsBody detects contact with ceiling", "[PhysicsBody]")
 {
     TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(1, 3), 1);
+    tileMap.setTileIndex(glm::ivec2(1, 2), 1);
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithCeiling(tileMap));
+}
+
+TEST_CASE("PhysicsBody inside a tile is neither standing on it nor under it", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(1, 3), 1);
+    PhysicsBody body = setupBody({16, 48});
+
+    REQUIRE_FALSE(body.contactWithGround(tileMap));
+    REQUIRE_FALSE(body.contactWithCeiling(tileMap));
 }
 
 TEST_CASE("PhysicsBody detects contact with left wall", "[PhysicsBody]")

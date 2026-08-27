@@ -20,6 +20,8 @@ public:
     glm::vec2 getBottomCenterOffset() const;
     bool contactWithLeftWall(const TileMap &tileMap) const;
     bool contactWithRightWall(const TileMap &tileMap) const;
+    AABB underfootProbe() const;
+    AABB overheadProbe() const;
     bool contactWithGround(const TileMap &tileMap) const;
     bool contactWithCeiling(const TileMap &tileMap) const;
     void stepPhysics(float deltaTime, const TileMap &tileMap);

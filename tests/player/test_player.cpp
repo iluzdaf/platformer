@@ -307,3 +307,43 @@ TEST_CASE("Player movement ability integration", "[Player]")
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
     }
 }
+
+TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", "[Player]")
+{
+    // A ledge with open air under its right hand end, so a player sliding down
+    // the right face reaches the corner and keeps pressing into it.
+    TileMap tileMap = setupTileMap(20, 20);
+    constexpr int LedgeRow = 5;
+    constexpr int LedgeLastTile = 6;
+    for (int x = 0; x <= LedgeLastTile; ++x)
+        tileMap.setTileIndex(glm::ivec2(x, LedgeRow), 1);
+    for (int x = 0; x < 20; ++x)
+        tileMap.setTileIndex(glm::ivec2(x, 12), 1);
+
+    LevelData levelData;
+    levelData.tileMapData = tileMap.toTileMapData();
+    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {});
+
+    ScriptedIntentions input;
+    Player player(setupPlayerData(), input);
+
+    float ledgeRight = static_cast<float>(LedgeLastTile + 1) * 16.0f;
+    float ledgeTop = static_cast<float>(LedgeRow) * 16.0f;
+    player.setPosition(glm::vec2(ledgeRight - player.getPhysicsBody().getColliderOffset().x,
+                                 ledgeTop - 2.0f));
+
+    InputIntentions intentions;
+    intentions.direction.x = -1.0f;
+    for (int step = 0; step < 300; ++step)
+    {
+        input.set(intentions);
+        player.fixedUpdate(0.01f, level);
+        player.postFixedUpdate();
+    }
+
+    // Whatever it does, it must not still be inside the ledge.
+    float colliderTop = player.getPosition().y + player.getPhysicsBody().getColliderOffset().y;
+    INFO("collider top ended at " << colliderTop << ", the ledge spans "
+                                  << ledgeTop << " to " << ledgeTop + 16.0f);
+    REQUIRE(colliderTop > ledgeTop + 16.0f);
+}

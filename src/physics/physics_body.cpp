@@ -7,6 +7,11 @@ PhysicsBody::PhysicsBody(const PhysicsBodyData &data)
 {
 }
 
+namespace
+{
+    constexpr float ContactProbeDepth = 0.1f;
+}
+
 void PhysicsBody::setPosition(const glm::vec2 &newPosition)
 {
     position = newPosition;
@@ -57,20 +62,39 @@ void PhysicsBody::resolveCollisionAgainstTile(
     if (overlap.x < epsilon || overlap.y < epsilon || glm::dot(delta, delta) < epsilon * epsilon)
         return;
 
+    bool pushedApart = false;
+
     if (axisMask.x == 1.0f && overlap.x > epsilon)
     {
         if (velocityComponent < 0 && delta.x > 0)
+        {
             positionWithOffset.x += overlap.x;
+            pushedApart = true;
+        }
         else if (velocityComponent > 0 && delta.x < 0)
+        {
             positionWithOffset.x -= overlap.x;
+            pushedApart = true;
+        }
     }
     else if (axisMask.y == 1.0f && overlap.y > epsilon)
     {
         if (velocityComponent < 0 && delta.y > 0)
+        {
             positionWithOffset.y += overlap.y;
+            pushedApart = true;
+        }
         else if (velocityComponent > 0 && delta.y < 0)
+        {
             positionWithOffset.y -= overlap.y;
+            pushedApart = true;
+        }
     }
+
+    // Overlapping while already on the way out is how a body leaves a tile it
+    // should never have been inside. Stopping it there strands it for good.
+    if (!pushedApart)
+        return;
 
     velocityComponent = 0.0f;
     collisionAABB.expandToInclude(tileAABB);
@@ -202,15 +226,31 @@ bool PhysicsBody::contactWithRightWall(const TileMap &tileMap) const
         { return true; });
 }
 
+AABB PhysicsBody::underfootProbe() const
+{
+    // Just below the feet, not the whole body shifted down. Given the whole
+    // body, anything overlapping any part of it reads as ground, so a head
+    // stuck in a tile reports standing on it.
+    glm::vec2 probeSize(getColliderSize().x * 0.5f, ContactProbeDepth);
+    glm::vec2 probePosition = position + getColliderOffset();
+    probePosition.x += getColliderSize().x * 0.25f;
+    probePosition.y += getColliderSize().y;
+    return AABB(probePosition, probeSize);
+}
+
+AABB PhysicsBody::overheadProbe() const
+{
+    glm::vec2 probeSize(getColliderSize().x * 0.5f, ContactProbeDepth);
+    glm::vec2 probePosition = position + getColliderOffset();
+    probePosition.x += getColliderSize().x * 0.25f;
+    probePosition.y -= ContactProbeDepth;
+    return AABB(probePosition, probeSize);
+}
+
 bool PhysicsBody::contactWithGround(const TileMap &tileMap) const
 {
-    glm::vec2 probeSize = getColliderSize();
-    probeSize.x *= 0.5f;
-    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(0.0f, 0.1f);
-    probePosition.x += (getColliderSize().x - probeSize.x) * 0.5f;
-    AABB probeAABB(probePosition, probeSize);
     return tileMap.probeSolidTiles(
-               probeAABB,
+               underfootProbe(),
                [](const AABB &)
                { return true; }) ||
            AABB(position + getColliderOffset(), getColliderSize()).bottom() >= tileMap.getWorldHeight();
@@ -218,13 +258,8 @@ bool PhysicsBody::contactWithGround(const TileMap &tileMap) const
 
 bool PhysicsBody::contactWithCeiling(const TileMap &tileMap) const
 {
-    glm::vec2 probeSize = getColliderSize();
-    probeSize.x *= 0.5f;
-    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(0.0f, -0.1f);
-    probePosition.x += (getColliderSize().x - probeSize.x) * 0.5f;
-    AABB probeAABB(probePosition, probeSize);
     return tileMap.probeSolidTiles(
-        probeAABB,
+        overheadProbe(),
         [](const AABB &)
         { return true; });
 }

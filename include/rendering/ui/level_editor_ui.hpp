@@ -10,6 +10,7 @@ class Level;
 class Texture2D;
 class Camera2D;
 class NavigationGraph;
+struct DebugData;
 
 class LevelEditorUi
 {
@@ -19,7 +20,7 @@ public:
         Level &level,
         const Texture2D &tileSet,
         const std::string &firstLevel,
-        bool shouldDrawLevelEditor);
+        DebugData &debug);
     void update(
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
@@ -27,10 +28,7 @@ public:
 
     fteng::signal<void(const std::string &)> onLoadLevel;
     fteng::signal<void()> onRespawn,
-        onSetFirstLevel,
-        onToggleDrawGrid,
-        onToggleDrawTileInfo,
-        onToggleDrawTileMapAABBs;
+        onSetFirstLevel;
 
     const NavigationGraph *selectedGraph(const Level &level) const;
     std::optional<int> getSelectedNodeId() const;

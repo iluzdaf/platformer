@@ -4,6 +4,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/debug_data.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -24,15 +25,24 @@ void LevelEditorUi::draw(
     Level &level,
     const Texture2D &tileSet,
     const std::string &firstLevel,
-    bool showLevelEditor)
+    DebugData &debug)
 {
-    if (!showLevelEditor)
+    if (!debug.showLevelEditor)
         return;
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
     ImGui::SetNextWindowPos(ImVec2(displaySize.x - 200, 0));
     ImGui::SetNextWindowSize(ImVec2(200, displaySize.y));
     ImGui::Begin("Level Editor");
+
+    ImGui::Checkbox("Tile Info", &debug.shouldDrawTileInfo);
+    ImGui::SameLine();
+    ImGui::Checkbox("Grid", &debug.shouldDrawGrid);
+    ImGui::Checkbox("TileMap", &debug.shouldDrawTileMapAABBs);
+    ImGui::SameLine();
+    if (ImGui::Button("Respawn"))
+        onRespawn();
+    ImGui::Separator();
 
     std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel);
     if (chosenLevel)
@@ -76,25 +86,11 @@ void LevelEditorUi::draw(
             ImGui::TextDisabled("none");
         else
             for (const NpcSpawnData &npc : npcs)
-                ImGui::Text("%s %d,%d", npc.type.c_str(), npc.tilePosition.x, npc.tilePosition.y);
+                ImGui::TextUnformatted(npc.type.c_str());
         ImGui::Unindent();
     }
 
     drawGraphs(level);
-
-    ImGui::Separator();
-
-    if (ImGui::Button("Tile Info"))
-        onToggleDrawTileInfo();
-    ImGui::SameLine();
-    if (ImGui::Button("Grid"))
-        onToggleDrawGrid();
-
-    if (ImGui::Button("TileMap"))
-        onToggleDrawTileMapAABBs();
-
-    if (ImGui::Button("Respawn"))
-        onRespawn();
 
     ImGui::Separator();
 
@@ -216,66 +212,80 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(
 
 void LevelEditorUi::drawGraphs(const Level &level)
 {
+    if (!ImGui::CollapsingHeader("navigation", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
+
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
+    ImGui::Indent();
 
-    for (size_t index = 0; index < graphs.size(); ++index)
+    if (graphs.empty())
     {
-        const NamedNavigationGraph &named = graphs[index];
-        ImGui::PushID(static_cast<int>(index));
+        ImGui::TextDisabled("none");
+        ImGui::Unindent();
+        return;
+    }
 
-        std::string label = named.name + " (" +
-                            std::to_string(named.graph.getNodes().size()) + " nodes, " +
-                            std::to_string(named.graph.getEdges().size()) + " edges)";
+    if (selectedGraphIndex >= graphs.size())
+        selectedGraphIndex = 0;
 
-        if (ImGui::CollapsingHeader(label.c_str()))
-        {
-            selectedGraphIndex = index;
-            ImGui::Indent();
+    const NamedNavigationGraph &shown = graphs[selectedGraphIndex];
+    std::string preview = shown.name + " (" +
+                          std::to_string(shown.graph.getNodes().size()) + " nodes, " +
+                          std::to_string(shown.graph.getEdges().size()) + " edges)";
 
-            std::vector<int> nodeIds;
-            for (const auto &[nodeId, node] : named.graph.getNodes())
-                nodeIds.push_back(nodeId);
-            std::sort(nodeIds.begin(), nodeIds.end());
-
-            for (int nodeId : nodeIds)
+    ImGui::SetNextItemWidth(170.0f);
+    if (ImGui::BeginCombo("##graph", preview.c_str()))
+    {
+        for (size_t index = 0; index < graphs.size(); ++index)
+            if (ImGui::Selectable(graphs[index].name.c_str(), index == selectedGraphIndex))
             {
-                ImGui::PushID(nodeId);
-                NavigationNode node = named.graph.getNode(nodeId);
-                std::string nodeLabel = std::to_string(nodeId) + " at " +
-                                        std::to_string(static_cast<int>(node.position.x)) + "," +
-                                        std::to_string(static_cast<int>(node.position.y));
-
-                if (ImGui::Selectable(nodeLabel.c_str(), selectedNodeId == nodeId))
-                {
-                    selectedNodeId = nodeId;
-                    selectedEdge.reset();
-                }
-
-                ImGui::Indent();
-                for (const NavigationEdge &edge : named.graph.getOutgoingEdges(nodeId))
-                {
-                    ImGui::PushID(edge.toId);
-                    std::pair<int, int> ends{edge.fromId, edge.toId};
-                    std::string edgeLabel =
-                        std::string(edge.type == EdgeType::Jump ? "jump" : "walk") +
-                        " to " + std::to_string(edge.toId);
-
-                    if (ImGui::Selectable(edgeLabel.c_str(), selectedEdge == ends))
-                    {
-                        selectedEdge = ends;
-                        selectedNodeId.reset();
-                    }
-                    ImGui::PopID();
-                }
-                ImGui::Unindent();
-                ImGui::PopID();
+                selectedGraphIndex = index;
+                selectedNodeId.reset();
+                selectedEdge.reset();
             }
 
-            ImGui::Unindent();
+        ImGui::EndCombo();
+    }
+
+    std::vector<int> nodeIds;
+    for (const auto &[nodeId, node] : shown.graph.getNodes())
+        nodeIds.push_back(nodeId);
+    std::sort(nodeIds.begin(), nodeIds.end());
+
+    for (int nodeId : nodeIds)
+    {
+        ImGui::PushID(nodeId);
+        NavigationNode node = shown.graph.getNode(nodeId);
+        std::string nodeLabel = std::to_string(nodeId) + " at " +
+                                std::to_string(static_cast<int>(node.position.x)) + "," +
+                                std::to_string(static_cast<int>(node.position.y));
+
+        if (ImGui::Selectable(nodeLabel.c_str(), selectedNodeId == nodeId))
+        {
+            selectedNodeId = nodeId;
+            selectedEdge.reset();
         }
 
+        ImGui::Indent();
+        for (const NavigationEdge &edge : shown.graph.getOutgoingEdges(nodeId))
+        {
+            ImGui::PushID(edge.toId);
+            std::pair<int, int> ends{edge.fromId, edge.toId};
+            std::string edgeLabel = std::string(edge.type == EdgeType::Jump ? "jump" : "walk") +
+                                    " to " + std::to_string(edge.toId);
+
+            if (ImGui::Selectable(edgeLabel.c_str(), selectedEdge == ends))
+            {
+                selectedEdge = ends;
+                selectedNodeId.reset();
+            }
+            ImGui::PopID();
+        }
+        ImGui::Unindent();
         ImGui::PopID();
     }
+
+    ImGui::Unindent();
 }
 
 const NavigationGraph *LevelEditorUi::selectedGraph(const Level &level) const

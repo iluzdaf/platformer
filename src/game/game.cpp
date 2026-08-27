@@ -13,12 +13,7 @@ Game::Game()
     : levels("../../assets/levels.json")
 {
     gameData = loadGameData();
-    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
-    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
-    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
-    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
-    showDebug = gameData.debugData.showDebug;
-    showLevelEditor = gameData.debugData.showLevelEditor;
+    debug = gameData.debugData;
 
     initGLFW(gameData.windowWidth, gameData.windowHeight);
 
@@ -125,8 +120,6 @@ Game::Game()
                            { play(); });
     debugUi.onStep.connect([this]
                            { step(); });
-    debugUi.onToggleDrawPlayerAABBs.connect([this]
-                                            { shouldDrawPlayerAABBs = !shouldDrawPlayerAABBs; });
     debugUi.onToggleZoom.connect([this]
                                  {
         static float originalZoom = camera->getZoom();
@@ -141,12 +134,6 @@ Game::Game()
                                           {
         levels.setFirst(level->getPath());
         levels.save(); });
-    levelEditorUi.onToggleDrawGrid.connect([this]
-                                           { shouldDrawGrid = !shouldDrawGrid; });
-    levelEditorUi.onToggleDrawTileInfo.connect([this]
-                                               { shouldDrawTileInfo = !shouldDrawTileInfo; });
-    levelEditorUi.onToggleDrawTileMapAABBs.connect([this]
-                                                   { shouldDrawTileMapAABBs = !shouldDrawTileMapAABBs; });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), screenTransition.get());
 
@@ -290,8 +277,8 @@ void Game::render()
         *imGuiManager.get(),
         *camera.get(),
         level->getTileMap(),
-        shouldDrawGrid,
-        shouldDrawTileInfo);
+        debug.shouldDrawGrid,
+        debug.shouldDrawTileInfo);
 
     debugAABBUi.draw(
         *imGuiManager.get(),
@@ -299,8 +286,8 @@ void Game::render()
         level->getTileMap(),
         level->getPlayerStartWorldPosition(),
         *camera.get(),
-        shouldDrawPlayerAABBs,
-        shouldDrawTileMapAABBs);
+        debug.shouldDrawPlayerAABBs,
+        debug.shouldDrawTileMapAABBs);
 
     debugUi.draw(
         *imGuiManager.get(),
@@ -308,14 +295,14 @@ void Game::render()
         player->getPosition(),
         player->getState(),
         *camera.get(),
-        showDebug);
+        debug);
 
     levelEditorUi.draw(
         *imGuiManager.get(),
         *level.get(),
         *tileSet.get(),
         levels.getFirst(),
-        showLevelEditor);
+        debug);
 
     const NavigationGraph *shownGraph = levelEditorUi.selectedGraph(*level.get());
     if (shownGraph)
@@ -379,12 +366,7 @@ void Game::reload()
 {
     gameData = loadGameData();
 
-    shouldDrawGrid = gameData.debugData.shouldDrawGrid;
-    shouldDrawTileInfo = gameData.debugData.shouldDrawTileInfo;
-    shouldDrawPlayerAABBs = gameData.debugData.shouldDrawPlayerAABBs;
-    shouldDrawTileMapAABBs = gameData.debugData.shouldDrawTileMapAABBs;
-    showDebug = gameData.debugData.showDebug;
-    showLevelEditor = gameData.debugData.showLevelEditor;
+    debug = gameData.debugData;
 
     glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
 

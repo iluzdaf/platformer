@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "game/game_data.hpp"
+#include "game/debug_data.hpp"
 #include "game/levels.hpp"
 #include "tile_map/tile_interaction_system.hpp"
 #include "actor/actor.hpp"
@@ -87,12 +88,7 @@ private:
     DebugNavigationUi debugNavigationUi;
     fteng::connection onLevelCompleteConnection;
     bool paused = false,
-         stepFrame = false,
-         shouldDrawGrid = false,
-         shouldDrawTileInfo = false,
-         shouldDrawPlayerAABBs = false,
-         shouldDrawTileMapAABBs = false,
-         showDebug = false,
-         showLevelEditor = false;
+         stepFrame = false;
+    DebugData debug;
     GameData gameData;
 };

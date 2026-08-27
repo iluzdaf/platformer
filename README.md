@@ -11,17 +11,16 @@ A simple 2D platformer built with OpenGL. This project is designed as a learning
 
 ## 🖥 Supported Setups
 
-Targets **C++23**.
+Targets **C++23**. Developed on macOS and Linux; Windows is a build target, checked in
+CI with MSVC.
 
-| | Windows | macOS | Linux |
-|---|---|---|---|
-| Compiler | MSVC | LLVM clang | LLVM clang with libc++ |
-| Editor | Visual Studio 2022 | VS Code | VS Code |
-| Build | the editor's CMake support | the editor's CMake support | the editor's CMake support |
-| Debug | Visual Studio's Run button | CMake Tools' debug button | CMake Tools' debug button |
-| Code intelligence | Visual Studio's own | clangd | clangd |
-
-Terminal commands below assume a Unix shell. On Windows use Git Bash.
+| | macOS | Linux |
+|---|---|---|
+| Compiler | LLVM clang | LLVM clang with libc++ |
+| Editor | VS Code | VS Code |
+| Build | the editor's CMake support | the editor's CMake support |
+| Debug | CMake Tools' debug button | CMake Tools' debug button |
+| Code intelligence | clangd | clangd |
 
 ## 🧰 What The Repository Configures
 
@@ -37,20 +36,14 @@ Every platform builds the same way, from `CMakeLists.txt`.
 | [.llvm-version](.llvm-version) | the LLVM the tools must come from |
 | [tools/hooks/pre-commit](tools/hooks/pre-commit) | formats staged json and sources |
 
-Visual Studio reads `CMakeLists.txt` directly and needs none of this. In VS Code the
-C/C++ extension's IntelliSense is off because it parses with a front end of its own and
-disagrees with the compiler, and no `launch.json` is needed because CMake Tools runs the
-target from its build directory, which is where the game looks for its assets.
+The C/C++ extension's IntelliSense is off because it parses with a front end of its own
+and disagrees with the compiler, and no `launch.json` is needed because CMake Tools runs
+the target from its build directory, which is where the game looks for its assets.
 
 ## 🛠 Setup
 
-1. Install the prerequisites.
-
-    For Windows, Visual Studio 2022 with **CMake** and **Git for Windows** added
-    through *Tools and Features → Individual Components*.
-
-    For macOS and Linux, **CMake**, **Ninja**, **git-lfs**, and **LLVM** with its
-    tools, which install separately from the compiler:
+1. Install **CMake**, **Ninja**, **git-lfs**, and **LLVM** with its tools, which
+    install separately from the compiler:
 
     ```bash
     brew install llvm clang-format                       # macOS
@@ -165,6 +158,13 @@ fails until two translation units disagree about how a type serializes. Checks w
 can be wrong are left to CI, where they are read rather than applied. A file with
 unstaged edits is reported rather than formatted, since staging the fix would sweep the
 rest of your work into the commit.
+
+**Developed on two platforms, built on three.** Every check the project enforces —
+formatting, naming, includes — is an LLVM tool pinned to one version. Windows compiles
+with MSVC, so a contributor there would install a second toolchain purely to run tools
+that never compile anything, and still have to match a clang-format version Visual
+Studio does not ship. CI keeps building and testing Windows, because MSVC reads the same
+code differently and finds what clang does not.
 
 **No C++20 modules.** Every dependency is a header library and clangd is still catching
 up, so scanning for modules buys nothing and costs a compiler pass per file. It also

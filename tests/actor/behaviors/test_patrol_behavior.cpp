@@ -379,3 +379,31 @@ TEST_CASE("Picks itself up again after coming off its route", "[PatrolBehavior]"
     REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 192.0f);
     REQUIRE(behavior.decide(0.01f, knockedDown).direction.x != 0.0f);
 }
+
+TEST_CASE("Does not steer while falling", "[PatrolBehavior]")
+{
+    // A ledge with the landing a few pixels off it, which is where a fall edge
+    // puts one, so steering at it from the air overshoots every step.
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, 128.0f});
+    navigationGraph.addNode(1, {96.0f, 128.0f});
+    navigationGraph.addNode(2, {101.0f, 400.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    navigationGraph.addEdge(1, 2, EdgeType::Fall);
+    navigationGraph.addEdge({2, 1, EdgeType::Jump, {}, 0.2f});
+
+    PatrolBehavior behavior(setupRoamingData());
+    anchorAt(behavior, navigationGraph, {96.0f, 128.0f});
+    REQUIRE(behavior.getCurrentNodeId() == 1);
+    REQUIRE(behavior.getTargetNodeId() == 2);
+
+    // On the ledge it walks off. In the air it stops steering and drops.
+    REQUIRE(behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 128.0f})).direction.x != 0.0f);
+
+    for (float x : {99.0f, 101.0f, 103.0f, 100.0f, 102.0f})
+    {
+        INFO("falling past x " << x);
+        REQUIRE(behavior.decide(0.01f, at(navigationGraph, {x, 300.0f})).direction.x == 0.0f);
+    }
+}

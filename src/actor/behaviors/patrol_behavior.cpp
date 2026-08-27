@@ -146,6 +146,12 @@ InputIntentions PatrolBehavior::decide(
         }
     }
 
+    // A fall is a straight drop, and its landing sits a few pixels off the ledge
+    // it leaves. Steering at it from the air overshoots by a step every frame,
+    // so the actor arrives flicking from side to side.
+    if (leg && leg->type == EdgeType::Fall && !context.onGround)
+        inputIntentions.direction.x = 0.0f;
+
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor < leg->holdDuration)
     {
         jumpHeldFor += deltaTime;

@@ -525,42 +525,61 @@ TEST_CASE("The shipped player's jump and dash together are worth five tiles",
     REQUIRE(gameData.playerData.actorData.motionData.dashAbilityData->airborneFraction < 1.0f);
 }
 
-TEST_CASE("The shipped player can climb level6's platforms", "[Player][Tuning]")
+TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]")
 {
     GameData gameData = shippedGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    // Off the left middle platform at y 112 and up onto the top one at y 64,
-    // which is the highest thing the level asks for.
-    bool climbed = false;
-    for (float footX = 120.0f; footX <= 160.0f && !climbed; footX += 2.0f)
+    // Every step in level6 is two tiles up and two across. Take off points are
+    // swept back from the edge being left, which is not always the edge being
+    // jumped towards: the highest platform overhangs the middle one, so that
+    // climb starts from the middle platform's far end.
+    struct Step
     {
-        ScriptedIntentions input;
-        Player player(gameData.playerData, input);
-        player.setPosition(glm::vec2(footX - 8.0f, 96.0f));
+        const char *what;
+        float edgeX, standOn, towards, intoPlatform, landOn;
+    };
 
-        FixedTimeStep timestepper;
-        for (int frame = 0; frame < 150 && !climbed; ++frame)
+    for (Step step : {Step{"floor to the lowest platform", 192.0f, 192.0f, 1.0f, -1.0f, 160.0f},
+                      Step{"lowest to the middle platform", 192.0f, 160.0f, -1.0f, 1.0f, 128.0f},
+                      Step{"middle to the highest platform", 160.0f, 128.0f, -1.0f, -1.0f, 96.0f}})
+    {
+        int takeOffPointsThatWork = 0;
+        for (float back = 0.0f; back <= 44.0f; back += 2.0f)
         {
-            InputIntentions intentions;
-            intentions.jumpRequested = frame == 0;
-            intentions.jumpHeld = frame < 20;
-            intentions.direction.x = -1.0f;
-            input.set(intentions);
+            ScriptedIntentions input;
+            Player player(gameData.playerData, input);
+            player.setPosition(
+                glm::vec2(step.edgeX + step.intoPlatform * back - 8.0f, step.standOn - 16.0f));
 
-            player.preFixedUpdate();
-            timestepper.run(1.0f / 60.0f, [&](float dt)
-                            { player.fixedUpdate(dt, level); });
-            player.postFixedUpdate();
+            FixedTimeStep timestepper;
+            for (int frame = 0; frame < 150; ++frame)
+            {
+                InputIntentions intentions;
+                intentions.jumpRequested = frame == 0;
+                intentions.jumpHeld = frame < 20;
+                intentions.direction.x = step.towards;
+                input.set(intentions);
 
-            climbed = player.getMotion().getState().contacts.onGround &&
-                      player.getPosition().y + 16.0f <= 64.5f;
+                player.preFixedUpdate();
+                timestepper.run(1.0f / 60.0f, [&](float dt)
+                                { player.fixedUpdate(dt, level); });
+                player.postFixedUpdate();
+
+                if (player.getMotion().getState().contacts.onGround &&
+                    std::abs(player.getPosition().y + 16.0f - step.landOn) < 0.5f)
+                {
+                    ++takeOffPointsThatWork;
+                    break;
+                }
+            }
         }
-    }
 
-    REQUIRE(climbed);
+        INFO(step.what << " worked from " << takeOffPointsThatWork << " take off points");
+        REQUIRE(takeOffPointsThatWork >= 5);
+    }
 }
 
 TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")

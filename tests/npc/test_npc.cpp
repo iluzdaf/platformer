@@ -66,6 +66,7 @@ namespace
     constexpr int PlatformFirstTile = 3;
     constexpr int PlatformLastTile = 9;
     constexpr glm::ivec2 UnderThePlatform{6, FloorRow - 1};
+    constexpr glm::ivec2 SpawnTile{4, 5};
 
     Level setupTwoTierLevel()
     {
@@ -97,11 +98,6 @@ namespace
             npc.getPhysicsBody().getBottomCenterOffset());
     }
 
-    glm::vec2 spawnPosition(const TileMap &tileMap)
-    {
-        return tileMap.tileToWorldPosition(glm::ivec2(4, 5));
-    }
-
     void stepNpc(Npc &npc, const Level &level, int steps)
     {
         for (int step = 0; step < steps; ++step)
@@ -111,9 +107,14 @@ namespace
         }
     }
 
+    glm::vec2 footOf(const Npc &npc)
+    {
+        return npc.getPhysicsBody().getAABB().bottomCenter();
+    }
+
     float footX(const Npc &npc)
     {
-        return npc.getPhysicsBody().getAABB().bottomCenter().x;
+        return footOf(npc).x;
     }
 
     float reachOf(const Npc &npc)
@@ -148,10 +149,9 @@ TEST_CASE("Spawns where the level places it", "[Npc]")
     const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
 
-    glm::vec2 placed = spawnPosition(tileMap);
-    npc.setPosition(placed);
+    standIn(npc, tileMap, SpawnTile);
 
-    REQUIRE(npc.getPosition() == placed);
+    REQUIRE(footOf(npc) == tileMap.tileToBottomCenterPosition(SpawnTile));
 }
 
 TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
@@ -178,16 +178,16 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
     Level level = setupWalkableLevel();
     const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
-    npc.setPosition(spawnPosition(tileMap));
+    standIn(npc, tileMap, SpawnTile);
 
-    float lowestFootY = npc.getPhysicsBody().getAABB().bottomCenter().y;
+    float lowestFootY = footOf(npc).y;
     std::vector<float> footXs;
 
     for (int step = 0; step < 4000; ++step)
     {
         stepNpc(npc, level, 1);
         footXs.push_back(footX(npc));
-        lowestFootY = std::max(lowestFootY, npc.getPhysicsBody().getAABB().bottomCenter().y);
+        lowestFootY = std::max(lowestFootY, footOf(npc).y);
     }
 
     for (const auto &[id, node] : level.graphFor(npc.getNavigationProfile()).getNodes())
@@ -218,8 +218,8 @@ TEST_CASE("Patrolling is deterministic, so where you place them is what differs"
 
     Npc first(setupNpcData());
     Npc second(setupNpcData());
-    first.setPosition(spawnPosition(tileMap));
-    second.setPosition(spawnPosition(tileMap));
+    standIn(first, tileMap, SpawnTile);
+    standIn(second, tileMap, SpawnTile);
 
     stepNpc(first, level, 600);
     stepNpc(second, level, 600);
@@ -360,12 +360,11 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     npcData.patrolBehaviorData.reset();
 
     Npc npc(npcData);
-    glm::vec2 placed = spawnPosition(tileMap);
-    npc.setPosition(placed);
+    standIn(npc, tileMap, SpawnTile);
 
     stepNpc(npc, level, 400);
 
-    REQUIRE(npc.getPosition().x == placed.x);
+    REQUIRE(footOf(npc).x == tileMap.tileToBottomCenterPosition(SpawnTile).x);
 }
 
 TEST_CASE("The shipped explorer walks level6 from the floor to the top and back",

@@ -230,6 +230,8 @@ void Game::render()
             player->getState(),
             camera);
 
+        gameDataUi.draw(editorUi.getSection(), gameData);
+
         editorUi.end();
     }
 

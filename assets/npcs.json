@@ -1,11 +1,51 @@
 {
-    "villager":{
+    "explorer":{
         "actorData":{
-            "size":[16.0,16.0],
+            "size":[16,16],
             "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
             "motionData":{
-                "moveAbilityData":{"moveSpeed":60.0},
-                "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600}
+                "moveAbilityData":{"moveSpeed":90},
+                "jumpAbilityData":{
+                    "jumpSpeed":-320,
+                    "jumpBufferDuration":0.15,
+                    "jumpCoyoteDuration":0.15,
+                    "jumpDuration":0.2
+                },
+                "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
+            },
+            "animationData":{
+                "idleSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[30],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
+                "walkSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[35,26],"frameDuration":0.15},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                },
+                "fallSpriteAnimationData":{
+                    "frameAnimationData":{"frames":[19],"frameDuration":1},
+                    "frameWidth":16,
+                    "frameHeight":16,
+                    "textureWidth":96
+                }
+            }
+        },
+        "stateMachineBehaviorData":{
+            "states":[{"name":"patrol","patrolBehaviorData":{"arrivalThreshold":2}}],
+            "transitions":[]
+        }
+    },
+    "villager":{
+        "actorData":{
+            "size":[16,16],
+            "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
+            "motionData":{
+                "moveAbilityData":{"moveSpeed":60},
+                "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
             },
             "animationData":{
                 "idleSpriteAnimationData":{
@@ -30,52 +70,13 @@
         },
         "stateMachineBehaviorData":{
             "states":[
-                {"name":"patrol","patrolBehaviorData":{"arrivalThreshold":2.0}},
-                {"name":"flee","fleeBehaviorData":{"arrivalThreshold":2.0,"breakPastWithin":24.0}}
+                {"name":"patrol","patrolBehaviorData":{"arrivalThreshold":2}},
+                {"name":"flee","fleeBehaviorData":{"arrivalThreshold":2,"breakPastWithin":24}}
             ],
             "transitions":[
-                {"from":"patrol","to":"flee","threatWithin":40.0,"threatOnMySurface":true},
+                {"from":"patrol","to":"flee","threatWithin":40,"threatOnMySurface":true,"after":0},
                 {"from":"flee","to":"patrol","threatOnMySurface":false,"after":1.5}
             ]
-        }
-    },
-    "explorer":{
-        "actorData":{
-            "size":[16.0,16.0],
-            "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
-            "motionData":{
-                "moveAbilityData":{"moveSpeed":90.0},
-                "jumpAbilityData":{
-                    "jumpSpeed":-320.0,
-                    "jumpBufferDuration":0.15,
-                    "jumpCoyoteDuration":0.15,
-                    "jumpDuration":0.2
-                },
-                "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600}
-            },
-            "animationData":{
-                "idleSpriteAnimationData":{
-                    "frameAnimationData":{"frames":[30],"frameDuration":1},
-                    "frameWidth":16,
-                    "frameHeight":16,
-                    "textureWidth":96
-                },
-                "walkSpriteAnimationData":{
-                    "frameAnimationData":{"frames":[35,26],"frameDuration":0.15},
-                    "frameWidth":16,
-                    "frameHeight":16,
-                    "textureWidth":96
-                },
-                "fallSpriteAnimationData":{
-                    "frameAnimationData":{"frames":[19],"frameDuration":1},
-                    "frameWidth":16,
-                    "frameHeight":16,
-                    "textureWidth":96
-                }
-            }
-        },
-        "stateMachineBehaviorData":{
-            "states":[{"name":"patrol","patrolBehaviorData":{"arrivalThreshold":2.0}}]
         }
     }
 }

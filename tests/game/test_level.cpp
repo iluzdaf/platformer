@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <exception>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <utility>
 #include <vector>
 #include "navigation/navigation_profile.hpp"
@@ -40,7 +40,7 @@ namespace
         return npcData;
     }
 
-    std::unordered_map<std::string, NpcData> theUsualNpcs()
+    std::map<std::string, NpcData> theUsualNpcs()
     {
         return {
             {"short", npcOfHeight(13.0f)},

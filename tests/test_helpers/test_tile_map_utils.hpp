@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <glaze/glaze.hpp>
 #include "tile_map/tile_map.hpp"
 #include "game/level_data.hpp"
@@ -35,10 +36,9 @@ inline const TilePalettes &shippedPalettes()
     return palettes;
 }
 
-inline const std::unordered_map<std::string, NpcData> &shippedNpcData()
+inline const std::map<std::string, NpcData> &shippedNpcData()
 {
-    static const std::unordered_map<std::string, NpcData> npcData = []
-    { return loadGameData().npcData; }();
+    static const std::map<std::string, NpcData> npcData = [] { return loadGameData().npcData; }();
     return npcData;
 }
 

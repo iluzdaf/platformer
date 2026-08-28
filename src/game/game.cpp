@@ -355,7 +355,9 @@ void Game::reload()
 
     camera->setZoom(gameData.cameraData.zoom);
 
-    loadLevel(levels.getFirst());
+    // Whatever is open stays open. Editing game data to tune an actor should
+    // not put you back at the start of the game to go and find it again.
+    loadLevel(level ? level->getPath() : levels.getFirst());
 }
 
 void Game::loadLevel(const std::string &levelPath)

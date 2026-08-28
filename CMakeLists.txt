@@ -103,6 +103,7 @@ add_library(platformer_lib OBJECT
     src/app/app.cpp
     src/window/window.cpp
     src/game/game.cpp
+    src/game/game_data.cpp
     src/game/level.cpp
     src/game/levels.cpp
     src/game/scoring_system.cpp

@@ -17,3 +17,5 @@ struct GameData
     int windowHeight = 600;
     bool debug = false;
 };
+
+GameData loadGameData();

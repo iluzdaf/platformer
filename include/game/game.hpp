@@ -46,7 +46,6 @@ public:
     void refreshActors();
 
 private:
-    static GameData loadGameData();
     std::unique_ptr<Shader> loadShader(std::string_view vertex, std::string_view fragment) const;
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);

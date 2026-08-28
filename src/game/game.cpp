@@ -3,13 +3,13 @@
 #include <algorithm>
 #include <optional>
 #include <stdexcept>
-#include <glaze/glaze.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
 #include <utility>
 #include "game/game.hpp"
+#include "game/game_data.hpp"
 #include "cameras/camera2d.hpp"
 #include "actor/actor.hpp"
 #include "actor/actor_state.hpp"
@@ -249,15 +249,6 @@ void Game::resize(int windowWidth, int windowHeight)
     camera.resize(windowWidth, windowHeight);
 
     imGuiManager.resize(windowWidth, windowHeight);
-}
-
-GameData Game::loadGameData()
-{
-    GameData loaded;
-    auto ec = glz::read_file_json(loaded, assets::pathTo(assets::GameData), std::string{});
-    if (ec)
-        throw std::runtime_error("Failed to read game data json file");
-    return loaded;
 }
 
 void Game::reload()

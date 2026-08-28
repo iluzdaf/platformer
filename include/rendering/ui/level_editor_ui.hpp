@@ -3,6 +3,7 @@
 #include <signals.hpp>
 #include <optional>
 #include <string>
+#include "rendering/ui/editor_section.hpp"
 
 class ImGuiManager;
 class TileMap;
@@ -16,6 +17,7 @@ class LevelEditorUi
 public:
     void draw(
         const ImGuiManager &imGuiManager,
+        EditorSection section,
         Level &level,
         const Texture2D &tileSet,
         const std::string &firstLevel,
@@ -38,6 +40,9 @@ private:
     std::optional<int> selectedNodeId;
     std::optional<std::pair<int, int>> selectedEdge;
 
+    void drawLevel(Level &level, const std::string &firstLevel);
+    void drawNpcs(const Level &level);
+    void drawTilePalette(Level &level, const Texture2D &tileSet);
     void drawGraphs(const Level &level);
     void drawEdgesOf(const NavigationGraph &graph, int nodeId);
     std::optional<std::string> drawLevelChooser(const Level &level, const std::string &firstLevel);

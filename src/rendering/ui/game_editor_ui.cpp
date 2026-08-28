@@ -4,12 +4,15 @@
 #include "rendering/ui/game_editor_ui.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "rendering/ui/imgui_manager.hpp"
+#include "rendering/ui/editor_ui.hpp"
+#include "rendering/ui/editor_section.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
 
 void GameEditorUi::draw(
     const ImGuiManager &imGuiManager,
+    EditorSection section,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
     const ActorState &actorState,
@@ -19,35 +22,33 @@ void GameEditorUi::draw(
     if (!showEditors)
         return;
 
-    ImGui::SetNextWindowSize(ImVec2(200, imGuiManager.getUiDimensions().y));
-    ImGui::Begin("Game Editor");
-    if (ImGui::CollapsingHeader("Playback", ImGuiTreeNodeFlags_DefaultOpen))
+    if (section == EditorSection::Playback)
     {
-        ImGui::PushID("play");
+        EditorUi::beginInspector(imGuiManager, "Playback");
         if (ImGui::Button("Step"))
             onStep();
         ImGui::SameLine();
         if (ImGui::Button("Play"))
             onPlay();
-        ImGui::PopID();
+        EditorUi::endInspector();
+        return;
     }
 
-    if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+    if (section == EditorSection::Camera)
     {
-        ImGui::PushID("camera");
+        EditorUi::beginInspector(imGuiManager, "Camera");
         if (ImGui::Button("Zoom"))
             onToggleZoom();
         ImGui::SameLine();
         ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
-        ImGui::PopID();
-    }
-
-    if (!ImGui::CollapsingHeader("Player", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::End();
+        EditorUi::endInspector();
         return;
     }
 
+    if (section != EditorSection::Player)
+        return;
+
+    EditorUi::beginInspector(imGuiManager, "Player");
     ImGui::Checkbox("AABBs", &drawPlayerAABBs);
 
     if (ImGui::BeginTable("Inspector", 2, ImGuiTableFlags_BordersInnerV))
@@ -85,7 +86,7 @@ void GameEditorUi::draw(
         ImGui::EndTable();
     }
 
-    ImGui::End();
+    EditorUi::endInspector();
 }
 bool GameEditorUi::drawsPlayerAABBs() const
 {

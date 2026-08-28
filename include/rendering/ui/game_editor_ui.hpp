@@ -2,6 +2,7 @@
 
 #include <signals.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "rendering/ui/editor_section.hpp"
 
 struct ActorMotionState;
 struct ActorState;
@@ -13,6 +14,7 @@ class GameEditorUi
 public:
     void draw(
         const ImGuiManager &imGuiManager,
+        EditorSection section,
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerPosition,
         const ActorState &actorState,

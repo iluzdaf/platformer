@@ -1,6 +1,7 @@
 #pragma once
 #include <signals.hpp>
 #include "reloading/file_watcher.hpp"
+#include "assets/asset_paths.hpp"
 
 class AssetWatcher : public FileWatcher
 {
@@ -18,8 +19,8 @@ public:
                 onShaderChanged(path);
         };
 
-        fileWatcher.addWatch("../../assets/textures", &listener, false);
-        fileWatcher.addWatch("../../assets/shaders", &listener, false);
+        fileWatcher.addWatch(assets::pathTo(assets::Textures), &listener, false);
+        fileWatcher.addWatch(assets::pathTo(assets::Shaders), &listener, false);
         fileWatcher.watch();
     }
 };

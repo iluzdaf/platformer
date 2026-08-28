@@ -26,6 +26,6 @@
         "tilePalette":"default"
     },
     "playerStartTilePosition":[0,17],
-    "nextLevel":"../../assets/levels/level6.json",
+    "nextLevel":"levels/level6.json",
     "npcs":[]
 }

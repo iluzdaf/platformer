@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assets/asset_paths.hpp"
 #include <string>
 #include <sol/sol.hpp>
 
@@ -20,7 +21,8 @@ public:
         float remainingTime;
     };
 
-    explicit LuaScriptSystem(const std::string &scriptPath = "../../assets/scripts/game_logic.lua");
+    explicit LuaScriptSystem(
+        const std::string &scriptPath = assets::pathTo(assets::GameLogicScript));
     void update(float deltaTime);
     void bindGameObjects(Game *game, Camera2D *camera, ScreenTransition *screenTransition);
     void triggerLevelComplete();

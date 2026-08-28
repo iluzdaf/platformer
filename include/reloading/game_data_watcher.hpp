@@ -1,6 +1,7 @@
 #pragma once
 #include <signals.hpp>
 #include "reloading/file_watcher.hpp"
+#include "assets/asset_paths.hpp"
 
 class GameDataWatcher : public FileWatcher
 {
@@ -11,13 +12,11 @@ public:
     {
         listener.onFileModified = [&](const std::string &path)
         {
-            if (path.compare("../../assets/game_data.json") == 0)
-            {
+            if (path == assets::GameData)
                 onGameDataChanged();
-            }
         };
 
-        fileWatcher.addWatch("../../assets", &listener, false);
+        fileWatcher.addWatch(assets::root(), &listener, false);
         fileWatcher.watch();
     }
 };

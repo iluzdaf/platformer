@@ -98,6 +98,8 @@ add_library(platformer_lib OBJECT
     src/tile_map/tile_interaction_system.cpp
     src/player/player.cpp
     src/actor/actor.cpp
+    src/assets/asset_paths.cpp
+    src/reloading/hot_reload.cpp
     src/app/app.cpp
     src/window/window.cpp
     src/game/game.cpp
@@ -164,6 +166,8 @@ else()
         -Wno-missing-braces
     )
 endif()
+
+target_compile_definitions(platformer_lib PUBLIC PLATFORMER_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets")
 
 target_include_directories(platformer_lib PUBLIC include)
 
@@ -236,6 +240,7 @@ add_executable(tests
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/npc/test_npc.cpp
+    tests/assets/test_asset_paths.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp
     tests/tile_map/test_tile_map_navigation.cpp

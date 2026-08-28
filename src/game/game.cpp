@@ -3,13 +3,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
 #include "game/game.hpp"
 #include "game/level.hpp"
 #include "game/levels.hpp"
 #include "rendering/shader_data.hpp"
+#include "assets/asset_paths.hpp"
 
-Game::Game(Window &window) : window(window), levels("../../assets/levels.json")
+Game::Game(Window &window) : window(window), levels(assets::pathTo(assets::LevelList))
 {
     gameData = loadGameData();
 
@@ -24,109 +24,14 @@ Game::Game(Window &window) : window(window), levels("../../assets/levels.json")
     camera = std::make_unique<Camera2D>(gameData.cameraData, framebuffer.x, framebuffer.y);
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
-    levelWatcher.onLevelChanged.connect(
-        [this](const std::string &levelPath)
-        {
-            if (levelPath.compare(level->getPath()) == 0)
-                try
-                {
-                    loadLevel(levelPath);
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << std::endl;
-                }
-        });
-    assetWatcher.onShaderChanged.connect(
-        [this](const std::string &shaderPath)
-        {
-            try
-            {
-                ShaderData shaderData;
-                if (shaderPath.compare("../../assets/shaders/tile_set.vs") == 0 ||
-                    shaderPath.compare("../../assets/shaders/tile_set.fs") == 0)
-                {
-                    shaderData.vertexPath = "../../assets/shaders/tile_set.vs";
-                    shaderData.fragmentPath = "../../assets/shaders/tile_set.fs";
-                    std::unique_ptr<Shader> newtileSetShader = std::make_unique<Shader>(shaderData);
-                    tileSetShader = std::move(newtileSetShader);
-                }
-                else if (
-                    shaderPath.compare("../../assets/shaders/transition.vs") == 0 ||
-                    shaderPath.compare("../../assets/shaders/transition.fs") == 0)
-                {
-                    shaderData.vertexPath = "../../assets/shaders/transition.vs";
-                    shaderData.fragmentPath = "../../assets/shaders/transition.fs";
-                    std::unique_ptr<Shader> newScreenTransitionShader =
-                        std::make_unique<Shader>(shaderData);
-                    screenTransitionShader = std::move(newScreenTransitionShader);
-                }
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << std::endl;
-            }
-        });
-    assetWatcher.onTextureChanged.connect(
-        [this](const std::string &texturePath)
-        {
-            try
-            {
-                if (texturePath.compare("../../assets/textures/tile_set.png") == 0)
-                {
-                    std::unique_ptr<Texture2D> newTileSet =
-                        std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
-                    tileSet = std::move(newTileSet);
-                }
-                else if (texturePath.compare("../../assets/textures/player.png") == 0)
-                {
-                    std::unique_ptr<Texture2D> newPlayerTexture =
-                        std::make_unique<Texture2D>("../../assets/textures/player.png");
-                    playerTexture = std::move(newPlayerTexture);
-                }
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << std::endl;
-            }
-        });
-    gameDataWatcher.onGameDataChanged.connect(
-        [this]
-        {
-            try
-            {
-                reload();
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << std::endl;
-            }
-        });
-    scriptWatcher.onScriptsChanged.connect(
-        [this]
-        {
-            try
-            {
-                luaScriptSystem->loadScripts();
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << std::endl;
-            }
-        });
     loadLevel(levels.getFirst());
 
-    tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
-    ShaderData shaderData;
-    shaderData.vertexPath = "../../assets/shaders/tile_set.vs";
-    shaderData.fragmentPath = "../../assets/shaders/tile_set.fs";
-    tileSetShader = std::make_unique<Shader>(shaderData);
+    reloadTexture(std::string(assets::TileSetTexture));
+    reloadTexture(std::string(assets::PlayerTexture));
+    reloadShader(std::string(assets::TileSetVertexShader));
+    reloadShader(std::string(assets::TransitionVertexShader));
     spriteRenderer = std::make_unique<SpriteRenderer>();
     tileMapRenderer = std::make_unique<TileMapRenderer>(*spriteRenderer.get());
-    playerTexture = std::make_unique<Texture2D>("../../assets/textures/player.png");
-    shaderData.vertexPath = "../../assets/shaders/transition.vs";
-    shaderData.fragmentPath = "../../assets/shaders/transition.fs";
-    screenTransitionShader = std::make_unique<Shader>(shaderData);
     screenTransition = std::make_unique<ScreenTransition>();
     gameEditorUi.onPlay.connect([this] { play(); });
     gameEditorUi.onStep.connect([this] { step(); });
@@ -155,13 +60,46 @@ Game::Game(Window &window) : window(window), levels("../../assets/levels.json")
 
 Game::~Game() = default;
 
+bool Game::isPlaying(const std::string &levelPath) const
+{
+    return level && level->getPath() == levelPath;
+}
+
+void Game::reloadShader(const std::string &shaderPath)
+{
+    if (shaderPath == assets::TileSetVertexShader || shaderPath == assets::TileSetFragmentShader)
+        tileSetShader = loadShader(assets::TileSetVertexShader, assets::TileSetFragmentShader);
+    else if (
+        shaderPath == assets::TransitionVertexShader ||
+        shaderPath == assets::TransitionFragmentShader)
+        screenTransitionShader =
+            loadShader(assets::TransitionVertexShader, assets::TransitionFragmentShader);
+}
+
+void Game::reloadTexture(const std::string &texturePath)
+{
+    if (texturePath == assets::TileSetTexture)
+        tileSet = std::make_unique<Texture2D>(assets::pathTo(assets::TileSetTexture));
+    else if (texturePath == assets::PlayerTexture)
+        playerTexture = std::make_unique<Texture2D>(assets::pathTo(assets::PlayerTexture));
+}
+
+void Game::reloadScripts()
+{
+    luaScriptSystem->loadScripts();
+}
+
+std::unique_ptr<Shader> Game::loadShader(std::string_view vertex, std::string_view fragment) const
+{
+    ShaderData shaderData;
+    shaderData.vertexPath = assets::pathTo(vertex);
+    shaderData.fragmentPath = assets::pathTo(fragment);
+
+    return std::make_unique<Shader>(shaderData);
+}
+
 void Game::frame(float deltaTime)
 {
-    levelWatcher.process();
-    assetWatcher.process();
-    gameDataWatcher.process();
-    scriptWatcher.process();
-
     keyboardManager.poll(window.getHandle());
     if (keyboardManager.isPressed(GLFW_KEY_P))
         play();
@@ -304,7 +242,7 @@ void Game::resize(int windowWidth, int windowHeight)
 GameData Game::loadGameData() const
 {
     GameData loaded;
-    auto ec = glz::read_file_json(loaded, "../../assets/game_data.json", std::string{});
+    auto ec = glz::read_file_json(loaded, assets::pathTo(assets::GameData), std::string{});
     if (ec)
         throw std::runtime_error("Failed to read game data json file");
     return loaded;

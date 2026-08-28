@@ -120,7 +120,7 @@ TEST_CASE("A level knows where it heads next", "[TileMap][Level]")
 {
     Level level = loadLevel(assetPath("levels/level6.json"));
 
-    REQUIRE(level.getNextLevel() == "../../assets/levels/level1.json");
+    REQUIRE(level.getNextLevel() == "levels/level1.json");
     REQUIRE_FALSE(level.getNpcs().empty());
     for (const NpcSpawnData &spawn : level.getNpcs())
         REQUIRE(shippedNpcData().contains(spawn.type));

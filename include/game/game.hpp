@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string_view>
 #include "game/game_data.hpp"
 #include "game/levels.hpp"
 #include "tile_map/tile_interaction_system.hpp"
@@ -22,10 +23,6 @@
 #include "input/input_manager.hpp"
 #include "physics/fixed_time_step.hpp"
 #include "scripting/lua_script_system.hpp"
-#include "reloading/level_watcher.hpp"
-#include "reloading/asset_watcher.hpp"
-#include "reloading/game_data_watcher.hpp"
-#include "reloading/script_watcher.hpp"
 #include "window/window.hpp"
 
 class Game
@@ -39,12 +36,17 @@ public:
     void play();
     void loadLevel(const std::string &levelPath);
     void reload();
+    void reloadShader(const std::string &shaderPath);
+    void reloadTexture(const std::string &texturePath);
+    void reloadScripts();
+    bool isPlaying(const std::string &levelPath) const;
     void rebuildPlayer();
     void rebuildNpcs();
     void refreshActors();
 
 private:
     GameData loadGameData() const;
+    std::unique_ptr<Shader> loadShader(std::string_view vertex, std::string_view fragment) const;
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);
     void postFixedUpdate();
@@ -59,10 +61,6 @@ private:
     InputManager inputManager;
     FixedTimeStep timestepper;
     std::unique_ptr<LuaScriptSystem> luaScriptSystem;
-    LevelWatcher levelWatcher;
-    AssetWatcher assetWatcher;
-    GameDataWatcher gameDataWatcher;
-    ScriptWatcher scriptWatcher;
     std::unique_ptr<Level> level;
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Npc>> npcs;

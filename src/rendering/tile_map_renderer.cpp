@@ -5,12 +5,8 @@
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
 
-TileMapRenderer::TileMapRenderer(const SpriteRenderer &spriteRenderer)
-    : spriteRenderer(spriteRenderer)
-{
-}
-
 void TileMapRenderer::draw(
+    const SpriteRenderer &spriteRenderer,
     const TileMap &tileMap,
     const glm::mat4 &projection,
     const Shader &tileSetShader,

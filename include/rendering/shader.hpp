@@ -10,6 +10,8 @@ class Shader
 public:
     explicit Shader(const ShaderData &shaderData);
     ~Shader();
+    Shader(const Shader &) = delete;
+    Shader &operator=(const Shader &) = delete;
     void use() const;
     void setBool(const std::string &name, bool value) const;
     void setInt(const std::string &name, int value) const;

@@ -38,7 +38,7 @@ void SpriteRenderer::draw(
     glm::mat4 projection,
     glm::vec2 position,
     glm::vec2 size,
-    float rotate)
+    float rotate) const
 {
     shader.use();
     shader.setInt("image", 0);
@@ -68,7 +68,7 @@ void SpriteRenderer::drawWithUV(
     glm::vec2 size,
     glm::vec2 uvStart,
     glm::vec2 uvEnd,
-    bool flipX)
+    bool flipX) const
 {
     shader.use();
     shader.setMat4("projection", projection);

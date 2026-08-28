@@ -102,9 +102,9 @@
                 "size":[16.0,16.0],
                 "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
                 "motionData":{
-                    "moveAbilityData":{"moveSpeed":155.0},
+                    "moveAbilityData":{"moveSpeed":140.0},
                     "jumpAbilityData":{
-                        "jumpSpeed":-400.0,
+                        "jumpSpeed":-350.0,
                         "jumpBufferDuration":0.15,
                         "jumpCoyoteDuration":0.15,
                         "jumpDuration":0.2

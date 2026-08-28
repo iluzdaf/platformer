@@ -99,3 +99,49 @@ TEST_CASE("A walk stays on the platform", "[NavigationPath]")
     REQUIRE(walkableFrom(setupTwoFloors(), 0) == std::vector{0, 1, 2});
     REQUIRE(walkableFrom(setupTwoFloors(), 4) == std::vector{3, 4, 5});
 }
+
+TEST_CASE("Two places on one walkable run are on the same run", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addNode(2, {48.0f, 128.0f});
+    navigationGraph.addNode(3, {160.0f, 128.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    navigationGraph.addEdge(2, 3, EdgeType::Walk);
+    navigationGraph.addEdge(3, 2, EdgeType::Walk);
+    navigationGraph.addEdge(1, 3, EdgeType::Fall);
+
+    SECTION("Both ends of the same platform")
+    {
+        REQUIRE(onTheSameRun(navigationGraph, {16.0f, 96.0f}, {112.0f, 96.0f}));
+    }
+
+    SECTION("Out past the node at the end of it, where the ledge still is")
+    {
+        REQUIRE(onTheSameRun(navigationGraph, {112.0f, 96.0f}, {4.0f, 96.0f}));
+    }
+
+    SECTION("The platform below is a run of its own")
+    {
+        REQUIRE_FALSE(onTheSameRun(navigationGraph, {16.0f, 96.0f}, {48.0f, 128.0f}));
+    }
+
+    SECTION("A fall down to it does not join the two")
+    {
+        REQUIRE_FALSE(onTheSameRun(navigationGraph, {112.0f, 96.0f}, {160.0f, 128.0f}));
+    }
+}
+
+TEST_CASE("A place is judged by the run under its feet, not the nearest node", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addNode(2, {60.0f, 128.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    REQUIRE_FALSE(onTheSameRun(navigationGraph, {60.0f, 96.0f}, {60.0f, 128.0f}));
+}

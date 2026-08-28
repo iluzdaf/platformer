@@ -30,7 +30,10 @@ namespace
         npcData.actorData.motionData.gravityAbilityData = GravityAbilityData{};
         npcData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
         npcData.actorData.physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);
-        npcData.patrolBehaviorData = PatrolBehaviorData();
+        BehaviorStateData patrolling;
+        patrolling.name = "patrol";
+        patrolling.patrolBehaviorData = PatrolBehaviorData();
+        npcData.stateMachineBehaviorData = StateMachineBehaviorData{{patrolling}, {}};
         return npcData;
     }
 
@@ -357,7 +360,7 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     const TileMap &tileMap = level.getTileMap();
 
     NpcData npcData = setupNpcData();
-    npcData.patrolBehaviorData.reset();
+    npcData.stateMachineBehaviorData.reset();
 
     Npc npc(npcData);
     standIn(npc, tileMap, SpawnTile);
@@ -416,4 +419,192 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
     REQUIRE(reachedTheTop);
     REQUIRE(cameBackDown);
     REQUIRE(longestStandingStill < 100);
+}
+
+TEST_CASE("The shipped villager runs from the player and settles once it is gone",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(0);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    glm::vec2 crowding = footOf(npc) + glm::vec2(12.0f, 0.0f);
+    float startedAt = footOf(npc).x;
+
+    for (int step = 0; step < 300; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, crowding);
+    }
+
+    REQUIRE(footOf(npc).x < startedAt);
+    REQUIRE(glm::distance(footOf(npc), crowding) > 40.0f);
+
+    float ranTo = footOf(npc).x;
+    for (int step = 0; step < 600; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level);
+    }
+
+    REQUIRE(footOf(npc).x != ranTo);
+}
+
+TEST_CASE("The shipped villager never freezes out in the open on its platform",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(1);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    constexpr float LeftEnd = 16.0f, RightEnd = 112.0f;
+    auto outInTheOpen = [](float x)
+    {
+        return std::min(std::abs(x - LeftEnd), std::abs(x - RightEnd)) > 10.0f;
+    };
+
+    glm::vec2 chasing = footOf(npc) + glm::vec2(8.0f, 0.0f);
+    float previousX = footOf(npc).x;
+    int standingStill = 0, longestOutInTheOpen = 0;
+
+    for (int step = 0; step < 500; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, chasing);
+
+        chasing.x = std::max(16.0f, chasing.x - 1.1f);
+
+        standingStill = std::abs(footOf(npc).x - previousX) < 0.01f ? standingStill + 1 : 0;
+        if (outInTheOpen(footOf(npc).x))
+            longestOutInTheOpen = std::max(longestOutInTheOpen, standingStill);
+        previousX = footOf(npc).x;
+    }
+
+    REQUIRE(longestOutInTheOpen < 100);
+}
+
+TEST_CASE("The shipped villager holds its ground while the player shares its platform",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(1);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    glm::vec2 cornering(112.0f, 96.0f);
+    for (int step = 0; step < 600; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, cornering);
+    }
+
+    float cowering = footOf(npc).x;
+    REQUIRE(cowering < 32.0f);
+
+    float wandered = cowering;
+    for (int step = 0; step < 400; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, cornering);
+        wandered = std::max(wandered, footOf(npc).x);
+    }
+
+    REQUIRE(wandered < 48.0f);
+
+    for (int step = 0; step < 600; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, glm::vec2(112.0f, 192.0f));
+    }
+
+    REQUIRE(footOf(npc).x > cowering + 16.0f);
+}
+
+TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(1);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    glm::vec2 driving(8.0f, 96.0f);
+    int flips = 0;
+    bool wasFacingLeft = npc.getState().facingLeft;
+
+    for (int step = 0; step < 600; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, driving);
+
+        if (npc.getState().facingLeft != wasFacingLeft)
+            ++flips;
+        wasFacingLeft = npc.getState().facingLeft;
+    }
+
+    REQUIRE(footOf(npc).x > 96.0f);
+    REQUIRE(flips < 6);
+}
+
+TEST_CASE("The shipped villager pays no mind to a player on the platform below",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(1);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
+    for (int step = 0; step < 1200; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, glm::vec2(footOf(npc).x, 128.0f));
+
+        leftMost = std::min(leftMost, footOf(npc).x);
+        rightMost = std::max(rightMost, footOf(npc).x);
+    }
+
+    REQUIRE(rightMost - leftMost > 64.0f);
 }

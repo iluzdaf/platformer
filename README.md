@@ -7,7 +7,7 @@ A simple 2D platformer built with OpenGL. This project is designed as a learning
 - **Data-driven design**
 - **Platformer mechanics**
 
-![alt text](https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnltbXlwdmw0eWM5OGo4ZzRjd3d3NXQzMXdxd3hhaGN5dzl4NHdweiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/AYZJkrDUkgunRRcqNP/giphy.gif)
+![alt text](https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExd3U5dDR2NDV4cm9pdWVkMXZ0eHp6ODk5bm5xZzUwenllbm01amZhbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fslaXwTBSjbDB9pQhk/giphy.gif)
 
 ## 🖥 Supported Setups
 

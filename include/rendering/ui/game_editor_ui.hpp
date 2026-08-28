@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include "rendering/ui/editor_commands.hpp"
+#include "rendering/ui/saveable.hpp"
 #include "rendering/ui/editor_section.hpp"
 
 struct ActorMotionState;
@@ -25,6 +26,9 @@ public:
 
     bool drawsPlayerAABBs() const;
 
+    void forget();
+
 private:
+    Saveable saveable;
     bool drawPlayerAABBs = false;
 };

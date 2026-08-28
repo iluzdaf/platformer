@@ -12,18 +12,6 @@
 #include "game/game_data.hpp"
 #include "rendering/ui/data_inspector.hpp"
 
-namespace
-{
-    template <class T, class Save> void drawSaveable(T &value, Save &&save)
-    {
-        if (ImGui::Button("save"))
-            save(value);
-
-        ImGui::Separator();
-        inspector::drawFields(value);
-    }
-}
-
 void GameEditorUi::draw(
     EditorSection section,
     GameData &gameData,
@@ -54,15 +42,15 @@ void GameEditorUi::draw(
 
     if (section == EditorSection::Game)
     {
-        drawSaveable(gameData.settings, saveGameSettings);
+        saveable.drawControls("game", gameData.settings, saveGameSettings);
+        ImGui::Separator();
+        inspector::drawFields(gameData.settings);
         return;
     }
 
     if (section == EditorSection::NpcTypes)
     {
-        if (ImGui::Button("save"))
-            saveNpcData(gameData.npcData);
-
+        saveable.drawControls("npcs", gameData.npcData, saveNpcData);
         ImGui::Separator();
         inspector::draw("types", gameData.npcData);
         return;
@@ -70,9 +58,7 @@ void GameEditorUi::draw(
 
     if (section == EditorSection::TilePalettes)
     {
-        if (ImGui::Button("save"))
-            saveTilePalettes(gameData.tilePalettes);
-
+        saveable.drawControls("palettes", gameData.tilePalettes, saveTilePalettes);
         ImGui::Separator();
         inspector::draw("palettes", gameData.tilePalettes);
         return;
@@ -86,7 +72,9 @@ void GameEditorUi::draw(
         ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
 
         ImGui::Separator();
-        drawSaveable(gameData.cameraData, saveCameraData);
+        saveable.drawControls("camera", gameData.cameraData, saveCameraData);
+        ImGui::Separator();
+        inspector::drawFields(gameData.cameraData);
         return;
     }
 
@@ -134,7 +122,14 @@ void GameEditorUi::draw(
     }
 
     ImGui::Separator();
-    drawSaveable(gameData.playerData, savePlayerData);
+    saveable.drawControls("player", gameData.playerData, savePlayerData);
+    ImGui::Separator();
+    inspector::drawFields(gameData.playerData);
+}
+
+void GameEditorUi::forget()
+{
+    saveable.forget();
 }
 bool GameEditorUi::drawsPlayerAABBs() const
 {

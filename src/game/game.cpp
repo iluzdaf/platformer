@@ -45,6 +45,8 @@ Game::Game(Window &window)
 
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
+    keyboardManager.registerKey(GLFW_KEY_F1);
+    showEditors = gameData.settings.debug;
     loadLevel(levels.getFirst());
 
     reloadTexture(std::string(assets::TileSetTexture));
@@ -121,6 +123,8 @@ void Game::frame(float deltaTime)
     keyboardManager.poll(window.getHandle());
     if (keyboardManager.isPressed(GLFW_KEY_P))
         paused ? play() : pause();
+    if (keyboardManager.isPressed(GLFW_KEY_F1))
+        showEditors = !showEditors;
     if (keyboardManager.isPressed(GLFW_KEY_S))
         step();
 
@@ -234,7 +238,7 @@ void Game::render()
             player->getState(),
             camera,
             paused},
-        gameData.settings.debug);
+        showEditors);
 
     debugAABBUi.draw(
         imGuiManager,
@@ -245,7 +249,7 @@ void Game::render()
         editorUi.drawsPlayerAABBs(),
         editorUi.drawsTileMapAABBs());
 
-    if (gameData.settings.debug)
+    if (showEditors)
         editorUi.drawOverlays(imGuiManager, camera, *level.get());
 
     imGuiManager.render();
@@ -263,6 +267,7 @@ void Game::resize(int windowWidth, int windowHeight)
 void Game::reload()
 {
     gameData = loadGameData();
+    editorUi.forget();
 
     window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
 

@@ -95,6 +95,11 @@ void EditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, 
     levelEditorUi.update(imGuiManager, camera, level);
 }
 
+void EditorUi::forget()
+{
+    gameEditorUi.forget();
+}
+
 bool EditorUi::drawsPlayerAABBs() const
 {
     return gameEditorUi.drawsPlayerAABBs();

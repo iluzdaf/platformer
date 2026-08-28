@@ -78,5 +78,5 @@ private:
     DebugAABBUi debugAABBUi;
     ScoreUi scoreUi;
     fteng::connection onLevelCompleteConnection;
-    bool paused = false, stepFrame = false;
+    bool paused = false, stepFrame = false, showEditors = false;
 };

@@ -44,6 +44,7 @@ public:
 
     EditorCommands commands;
 
+    void forget();
     bool drawsPlayerAABBs() const;
     bool drawsTileMapAABBs() const;
 

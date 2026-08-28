@@ -10,7 +10,7 @@
 #include <utility>
 #include "game/game.hpp"
 #include "game/game_data.hpp"
-#include "rendering/ui/editor_ui.hpp"
+#include "rendering/ui/game_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "actor/actor.hpp"
 #include "actor/actor_state.hpp"
@@ -25,16 +25,13 @@
 #include "window/window.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "rendering/sprite_renderer.hpp"
-#include "rendering/tile_map_renderer.hpp"
+#include "rendering/tile_map_drawing.hpp"
 #include "rendering/texture2d.hpp"
 
 Game::Game(Window &window)
     : window(window), gameData(loadGameData()),
       camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
-      imGuiManager(
-          window.getHandle(),
-          window.getFramebufferSize().x,
-          window.getFramebufferSize().y),
+      gameUi(window, window.getFramebufferSize().x, window.getFramebufferSize().y),
       levels(assets::pathTo(assets::LevelList))
 {
     window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
@@ -53,17 +50,17 @@ Game::Game(Window &window)
     reloadTexture(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
-    editorUi.commands.onPlay.connect([this] { play(); });
-    editorUi.commands.onPause.connect([this] { pause(); });
-    editorUi.commands.onStep.connect([this] { step(); });
-    editorUi.commands.onLoadLevel.connect([this](const std::string &levelPath)
+    gameUi.commands().onPlay.connect([this] { play(); });
+    gameUi.commands().onPause.connect([this] { pause(); });
+    gameUi.commands().onStep.connect([this] { step(); });
+    gameUi.commands().onLoadLevel.connect([this](const std::string &levelPath)
                                           { loadLevel(levelPath); });
-    editorUi.commands.onRespawn.connect([this] { rebuildPlayer(); });
-    editorUi.commands.onSettingsChanged.connect(
+    gameUi.commands().onRespawn.connect([this] { rebuildPlayer(); });
+    gameUi.commands().onSettingsChanged.connect(
         [this]
         { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });
-    editorUi.commands.onCameraChanged.connect([this] { camera.setZoom(gameData.cameraData.zoom); });
-    editorUi.commands.onSetFirstLevel.connect(
+    gameUi.commands().onCameraChanged.connect([this] { camera.setZoom(gameData.cameraData.zoom); });
+    gameUi.commands().onSetFirstLevel.connect(
         [this]
         {
             levels.setFirst(level->getPath());
@@ -128,8 +125,7 @@ void Game::frame(float deltaTime)
     luaScriptSystem.update(deltaTime);
     camera.update(deltaTime);
     screenTransition.update(deltaTime);
-    debugAABBUi.update(deltaTime);
-    editorUi.update(imGuiManager, camera, *level.get());
+    gameUi.update(deltaTime, *level.get(), camera);
 
     if (!paused || stepFrame)
     {
@@ -201,7 +197,7 @@ void Game::render()
 
     glm::mat4 projection = camera.getProjection();
 
-    tileMapRenderer.draw(
+    drawTileMap(
         spriteRenderer, level->getTileMap(), projection, *tileSetShader.get(), *tileSet.get());
 
     for (const Actor *actor : actors)
@@ -218,38 +214,18 @@ void Game::render()
             actorState.facingLeft);
     }
 
-    imGuiManager.newFrame();
-
-    scoreUi.draw(imGuiManager, scoringSystem, *tileSet.get());
-
-    editorUi.draw(
-        imGuiManager,
-        EditorSubject{
+    gameUi.draw(
+        GameUiSubject{
             gameData,
             *level.get(),
             npcs,
+            *player.get(),
             *tileSet.get(),
             levels.getFirst(),
-            player->getMotion().getState(),
-            player->getPosition(),
-            player->getState(),
             camera,
-            paused},
-        showEditors);
-
-    debugAABBUi.draw(
-        imGuiManager,
-        *player.get(),
-        level->getTileMap(),
-        level->getPlayerStartTile(),
-        camera,
-        editorUi.drawsPlayerAABBs(),
-        editorUi.drawsTileMapAABBs());
-
-    if (showEditors)
-        editorUi.drawOverlays(imGuiManager, camera, *level.get());
-
-    imGuiManager.render();
+            scoringSystem,
+            paused,
+            showEditors});
 
     screenTransition.draw(*screenTransitionShader.get());
 }
@@ -258,13 +234,13 @@ void Game::resize(int windowWidth, int windowHeight)
 {
     camera.resize(windowWidth, windowHeight);
 
-    imGuiManager.resize(windowWidth, windowHeight);
+    gameUi.resize(windowWidth, windowHeight);
 }
 
 void Game::reload()
 {
     gameData = loadGameData();
-    editorUi.forget();
+    gameUi.forget();
 
     window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
 

@@ -1,11 +1,11 @@
 #include <cassert>
-#include "rendering/tile_map_renderer.hpp"
+#include "rendering/tile_map_drawing.hpp"
 #include "rendering/sprite_renderer.hpp"
 #include "rendering/texture2d.hpp"
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
 
-void TileMapRenderer::draw(
+void drawTileMap(
     const SpriteRenderer &spriteRenderer,
     const TileMap &tileMap,
     const glm::mat4 &projection,

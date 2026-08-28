@@ -1,11 +1,13 @@
 #include <cmath>
 #include <algorithm>
+#include <optional>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <glm/geometric.hpp>
 #include "navigation/navigation_path.hpp"
+#include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 
 namespace

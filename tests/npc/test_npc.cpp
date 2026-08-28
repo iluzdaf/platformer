@@ -1,16 +1,26 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cmath>
 #include <filesystem>
+#include <string>
+#include <utility>
+#include <unordered_map>
 #include <vector>
 #include <glaze/glaze.hpp>
+#include "actor/abilities/move_ability_data.hpp"
+#include "actor/abilities/gravity_ability_data.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "npc/npc.hpp"
+#include "npc/npc_spawn_data.hpp"
+#include "npc/npc_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "game/game_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
+#include "tile_map/tile_palette.hpp"
 
 namespace
 {

@@ -1,4 +1,6 @@
 #include <filesystem>
+#include <string>
+#include <string_view>
 #include "assets/asset_paths.hpp"
 
 namespace assets

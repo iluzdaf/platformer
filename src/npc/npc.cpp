@@ -1,5 +1,10 @@
 #include "npc/npc.hpp"
+#include "actor/actor.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
+#include "npc/npc_data.hpp"
+#include <optional>
+#include <utility>
+#include <memory>
 
 Npc::Npc(const NpcData &data, std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
     : Actor(data.actorData)

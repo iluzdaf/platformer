@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include <cmath>
+#include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "input/input_intentions.hpp"

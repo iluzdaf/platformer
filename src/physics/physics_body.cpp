@@ -1,5 +1,7 @@
 #include <functional>
 #include "physics/physics_body.hpp"
+#include "physics/physics_body_data.hpp"
+#include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
 
 PhysicsBody::PhysicsBody(const PhysicsBodyData &data) : data(data)

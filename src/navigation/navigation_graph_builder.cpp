@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <optional>
 #include <map>
 #include <utility>
@@ -6,7 +7,13 @@
 #include <unordered_map>
 #include <vector>
 #include "navigation/navigation_graph_builder.hpp"
+#include "navigation/jump_arc.hpp"
 #include "navigation/jump_simulation.hpp"
+#include "navigation/navigation_profile.hpp"
+#include "tile_map/tile.hpp"
+#include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_node.hpp"
+#include "navigation/navigation_edge.hpp"
 #include "tile_map/tile_map.hpp"
 
 namespace

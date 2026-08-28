@@ -1,7 +1,9 @@
+#include <cassert>
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
 #include "rendering/shader.hpp"
 #include "rendering/shader_data.hpp"
 

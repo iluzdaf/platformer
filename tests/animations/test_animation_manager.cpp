@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
+#include "actor/actor_animation_state.hpp"
 #include "animations/animation_manager.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "animations/sprite_animation.hpp"
 #include "animations/sprite_animation_data.hpp"
 #include "actor/actor_motion_state.hpp"

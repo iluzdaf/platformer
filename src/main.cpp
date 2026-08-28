@@ -1,3 +1,4 @@
+#include <exception>
 #include <iostream>
 #include <sol/sol.hpp>
 #include "app/app.hpp"

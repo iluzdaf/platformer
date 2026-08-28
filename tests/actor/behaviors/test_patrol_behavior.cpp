@@ -1,7 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
+#include <optional>
+#include <utility>
+#include <cstddef>
 #include <vector>
+#include "actor/actor_behavior_context.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
+#include "navigation/navigation_edge.hpp"
+#include "actor/behaviors/patrol_behavior_data.hpp"
+#include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 
 namespace

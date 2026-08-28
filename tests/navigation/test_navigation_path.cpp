@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 #include <vector>
+#include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_graph.hpp"
 

@@ -1,9 +1,11 @@
 #include <cmath>
+#include <vector>
 #include "navigation/jump_simulation.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/abilities/ability_system.hpp"
 #include "input/input_intentions.hpp"
+#include "navigation/jump_arc.hpp"
 #include "physics/physics_body.hpp"
 #include "tile_map/tile_map.hpp"
 

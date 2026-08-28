@@ -1,7 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include <optional>
+#include <vector>
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "physics/aabb.hpp"
+#include "tile_map/tile_map.hpp"
+#include "tile_map/tile_data.hpp"
+#include "tile_map/tile_kind.hpp"
+#include "tile_map/tile_map_data.hpp"
+#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile.hpp"
 
 TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
 {

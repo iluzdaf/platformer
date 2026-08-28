@@ -1,6 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <optional>
+#include "actor/actor_behavior_context.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
+#include "navigation/navigation_edge.hpp"
+#include "actor/behaviors/flee_behavior_data.hpp"
+#include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 
 namespace

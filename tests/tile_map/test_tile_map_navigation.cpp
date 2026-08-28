@@ -1,11 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <string>
+#include <iterator>
+#include "npc/npc_spawn_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
+#include "tile_map/tile_map_data.hpp"
 
 namespace
 {

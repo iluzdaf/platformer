@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/abilities/wall_jump_ability.hpp"
 #include "input/input_intentions.hpp"

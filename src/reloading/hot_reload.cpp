@@ -1,5 +1,7 @@
+#include <exception>
 #include <functional>
 #include <iostream>
+#include <string>
 #include "reloading/hot_reload.hpp"
 #include "game/game.hpp"
 

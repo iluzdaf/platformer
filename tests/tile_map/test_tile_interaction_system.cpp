@@ -2,9 +2,11 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "tile_map/tile_data.hpp"
 #include "tile_map/tile_interaction_system.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/test_player_utils.hpp"
+#include "tile_map/tile_kind.hpp"
 
 TEST_CASE("Pickup", "[TileInteractionSystem]")
 {

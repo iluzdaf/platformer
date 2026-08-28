@@ -1,13 +1,31 @@
+#include <memory>
+#include <cstdlib>
+#include <algorithm>
+#include <optional>
 #include <stdexcept>
 #include <glaze/glaze.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string>
+#include <utility>
 #include "game/game.hpp"
+#include "cameras/camera2d.hpp"
+#include "actor/actor.hpp"
+#include "actor/actor_state.hpp"
 #include "game/level.hpp"
 #include "game/levels.hpp"
+#include "rendering/screen_transition.hpp"
+#include "rendering/shader.hpp"
+#include "npc/npc_spawn_data.hpp"
+#include "npc/npc.hpp"
 #include "rendering/shader_data.hpp"
 #include "assets/asset_paths.hpp"
+#include "window/window.hpp"
+#include "scripting/lua_script_system.hpp"
+#include "rendering/sprite_renderer.hpp"
+#include "rendering/tile_map_renderer.hpp"
+#include "rendering/texture2d.hpp"
 
 Game::Game(Window &window) : window(window), levels(assets::pathTo(assets::LevelList))
 {

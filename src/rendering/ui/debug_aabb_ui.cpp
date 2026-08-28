@@ -1,8 +1,10 @@
 #include "rendering/ui/debug_aabb_ui.hpp"
+#include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
 #include "cameras/camera2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
+#include <cstddef>
 
 void DebugAABBUi::draw(
     const ImGuiManager &imGuiManager,

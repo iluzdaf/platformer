@@ -1,4 +1,10 @@
 #include "player/player.hpp"
+#include "player/player_data.hpp"
+#include "input/intention_source.hpp"
+#include "actor/actor.hpp"
+#include <memory>
+#include "actor/behaviors/input_behavior.hpp"
+#include "actor/actor_motion_state.hpp"
 
 Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
     : Actor(data.actorData), data(data)

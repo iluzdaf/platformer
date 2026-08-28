@@ -1,11 +1,20 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include <cstddef>
+#include <exception>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
+#include "navigation/navigation_profile.hpp"
+#include "navigation/navigation_graph.hpp"
+#include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
+#include "npc/npc_spawn_data.hpp"
+#include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 

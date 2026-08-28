@@ -1,6 +1,10 @@
+#include <optional>
 #include <set>
 #include <string>
+#include <utility>
 #include "rendering/ui/navigation_overlay.hpp"
+#include "navigation/navigation_node.hpp"
+#include "navigation/navigation_edge.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "cameras/camera2d.hpp"

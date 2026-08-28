@@ -2,7 +2,6 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cmath>
 #include <filesystem>
-#include <set>
 #include <vector>
 #include <glaze/glaze.hpp>
 #include "npc/npc.hpp"
@@ -362,7 +361,8 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     REQUIRE(npc.getPosition().x == placed.x);
 }
 
-TEST_CASE("The shipped explorer patrols level6 without getting stuck", "[Npc][Level]")
+TEST_CASE("The shipped explorer walks level6 from the floor to the top and back",
+          "[Npc][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
@@ -371,9 +371,6 @@ TEST_CASE("The shipped explorer patrols level6 without getting stuck", "[Npc][Le
 
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    // On the left middle platform directly under the top one, so its first jump
-    // has a ceiling close above its head. Where the level happens to spawn it is
-    // a level editing decision, but this is the corner it has to cope with.
     // Built the way the game builds it, patrol and all, since where it walks
     // is the level's to say now.
     const NpcSpawnData &spawn = level.getNpcs().at(2);
@@ -383,10 +380,12 @@ TEST_CASE("The shipped explorer patrols level6 without getting stuck", "[Npc][Le
     Npc npc(gameData.npcData.at("explorer"), level.patrolFor(spawn));
     npc.setPosition(level.getTileMap().tileToWorldPosition(spawn.tilePosition));
 
-    std::set<int> surfacesStoodOn;
+    constexpr float TopPlatform = 96.0f;
+    constexpr float Floor = 192.0f;
+
+    bool startedOnTheFloor = false, reachedTheTop = false, cameBackDown = false;
     float previousX = npc.getPosition().x;
-    int standingStill = 0;
-    int longestStandingStill = 0;
+    int standingStill = 0, longestStandingStill = 0;
 
     for (int step = 0; step < 4000; ++step)
     {
@@ -396,14 +395,21 @@ TEST_CASE("The shipped explorer patrols level6 without getting stuck", "[Npc][Le
         if (!npc.getMotion().getState().contacts.onGround)
             continue;
 
-        surfacesStoodOn.insert(static_cast<int>(npc.getPosition().y));
+        float foot = npc.getPosition().y + 16.0f;
+        if (!reachedTheTop)
+            startedOnTheFloor = startedOnTheFloor || foot >= Floor;
+        if (startedOnTheFloor && std::abs(foot - TopPlatform) < 1.0f)
+            reachedTheTop = true;
+        if (reachedTheTop && foot >= Floor)
+            cameBackDown = true;
+
         standingStill = std::abs(npc.getPosition().x - previousX) < 0.01f ? standingStill + 1 : 0;
         longestStandingStill = std::max(longestStandingStill, standingStill);
         previousX = npc.getPosition().x;
     }
 
-    INFO("stood on " << surfacesStoodOn.size() << " surfaces, idle for up to "
-                     << longestStandingStill << " steps");
-    REQUIRE(surfacesStoodOn.size() >= 2);
+    REQUIRE(startedOnTheFloor);
+    REQUIRE(reachedTheTop);
+    REQUIRE(cameBackDown);
     REQUIRE(longestStandingStill < 100);
 }

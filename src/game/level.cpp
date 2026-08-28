@@ -317,15 +317,9 @@ std::optional<std::pair<glm::vec2, glm::vec2>> Level::patrolFor(const NpcSpawnDa
     if (!spawn.patrol)
         return std::nullopt;
 
-    float tileSize = static_cast<float>(tileMap.getTileSize());
-    auto standingIn = [tileSize](glm::ivec2 tilePosition)
-    {
-        return glm::vec2(
-            (static_cast<float>(tilePosition.x) + 0.5f) * tileSize,
-            static_cast<float>(tilePosition.y + 1) * tileSize);
-    };
-
-    return std::pair(standingIn(spawn.patrol->from), standingIn(spawn.patrol->to));
+    return std::pair(
+        tileMap.tileToBottomCenterPosition(spawn.patrol->from),
+        tileMap.tileToBottomCenterPosition(spawn.patrol->to));
 }
 
 const std::vector<NamedNavigationGraph> &Level::getGraphs() const
@@ -348,9 +342,14 @@ const NavigationGraph &Level::graphFor(const NavigationProfile &profile) const
     throw std::runtime_error("This level has no navigation graph for that actor");
 }
 
-glm::vec2 Level::getPlayerStartWorldPosition() const
+glm::ivec2 Level::getPlayerStartTile() const
 {
-    return tileMap.tileToWorldPosition(playerStartTilePosition);
+    return playerStartTilePosition;
+}
+
+glm::vec2 Level::getPlayerStartBottomCenter() const
+{
+    return tileMap.tileToBottomCenterPosition(playerStartTilePosition);
 }
 
 const std::string &Level::getNextLevel() const

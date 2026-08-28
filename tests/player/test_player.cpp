@@ -576,7 +576,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
 
     constexpr float GapLeft = 5 * 16.0f;
     constexpr float GapRight = 8 * 16.0f;
-    glm::vec2 start = level.getTileMap().tileToWorldPosition(levelData.playerStartTilePosition);
+    glm::vec2 start = level.getTileMap().tileToBottomCenterPosition(levelData.playerStartTilePosition);
 
     auto runsAtItWith = [&](bool useDash)
     {
@@ -585,7 +585,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
         {
             ScriptedIntentions input;
             Player player(gameData.playerData, input);
-            player.setPosition(start);
+            player.setBottomCenterPosition(start);
 
             FixedTimeStep timestepper;
             bool triggered = false;

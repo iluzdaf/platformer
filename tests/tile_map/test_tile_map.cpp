@@ -171,3 +171,13 @@ TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]
 
     REQUIRE(result == true);
 }
+
+TEST_CASE("TileMap names the spot an actor stands on inside a tile", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+
+    glm::vec2 standingIn = tileMap.tileToBottomCenterPosition(glm::ivec2(3, 4));
+
+    REQUIRE(standingIn.x == 3 * 16.0f + 8.0f);
+    REQUIRE(standingIn.y == 5 * 16.0f);
+}

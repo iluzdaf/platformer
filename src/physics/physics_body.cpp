@@ -47,6 +47,11 @@ glm::vec2 PhysicsBody::getBottomCenterOffset() const
     return getColliderOffset() + glm::vec2(getColliderSize().x * 0.5f, getColliderSize().y);
 }
 
+void PhysicsBody::setBottomCenterPosition(const glm::vec2 &bottomCenterPosition)
+{
+    setPosition(bottomCenterPosition - getBottomCenterOffset());
+}
+
 void PhysicsBody::resolveCollisionAgainstTile(
     const AABB &proposedAABB,
     const AABB &tileAABB,

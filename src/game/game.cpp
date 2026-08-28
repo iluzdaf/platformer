@@ -292,7 +292,7 @@ void Game::render()
         *imGuiManager.get(),
         *player.get(),
         level->getTileMap(),
-        level->getPlayerStartWorldPosition(),
+        level->getTileMap().tileToWorldPosition(level->getPlayerStartTile()),
         *camera.get(),
         gameEditorUi.drawsPlayerAABBs(),
         levelEditorUi.drawsTileMapAABBs());
@@ -404,7 +404,7 @@ void Game::rebuildPlayer()
 
     std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
     player = std::move(newPlayer);
-    player->setPosition(level->getPlayerStartWorldPosition());
+    player->setBottomCenterPosition(level->getPlayerStartBottomCenter());
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()
@@ -437,7 +437,8 @@ void Game::rebuildNpcs()
         auto it = gameData.npcData.find(spawn.type);
 
         std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second, level->patrolFor(spawn));
-        newNpc->setPosition(level->getTileMap().tileToWorldPosition(spawn.tilePosition));
+        newNpc->setBottomCenterPosition(
+            level->getTileMap().tileToBottomCenterPosition(spawn.tilePosition));
         npcs.push_back(std::move(newNpc));
     }
 

@@ -34,7 +34,8 @@ public:
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolFor(const NpcSpawnData &spawn) const;
     void rebuildGraphs();
 
-    glm::vec2 getPlayerStartWorldPosition() const;
+    glm::ivec2 getPlayerStartTile() const;
+    glm::vec2 getPlayerStartBottomCenter() const;
     const std::string &getNextLevel() const;
     const std::vector<NpcSpawnData> &getNpcs() const;
     const std::string &getPath() const;

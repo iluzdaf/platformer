@@ -23,7 +23,7 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath)
                            "loadLevel", &Game::loadLevel,
                            "rebuildPlayer", &Game::rebuildPlayer);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
-    lua.new_usertype<Level>("Level", "getPlayerStartWorldPosition", &Level::getPlayerStartWorldPosition,
+    lua.new_usertype<Level>("Level", "getPlayerStartBottomCenter", &Level::getPlayerStartBottomCenter,
                             "getNextLevel", &Level::getNextLevel);
     lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition);
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);

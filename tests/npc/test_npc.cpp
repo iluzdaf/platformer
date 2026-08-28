@@ -154,8 +154,8 @@ TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
 
     Npc left(setupNpcData());
     Npc right(setupNpcData());
-    left.setPosition(tileMap.tileToWorldPosition(glm::ivec2(0, 5)));
-    right.setPosition(tileMap.tileToWorldPosition(glm::ivec2(9, 5)));
+    left.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(glm::ivec2(0, 5)));
+    right.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(glm::ivec2(9, 5)));
 
     float leftStartX = footX(left);
     float rightStartX = footX(right);
@@ -258,7 +258,7 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
                           << " in " << entry.path().filename().string() << " has nowhere to walk");
 
             Npc npc(setupNpcData());
-            npc.setPosition(tileMap.tileToWorldPosition(spawn.tilePosition));
+            npc.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(spawn.tilePosition));
 
             float startX = npc.getPosition().x;
             stepNpc(npc, level, 400);
@@ -306,7 +306,7 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
     Level level = setupTwoTierLevel();
     const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
-    npc.setPosition(tileMap.tileToWorldPosition(UnderThePlatform));
+    npc.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(UnderThePlatform));
 
     float lowest = footX(npc);
     float highest = footX(npc);
@@ -327,7 +327,7 @@ TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
     Level level = setupTwoTierLevel();
     const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
-    npc.setPosition(tileMap.tileToWorldPosition(UnderThePlatform));
+    npc.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(UnderThePlatform));
 
     std::vector<float> footXs = patrolFootXs(npc, level, 4000);
 
@@ -376,7 +376,7 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
     REQUIRE(spawn.patrol);
 
     Npc npc(gameData.npcData.at("explorer"), level.patrolFor(spawn));
-    npc.setPosition(level.getTileMap().tileToWorldPosition(spawn.tilePosition));
+    npc.setBottomCenterPosition(level.getTileMap().tileToBottomCenterPosition(spawn.tilePosition));
 
     constexpr float TopPlatform = 96.0f;
     constexpr float Floor = 192.0f;

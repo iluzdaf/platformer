@@ -1,3 +1,4 @@
+#include <string_view>
 #include <cstddef>
 #include <glm/geometric.hpp>
 #include <optional>
@@ -137,9 +138,7 @@ InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorBehavio
     return states[activeState]->decide(deltaTime, context);
 }
 
-const std::string &StateMachineBehavior::getStateName() const
+std::string_view StateMachineBehavior::getStateName() const
 {
-    static const std::string nowhere;
-
-    return states.empty() ? nowhere : data.states[activeState].name;
+    return states.empty() ? std::string_view{} : data.states[activeState].name;
 }

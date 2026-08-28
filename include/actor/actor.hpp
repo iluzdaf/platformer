@@ -29,6 +29,7 @@ public:
     const PhysicsBody &getPhysicsBody() const;
     const glm::vec2 &getPosition() const;
     const NavigationProfile &getNavigationProfile() const;
+    std::string_view getStateName() const;
     void setPosition(const glm::vec2 &position);
 
 protected:

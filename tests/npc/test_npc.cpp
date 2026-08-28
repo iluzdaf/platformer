@@ -604,3 +604,46 @@ TEST_CASE("The shipped villager pays no mind to a player on the platform below",
 
     REQUIRE(rightMost - leftMost > 64.0f);
 }
+
+TEST_CASE("An npc says which state it is in", "[Npc][Level]")
+{
+    GameData gameData = loadGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(1);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    REQUIRE(npc.getStateName() == "patrol");
+
+    for (int step = 0; step < 20; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, footOf(npc) + glm::vec2(8.0f, 0.0f));
+    }
+
+    REQUIRE(npc.getStateName() == "flee");
+
+    for (int step = 0; step < 400; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, glm::vec2(112.0f, 192.0f));
+    }
+
+    REQUIRE(npc.getStateName() == "patrol");
+}
+
+TEST_CASE("An npc with no behavior names no state", "[Npc]")
+{
+    NpcData npcData = setupNpcData();
+    npcData.stateMachineBehaviorData.reset();
+
+    Npc npc(npcData);
+
+    REQUIRE(npc.getStateName().empty());
+}

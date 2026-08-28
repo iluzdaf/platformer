@@ -1,3 +1,4 @@
+#include <memory>
 #include <algorithm>
 #include <string>
 #include <cstddef>
@@ -7,6 +8,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#include "npc/npc.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "navigation/navigation_edge.hpp"
@@ -53,6 +55,7 @@ namespace
 void LevelEditorUi::draw(
     EditorSection section,
     Level &level,
+    const std::vector<std::unique_ptr<Npc>> &npcs,
     const Texture2D &tileSet,
     const std::string &firstLevel)
 {
@@ -63,7 +66,7 @@ void LevelEditorUi::draw(
         break;
 
     case EditorSection::NpcsInLevel:
-        drawNpcs(level);
+        drawNpcs(level, npcs);
         break;
 
     case EditorSection::TileMap:
@@ -132,17 +135,50 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
     }
 }
 
-void LevelEditorUi::drawNpcs(const Level &level)
+void LevelEditorUi::drawNpcs(const Level &level, const std::vector<std::unique_ptr<Npc>> &npcs)
 {
-    const std::vector<NpcSpawnData> &npcs = level.getNpcs();
-    if (npcs.empty())
+    const std::vector<NpcSpawnData> &spawns = level.getNpcs();
+    if (spawns.empty())
     {
         ImGui::TextDisabled("none");
         return;
     }
 
-    for (const NpcSpawnData &npc : npcs)
-        ImGui::TextUnformatted(npc.type.c_str());
+    for (size_t index = 0; index < spawns.size(); ++index)
+    {
+        const NpcSpawnData &spawn = spawns[index];
+        const Npc *npc = index < npcs.size() ? npcs[index].get() : nullptr;
+
+        ImGui::PushID(static_cast<int>(index));
+        std::string_view state = npc ? npc->getStateName() : std::string_view{};
+        std::string heading = spawn.type;
+        if (!state.empty())
+            heading += " - " + std::string(state);
+
+        if (ImGui::TreeNodeEx(heading.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Text("spawns at %d,%d", spawn.tilePosition.x, spawn.tilePosition.y);
+
+            if (spawn.patrol)
+                ImGui::Text(
+                    "beat %d,%d to %d,%d",
+                    spawn.patrol->from.x,
+                    spawn.patrol->from.y,
+                    spawn.patrol->to.x,
+                    spawn.patrol->to.y);
+            else
+                ImGui::TextDisabled("no beat");
+
+            if (npc)
+                ImGui::Text("at %.0f,%.0f", npc->getPosition().x, npc->getPosition().y);
+            else
+                ImGui::TextDisabled("not spawned");
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
 }
 
 void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet)

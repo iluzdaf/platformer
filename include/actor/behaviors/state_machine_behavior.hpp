@@ -17,7 +17,7 @@ public:
         std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween = std::nullopt);
     void reset() override;
     InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
-    const std::string &getStateName() const;
+    std::string_view getStateName() const override;
 
 private:
     StateMachineBehaviorData data;

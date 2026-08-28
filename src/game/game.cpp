@@ -120,7 +120,7 @@ void Game::frame(float deltaTime)
 {
     keyboardManager.poll(window.getHandle());
     if (keyboardManager.isPressed(GLFW_KEY_P))
-        play();
+        paused ? play() : pause();
     if (keyboardManager.isPressed(GLFW_KEY_S))
         step();
 

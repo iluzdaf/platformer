@@ -34,20 +34,19 @@ void GameEditorUi::draw(
 {
     if (section == EditorSection::Playback)
     {
-        bool playing = !paused;
-        if (ImGui::Checkbox("playing", &playing))
+        if (ImGui::Button(paused ? "play" : "pause", ImVec2(60.0f, 0.0f)))
         {
-            if (playing)
+            if (paused)
                 onPlay();
             else
                 onPause();
         }
 
         ImGui::SameLine();
-        ImGui::BeginDisabled(playing);
-        if (ImGui::Button("step"))
+        if (ImGui::Button("step", ImVec2(60.0f, 0.0f)))
             onStep();
-        ImGui::EndDisabled();
+
+        ImGui::TextDisabled("%s", paused ? "stopped" : "running");
         return;
     }
 

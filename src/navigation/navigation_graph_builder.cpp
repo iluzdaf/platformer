@@ -330,15 +330,18 @@ namespace
         int toId = 0;
         std::vector<glm::vec2> path;
         float holdDuration = 0.0f;
-        float reach = 0.0f;
+        float gap = 0.0f;
     };
 
-    bool easierThan(const JumpCandidate &candidate, const JumpCandidate &against)
+    // Nearest what it lands on, then whichever asks less of the actor. Picking
+    // the shortest hold first lands wherever that happens to reach, which is
+    // not the jump the take off was chosen for.
+    bool landsBetterThan(const JumpCandidate &candidate, const JumpCandidate &against)
     {
-        if (candidate.holdDuration != against.holdDuration)
-            return candidate.holdDuration < against.holdDuration;
+        if (candidate.gap != against.gap)
+            return candidate.gap < against.gap;
 
-        return candidate.reach < against.reach;
+        return candidate.holdDuration < against.holdDuration;
     }
 
     void addJumpEdges(
@@ -382,14 +385,14 @@ namespace
                     if (components.at(fromId) == components.at(*toId))
                         continue;
 
-                    float reach =
-                        std::abs(navigationGraph.getNode(*toId).position.x - takeOff.x);
+                    float gap = std::abs(landing->path.back().x -
+                                         navigationGraph.getNode(*toId).position.x);
 
-                    JumpCandidate candidate{*toId, landing->path, arc.holdDuration, reach};
+                    JumpCandidate candidate{*toId, landing->path, arc.holdDuration, gap};
 
                     std::pair<int, int> platform(fromId, components.at(*toId));
                     auto found = easiest.find(platform);
-                    if (found != easiest.end() && !easierThan(candidate, found->second))
+                    if (found != easiest.end() && !landsBetterThan(candidate, found->second))
                         continue;
 
                     easiest[platform] = candidate;
@@ -553,11 +556,14 @@ namespace
                 couldJump.push_back(node.position);
         }
 
-        // Where a jump up to the ledge comes down, made from where it is
-        // standing, if it gets there at all.
+        // The nearest a jump up to the ledge comes down to it, over every hold
+        // an actor could give it. Taking the first hold that works instead
+        // measures a jump that is not the one the graph goes on to use.
         auto landingOnTheLedge = [&](glm::vec2 from, glm::vec2 ledge) -> std::optional<glm::vec2>
         {
             float towards = ledge.x > from.x ? 1.0f : -1.0f;
+            std::optional<glm::vec2> nearest;
+
             for (const JumpArc &arc : profile.jumpArcs)
             {
                 JumpAttempt attempt = simulateJumpAgainst(
@@ -572,12 +578,17 @@ namespace
                 // is no use as a destination though: there is no ground under
                 // the middle of the feet, so nothing owns the spot.
                 glm::ivec2 underfoot = tileMap.worldToTilePosition(attempt.path.back());
-                if (tileMap.validTilePosition(underfoot) &&
-                    tileMap.getTileAtTilePosition(underfoot).isSolid() &&
-                    canStandOn(tileMap, underfoot, headroom))
-                    return attempt.path.back();
+                if (!tileMap.validTilePosition(underfoot) ||
+                    !tileMap.getTileAtTilePosition(underfoot).isSolid() ||
+                    !canStandOn(tileMap, underfoot, headroom))
+                    continue;
+
+                if (!nearest || std::abs(attempt.path.back().x - ledge.x) <
+                                    std::abs(nearest->x - ledge.x))
+                    nearest = attempt.path.back();
             }
-            return std::nullopt;
+
+            return nearest;
         };
 
         float step = profile.colliderSize.x;

@@ -9,8 +9,9 @@ backwards from whatever changed and prints the .cpp files that reach it.
 
 With no --since it prints every .cpp. So does a change to the rules themselves,
 since those judge every translation unit and none can be assumed to have been read
-under the new ones. Only quoted includes are followed, so system and external
-headers are ignored.
+under the new ones. Registering a source file in CMakeLists does not count, being
+a list rather than a rule. Only quoted includes are followed, so system and
+external headers are ignored.
 """
 
 import argparse
@@ -24,6 +25,11 @@ ROOTS = ("src", "include", "tests")
 # Change any of these and every translation unit is judged by different rules,
 # so none of them can be trusted to have been checked under the new ones.
 RULES = (".clang-tidy", ".llvm-version", "CMakeLists.txt", "tools/tidy_targets.py")
+
+# CMakeLists is on that list for the flags it sets, not for the file lists it
+# keeps. Registering a new source changes how nothing else is compiled, and
+# every branch that adds a file would otherwise sweep the tree.
+SOURCE_LINE = re.compile(r"^[+-]\s*(src|tests|include)/\S+\.(cpp|hpp|c|h)\s*$")
 
 INCLUDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"', re.MULTILINE)
 
@@ -65,16 +71,40 @@ def reaching(changed, users):
     return found
 
 
-def changedSince(ref):
-    merged = subprocess.run(
-        ["git", "merge-base", ref, "HEAD"], capture_output=True, text=True)
-    against = merged.stdout.strip() if merged.returncode == 0 else ref
+def branchedFrom(ref):
+    merged = subprocess.run(["git", "merge-base", ref, "HEAD"], capture_output=True, text=True)
 
+    return merged.stdout.strip() if merged.returncode == 0 else ref
+
+
+def changedSince(against):
     listed = subprocess.run(
         ["git", "diff", "--name-only", against, "--"] + list(ROOTS) + list(RULES),
         capture_output=True, text=True, check=True)
 
     return [Path(name) for name in listed.stdout.split()]
+
+
+def rulesChanged(changed, against):
+    touched = sorted(str(path) for path in changed if str(path) in RULES)
+    if not touched:
+        return False
+
+    if touched != ["CMakeLists.txt"]:
+        return True
+
+    written = subprocess.run(
+        ["git", "diff", "-U0", against, "--", "CMakeLists.txt"],
+        capture_output=True, text=True, check=True).stdout
+
+    for line in written.splitlines():
+        if line.startswith(("+++", "---")) or not line.startswith(("+", "-")):
+            continue
+
+        if not SOURCE_LINE.match(line):
+            return True
+
+    return False
 
 
 def main():
@@ -87,8 +117,9 @@ def main():
         print("\n".join(str(path) for path in paths if path.suffix == ".cpp"))
         return 0
 
-    changed = changedSince(arguments.since)
-    if any(str(path) in RULES for path in changed):
+    against = branchedFrom(arguments.since)
+    changed = changedSince(against)
+    if rulesChanged(changed, against):
         print("\n".join(str(path) for path in paths if path.suffix == ".cpp"))
         return 0
 

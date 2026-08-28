@@ -123,3 +123,25 @@ TEST_CASE("Starting again restarts the clock", "[CameraShake]")
     shakeFor(shake, 9);
     REQUIRE(shake.isActive());
 }
+
+TEST_CASE("Dies down rather than stopping dead", "[CameraShake]")
+{
+    CameraShake shake(Seed);
+    shake.start(1.0f, 4.0f);
+
+    auto furthestIn = [](const std::vector<glm::vec2> &offsets)
+    {
+        float furthest = 0.0f;
+        for (glm::vec2 offset : offsets)
+            furthest = std::max({furthest, std::abs(offset.x), std::abs(offset.y)});
+
+        return furthest;
+    };
+
+    float atTheStart = furthestIn(shakeFor(shake, 33));
+    furthestIn(shakeFor(shake, 33));
+    float atTheEnd = furthestIn(shakeFor(shake, 33));
+
+    REQUIRE(atTheStart > 3.0f);
+    REQUIRE(atTheEnd < 1.5f);
+}

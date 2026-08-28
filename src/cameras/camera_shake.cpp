@@ -29,7 +29,9 @@ glm::vec2 CameraShake::getOffset(float deltaTime)
         return glm::vec2(0.0f);
     }
 
-    return glm::vec2(offsets(generator) * magnitude, offsets(generator) * magnitude);
+    float fading = magnitude * (1.0f - timeElapsed / duration);
+
+    return glm::vec2(offsets(generator) * fading, offsets(generator) * fading);
 }
 
 bool CameraShake::isActive() const

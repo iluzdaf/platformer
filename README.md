@@ -159,7 +159,7 @@ Every platform builds the same way, from `CMakeLists.txt`.
 |---|---|
 | [CMakeLists.txt](CMakeLists.txt) | the `platformer_lib`, `platformer` and `tests` targets, and the compile database, linked to the repository root from whichever of `build/Debug` or `build/Release` you configured last |
 | [.vscode/extensions.json](.vscode/extensions.json) | CMake Tools to build, clangd for code intelligence, C/C++ for the debugger |
-| [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension's IntelliSense |
+| [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension's IntelliSense and formatter |
 | [.clang-format](.clang-format) | formatting, applied on save |
 | [.clang-tidy](.clang-tidy) | naming and includes, applied on save |
 | [.llvm-version](.llvm-version) | the LLVM the tools must come from |

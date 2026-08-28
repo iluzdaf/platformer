@@ -239,6 +239,9 @@ void Game::render()
         gameEditorUi.drawsPlayerAABBs(),
         levelEditorUi.drawsTileMapAABBs());
 
+    if (gameData.debug)
+        levelEditorUi.drawOverlay(imGuiManager, camera, *level.get());
+
     imGuiManager.render();
 
     screenTransition.draw(*screenTransitionShader.get());

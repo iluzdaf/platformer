@@ -1,50 +1,22 @@
-#include <memory>
-#include <algorithm>
 #include <string>
 #include <cstddef>
 #include <optional>
 #include <cstdint>
-#include <string_view>
 #include <tuple>
 #include <utility>
-#include <vector>
-#include "npc/npc.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
+#include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
-#include "navigation/navigation_edge.hpp"
-#include "navigation/named_navigation_graph.hpp"
-#include "navigation/navigation_node.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "rendering/ui/tile_map_overlays.hpp"
-#include "rendering/ui/navigation_overlay.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
-#include "navigation/navigation_graph.hpp"
-#include "navigation/navigation_path.hpp"
-#include "npc/npc_spawn_data.hpp"
 
 namespace
 {
-    std::string_view nameOf(EdgeType type)
-    {
-        switch (type)
-        {
-        case EdgeType::Walk:
-            return "walk";
-        case EdgeType::Jump:
-            return "jump";
-        case EdgeType::Fall:
-            return "fall";
-        case EdgeType::Climb:
-            return "climb";
-        }
-
-        return "?";
-    }
-
     std::string levelName(const std::string &levelPath)
     {
         std::string name = levelPath.substr(levelPath.find_last_of("/\\") + 1);
@@ -56,26 +28,18 @@ namespace
 void LevelEditorUi::draw(
     EditorSection section,
     Level &level,
-    const std::vector<std::unique_ptr<Npc>> &npcs,
     const Texture2D &tileSet,
-    const std::string &firstLevel)
+    const std::string &firstLevel,
+    EditorCommands &commands)
 {
     switch (section)
     {
     case EditorSection::Level:
-        drawLevel(level, firstLevel);
-        break;
-
-    case EditorSection::NpcsInLevel:
-        drawNpcs(level, npcs);
+        drawLevel(level, firstLevel, commands);
         break;
 
     case EditorSection::TileMap:
         drawTileMap(level, tileSet);
-        break;
-
-    case EditorSection::Navigation:
-        drawGraphs(level);
         break;
 
     default:
@@ -83,7 +47,7 @@ void LevelEditorUi::draw(
     }
 }
 
-void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
+void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel, EditorCommands &commands)
 {
     if (!editing)
     {
@@ -102,18 +66,18 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
         if (ImGui::Button("cancel"))
         {
             editing = false;
-            onLoadLevel(level.getPath());
+            commands.onLoadLevel(level.getPath());
             return;
         }
     }
 
     ImGui::Separator();
 
-    std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel);
+    std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel, commands);
     if (chosenLevel)
     {
         editing = false;
-        onLoadLevel(*chosenLevel);
+        commands.onLoadLevel(*chosenLevel);
         return;
     }
 
@@ -133,61 +97,6 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
 
             ImGui::EndCombo();
         }
-    }
-}
-
-void LevelEditorUi::drawNpcs(const Level &level, const std::vector<std::unique_ptr<Npc>> &npcs)
-{
-    const std::vector<NpcSpawnData> &spawns = level.getNpcs();
-    if (spawns.empty())
-    {
-        ImGui::TextDisabled("none");
-        return;
-    }
-
-    for (size_t index = 0; index < spawns.size(); ++index)
-    {
-        const NpcSpawnData &spawn = spawns[index];
-        const Npc *npc = index < npcs.size() ? npcs[index].get() : nullptr;
-
-        ImGui::PushID(static_cast<int>(index));
-        std::string_view state = npc ? npc->getStateName() : std::string_view{};
-        std::string heading = spawn.type;
-        if (!state.empty())
-            heading += " - " + std::string(state);
-
-        if (ImGui::TreeNodeEx(heading.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::Text("spawns at %d,%d", spawn.tilePosition.x, spawn.tilePosition.y);
-
-            if (spawn.patrol)
-            {
-                ImGui::Text(
-                    "beat %d,%d to %d,%d",
-                    spawn.patrol->from.x,
-                    spawn.patrol->from.y,
-                    spawn.patrol->to.x,
-                    spawn.patrol->to.y);
-
-                std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
-                if (npc && beat &&
-                    !canPatrolBetween(
-                        level.graphFor(npc->getNavigationProfile()), beat->first, beat->second))
-                    ImGui::TextColored(
-                        ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "it cannot get back from there");
-            }
-            else
-                ImGui::TextDisabled("no beat");
-
-            if (npc)
-                ImGui::Text("at %.0f,%.0f", npc->getPosition().x, npc->getPosition().y);
-            else
-                ImGui::TextDisabled("not spawned");
-
-            ImGui::TreePop();
-        }
-
-        ImGui::PopID();
     }
 }
 
@@ -272,7 +181,8 @@ void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet)
 
 std::optional<std::string> LevelEditorUi::drawLevelChooser(
     const Level &level,
-    const std::string &firstLevel)
+    const std::string &firstLevel,
+    EditorCommands &commands)
 {
     std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
     std::optional<std::string> chosen;
@@ -294,89 +204,10 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(
         ImGui::SameLine();
         bool isFirst = level.getPath() == firstLevel;
         if (ImGui::Checkbox("first", &isFirst) && isFirst)
-            onSetFirstLevel();
+            commands.onSetFirstLevel();
     }
 
     return chosen;
-}
-
-void LevelEditorUi::drawGraphs(const Level &level)
-{
-    if (!ImGui::CollapsingHeader("navigation", ImGuiTreeNodeFlags_DefaultOpen))
-        return;
-
-    const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
-    ImGui::Indent();
-    ImGui::Checkbox("render", &showNavigation);
-    ImGui::Checkbox("real trajectory", &drawTheFlightItself);
-
-    if (graphs.empty())
-    {
-        ImGui::TextDisabled("none");
-        ImGui::Unindent();
-        return;
-    }
-
-    if (selectedGraphIndex >= graphs.size())
-        selectedGraphIndex = 0;
-
-    const NamedNavigationGraph &shown = graphs[selectedGraphIndex];
-
-    ImGui::SetNextItemWidth(170.0f);
-    bool choosingGraph = false;
-    if (ImGui::BeginCombo("##graph", shown.name.c_str()))
-    {
-        for (size_t index = 0; index < graphs.size(); ++index)
-            if (ImGui::Selectable(graphs[index].name.c_str(), index == selectedGraphIndex))
-            {
-                selectedGraphIndex = index;
-                choosingGraph = true;
-            }
-
-        ImGui::EndCombo();
-    }
-
-    if (choosingGraph)
-    {
-        selectedNodeId.reset();
-        selectedEdge.reset();
-    }
-
-    std::vector<int> nodeIds;
-    for (const auto &[nodeId, node] : shown.graph.getNodes())
-        nodeIds.push_back(nodeId);
-    std::sort(nodeIds.begin(), nodeIds.end());
-
-    for (int nodeId : nodeIds)
-    {
-        ImGui::PushID(nodeId);
-        NavigationNode node = shown.graph.getNode(nodeId);
-        std::string nodeLabel = std::to_string(nodeId) + " at " +
-                                std::to_string(static_cast<int>(node.position.x)) + "," +
-                                std::to_string(static_cast<int>(node.position.y));
-
-        ImGuiTreeNodeFlags flags =
-            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-        if (selectedNodeId == nodeId)
-            flags |= ImGuiTreeNodeFlags_Selected;
-
-        bool open = ImGui::TreeNodeEx(nodeLabel.c_str(), flags);
-        if (!choosingGraph && ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-        {
-            selectedNodeId = nodeId;
-            selectedEdge.reset();
-        }
-
-        if (open)
-        {
-            drawEdgesOf(shown.graph, nodeId);
-            ImGui::TreePop();
-        }
-
-        ImGui::PopID();
-    }
-
-    ImGui::Unindent();
 }
 
 void LevelEditorUi::drawOverlay(
@@ -389,54 +220,6 @@ void LevelEditorUi::drawOverlay(
 
     if (drawTileInfo)
         ::drawTileInfo(imGuiManager, camera, level.getTileMap());
-
-    const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
-    if (!showNavigation || graphs.empty() || selectedGraphIndex >= graphs.size())
-        return;
-
-    drawNavigationGraph(
-        imGuiManager,
-        camera,
-        graphs[selectedGraphIndex].graph,
-        selectedNodeId,
-        selectedEdge,
-        drawTheFlightItself ? JumpsDrawnAs::TheFlightItself : JumpsDrawnAs::SmoothArc);
-}
-
-void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
-{
-    std::vector<std::pair<NavigationEdge, bool>> edges;
-    for (const NavigationEdge &edge : graph.getOutgoingEdges(nodeId))
-        edges.emplace_back(edge, true);
-
-    for (const NavigationEdge &edge : graph.getEdges())
-        if (edge.toId == nodeId)
-            edges.emplace_back(edge, false);
-
-    std::ranges::sort(
-        edges,
-        [](const auto &left, const auto &right)
-        {
-            const NavigationEdge &leftEdge = left.first;
-            const NavigationEdge &rightEdge = right.first;
-            return std::tie(leftEdge.type, left.second, leftEdge.fromId, leftEdge.toId) <
-                   std::tie(rightEdge.type, right.second, rightEdge.fromId, rightEdge.toId);
-        });
-
-    for (const auto &[edge, leaving] : edges)
-    {
-        ImGui::PushID(leaving ? edge.toId : -edge.fromId - 1);
-        std::pair<int, int> ends{edge.fromId, edge.toId};
-        std::string label = std::string(nameOf(edge.type)) + " " + std::to_string(edge.fromId) +
-                            " to " + std::to_string(edge.toId);
-
-        if (ImGui::Selectable(label.c_str(), selectedEdge == ends))
-        {
-            selectedEdge = ends;
-            selectedNodeId.reset();
-        }
-        ImGui::PopID();
-    }
 }
 
 bool LevelEditorUi::drawsTileMapAABBs() const

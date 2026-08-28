@@ -20,15 +20,23 @@ namespace
     }
 }
 
-bool EditorUi::begin(const ImGuiManager &imGuiManager, bool showEditors)
+void EditorUi::draw(
+    const ImGuiManager &imGuiManager,
+    const EditorSubject &subject,
+    bool showEditors)
 {
     if (!showEditors)
-        return false;
+        return;
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
-    ImGui::SetNextWindowPos(ImVec2(displaySize.x - InspectorWidth, 0));
-    ImGui::SetNextWindowSize(ImVec2(InspectorWidth, displaySize.y));
-    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+    ImGui::SetNextWindowPos(ImVec2(displaySize.x - InspectorWidth, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(InspectorWidth, displaySize.y), ImGuiCond_Always);
+
+    if (!ImGui::Begin("Editor", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+    {
+        ImGui::End();
+        return;
+    }
 
     ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::BeginCombo("##section", nameOf(section).data()))
@@ -42,15 +50,62 @@ bool EditorUi::begin(const ImGuiManager &imGuiManager, bool showEditors)
 
     ImGui::Separator();
 
-    return true;
-}
+    switch (section)
+    {
+    case EditorSection::Level:
+    case EditorSection::TileMap:
+        levelEditorUi.draw(section, subject.level, subject.tileSet, subject.firstLevel, commands);
+        break;
 
-void EditorUi::end()
-{
+    case EditorSection::NpcsInLevel:
+        npcsUi.draw(subject.level, subject.npcs);
+        break;
+
+    case EditorSection::Navigation:
+        navigationUi.draw(subject.level);
+        break;
+
+    default:
+        gameEditorUi.draw(
+            section,
+            subject.gameData,
+            subject.playerMotionState,
+            subject.playerPosition,
+            subject.playerState,
+            subject.camera,
+            subject.paused,
+            commands);
+        break;
+    }
+
     ImGui::End();
 }
 
-EditorSection EditorUi::getSection() const
+void EditorUi::drawOverlays(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Level &level) const
 {
-    return section;
+    levelEditorUi.drawOverlay(imGuiManager, camera, level);
+    navigationUi.drawOverlay(imGuiManager, camera, level);
+}
+
+void EditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level)
+{
+    levelEditorUi.update(imGuiManager, camera, level);
+}
+
+void EditorUi::forget()
+{
+    gameEditorUi.forget();
+}
+
+bool EditorUi::drawsPlayerAABBs() const
+{
+    return gameEditorUi.drawsPlayerAABBs();
+}
+
+bool EditorUi::drawsTileMapAABBs() const
+{
+    return levelEditorUi.drawsTileMapAABBs();
 }

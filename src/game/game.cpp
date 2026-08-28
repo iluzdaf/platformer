@@ -10,6 +10,7 @@
 #include <utility>
 #include "game/game.hpp"
 #include "game/game_data.hpp"
+#include "rendering/ui/editor_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "actor/actor.hpp"
 #include "actor/actor_state.hpp"
@@ -44,25 +45,25 @@ Game::Game(Window &window)
 
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
+    keyboardManager.registerKey(GLFW_KEY_F1);
+    showEditors = gameData.settings.debug;
     loadLevel(levels.getFirst());
 
     reloadTexture(std::string(assets::TileSetTexture));
     reloadTexture(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
-    gameEditorUi.onPlay.connect([this] { play(); });
-    gameEditorUi.onStep.connect([this] { step(); });
-    gameEditorUi.onToggleZoom.connect(
+    editorUi.commands.onPlay.connect([this] { play(); });
+    editorUi.commands.onPause.connect([this] { pause(); });
+    editorUi.commands.onStep.connect([this] { step(); });
+    editorUi.commands.onLoadLevel.connect([this](const std::string &levelPath)
+                                          { loadLevel(levelPath); });
+    editorUi.commands.onRespawn.connect([this] { rebuildPlayer(); });
+    editorUi.commands.onSettingsChanged.connect(
         [this]
-        {
-            static float originalZoom = camera.getZoom();
-            float currentZoom = camera.getZoom();
-            camera.setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom);
-        });
-    levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
-                                      { loadLevel(levelPath); });
-    gameEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
-    levelEditorUi.onSetFirstLevel.connect(
+        { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });
+    editorUi.commands.onCameraChanged.connect([this] { camera.setZoom(gameData.cameraData.zoom); });
+    editorUi.commands.onSetFirstLevel.connect(
         [this]
         {
             levels.setFirst(level->getPath());
@@ -118,7 +119,9 @@ void Game::frame(float deltaTime)
 {
     keyboardManager.poll(window.getHandle());
     if (keyboardManager.isPressed(GLFW_KEY_P))
-        play();
+        paused ? play() : pause();
+    if (keyboardManager.isPressed(GLFW_KEY_F1))
+        showEditors = !showEditors;
     if (keyboardManager.isPressed(GLFW_KEY_S))
         step();
 
@@ -126,7 +129,7 @@ void Game::frame(float deltaTime)
     camera.update(deltaTime);
     screenTransition.update(deltaTime);
     debugAABBUi.update(deltaTime);
-    levelEditorUi.update(imGuiManager, camera, *level.get());
+    editorUi.update(imGuiManager, camera, *level.get());
 
     if (!paused || stepFrame)
     {
@@ -219,22 +222,20 @@ void Game::render()
 
     scoreUi.draw(imGuiManager, scoringSystem, *tileSet.get());
 
-    if (editorUi.begin(imGuiManager, gameData.settings.debug))
-    {
-        levelEditorUi.draw(
-            editorUi.getSection(), *level.get(), npcs, *tileSet.get(), levels.getFirst());
-
-        gameEditorUi.draw(
-            editorUi.getSection(),
+    editorUi.draw(
+        imGuiManager,
+        EditorSubject{
+            gameData,
+            *level.get(),
+            npcs,
+            *tileSet.get(),
+            levels.getFirst(),
             player->getMotion().getState(),
             player->getPosition(),
             player->getState(),
-            camera);
-
-        gameDataUi.draw(editorUi.getSection(), gameData);
-
-        editorUi.end();
-    }
+            camera,
+            paused},
+        showEditors);
 
     debugAABBUi.draw(
         imGuiManager,
@@ -242,11 +243,11 @@ void Game::render()
         level->getTileMap(),
         level->getPlayerStartTile(),
         camera,
-        gameEditorUi.drawsPlayerAABBs(),
-        levelEditorUi.drawsTileMapAABBs());
+        editorUi.drawsPlayerAABBs(),
+        editorUi.drawsTileMapAABBs());
 
-    if (gameData.settings.debug)
-        levelEditorUi.drawOverlay(imGuiManager, camera, *level.get());
+    if (showEditors)
+        editorUi.drawOverlays(imGuiManager, camera, *level.get());
 
     imGuiManager.render();
 
@@ -263,6 +264,7 @@ void Game::resize(int windowWidth, int windowHeight)
 void Game::reload()
 {
     gameData = loadGameData();
+    editorUi.forget();
 
     window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
 

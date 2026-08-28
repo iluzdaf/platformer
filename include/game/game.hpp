@@ -15,11 +15,8 @@
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/screen_transition.hpp"
 #include "rendering/ui/editor_ui.hpp"
-#include "rendering/ui/game_data_ui.hpp"
-#include "rendering/ui/game_editor_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
-#include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/score_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
@@ -78,11 +75,8 @@ private:
     ImGuiManager imGuiManager;
     Levels levels;
     EditorUi editorUi;
-    GameDataUi gameDataUi;
-    GameEditorUi gameEditorUi;
     DebugAABBUi debugAABBUi;
-    LevelEditorUi levelEditorUi;
     ScoreUi scoreUi;
     fteng::connection onLevelCompleteConnection;
-    bool paused = false, stepFrame = false;
+    bool paused = false, stepFrame = false, showEditors = false;
 };

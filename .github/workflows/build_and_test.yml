@@ -30,8 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # Only Linux opens one: *.png is all that is in lfs, and the only test
-          # touching one sits behind SKIP_OPENGL_TESTS, which the other two define.
           lfs: ${{ runner.os == 'Linux' }}
           submodules: false
 

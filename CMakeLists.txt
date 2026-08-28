@@ -98,6 +98,8 @@ add_library(platformer_lib OBJECT
     src/tile_map/tile_interaction_system.cpp
     src/player/player.cpp
     src/actor/actor.cpp
+    src/app/app.cpp
+    src/window/window.cpp
     src/game/game.cpp
     src/game/level.cpp
     src/game/levels.cpp

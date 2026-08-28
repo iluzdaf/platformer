@@ -9,21 +9,19 @@
 #include "game/levels.hpp"
 #include "rendering/shader_data.hpp"
 
-Game::Game() : levels("../../assets/levels.json")
+Game::Game(Window &window) : window(window), levels("../../assets/levels.json")
 {
     gameData = loadGameData();
 
-    initGLFW(gameData.windowWidth, gameData.windowHeight);
-
-    initGlad();
+    window.setSize(gameData.windowWidth, gameData.windowHeight);
+    window.onResize.connect([this](int width, int height) { resize(width, height); });
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     luaScriptSystem = std::make_unique<LuaScriptSystem>();
-    int windowWidth, windowHeight;
-    glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
-    camera = std::make_unique<Camera2D>(gameData.cameraData, windowWidth, windowHeight);
+    glm::ivec2 framebuffer = window.getFramebufferSize();
+    camera = std::make_unique<Camera2D>(gameData.cameraData, framebuffer.x, framebuffer.y);
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
     levelWatcher.onLevelChanged.connect(
@@ -139,7 +137,7 @@ Game::Game() : levels("../../assets/levels.json")
             float currentZoom = camera->getZoom();
             camera->setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom);
         });
-    imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
+    imGuiManager = std::make_unique<ImGuiManager>(window.getHandle(), framebuffer.x, framebuffer.y);
     levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
                                       { loadLevel(levelPath); });
     levelEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
@@ -155,81 +153,61 @@ Game::Game() : levels("../../assets/levels.json")
     luaScriptSystem->triggerGameLoaded();
 }
 
-Game::~Game()
+Game::~Game() = default;
+
+void Game::frame(float deltaTime)
 {
-    if (window)
+    levelWatcher.process();
+    assetWatcher.process();
+    gameDataWatcher.process();
+    scriptWatcher.process();
+
+    keyboardManager.poll(window.getHandle());
+    if (keyboardManager.isPressed(GLFW_KEY_P))
+        play();
+    if (keyboardManager.isPressed(GLFW_KEY_S))
+        step();
+
+    luaScriptSystem->update(deltaTime);
+    camera->update(deltaTime);
+    screenTransition->update(deltaTime);
+    debugAABBUi.update(deltaTime);
+    levelEditorUi.update(*imGuiManager.get(), *camera.get(), *level.get());
+
+    if (!paused || stepFrame)
     {
-        glfwDestroyWindow(window);
-        window = nullptr;
-    }
+        preFixedUpdate();
 
-    glfwTerminate();
-}
-
-void Game::run()
-{
-    double lastTime = glfwGetTime();
-    while (!glfwWindowShouldClose(window))
-    {
-        double currentTime = glfwGetTime();
-        float deltaTime = static_cast<float>(currentTime - lastTime);
-        lastTime = currentTime;
-
-        levelWatcher.process();
-        assetWatcher.process();
-        gameDataWatcher.process();
-        scriptWatcher.process();
-
-        keyboardManager.poll(window);
-        if (keyboardManager.isPressed(GLFW_KEY_P))
-            play();
-        if (keyboardManager.isPressed(GLFW_KEY_S))
-            step();
-
-        luaScriptSystem->update(deltaTime);
-        camera->update(deltaTime);
-        screenTransition->update(deltaTime);
-        debugAABBUi.update(deltaTime);
-        levelEditorUi.update(*imGuiManager.get(), *camera.get(), *level.get());
-
-        if (!paused || stepFrame)
+        if (stepFrame)
         {
-            preFixedUpdate();
-
-            if (stepFrame)
-            {
-                float dt = std::min(deltaTime, 0.01f);
-                fixedUpdate(dt);
-                postFixedUpdate();
-                update(dt);
-            }
-            else
-            {
-                timestepper.run(
-                    deltaTime,
-                    [&](float dt)
-                    {
-                        fixedUpdate(dt);
-                        postFixedUpdate();
-                    });
-                update(deltaTime);
-            }
-
-            stepFrame = false;
+            float dt = std::min(deltaTime, 0.01f);
+            fixedUpdate(dt);
+            postFixedUpdate();
+            update(dt);
+        }
+        else
+        {
+            timestepper.run(
+                deltaTime,
+                [&](float dt)
+                {
+                    fixedUpdate(dt);
+                    postFixedUpdate();
+                });
+            update(deltaTime);
         }
 
-        camera->follow(player->getPosition());
-
-        render();
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        stepFrame = false;
     }
+
+    camera->follow(player->getPosition());
+
+    render();
 }
 
 void Game::preFixedUpdate()
 {
-    inputManager.process(window);
+    inputManager.process(window.getHandle());
 
     for (Actor *actor : actors)
         actor->preFixedUpdate();
@@ -323,38 +301,6 @@ void Game::resize(int windowWidth, int windowHeight)
     imGuiManager->resize(windowWidth, windowHeight);
 }
 
-void Game::initGLFW(int windowWidth, int windowHeight)
-{
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    window = glfwCreateWindow(windowWidth, windowHeight, "platformer", NULL, NULL);
-    if (!window)
-        throw std::runtime_error("Failed to create window");
-
-    glfwMakeContextCurrent(window);
-
-    glfwSwapInterval(1);
-
-    glfwSetWindowUserPointer(window, this);
-
-    glfwSetFramebufferSizeCallback(
-        window,
-        [](GLFWwindow *window, int windowWidth, int windowHeight)
-        {
-            if (Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window)))
-                game->resize(windowWidth, windowHeight);
-        });
-}
-
-void Game::initGlad()
-{
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        throw std::runtime_error("Failed to initialize GLAD");
-}
-
 GameData Game::loadGameData() const
 {
     GameData loaded;
@@ -368,7 +314,7 @@ void Game::reload()
 {
     gameData = loadGameData();
 
-    glfwSetWindowSize(window, gameData.windowWidth, gameData.windowHeight);
+    window.setSize(gameData.windowWidth, gameData.windowHeight);
 
     camera->setZoom(gameData.cameraData.zoom);
 

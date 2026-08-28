@@ -1,8 +1,16 @@
+#include <cmath>
+#include <functional>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <glaze/glaze.hpp>
 #include "tile_map/tile_map.hpp"
+#include "tile_map/tile_map_data.hpp"
+#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_data.hpp"
+#include "tile_map/tile_kind.hpp"
+#include "physics/aabb.hpp"
 
 TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
 {

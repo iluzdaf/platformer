@@ -3,6 +3,8 @@
 #include <fstream>
 #include <stdexcept>
 #include <glaze/glaze.hpp>
+#include <string>
+#include <vector>
 #include "game/levels.hpp"
 #include "assets/asset_paths.hpp"
 #include "game/levels_data.hpp"

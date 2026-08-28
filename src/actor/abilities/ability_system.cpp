@@ -9,6 +9,7 @@
 #include "actor/abilities/climb_ability.hpp"
 #include "actor/abilities/climb_move_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
+#include <memory>
 
 AbilitySystem::AbilitySystem(const ActorMotionData &data)
 {

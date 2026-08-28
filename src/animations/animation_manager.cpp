@@ -1,5 +1,8 @@
 #include "animations/animation_manager.hpp"
+#include "actor/actor_animation_state.hpp"
 #include "actor/actor_motion_state.hpp"
+#include <cstdlib>
+#include "animations/sprite_animation.hpp"
 
 void AnimationManager::update(float deltaTime, const ActorMotionState &motionState)
 {

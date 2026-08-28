@@ -1,6 +1,8 @@
+#include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "input/input_intentions.hpp"
+#include <algorithm>
 
 GravityAbility::GravityAbility(const GravityAbilityData &data) : data(data)
 {

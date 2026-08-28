@@ -1,5 +1,9 @@
 #include <glm/geometric.hpp>
+#include <optional>
 #include "actor/behaviors/flee_behavior.hpp"
+#include "actor/behaviors/flee_behavior_data.hpp"
+#include "actor/actor_behavior_context.hpp"
+#include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_path.hpp"
 

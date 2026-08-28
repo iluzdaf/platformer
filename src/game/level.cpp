@@ -1,11 +1,24 @@
 #include <algorithm>
+#include <cstddef>
 #include <fstream>
+#include <optional>
 #include <stdexcept>
 #include <glaze/glaze.hpp>
+#include <string>
+#include <vector>
+#include <utility>
+#include <unordered_map>
 #include "game/level.hpp"
 #include "assets/asset_paths.hpp"
+#include "game/level_data.hpp"
+#include "navigation/navigation_profile.hpp"
+#include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "navigation/navigation_graph_builder.hpp"
+#include "tile_map/tile_palette.hpp"
+#include "player/player_data.hpp"
+#include "npc/npc_data.hpp"
+#include "tile_map/tile.hpp"
 
 namespace
 {

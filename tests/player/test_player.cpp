@@ -1,15 +1,24 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <cstdlib>
 #include <glaze/glaze.hpp>
 #include <catch2/catch_approx.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include "actor/actor_motion_state.hpp"
+#include "actor/actor_animation_state.hpp"
+#include <vector>
 #include "physics/fixed_time_step.hpp"
 #include "input/input_intentions.hpp"
+#include "player/player.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/test_player_utils.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "test_helpers/asset_path.hpp"
 #include "game/game_data.hpp"
+#include "tile_map/tile_map.hpp"
+#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_kind.hpp"
 
 using Catch::Approx;
 

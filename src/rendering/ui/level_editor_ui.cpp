@@ -1,9 +1,16 @@
 #include <algorithm>
+#include <string>
+#include <cstddef>
+#include <optional>
+#include <cstdint>
 #include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>
 #include "rendering/ui/level_editor_ui.hpp"
+#include "navigation/navigation_edge.hpp"
+#include "navigation/named_navigation_graph.hpp"
+#include "navigation/navigation_node.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"

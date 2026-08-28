@@ -1,6 +1,11 @@
 #include <cassert>
+#include <optional>
 #include <stdexcept>
 #include "tile_map/tile.hpp"
+#include "tile_map/tile_data.hpp"
+#include "tile_map/tile_kind.hpp"
+#include "animations/tile_animation.hpp"
+#include "physics/aabb.hpp"
 
 Tile::Tile(int tileIndex, const TileData &tileData)
     : kind(tileData.kind), pickupReplaceIndex(tileData.pickupReplaceIndex),

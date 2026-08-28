@@ -1,19 +1,30 @@
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <filesystem>
+#include <optional>
 #include <set>
 #include <vector>
+#include "navigation/navigation_edge.hpp"
+#include "actor/abilities/move_ability_data.hpp"
+#include "actor/abilities/gravity_ability_data.hpp"
+#include "actor/abilities/jump_ability_data.hpp"
 #include "navigation/navigation_graph_builder.hpp"
 #include <glaze/glaze.hpp>
 #include "navigation/jump_simulation.hpp"
+#include "navigation/navigation_node.hpp"
 #include "navigation/navigation_path.hpp"
+#include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/game_data.hpp"
 #include "actor/actor_motion_data.hpp"
+#include "tile_map/tile_data.hpp"
+#include "tile_map/tile_kind.hpp"
 #include "tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
+#include "tile_map/tile_palette.hpp"
 
 namespace
 {

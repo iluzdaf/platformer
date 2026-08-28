@@ -3,7 +3,7 @@ HeaderFilterRegex: '.*'
 ExcludeHeaderFilterRegex: '.*/external/.*'
 CheckOptions:
   - key: misc-include-cleaner.MissingIncludes
-    value: 'false'
+    value: 'true'
   - key: misc-include-cleaner.UnusedIncludes
     value: 'true'
   - key: misc-include-cleaner.IgnoreHeaders

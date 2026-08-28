@@ -1,6 +1,9 @@
 #include "tile_map/tile_interaction_system.hpp"
+#include "physics/aabb.hpp"
 #include "player/player.hpp"
+#include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
+#include <cassert>
 
 void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 {

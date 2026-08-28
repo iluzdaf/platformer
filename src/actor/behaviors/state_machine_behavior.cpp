@@ -1,7 +1,15 @@
+#include <cstddef>
 #include <glm/geometric.hpp>
+#include <optional>
+#include <utility>
+#include <memory>
+#include <string>
 #include "actor/behaviors/state_machine_behavior.hpp"
+#include "actor/actor_behavior_context.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "input/input_intentions.hpp"
 #include "navigation/navigation_path.hpp"
 
 namespace

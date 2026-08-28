@@ -1,4 +1,5 @@
 #include "actor/actor_motion.hpp"
+#include "actor/actor_motion_data.hpp"
 #include "physics/physics_body.hpp"
 #include "tile_map/tile_map.hpp"
 

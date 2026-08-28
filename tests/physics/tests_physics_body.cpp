@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "physics/physics_body.hpp"
 #include "physics/fixed_time_step.hpp"
+#include "physics/physics_body_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 using Catch::Approx;
 

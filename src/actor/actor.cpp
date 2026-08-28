@@ -1,9 +1,17 @@
 #include "actor/actor.hpp"
+#include "actor/actor_animation_data.hpp"
+#include "actor/actor_animation_state.hpp"
+#include "animations/sprite_animation.hpp"
+#include "actor/actor_behavior_context.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "input/input_intentions.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include <optional>
+#include <memory>
+#include <utility>
 
 Actor::Actor(const ActorData &data)
     : motion(data.motionData), physicsBody(data.physicsBodyData),

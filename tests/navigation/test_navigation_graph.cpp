@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include <stdexcept>
 #include <unordered_set>
+#include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 
 TEST_CASE("Add Nodes and Edges", "[NavigationGraph]")

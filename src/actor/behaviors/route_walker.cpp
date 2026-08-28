@@ -1,7 +1,13 @@
 #include <algorithm>
 #include <cmath>
+#include <optional>
+#include <vector>
 #include "actor/behaviors/route_walker.hpp"
+#include "navigation/navigation_edge.hpp"
+#include "actor/actor_behavior_context.hpp"
+#include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_node.hpp"
 #include "navigation/navigation_path.hpp"
 
 namespace

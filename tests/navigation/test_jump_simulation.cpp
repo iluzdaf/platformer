@@ -1,10 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
+#include "actor/abilities/move_ability_data.hpp"
+#include "actor/abilities/gravity_ability_data.hpp"
+#include "actor/abilities/jump_ability_data.hpp"
 #include "navigation/jump_simulation.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "physics/physics_body_data.hpp"
 #include "tile_map/tile_map.hpp"
+#include <cstddef>
+#include "tile_map/tile_map_data.hpp"
 #include <vector>
 #include <cmath>
 

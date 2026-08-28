@@ -1,5 +1,7 @@
 #include <stdexcept>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string>
+#include <vector>
 #include "scripting/lua_script_system.hpp"
 #include "game/game.hpp"
 #include "game/level.hpp"

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "actor/abilities/climb_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/abilities/climb_ability.hpp"
 #include "input/input_intentions.hpp"

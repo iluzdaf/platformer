@@ -1,6 +1,10 @@
 #include <optional>
 #include <glm/geometric.hpp>
+#include <utility>
 #include "actor/behaviors/patrol_behavior.hpp"
+#include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/actor_behavior_context.hpp"
+#include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_path.hpp"
 

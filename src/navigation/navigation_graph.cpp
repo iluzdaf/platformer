@@ -1,5 +1,9 @@
 #include <stdexcept>
+#include <unordered_map>
+#include <vector>
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_node.hpp"
+#include "navigation/navigation_edge.hpp"
 
 void NavigationGraph::addNode(int id, glm::vec2 position, NodeKind kind)
 {

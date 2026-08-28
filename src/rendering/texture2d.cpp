@@ -1,4 +1,6 @@
 #include <stdexcept>
+#include <string>
+#include <utility>
 #include "rendering/texture2d.hpp"
 #include "stb_image.h"
 

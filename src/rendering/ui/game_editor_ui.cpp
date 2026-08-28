@@ -1,6 +1,8 @@
 #include <imgui.h>
 #include <format>
+#include <string>
 #include "rendering/ui/game_editor_ui.hpp"
+#include "actor/actor_animation_state.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"

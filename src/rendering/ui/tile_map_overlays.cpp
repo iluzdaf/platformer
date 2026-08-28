@@ -1,5 +1,6 @@
 #include <format>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string>
 #include "rendering/ui/tile_map_overlays.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "cameras/camera2d.hpp"

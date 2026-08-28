@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include "cameras/camera2d.hpp"
+#include "cameras/camera2d_data.hpp"
 
 Camera2D::Camera2D(Camera2DData cameraData, int windowWidth, int windowHeight)
 {

@@ -8,6 +8,8 @@ class Texture2D
 public:
     explicit Texture2D(const std::string &filePath);
     ~Texture2D();
+    Texture2D(const Texture2D &) = delete;
+    Texture2D &operator=(const Texture2D &) = delete;
     void bind() const;
     unsigned int getWidth() const;
     unsigned int getHeight() const;

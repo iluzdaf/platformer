@@ -27,19 +27,21 @@
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/texture2d.hpp"
 
-Game::Game(Window &window) : window(window), levels(assets::pathTo(assets::LevelList))
+Game::Game(Window &window)
+    : window(window), gameData(loadGameData()),
+      camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
+      tileMapRenderer(spriteRenderer), imGuiManager(
+                                           window.getHandle(),
+                                           window.getFramebufferSize().x,
+                                           window.getFramebufferSize().y),
+      levels(assets::pathTo(assets::LevelList))
 {
-    gameData = loadGameData();
-
     window.setSize(gameData.windowWidth, gameData.windowHeight);
     window.onResize.connect([this](int width, int height) { resize(width, height); });
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    luaScriptSystem = std::make_unique<LuaScriptSystem>();
-    glm::ivec2 framebuffer = window.getFramebufferSize();
-    camera = std::make_unique<Camera2D>(gameData.cameraData, framebuffer.x, framebuffer.y);
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
     loadLevel(levels.getFirst());
@@ -48,19 +50,15 @@ Game::Game(Window &window) : window(window), levels(assets::pathTo(assets::Level
     reloadTexture(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
-    spriteRenderer = std::make_unique<SpriteRenderer>();
-    tileMapRenderer = std::make_unique<TileMapRenderer>(*spriteRenderer.get());
-    screenTransition = std::make_unique<ScreenTransition>();
     gameEditorUi.onPlay.connect([this] { play(); });
     gameEditorUi.onStep.connect([this] { step(); });
     gameEditorUi.onToggleZoom.connect(
         [this]
         {
-            static float originalZoom = camera->getZoom();
-            float currentZoom = camera->getZoom();
-            camera->setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom);
+            static float originalZoom = camera.getZoom();
+            float currentZoom = camera.getZoom();
+            camera.setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom);
         });
-    imGuiManager = std::make_unique<ImGuiManager>(window.getHandle(), framebuffer.x, framebuffer.y);
     levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
                                       { loadLevel(levelPath); });
     levelEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
@@ -71,9 +69,9 @@ Game::Game(Window &window) : window(window), levels(assets::pathTo(assets::Level
             levels.save();
         });
 
-    luaScriptSystem->bindGameObjects(this, camera.get(), screenTransition.get());
+    luaScriptSystem.bindGameObjects(this, &camera, &screenTransition);
 
-    luaScriptSystem->triggerGameLoaded();
+    luaScriptSystem.triggerGameLoaded();
 }
 
 Game::~Game() = default;
@@ -104,7 +102,7 @@ void Game::reloadTexture(const std::string &texturePath)
 
 void Game::reloadScripts()
 {
-    luaScriptSystem->loadScripts();
+    luaScriptSystem.loadScripts();
 }
 
 std::unique_ptr<Shader> Game::loadShader(std::string_view vertex, std::string_view fragment) const
@@ -124,11 +122,11 @@ void Game::frame(float deltaTime)
     if (keyboardManager.isPressed(GLFW_KEY_S))
         step();
 
-    luaScriptSystem->update(deltaTime);
-    camera->update(deltaTime);
-    screenTransition->update(deltaTime);
+    luaScriptSystem.update(deltaTime);
+    camera.update(deltaTime);
+    screenTransition.update(deltaTime);
     debugAABBUi.update(deltaTime);
-    levelEditorUi.update(*imGuiManager.get(), *camera.get(), *level.get());
+    levelEditorUi.update(imGuiManager, camera, *level.get());
 
     if (!paused || stepFrame)
     {
@@ -156,7 +154,7 @@ void Game::frame(float deltaTime)
         stepFrame = false;
     }
 
-    camera->follow(player->getPosition());
+    camera.follow(player->getPosition());
 
     render();
 }
@@ -198,14 +196,14 @@ void Game::render()
     glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glm::mat4 projection = camera->getProjection();
+    glm::mat4 projection = camera.getProjection();
 
-    tileMapRenderer->draw(level->getTileMap(), projection, *tileSetShader.get(), *tileSet.get());
+    tileMapRenderer.draw(level->getTileMap(), projection, *tileSetShader.get(), *tileSet.get());
 
     for (const Actor *actor : actors)
     {
         const ActorState &actorState = actor->getState();
-        spriteRenderer->drawWithUV(
+        spriteRenderer.drawWithUV(
             *tileSetShader.get(),
             *playerTexture.get(),
             projection,
@@ -216,48 +214,43 @@ void Game::render()
             actorState.facingLeft);
     }
 
-    imGuiManager->newFrame();
+    imGuiManager.newFrame();
 
-    scoreUi.draw(*imGuiManager.get(), scoringSystem, *tileSet.get());
+    scoreUi.draw(imGuiManager, scoringSystem, *tileSet.get());
 
     levelEditorUi.draw(
-        *imGuiManager.get(),
-        *level.get(),
-        *tileSet.get(),
-        *camera.get(),
-        levels.getFirst(),
-        gameData.debug);
+        imGuiManager, *level.get(), *tileSet.get(), camera, levels.getFirst(), gameData.debug);
 
     gameEditorUi.draw(
-        *imGuiManager.get(),
+        imGuiManager,
         player->getMotion().getState(),
         player->getPosition(),
         player->getState(),
-        *camera.get(),
+        camera,
         gameData.debug);
 
     debugAABBUi.draw(
-        *imGuiManager.get(),
+        imGuiManager,
         *player.get(),
         level->getTileMap(),
         level->getPlayerStartTile(),
-        *camera.get(),
+        camera,
         gameEditorUi.drawsPlayerAABBs(),
         levelEditorUi.drawsTileMapAABBs());
 
-    imGuiManager->render();
+    imGuiManager.render();
 
-    screenTransition->draw(*screenTransitionShader.get());
+    screenTransition.draw(*screenTransitionShader.get());
 }
 
 void Game::resize(int windowWidth, int windowHeight)
 {
-    camera->resize(windowWidth, windowHeight);
+    camera.resize(windowWidth, windowHeight);
 
-    imGuiManager->resize(windowWidth, windowHeight);
+    imGuiManager.resize(windowWidth, windowHeight);
 }
 
-GameData Game::loadGameData() const
+GameData Game::loadGameData()
 {
     GameData loaded;
     auto ec = glz::read_file_json(loaded, assets::pathTo(assets::GameData), std::string{});
@@ -272,7 +265,7 @@ void Game::reload()
 
     window.setSize(gameData.windowWidth, gameData.windowHeight);
 
-    camera->setZoom(gameData.cameraData.zoom);
+    camera.setZoom(gameData.cameraData.zoom);
 
     loadLevel(level ? level->getPath() : levels.getFirst());
 }
@@ -281,7 +274,7 @@ void Game::loadLevel(const std::string &levelPath)
 {
     rebuildLevel(levelPath);
 
-    camera->setWorldBounds(
+    camera.setWorldBounds(
         glm::vec2(0),
         glm::vec2(level->getTileMap().getWorldWidth(), level->getTileMap().getWorldHeight()));
 
@@ -312,7 +305,7 @@ void Game::rebuildLevel(const std::string &levelPath)
     std::unique_ptr<Level> newLevel = std::make_unique<Level>(
         levelPath, gameData.tilePalettes, gameData.playerData, gameData.npcData);
     level = std::move(newLevel);
-    luaScriptSystem->bindLevel(level.get());
+    luaScriptSystem.bindLevel(level.get());
 }
 
 void Game::rebuildPlayer()
@@ -325,20 +318,20 @@ void Game::rebuildPlayer()
     player->setPosition(
         level->getTileMap().tileToBottomCenterPosition(level->getPlayerStartTile()) -
         player->getPhysicsBody().getBottomCenterOffset());
-    player->onDeath.connect([this] { luaScriptSystem->triggerDeath(); });
+    player->onDeath.connect([this] { luaScriptSystem.triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect(
         [this]()
         {
             onLevelCompleteConnection.block();
-            luaScriptSystem->triggerLevelComplete();
+            luaScriptSystem.triggerLevelComplete();
         });
-    player->onWallJump.connect([this] { luaScriptSystem->triggerWallJump(); });
-    player->onDash.connect([this] { luaScriptSystem->triggerDash(); });
-    player->onWallSliding.connect([this] { luaScriptSystem->triggerWallSliding(); });
-    player->onFallFromHeight.connect([this] { luaScriptSystem->triggerFallFromHeight(); });
-    player->onHitCeiling.connect([this] { luaScriptSystem->triggerHitCeiling(); });
+    player->onWallJump.connect([this] { luaScriptSystem.triggerWallJump(); });
+    player->onDash.connect([this] { luaScriptSystem.triggerDash(); });
+    player->onWallSliding.connect([this] { luaScriptSystem.triggerWallSliding(); });
+    player->onFallFromHeight.connect([this] { luaScriptSystem.triggerFallFromHeight(); });
+    player->onHitCeiling.connect([this] { luaScriptSystem.triggerHitCeiling(); });
     player->onPickup.connect([this](int scoreDelta) { scoringSystem.addScore(scoreDelta); });
-    luaScriptSystem->bindPlayer(player.get());
+    luaScriptSystem.bindPlayer(player.get());
 
     refreshActors();
 }

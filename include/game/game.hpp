@@ -45,7 +45,7 @@ public:
     void refreshActors();
 
 private:
-    GameData loadGameData() const;
+    static GameData loadGameData();
     std::unique_ptr<Shader> loadShader(std::string_view vertex, std::string_view fragment) const;
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);
@@ -56,11 +56,12 @@ private:
     void rebuildLevel(const std::string &levelPath);
 
     Window &window;
-    std::unique_ptr<Camera2D> camera;
+    GameData gameData;
+    Camera2D camera;
     KeyboardManager keyboardManager;
     InputManager inputManager;
     FixedTimeStep timestepper;
-    std::unique_ptr<LuaScriptSystem> luaScriptSystem;
+    LuaScriptSystem luaScriptSystem;
     std::unique_ptr<Level> level;
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Npc>> npcs;
@@ -69,10 +70,10 @@ private:
     ScoringSystem scoringSystem;
     std::unique_ptr<Texture2D> tileSet, playerTexture;
     std::unique_ptr<Shader> tileSetShader, screenTransitionShader;
-    std::unique_ptr<SpriteRenderer> spriteRenderer;
-    std::unique_ptr<TileMapRenderer> tileMapRenderer;
-    std::unique_ptr<ScreenTransition> screenTransition;
-    std::unique_ptr<ImGuiManager> imGuiManager;
+    SpriteRenderer spriteRenderer;
+    TileMapRenderer tileMapRenderer;
+    ScreenTransition screenTransition;
+    ImGuiManager imGuiManager;
     Levels levels;
     GameEditorUi gameEditorUi;
     DebugAABBUi debugAABBUi;
@@ -80,5 +81,4 @@ private:
     ScoreUi scoreUi;
     fteng::connection onLevelCompleteConnection;
     bool paused = false, stepFrame = false;
-    GameData gameData;
 };

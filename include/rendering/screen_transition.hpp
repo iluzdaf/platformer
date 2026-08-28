@@ -6,6 +6,8 @@ class ScreenTransition
 public:
     ScreenTransition();
     ~ScreenTransition();
+    ScreenTransition(const ScreenTransition &) = delete;
+    ScreenTransition &operator=(const ScreenTransition &) = delete;
     void start(float duration, bool fadeIn = true);
     void update(float deltaTime);
     void draw(const Shader &shader);

@@ -15,5 +15,5 @@ public:
         const Texture2D &tileSet);
 
 private:
-    SpriteRenderer spriteRenderer;
+    const SpriteRenderer &spriteRenderer;
 };

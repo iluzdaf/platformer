@@ -31,29 +31,14 @@ inline const TilePalette &getDefaultTileDataMap()
 
 inline const TilePalettes &shippedPalettes()
 {
-    static const TilePalettes palettes = []
-    {
-        GameData gameData;
-        auto ec = glz::read_file_json(gameData, assetPath("game_data.json"), std::string{});
-        if (ec)
-            throw std::runtime_error("Failed to read game_data.json");
-
-        return gameData.tilePalettes;
-    }();
+    static const TilePalettes palettes = [] { return loadGameData().tilePalettes; }();
     return palettes;
 }
 
 inline const std::unordered_map<std::string, NpcData> &shippedNpcData()
 {
     static const std::unordered_map<std::string, NpcData> npcData = []
-    {
-        GameData gameData;
-        auto ec = glz::read_file_json(gameData, assetPath("game_data.json"), std::string{});
-        if (ec)
-            throw std::runtime_error("Failed to read game_data.json");
-
-        return gameData.npcData;
-    }();
+    { return loadGameData().npcData; }();
     return npcData;
 }
 

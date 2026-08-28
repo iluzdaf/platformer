@@ -10,7 +10,11 @@ TEST_CASE("The assets root is somewhere that exists", "[AssetPaths]")
 
 TEST_CASE("A named asset resolves to a file that is there", "[AssetPaths]")
 {
-    REQUIRE(std::filesystem::exists(assets::pathTo(assets::GameData)));
+    REQUIRE(std::filesystem::exists(assets::pathTo(assets::GameSettings)));
+    REQUIRE(std::filesystem::exists(assets::pathTo(assets::Camera)));
+    REQUIRE(std::filesystem::exists(assets::pathTo(assets::Player)));
+    REQUIRE(std::filesystem::exists(assets::pathTo(assets::Npcs)));
+    REQUIRE(std::filesystem::exists(assets::pathTo(assets::TilePalettes)));
     REQUIRE(std::filesystem::exists(assets::pathTo(assets::LevelList)));
     REQUIRE(std::filesystem::exists(assets::pathTo(assets::FirstLevel)));
     REQUIRE(std::filesystem::exists(assets::pathTo(assets::GameLogicScript)));

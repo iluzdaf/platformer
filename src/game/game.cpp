@@ -36,7 +36,7 @@ Game::Game(Window &window)
           window.getFramebufferSize().y),
       levels(assets::pathTo(assets::LevelList))
 {
-    window.setSize(gameData.windowWidth, gameData.windowHeight);
+    window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
     window.onResize.connect([this](int width, int height) { resize(width, height); });
 
     glEnable(GL_BLEND);
@@ -219,7 +219,7 @@ void Game::render()
 
     scoreUi.draw(imGuiManager, scoringSystem, *tileSet.get());
 
-    if (editorUi.begin(imGuiManager, gameData.debug))
+    if (editorUi.begin(imGuiManager, gameData.settings.debug))
     {
         levelEditorUi.draw(editorUi.getSection(), *level.get(), *tileSet.get(), levels.getFirst());
 
@@ -242,7 +242,7 @@ void Game::render()
         gameEditorUi.drawsPlayerAABBs(),
         levelEditorUi.drawsTileMapAABBs());
 
-    if (gameData.debug)
+    if (gameData.settings.debug)
         levelEditorUi.drawOverlay(imGuiManager, camera, *level.get());
 
     imGuiManager.render();
@@ -261,7 +261,7 @@ void Game::reload()
 {
     gameData = loadGameData();
 
-    window.setSize(gameData.windowWidth, gameData.windowHeight);
+    window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
 
     camera.setZoom(gameData.cameraData.zoom);
 

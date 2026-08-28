@@ -380,8 +380,7 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
 
 TEST_CASE("The shipped explorer walks level6 from the floor to the top and back", "[Npc][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
 
@@ -430,8 +429,7 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
 
 TEST_CASE("The shipped villager runs from the player and settles once it is gone", "[Npc][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
 
@@ -467,8 +465,7 @@ TEST_CASE("The shipped villager runs from the player and settles once it is gone
 
 TEST_CASE("The shipped villager never freezes out in the open on its platform", "[Npc][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
 
@@ -508,8 +505,7 @@ TEST_CASE(
     "The shipped villager holds its ground while the player shares its platform",
     "[Npc][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
 
@@ -552,8 +548,7 @@ TEST_CASE(
 
 TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered", "[Npc][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
 
@@ -585,8 +580,7 @@ TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered
 
 TEST_CASE("The shipped villager pays no mind to a player on the platform below", "[Npc][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
 

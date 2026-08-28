@@ -29,15 +29,25 @@ void GameEditorUi::draw(
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
     const ActorState &actorState,
-    const Camera2D &camera)
+    const Camera2D &camera,
+    bool paused)
 {
     if (section == EditorSection::Playback)
     {
-        if (ImGui::Button("Step"))
-            onStep();
+        bool playing = !paused;
+        if (ImGui::Checkbox("playing", &playing))
+        {
+            if (playing)
+                onPlay();
+            else
+                onPause();
+        }
+
         ImGui::SameLine();
-        if (ImGui::Button("Play"))
-            onPlay();
+        ImGui::BeginDisabled(playing);
+        if (ImGui::Button("step"))
+            onStep();
+        ImGui::EndDisabled();
         return;
     }
 

@@ -10,7 +10,7 @@
 #include <utility>
 #include "game/game.hpp"
 #include "game/game_data.hpp"
-#include "rendering/ui/editor_section.hpp"
+#include "rendering/ui/editor_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "actor/actor.hpp"
 #include "actor/actor_state.hpp"
@@ -51,19 +51,20 @@ Game::Game(Window &window)
     reloadTexture(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
-    gameEditorUi.onPlay.connect([this] { play(); });
-    gameEditorUi.onStep.connect([this] { step(); });
-    gameEditorUi.onToggleZoom.connect(
+    editorUi.getGameEditor().onPlay.connect([this] { play(); });
+    editorUi.getGameEditor().onPause.connect([this] { pause(); });
+    editorUi.getGameEditor().onStep.connect([this] { step(); });
+    editorUi.getGameEditor().onToggleZoom.connect(
         [this]
         {
             static float originalZoom = camera.getZoom();
             float currentZoom = camera.getZoom();
             camera.setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom);
         });
-    levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
-                                      { loadLevel(levelPath); });
-    gameEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
-    levelEditorUi.onSetFirstLevel.connect(
+    editorUi.getLevelEditor().onLoadLevel.connect([this](const std::string &levelPath)
+                                                  { loadLevel(levelPath); });
+    editorUi.getGameEditor().onRespawn.connect([this] { rebuildPlayer(); });
+    editorUi.getLevelEditor().onSetFirstLevel.connect(
         [this]
         {
             levels.setFirst(level->getPath());
@@ -127,7 +128,7 @@ void Game::frame(float deltaTime)
     camera.update(deltaTime);
     screenTransition.update(deltaTime);
     debugAABBUi.update(deltaTime);
-    levelEditorUi.update(imGuiManager, camera, *level.get());
+    editorUi.update(imGuiManager, camera, *level.get());
 
     if (!paused || stepFrame)
     {
@@ -220,26 +221,20 @@ void Game::render()
 
     scoreUi.draw(imGuiManager, scoringSystem, *tileSet.get());
 
-    if (editorUi.begin(imGuiManager, gameData.settings.debug))
-    {
-        levelEditorUi.draw(editorUi.getSection(), *level.get(), *tileSet.get(), levels.getFirst());
-
-        gameEditorUi.draw(
-            editorUi.getSection(),
+    editorUi.draw(
+        imGuiManager,
+        EditorSubject{
             gameData,
+            *level.get(),
+            npcs,
+            *tileSet.get(),
+            levels.getFirst(),
             player->getMotion().getState(),
             player->getPosition(),
             player->getState(),
-            camera);
-
-        if (editorUi.getSection() == EditorSection::Navigation)
-            navigationUi.draw(*level.get());
-
-        if (editorUi.getSection() == EditorSection::NpcsInLevel)
-            npcsUi.draw(*level.get(), npcs);
-
-        editorUi.end();
-    }
+            camera,
+            paused},
+        gameData.settings.debug);
 
     debugAABBUi.draw(
         imGuiManager,
@@ -247,14 +242,11 @@ void Game::render()
         level->getTileMap(),
         level->getPlayerStartTile(),
         camera,
-        gameEditorUi.drawsPlayerAABBs(),
-        levelEditorUi.drawsTileMapAABBs());
+        editorUi.drawsPlayerAABBs(),
+        editorUi.drawsTileMapAABBs());
 
     if (gameData.settings.debug)
-    {
-        levelEditorUi.drawOverlay(imGuiManager, camera, *level.get());
-        navigationUi.drawOverlay(imGuiManager, camera, *level.get());
-    }
+        editorUi.drawOverlays(imGuiManager, camera, *level.get());
 
     imGuiManager.render();
 

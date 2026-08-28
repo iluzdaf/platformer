@@ -19,11 +19,12 @@ public:
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerPosition,
         const ActorState &actorState,
-        const Camera2D &camera);
+        const Camera2D &camera,
+        bool paused);
 
     bool drawsPlayerAABBs() const;
 
-    fteng::signal<void()> onPlay, onStep, onToggleZoom, onRespawn;
+    fteng::signal<void()> onPlay, onPause, onStep, onToggleZoom, onRespawn;
 
 private:
     bool drawPlayerAABBs = false;

@@ -26,13 +26,14 @@
 #include "reloading/asset_watcher.hpp"
 #include "reloading/game_data_watcher.hpp"
 #include "reloading/script_watcher.hpp"
+#include "window/window.hpp"
 
 class Game
 {
 public:
-    Game();
+    explicit Game(Window &window);
     ~Game();
-    void run();
+    void frame(float deltaTime);
     void pause();
     void step();
     void play();
@@ -44,8 +45,6 @@ public:
 
 private:
     GameData loadGameData() const;
-    void initGLFW(int windowWidth, int windowHeight);
-    void initGlad();
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);
     void postFixedUpdate();
@@ -54,7 +53,7 @@ private:
     void resize(int width, int height);
     void rebuildLevel(const std::string &levelPath);
 
-    GLFWwindow *window;
+    Window &window;
     std::unique_ptr<Camera2D> camera;
     KeyboardManager keyboardManager;
     InputManager inputManager;

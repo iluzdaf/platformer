@@ -1,13 +1,13 @@
 #include <iostream>
 #include <sol/sol.hpp>
-#include "game/game.hpp"
+#include "app/app.hpp"
 
 int main()
 {
     try
     {
-        Game game;
-        game.run();
+        App app;
+        app.run();
     }
     catch (const sol::error &e)
     {

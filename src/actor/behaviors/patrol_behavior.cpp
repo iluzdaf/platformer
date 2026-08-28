@@ -11,6 +11,10 @@ namespace
 {
     constexpr float SurfaceTolerance = 1.0f;
 
+    // How close to the node a jump has to start. A step is under a pixel at the
+    // speeds actors walk, so this is reachable rather than aspirational.
+    constexpr float TakeOffReach = 1.5f;
+
     float directionTowards(float from, float to)
     {
         float delta = to - from;
@@ -160,13 +164,13 @@ InputIntentions PatrolBehavior::decide(
         jumpHeldFor >= leg->holdDuration)
         jumpHeldFor = 0.0f;
 
-    // A jump was simulated from the node, so it has to be made from the node.
-    // Started early it clears less than it was promised it would.
+    // A jump was simulated from the node, so it has to be made from the node,
+    // and close enough to arrive is not close enough to jump. Being a few pixels
+    // short is the difference between clearing a ledge and hitting its side.
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)
     {
         NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
-        float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
-        if (std::abs(takeOff.position.x - context.worldPosition.x) > reach)
+        if (std::abs(takeOff.position.x - context.worldPosition.x) > TakeOffReach)
         {
             inputIntentions.direction.x =
                 directionTowards(context.worldPosition.x, takeOff.position.x);

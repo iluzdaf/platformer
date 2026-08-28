@@ -6,4 +6,6 @@ struct PhysicsBodyData
 {
     glm::vec2 colliderSize = glm::vec2(8, 16);
     glm::vec2 colliderOffset = glm::vec2(4, 0);
+
+    bool operator==(const PhysicsBodyData &) const = default;
 };

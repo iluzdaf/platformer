@@ -11,4 +11,6 @@ struct DashAbilityData
     // an airborne one is what keeps a jump and a dash together from being worth
     // the sum of both.
     float airborneFraction = 1.0f;
+
+    bool operator==(const DashAbilityData &) const = default;
 };

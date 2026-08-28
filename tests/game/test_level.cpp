@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "navigation/navigation_profile_builder.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "player/player_data.hpp"
@@ -30,9 +31,12 @@ namespace
             {"alsoShort", npcOfHeight(13.0f)}};
     }
 
+    // Built the way a level builds one, so it is the same profile and finds the
+    // same graph. A profile carries what the actor is made of now, not just how
+    // wide it is.
     NavigationProfile profileOfHeight(float height)
     {
-        return NavigationProfile{glm::vec2(8.0f, height), {}, false};
+        return buildNavigationProfile(npcOfHeight(height).actorData);
     }
 
     PlayerData playerOfHeight(float height)

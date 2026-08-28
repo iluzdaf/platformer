@@ -20,4 +20,6 @@ struct ActorMotionData
     std::optional<ClimbAbilityData> climbAbilityData;
     std::optional<ClimbMoveAbilityData> climbMoveAbilityData;
     std::optional<GravityAbilityData> gravityAbilityData;
+
+    bool operator==(const ActorMotionData &) const = default;
 };

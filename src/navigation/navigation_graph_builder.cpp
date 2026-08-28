@@ -300,6 +300,29 @@ namespace
         return false;
     }
 
+    // The jump the actor would really make, when the profile knows enough to
+    // run one. Replaying an arc taken in open air has to guess what it would
+    // have hit, and it guesses that grazing a ledge is a jump that failed,
+    // where the physics puts the actor on top of it.
+    std::optional<JumpLanding> jumpFrom(
+        const TileMap &tileMap,
+        glm::vec2 takeOff,
+        const JumpArc &arc,
+        float direction,
+        const NavigationProfile &profile)
+    {
+        if (!profile.motionData || !profile.physicsBodyData)
+            return landingOf(tileMap, takeOff, arc.offsets, direction, profile);
+
+        JumpAttempt attempt = simulateJumpAgainst(
+            tileMap, *profile.motionData, *profile.physicsBodyData, takeOff, direction,
+            arc.holdFraction);
+        if (!attempt.landed)
+            return std::nullopt;
+
+        return JumpLanding{attempt.path.back(), attempt.path};
+    }
+
     struct JumpCandidate
     {
         int toId = 0;
@@ -341,7 +364,7 @@ namespace
                 for (float direction : {1.0f, -1.0f})
                 {
                     std::optional<JumpLanding> landing =
-                        landingOf(tileMap, takeOff, arc.offsets, direction, profile);
+                        jumpFrom(tileMap, takeOff, arc, direction, profile);
                     if (!landing || landing->position.y > takeOff.y)
                         continue;
 

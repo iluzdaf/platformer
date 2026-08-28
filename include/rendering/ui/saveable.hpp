@@ -10,7 +10,7 @@
 class Saveable
 {
 public:
-    template <class T, class Save> void drawControls(std::string_view name, T &value, Save &&save)
+    template <class T, class Save> bool drawControls(std::string_view name, T &value, Save &&save)
     {
         std::string now = asJson(value);
         std::string &saved = asSaved[std::string(name)];
@@ -20,7 +20,7 @@ public:
         if (saved == now)
         {
             ImGui::TextDisabled("saved");
-            return;
+            return false;
         }
 
         if (ImGui::Button("save"))
@@ -33,11 +33,13 @@ public:
         if (ImGui::Button("revert"))
         {
             std::ignore = glz::read_json(value, saved);
-            return;
+            return true;
         }
 
         ImGui::SameLine();
         ImGui::TextDisabled("unsaved");
+
+        return false;
     }
 
     void forget()

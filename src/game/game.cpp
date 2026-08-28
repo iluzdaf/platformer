@@ -66,6 +66,10 @@ Game::Game(Window &window)
     editorUi.commands.onLoadLevel.connect([this](const std::string &levelPath)
                                           { loadLevel(levelPath); });
     editorUi.commands.onRespawn.connect([this] { rebuildPlayer(); });
+    editorUi.commands.onSettingsChanged.connect(
+        [this]
+        { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });
+    editorUi.commands.onCameraChanged.connect([this] { camera.setZoom(gameData.cameraData.zoom); });
     editorUi.commands.onSetFirstLevel.connect(
         [this]
         {

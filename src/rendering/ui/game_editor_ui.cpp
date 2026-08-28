@@ -42,9 +42,10 @@ void GameEditorUi::draw(
 
     if (section == EditorSection::Game)
     {
-        saveable.drawControls("game", gameData.settings, saveGameSettings);
+        bool reverted = saveable.drawControls("game", gameData.settings, saveGameSettings);
         ImGui::Separator();
-        inspector::drawFields(gameData.settings);
+        if (inspector::drawFields(gameData.settings) || reverted)
+            commands.onSettingsChanged();
         return;
     }
 
@@ -72,9 +73,10 @@ void GameEditorUi::draw(
         ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
 
         ImGui::Separator();
-        saveable.drawControls("camera", gameData.cameraData, saveCameraData);
+        bool reverted = saveable.drawControls("camera", gameData.cameraData, saveCameraData);
         ImGui::Separator();
-        inspector::drawFields(gameData.cameraData);
+        if (inspector::drawFields(gameData.cameraData) || reverted)
+            commands.onCameraChanged();
         return;
     }
 

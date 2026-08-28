@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 #include "rendering/ui/level_editor_ui.hpp"
+#include "rendering/ui/editor_section.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
@@ -50,20 +51,36 @@ namespace
 }
 
 void LevelEditorUi::draw(
-    const ImGuiManager &imGuiManager,
+    EditorSection section,
     Level &level,
     const Texture2D &tileSet,
-    const std::string &firstLevel,
-    bool showEditors)
+    const std::string &firstLevel)
 {
-    if (!showEditors)
-        return;
+    switch (section)
+    {
+    case EditorSection::Level:
+        drawLevel(level, firstLevel);
+        break;
 
-    ImVec2 displaySize = imGuiManager.getUiDimensions();
-    ImGui::SetNextWindowPos(ImVec2(displaySize.x - 200, 0));
-    ImGui::SetNextWindowSize(ImVec2(200, displaySize.y));
-    ImGui::Begin("Level Editor");
+    case EditorSection::Npcs:
+        drawNpcs(level);
+        break;
 
+    case EditorSection::TileMap:
+        drawTileMap(level, tileSet);
+        break;
+
+    case EditorSection::Navigation:
+        drawGraphs(level);
+        break;
+
+    default:
+        break;
+    }
+}
+
+void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
+{
     if (!editing)
     {
         if (ImGui::Button("edit"))
@@ -81,7 +98,6 @@ void LevelEditorUi::draw(
         if (ImGui::Button("cancel"))
         {
             editing = false;
-            ImGui::End();
             onLoadLevel(level.getPath());
             return;
         }
@@ -89,29 +105,13 @@ void LevelEditorUi::draw(
 
     ImGui::Separator();
 
-    ImGui::Checkbox("Tile Info", &drawTileInfo);
-    ImGui::SameLine();
-    ImGui::Checkbox("Grid", &drawGrid);
-    ImGui::Checkbox("TileMap", &drawTileMapAABBs);
-    ImGui::SameLine();
-    if (ImGui::Button("Respawn"))
-        onRespawn();
-    ImGui::Separator();
-
     std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel);
     if (chosenLevel)
     {
         editing = false;
-        ImGui::End();
         onLoadLevel(*chosenLevel);
         return;
     }
-
-    ImGui::Text(
-        "w%dxh%dxs%d",
-        level.getTileMap().getWidth(),
-        level.getTileMap().getHeight(),
-        level.getTileMap().getTileSize());
 
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
@@ -130,30 +130,38 @@ void LevelEditorUi::draw(
             ImGui::EndCombo();
         }
     }
+}
 
+void LevelEditorUi::drawNpcs(const Level &level)
+{
     const std::vector<NpcSpawnData> &npcs = level.getNpcs();
-    if (ImGui::CollapsingHeader("npcs", ImGuiTreeNodeFlags_DefaultOpen))
+    if (npcs.empty())
     {
-        ImGui::Indent();
-        if (npcs.empty())
-            ImGui::TextDisabled("none");
-        else
-            for (const NpcSpawnData &npc : npcs)
-                ImGui::TextUnformatted(npc.type.c_str());
-        ImGui::Unindent();
-    }
-
-    drawGraphs(level);
-
-    if (!editing)
-    {
-        ImGui::End();
+        ImGui::TextDisabled("none");
         return;
     }
 
-    if (!ImGui::CollapsingHeader("tile palette", ImGuiTreeNodeFlags_DefaultOpen))
+    for (const NpcSpawnData &npc : npcs)
+        ImGui::TextUnformatted(npc.type.c_str());
+}
+
+void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet)
+{
+    ImGui::Text(
+        "w%dxh%dxs%d",
+        level.getTileMap().getWidth(),
+        level.getTileMap().getHeight(),
+        level.getTileMap().getTileSize());
+
+    ImGui::Checkbox("Tile Info", &drawTileInfo);
+    ImGui::SameLine();
+    ImGui::Checkbox("Grid", &drawGrid);
+    ImGui::Checkbox("AABBs", &drawTileMapAABBs);
+    ImGui::Separator();
+
+    if (!editing)
     {
-        ImGui::End();
+        ImGui::TextDisabled("editing the level is off");
         return;
     }
 
@@ -214,8 +222,6 @@ void LevelEditorUi::draw(
 
     if (previouslyEditingPlayerStartTile)
         ImGui::PopStyleColor(3);
-
-    ImGui::End();
 }
 
 std::optional<std::string> LevelEditorUi::drawLevelChooser(

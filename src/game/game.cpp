@@ -61,7 +61,7 @@ Game::Game(Window &window)
         });
     levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
                                       { loadLevel(levelPath); });
-    levelEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
+    gameEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
     levelEditorUi.onSetFirstLevel.connect(
         [this]
         {
@@ -219,16 +219,19 @@ void Game::render()
 
     scoreUi.draw(imGuiManager, scoringSystem, *tileSet.get());
 
-    levelEditorUi.draw(
-        imGuiManager, *level.get(), *tileSet.get(), levels.getFirst(), gameData.debug);
+    if (editorUi.begin(imGuiManager, gameData.debug))
+    {
+        levelEditorUi.draw(editorUi.getSection(), *level.get(), *tileSet.get(), levels.getFirst());
 
-    gameEditorUi.draw(
-        imGuiManager,
-        player->getMotion().getState(),
-        player->getPosition(),
-        player->getState(),
-        camera,
-        gameData.debug);
+        gameEditorUi.draw(
+            editorUi.getSection(),
+            player->getMotion().getState(),
+            player->getPosition(),
+            player->getState(),
+            camera);
+
+        editorUi.end();
+    }
 
     debugAABBUi.draw(
         imGuiManager,

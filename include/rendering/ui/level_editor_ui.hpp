@@ -3,6 +3,7 @@
 #include <signals.hpp>
 #include <optional>
 #include <string>
+#include "rendering/ui/editor_section.hpp"
 
 class ImGuiManager;
 class TileMap;
@@ -15,17 +16,16 @@ class LevelEditorUi
 {
 public:
     void draw(
-        const ImGuiManager &imGuiManager,
+        EditorSection section,
         Level &level,
         const Texture2D &tileSet,
-        const std::string &firstLevel,
-        bool showEditors);
+        const std::string &firstLevel);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
         const;
     void update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level);
 
     fteng::signal<void(const std::string &)> onLoadLevel;
-    fteng::signal<void()> onRespawn, onSetFirstLevel;
+    fteng::signal<void()> onSetFirstLevel;
 
     bool drawsTileMapAABBs() const;
 
@@ -38,6 +38,9 @@ private:
     std::optional<int> selectedNodeId;
     std::optional<std::pair<int, int>> selectedEdge;
 
+    void drawLevel(Level &level, const std::string &firstLevel);
+    void drawNpcs(const Level &level);
+    void drawTileMap(Level &level, const Texture2D &tileSet);
     void drawGraphs(const Level &level);
     void drawEdgesOf(const NavigationGraph &graph, int nodeId);
     std::optional<std::string> drawLevelChooser(const Level &level, const std::string &firstLevel);

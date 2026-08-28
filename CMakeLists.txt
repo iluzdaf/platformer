@@ -105,6 +105,7 @@ add_library(platformer_lib OBJECT
     src/actor/actor.cpp
     src/assets/asset_paths.cpp
     src/reloading/hot_reload.cpp
+    src/reloading/reloader.cpp
     src/app/app.cpp
     src/window/window.cpp
     src/game/game.cpp
@@ -250,6 +251,7 @@ add_executable(tests
     tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/npc/test_npc.cpp
     tests/assets/test_asset_paths.cpp
+    tests/reloading/test_reloader.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp
     tests/tile_map/test_tile_map_navigation.cpp

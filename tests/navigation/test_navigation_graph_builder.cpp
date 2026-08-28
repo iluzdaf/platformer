@@ -735,8 +735,7 @@ TEST_CASE(
     "The shipped explorer can cross the gap in level6",
     "[NavigationGraphBuilder][Jump][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
 
     NavigationProfile explorer = buildNavigationProfile(gameData.npcData.at("explorer").actorData);
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
@@ -750,8 +749,7 @@ TEST_CASE(
     "The shipped explorer can get up to level6's top platform and back",
     "[NavigationGraphBuilder][Jump][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
 
     NavigationProfile explorer = buildNavigationProfile(gameData.npcData.at("explorer").actorData);
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
@@ -773,8 +771,7 @@ TEST_CASE(
     "The shipped actors can reach every surface in level6",
     "[NavigationGraphBuilder][Jump][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
     auto reachesEverySurface = [&](const ActorData &actorData)
@@ -804,8 +801,7 @@ TEST_CASE(
     "A way up does not depend on something having fallen there",
     "[NavigationGraphBuilder][Jump][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
     NavigationGraph graph = buildNavigationGraph(
@@ -836,8 +832,7 @@ TEST_CASE(
     "The shipped player is offered every climb level6 asks of it",
     "[NavigationGraphBuilder][Jump][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
     NavigationGraph graph =
@@ -860,8 +855,7 @@ TEST_CASE(
 
 TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
     NavigationGraph graph = buildNavigationGraph(
@@ -885,8 +879,7 @@ TEST_CASE(
     "The shipped villager is offered no jumps at all",
     "[NavigationGraphBuilder][Jump][Level]")
 {
-    GameData gameData;
-    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    GameData gameData = loadGameData();
 
     NavigationProfile villager = buildNavigationProfile(gameData.npcData.at("villager").actorData);
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));

@@ -374,8 +374,7 @@ namespace
 
     GameData shippedGameData()
     {
-        GameData gameData;
-        REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+        GameData gameData = loadGameData();
         return gameData;
     }
 
@@ -644,7 +643,7 @@ TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[L
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level1.json"), std::string{}));
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    float inView = static_cast<float>(gameData.windowWidth) / gameData.cameraData.zoom;
+    float inView = static_cast<float>(gameData.settings.windowWidth) / gameData.cameraData.zoom;
     INFO("level is " << level.getTileMap().getWorldWidth() << "px, the camera shows " << inView);
     REQUIRE(static_cast<float>(level.getTileMap().getWorldWidth()) <= inView);
 

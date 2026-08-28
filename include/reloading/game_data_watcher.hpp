@@ -1,4 +1,5 @@
 #pragma once
+#include <string_view>
 #include <signals.hpp>
 #include "reloading/file_watcher.hpp"
 #include "assets/asset_paths.hpp"
@@ -12,8 +13,17 @@ public:
     {
         listener.onFileModified = [&](const std::string &path)
         {
-            if (path == assets::GameData)
-                onGameDataChanged();
+            for (std::string_view named :
+                 {assets::GameSettings,
+                  assets::Camera,
+                  assets::Player,
+                  assets::Npcs,
+                  assets::TilePalettes})
+                if (path == named)
+                {
+                    onGameDataChanged();
+                    return;
+                }
         };
 
         fileWatcher.addWatch(assets::root(), &listener, false);

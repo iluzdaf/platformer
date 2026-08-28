@@ -3,8 +3,8 @@
 #include "game/game_data.hpp"
 
 App::App()
-    : window(GameData().windowWidth, GameData().windowHeight, "platformer"), game(window),
-      hotReload(game)
+    : window(GameSettingsData().windowWidth, GameSettingsData().windowHeight, "platformer"),
+      game(window), hotReload(game)
 {
 }
 

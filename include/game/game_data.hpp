@@ -7,15 +7,20 @@
 #include "tile_map/tile_palette.hpp"
 #include "cameras/camera2d_data.hpp"
 
-struct GameData
+struct GameSettingsData
 {
-    PlayerData playerData;
-    std::unordered_map<std::string, NpcData> npcData;
-    TilePalettes tilePalettes;
-    Camera2DData cameraData;
     int windowWidth = 800;
     int windowHeight = 600;
     bool debug = false;
+};
+
+struct GameData
+{
+    GameSettingsData settings;
+    Camera2DData cameraData;
+    PlayerData playerData;
+    std::unordered_map<std::string, NpcData> npcData;
+    TilePalettes tilePalettes;
 };
 
 GameData loadGameData();

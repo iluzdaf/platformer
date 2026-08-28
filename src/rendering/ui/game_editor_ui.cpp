@@ -67,10 +67,7 @@ void GameEditorUi::draw(
 
     if (section == EditorSection::Camera)
     {
-        if (ImGui::Button("Zoom"))
-            commands.onToggleZoom();
-        ImGui::SameLine();
-        ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
+        ImGui::TextDisabled("%s", camera.shaking() ? "shaking" : "still");
 
         ImGui::Separator();
         bool reverted = saveable.drawControls("camera", gameData.cameraData, saveCameraData);

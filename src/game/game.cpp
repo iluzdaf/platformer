@@ -56,13 +56,6 @@ Game::Game(Window &window)
     editorUi.commands.onPlay.connect([this] { play(); });
     editorUi.commands.onPause.connect([this] { pause(); });
     editorUi.commands.onStep.connect([this] { step(); });
-    editorUi.commands.onToggleZoom.connect(
-        [this]
-        {
-            static float originalZoom = camera.getZoom();
-            float currentZoom = camera.getZoom();
-            camera.setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom);
-        });
     editorUi.commands.onLoadLevel.connect([this](const std::string &levelPath)
                                           { loadLevel(levelPath); });
     editorUi.commands.onRespawn.connect([this] { rebuildPlayer(); });

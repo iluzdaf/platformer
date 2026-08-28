@@ -1,46 +1,21 @@
-#include <exception>
-#include <functional>
-#include <iostream>
 #include <string>
 #include "reloading/hot_reload.hpp"
-#include "game/game.hpp"
+#include "reloading/reload_commands.hpp"
 
-namespace
+HotReload::HotReload()
 {
-    void reporting(const std::function<void()> &rebuild)
-    {
-        try
-        {
-            rebuild();
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << std::endl;
-        }
-    }
-}
+    levelWatcher.onLevelChanged.connect([this](const std::string &levelPath)
+                                        { reloader.levelChanged(levelPath); });
 
-HotReload::HotReload(Game &game) : game(game)
-{
-    levelWatcher.onLevelChanged.connect(
-        [this](const std::string &levelPath)
-        {
-            if (this->game.isPlaying(levelPath))
-                reporting([&] { this->game.loadLevel(levelPath); });
-        });
+    assetWatcher.onShaderChanged.connect([this](const std::string &shaderPath)
+                                         { reloader.shaderChanged(shaderPath); });
 
-    assetWatcher.onShaderChanged.connect(
-        [this](const std::string &shaderPath)
-        { reporting([&] { this->game.reloadShader(shaderPath); }); });
+    assetWatcher.onTextureChanged.connect([this](const std::string &texturePath)
+                                          { reloader.textureChanged(texturePath); });
 
-    assetWatcher.onTextureChanged.connect(
-        [this](const std::string &texturePath)
-        { reporting([&] { this->game.reloadTexture(texturePath); }); });
+    gameDataWatcher.onGameDataChanged.connect([this] { reloader.gameDataChanged(); });
 
-    gameDataWatcher.onGameDataChanged.connect([this] { reporting([&] { this->game.reload(); }); });
-
-    scriptWatcher.onScriptsChanged.connect([this]
-                                           { reporting([&] { this->game.reloadScripts(); }); });
+    scriptWatcher.onScriptsChanged.connect([this] { reloader.scriptsChanged(); });
 }
 
 void HotReload::process()
@@ -49,4 +24,9 @@ void HotReload::process()
     assetWatcher.process();
     gameDataWatcher.process();
     scriptWatcher.process();
+}
+
+ReloadCommands &HotReload::commands()
+{
+    return reloader.commands;
 }

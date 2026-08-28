@@ -3,18 +3,20 @@
 #include "reloading/asset_watcher.hpp"
 #include "reloading/game_data_watcher.hpp"
 #include "reloading/level_watcher.hpp"
+#include "reloading/reload_commands.hpp"
+#include "reloading/reloader.hpp"
 #include "reloading/script_watcher.hpp"
-
-class Game;
 
 class HotReload
 {
 public:
-    explicit HotReload(Game &game);
+    HotReload();
     void process();
 
+    ReloadCommands &commands();
+
 private:
-    Game &game;
+    Reloader reloader;
     LevelWatcher levelWatcher;
     AssetWatcher assetWatcher;
     GameDataWatcher gameDataWatcher;

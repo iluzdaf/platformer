@@ -45,9 +45,13 @@ namespace
         if (start == end)
             return false;
 
+        // A pixel below the feet to find what they are standing on. Reading the
+        // tile the feet are in asks which side of the boundary they came to
+        // rest on, which is a question about the last bit of a float.
+        glm::vec2 underfoot(0.0f, 1.0f);
         glm::vec2 inwards = glm::normalize(end - start) * NodeTileNudge;
-        glm::ivec2 startTilePosition = tileMap.worldToTilePosition(start + inwards);
-        glm::ivec2 endTilePosition = tileMap.worldToTilePosition(end - inwards);
+        glm::ivec2 startTilePosition = tileMap.worldToTilePosition(start + inwards + underfoot);
+        glm::ivec2 endTilePosition = tileMap.worldToTilePosition(end - inwards + underfoot);
 
         if (startTilePosition.y != endTilePosition.y)
             return false;

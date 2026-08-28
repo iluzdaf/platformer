@@ -2,6 +2,11 @@
 #include <algorithm>
 #include "navigation/motion_arcs.hpp"
 #include "actor/actor_motion_data.hpp"
+#include "test_helpers/test_tile_map_utils.hpp"
+#include "physics/physics_body_data.hpp"
+#include "tile_map/tile_map.hpp"
+#include <vector>
+#include <cmath>
 
 namespace
 {
@@ -140,4 +145,43 @@ TEST_CASE("Every arc offered carries its own hold", "[JumpArc]")
         REQUIRE(arcs[index].holdDuration < arcs[index - 1].holdDuration);
         REQUIRE(reachOf(arcs[index].offsets) < reachOf(arcs[index - 1].offsets));
     }
+}
+
+TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
+{
+    // A floor with a ledge two tiles up to land on.
+    constexpr int TileSize = 16;
+    std::vector<std::vector<int>> rows(12, std::vector<int>(30, 0));
+    for (int x = 0; x < 30; ++x)
+        rows[9][x] = 1;
+    for (int x = 16; x < 30; ++x)
+        rows[7][x] = 1;
+
+    TileMapData tileMapData;
+    tileMapData.size = TileSize;
+    tileMapData.indices = rows;
+    tileMapData.tilePalette = "default";
+    TileMap tileMap(tileMapData, palettesFrom(getDefaultTileDataMap()));
+
+    PhysicsBodyData physicsBodyData;
+    physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
+    physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);
+
+    // Feet resting on a boundary land a hair either side of it once the sums
+    // are done, and everything that asks what tile they are on floors that.
+    bool landedSomewhere = false;
+    for (float takeOffX = 200.0f; takeOffX <= 250.0f; takeOffX += 1.0f)
+    {
+        JumpAttempt attempt = simulateJumpAgainst(
+            tileMap, jumperMotionData(), physicsBodyData,
+            glm::vec2(takeOffX, 9.0f * TileSize), 1.0f, 1.0f);
+        if (!attempt.landed)
+            continue;
+
+        landedSomewhere = true;
+        INFO("took off at " << takeOffX << ", came down at " << attempt.path.back().y);
+        REQUIRE(std::fmod(attempt.path.back().y, static_cast<float>(TileSize)) == 0.0f);
+    }
+
+    REQUIRE(landedSomewhere);
 }

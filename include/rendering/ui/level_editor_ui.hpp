@@ -18,7 +18,6 @@ public:
         const ImGuiManager &imGuiManager,
         Level &level,
         const Texture2D &tileSet,
-        const Camera2D &camera,
         const std::string &firstLevel,
         bool showEditors);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)

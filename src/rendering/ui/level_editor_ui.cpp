@@ -53,18 +53,11 @@ void LevelEditorUi::draw(
     const ImGuiManager &imGuiManager,
     Level &level,
     const Texture2D &tileSet,
-    const Camera2D &camera,
     const std::string &firstLevel,
     bool showEditors)
 {
     if (!showEditors)
         return;
-
-    if (drawGrid)
-        drawTileGrid(imGuiManager, camera, level.getTileMap());
-
-    if (drawTileInfo)
-        ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
     ImGui::SetNextWindowPos(ImVec2(displaySize.x - 200, 0));
@@ -339,6 +332,12 @@ void LevelEditorUi::drawOverlay(
     const Camera2D &camera,
     const Level &level) const
 {
+    if (drawGrid)
+        drawTileGrid(imGuiManager, camera, level.getTileMap());
+
+    if (drawTileInfo)
+        ::drawTileInfo(imGuiManager, camera, level.getTileMap());
+
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
     if (!showNavigation || graphs.empty() || selectedGraphIndex >= graphs.size())
         return;

@@ -292,7 +292,7 @@ void Game::render()
         *imGuiManager.get(),
         *player.get(),
         level->getTileMap(),
-        level->getTileMap().tileToWorldPosition(level->getPlayerStartTile()),
+        level->getPlayerStartTile(),
         *camera.get(),
         gameEditorUi.drawsPlayerAABBs(),
         levelEditorUi.drawsTileMapAABBs());
@@ -405,7 +405,8 @@ void Game::rebuildPlayer()
     std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
     player = std::move(newPlayer);
     player->setPosition(
-        level->getPlayerStartBottomCenter() - player->getPhysicsBody().getBottomCenterOffset());
+        level->getTileMap().tileToBottomCenterPosition(level->getPlayerStartTile()) -
+        player->getPhysicsBody().getBottomCenterOffset());
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()

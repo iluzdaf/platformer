@@ -79,7 +79,7 @@ TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unc
     REQUIRE(reloaded.getTileMap().getTileSize() == loaded.getTileMap().getTileSize());
     REQUIRE(reloaded.getNextLevel() == loaded.getNextLevel());
     REQUIRE(reloaded.getNpcs() == loaded.getNpcs());
-    REQUIRE(reloaded.getPlayerStartBottomCenter() == loaded.getPlayerStartBottomCenter());
+    REQUIRE(reloaded.getPlayerStartTile() == loaded.getPlayerStartTile());
 
     for (int y = 0; y < loaded.getTileMap().getHeight(); ++y)
         for (int x = 0; x < loaded.getTileMap().getWidth(); ++x)

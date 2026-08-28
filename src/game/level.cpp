@@ -347,11 +347,6 @@ glm::ivec2 Level::getPlayerStartTile() const
     return playerStartTilePosition;
 }
 
-glm::vec2 Level::getPlayerStartBottomCenter() const
-{
-    return tileMap.tileToBottomCenterPosition(playerStartTilePosition);
-}
-
 const std::string &Level::getNextLevel() const
 {
     return nextLevel;

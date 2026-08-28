@@ -35,7 +35,6 @@ public:
     void rebuildGraphs();
 
     glm::ivec2 getPlayerStartTile() const;
-    glm::vec2 getPlayerStartBottomCenter() const;
     const std::string &getNextLevel() const;
     const std::vector<NpcSpawnData> &getNpcs() const;
     const std::string &getPath() const;

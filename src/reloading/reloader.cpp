@@ -1,6 +1,7 @@
 #include <exception>
 #include <functional>
 #include <iostream>
+#include <string>
 #include "reloading/reloader.hpp"
 
 namespace

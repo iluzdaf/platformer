@@ -48,6 +48,7 @@ include_directories(external/glm)
 
 include_directories(external/signals)
 
+set(CATCH_CONFIG_CPP17_STRING_VIEW ON CACHE BOOL "" FORCE)
 add_subdirectory(external/catch2)
 
 add_subdirectory(external/glaze)

@@ -562,3 +562,68 @@ TEST_CASE("The shipped player can climb level6's platforms", "[Player][Tuning]")
 
     REQUIRE(climbed);
 }
+
+TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level4.json"), std::string{}));
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    constexpr float GapLeft = 5 * 16.0f;
+    constexpr float GapRight = 8 * 16.0f;
+    glm::vec2 start = level.getTileMap().tileToWorldPosition(levelData.playerStartTilePosition);
+
+    auto runsAtItWith = [&](bool useDash)
+    {
+        int takeOffPointsThatWork = 0;
+        for (float triggerAt = GapLeft - 60.0f; triggerAt <= GapLeft + 14.0f; triggerAt += 1.0f)
+        {
+            ScriptedIntentions input;
+            Player player(gameData.playerData, input);
+            player.setPosition(start);
+
+            FixedTimeStep timestepper;
+            bool triggered = false;
+            int frameTriggered = 0;
+
+            for (int frame = 0; frame < 240; ++frame)
+            {
+                InputIntentions intentions;
+                intentions.direction.x = 1.0f;
+                if (!triggered && player.getPosition().x + 8.0f >= triggerAt)
+                {
+                    triggered = true;
+                    frameTriggered = frame;
+                    intentions.dashRequested = useDash;
+                    intentions.jumpRequested = !useDash;
+                }
+                else if (triggered && !useDash)
+                    intentions.jumpHeld = frame - frameTriggered < 20;
+                input.set(intentions);
+
+                player.preFixedUpdate();
+                timestepper.run(1.0f / 60.0f, [&](float dt)
+                                { player.fixedUpdate(dt, level); });
+                player.postFixedUpdate();
+
+                glm::vec2 position = player.getPosition();
+                if (position.y + 16.0f > 7 * 16.0f)
+                    break;
+                if (player.getMotion().getState().contacts.onGround &&
+                    position.x + 4.0f > GapRight)
+                {
+                    ++takeOffPointsThatWork;
+                    break;
+                }
+            }
+        }
+        return takeOffPointsThatWork;
+    };
+
+    // Room to get it wrong by a few pixels, rather than a frame perfect dash.
+    REQUIRE(runsAtItWith(true) > 10);
+
+    // The block overhead leaves no headroom, which is what makes it a dash.
+    REQUIRE(runsAtItWith(false) == 0);
+}

@@ -18,10 +18,10 @@ TEST_CASE("Setting the first level and saving keeps it", "[Levels]")
         assetPath("levels.json"), copy, std::filesystem::copy_options::overwrite_existing);
 
     Levels levels(copy.string());
-    levels.setFirst("../../assets/levels/level4.json");
+    levels.setFirst("levels/level4.json");
     levels.save();
 
-    REQUIRE(Levels(copy.string()).getFirst() == "../../assets/levels/level4.json");
+    REQUIRE(Levels(copy.string()).getFirst() == "levels/level4.json");
     std::filesystem::remove(copy);
 }
 

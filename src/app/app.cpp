@@ -2,7 +2,9 @@
 #include "app/app.hpp"
 #include "game/game_data.hpp"
 
-App::App() : window(GameData().windowWidth, GameData().windowHeight, "platformer"), game(window)
+App::App()
+    : window(GameData().windowWidth, GameData().windowHeight, "platformer"), game(window),
+      hotReload(game)
 {
 }
 
@@ -15,6 +17,7 @@ void App::run()
         float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
         lastTime = currentTime;
 
+        hotReload.process();
         game.frame(deltaTime);
 
         window.swapBuffers();

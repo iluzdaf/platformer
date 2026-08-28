@@ -194,10 +194,10 @@ TEST_CASE("A level can be pointed at a different level next", "[Level]")
 {
     Level level = levelPlacing({});
 
-    level.setNextLevel("../../assets/levels/level4.json");
+    level.setNextLevel("levels/level4.json");
 
-    REQUIRE(level.getNextLevel() == "../../assets/levels/level4.json");
-    REQUIRE(level.toLevelData().nextLevel == "../../assets/levels/level4.json");
+    REQUIRE(level.getNextLevel() == "levels/level4.json");
+    REQUIRE(level.toLevelData().nextLevel == "levels/level4.json");
 }
 
 TEST_CASE("A level refuses to have no level next", "[Level]")

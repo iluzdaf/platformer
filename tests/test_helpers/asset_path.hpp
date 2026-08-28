@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
+#include "assets/asset_paths.hpp"
 
 inline std::string assetPath(const std::string &relativePath)
 {
-    return std::string(PLATFORMER_ASSETS_DIR) + "/" + relativePath;
+    return assets::pathTo(relativePath);
 }

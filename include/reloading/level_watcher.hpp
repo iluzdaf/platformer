@@ -1,6 +1,7 @@
 #pragma once
 #include <signals.hpp>
 #include "reloading/file_watcher.hpp"
+#include "assets/asset_paths.hpp"
 
 class LevelWatcher : public FileWatcher
 {
@@ -15,7 +16,7 @@ public:
                 onLevelChanged(path);
         };
 
-        fileWatcher.addWatch("../../assets/levels", &listener, false);
+        fileWatcher.addWatch(assets::pathTo(assets::Levels), &listener, false);
         fileWatcher.watch();
     }
 };

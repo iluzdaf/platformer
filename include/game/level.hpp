@@ -15,7 +15,7 @@ class Level
 {
 public:
     Level(
-        const std::string &jsonFilePath,
+        const std::string &levelPath,
         const TilePalettes &tilePalettes,
         const PlayerData &playerData,
         const std::unordered_map<std::string, NpcData> &npcData);
@@ -49,7 +49,7 @@ private:
         const TilePalettes &tilePalettes,
         const PlayerData &playerData,
         const std::unordered_map<std::string, NpcData> &npcData,
-        const std::string &jsonFilePath);
+        const std::string &levelPath);
 
     TileMap tileMap;
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);

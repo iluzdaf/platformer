@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <glaze/glaze.hpp>
 #include "game/levels.hpp"
+#include "assets/asset_paths.hpp"
 #include "game/levels_data.hpp"
 
 Levels::Levels(const std::string &jsonFilePath) : path(jsonFilePath)
@@ -45,9 +46,9 @@ void Levels::save() const
 std::vector<std::string> levelPathsIn(const std::string &directory)
 {
     std::vector<std::string> paths;
-    for (const auto &entry : std::filesystem::directory_iterator(directory))
+    for (const auto &entry : std::filesystem::directory_iterator(assets::pathTo(directory)))
         if (entry.path().extension() == ".json")
-            paths.push_back(entry.path().string());
+            paths.push_back(assets::underRoot(entry.path().string()));
 
     std::sort(paths.begin(), paths.end());
     return paths;

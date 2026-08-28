@@ -20,7 +20,7 @@
         "tilePalette":"default"
     },
     "playerStartTilePosition":[1,11],
-    "nextLevel":"../../assets/levels/level1.json",
+    "nextLevel":"levels/level1.json",
     "npcs":[
         {"type":"villager","tilePosition":[6,11],"patrol":{"from":[2,11],"to":[17,11]}},
         {"type":"villager","tilePosition":[6,5],"patrol":{"from":[1,5],"to":[6,5]}},

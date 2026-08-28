@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <glaze/glaze.hpp>
 #include "game/level.hpp"
+#include "assets/asset_paths.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "navigation/navigation_graph_builder.hpp"
 
@@ -216,11 +217,11 @@ namespace
 }
 
 Level::Level(
-    const std::string &jsonFilePath,
+    const std::string &levelPath,
     const TilePalettes &tilePalettes,
     const PlayerData &playerData,
     const std::unordered_map<std::string, NpcData> &npcData)
-    : Level(readLevelData(jsonFilePath), tilePalettes, playerData, npcData, jsonFilePath)
+    : Level(readLevelData(assets::pathTo(levelPath)), tilePalettes, playerData, npcData, levelPath)
 {
 }
 
@@ -238,8 +239,8 @@ Level::Level(
     const TilePalettes &tilePalettes,
     const PlayerData &playerData,
     const std::unordered_map<std::string, NpcData> &npcData,
-    const std::string &jsonFilePath)
-    : tileMap(levelData.tileMapData, tilePalettes), path(jsonFilePath)
+    const std::string &levelPath)
+    : tileMap(levelData.tileMapData, tilePalettes), path(levelPath)
 {
     initFrom(levelData, playerData, npcData);
 }
@@ -395,7 +396,7 @@ void Level::save() const
     if (error)
         throw std::runtime_error("Failed to serialize LevelData to JSON");
 
-    std::ofstream outFile(path);
+    std::ofstream outFile(assets::pathTo(path));
     outFile << withStructureOnLines(withPaddedGrid(json));
     outFile.close();
 }

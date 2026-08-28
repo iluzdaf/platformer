@@ -4,6 +4,7 @@
 #include <functional>
 #include <mutex>
 #include <filesystem>
+#include "assets/asset_paths.hpp"
 
 class FileWatcherListener : public efsw::FileWatchListener
 {
@@ -21,11 +22,8 @@ public:
             action == efsw::Actions::Moved)
         {
             std::filesystem::path fullPath = std::filesystem::path(dir) / filename;
-            std::filesystem::path relativePath = std::filesystem::relative(fullPath, projectRoot);
-            std::filesystem::path finalPath =
-                std::filesystem::path("..") / std::filesystem::path("..") / relativePath;
             std::lock_guard<std::mutex> lock(queueMutex);
-            modifiedFiles.push_back(finalPath.string());
+            modifiedFiles.push_back(assets::underRoot(fullPath.string()));
         }
     }
 
@@ -46,5 +44,4 @@ public:
 private:
     std::mutex queueMutex;
     std::vector<std::string> modifiedFiles;
-    std::filesystem::path projectRoot = std::filesystem::absolute("../../");
 };

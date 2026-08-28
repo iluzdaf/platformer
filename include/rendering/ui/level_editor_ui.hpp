@@ -16,12 +16,10 @@ class LevelEditorUi
 {
 public:
     void draw(
-        const ImGuiManager &imGuiManager,
         EditorSection section,
         Level &level,
         const Texture2D &tileSet,
-        const std::string &firstLevel,
-        bool showEditors);
+        const std::string &firstLevel);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
         const;
     void update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level);

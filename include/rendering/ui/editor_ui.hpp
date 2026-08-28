@@ -7,11 +7,9 @@ class ImGuiManager;
 class EditorUi
 {
 public:
-    void draw(const ImGuiManager &imGuiManager, bool showEditors);
+    bool begin(const ImGuiManager &imGuiManager, bool showEditors);
+    void end();
     EditorSection getSection() const;
-
-    static void beginInspector(const ImGuiManager &imGuiManager, const char *title);
-    static void endInspector();
 
 private:
     EditorSection section = EditorSection::Playback;

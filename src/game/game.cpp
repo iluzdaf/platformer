@@ -219,24 +219,19 @@ void Game::render()
 
     scoreUi.draw(imGuiManager, scoringSystem, *tileSet.get());
 
-    editorUi.draw(imGuiManager, gameData.debug);
+    if (editorUi.begin(imGuiManager, gameData.debug))
+    {
+        levelEditorUi.draw(editorUi.getSection(), *level.get(), *tileSet.get(), levels.getFirst());
 
-    levelEditorUi.draw(
-        imGuiManager,
-        editorUi.getSection(),
-        *level.get(),
-        *tileSet.get(),
-        levels.getFirst(),
-        gameData.debug);
+        gameEditorUi.draw(
+            editorUi.getSection(),
+            player->getMotion().getState(),
+            player->getPosition(),
+            player->getState(),
+            camera);
 
-    gameEditorUi.draw(
-        imGuiManager,
-        editorUi.getSection(),
-        player->getMotion().getState(),
-        player->getPosition(),
-        player->getState(),
-        camera,
-        gameData.debug);
+        editorUi.end();
+    }
 
     debugAABBUi.draw(
         imGuiManager,

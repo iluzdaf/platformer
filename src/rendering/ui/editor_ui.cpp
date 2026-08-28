@@ -1,3 +1,5 @@
+#include <cfloat>
+#include <string_view>
 #include <utility>
 #include <imgui.h>
 #include "rendering/ui/editor_ui.hpp"
@@ -6,40 +8,49 @@
 
 namespace
 {
-    constexpr float SectionsWidth = 140.0f;
     constexpr float InspectorWidth = 260.0f;
+
+    std::string_view nameOf(EditorSection section)
+    {
+        for (const auto &[listed, name] : EditorSections)
+            if (listed == section)
+                return name;
+
+        return {};
+    }
 }
 
-void EditorUi::draw(const ImGuiManager &imGuiManager, bool showEditors)
+bool EditorUi::begin(const ImGuiManager &imGuiManager, bool showEditors)
 {
     if (!showEditors)
-        return;
+        return false;
 
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(SectionsWidth, imGuiManager.getUiDimensions().y));
-    ImGui::Begin("Sections", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+    ImVec2 displaySize = imGuiManager.getUiDimensions();
+    ImGui::SetNextWindowPos(ImVec2(displaySize.x - InspectorWidth, 0));
+    ImGui::SetNextWindowSize(ImVec2(InspectorWidth, displaySize.y));
+    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 
-    for (const auto &[listed, name] : EditorSections)
-        if (ImGui::Selectable(name.data(), listed == section))
-            section = listed;
+    ImGui::SetNextItemWidth(-FLT_MIN);
+    if (ImGui::BeginCombo("##section", nameOf(section).data()))
+    {
+        for (const auto &[listed, name] : EditorSections)
+            if (ImGui::Selectable(name.data(), listed == section))
+                section = listed;
 
+        ImGui::EndCombo();
+    }
+
+    ImGui::Separator();
+
+    return true;
+}
+
+void EditorUi::end()
+{
     ImGui::End();
 }
 
 EditorSection EditorUi::getSection() const
 {
     return section;
-}
-
-void EditorUi::beginInspector(const ImGuiManager &imGuiManager, const char *title)
-{
-    ImVec2 displaySize = imGuiManager.getUiDimensions();
-    ImGui::SetNextWindowPos(ImVec2(displaySize.x - InspectorWidth, 0));
-    ImGui::SetNextWindowSize(ImVec2(InspectorWidth, displaySize.y));
-    ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoResize);
-}
-
-void EditorUi::endInspector()
-{
-    ImGui::End();
 }

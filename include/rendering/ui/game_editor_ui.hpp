@@ -13,13 +13,11 @@ class GameEditorUi
 {
 public:
     void draw(
-        const ImGuiManager &imGuiManager,
         EditorSection section,
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerPosition,
         const ActorState &actorState,
-        const Camera2D &camera,
-        bool showEditors);
+        const Camera2D &camera);
 
     bool drawsPlayerAABBs() const;
 

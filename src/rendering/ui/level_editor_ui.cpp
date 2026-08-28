@@ -8,7 +8,6 @@
 #include <utility>
 #include <vector>
 #include "rendering/ui/level_editor_ui.hpp"
-#include "rendering/ui/editor_ui.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/named_navigation_graph.hpp"
@@ -52,40 +51,27 @@ namespace
 }
 
 void LevelEditorUi::draw(
-    const ImGuiManager &imGuiManager,
     EditorSection section,
     Level &level,
     const Texture2D &tileSet,
-    const std::string &firstLevel,
-    bool showEditors)
+    const std::string &firstLevel)
 {
-    if (!showEditors)
-        return;
-
     switch (section)
     {
     case EditorSection::Level:
-        EditorUi::beginInspector(imGuiManager, "Level");
         drawLevel(level, firstLevel);
-        EditorUi::endInspector();
         break;
 
     case EditorSection::Npcs:
-        EditorUi::beginInspector(imGuiManager, "NPCs");
         drawNpcs(level);
-        EditorUi::endInspector();
         break;
 
     case EditorSection::TileMap:
-        EditorUi::beginInspector(imGuiManager, "Tile map");
         drawTileMap(level, tileSet);
-        EditorUi::endInspector();
         break;
 
     case EditorSection::Navigation:
-        EditorUi::beginInspector(imGuiManager, "Navigation");
         drawGraphs(level);
-        EditorUi::endInspector();
         break;
 
     default:

@@ -4,51 +4,40 @@
 #include "rendering/ui/game_editor_ui.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "rendering/ui/imgui_manager.hpp"
-#include "rendering/ui/editor_ui.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
 
 void GameEditorUi::draw(
-    const ImGuiManager &imGuiManager,
     EditorSection section,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
     const ActorState &actorState,
-    const Camera2D &camera,
-    bool showEditors)
+    const Camera2D &camera)
 {
-    if (!showEditors)
-        return;
-
     if (section == EditorSection::Playback)
     {
-        EditorUi::beginInspector(imGuiManager, "Playback");
         if (ImGui::Button("Step"))
             onStep();
         ImGui::SameLine();
         if (ImGui::Button("Play"))
             onPlay();
-        EditorUi::endInspector();
         return;
     }
 
     if (section == EditorSection::Camera)
     {
-        EditorUi::beginInspector(imGuiManager, "Camera");
         if (ImGui::Button("Zoom"))
             onToggleZoom();
         ImGui::SameLine();
         ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
-        EditorUi::endInspector();
         return;
     }
 
     if (section != EditorSection::Player)
         return;
 
-    EditorUi::beginInspector(imGuiManager, "Player");
     ImGui::Checkbox("AABBs", &drawPlayerAABBs);
     ImGui::SameLine();
     if (ImGui::Button("Respawn"))
@@ -88,8 +77,6 @@ void GameEditorUi::draw(
 
         ImGui::EndTable();
     }
-
-    EditorUi::endInspector();
 }
 bool GameEditorUi::drawsPlayerAABBs() const
 {

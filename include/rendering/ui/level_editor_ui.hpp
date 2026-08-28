@@ -37,6 +37,7 @@ private:
          editingPlayerStartTile = false;
     int selectedTileIndex = 0;
     bool showNavigation = true,
+         drawTheFlightItself = false,
          drawGrid = false,
          drawTileInfo = false,
          drawTileMapAABBs = false;

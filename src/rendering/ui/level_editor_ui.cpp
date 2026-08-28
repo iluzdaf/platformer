@@ -262,6 +262,7 @@ void LevelEditorUi::drawGraphs(
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
     ImGui::Indent();
     ImGui::Checkbox("render", &showNavigation);
+    ImGui::Checkbox("real trajectory", &drawTheFlightItself);
 
     if (graphs.empty())
     {
@@ -301,7 +302,8 @@ void LevelEditorUi::drawGraphs(
             camera,
             shown.graph,
             selectedNodeId,
-            selectedEdge);
+            selectedEdge,
+            drawTheFlightItself ? JumpsDrawnAs::TheFlightItself : JumpsDrawnAs::SmoothArc);
 
     std::vector<int> nodeIds;
     for (const auto &[nodeId, node] : shown.graph.getNodes())

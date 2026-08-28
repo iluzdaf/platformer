@@ -37,7 +37,8 @@ namespace
         const ImGuiManager &imGuiManager,
         const NavigationGraph &navigationGraph,
         const Camera2D &camera,
-        const NavigationEdge &edge)
+        const NavigationEdge &edge,
+        JumpsDrawnAs jumpsDrawnAs)
     {
         ImU32 color = IM_COL32(255, 255, 255, 255);
         switch (edge.type)
@@ -78,8 +79,15 @@ namespace
             // Through the high point at the middle of the curve.
             glm::vec2 control = 2.0f * apex - (leaves + comesDown) * 0.5f;
 
-            drawList->PathLineTo(screen(leaves));
-            drawList->PathBezierQuadraticCurveTo(screen(control), screen(comesDown));
+            if (jumpsDrawnAs == JumpsDrawnAs::TheFlightItself)
+                for (const glm::vec2 &position : edge.path)
+                    drawList->PathLineTo(screen(position));
+            else
+            {
+                drawList->PathLineTo(screen(leaves));
+                drawList->PathBezierQuadraticCurveTo(screen(control), screen(comesDown));
+            }
+
             drawList->PathStroke(color, ImDrawFlags_None, 1.5f);
             return;
         }
@@ -107,7 +115,8 @@ void drawNavigationGraph(
     const Camera2D &camera,
     const NavigationGraph &navigationGraph,
     std::optional<int> selectedNodeId,
-    std::optional<std::pair<int, int>> selectedEdge)
+    std::optional<std::pair<int, int>> selectedEdge,
+    JumpsDrawnAs jumpsDrawnAs)
 {
     auto edgeShown = [&](const NavigationEdge &edge)
     {
@@ -145,5 +154,5 @@ void drawNavigationGraph(
 
     for (const auto &edge : navigationGraph.getEdges())
         if (edgeShown(edge))
-            drawEdge(imGuiManager, navigationGraph, camera, edge);
+            drawEdge(imGuiManager, navigationGraph, camera, edge, jumpsDrawnAs);
 }

@@ -135,3 +135,11 @@ TEST_CASE("Has nothing to do on a graph with no edges at all", "[FleeBehavior]")
     REQUIRE(inputIntentions.direction.x == 0.0f);
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
 }
+
+TEST_CASE("Will not run past the threat to reach open ground", "[FleeBehavior]")
+{
+    NavigationGraph navigationGraph = setupRun();
+    FleeBehavior behavior(setupData());
+
+    REQUIRE(runAway(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(144.0f, 192.0f)) == 0);
+}

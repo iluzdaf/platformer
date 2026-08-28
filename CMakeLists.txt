@@ -124,6 +124,7 @@ add_library(platformer_lib OBJECT
     src/actor/behaviors/flee_behavior.cpp
     src/actor/behaviors/patrol_behavior.cpp
     src/actor/behaviors/route_walker.cpp
+    src/actor/behaviors/state_machine_behavior.cpp
     src/npc/npc.cpp
     src/actor/actor_motion.cpp
     src/actor/abilities/jump_ability.cpp
@@ -231,6 +232,7 @@ add_executable(tests
     tests/navigation/test_jump_simulation.cpp
     tests/actor/behaviors/test_flee_behavior.cpp
     tests/actor/behaviors/test_patrol_behavior.cpp
+    tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/npc/test_npc.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp

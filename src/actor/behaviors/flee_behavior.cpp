@@ -21,12 +21,17 @@ std::optional<int> FleeBehavior::furthestFrom(const ActorBehaviorContext &contex
         return std::nullopt;
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
+    float away = context.worldPosition.x - context.threatPosition->x;
 
     std::optional<int> furthest;
     float furthestDistance = 0.0f;
     for (int id : roundTripFrom(navigationGraph, *from))
     {
-        float distance = glm::distance(navigationGraph.getNode(id).position, *context.threatPosition);
+        glm::vec2 refuge = navigationGraph.getNode(id).position;
+        if (away != 0.0f && (refuge.x - context.threatPosition->x) * away < 0.0f)
+            continue;
+
+        float distance = glm::distance(refuge, *context.threatPosition);
         if (furthest && distance <= furthestDistance)
             continue;
 

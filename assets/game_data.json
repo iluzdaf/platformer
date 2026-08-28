@@ -95,7 +95,16 @@
                     }
                 }
             },
-            "patrolBehaviorData":{"arrivalThreshold":2.0}
+            "stateMachineBehaviorData":{
+                "states":[
+                    {"name":"patrol","patrolBehaviorData":{"arrivalThreshold":2.0}},
+                    {"name":"flee","fleeBehaviorData":{"arrivalThreshold":2.0}}
+                ],
+                "transitions":[
+                    {"from":"patrol","to":"flee","threatWithin":40.0},
+                    {"from":"flee","to":"patrol","threatBeyond":80.0,"after":1.5}
+                ]
+            }
         },
         "explorer":{
             "actorData":{

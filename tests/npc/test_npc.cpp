@@ -417,3 +417,41 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
     REQUIRE(cameBackDown);
     REQUIRE(longestStandingStill < 100);
 }
+
+TEST_CASE("The shipped villager runs from the player and settles once it is gone",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(0);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    glm::vec2 crowding = footOf(npc) + glm::vec2(12.0f, 0.0f);
+    float startedAt = footOf(npc).x;
+
+    for (int step = 0; step < 300; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, crowding);
+    }
+
+    REQUIRE(footOf(npc).x < startedAt);
+    REQUIRE(glm::distance(footOf(npc), crowding) > 40.0f);
+
+    float ranTo = footOf(npc).x;
+    for (int step = 0; step < 600; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level);
+    }
+
+    REQUIRE(footOf(npc).x != ranTo);
+}

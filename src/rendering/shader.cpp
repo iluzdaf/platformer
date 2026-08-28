@@ -17,7 +17,9 @@ Shader::Shader(const ShaderData &shaderData)
     }
     else
     {
-        throw std::runtime_error("ShaderData must contain either both vertex/fragment code or both vertex/fragment paths");
+        throw std::runtime_error(
+            "ShaderData must contain either both vertex/fragment code or both vertex/fragment "
+            "paths");
     }
 }
 
@@ -67,7 +69,8 @@ void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
 {
     assert(!name.empty());
 
-    glUniformMatrix4fv(glGetUniformLocation(shaderID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+    glUniformMatrix4fv(
+        glGetUniformLocation(shaderID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
 
 std::string Shader::loadFile(const std::string &path) const

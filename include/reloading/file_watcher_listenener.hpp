@@ -17,13 +17,13 @@ public:
         efsw::Action action,
         std::string) override
     {
-        if (action == efsw::Actions::Modified ||
-            action == efsw::Actions::Add ||
+        if (action == efsw::Actions::Modified || action == efsw::Actions::Add ||
             action == efsw::Actions::Moved)
         {
             std::filesystem::path fullPath = std::filesystem::path(dir) / filename;
             std::filesystem::path relativePath = std::filesystem::relative(fullPath, projectRoot);
-            std::filesystem::path finalPath = std::filesystem::path("..") / std::filesystem::path("..") / relativePath;
+            std::filesystem::path finalPath =
+                std::filesystem::path("..") / std::filesystem::path("..") / relativePath;
             std::lock_guard<std::mutex> lock(queueMutex);
             modifiedFiles.push_back(finalPath.string());
         }

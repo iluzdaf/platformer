@@ -9,10 +9,7 @@ public:
 
     ScriptWatcher()
     {
-        listener.onFileModified = [&](const std::string &)
-        {
-            onScriptsChanged();
-        };
+        listener.onFileModified = [&](const std::string &) { onScriptsChanged(); };
 
         fileWatcher.addWatch("../../assets/scripts", &listener, false);
         fileWatcher.watch();

@@ -13,10 +13,7 @@ void NavigationGraph::addNode(NavigationNode node)
     nodes[node.id] = node;
 }
 
-void NavigationGraph::addEdge(
-    int fromId,
-    int toId,
-    EdgeType type)
+void NavigationGraph::addEdge(int fromId, int toId, EdgeType type)
 {
     addEdge({fromId, toId, type, {}, 0.0f});
 }

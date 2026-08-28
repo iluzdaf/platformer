@@ -24,8 +24,7 @@ namespace
     {
         std::ifstream file(path);
         return std::string(
-            (std::istreambuf_iterator<char>(file)),
-            std::istreambuf_iterator<char>());
+            (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     }
 
 }
@@ -40,7 +39,9 @@ TEST_CASE("A saved level carries no navigation data", "[TileMap][Navigation]")
     REQUIRE(json.find("navigation") == std::string::npos);
 }
 
-TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unchanged", "[TileMap][Level]")
+TEST_CASE(
+    "Saving a level writes a readable grid and tile table, and reloads unchanged",
+    "[TileMap][Level]")
 {
     std::filesystem::path savePath =
         std::filesystem::temp_directory_path() / "platformer_save_roundtrip.json";
@@ -60,7 +61,8 @@ TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unc
     REQUIRE(savedJson.find("\"indices\":[\n            [") != std::string::npos);
 
     size_t rows = 0;
-    for (size_t at = savedJson.find("\n            ["); at != std::string::npos; at = savedJson.find("\n            [", at + 1))
+    for (size_t at = savedJson.find("\n            ["); at != std::string::npos;
+         at = savedJson.find("\n            [", at + 1))
         ++rows;
     REQUIRE(rows == static_cast<size_t>(loaded.getTileMap().getHeight()));
 
@@ -83,8 +85,9 @@ TEST_CASE("Saving a level writes a readable grid and tile table, and reloads unc
 
     for (int y = 0; y < loaded.getTileMap().getHeight(); ++y)
         for (int x = 0; x < loaded.getTileMap().getWidth(); ++x)
-            REQUIRE(reloaded.getTileMap().tilePositionToTileIndex({x, y}) ==
-                    loaded.getTileMap().tilePositionToTileIndex({x, y}));
+            REQUIRE(
+                reloaded.getTileMap().tilePositionToTileIndex({x, y}) ==
+                loaded.getTileMap().tilePositionToTileIndex({x, y}));
 
     std::filesystem::remove(savePath);
 }
@@ -101,13 +104,12 @@ TEST_CASE("Every shipped level is already in the format the editor saves", "[Til
         std::filesystem::path savePath =
             std::filesystem::temp_directory_path() / entry.path().filename();
         std::filesystem::copy_file(
-            entry.path(),
-            savePath,
-            std::filesystem::copy_options::overwrite_existing);
+            entry.path(), savePath, std::filesystem::copy_options::overwrite_existing);
 
         loadLevel(savePath.string()).save();
 
-        INFO("level " << entry.path().filename().string() << " is not saved in the editor's format");
+        INFO(
+            "level " << entry.path().filename().string() << " is not saved in the editor's format");
         REQUIRE(readFile(savePath) == original);
 
         std::filesystem::remove(savePath);
@@ -136,9 +138,7 @@ TEST_CASE("A level naming a palette that does not exist fails to load", "[TileMa
     tileMapData.height = 4;
     tileMapData.tilePalette = "nope";
 
-    REQUIRE_THROWS_WITH(
-        TileMap(tileMapData, shippedPalettes()),
-        "Unknown tile palette \"nope\"");
+    REQUIRE_THROWS_WITH(TileMap(tileMapData, shippedPalettes()), "Unknown tile palette \"nope\"");
 }
 
 TEST_CASE("Every shipped level uses a palette that exists", "[TileMap][Level]")

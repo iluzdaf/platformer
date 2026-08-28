@@ -28,7 +28,8 @@ void TileMapRenderer::draw(
             glm::vec2 position = tileMap.tileToWorldPosition(glm::ivec2(tileX, tileY));
             glm::vec2 size = glm::vec2(static_cast<float>(tileSize));
 
-            spriteRenderer.drawWithUV(tileSetShader, tileSet, projection, position, size, uvStart, uvEnd);
+            spriteRenderer.drawWithUV(
+                tileSetShader, tileSet, projection, position, size, uvStart, uvEnd);
         }
     }
 }

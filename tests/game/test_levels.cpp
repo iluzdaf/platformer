@@ -13,8 +13,7 @@ TEST_CASE("Levels names the level the game starts on", "[Levels]")
 
 TEST_CASE("Setting the first level and saving keeps it", "[Levels]")
 {
-    std::filesystem::path copy =
-        std::filesystem::temp_directory_path() / "platformer_levels.json";
+    std::filesystem::path copy = std::filesystem::temp_directory_path() / "platformer_levels.json";
     std::filesystem::copy_file(
         assetPath("levels.json"), copy, std::filesystem::copy_options::overwrite_existing);
 

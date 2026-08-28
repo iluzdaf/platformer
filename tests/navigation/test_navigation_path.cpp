@@ -15,7 +15,8 @@ namespace
         navigationGraph.addNode(4, glm::vec2(50.0f, 50.0f));
         navigationGraph.addNode(5, glm::vec2(100.0f, 50.0f));
 
-        for (auto [left, right] : {std::pair(0, 1), std::pair(1, 2), std::pair(3, 4), std::pair(4, 5)})
+        for (auto [left, right] :
+             {std::pair(0, 1), std::pair(1, 2), std::pair(3, 4), std::pair(4, 5)})
         {
             navigationGraph.addEdge(left, right, EdgeType::Walk);
             navigationGraph.addEdge(right, left, EdgeType::Walk);

@@ -144,8 +144,7 @@ TEST_CASE("Will not run past the threat to reach open ground", "[FleeBehavior]")
     REQUIRE(runAway(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(144.0f, 192.0f)) == 0);
 }
 
-TEST_CASE("Turns back to the node it set off from when the threat gets behind it",
-          "[FleeBehavior]")
+TEST_CASE("Turns back to the node it set off from when the threat gets behind it", "[FleeBehavior]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {16.0f, 96.0f});
@@ -194,11 +193,11 @@ TEST_CASE("Breaks past the threat once it has nowhere left to back into", "[Flee
 
     REQUIRE(position.x < 24.0f);
 
-    InputIntentions holding = behavior.decide(
-        0.01f, at(navigationGraph, position, glm::vec2(position.x + 40.0f, 96.0f)));
+    InputIntentions holding =
+        behavior.decide(0.01f, at(navigationGraph, position, glm::vec2(position.x + 40.0f, 96.0f)));
     REQUIRE(holding.direction.x == 0.0f);
 
-    InputIntentions breakingPast = behavior.decide(
-        0.01f, at(navigationGraph, position, glm::vec2(position.x + 10.0f, 96.0f)));
+    InputIntentions breakingPast =
+        behavior.decide(0.01f, at(navigationGraph, position, glm::vec2(position.x + 10.0f, 96.0f)));
     REQUIRE(breakingPast.direction.x == 1.0f);
 }

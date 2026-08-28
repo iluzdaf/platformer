@@ -77,7 +77,8 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         state.contacts.touchingLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(wallJumpAbilityData.wallJumpDuration + 0.01f, inputIntentions, state);
+        wallJumpAbility.applyMovement(
+            wallJumpAbilityData.wallJumpDuration + 0.01f, inputIntentions, state);
         REQUIRE_FALSE(state.wallJump.active);
         REQUIRE(state.wallJump.velocity.y == Approx(0.0f));
         REQUIRE(state.wallJump.velocity.x == Approx(0.0f));

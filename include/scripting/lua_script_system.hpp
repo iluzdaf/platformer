@@ -22,10 +22,7 @@ public:
 
     explicit LuaScriptSystem(const std::string &scriptPath = "../../assets/scripts/game_logic.lua");
     void update(float deltaTime);
-    void bindGameObjects(
-        Game *game,
-        Camera2D *camera,
-        ScreenTransition *screenTransition);
+    void bindGameObjects(Game *game, Camera2D *camera, ScreenTransition *screenTransition);
     void triggerLevelComplete();
     void triggerDeath();
     void bindLevel(Level *level);
@@ -44,15 +41,7 @@ public:
 private:
     std::string scriptPath;
     sol::state lua;
-    sol::function
-        onDeath,
-        onLevelComplete,
-        onWallJump,
-        onDoubleJump,
-        onDash,
-        onFallFromHeight,
-        onHitCeiling,
-        onWallSliding,
-        onGameLoaded;
+    sol::function onDeath, onLevelComplete, onWallJump, onDoubleJump, onDash, onFallFromHeight,
+        onHitCeiling, onWallSliding, onGameLoaded;
     std::vector<WaitingCoroutine> waitingCoroutines;
 };

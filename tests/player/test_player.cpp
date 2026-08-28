@@ -26,16 +26,17 @@ namespace
         LevelData levelData;
         levelData.tileMapData = tileMap.toTileMapData();
 
-        Level level(
-            levelData,
-            palettesFrom(getDefaultTileDataMap()),
-            setupPlayerData(),
-            {});
+        Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {});
 
         FixedTimeStep timeStepper(step);
         input.set(intentions);
-        timeStepper.run(totalTime, [&](float dt)
-                        { player.fixedUpdate(dt, level); player.postFixedUpdate(); });
+        timeStepper.run(
+            totalTime,
+            [&](float dt)
+            {
+                player.fixedUpdate(dt, level);
+                player.postFixedUpdate();
+            });
     }
 }
 
@@ -244,8 +245,7 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
     {
         player.setPosition(glm::vec2(0, 0));
         bool fallFromHeightTriggered = false;
-        player.onFallFromHeight.connect([&]
-                                        { fallFromHeightTriggered = true; });
+        player.onFallFromHeight.connect([&] { fallFromHeightTriggered = true; });
         simulatePlayer(player, input, tileMap, 1.5f);
         REQUIRE(fallFromHeightTriggered);
     }
@@ -257,8 +257,7 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, input, tileMap, 0.01f);
         bool hitCeilingTriggered = false;
-        player.onHitCeiling.connect([&]
-                                    { hitCeilingTriggered = true; });
+        player.onHitCeiling.connect([&] { hitCeilingTriggered = true; });
         InputIntentions inputIntentions;
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
@@ -330,8 +329,8 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
 
     float ledgeRight = static_cast<float>(LedgeLastTile + 1) * 16.0f;
     float ledgeTop = static_cast<float>(LedgeRow) * 16.0f;
-    player.setPosition(glm::vec2(ledgeRight - player.getPhysicsBody().getColliderOffset().x,
-                                 ledgeTop - 2.0f));
+    player.setPosition(
+        glm::vec2(ledgeRight - player.getPhysicsBody().getColliderOffset().x, ledgeTop - 2.0f));
 
     InputIntentions intentions;
     intentions.direction.x = -1.0f;
@@ -343,8 +342,9 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
     }
 
     float colliderTop = player.getPosition().y + player.getPhysicsBody().getColliderOffset().y;
-    INFO("collider top ended at " << colliderTop << ", the ledge spans "
-                                  << ledgeTop << " to " << ledgeTop + 16.0f);
+    INFO(
+        "collider top ended at " << colliderTop << ", the ledge spans " << ledgeTop << " to "
+                                 << ledgeTop + 16.0f);
     REQUIRE(colliderTop > ledgeTop + 16.0f);
 }
 
@@ -412,7 +412,8 @@ namespace
         float floorY = static_cast<float>(PitFloorRow) * 16.0f;
 
         for (float triggerAt = pitLeft - 80.0f; triggerAt <= pitLeft; triggerAt += 1.0f)
-            for (float dashAfter = 0.0f; dashAfter <= (jump && dash ? 0.45f : 0.0f); dashAfter += 0.025f)
+            for (float dashAfter = 0.0f; dashAfter <= (jump && dash ? 0.45f : 0.0f);
+                 dashAfter += 0.025f)
             {
                 ScriptedIntentions input;
                 Player player(gameData.playerData, input);
@@ -443,8 +444,7 @@ namespace
                     input.set(intentions);
 
                     player.preFixedUpdate();
-                    timestepper.run(1.0f / 60.0f, [&](float dt)
-                                    { player.fixedUpdate(dt, level); });
+                    timestepper.run(1.0f / 60.0f, [&](float dt) { player.fixedUpdate(dt, level); });
                     player.postFixedUpdate();
 
                     glm::vec2 position = player.getPosition();
@@ -459,8 +459,8 @@ namespace
                         continue;
                     }
 
-                    bool onSpikes = kind == Pit::Spikes &&
-                                    position.x + 12.0f > pitLeft && position.x + 4.0f < pitRight &&
+                    bool onSpikes = kind == Pit::Spikes && position.x + 12.0f > pitLeft &&
+                                    position.x + 4.0f < pitRight &&
                                     position.y + 16.0f > static_cast<float>(PitHazardRow) * 16.0f &&
                                     position.y + 3.0f < floorY;
                     if (onSpikes || position.y > floorY)
@@ -500,8 +500,7 @@ TEST_CASE("The shipped player's dash is worth four tiles, and no spikes", "[Play
     REQUIRE_FALSE(getsAcross(gameData, 1, Pit::Spikes, false, true));
 }
 
-TEST_CASE("The shipped player's jump and dash together are worth five tiles",
-          "[Player][Tuning]")
+TEST_CASE("The shipped player's jump and dash together are worth five tiles", "[Player][Tuning]")
 {
     GameData gameData = shippedGameData();
 
@@ -527,9 +526,10 @@ TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]
         float edgeX, standOn, towards, intoPlatform, landOn;
     };
 
-    for (Step step : {Step{"floor to the lowest platform", 192.0f, 192.0f, 1.0f, -1.0f, 160.0f},
-                      Step{"lowest to the middle platform", 192.0f, 160.0f, -1.0f, 1.0f, 128.0f},
-                      Step{"middle to the highest platform", 160.0f, 128.0f, -1.0f, -1.0f, 96.0f}})
+    for (Step step :
+         {Step{"floor to the lowest platform", 192.0f, 192.0f, 1.0f, -1.0f, 160.0f},
+          Step{"lowest to the middle platform", 192.0f, 160.0f, -1.0f, 1.0f, 128.0f},
+          Step{"middle to the highest platform", 160.0f, 128.0f, -1.0f, -1.0f, 96.0f}})
     {
         int takeOffPointsThatWork = 0;
         for (float back = 0.0f; back <= 44.0f; back += 2.0f)
@@ -549,8 +549,7 @@ TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]
                 input.set(intentions);
 
                 player.preFixedUpdate();
-                timestepper.run(1.0f / 60.0f, [&](float dt)
-                                { player.fixedUpdate(dt, level); });
+                timestepper.run(1.0f / 60.0f, [&](float dt) { player.fixedUpdate(dt, level); });
                 player.postFixedUpdate();
 
                 if (player.getMotion().getState().contacts.onGround &&
@@ -576,7 +575,8 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
 
     constexpr float GapLeft = 5 * 16.0f;
     constexpr float GapRight = 8 * 16.0f;
-    glm::vec2 start = level.getTileMap().tileToBottomCenterPosition(levelData.playerStartTilePosition);
+    glm::vec2 start =
+        level.getTileMap().tileToBottomCenterPosition(levelData.playerStartTilePosition);
 
     auto runsAtItWith = [&](bool useDash)
     {
@@ -607,15 +607,13 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
                 input.set(intentions);
 
                 player.preFixedUpdate();
-                timestepper.run(1.0f / 60.0f, [&](float dt)
-                                { player.fixedUpdate(dt, level); });
+                timestepper.run(1.0f / 60.0f, [&](float dt) { player.fixedUpdate(dt, level); });
                 player.postFixedUpdate();
 
                 glm::vec2 position = player.getPosition();
                 if (position.y + 16.0f > 7 * 16.0f)
                     break;
-                if (player.getMotion().getState().contacts.onGround &&
-                    position.x + 4.0f > GapRight)
+                if (player.getMotion().getState().contacts.onGround && position.x + 4.0f > GapRight)
                 {
                     ++takeOffPointsThatWork;
                     break;

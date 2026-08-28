@@ -31,7 +31,8 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
         state.climb.active = false;
         state.wallSlide.active = false;
 
-        int iterationsToMaxFallSpeed = static_cast<int>(std::ceil(data.maxFallSpeed / (data.gravity * 0.01f)));
+        int iterationsToMaxFallSpeed =
+            static_cast<int>(std::ceil(data.maxFallSpeed / (data.gravity * 0.01f)));
         for (int i = 0; i < iterationsToMaxFallSpeed + 10; ++i)
         {
             ability.applyMovement(0.01f, inputIntentions, state);

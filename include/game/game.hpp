@@ -82,7 +82,6 @@ private:
     LevelEditorUi levelEditorUi;
     ScoreUi scoreUi;
     fteng::connection onLevelCompleteConnection;
-    bool paused = false,
-         stepFrame = false;
+    bool paused = false, stepFrame = false;
     GameData gameData;
 };

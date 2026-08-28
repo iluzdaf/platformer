@@ -30,10 +30,7 @@ namespace
     }
 }
 
-void drawTileGrid(
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera,
-    const TileMap &tileMap)
+void drawTileGrid(const ImGuiManager &imGuiManager, const Camera2D &camera, const TileMap &tileMap)
 {
     TileScreenSpace space = screenSpaceOf(imGuiManager, camera, tileMap);
     ImVec2 uiDimensions = imGuiManager.getUiDimensions();
@@ -46,10 +43,7 @@ void drawTileGrid(
         drawList->AddLine(ImVec2(0, y), ImVec2(uiDimensions.x, y), IM_COL32(100, 100, 100, 255));
 }
 
-void drawTileInfo(
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera,
-    const TileMap &tileMap)
+void drawTileInfo(const ImGuiManager &imGuiManager, const Camera2D &camera, const TileMap &tileMap)
 {
     TileScreenSpace space = screenSpaceOf(imGuiManager, camera, tileMap);
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();

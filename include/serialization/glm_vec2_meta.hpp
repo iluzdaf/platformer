@@ -3,8 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glaze/glaze.hpp>
 
-template <>
-struct glz::meta<glm::vec2>
+template <> struct glz::meta<glm::vec2>
 {
     using T = glm::vec2;
     // NOLINTNEXTLINE(readability-identifier-naming) glaze requires this name

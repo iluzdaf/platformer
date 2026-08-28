@@ -15,7 +15,5 @@ public:
 
 private:
     FrameAnimation frameAnimation;
-    int frameWidth = 0,
-        frameHeight = 0,
-        textureWidth = 0;
+    int frameWidth = 0, frameHeight = 0, textureWidth = 0;
 };

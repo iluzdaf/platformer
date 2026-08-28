@@ -17,14 +17,8 @@ public:
     void newFrame();
     void render();
     ImGuiIO &getIO() const;
-    ImVec2 worldToScreen(
-        glm::vec2 worldPosition,
-        float zoom,
-        glm::vec2 cameraLeftPosition) const;
-    glm::vec2 screenToWorld(
-        ImVec2 screenPosition,
-        float zoom,
-        glm::vec2 cameraLeftPosition) const;
+    ImVec2 worldToScreen(glm::vec2 worldPosition, float zoom, glm::vec2 cameraLeftPosition) const;
+    glm::vec2 screenToWorld(ImVec2 screenPosition, float zoom, glm::vec2 cameraLeftPosition) const;
     glm::vec2 getUiScale() const;
     void resize(int windowWidth, int windowHeight);
     ImVec2 getUiDimensions() const;

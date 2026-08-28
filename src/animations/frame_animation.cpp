@@ -2,8 +2,7 @@
 #include "animations/frame_animation.hpp"
 
 FrameAnimation::FrameAnimation(const FrameAnimationData &frameAnimationData)
-    : frames(std::move(frameAnimationData.frames)),
-      frameDuration(frameAnimationData.frameDuration)
+    : frames(std::move(frameAnimationData.frames)), frameDuration(frameAnimationData.frameDuration)
 {
     assert(frameDuration > 0);
 }

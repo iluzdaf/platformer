@@ -3,12 +3,9 @@
 #include "tile_map/tile.hpp"
 
 Tile::Tile(int tileIndex, const TileData &tileData)
-    : kind(tileData.kind),
-      pickupReplaceIndex(tileData.pickupReplaceIndex),
-      pickupScoreDelta(tileData.pickupScoreDelta),
-      colliderOffset(tileData.colliderOffset),
-      colliderSize(tileData.colliderSize),
-      tileIndex(tileIndex)
+    : kind(tileData.kind), pickupReplaceIndex(tileData.pickupReplaceIndex),
+      pickupScoreDelta(tileData.pickupScoreDelta), colliderOffset(tileData.colliderOffset),
+      colliderSize(tileData.colliderSize), tileIndex(tileIndex)
 {
     if (kind == TileKind::Pickup && !pickupReplaceIndex.has_value())
         throw std::runtime_error("Pickup tile must define a pickupReplaceIndex");

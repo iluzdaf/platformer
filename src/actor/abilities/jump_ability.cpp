@@ -4,9 +4,7 @@
 #include "input/input_intentions.hpp"
 
 JumpAbility::JumpAbility(const JumpAbilityData &data)
-    : data(data),
-      jumpBuffer(data.jumpBufferDuration),
-      coyoteTime(data.jumpCoyoteDuration)
+    : data(data), jumpBuffer(data.jumpBufferDuration), coyoteTime(data.jumpCoyoteDuration)
 {
     if (data.jumpSpeed >= 0)
         throw std::runtime_error("jumpSpeed must be negative");
@@ -27,8 +25,7 @@ void JumpAbility::applyMovement(
         if (inputIntentions.jumpRequested)
             jumpBuffer.press();
 
-        if (jumpBuffer.isBuffered() &&
-            (state.contacts.onGround || coyoteTime.isCoyoteAvailable()))
+        if (jumpBuffer.isBuffered() && (state.contacts.onGround || coyoteTime.isCoyoteAvailable()))
         {
             state.jump.active = true;
             state.jump.holdTime = 0.0f;

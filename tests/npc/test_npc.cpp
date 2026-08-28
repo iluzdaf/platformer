@@ -48,10 +48,7 @@ namespace
         levelData.tileMapData = tileMap.toTileMapData();
         levelData.npcs = {spawnAt("villager", npcTile)};
         return Level(
-            levelData,
-            palettesFrom(getDefaultTileDataMap()),
-            PlayerData(),
-            npcCatalogue());
+            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue());
     }
 
     Level setupWalkableLevel()
@@ -122,7 +119,8 @@ namespace
 
     float reachOf(const Npc &npc)
     {
-        return npc.getPhysicsBody().getColliderSize().x * 0.5f + PatrolBehaviorData().arrivalThreshold;
+        return npc.getPhysicsBody().getColliderSize().x * 0.5f +
+               PatrolBehaviorData().arrivalThreshold;
     }
 
     std::vector<float> patrolFootXs(Npc &npc, const Level &level, int steps)
@@ -238,11 +236,7 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
     levelData.tileMapData.height = 10;
     levelData.npcs = {spawnAt("villager", {1, 1}), spawnAt("villager", {2, 1})};
 
-    Level level(
-        levelData,
-        palettesFrom(getDefaultTileDataMap()),
-        PlayerData(),
-        npcCatalogue());
+    Level level(levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue());
 
     REQUIRE(level.getNpcs().size() == 2);
     REQUIRE(level.getNpcs()[0].type == "villager");
@@ -264,8 +258,10 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
         for (const NpcSpawnData &spawn : level.getNpcs())
         {
             ++placed;
-            INFO("npc \"" << spawn.type << "\" at " << spawn.tilePosition.x << "," << spawn.tilePosition.y
-                          << " in " << entry.path().filename().string() << " has nowhere to walk");
+            INFO(
+                "npc \"" << spawn.type << "\" at " << spawn.tilePosition.x << ","
+                         << spawn.tilePosition.y << " in " << entry.path().filename().string()
+                         << " has nowhere to walk");
 
             Npc npc(setupNpcData());
             standIn(npc, tileMap, spawn.tilePosition);
@@ -297,12 +293,14 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
 
     SECTION("out of bounds")
     {
-        REQUIRE_THROWS_WITH(levelWith({spawnAt("villager", {99, 99})}), "Npc start position is out of bounds");
+        REQUIRE_THROWS_WITH(
+            levelWith({spawnAt("villager", {99, 99})}), "Npc start position is out of bounds");
     }
 
     SECTION("inside a solid tile")
     {
-        REQUIRE_THROWS_WITH(levelWith({spawnAt("villager", {3, 6})}), "Npc start position is on a solid tile");
+        REQUIRE_THROWS_WITH(
+            levelWith({spawnAt("villager", {3, 6})}), "Npc start position is on a solid tile");
     }
 
     SECTION("somewhere it can stand")
@@ -370,8 +368,7 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     REQUIRE(footOf(npc).x == tileMap.tileToBottomCenterPosition(SpawnTile).x);
 }
 
-TEST_CASE("The shipped explorer walks level6 from the floor to the top and back",
-          "[Npc][Level]")
+TEST_CASE("The shipped explorer walks level6 from the floor to the top and back", "[Npc][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
@@ -421,8 +418,7 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
     REQUIRE(longestStandingStill < 100);
 }
 
-TEST_CASE("The shipped villager runs from the player and settles once it is gone",
-          "[Npc][Level]")
+TEST_CASE("The shipped villager runs from the player and settles once it is gone", "[Npc][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
@@ -459,8 +455,7 @@ TEST_CASE("The shipped villager runs from the player and settles once it is gone
     REQUIRE(footOf(npc).x != ranTo);
 }
 
-TEST_CASE("The shipped villager never freezes out in the open on its platform",
-          "[Npc][Level]")
+TEST_CASE("The shipped villager never freezes out in the open on its platform", "[Npc][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
@@ -477,9 +472,7 @@ TEST_CASE("The shipped villager never freezes out in the open on its platform",
 
     constexpr float LeftEnd = 16.0f, RightEnd = 112.0f;
     auto outInTheOpen = [](float x)
-    {
-        return std::min(std::abs(x - LeftEnd), std::abs(x - RightEnd)) > 10.0f;
-    };
+    { return std::min(std::abs(x - LeftEnd), std::abs(x - RightEnd)) > 10.0f; };
 
     glm::vec2 chasing = footOf(npc) + glm::vec2(8.0f, 0.0f);
     float previousX = footOf(npc).x;
@@ -501,8 +494,9 @@ TEST_CASE("The shipped villager never freezes out in the open on its platform",
     REQUIRE(longestOutInTheOpen < 100);
 }
 
-TEST_CASE("The shipped villager holds its ground while the player shares its platform",
-          "[Npc][Level]")
+TEST_CASE(
+    "The shipped villager holds its ground while the player shares its platform",
+    "[Npc][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
@@ -546,8 +540,7 @@ TEST_CASE("The shipped villager holds its ground while the player shares its pla
     REQUIRE(footOf(npc).x > cowering + 16.0f);
 }
 
-TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered",
-          "[Npc][Level]")
+TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered", "[Npc][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
@@ -580,8 +573,7 @@ TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered
     REQUIRE(flips < 6);
 }
 
-TEST_CASE("The shipped villager pays no mind to a player on the platform below",
-          "[Npc][Level]")
+TEST_CASE("The shipped villager pays no mind to a player on the platform below", "[Npc][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));

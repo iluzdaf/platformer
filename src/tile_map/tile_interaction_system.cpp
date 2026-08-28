@@ -33,7 +33,8 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
             assert(replaceIndexOptional.has_value());
             tileMap.setTileIndex(tilePosition, replaceIndexOptional.value());
             auto pickupScoreDeltaOptional = tile.getPickupScoreDelta();
-            player.onPickup(pickupScoreDeltaOptional.has_value() ? pickupScoreDeltaOptional.value() : 0);
+            player.onPickup(
+                pickupScoreDeltaOptional.has_value() ? pickupScoreDeltaOptional.value() : 0);
         }
 
         if (tile.isPortal())

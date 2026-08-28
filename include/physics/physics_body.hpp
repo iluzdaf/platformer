@@ -30,10 +30,8 @@ public:
 
 private:
     PhysicsBodyData data;
-    glm::vec2 position = glm::vec2(0, 0),
-              nextPosition = glm::vec2(0, 0),
-              velocity = glm::vec2(0, 0),
-              nextVelocity = glm::vec2(0, 0);
+    glm::vec2 position = glm::vec2(0, 0), nextPosition = glm::vec2(0, 0),
+              velocity = glm::vec2(0, 0), nextVelocity = glm::vec2(0, 0);
     AABB collisionAABBX, collisionAABBY;
 
     void resolveHorizontalCollision(const TileMap &tileMap);

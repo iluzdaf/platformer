@@ -7,15 +7,12 @@
 PatrolBehavior::PatrolBehavior(
     const PatrolBehaviorData &data,
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
-    : data(data),
-      walker(data.arrivalThreshold),
-      patrolBetween(patrolBetween)
+    : data(data), walker(data.arrivalThreshold), patrolBetween(patrolBetween)
 {
 }
 
-std::optional<int> PatrolBehavior::endOfTheBeat(
-    const ActorBehaviorContext &context,
-    bool second) const
+std::optional<int> PatrolBehavior::endOfTheBeat(const ActorBehaviorContext &context, bool second)
+    const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
 
@@ -53,9 +50,7 @@ void PatrolBehavior::reset()
     headingForTheSecond = false;
 }
 
-InputIntentions PatrolBehavior::decide(
-    float deltaTime,
-    const ActorBehaviorContext &context)
+InputIntentions PatrolBehavior::decide(float deltaTime, const ActorBehaviorContext &context)
 {
     walker.keepInStep(context);
     if (!walker.isAnchored())

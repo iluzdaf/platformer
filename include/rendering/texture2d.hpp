@@ -12,7 +12,8 @@ public:
     unsigned int getWidth() const;
     unsigned int getHeight() const;
     GLuint getTextureID() const;
-    std::pair<glm::vec2, glm::vec2> getUVRange(int frameIndex, int tileSize, bool flipY = true) const;
+    std::pair<glm::vec2, glm::vec2> getUVRange(int frameIndex, int tileSize, bool flipY = true)
+        const;
 
 private:
     GLuint textureID = 0;

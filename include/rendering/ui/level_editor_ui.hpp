@@ -21,25 +21,17 @@ public:
         const Camera2D &camera,
         const std::string &firstLevel,
         bool showEditors);
-    void update(
-        const ImGuiManager &imGuiManager,
-        const Camera2D &camera,
-        Level &level);
+    void update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level);
 
     fteng::signal<void(const std::string &)> onLoadLevel;
-    fteng::signal<void()> onRespawn,
-        onSetFirstLevel;
+    fteng::signal<void()> onRespawn, onSetFirstLevel;
 
     bool drawsTileMapAABBs() const;
 
 private:
-    bool editing = false,
-         editingPlayerStartTile = false;
+    bool editing = false, editingPlayerStartTile = false;
     int selectedTileIndex = 0;
-    bool showNavigation = true,
-         drawTheFlightItself = false,
-         drawGrid = false,
-         drawTileInfo = false,
+    bool showNavigation = true, drawTheFlightItself = false, drawGrid = false, drawTileInfo = false,
          drawTileMapAABBs = false;
     size_t selectedGraphIndex = 0;
     std::optional<int> selectedNodeId;

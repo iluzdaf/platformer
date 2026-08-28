@@ -30,7 +30,6 @@ private:
     TileKind kind = TileKind::Empty;
     std::optional<TileAnimation> animation;
     std::optional<int> pickupReplaceIndex, pickupScoreDelta;
-    glm::vec2 colliderOffset = glm::vec2(0, 0),
-              colliderSize = glm::vec2(16, 16);
+    glm::vec2 colliderOffset = glm::vec2(0, 0), colliderSize = glm::vec2(16, 16);
     int tileIndex;
 };

@@ -94,8 +94,7 @@ JumpAttempt simulateJumpAgainst(
     InputIntentions inputIntentions = holdingJumpAndRunning();
     inputIntentions.direction.x = direction;
 
-    auto feet = [&]
-    { return physicsBody.getAABB().bottomCenter(); };
+    auto feet = [&] { return physicsBody.getAABB().bottomCenter(); };
 
     JumpAttempt attempt;
     attempt.path.push_back(feet());

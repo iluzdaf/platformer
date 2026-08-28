@@ -9,8 +9,7 @@
 #include "game/levels.hpp"
 #include "rendering/shader_data.hpp"
 
-Game::Game()
-    : levels("../../assets/levels.json")
+Game::Game() : levels("../../assets/levels.json")
 {
     gameData = loadGameData();
 
@@ -27,80 +26,96 @@ Game::Game()
     camera = std::make_unique<Camera2D>(gameData.cameraData, windowWidth, windowHeight);
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
-    levelWatcher.onLevelChanged.connect([this](const std::string &levelPath)
-                                        {
-        if (levelPath.compare(level->getPath()) == 0)
+    levelWatcher.onLevelChanged.connect(
+        [this](const std::string &levelPath)
+        {
+            if (levelPath.compare(level->getPath()) == 0)
+                try
+                {
+                    loadLevel(levelPath);
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr << e.what() << std::endl;
+                }
+        });
+    assetWatcher.onShaderChanged.connect(
+        [this](const std::string &shaderPath)
+        {
             try
             {
-                loadLevel(levelPath);
+                ShaderData shaderData;
+                if (shaderPath.compare("../../assets/shaders/tile_set.vs") == 0 ||
+                    shaderPath.compare("../../assets/shaders/tile_set.fs") == 0)
+                {
+                    shaderData.vertexPath = "../../assets/shaders/tile_set.vs";
+                    shaderData.fragmentPath = "../../assets/shaders/tile_set.fs";
+                    std::unique_ptr<Shader> newtileSetShader = std::make_unique<Shader>(shaderData);
+                    tileSetShader = std::move(newtileSetShader);
+                }
+                else if (
+                    shaderPath.compare("../../assets/shaders/transition.vs") == 0 ||
+                    shaderPath.compare("../../assets/shaders/transition.fs") == 0)
+                {
+                    shaderData.vertexPath = "../../assets/shaders/transition.vs";
+                    shaderData.fragmentPath = "../../assets/shaders/transition.fs";
+                    std::unique_ptr<Shader> newScreenTransitionShader =
+                        std::make_unique<Shader>(shaderData);
+                    screenTransitionShader = std::move(newScreenTransitionShader);
+                }
             }
             catch (const std::exception &e)
             {
                 std::cerr << e.what() << std::endl;
-            } });
-    assetWatcher.onShaderChanged.connect([this](const std::string &shaderPath)
-                                         {
-        try
-        {
-            ShaderData shaderData;
-            if (shaderPath.compare("../../assets/shaders/tile_set.vs") == 0 || shaderPath.compare("../../assets/shaders/tile_set.fs") == 0)
-            {
-                shaderData.vertexPath = "../../assets/shaders/tile_set.vs";
-                shaderData.fragmentPath = "../../assets/shaders/tile_set.fs";
-                std::unique_ptr<Shader> newtileSetShader = std::make_unique<Shader>(shaderData);
-                tileSetShader = std::move(newtileSetShader);
             }
-            else if (shaderPath.compare("../../assets/shaders/transition.vs") == 0 || shaderPath.compare("../../assets/shaders/transition.fs") == 0)
+        });
+    assetWatcher.onTextureChanged.connect(
+        [this](const std::string &texturePath)
+        {
+            try
             {
-                shaderData.vertexPath = "../../assets/shaders/transition.vs";
-                shaderData.fragmentPath = "../../assets/shaders/transition.fs";
-                std::unique_ptr<Shader> newScreenTransitionShader = std::make_unique<Shader>(shaderData);
-                screenTransitionShader = std::move(newScreenTransitionShader);
+                if (texturePath.compare("../../assets/textures/tile_set.png") == 0)
+                {
+                    std::unique_ptr<Texture2D> newTileSet =
+                        std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
+                    tileSet = std::move(newTileSet);
+                }
+                else if (texturePath.compare("../../assets/textures/player.png") == 0)
+                {
+                    std::unique_ptr<Texture2D> newPlayerTexture =
+                        std::make_unique<Texture2D>("../../assets/textures/player.png");
+                    playerTexture = std::move(newPlayerTexture);
+                }
             }
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << std::endl;
-        } });
-    assetWatcher.onTextureChanged.connect([this](const std::string &texturePath)
-                                          {
-        try
-        {
-            if (texturePath.compare("../../assets/textures/tile_set.png") == 0)
+            catch (const std::exception &e)
             {
-                std::unique_ptr<Texture2D> newTileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
-                tileSet = std::move(newTileSet);
+                std::cerr << e.what() << std::endl;
             }
-            else if (texturePath.compare("../../assets/textures/player.png") == 0)
+        });
+    gameDataWatcher.onGameDataChanged.connect(
+        [this]
+        {
+            try
             {
-                std::unique_ptr<Texture2D> newPlayerTexture = std::make_unique<Texture2D>("../../assets/textures/player.png");
-                playerTexture = std::move(newPlayerTexture);
+                reload();
             }
-        }
-        catch (const std::exception &e)
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << std::endl;
+            }
+        });
+    scriptWatcher.onScriptsChanged.connect(
+        [this]
         {
-            std::cerr << e.what() << std::endl;
-        } });
-    gameDataWatcher.onGameDataChanged.connect([this]
-                                              {
-        try
-        {
-            reload();
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << std::endl;
-        } });
-    scriptWatcher.onScriptsChanged.connect([this]
-                                           {
-        try
-        {
-            luaScriptSystem->loadScripts();
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << std::endl;
-        } });
+            try
+            {
+                luaScriptSystem->loadScripts();
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << std::endl;
+            }
+        });
     loadLevel(levels.getFirst());
 
     tileSet = std::make_unique<Texture2D>("../../assets/textures/tile_set.png");
@@ -115,24 +130,25 @@ Game::Game()
     shaderData.fragmentPath = "../../assets/shaders/transition.fs";
     screenTransitionShader = std::make_unique<Shader>(shaderData);
     screenTransition = std::make_unique<ScreenTransition>();
-    gameEditorUi.onPlay.connect([this]
-                                { play(); });
-    gameEditorUi.onStep.connect([this]
-                                { step(); });
-    gameEditorUi.onToggleZoom.connect([this]
-                                      {
-        static float originalZoom = camera->getZoom();
-        float currentZoom = camera->getZoom();
-        camera->setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom); });
+    gameEditorUi.onPlay.connect([this] { play(); });
+    gameEditorUi.onStep.connect([this] { step(); });
+    gameEditorUi.onToggleZoom.connect(
+        [this]
+        {
+            static float originalZoom = camera->getZoom();
+            float currentZoom = camera->getZoom();
+            camera->setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom);
+        });
     imGuiManager = std::make_unique<ImGuiManager>(window, windowWidth, windowHeight);
     levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
                                       { loadLevel(levelPath); });
-    levelEditorUi.onRespawn.connect([this]
-                                    { rebuildPlayer(); });
-    levelEditorUi.onSetFirstLevel.connect([this]
-                                          {
-        levels.setFirst(level->getPath());
-        levels.save(); });
+    levelEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
+    levelEditorUi.onSetFirstLevel.connect(
+        [this]
+        {
+            levels.setFirst(level->getPath());
+            levels.save();
+        });
 
     luaScriptSystem->bindGameObjects(this, camera.get(), screenTransition.get());
 
@@ -174,10 +190,7 @@ void Game::run()
         camera->update(deltaTime);
         screenTransition->update(deltaTime);
         debugAABBUi.update(deltaTime);
-        levelEditorUi.update(
-            *imGuiManager.get(),
-            *camera.get(),
-            *level.get());
+        levelEditorUi.update(*imGuiManager.get(), *camera.get(), *level.get());
 
         if (!paused || stepFrame)
         {
@@ -192,8 +205,13 @@ void Game::run()
             }
             else
             {
-                timestepper.run(deltaTime, [&](float dt)
-                                { fixedUpdate(dt); postFixedUpdate(); });
+                timestepper.run(
+                    deltaTime,
+                    [&](float dt)
+                    {
+                        fixedUpdate(dt);
+                        postFixedUpdate();
+                    });
                 update(deltaTime);
             }
 
@@ -225,13 +243,9 @@ void Game::fixedUpdate(float deltaTime)
 
     for (Actor *actor : actors)
         actor->fixedUpdate(
-            deltaTime,
-            *level.get(),
-            actor == player.get() ? std::nullopt : playerPosition);
+            deltaTime, *level.get(), actor == player.get() ? std::nullopt : playerPosition);
 
-    tileInteractionSystem.fixedUpdate(
-        *player.get(),
-        level->getTileMap());
+    tileInteractionSystem.fixedUpdate(*player.get(), level->getTileMap());
 }
 
 void Game::postFixedUpdate()
@@ -252,11 +266,7 @@ void Game::render()
 
     glm::mat4 projection = camera->getProjection();
 
-    tileMapRenderer->draw(
-        level->getTileMap(),
-        projection,
-        *tileSetShader.get(),
-        *tileSet.get());
+    tileMapRenderer->draw(level->getTileMap(), projection, *tileSetShader.get(), *tileSet.get());
 
     for (const Actor *actor : actors)
     {
@@ -274,10 +284,7 @@ void Game::render()
 
     imGuiManager->newFrame();
 
-    scoreUi.draw(
-        *imGuiManager.get(),
-        scoringSystem,
-        *tileSet.get());
+    scoreUi.draw(*imGuiManager.get(), scoringSystem, *tileSet.get());
 
     levelEditorUi.draw(
         *imGuiManager.get(),
@@ -333,10 +340,13 @@ void Game::initGLFW(int windowWidth, int windowHeight)
 
     glfwSetWindowUserPointer(window, this);
 
-    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int windowWidth, int windowHeight)
-                                   {
-        if (Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window)))
-            game->resize(windowWidth, windowHeight); });
+    glfwSetFramebufferSizeCallback(
+        window,
+        [](GLFWwindow *window, int windowWidth, int windowHeight)
+        {
+            if (Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window)))
+                game->resize(windowWidth, windowHeight);
+        });
 }
 
 void Game::initGlad()
@@ -369,7 +379,9 @@ void Game::loadLevel(const std::string &levelPath)
 {
     rebuildLevel(levelPath);
 
-    camera->setWorldBounds(glm::vec2(0), glm::vec2(level->getTileMap().getWorldWidth(), level->getTileMap().getWorldHeight()));
+    camera->setWorldBounds(
+        glm::vec2(0),
+        glm::vec2(level->getTileMap().getWorldWidth(), level->getTileMap().getWorldHeight()));
 
     rebuildPlayer();
 
@@ -396,10 +408,7 @@ void Game::play()
 void Game::rebuildLevel(const std::string &levelPath)
 {
     std::unique_ptr<Level> newLevel = std::make_unique<Level>(
-        levelPath,
-        gameData.tilePalettes,
-        gameData.playerData,
-        gameData.npcData);
+        levelPath, gameData.tilePalettes, gameData.playerData, gameData.npcData);
     level = std::move(newLevel);
     luaScriptSystem->bindLevel(level.get());
 }
@@ -414,24 +423,19 @@ void Game::rebuildPlayer()
     player->setPosition(
         level->getTileMap().tileToBottomCenterPosition(level->getPlayerStartTile()) -
         player->getPhysicsBody().getBottomCenterOffset());
-    player->onDeath.connect([this]
-                            { luaScriptSystem->triggerDeath(); });
-    onLevelCompleteConnection = player->onLevelComplete.connect([this]()
-                                                                {
-        onLevelCompleteConnection.block();
-        luaScriptSystem->triggerLevelComplete(); });
-    player->onWallJump.connect([this]
-                               { luaScriptSystem->triggerWallJump(); });
-    player->onDash.connect([this]
-                           { luaScriptSystem->triggerDash(); });
-    player->onWallSliding.connect([this]
-                                  { luaScriptSystem->triggerWallSliding(); });
-    player->onFallFromHeight.connect([this]
-                                     { luaScriptSystem->triggerFallFromHeight(); });
-    player->onHitCeiling.connect([this]
-                                 { luaScriptSystem->triggerHitCeiling(); });
-    player->onPickup.connect([this](int scoreDelta)
-                             { scoringSystem.addScore(scoreDelta); });
+    player->onDeath.connect([this] { luaScriptSystem->triggerDeath(); });
+    onLevelCompleteConnection = player->onLevelComplete.connect(
+        [this]()
+        {
+            onLevelCompleteConnection.block();
+            luaScriptSystem->triggerLevelComplete();
+        });
+    player->onWallJump.connect([this] { luaScriptSystem->triggerWallJump(); });
+    player->onDash.connect([this] { luaScriptSystem->triggerDash(); });
+    player->onWallSliding.connect([this] { luaScriptSystem->triggerWallSliding(); });
+    player->onFallFromHeight.connect([this] { luaScriptSystem->triggerFallFromHeight(); });
+    player->onHitCeiling.connect([this] { luaScriptSystem->triggerHitCeiling(); });
+    player->onPickup.connect([this](int scoreDelta) { scoringSystem.addScore(scoreDelta); });
     luaScriptSystem->bindPlayer(player.get());
 
     refreshActors();

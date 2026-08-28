@@ -2,8 +2,7 @@
 #include "actor/abilities/gravity_ability.hpp"
 #include "input/input_intentions.hpp"
 
-GravityAbility::GravityAbility(const GravityAbilityData &data)
-    : data(data)
+GravityAbility::GravityAbility(const GravityAbilityData &data) : data(data)
 {
 }
 

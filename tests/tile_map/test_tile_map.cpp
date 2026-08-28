@@ -32,20 +32,27 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 
     SECTION("tilePositionToTileIndex handles out of bounds by throwing out of range")
     {
-        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(-1, 0)), "Tile coordinates out of bounds");
-        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(0, -1)), "Tile coordinates out of bounds");
-        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(13, 0)), "Tile coordinates out of bounds");
-        REQUIRE_THROWS_WITH(tileMap.tilePositionToTileIndex(glm::ivec2(0, 23)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(
+            tileMap.tilePositionToTileIndex(glm::ivec2(-1, 0)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(
+            tileMap.tilePositionToTileIndex(glm::ivec2(0, -1)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(
+            tileMap.tilePositionToTileIndex(glm::ivec2(13, 0)), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(
+            tileMap.tilePositionToTileIndex(glm::ivec2(0, 23)), "Tile coordinates out of bounds");
     }
 
     SECTION("setTileIndex handles out of bounds")
     {
-        REQUIRE_THROWS_WITH(tileMap.setTileIndex(glm::ivec2(13, 0), 1), "Tile coordinates out of bounds");
+        REQUIRE_THROWS_WITH(
+            tileMap.setTileIndex(glm::ivec2(13, 0), 1), "Tile coordinates out of bounds");
     }
 
     SECTION("setTileIndex Throws on negative value")
     {
-        REQUIRE_THROWS_WITH(tileMap.setTileIndex(glm::ivec2(2, 2), -5), "Tile index must be greater or equals to 0");
+        REQUIRE_THROWS_WITH(
+            tileMap.setTileIndex(glm::ivec2(2, 2), -5),
+            "Tile index must be greater or equals to 0");
     }
 }
 
@@ -57,9 +64,7 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 3;
     tileMapData.height = 3;
-    TilePalette palette = {{1, solidTileData},
-                           {0, emptyTileData},
-                           {3, emptyTileData}};
+    TilePalette palette = {{1, solidTileData}, {0, emptyTileData}, {3, emptyTileData}};
     TileMap tileMap(tileMapData, palettesFrom(palette));
 
     SECTION("Known indices")
@@ -92,10 +97,7 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    TilePalette palette = {
-        {1, animatedTileData1},
-        {0, emptyTileData},
-        {3, animatedTileData2}};
+    TilePalette palette = {{1, animatedTileData1}, {0, emptyTileData}, {3, animatedTileData2}};
     TileMap tileMap(tileMapData, palettesFrom(palette));
     tileMap.setTileIndex(glm::ivec2(0, 0), 1);
     tileMap.setTileIndex(glm::ivec2(0, 1), 0);
@@ -131,8 +133,7 @@ TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    TilePalette palette = {{0, emptyTileData},
-                           {5, pickupTileData}};
+    TilePalette palette = {{0, emptyTileData}, {5, pickupTileData}};
     TileMap tileMap(tileMapData, palettesFrom(palette));
     tileMap.setTileIndex(glm::ivec2(1, 1), 5);
     const Tile &tile = tileMap.getTile(5);
@@ -153,8 +154,7 @@ TEST_CASE("TileMap worldToTilePositions returns correct tile coordinates", "[Til
     glm::vec2 worldPosition(15.0f, 15.0f);
     glm::vec2 size(16.0f, 16.0f);
     auto positions = tileMap.worldToTilePositions(worldPosition, size);
-    std::vector<glm::ivec2> expected = {
-        {0, 0}, {1, 0}, {0, 1}, {1, 1}};
+    std::vector<glm::ivec2> expected = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
 
     REQUIRE(positions == expected);
 }
@@ -166,8 +166,7 @@ TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]
 
     AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
 
-    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &)
-                                          { return true; });
+    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
 
     REQUIRE(result == true);
 }

@@ -179,7 +179,8 @@ TEST_CASE("A graph is named for the actor that needed it", "[Level]")
 
 TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
 {
-    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("alsoShort", StandingTile)});
+    Level level =
+        levelPlacing({spawnAt("short", StandingTile), spawnAt("alsoShort", StandingTile)});
 
     std::vector<std::string> names;
     for (const NamedNavigationGraph &graph : level.getGraphs())
@@ -209,7 +210,8 @@ TEST_CASE("A level refuses to have no level next", "[Level]")
 
 TEST_CASE("A graph does not name the same actor twice", "[Level]")
 {
-    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("short", {2, FloorRow - 1})});
+    Level level =
+        levelPlacing({spawnAt("short", StandingTile), spawnAt("short", {2, FloorRow - 1})});
 
     for (const NamedNavigationGraph &graph : level.getGraphs())
         REQUIRE(graph.name == "player, short");

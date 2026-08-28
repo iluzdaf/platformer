@@ -23,10 +23,9 @@ float AABB::bottom() const
 
 bool AABB::intersects(const AABB &other) const
 {
-    return !(right() <= other.left() ||
-             left() >= other.right() ||
-             bottom() <= other.top() ||
-             top() >= other.bottom());
+    return !(
+        right() <= other.left() || left() >= other.right() || bottom() <= other.top() ||
+        top() >= other.bottom());
 }
 
 glm::vec2 AABB::center() const

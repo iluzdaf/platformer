@@ -46,7 +46,12 @@ void DebugAABBUi::drawPlayerAABBs(
     const Player &player,
     const Camera2D &camera)
 {
-    drawAABB(drawList, imGuiManager, player.getPhysicsBody().getAABB(), camera, IM_COL32(0, 255, 0, 255));
+    drawAABB(
+        drawList,
+        imGuiManager,
+        player.getPhysicsBody().getAABB(),
+        camera,
+        IM_COL32(0, 255, 0, 255));
     ActorMotionState state = player.getMotion().getState();
     addDebugAABB(state.contacts.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
     addDebugAABB(state.contacts.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
@@ -59,7 +64,8 @@ void DebugAABBUi::drawTileMapAABBs(
     glm::ivec2 playerStartTile,
     const Camera2D &camera)
 {
-    auto tilePositions = tileMap.worldToTilePositions(camera.getTopLeftPosition(), camera.getWindowSize());
+    auto tilePositions =
+        tileMap.worldToTilePositions(camera.getTopLeftPosition(), camera.getWindowSize());
     for (auto tilePosition : tilePositions)
     {
         auto tile = tileMap.getTileAtTilePosition(tilePosition);
@@ -104,8 +110,10 @@ void DebugAABBUi::drawAABB(
     {
         return;
     }
-    ImVec2 topLeft = imGuiManager.worldToScreen(aabb.position, camera.getZoom(), camera.getTopLeftPosition());
-    ImVec2 bottomRight = imGuiManager.worldToScreen(aabb.position + aabb.size, camera.getZoom(), camera.getTopLeftPosition());
+    ImVec2 topLeft =
+        imGuiManager.worldToScreen(aabb.position, camera.getZoom(), camera.getTopLeftPosition());
+    ImVec2 bottomRight = imGuiManager.worldToScreen(
+        aabb.position + aabb.size, camera.getZoom(), camera.getTopLeftPosition());
     drawList->AddRect(topLeft, bottomRight, color);
 }
 

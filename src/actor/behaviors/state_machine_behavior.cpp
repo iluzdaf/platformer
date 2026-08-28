@@ -45,8 +45,7 @@ namespace
 StateMachineBehavior::StateMachineBehavior(
     const StateMachineBehaviorData &data,
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
-    : data(data),
-      heldFor(data.transitions.size(), 0.0f)
+    : data(data), heldFor(data.transitions.size(), 0.0f)
 {
     for (const BehaviorStateData &state : this->data.states)
     {
@@ -90,9 +89,7 @@ void StateMachineBehavior::reset()
     enter(0);
 }
 
-void StateMachineBehavior::takeATransition(
-    float deltaTime,
-    const ActorBehaviorContext &context)
+void StateMachineBehavior::takeATransition(float deltaTime, const ActorBehaviorContext &context)
 {
     for (std::size_t index = 0; index < data.transitions.size(); ++index)
     {
@@ -119,9 +116,7 @@ void StateMachineBehavior::takeATransition(
     }
 }
 
-InputIntentions StateMachineBehavior::decide(
-    float deltaTime,
-    const ActorBehaviorContext &context)
+InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorBehaviorContext &context)
 {
     if (states.empty())
         return InputIntentions();

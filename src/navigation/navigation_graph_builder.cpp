@@ -414,9 +414,12 @@ namespace
     // A jump comes down where it comes down, which is rarely on top of a node.
     // Giving it one, as a fall gets one, is what lets an edge end where the
     // actor does rather than at whichever node was nearest to it.
+    //
+    // Every landing gets one, even a few pixels from a node already there.
+    // Borrowing the near ones instead left an edge ending exactly on its node
+    // or a few pixels short depending on how the ground happened to fall.
     void addJumpLandingNodes(
         NavigationGraph &navigationGraph,
-        const NavigationProfile &profile,
         const std::vector<ChosenJump> &jumps)
     {
         int nextNodeId = 0;
@@ -427,12 +430,8 @@ namespace
         {
             glm::vec2 comesDown = jump.path.back();
 
-            bool crowded = false;
-            for (const auto &[id, node] : navigationGraph.getNodes())
-                if (glm::distance(node.position, comesDown) < profile.colliderSize.x)
-                    crowded = true;
-
-            if (!crowded)
+            // Two jumps that come down together share the one node.
+            if (!navigationGraph.hasNodeAtPosition(comesDown))
                 navigationGraph.addNode(nextNodeId++, comesDown, NodeKind::Landing);
         }
     }
@@ -743,7 +742,7 @@ NavigationGraph buildNavigationGraph(
     addWalkEdges(navigationGraph, tileMap, headroom);
 
     std::vector<ChosenJump> jumps = chooseJumps(navigationGraph, tileMap, profile, headroom);
-    addJumpLandingNodes(navigationGraph, profile, jumps);
+    addJumpLandingNodes(navigationGraph, jumps);
 
     // The landings are on surfaces the walk edges were laid without, so lay
     // them again now everything that stands anywhere is a node.

@@ -5,7 +5,6 @@
 
 namespace
 {
-    // A broken asset saved mid edit should say so and leave the game running.
     void reporting(const std::function<void()> &rebuild)
     {
         try

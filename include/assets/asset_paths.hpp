@@ -3,10 +3,6 @@
 #include <string>
 #include <string_view>
 
-// Everything the game loads is named here once, relative to the assets root,
-// and resolved to a filesystem path only where a file is actually opened.
-// A level saying "levels/level2.json" then means the same thing to the loader,
-// the editor and the file watcher, none of which need to know where the root is.
 namespace assets
 {
     inline constexpr std::string_view Levels = "levels";

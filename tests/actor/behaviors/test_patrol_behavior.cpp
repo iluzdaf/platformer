@@ -42,14 +42,14 @@ namespace
 
     ActorBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
     {
-        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f)};
+        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt};
     }
 
     ActorBehaviorContext standingAt(
         const NavigationGraph &navigationGraph,
         glm::vec2 worldPosition)
     {
-        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), true};
+        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt, true};
     }
 
     PatrolBehaviorData setupData()

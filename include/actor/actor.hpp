@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include "actor/actor_state.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/actor_motion.hpp"
@@ -18,7 +19,10 @@ class Actor
 public:
     virtual ~Actor() = default;
     void preFixedUpdate();
-    void fixedUpdate(float deltaTime, const Level &level);
+    void fixedUpdate(
+        float deltaTime,
+        const Level &level,
+        std::optional<glm::vec2> threatPosition = std::nullopt);
     virtual void postFixedUpdate();
     const ActorState &getState() const;
     const ActorMotion &getMotion() const;
@@ -30,7 +34,9 @@ public:
 protected:
     explicit Actor(const ActorData &data);
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
-    ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
+    ActorBehaviorContext behaviorContext(
+        const NavigationGraph &navigationGraph,
+        std::optional<glm::vec2> threatPosition) const;
 
     ActorMotion motion;
     PhysicsBody physicsBody;

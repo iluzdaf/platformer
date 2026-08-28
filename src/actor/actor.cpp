@@ -36,10 +36,14 @@ void Actor::preFixedUpdate()
     motion.resetCollisionAABB();
 }
 
-void Actor::fixedUpdate(float deltaTime, const Level &level)
+void Actor::fixedUpdate(
+    float deltaTime,
+    const Level &level,
+    std::optional<glm::vec2> threatPosition)
 {
     const TileMap &tileMap = level.getTileMap();
-    ActorBehaviorContext context = behaviorContext(level.graphFor(navigationProfile));
+    ActorBehaviorContext context =
+        behaviorContext(level.graphFor(navigationProfile), threatPosition);
     InputIntentions inputIntentions = behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
     motion.applyMovement(deltaTime, inputIntentions);
@@ -97,11 +101,14 @@ void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
     behavior = std::move(newBehavior);
 }
 
-ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGraph) const
+ActorBehaviorContext Actor::behaviorContext(
+    const NavigationGraph &navigationGraph,
+    std::optional<glm::vec2> threatPosition) const
 {
     return ActorBehaviorContext{
         navigationGraph,
         physicsBody.getAABB().bottomCenter(),
         physicsBody.getColliderSize(),
+        threatPosition,
         motion.getState().contacts.onGround};
 }

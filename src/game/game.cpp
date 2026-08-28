@@ -219,8 +219,15 @@ void Game::preFixedUpdate()
 
 void Game::fixedUpdate(float deltaTime)
 {
+    std::optional<glm::vec2> playerPosition;
+    if (player)
+        playerPosition = player->getPhysicsBody().getAABB().bottomCenter();
+
     for (Actor *actor : actors)
-        actor->fixedUpdate(deltaTime, *level.get());
+        actor->fixedUpdate(
+            deltaTime,
+            *level.get(),
+            actor == player.get() ? std::nullopt : playerPosition);
 
     tileInteractionSystem.fixedUpdate(
         *player.get(),

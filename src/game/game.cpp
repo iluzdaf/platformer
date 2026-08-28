@@ -221,7 +221,8 @@ void Game::render()
 
     if (editorUi.begin(imGuiManager, gameData.settings.debug))
     {
-        levelEditorUi.draw(editorUi.getSection(), *level.get(), *tileSet.get(), levels.getFirst());
+        levelEditorUi.draw(
+            editorUi.getSection(), *level.get(), npcs, *tileSet.get(), levels.getFirst());
 
         gameEditorUi.draw(
             editorUi.getSection(),

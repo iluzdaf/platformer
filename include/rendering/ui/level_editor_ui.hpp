@@ -2,7 +2,9 @@
 
 #include <signals.hpp>
 #include <optional>
+#include <memory>
 #include <string>
+#include <vector>
 #include "rendering/ui/editor_section.hpp"
 
 class ImGuiManager;
@@ -11,6 +13,7 @@ class Level;
 class Texture2D;
 class Camera2D;
 class NavigationGraph;
+class Npc;
 
 class LevelEditorUi
 {
@@ -18,6 +21,7 @@ public:
     void draw(
         EditorSection section,
         Level &level,
+        const std::vector<std::unique_ptr<Npc>> &npcs,
         const Texture2D &tileSet,
         const std::string &firstLevel);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
@@ -39,7 +43,7 @@ private:
     std::optional<std::pair<int, int>> selectedEdge;
 
     void drawLevel(Level &level, const std::string &firstLevel);
-    void drawNpcs(const Level &level);
+    void drawNpcs(const Level &level, const std::vector<std::unique_ptr<Npc>> &npcs);
     void drawTileMap(Level &level, const Texture2D &tileSet);
     void drawGraphs(const Level &level);
     void drawEdgesOf(const NavigationGraph &graph, int nodeId);

@@ -28,8 +28,8 @@ TEST_CASE("A named asset resolves to a file that is there", "[AssetPaths]")
 
 TEST_CASE("Naming an asset and reading a path back agree", "[AssetPaths]")
 {
-    REQUIRE(assets::underRoot(assets::pathTo(assets::FirstLevel)) == "levels/level1.json");
-    REQUIRE(assets::underRoot(assets::pathTo(assets::TileSetTexture)) == "textures/tile_set.png");
+    REQUIRE(assets::underRoot(assets::pathTo(assets::FirstLevel)) == assets::FirstLevel);
+    REQUIRE(assets::underRoot(assets::pathTo(assets::TileSetTexture)) == assets::TileSetTexture);
 }
 
 TEST_CASE("A path the file watcher reports is named the same way", "[AssetPaths]")

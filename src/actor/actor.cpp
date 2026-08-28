@@ -1,3 +1,4 @@
+#include <string_view>
 #include "actor/actor.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "actor/actor_animation_state.hpp"
@@ -107,6 +108,11 @@ const NavigationProfile &Actor::getNavigationProfile() const
 const glm::vec2 &Actor::getPosition() const
 {
     return physicsBody.getPosition();
+}
+
+std::string_view Actor::getStateName() const
+{
+    return behavior ? behavior->getStateName() : std::string_view{};
 }
 
 void Actor::setPosition(const glm::vec2 &position)

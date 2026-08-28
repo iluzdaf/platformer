@@ -89,7 +89,7 @@ JumpAttempt simulateJumpAgainst(
     ActorMotionState state;
 
     PhysicsBody physicsBody(physicsBodyData);
-    physicsBody.setBottomCenterPosition(takeOffFeet);
+    physicsBody.setPosition(takeOffFeet - physicsBody.getBottomCenterOffset());
 
     InputIntentions inputIntentions = holdingJumpAndRunning();
     inputIntentions.direction.x = direction;

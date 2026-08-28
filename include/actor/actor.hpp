@@ -26,7 +26,6 @@ public:
     const glm::vec2 &getPosition() const;
     const NavigationProfile &getNavigationProfile() const;
     void setPosition(const glm::vec2 &position);
-    void setBottomCenterPosition(const glm::vec2 &bottomCenterPosition);
 
 protected:
     explicit Actor(const ActorData &data);

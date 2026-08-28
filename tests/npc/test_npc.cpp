@@ -90,6 +90,13 @@ namespace
         return static_cast<float>((lastTile - firstTile + 1) * tileMap.getTileSize());
     }
 
+    void standIn(Npc &npc, const TileMap &tileMap, glm::ivec2 tilePosition)
+    {
+        npc.setPosition(
+            tileMap.tileToBottomCenterPosition(tilePosition) -
+            npc.getPhysicsBody().getBottomCenterOffset());
+    }
+
     glm::vec2 spawnPosition(const TileMap &tileMap)
     {
         return tileMap.tileToWorldPosition(glm::ivec2(4, 5));
@@ -154,8 +161,8 @@ TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
 
     Npc left(setupNpcData());
     Npc right(setupNpcData());
-    left.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(glm::ivec2(0, 5)));
-    right.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(glm::ivec2(9, 5)));
+    standIn(left, tileMap, glm::ivec2(0, 5));
+    standIn(right, tileMap, glm::ivec2(9, 5));
 
     float leftStartX = footX(left);
     float rightStartX = footX(right);
@@ -258,7 +265,7 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
                           << " in " << entry.path().filename().string() << " has nowhere to walk");
 
             Npc npc(setupNpcData());
-            npc.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(spawn.tilePosition));
+            standIn(npc, tileMap, spawn.tilePosition);
 
             float startX = npc.getPosition().x;
             stepNpc(npc, level, 400);
@@ -306,7 +313,7 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
     Level level = setupTwoTierLevel();
     const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
-    npc.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(UnderThePlatform));
+    standIn(npc, tileMap, UnderThePlatform);
 
     float lowest = footX(npc);
     float highest = footX(npc);
@@ -327,7 +334,7 @@ TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
     Level level = setupTwoTierLevel();
     const TileMap &tileMap = level.getTileMap();
     Npc npc(setupNpcData());
-    npc.setBottomCenterPosition(tileMap.tileToBottomCenterPosition(UnderThePlatform));
+    standIn(npc, tileMap, UnderThePlatform);
 
     std::vector<float> footXs = patrolFootXs(npc, level, 4000);
 
@@ -376,7 +383,7 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
     REQUIRE(spawn.patrol);
 
     Npc npc(gameData.npcData.at("explorer"), level.patrolFor(spawn));
-    npc.setBottomCenterPosition(level.getTileMap().tileToBottomCenterPosition(spawn.tilePosition));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
 
     constexpr float TopPlatform = 96.0f;
     constexpr float Floor = 192.0f;

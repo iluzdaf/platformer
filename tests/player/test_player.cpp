@@ -585,7 +585,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
         {
             ScriptedIntentions input;
             Player player(gameData.playerData, input);
-            player.setBottomCenterPosition(start);
+            player.setPosition(start - player.getPhysicsBody().getBottomCenterOffset());
 
             FixedTimeStep timestepper;
             bool triggered = false;

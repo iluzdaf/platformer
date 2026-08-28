@@ -84,11 +84,6 @@ const glm::vec2 &Actor::getPosition() const
     return physicsBody.getPosition();
 }
 
-void Actor::setBottomCenterPosition(const glm::vec2 &bottomCenterPosition)
-{
-    setPosition(bottomCenterPosition - physicsBody.getBottomCenterOffset());
-}
-
 void Actor::setPosition(const glm::vec2 &position)
 {
     physicsBody.setPosition(position);

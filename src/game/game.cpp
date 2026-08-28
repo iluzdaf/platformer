@@ -404,7 +404,8 @@ void Game::rebuildPlayer()
 
     std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
     player = std::move(newPlayer);
-    player->setBottomCenterPosition(level->getPlayerStartBottomCenter());
+    player->setPosition(
+        level->getPlayerStartBottomCenter() - player->getPhysicsBody().getBottomCenterOffset());
     player->onDeath.connect([this]
                             { luaScriptSystem->triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect([this]()
@@ -437,8 +438,9 @@ void Game::rebuildNpcs()
         auto it = gameData.npcData.find(spawn.type);
 
         std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second, level->patrolFor(spawn));
-        newNpc->setBottomCenterPosition(
-            level->getTileMap().tileToBottomCenterPosition(spawn.tilePosition));
+        newNpc->setPosition(
+            level->getTileMap().tileToBottomCenterPosition(spawn.tilePosition) -
+            newNpc->getPhysicsBody().getBottomCenterOffset());
         npcs.push_back(std::move(newNpc));
     }
 

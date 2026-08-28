@@ -11,7 +11,6 @@ class PhysicsBody
 public:
     explicit PhysicsBody(const PhysicsBodyData &data);
     void setPosition(const glm::vec2 &position);
-    void setBottomCenterPosition(const glm::vec2 &bottomCenterPosition);
     void setVelocity(const glm::vec2 &velocity);
     const glm::vec2 &getPosition() const;
     const glm::vec2 &getVelocity() const;

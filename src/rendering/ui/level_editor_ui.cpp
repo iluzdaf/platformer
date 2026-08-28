@@ -62,7 +62,7 @@ void LevelEditorUi::draw(
         drawLevel(level, firstLevel);
         break;
 
-    case EditorSection::Npcs:
+    case EditorSection::NpcsInLevel:
         drawNpcs(level);
         break;
 

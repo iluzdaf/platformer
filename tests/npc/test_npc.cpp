@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <string>
 #include <utility>
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include <glaze/glaze.hpp>
 #include "actor/abilities/move_ability_data.hpp"
@@ -47,7 +47,7 @@ namespace
         return npcData;
     }
 
-    std::unordered_map<std::string, NpcData> npcCatalogue()
+    std::map<std::string, NpcData> npcCatalogue()
     {
         return {{"villager", setupNpcData()}};
     }

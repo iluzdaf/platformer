@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <unordered_map>
 #include <vector>
 #include "game/level_data.hpp"
@@ -18,12 +19,12 @@ public:
         const std::string &levelPath,
         const TilePalettes &tilePalettes,
         const PlayerData &playerData,
-        const std::unordered_map<std::string, NpcData> &npcData);
+        const std::map<std::string, NpcData> &npcData);
     Level(
         const LevelData &levelData,
         const TilePalettes &tilePalettes,
         const PlayerData &playerData,
-        const std::unordered_map<std::string, NpcData> &npcData);
+        const std::map<std::string, NpcData> &npcData);
 
     const TileMap &getTileMap() const;
     TileMap &getTileMap();
@@ -48,7 +49,7 @@ private:
         const LevelData &levelData,
         const TilePalettes &tilePalettes,
         const PlayerData &playerData,
-        const std::unordered_map<std::string, NpcData> &npcData,
+        const std::map<std::string, NpcData> &npcData,
         const std::string &levelPath);
 
     TileMap tileMap;
@@ -61,6 +62,6 @@ private:
     void initFrom(
         const LevelData &levelData,
         const PlayerData &playerData,
-        const std::unordered_map<std::string, NpcData> &npcData);
+        const std::map<std::string, NpcData> &npcData);
     void addGraphFor(const std::string &name, const NavigationProfile &profile);
 };

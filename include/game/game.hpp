@@ -15,6 +15,7 @@
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/screen_transition.hpp"
 #include "rendering/ui/editor_ui.hpp"
+#include "rendering/ui/game_data_ui.hpp"
 #include "rendering/ui/game_editor_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
@@ -77,6 +78,7 @@ private:
     ImGuiManager imGuiManager;
     Levels levels;
     EditorUi editorUi;
+    GameDataUi gameDataUi;
     GameEditorUi gameEditorUi;
     DebugAABBUi debugAABBUi;
     LevelEditorUi levelEditorUi;

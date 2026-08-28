@@ -1,16 +1,16 @@
 {
     "actorData":{
-        "size":[16.0,16.0],
+        "size":[16,16],
         "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
         "motionData":{
-            "moveAbilityData":{"moveSpeed":110.0},
+            "moveAbilityData":{"moveSpeed":110},
             "jumpAbilityData":{
-                "jumpSpeed":-280.0,
+                "jumpSpeed":-280,
                 "jumpBufferDuration":0.15,
                 "jumpCoyoteDuration":0.15,
                 "jumpDuration":0.2
             },
-            "dashAbilityData":{"dashSpeed":400.0,"dashDuration":0.15,"airborneFraction":0.6},
+            "dashAbilityData":{"dashSpeed":400,"dashDuration":0.15,"airborneFraction":0.6},
             "wallSlideAbilityData":{"slideSpeed":50},
             "wallJumpAbilityData":{
                 "wallJumpSpeed":-250,
@@ -21,7 +21,7 @@
             },
             "climbAbilityData":{},
             "climbMoveAbilityData":{"climbSpeed":80},
-            "gravityAbilityData":{"gravity":500.0,"maxFallSpeed":600}
+            "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
         },
         "animationData":{
             "idleSpriteAnimationData":{

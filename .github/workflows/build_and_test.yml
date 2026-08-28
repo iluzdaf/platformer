@@ -104,7 +104,15 @@ jobs:
 
       - name: Install sccache for Windows
         if: runner.os == 'Windows'
-        run: choco install sccache --no-progress
+        shell: pwsh
+        run: |
+          $version = (Get-Content .sccache-version).Trim()
+          $name = "sccache-v$version-x86_64-pc-windows-msvc"
+          Invoke-WebRequest `
+            "https://github.com/mozilla/sccache/releases/download/v$version/$name.zip" `
+            -OutFile "$env:RUNNER_TEMP\sccache.zip"
+          Expand-Archive "$env:RUNNER_TEMP\sccache.zip" -DestinationPath "$env:RUNNER_TEMP"
+          "$env:RUNNER_TEMP\$name" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Configure & Build for Windows
         if: runner.os == 'Windows'

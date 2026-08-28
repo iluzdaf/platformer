@@ -150,3 +150,35 @@ std::vector<int> walkableFrom(const NavigationGraph &navigationGraph, int fromId
 
     return inIdOrder(spreadFrom(fromId, waysOn(navigationGraph, true)));
 }
+
+std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::vec2 position)
+{
+    std::optional<int> nearest;
+    float nearestDistance = 0.0f;
+    for (const auto &[id, node] : navigationGraph.getNodes())
+    {
+        float distance = glm::distance(node.position, position);
+        if (nearest && distance >= nearestDistance)
+            continue;
+
+        nearest = id;
+        nearestDistance = distance;
+    }
+
+    return nearest;
+}
+
+bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)
+{
+    std::optional<int> from = nearestNodeTo(navigationGraph, here);
+    std::optional<int> to = nearestNodeTo(navigationGraph, there);
+    if (!from || !to)
+        return false;
+
+    if (*from == *to)
+        return true;
+
+    std::vector<int> run = walkableFrom(navigationGraph, *from);
+
+    return std::find(run.begin(), run.end(), *to) != run.end();
+}

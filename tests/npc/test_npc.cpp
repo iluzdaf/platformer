@@ -490,3 +490,48 @@ TEST_CASE("The shipped villager keeps moving while the player walks it down",
 
     REQUIRE(longestStandingStill < 100);
 }
+
+TEST_CASE("The shipped villager holds its ground while the player shares its platform",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(1);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    glm::vec2 cornering(112.0f, 96.0f);
+    for (int step = 0; step < 600; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, cornering);
+    }
+
+    float cowering = footOf(npc).x;
+    REQUIRE(cowering < 32.0f);
+
+    float wandered = cowering;
+    for (int step = 0; step < 400; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, cornering);
+        wandered = std::max(wandered, footOf(npc).x);
+    }
+
+    REQUIRE(wandered < 48.0f);
+
+    for (int step = 0; step < 600; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, glm::vec2(112.0f, 192.0f));
+    }
+
+    REQUIRE(footOf(npc).x > cowering + 16.0f);
+}

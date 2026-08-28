@@ -158,3 +158,23 @@ TEST_CASE("Given no states at all it asks for nothing", "[StateMachineBehavior]"
 
     REQUIRE(inputIntentions.direction.x == 0.0f);
 }
+
+TEST_CASE("Holds a state while the threat shares its run", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = setupRun();
+    navigationGraph.addNode(5, {192.0f, 288.0f});
+
+    StateMachineBehaviorData data = setupData();
+    data.transitions.at(1) = BehaviorTransitionData{"flee", "patrol", std::nullopt, std::nullopt, false, 0.0f};
+
+    StateMachineBehavior behavior(data);
+
+    behavior.decide(0.01f, at(navigationGraph, {192.0f, 192.0f}, glm::vec2(160.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "flee");
+
+    behavior.decide(0.01f, at(navigationGraph, {192.0f, 192.0f}, glm::vec2(0.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "flee");
+
+    behavior.decide(0.01f, at(navigationGraph, {192.0f, 192.0f}, glm::vec2(192.0f, 288.0f)));
+    REQUIRE(behavior.getStateName() == "patrol");
+}

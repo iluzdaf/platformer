@@ -21,6 +21,7 @@ struct BehaviorTransitionData
     std::string to;
     std::optional<float> threatWithin;
     std::optional<float> threatBeyond;
+    std::optional<bool> threatOnMySurface;
     float after = 0.0f;
 
     bool operator==(const BehaviorTransitionData &) const = default;

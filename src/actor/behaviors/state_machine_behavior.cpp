@@ -2,6 +2,7 @@
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
+#include "navigation/navigation_path.hpp"
 
 namespace
 {
@@ -23,6 +24,17 @@ namespace
         {
             if (glm::distance(context.worldPosition, *context.threatPosition) <=
                 *transition.threatBeyond)
+                return false;
+        }
+
+        if (transition.threatOnMySurface)
+        {
+            bool sharing =
+                context.threatPosition &&
+                onTheSameRun(
+                    context.navigationGraph, context.worldPosition, *context.threatPosition);
+
+            if (sharing != *transition.threatOnMySurface)
                 return false;
         }
 

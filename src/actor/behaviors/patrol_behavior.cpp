@@ -21,20 +21,8 @@ std::optional<int> PatrolBehavior::endOfTheBeat(
 
     if (patrolBetween)
     {
-        glm::vec2 end = second ? patrolBetween->second : patrolBetween->first;
-        std::optional<int> nearest;
-        float nearestDistance = 0.0f;
-        for (const auto &[id, node] : navigationGraph.getNodes())
-        {
-            float distance = glm::distance(node.position, end);
-            if (nearest && distance >= nearestDistance)
-                continue;
-
-            nearest = id;
-            nearestDistance = distance;
-        }
-
-        return nearest;
+        return nearestNodeTo(
+            navigationGraph, second ? patrolBetween->second : patrolBetween->first);
     }
 
     std::optional<int> from = walker.getCurrentNodeId();

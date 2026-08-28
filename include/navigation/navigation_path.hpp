@@ -1,6 +1,8 @@
 #pragma once
 
+#include <optional>
 #include <vector>
+#include <glm/gtc/matrix_transform.hpp>
 
 class NavigationGraph;
 
@@ -9,3 +11,7 @@ std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, in
 std::vector<int> roundTripFrom(const NavigationGraph &navigationGraph, int fromId);
 
 std::vector<int> walkableFrom(const NavigationGraph &navigationGraph, int fromId);
+
+std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::vec2 position);
+
+bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there);

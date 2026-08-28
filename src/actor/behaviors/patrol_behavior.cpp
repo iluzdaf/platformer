@@ -39,9 +39,59 @@ namespace
     }
 }
 
-PatrolBehavior::PatrolBehavior(const PatrolBehaviorData &data)
-    : data(data)
+PatrolBehavior::PatrolBehavior(
+    const PatrolBehaviorData &data,
+    std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
+    : data(data),
+      patrolBetween(patrolBetween)
 {
+}
+
+// Whichever node stands closest to one end of the beat. Without a beat, the far
+// ends of the platform underfoot, so an actor with nowhere named still paces.
+std::optional<int> PatrolBehavior::endOfTheBeat(
+    const ActorBehaviorContext &context,
+    bool second) const
+{
+    const NavigationGraph &navigationGraph = context.navigationGraph;
+
+    if (patrolBetween)
+    {
+        glm::vec2 end = second ? patrolBetween->second : patrolBetween->first;
+        std::optional<int> nearest;
+        float nearestDistance = 0.0f;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            float distance = glm::distance(node.position, end);
+            if (nearest && distance >= nearestDistance)
+                continue;
+
+            nearest = id;
+            nearestDistance = distance;
+        }
+
+        return nearest;
+    }
+
+    if (!currentNodeId)
+        return std::nullopt;
+
+    std::optional<int> end;
+    for (int id : walkableFrom(navigationGraph, *currentNodeId))
+    {
+        if (!end)
+        {
+            end = id;
+            continue;
+        }
+
+        float here = navigationGraph.getNode(id).position.x;
+        float best = navigationGraph.getNode(*end).position.x;
+        if (second ? here > best : here < best)
+            end = id;
+    }
+
+    return end;
 }
 
 void PatrolBehavior::reset()
@@ -49,6 +99,7 @@ void PatrolBehavior::reset()
     currentNodeId.reset();
     targetNodeId.reset();
     legsLeft.clear();
+    headingForTheSecond = false;
     jumpHeldFor = 0.0f;
 }
 
@@ -204,8 +255,6 @@ std::optional<int> PatrolBehavior::getTargetNodeId() const
     return targetNodeId;
 }
 
-// Walk to the furthest node worth going to, then, on arrival, to the furthest
-// from there, which is back the way it came.
 void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
 {
     targetNodeId.reset();
@@ -214,32 +263,19 @@ void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
     if (!currentNodeId)
         return;
 
-    const NavigationGraph &navigationGraph = context.navigationGraph;
-    std::vector<int> worthGoingTo = data.roams
-                                        ? roundTripFrom(navigationGraph, *currentNodeId)
-                                        : walkableFrom(navigationGraph, *currentNodeId);
+    std::optional<int> destination = endOfTheBeat(context, headingForTheSecond);
 
-    glm::vec2 here = navigationGraph.getNode(*currentNodeId).position;
-
-    std::optional<int> destination;
-    float furthest = 0.0f;
-    for (int id : worthGoingTo)
+    // Standing on the end it was making for, so the other one is next.
+    if (destination && *destination == *currentNodeId)
     {
-        if (id == *currentNodeId)
-            continue;
-
-        float distance = glm::distance(navigationGraph.getNode(id).position, here);
-        if (destination && distance <= furthest)
-            continue;
-
-        destination = id;
-        furthest = distance;
+        headingForTheSecond = !headingForTheSecond;
+        destination = endOfTheBeat(context, headingForTheSecond);
     }
 
-    if (!destination)
+    if (!destination || *destination == *currentNodeId)
         return;
 
-    std::vector<int> route = findPath(navigationGraph, *currentNodeId, *destination);
+    std::vector<int> route = findPath(context.navigationGraph, *currentNodeId, *destination);
     if (route.size() < 2)
         return;
 

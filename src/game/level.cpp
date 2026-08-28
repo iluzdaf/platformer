@@ -312,6 +312,22 @@ TileMap &Level::getTileMap()
     return tileMap;
 }
 
+std::optional<std::pair<glm::vec2, glm::vec2>> Level::patrolFor(const NpcSpawnData &spawn) const
+{
+    if (!spawn.patrol)
+        return std::nullopt;
+
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+    auto standingIn = [tileSize](glm::ivec2 tilePosition)
+    {
+        return glm::vec2(
+            (static_cast<float>(tilePosition.x) + 0.5f) * tileSize,
+            static_cast<float>(tilePosition.y + 1) * tileSize);
+    };
+
+    return std::pair(standingIn(spawn.patrol->from), standingIn(spawn.patrol->to));
+}
+
 const std::vector<NamedNavigationGraph> &Level::getGraphs() const
 {
     return graphs;

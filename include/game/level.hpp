@@ -30,6 +30,10 @@ public:
 
     const NavigationGraph &graphFor(const NavigationProfile &profile) const;
     const std::vector<NamedNavigationGraph> &getGraphs() const;
+
+    // The two ends of an npc's patrol in world space. A patrol point names a
+    // tile to stand in, so the feet go on the surface under it, in the middle.
+    std::optional<std::pair<glm::vec2, glm::vec2>> patrolFor(const NpcSpawnData &spawn) const;
     void rebuildGraphs();
 
     glm::vec2 getPlayerStartWorldPosition() const;

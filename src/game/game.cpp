@@ -438,7 +438,7 @@ void Game::rebuildNpcs()
     {
         auto it = gameData.npcData.find(spawn.type);
 
-        std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second);
+        std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second, level->patrolFor(spawn));
         newNpc->setPosition(level->getTileMap().tileToWorldPosition(spawn.tilePosition));
         npcs.push_back(std::move(newNpc));
     }

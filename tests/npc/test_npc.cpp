@@ -15,6 +15,14 @@
 
 namespace
 {
+    NpcSpawnData spawnAt(std::string type, glm::ivec2 tilePosition)
+    {
+        NpcSpawnData spawn;
+        spawn.type = std::move(type);
+        spawn.tilePosition = tilePosition;
+        return spawn;
+    }
+
     NpcData setupNpcData()
     {
         NpcData npcData;
@@ -36,7 +44,7 @@ namespace
     {
         LevelData levelData;
         levelData.tileMapData = tileMap.toTileMapData();
-        levelData.npcs = {{"villager", npcTile}};
+        levelData.npcs = {spawnAt("villager", npcTile)};
         return Level(
             levelData,
             palettesFrom(getDefaultTileDataMap()),
@@ -219,7 +227,7 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
     levelData.tileMapData.size = 16;
     levelData.tileMapData.width = 10;
     levelData.tileMapData.height = 10;
-    levelData.npcs = {{"villager", {1, 1}}, {"villager", {2, 1}}};
+    levelData.npcs = {spawnAt("villager", {1, 1}), spawnAt("villager", {2, 1})};
 
     Level level(
         levelData,
@@ -280,17 +288,17 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
 
     SECTION("out of bounds")
     {
-        REQUIRE_THROWS_WITH(levelWith({{"villager", {99, 99}}}), "Npc start position is out of bounds");
+        REQUIRE_THROWS_WITH(levelWith({spawnAt("villager", {99, 99})}), "Npc start position is out of bounds");
     }
 
     SECTION("inside a solid tile")
     {
-        REQUIRE_THROWS_WITH(levelWith({{"villager", {3, 6}}}), "Npc start position is on a solid tile");
+        REQUIRE_THROWS_WITH(levelWith({spawnAt("villager", {3, 6})}), "Npc start position is on a solid tile");
     }
 
     SECTION("somewhere it can stand")
     {
-        REQUIRE_NOTHROW(levelWith({{"villager", {3, 5}}}));
+        REQUIRE_NOTHROW(levelWith({spawnAt("villager", {3, 5})}));
     }
 }
 
@@ -366,9 +374,14 @@ TEST_CASE("The shipped explorer patrols level6 without getting stuck", "[Npc][Le
     // On the left middle platform directly under the top one, so its first jump
     // has a ceiling close above its head. Where the level happens to spawn it is
     // a level editing decision, but this is the corner it has to cope with.
-    constexpr glm::ivec2 ExplorerTile{5, 7};
-    Npc npc(gameData.npcData.at("explorer"));
-    npc.setPosition(level.getTileMap().tileToWorldPosition(ExplorerTile));
+    // Built the way the game builds it, patrol and all, since where it walks
+    // is the level's to say now.
+    const NpcSpawnData &spawn = level.getNpcs().at(2);
+    REQUIRE(spawn.type == "explorer");
+    REQUIRE(spawn.patrol);
+
+    Npc npc(gameData.npcData.at("explorer"), level.patrolFor(spawn));
+    npc.setPosition(level.getTileMap().tileToWorldPosition(spawn.tilePosition));
 
     std::set<int> surfacesStoodOn;
     float previousX = npc.getPosition().x;

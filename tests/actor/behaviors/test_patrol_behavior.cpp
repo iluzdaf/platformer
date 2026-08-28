@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <algorithm>
 #include <vector>
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -58,11 +59,11 @@ namespace
         return data;
     }
 
-    PatrolBehaviorData setupRoamingData()
+    // A patrol is told its two ends now, rather than working out how far it is
+    // willing to go. These fixtures walk between the two nodes in question.
+    std::pair<glm::vec2, glm::vec2> between(glm::vec2 from, glm::vec2 to)
     {
-        PatrolBehaviorData data = setupData();
-        data.roams = true;
-        return data;
+        return {from, to};
     }
 
     void anchorAt(
@@ -119,7 +120,7 @@ TEST_CASE("Has nothing to do on a graph with no edges at all", "[PatrolBehavior]
 TEST_CASE("Takes a jump edge when it is the only way on", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupGap();
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
 
@@ -130,7 +131,7 @@ TEST_CASE("Takes a jump edge when it is the only way on", "[PatrolBehavior]")
 TEST_CASE("Asks to jump while crossing a jump edge", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupGap();
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
     InputIntentions inputIntentions =
@@ -158,7 +159,7 @@ TEST_CASE("Never asks to jump on a platform it can walk", "[PatrolBehavior]")
 TEST_CASE("Does not arrive at a ledge it is still below", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupLedge();
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
     REQUIRE(behavior.getTargetNodeId() == 1);
@@ -171,7 +172,7 @@ TEST_CASE("Does not arrive at a ledge it is still below", "[PatrolBehavior]")
 TEST_CASE("Arrives at a ledge once it stands on it", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupLedge();
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
     behavior.decide(0.01f, at(navigationGraph, {96.0f, 160.0f}));
@@ -257,7 +258,7 @@ TEST_CASE("Stops asking to jump once the hold is spent", "[PatrolBehavior]")
     navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.05f});
     navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.05f});
 
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
 
     glm::vec2 position(0.0f, 192.0f);
@@ -282,7 +283,7 @@ TEST_CASE("Holds a longer jump for longer", "[PatrolBehavior]")
         navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, holdDuration});
         navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, holdDuration});
 
-        PatrolBehavior behavior(setupRoamingData());
+        PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
         anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
 
         int steps = 0;
@@ -342,7 +343,7 @@ TEST_CASE("Stays on its own platform when it does not roam", "[PatrolBehavior]")
 TEST_CASE("Will not roam somewhere it cannot get back from", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupPlatformOverAnother();
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({0.0f, 128.0f}, {96.0f, 128.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
     std::vector<int> visited = walk(behavior, navigationGraph, {0.0f, 128.0f}, 400);
@@ -357,7 +358,7 @@ TEST_CASE("Roams to the far platform when it can get back", "[PatrolBehavior]")
     NavigationGraph navigationGraph = setupPlatformOverAnother();
     navigationGraph.addEdge({3, 2, EdgeType::Jump, {}, 0.2f});
 
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({0.0f, 128.0f}, {288.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
 
     REQUIRE(behavior.getCurrentNodeId() == 0);
@@ -367,7 +368,9 @@ TEST_CASE("Roams to the far platform when it can get back", "[PatrolBehavior]")
 TEST_CASE("Picks itself up again after coming off its route", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupPlatformOverAnother();
-    PatrolBehavior behavior(setupRoamingData());
+    navigationGraph.addEdge({3, 2, EdgeType::Jump, {}, 0.2f});
+
+    PatrolBehavior behavior(setupData(), between({0.0f, 128.0f}, {288.0f, 192.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
     REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
@@ -393,7 +396,7 @@ TEST_CASE("Does not steer while falling", "[PatrolBehavior]")
     navigationGraph.addEdge(1, 2, EdgeType::Fall);
     navigationGraph.addEdge({2, 1, EdgeType::Jump, {}, 0.2f});
 
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({101.0f, 400.0f}, {0.0f, 128.0f}));
     anchorAt(behavior, navigationGraph, {96.0f, 128.0f});
     REQUIRE(behavior.getCurrentNodeId() == 1);
     REQUIRE(behavior.getTargetNodeId() == 2);
@@ -424,7 +427,7 @@ TEST_CASE("Notices it is on a different platform at the same height", "[PatrolBe
     navigationGraph.addEdge({1, 2, EdgeType::Jump, {}, 0.2f});
     navigationGraph.addEdge({2, 1, EdgeType::Jump, {}, 0.2f});
 
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({48.0f, 128.0f}, {304.0f, 128.0f}));
     anchorAt(behavior, navigationGraph, {48.0f, 128.0f});
     REQUIRE(behavior.getCurrentNodeId() == 0);
 
@@ -444,7 +447,7 @@ TEST_CASE("Tries the jump again after coming up short", "[PatrolBehavior]")
     navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
     navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
 
-    PatrolBehavior behavior(setupRoamingData());
+    PatrolBehavior behavior(setupData(), between({0.0f, 128.0f}, {96.0f, 64.0f}));
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
     REQUIRE(behavior.getCurrentNodeId() == 0);
     REQUIRE(behavior.getTargetNodeId() == 1);
@@ -459,4 +462,32 @@ TEST_CASE("Tries the jump again after coming up short", "[PatrolBehavior]")
         asksAgain = behavior.decide(0.01f, backWhereItStarted).jumpRequested;
 
     REQUIRE(asksAgain);
+}
+
+TEST_CASE("Told nowhere to walk, it paces what it is standing on", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(3, 64.0f);
+    PatrolBehavior behavior(setupData());
+
+    anchorAt(behavior, navigationGraph, {64.0f, 192.0f});
+    std::vector<int> visited = walk(behavior, navigationGraph, {64.0f, 192.0f}, 900);
+
+    // The ends of the platform, and everything between, and nothing else.
+    REQUIRE(std::ranges::find(visited, 0) != visited.end());
+    REQUIRE(std::ranges::find(visited, 2) != visited.end());
+}
+
+TEST_CASE("Told where to walk, it walks between those two and turns round", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(4, 64.0f);
+
+    // The middle two, so the ends of the platform are not the answer.
+    PatrolBehavior behavior(setupData(), between({64.0f, 192.0f}, {128.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {64.0f, 192.0f});
+
+    std::vector<int> visited = walk(behavior, navigationGraph, {64.0f, 192.0f}, 900);
+
+    REQUIRE(std::ranges::find(visited, 1) != visited.end());
+    REQUIRE(std::ranges::find(visited, 2) != visited.end());
+    REQUIRE(std::ranges::find(visited, 3) == visited.end());
 }

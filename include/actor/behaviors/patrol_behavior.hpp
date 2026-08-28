@@ -2,10 +2,10 @@
 
 #include <optional>
 #include <utility>
-#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/route_walker.hpp"
 
 class PatrolBehavior : public ActorBehavior
 {
@@ -20,17 +20,11 @@ public:
 
 private:
     PatrolBehaviorData data;
+    RouteWalker walker;
 
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween;
     bool headingForTheSecond = false;
 
-    std::optional<int> currentNodeId, targetNodeId;
-    std::vector<int> legsLeft;
-    float jumpHeldFor = 0.0f;
-
-    void anchor(const ActorBehaviorContext &context);
     void planRoute(const ActorBehaviorContext &context);
     std::optional<int> endOfTheBeat(const ActorBehaviorContext &context, bool second) const;
-    bool hasArrived(const ActorBehaviorContext &context) const;
-    bool hasLostTheRoute(const ActorBehaviorContext &context) const;
 };

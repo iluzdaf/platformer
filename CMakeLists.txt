@@ -122,6 +122,7 @@ add_library(platformer_lib OBJECT
     src/actor/actor_behavior.cpp
     src/actor/behaviors/input_behavior.cpp
     src/actor/behaviors/patrol_behavior.cpp
+    src/actor/behaviors/route_walker.cpp
     src/npc/npc.cpp
     src/actor/actor_motion.cpp
     src/actor/abilities/jump_ability.cpp

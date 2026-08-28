@@ -6,8 +6,10 @@
 #include <string>
 #include <utility>
 #include <map>
+#include <optional>
 #include <vector>
 #include <glaze/glaze.hpp>
+#include "navigation/navigation_path.hpp"
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
@@ -646,4 +648,30 @@ TEST_CASE("An npc with no behavior names no state", "[Npc]")
     Npc npc(npcData);
 
     REQUIRE(npc.getStateName().empty());
+}
+
+TEST_CASE("A beat a villager cannot make a round trip of is not walkable", "[Npc][Level]")
+{
+    GameData gameData = loadGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    NpcSpawnData onTheFloor = level.getNpcs().at(0);
+    REQUIRE(onTheFloor.type == "villager");
+    REQUIRE(onTheFloor.patrol);
+
+    Npc villager(gameData.npcData.at("villager"), level.patrolFor(onTheFloor));
+    const NavigationGraph &graph = level.graphFor(villager.getNavigationProfile());
+
+    std::optional<std::pair<glm::vec2, glm::vec2>> authored = level.patrolFor(onTheFloor);
+    REQUIRE(authored);
+    REQUIRE(canPatrolBetween(graph, authored->first, authored->second));
+
+    NpcSpawnData reachingTooHigh = onTheFloor;
+    reachingTooHigh.patrol->to = glm::ivec2(1, 5);
+    std::optional<std::pair<glm::vec2, glm::vec2>> impossible = level.patrolFor(reachingTooHigh);
+    REQUIRE(impossible);
+    REQUIRE_FALSE(canPatrolBetween(graph, impossible->first, impossible->second));
 }

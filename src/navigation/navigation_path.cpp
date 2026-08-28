@@ -210,3 +210,18 @@ bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::v
 
     return std::find(run.begin(), run.end(), *to) != run.end();
 }
+
+bool canPatrolBetween(const NavigationGraph &navigationGraph, glm::vec2 from, glm::vec2 to)
+{
+    std::optional<int> fromId = nearestNodeTo(navigationGraph, from);
+    std::optional<int> toId = nearestNodeTo(navigationGraph, to);
+    if (!fromId || !toId)
+        return false;
+
+    if (*fromId == *toId)
+        return true;
+
+    std::vector<int> andBack = roundTripFrom(navigationGraph, *fromId);
+
+    return std::find(andBack.begin(), andBack.end(), *toId) != andBack.end();
+}

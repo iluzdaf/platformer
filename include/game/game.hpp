@@ -11,6 +11,7 @@
 #include "game/scoring_system.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/texture2d.hpp"
+#include "rendering/sprite_renderer.hpp"
 #include "rendering/tile_map_renderer.hpp"
 #include "rendering/screen_transition.hpp"
 #include "rendering/ui/game_editor_ui.hpp"

@@ -30,10 +30,10 @@
 Game::Game(Window &window)
     : window(window), gameData(loadGameData()),
       camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
-      tileMapRenderer(spriteRenderer), imGuiManager(
-                                           window.getHandle(),
-                                           window.getFramebufferSize().x,
-                                           window.getFramebufferSize().y),
+      imGuiManager(
+          window.getHandle(),
+          window.getFramebufferSize().x,
+          window.getFramebufferSize().y),
       levels(assets::pathTo(assets::LevelList))
 {
     window.setSize(gameData.windowWidth, gameData.windowHeight);
@@ -198,7 +198,8 @@ void Game::render()
 
     glm::mat4 projection = camera.getProjection();
 
-    tileMapRenderer.draw(level->getTileMap(), projection, *tileSetShader.get(), *tileSet.get());
+    tileMapRenderer.draw(
+        spriteRenderer, level->getTileMap(), projection, *tileSetShader.get(), *tileSet.get());
 
     for (const Actor *actor : actors)
     {

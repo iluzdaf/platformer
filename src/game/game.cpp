@@ -10,6 +10,7 @@
 #include <utility>
 #include "game/game.hpp"
 #include "game/game_data.hpp"
+#include "rendering/ui/editor_section.hpp"
 #include "cameras/camera2d.hpp"
 #include "actor/actor.hpp"
 #include "actor/actor_state.hpp"
@@ -221,8 +222,7 @@ void Game::render()
 
     if (editorUi.begin(imGuiManager, gameData.settings.debug))
     {
-        levelEditorUi.draw(
-            editorUi.getSection(), *level.get(), npcs, *tileSet.get(), levels.getFirst());
+        levelEditorUi.draw(editorUi.getSection(), *level.get(), *tileSet.get(), levels.getFirst());
 
         gameEditorUi.draw(
             editorUi.getSection(),
@@ -230,6 +230,12 @@ void Game::render()
             player->getPosition(),
             player->getState(),
             camera);
+
+        if (editorUi.getSection() == EditorSection::Navigation)
+            navigationUi.draw(*level.get());
+
+        if (editorUi.getSection() == EditorSection::NpcsInLevel)
+            npcsUi.draw(*level.get(), npcs);
 
         gameDataUi.draw(editorUi.getSection(), gameData);
 
@@ -246,7 +252,10 @@ void Game::render()
         levelEditorUi.drawsTileMapAABBs());
 
     if (gameData.settings.debug)
+    {
         levelEditorUi.drawOverlay(imGuiManager, camera, *level.get());
+        navigationUi.drawOverlay(imGuiManager, camera, *level.get());
+    }
 
     imGuiManager.render();
 

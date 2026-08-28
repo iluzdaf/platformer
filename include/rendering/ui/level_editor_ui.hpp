@@ -12,7 +12,6 @@ class TileMap;
 class Level;
 class Texture2D;
 class Camera2D;
-class NavigationGraph;
 class Npc;
 
 class LevelEditorUi
@@ -21,7 +20,6 @@ public:
     void draw(
         EditorSection section,
         Level &level,
-        const std::vector<std::unique_ptr<Npc>> &npcs,
         const Texture2D &tileSet,
         const std::string &firstLevel);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
@@ -36,16 +34,9 @@ public:
 private:
     bool editing = false, editingPlayerStartTile = false;
     int selectedTileIndex = 0;
-    bool showNavigation = true, drawTheFlightItself = false, drawGrid = false, drawTileInfo = false,
-         drawTileMapAABBs = false;
-    size_t selectedGraphIndex = 0;
-    std::optional<int> selectedNodeId;
-    std::optional<std::pair<int, int>> selectedEdge;
+    bool drawGrid = false, drawTileInfo = false, drawTileMapAABBs = false;
 
     void drawLevel(Level &level, const std::string &firstLevel);
-    void drawNpcs(const Level &level, const std::vector<std::unique_ptr<Npc>> &npcs);
     void drawTileMap(Level &level, const Texture2D &tileSet);
-    void drawGraphs(const Level &level);
-    void drawEdgesOf(const NavigationGraph &graph, int nodeId);
     std::optional<std::string> drawLevelChooser(const Level &level, const std::string &firstLevel);
 };

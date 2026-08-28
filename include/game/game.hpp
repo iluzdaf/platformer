@@ -20,6 +20,8 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "rendering/ui/debug_aabb_ui.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
+#include "rendering/ui/navigation_ui.hpp"
+#include "rendering/ui/npcs_ui.hpp"
 #include "rendering/ui/score_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
@@ -82,6 +84,8 @@ private:
     GameEditorUi gameEditorUi;
     DebugAABBUi debugAABBUi;
     LevelEditorUi levelEditorUi;
+    NavigationUi navigationUi;
+    NpcsUi npcsUi;
     ScoreUi scoreUi;
     fteng::connection onLevelCompleteConnection;
     bool paused = false, stepFrame = false;

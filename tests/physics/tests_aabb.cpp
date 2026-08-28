@@ -25,6 +25,13 @@ TEST_CASE("AABB intersection and center", "[AABB]")
         REQUIRE(center.x == Approx(5.0f));
         REQUIRE(center.y == Approx(5.0f));
     }
+
+    SECTION("Bottom center sits on the lower edge")
+    {
+        glm::vec2 bottomCenter = b.bottomCenter();
+        REQUIRE(bottomCenter.x == Approx(10.0f));
+        REQUIRE(bottomCenter.y == Approx(15.0f));
+    }
 }
 
 TEST_CASE("AABB expandToInclude", "[AABB]")

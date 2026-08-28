@@ -95,7 +95,7 @@ JumpAttempt simulateJumpAgainst(
     inputIntentions.direction.x = direction;
 
     auto feet = [&]
-    { return physicsBody.getPosition() + physicsBody.getBottomCenterOffset(); };
+    { return physicsBody.getAABB().bottomCenter(); };
 
     JumpAttempt attempt;
     attempt.path.push_back(feet());

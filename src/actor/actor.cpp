@@ -101,7 +101,7 @@ ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGra
 {
     return ActorBehaviorContext{
         navigationGraph,
-        physicsBody.getPosition() + physicsBody.getBottomCenterOffset(),
+        physicsBody.getAABB().bottomCenter(),
         physicsBody.getColliderSize(),
         motion.getState().contacts.onGround};
 }

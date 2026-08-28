@@ -14,6 +14,7 @@ struct AABB
     float bottom() const;
     bool intersects(const AABB &other) const;
     glm::vec2 center() const;
+    glm::vec2 bottomCenter() const;
     void expandToInclude(const AABB &other);
     bool isEmpty() const;
     std::size_t hash() const;

@@ -113,7 +113,7 @@ namespace
 
     float footX(const Npc &npc)
     {
-        return npc.getPosition().x + npc.getPhysicsBody().getBottomCenterOffset().x;
+        return npc.getPhysicsBody().getAABB().bottomCenter().x;
     }
 
     float reachOf(const Npc &npc)
@@ -180,14 +180,14 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
     Npc npc(setupNpcData());
     npc.setPosition(spawnPosition(tileMap));
 
-    float lowestFootY = npc.getPosition().y + npc.getPhysicsBody().getBottomCenterOffset().y;
+    float lowestFootY = npc.getPhysicsBody().getAABB().bottomCenter().y;
     std::vector<float> footXs;
 
     for (int step = 0; step < 4000; ++step)
     {
         stepNpc(npc, level, 1);
         footXs.push_back(footX(npc));
-        lowestFootY = std::max(lowestFootY, npc.getPosition().y + npc.getPhysicsBody().getBottomCenterOffset().y);
+        lowestFootY = std::max(lowestFootY, npc.getPhysicsBody().getAABB().bottomCenter().y);
     }
 
     for (const auto &[id, node] : level.graphFor(npc.getNavigationProfile()).getNodes())

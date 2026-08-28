@@ -135,8 +135,15 @@ void RouteWalker::takeRouteTo(const ActorBehaviorContext &context, int destinati
     targetNodeId.reset();
     legsLeft.clear();
 
-    if (!currentNodeId || destinationNodeId == *currentNodeId)
+    if (!currentNodeId)
         return;
+
+    if (destinationNodeId == *currentNodeId)
+    {
+        legsLeft.assign(1, destinationNodeId);
+        targetNodeId = destinationNodeId;
+        return;
+    }
 
     std::vector<int> route = findPath(context.navigationGraph, *currentNodeId, destinationNodeId);
     if (route.size() < 2)

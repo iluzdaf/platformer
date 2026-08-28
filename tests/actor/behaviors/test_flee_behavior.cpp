@@ -143,3 +143,31 @@ TEST_CASE("Will not run past the threat to reach open ground", "[FleeBehavior]")
 
     REQUIRE(runAway(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(144.0f, 192.0f)) == 0);
 }
+
+TEST_CASE("Turns back to the node it set off from when the threat gets behind it",
+          "[FleeBehavior]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    FleeBehavior behavior(setupData());
+
+    glm::vec2 position(104.0f, 96.0f);
+    for (int step = 0; step < 40; ++step)
+    {
+        InputIntentions running =
+            behavior.decide(0.01f, at(navigationGraph, position, glm::vec2(112.0f, 96.0f)));
+        position.x += running.direction.x * 1.0f;
+    }
+
+    REQUIRE(position.x < 80.0f);
+    REQUIRE(behavior.getCurrentNodeId() == 1);
+
+    InputIntentions turningBack =
+        behavior.decide(0.01f, at(navigationGraph, position, glm::vec2(16.0f, 96.0f)));
+
+    REQUIRE(turningBack.direction.x == 1.0f);
+}

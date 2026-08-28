@@ -455,3 +455,38 @@ TEST_CASE("The shipped villager runs from the player and settles once it is gone
 
     REQUIRE(footOf(npc).x != ranTo);
 }
+
+TEST_CASE("The shipped villager keeps moving while the player walks it down",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(1);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    glm::vec2 chasing = footOf(npc) + glm::vec2(8.0f, 0.0f);
+    float previousX = footOf(npc).x;
+    int standingStill = 0, longestStandingStill = 0;
+
+    for (int step = 0; step < 500; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, chasing);
+
+        chasing.x = std::max(16.0f, chasing.x - 1.1f);
+
+        standingStill = std::abs(footOf(npc).x - previousX) < 0.01f ? standingStill + 1 : 0;
+        longestStandingStill = std::max(longestStandingStill, standingStill);
+        previousX = footOf(npc).x;
+    }
+
+    REQUIRE(longestStandingStill < 100);
+}

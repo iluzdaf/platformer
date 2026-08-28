@@ -1,3 +1,4 @@
+#include <cmath>
 #include <algorithm>
 #include <queue>
 #include <unordered_map>
@@ -9,6 +10,8 @@
 
 namespace
 {
+    constexpr float SurfaceTolerance = 1.0f;
+
     struct Step
     {
         float estimate = 0.0f;
@@ -168,10 +171,33 @@ std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::ve
     return nearest;
 }
 
+namespace
+{
+    std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::vec2 position)
+    {
+        std::optional<int> standingOn;
+        float nearestAlong = 0.0f;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            if (std::abs(node.position.y - position.y) > SurfaceTolerance)
+                continue;
+
+            float along = std::abs(node.position.x - position.x);
+            if (standingOn && along >= nearestAlong)
+                continue;
+
+            standingOn = id;
+            nearestAlong = along;
+        }
+
+        return standingOn ? standingOn : nearestNodeTo(navigationGraph, position);
+    }
+}
+
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)
 {
-    std::optional<int> from = nearestNodeTo(navigationGraph, here);
-    std::optional<int> to = nearestNodeTo(navigationGraph, there);
+    std::optional<int> from = nodeUnderfoot(navigationGraph, here);
+    std::optional<int> to = nodeUnderfoot(navigationGraph, there);
     if (!from || !to)
         return false;
 

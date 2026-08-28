@@ -576,3 +576,32 @@ TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered
     REQUIRE(footOf(npc).x > 96.0f);
     REQUIRE(flips < 6);
 }
+
+TEST_CASE("The shipped villager pays no mind to a player on the platform below",
+          "[Npc][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(1);
+    REQUIRE(spawn.type == "villager");
+
+    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
+    for (int step = 0; step < 1200; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level, glm::vec2(footOf(npc).x, 128.0f));
+
+        leftMost = std::min(leftMost, footOf(npc).x);
+        rightMost = std::max(rightMost, footOf(npc).x);
+    }
+
+    REQUIRE(rightMost - leftMost > 64.0f);
+}

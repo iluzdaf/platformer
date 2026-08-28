@@ -178,3 +178,21 @@ TEST_CASE("Holds a state while the threat shares its run", "[StateMachineBehavio
     behavior.decide(0.01f, at(navigationGraph, {192.0f, 192.0f}, glm::vec2(192.0f, 288.0f)));
     REQUIRE(behavior.getStateName() == "patrol");
 }
+
+TEST_CASE("Ignores a threat that is close by but not on its ground", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = setupRun();
+    navigationGraph.addNode(5, {192.0f, 224.0f});
+
+    StateMachineBehaviorData data = setupData();
+    data.transitions.at(0) =
+        BehaviorTransitionData{"patrol", "flee", 48.0f, std::nullopt, true, 0.0f};
+
+    StateMachineBehavior behavior(data);
+
+    behavior.decide(0.01f, at(navigationGraph, {192.0f, 192.0f}, glm::vec2(192.0f, 224.0f)));
+    REQUIRE(behavior.getStateName() == "patrol");
+
+    behavior.decide(0.01f, at(navigationGraph, {192.0f, 192.0f}, glm::vec2(160.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "flee");
+}

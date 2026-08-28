@@ -133,3 +133,15 @@ TEST_CASE("Two places on one walkable run are on the same run", "[NavigationPath
         REQUIRE_FALSE(onTheSameRun(navigationGraph, {112.0f, 96.0f}, {160.0f, 128.0f}));
     }
 }
+
+TEST_CASE("A place is judged by the run under its feet, not the nearest node", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addNode(2, {60.0f, 128.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    REQUIRE_FALSE(onTheSameRun(navigationGraph, {60.0f, 96.0f}, {60.0f, 128.0f}));
+}

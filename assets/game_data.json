@@ -104,7 +104,7 @@
                     }
                 ],
                 "transitions":[
-                    {"from":"patrol","to":"flee","threatWithin":40.0},
+                    {"from":"patrol","to":"flee","threatWithin":40.0,"threatOnMySurface":true},
                     {"from":"flee","to":"patrol","threatOnMySurface":false,"after":1.5}
                 ]
             }

@@ -9,4 +9,6 @@ struct ActorBehaviorContext
     const NavigationGraph &navigationGraph;
     glm::vec2 worldPosition;
     glm::vec2 colliderSize;
+
+    bool onGround = false;
 };

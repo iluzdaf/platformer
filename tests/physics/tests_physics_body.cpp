@@ -54,9 +54,19 @@ TEST_CASE("PhysicsBody detects contact with ground", "[PhysicsBody]")
 TEST_CASE("PhysicsBody detects contact with ceiling", "[PhysicsBody]")
 {
     TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(1, 3), 1);
+    tileMap.setTileIndex(glm::ivec2(1, 2), 1);
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithCeiling(tileMap));
+}
+
+TEST_CASE("PhysicsBody inside a tile is neither standing on it nor under it", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(1, 3), 1);
+    PhysicsBody body = setupBody({16, 48});
+
+    REQUIRE_FALSE(body.contactWithGround(tileMap));
+    REQUIRE_FALSE(body.contactWithCeiling(tileMap));
 }
 
 TEST_CASE("PhysicsBody detects contact with left wall", "[PhysicsBody]")
@@ -73,4 +83,14 @@ TEST_CASE("PhysicsBody detects contact with right wall", "[PhysicsBody]")
     tileMap.setTileIndex(glm::ivec2(2, 3), 1);
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithRightWall(tileMap));
+}
+TEST_CASE("PhysicsBody knows how far its feet sit from its position", "[PhysicsBody]")
+{
+    PhysicsBody body = setupBody({0, 0}, {0, 0}, {6, 10}, {2, 5});
+
+    body.setPosition(glm::vec2(100, 200) - body.getBottomCenterOffset());
+
+    REQUIRE(body.getAABB().left() == Approx(97.0f));
+    REQUIRE(body.getAABB().right() == Approx(103.0f));
+    REQUIRE(body.getAABB().bottom() == Approx(200.0f));
 }

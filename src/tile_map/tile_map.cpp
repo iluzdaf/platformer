@@ -185,6 +185,12 @@ glm::vec2 TileMap::tileToWorldPosition(glm::ivec2 tilePosition) const
     return glm::vec2(tilePosition.x * tileSize, tilePosition.y * tileSize);
 }
 
+glm::vec2 TileMap::tileToBottomCenterPosition(glm::ivec2 tilePosition) const
+{
+    glm::vec2 surface = tileToWorldPosition(tilePosition + glm::ivec2(0, 1));
+    return surface + glm::vec2(tileSize * 0.5f, 0.0f);
+}
+
 const std::unordered_map<int, Tile> &TileMap::getTiles() const
 {
     return tiles;

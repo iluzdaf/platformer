@@ -7,4 +7,6 @@ struct WallJumpAbilityData
           wallJumpDuration = 0.2f,
           wallJumpBufferDuration = 0.15f,
           wallJumpCoyoteDuration = 0.15f;
+
+    bool operator==(const WallJumpAbilityData &) const = default;
 };

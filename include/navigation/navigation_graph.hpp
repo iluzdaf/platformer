@@ -8,7 +8,7 @@
 class NavigationGraph
 {
 public:
-    void addNode(int id, glm::vec2 position);
+    void addNode(int id, glm::vec2 position, NodeKind kind = NodeKind::OnFoot);
     void addNode(NavigationNode node);
     void addEdge(int fromId, int toId, EdgeType type);
     void addEdge(NavigationEdge edge);
@@ -17,6 +17,7 @@ public:
     const std::vector<NavigationEdge> &getEdges() const;
     const std::vector<NavigationEdge> &getOutgoingEdges(int id) const;
     void clear();
+    void clearEdges();
     bool hasNodeAtPosition(glm::vec2 position, float epsilon = 0.1f) const;
 
 private:

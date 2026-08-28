@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "navigation/navigation_profile_builder.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "player/player_data.hpp"
@@ -10,6 +11,14 @@
 
 namespace
 {
+    NpcSpawnData spawnAt(std::string type, glm::ivec2 tilePosition)
+    {
+        NpcSpawnData spawn;
+        spawn.type = std::move(type);
+        spawn.tilePosition = tilePosition;
+        return spawn;
+    }
+
     constexpr int MapTiles = 10;
     constexpr int FloorRow = 6;
     constexpr int CeilingRow = 4;
@@ -32,7 +41,7 @@ namespace
 
     NavigationProfile profileOfHeight(float height)
     {
-        return NavigationProfile{glm::vec2(8.0f, height), {}};
+        return buildNavigationProfile(npcOfHeight(height).actorData);
     }
 
     PlayerData playerOfHeight(float height)
@@ -89,7 +98,7 @@ TEST_CASE("A level offers the tiles it was built from", "[Level]")
 
 TEST_CASE("A level builds a graph for an npc it places", "[Level]")
 {
-    Level level = levelPlacing({{"short", StandingTile}});
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
 
     const NavigationGraph &graph = level.graphFor(profileOfHeight(13.0f));
 
@@ -113,7 +122,7 @@ TEST_CASE("A level builds a graph for the player as well", "[Level]")
 
 TEST_CASE("Npcs that move differently get their own graphs", "[Level]")
 {
-    Level level = levelPlacing({{"short", StandingTile}, {"tall", StandingTile}});
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
 
     const NavigationGraph &shortGraph = level.graphFor(profileOfHeight(13.0f));
     const NavigationGraph &tallGraph = level.graphFor(profileOfHeight(20.0f));
@@ -126,14 +135,14 @@ TEST_CASE("Npcs that move differently get their own graphs", "[Level]")
 TEST_CASE("A level naming an npc that does not exist fails to load", "[Level]")
 {
     REQUIRE_THROWS_WITH(
-        levelPlacing({{"nobody", StandingTile}}),
+        levelPlacing({spawnAt("nobody", StandingTile)}),
         Catch::Matchers::ContainsSubstring("nobody") &&
             Catch::Matchers::ContainsSubstring("new_level.json"));
 }
 
 TEST_CASE("Editing the tiles changes what the graphs describe", "[Level]")
 {
-    Level level = levelPlacing({{"short", StandingTile}});
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
     NavigationProfile walker = profileOfHeight(13.0f);
 
     REQUIRE(nodesOnTheFloor(level.graphFor(walker)) == 2);
@@ -146,7 +155,7 @@ TEST_CASE("Editing the tiles changes what the graphs describe", "[Level]")
 
 TEST_CASE("Rebuilding keeps a graph for every profile it had", "[Level]")
 {
-    Level level = levelPlacing({{"short", StandingTile}, {"tall", StandingTile}});
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
     size_t before = level.getGraphs().size();
 
     level.rebuildGraphs();
@@ -158,7 +167,7 @@ TEST_CASE("Rebuilding keeps a graph for every profile it had", "[Level]")
 
 TEST_CASE("A graph is named for the actor that needed it", "[Level]")
 {
-    Level level = levelPlacing({{"tall", StandingTile}});
+    Level level = levelPlacing({spawnAt("tall", StandingTile)});
 
     std::vector<std::string> names;
     for (const NamedNavigationGraph &graph : level.getGraphs())
@@ -170,7 +179,7 @@ TEST_CASE("A graph is named for the actor that needed it", "[Level]")
 
 TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
 {
-    Level level = levelPlacing({{"short", StandingTile}, {"alsoShort", StandingTile}});
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("alsoShort", StandingTile)});
 
     std::vector<std::string> names;
     for (const NamedNavigationGraph &graph : level.getGraphs())
@@ -200,7 +209,7 @@ TEST_CASE("A level refuses to have no level next", "[Level]")
 
 TEST_CASE("A graph does not name the same actor twice", "[Level]")
 {
-    Level level = levelPlacing({{"short", StandingTile}, {"short", {2, FloorRow - 1}}});
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("short", {2, FloorRow - 1})});
 
     for (const NamedNavigationGraph &graph : level.getGraphs())
         REQUIRE(graph.name == "player, short");

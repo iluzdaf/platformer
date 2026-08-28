@@ -34,6 +34,11 @@ glm::vec2 AABB::center() const
     return position + size * 0.5f;
 }
 
+glm::vec2 AABB::bottomCenter() const
+{
+    return glm::vec2(position.x + size.x * 0.5f, bottom());
+}
+
 void AABB::expandToInclude(const AABB &other)
 {
     if (other.isEmpty())

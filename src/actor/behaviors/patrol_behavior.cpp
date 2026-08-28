@@ -1,11 +1,17 @@
+#include <algorithm>
 #include <cmath>
 #include <optional>
+#include <glm/geometric.hpp>
+#include <vector>
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_path.hpp"
 
 namespace
 {
     constexpr float SurfaceTolerance = 1.0f;
+
+    constexpr float TakeOffReach = 1.5f;
 
     float directionTowards(float from, float to)
     {
@@ -31,16 +37,65 @@ namespace
     }
 }
 
-PatrolBehavior::PatrolBehavior(const PatrolBehaviorData &data)
-    : data(data)
+PatrolBehavior::PatrolBehavior(
+    const PatrolBehaviorData &data,
+    std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
+    : data(data),
+      patrolBetween(patrolBetween)
 {
+}
+
+std::optional<int> PatrolBehavior::endOfTheBeat(
+    const ActorBehaviorContext &context,
+    bool second) const
+{
+    const NavigationGraph &navigationGraph = context.navigationGraph;
+
+    if (patrolBetween)
+    {
+        glm::vec2 end = second ? patrolBetween->second : patrolBetween->first;
+        std::optional<int> nearest;
+        float nearestDistance = 0.0f;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            float distance = glm::distance(node.position, end);
+            if (nearest && distance >= nearestDistance)
+                continue;
+
+            nearest = id;
+            nearestDistance = distance;
+        }
+
+        return nearest;
+    }
+
+    if (!currentNodeId)
+        return std::nullopt;
+
+    std::optional<int> end;
+    for (int id : walkableFrom(navigationGraph, *currentNodeId))
+    {
+        if (!end)
+        {
+            end = id;
+            continue;
+        }
+
+        float here = navigationGraph.getNode(id).position.x;
+        float best = navigationGraph.getNode(*end).position.x;
+        if (second ? here > best : here < best)
+            end = id;
+    }
+
+    return end;
 }
 
 void PatrolBehavior::reset()
 {
     currentNodeId.reset();
     targetNodeId.reset();
-    previousNodeId.reset();
+    legsLeft.clear();
+    headingForTheSecond = false;
     jumpHeldFor = 0.0f;
 }
 
@@ -70,11 +125,45 @@ void PatrolBehavior::anchor(const ActorBehaviorContext &context)
     }
 }
 
+bool PatrolBehavior::hasLostTheRoute(const ActorBehaviorContext &context) const
+{
+    if (!currentNodeId || !context.onGround)
+        return false;
+
+    const NavigationGraph &navigationGraph = context.navigationGraph;
+    NavigationNode node = navigationGraph.getNode(*currentNodeId);
+    if (std::abs(node.position.y - context.worldPosition.y) > SurfaceTolerance)
+        return true;
+
+    float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
+    float leftEnd = node.position.x;
+    float rightEnd = node.position.x;
+    for (int id : walkableFrom(navigationGraph, *currentNodeId))
+    {
+        NavigationNode onFoot = navigationGraph.getNode(id);
+        if (std::abs(onFoot.position.y - node.position.y) > SurfaceTolerance)
+            continue;
+
+        leftEnd = std::min(leftEnd, onFoot.position.x);
+        rightEnd = std::max(rightEnd, onFoot.position.x);
+    }
+
+    return context.worldPosition.x < leftEnd - reach || context.worldPosition.x > rightEnd + reach;
+}
+
 InputIntentions PatrolBehavior::decide(
     float deltaTime,
     const ActorBehaviorContext &context)
 {
     InputIntentions inputIntentions;
+
+    if (hasLostTheRoute(context))
+    {
+        currentNodeId.reset();
+        targetNodeId.reset();
+        legsLeft.clear();
+        jumpHeldFor = 0.0f;
+    }
 
     if (!currentNodeId)
         anchor(context);
@@ -83,18 +172,21 @@ InputIntentions PatrolBehavior::decide(
         return inputIntentions;
 
     if (!targetNodeId)
-        pickTarget(context);
+        planRoute(context);
 
     if (!targetNodeId)
         return inputIntentions;
 
     if (hasArrived(context))
     {
-        previousNodeId = currentNodeId;
         currentNodeId = targetNodeId;
-        targetNodeId.reset();
         jumpHeldFor = 0.0f;
-        pickTarget(context);
+
+        legsLeft.erase(legsLeft.begin());
+        if (legsLeft.empty())
+            planRoute(context);
+        else
+            targetNodeId = legsLeft.front();
 
         if (!targetNodeId)
             return inputIntentions;
@@ -105,6 +197,24 @@ InputIntentions PatrolBehavior::decide(
 
     const NavigationEdge *leg =
         edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
+
+    if (leg && leg->type == EdgeType::Jump && context.onGround &&
+        jumpHeldFor >= leg->holdDuration)
+        jumpHeldFor = 0.0f;
+
+    if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)
+    {
+        NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
+        if (std::abs(takeOff.position.x - context.worldPosition.x) > TakeOffReach)
+        {
+            inputIntentions.direction.x =
+                directionTowards(context.worldPosition.x, takeOff.position.x);
+            return inputIntentions;
+        }
+    }
+
+    if (leg && leg->type == EdgeType::Fall && !context.onGround)
+        inputIntentions.direction.x = 0.0f;
 
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor < leg->holdDuration)
     {
@@ -126,29 +236,31 @@ std::optional<int> PatrolBehavior::getTargetNodeId() const
     return targetNodeId;
 }
 
-void PatrolBehavior::pickTarget(const ActorBehaviorContext &context)
+void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
 {
     targetNodeId.reset();
+    legsLeft.clear();
 
     if (!currentNodeId)
         return;
 
-    std::optional<int> wayBack;
-    for (const auto &edge : context.navigationGraph.getOutgoingEdges(*currentNodeId))
-    {
-        if (previousNodeId && edge.toId == *previousNodeId)
-        {
-            if (!wayBack || edge.toId < *wayBack)
-                wayBack = edge.toId;
-            continue;
-        }
+    std::optional<int> destination = endOfTheBeat(context, headingForTheSecond);
 
-        if (!targetNodeId || edge.toId < *targetNodeId)
-            targetNodeId = edge.toId;
+    if (destination && *destination == *currentNodeId)
+    {
+        headingForTheSecond = !headingForTheSecond;
+        destination = endOfTheBeat(context, headingForTheSecond);
     }
 
-    if (!targetNodeId)
-        targetNodeId = wayBack;
+    if (!destination || *destination == *currentNodeId)
+        return;
+
+    std::vector<int> route = findPath(context.navigationGraph, *currentNodeId, *destination);
+    if (route.size() < 2)
+        return;
+
+    legsLeft.assign(route.begin() + 1, route.end());
+    targetNodeId = legsLeft.front();
 }
 
 bool PatrolBehavior::hasArrived(const ActorBehaviorContext &context) const

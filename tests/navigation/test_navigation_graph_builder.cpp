@@ -1,11 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <set>
 #include <vector>
 #include "navigation/navigation_graph_builder.hpp"
 #include <glaze/glaze.hpp>
-#include "navigation/jump_arc.hpp"
+#include "navigation/jump_simulation.hpp"
+#include "navigation/navigation_path.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/game_data.hpp"
 #include "actor/actor_motion_data.hpp"
@@ -463,11 +465,24 @@ namespace
         return motionData;
     }
 
+    NavigationProfile profileThatMoves(float height, const ActorMotionData &motionData)
+    {
+        NavigationProfile profile = profileOfHeight(height);
+        profile.jumpArcs = simulateJumpArcs(motionData);
+        profile.motionData = motionData;
+        return profile;
+    }
+
+    ActorMotionData fallerMotionData()
+    {
+        ActorMotionData motionData;
+        motionData.gravityAbilityData = GravityAbilityData{};
+        return motionData;
+    }
+
     NavigationProfile jumperProfile()
     {
-        NavigationProfile profile = standardProfile();
-        profile.jumpArcs = simulateJumpArcs(jumperMotionData());
-        return profile;
+        return profileThatMoves(13.0f, jumperMotionData());
     }
 
     TileMap setupTwoPlatforms(int gapTiles, int rowsUp = 0, int widthTiles = 20)
@@ -497,6 +512,44 @@ namespace
         return glm::vec2(
             static_cast<float>(LeftPlatformEnd + gapTiles + 1) * tileSize,
             static_cast<float>(PlatformRow - rowsUp) * tileSize);
+    }
+
+    bool jumpsAcrossTo(const NavigationGraph &graph, glm::vec2 from, glm::vec2 farSide)
+    {
+        constexpr float Tolerance = 0.5f;
+        for (const auto &edge : graph.getEdges())
+        {
+            if (edge.type != EdgeType::Jump)
+                continue;
+
+            if (glm::distance(graph.getNode(edge.fromId).position, from) > Tolerance)
+                continue;
+
+            NavigationNode to = graph.getNode(edge.toId);
+            if (std::abs(to.position.y - farSide.y) > Tolerance)
+                continue;
+
+            bool overThere = farSide.x > from.x ? to.position.x >= farSide.x - Tolerance
+                                                : to.position.x <= farSide.x + Tolerance;
+            if (overThere)
+                return true;
+        }
+
+        return false;
+    }
+
+    const NavigationEdge *onlyJumpFrom(const NavigationGraph &graph, int fromId)
+    {
+        const NavigationEdge *only = nullptr;
+        for (const auto &edge : graph.getOutgoingEdges(fromId))
+            if (edge.type == EdgeType::Jump)
+            {
+                if (only)
+                    return nullptr;
+                only = &edge;
+            }
+
+        return only;
     }
 
     bool hasEdgeBetween(
@@ -547,11 +600,7 @@ TEST_CASE("A jumper crosses a gap it can clear", "[NavigationGraphBuilder][Jump]
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    REQUIRE(hasEdgeBetween(
-        graph,
-        takeOffPosition(tileMap),
-        landingPosition(tileMap, GapTiles),
-        EdgeType::Jump));
+    REQUIRE(jumpsAcrossTo(graph, takeOffPosition(tileMap), landingPosition(tileMap, GapTiles)));
 }
 
 TEST_CASE("A jumper crosses a gap in both directions", "[NavigationGraphBuilder][Jump]")
@@ -561,11 +610,7 @@ TEST_CASE("A jumper crosses a gap in both directions", "[NavigationGraphBuilder]
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    REQUIRE(hasEdgeBetween(
-        graph,
-        landingPosition(tileMap, GapTiles),
-        takeOffPosition(tileMap),
-        EdgeType::Jump));
+    REQUIRE(jumpsAcrossTo(graph, landingPosition(tileMap, GapTiles), takeOffPosition(tileMap)));
 }
 
 TEST_CASE("A jumper does not cross a gap beyond its reach", "[NavigationGraphBuilder][Jump]")
@@ -585,11 +630,8 @@ TEST_CASE("A jumper reaches a ledge two tiles up", "[NavigationGraphBuilder][Jum
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    REQUIRE(hasEdgeBetween(
-        graph,
-        takeOffPosition(tileMap),
-        landingPosition(tileMap, GapTiles, RowsUp),
-        EdgeType::Jump));
+    REQUIRE(jumpsAcrossTo(
+        graph, takeOffPosition(tileMap), landingPosition(tileMap, GapTiles, RowsUp)));
 }
 
 TEST_CASE("A jumper does not reach a ledge six tiles up", "[NavigationGraphBuilder][Jump]")
@@ -696,19 +738,135 @@ TEST_CASE("The shipped explorer can cross the gap in level6", "[NavigationGraphB
     REQUIRE(countEdgesOfType(graph, EdgeType::Jump) > 0);
 }
 
-TEST_CASE("Every jump the explorer is offered is one it can hold out", "[NavigationGraphBuilder][Jump][Level]")
+TEST_CASE("The shipped explorer can get up to level6's top platform and back",
+          "[NavigationGraphBuilder][Jump][Level]")
 {
     GameData gameData;
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
 
     NavigationProfile explorer =
         buildNavigationProfile(gameData.npcData.at("explorer").actorData);
-    NavigationProfile holdingThroughout = explorer;
-    holdingThroughout.jumpArcs.resize(1);
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
-    REQUIRE(countEdgesOfType(buildNavigationGraph(tileMap, explorer), EdgeType::Jump) ==
-            countEdgesOfType(buildNavigationGraph(tileMap, holdingThroughout), EdgeType::Jump));
+    NavigationGraph graph = buildNavigationGraph(tileMap, explorer);
+
+    int topPlatformId = -1;
+    for (const auto &[id, node] : graph.getNodes())
+        if (node.position.y < 100.0f)
+            topPlatformId = id;
+
+    REQUIRE(topPlatformId >= 0);
+
+    std::vector<int> reachable = roundTripFrom(graph, topPlatformId);
+    REQUIRE(reachable.size() > 2);
+}
+
+TEST_CASE("The shipped actors can reach every surface in level6",
+          "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    auto reachesEverySurface = [&](const ActorData &actorData)
+    {
+        NavigationGraph graph = buildNavigationGraph(tileMap, buildNavigationProfile(actorData));
+
+        std::set<float> surfaces;
+        for (const auto &[id, node] : graph.getNodes())
+            surfaces.insert(node.position.y);
+
+        for (const auto &[id, node] : graph.getNodes())
+        {
+            std::set<float> fromHere;
+            for (int to : roundTripFrom(graph, id))
+                fromHere.insert(graph.getNode(to).position.y);
+            if (fromHere == surfaces)
+                return true;
+        }
+        return false;
+    };
+
+    REQUIRE(reachesEverySurface(gameData.npcData.at("explorer").actorData));
+    REQUIRE(reachesEverySurface(gameData.playerData.actorData));
+}
+
+TEST_CASE("A way up does not depend on something having fallen there",
+          "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    NavigationGraph graph = buildNavigationGraph(
+        tileMap, buildNavigationProfile(gameData.npcData.at("explorer").actorData));
+
+    float floorY = 192.0f;
+    bool getsOffTheFloor = false;
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Jump)
+            continue;
+
+        NavigationNode from = graph.getNode(edge.fromId);
+        INFO("jump from node " << edge.fromId << " at " << from.position.x << ","
+                               << from.position.y);
+        REQUIRE(from.kind == NodeKind::OnFoot);
+
+        if (std::abs(from.position.y - floorY) < 0.5f &&
+            graph.getNode(edge.toId).position.y < floorY)
+            getsOffTheFloor = true;
+    }
+
+    REQUIRE(getsOffTheFloor);
+}
+
+TEST_CASE("The shipped player is offered every climb level6 asks of it",
+          "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    NavigationGraph graph =
+        buildNavigationGraph(tileMap, buildNavigationProfile(gameData.playerData.actorData));
+
+    for (auto [from, to] : {std::pair(192.0f, 160.0f), std::pair(160.0f, 128.0f),
+                            std::pair(128.0f, 96.0f)})
+    {
+        bool offered = false;
+        for (const auto &edge : graph.getEdges())
+            if (edge.type == EdgeType::Jump &&
+                std::abs(graph.getNode(edge.fromId).position.y - from) < 0.5f &&
+                std::abs(graph.getNode(edge.toId).position.y - to) < 0.5f)
+                offered = true;
+
+        INFO("no jump from y " << from << " up to y " << to);
+        REQUIRE(offered);
+    }
+}
+
+TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    NavigationGraph graph = buildNavigationGraph(
+        tileMap, buildNavigationProfile(gameData.npcData.at("explorer").actorData));
+
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+    for (const auto &[id, node] : graph.getNodes())
+    {
+        INFO("node " << id << " at " << node.position.x << "," << node.position.y);
+        REQUIRE(std::fmod(node.position.y, tileSize) == 0.0f);
+
+        glm::ivec2 under = tileMap.worldToTilePosition(node.position + glm::vec2(0.0f, 1.0f));
+        glm::ivec2 justBehind =
+            tileMap.worldToTilePosition(node.position + glm::vec2(-1.0f, 1.0f));
+        REQUIRE((tileMap.getTileAtTilePosition(under).isSolid() ||
+                 tileMap.getTileAtTilePosition(justBehind).isSolid()));
+    }
 }
 
 TEST_CASE("The shipped villager is offered no jumps at all", "[NavigationGraphBuilder][Jump][Level]")
@@ -756,4 +914,313 @@ TEST_CASE("A gap needing less than a full jump records less", "[NavigationGraphB
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Jump)
             REQUIRE(edge.holdDuration <= profile.jumpArcs.front().holdDuration);
+}
+
+namespace
+{
+    constexpr int FloorBelowRow = PlatformRow + 3;
+
+    TileMap setupLedgeAboveFloor()
+    {
+        TileMap tileMap = setupTileMap(20, WideMapHeightTiles);
+        for (int x = 0; x < 20; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, FloorBelowRow), 1);
+
+        for (int x = 0; x <= LeftPlatformEnd; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        return tileMap;
+    }
+}
+
+TEST_CASE("Walking off a ledge is an edge to the floor below", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
+}
+
+TEST_CASE("A fall only ever goes down", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Fall)
+            REQUIRE(graph.getNode(edge.toId).position.y > graph.getNode(edge.fromId).position.y);
+}
+
+TEST_CASE("Falling is not offered where you could walk", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) == 0);
+}
+
+TEST_CASE("A profile that cannot move still falls", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    NavigationProfile profile = profileThatMoves(13.0f, fallerMotionData());
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
+    REQUIRE(countEdgesOfType(graph, EdgeType::Jump) == 0);
+}
+
+TEST_CASE("A slow actor can still step off a ledge", "[NavigationGraphBuilder][Fall]")
+{
+    ActorMotionData slow = jumperMotionData();
+    slow.moveAbilityData->moveSpeed = 60.0f;
+
+    NavigationProfile profile = profileThatMoves(13.0f, slow);
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
+}
+
+TEST_CASE("A fall is drawn as the straight drop it is", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Fall)
+            REQUIRE(edge.path.empty());
+}
+
+TEST_CASE("A node falls to the one below it and nowhere else", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &[id, node] : graph.getNodes())
+    {
+        int falls = 0;
+        for (const auto &edge : graph.getOutgoingEdges(id))
+            if (edge.type == EdgeType::Fall)
+                ++falls;
+
+        REQUIRE(falls <= 1);
+    }
+}
+
+namespace
+{
+    constexpr int SpikeTileIndex = 2;
+
+    TilePalette paletteWithSpikes()
+    {
+        TilePalette palette = getDefaultTileDataMap();
+        palette[SpikeTileIndex] = TileData{
+            TileKind::Spikes, std::nullopt, std::nullopt, std::nullopt,
+            glm::vec2(0.0f), glm::vec2(16.0f)};
+        return palette;
+    }
+
+    TileMap setupLedgeAboveSpikes()
+    {
+        TileMap tileMap = setupTileMap(20, WideMapHeightTiles, 16, paletteWithSpikes());
+        for (int x = 0; x < 20; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, FloorBelowRow), SpikeTileIndex);
+
+        for (int x = 0; x <= LeftPlatformEnd; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        return tileMap;
+    }
+    int nodeJustPastTheLedge(const NavigationGraph &graph, float floorY)
+    {
+        float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
+        for (const auto &[id, node] : graph.getNodes())
+            if (std::abs(node.position.y - floorY) < 0.5f &&
+                node.position.x > ledgeEdgeX && node.position.x < ledgeEdgeX + 8.0f)
+                return id;
+
+        return -1;
+    }
+    constexpr int TallMapHeightTiles = 18;
+    constexpr int DeepFloorRow = 16;
+    constexpr int NearLedgeEnd = 2;
+    constexpr int FarLedgeStart = 6;
+    constexpr int FarLedgeEnd = 12;
+
+    TileMap setupLedgesAboveFloor()
+    {
+        TileMap tileMap = setupTileMap(20, TallMapHeightTiles);
+        for (int x = 0; x < 20; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, DeepFloorRow), 1);
+
+        for (int x = 0; x <= NearLedgeEnd; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        for (int x = FarLedgeStart; x <= FarLedgeEnd; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        return tileMap;
+    }
+
+    int nodeAt(const NavigationGraph &graph, glm::vec2 position)
+    {
+        for (const auto &[id, node] : graph.getNodes())
+            if (glm::distance(node.position, position) < 0.5f)
+                return id;
+
+        return -1;
+    }
+}
+
+TEST_CASE("A jump is the smallest one that reaches", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupLedgesAboveFloor();
+    float ledgeY = static_cast<float>(PlatformRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    int acrossTheGap = nodeAt(graph, glm::vec2(static_cast<float>(NearLedgeEnd + 1) * 16.0f, ledgeY));
+    int farSide = nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeStart) * 16.0f, ledgeY));
+    int longWayOff = nodeAt(graph, glm::vec2(0.0f, ledgeY));
+    REQUIRE(acrossTheGap >= 0);
+    REQUIRE(farSide >= 0);
+    REQUIRE(longWayOff >= 0);
+
+    const NavigationEdge *there = onlyJumpFrom(graph, acrossTheGap);
+    const NavigationEdge *back = onlyJumpFrom(graph, farSide);
+    REQUIRE(there);
+    REQUIRE(back);
+    REQUIRE(there->holdDuration == back->holdDuration);
+
+    const NavigationEdge *further = onlyJumpFrom(graph, longWayOff);
+    REQUIRE(further);
+    REQUIRE(there->holdDuration < further->holdDuration);
+}
+
+TEST_CASE("A jump crosses to a platform once", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupLedgesAboveFloor();
+    float ledgeY = static_cast<float>(PlatformRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    int takeOffId = nodeAt(graph, glm::vec2(0.0f, ledgeY));
+    int nearEdgeId = nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeStart) * 16.0f, ledgeY));
+    REQUIRE(takeOffId >= 0);
+    REQUIRE(nearEdgeId >= 0);
+    REQUIRE(nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeEnd + 1) * 16.0f, ledgeY)) >= 0);
+
+    const NavigationEdge *only = onlyJumpFrom(graph, takeOffId);
+    REQUIRE(only);
+    REQUIRE(graph.getNode(only->toId).position.y == ledgeY);
+    REQUIRE(graph.getNode(only->toId).position.x >=
+            static_cast<float>(FarLedgeStart) * 16.0f - 0.5f);
+}
+
+TEST_CASE("Nothing jumps to where it could walk", "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupLedgesAboveFloor();
+    float floorY = static_cast<float>(DeepFloorRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    size_t onTheFloor = 0;
+    for (const auto &[id, node] : graph.getNodes())
+        if (std::abs(node.position.y - floorY) < 0.5f)
+            ++onTheFloor;
+
+    REQUIRE(onTheFloor >= 4);
+
+    int jumpsAlongTheFloor = 0;
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Jump)
+            continue;
+
+        if (std::abs(graph.getNode(edge.fromId).position.y - floorY) < 0.5f &&
+            std::abs(graph.getNode(edge.toId).position.y - floorY) < 0.5f)
+            ++jumpsAlongTheFloor;
+    }
+
+    REQUIRE(jumpsAlongTheFloor == 0);
+}
+
+TEST_CASE("Nothing falls onto spikes", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveSpikes();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) == 0);
+}
+
+TEST_CASE("A ledge gets a node directly below it", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(nodeJustPastTheLedge(graph, floorY) >= 0);
+}
+
+TEST_CASE("The fall from a ledge goes to the node below it", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+    int landingId = nodeJustPastTheLedge(graph, floorY);
+    REQUIRE(landingId >= 0);
+
+    bool straightDown = false;
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Fall && edge.toId == landingId)
+            straightDown = true;
+
+    REQUIRE(straightDown);
+}
+
+TEST_CASE("The node below a ledge is walkable from the floor", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    float floorY = static_cast<float>(FloorBelowRow) * 16.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    int landingId = nodeJustPastTheLedge(graph, floorY);
+    REQUIRE(landingId >= 0);
+
+    int walkEdges = 0;
+    for (const auto &edge : graph.getOutgoingEdges(landingId))
+        if (edge.type == EdgeType::Walk)
+            ++walkEdges;
+
+    REQUIRE(walkEdges > 0);
+}
+
+TEST_CASE("A fall clears the platform it leaves", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Fall)
+            continue;
+
+        NavigationNode from = graph.getNode(edge.fromId);
+        NavigationNode to = graph.getNode(edge.toId);
+        float stepOff = std::abs(to.position.x - from.position.x);
+        REQUIRE(stepOff > 0.0f);
+        REQUIRE(stepOff < 8.0f);
+    }
 }

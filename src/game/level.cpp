@@ -312,6 +312,16 @@ TileMap &Level::getTileMap()
     return tileMap;
 }
 
+std::optional<std::pair<glm::vec2, glm::vec2>> Level::patrolFor(const NpcSpawnData &spawn) const
+{
+    if (!spawn.patrol)
+        return std::nullopt;
+
+    return std::pair(
+        tileMap.tileToBottomCenterPosition(spawn.patrol->from),
+        tileMap.tileToBottomCenterPosition(spawn.patrol->to));
+}
+
 const std::vector<NamedNavigationGraph> &Level::getGraphs() const
 {
     return graphs;
@@ -332,9 +342,9 @@ const NavigationGraph &Level::graphFor(const NavigationProfile &profile) const
     throw std::runtime_error("This level has no navigation graph for that actor");
 }
 
-glm::vec2 Level::getPlayerStartWorldPosition() const
+glm::ivec2 Level::getPlayerStartTile() const
 {
-    return tileMap.tileToWorldPosition(playerStartTilePosition);
+    return playerStartTilePosition;
 }
 
 const std::string &Level::getNextLevel() const

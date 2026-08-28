@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <glaze/glaze.hpp>
 #include <catch2/catch_approx.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "physics/fixed_time_step.hpp"
@@ -7,6 +8,8 @@
 #include "test_helpers/test_player_utils.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
+#include "test_helpers/asset_path.hpp"
+#include "game/game_data.hpp"
 
 using Catch::Approx;
 
@@ -306,4 +309,344 @@ TEST_CASE("Player movement ability integration", "[Player]")
         float ceilingBottomY = static_cast<float>(ceilingTileY + 1);
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
     }
+}
+
+TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", "[Player]")
+{
+    TileMap tileMap = setupTileMap(20, 20);
+    constexpr int LedgeRow = 5;
+    constexpr int LedgeLastTile = 6;
+    for (int x = 0; x <= LedgeLastTile; ++x)
+        tileMap.setTileIndex(glm::ivec2(x, LedgeRow), 1);
+    for (int x = 0; x < 20; ++x)
+        tileMap.setTileIndex(glm::ivec2(x, 12), 1);
+
+    LevelData levelData;
+    levelData.tileMapData = tileMap.toTileMapData();
+    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {});
+
+    ScriptedIntentions input;
+    Player player(setupPlayerData(), input);
+
+    float ledgeRight = static_cast<float>(LedgeLastTile + 1) * 16.0f;
+    float ledgeTop = static_cast<float>(LedgeRow) * 16.0f;
+    player.setPosition(glm::vec2(ledgeRight - player.getPhysicsBody().getColliderOffset().x,
+                                 ledgeTop - 2.0f));
+
+    InputIntentions intentions;
+    intentions.direction.x = -1.0f;
+    for (int step = 0; step < 300; ++step)
+    {
+        input.set(intentions);
+        player.fixedUpdate(0.01f, level);
+        player.postFixedUpdate();
+    }
+
+    float colliderTop = player.getPosition().y + player.getPhysicsBody().getColliderOffset().y;
+    INFO("collider top ended at " << colliderTop << ", the ledge spans "
+                                  << ledgeTop << " to " << ledgeTop + 16.0f);
+    REQUIRE(colliderTop > ledgeTop + 16.0f);
+}
+
+namespace
+{
+    constexpr int PitMapWidth = 30;
+    constexpr int PitMapHeight = 12;
+    constexpr int PitFloorRow = 8;
+    constexpr int PitHazardRow = 7;
+    constexpr int PitStart = 12;
+
+    enum class Pit
+    {
+        Spikes,
+        Hole,
+        StepUp
+    };
+
+    GameData shippedGameData()
+    {
+        GameData gameData;
+        REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+        return gameData;
+    }
+
+    TileMapData pitOf(int tiles, Pit kind, const TilePalettes &tilePalettes)
+    {
+        constexpr int SolidTile = 14;
+        constexpr int SpikeTile = 1;
+        REQUIRE(tilePalettes.at("default").at(SolidTile).kind == TileKind::Solid);
+        REQUIRE(tilePalettes.at("default").at(SpikeTile).kind == TileKind::Spikes);
+
+        std::vector<std::vector<int>> rows(PitMapHeight, std::vector<int>(PitMapWidth, 0));
+        for (int x = 0; x < PitMapWidth; ++x)
+            rows[PitFloorRow][x] = SolidTile;
+
+        if (kind == Pit::StepUp)
+            for (int x = PitStart; x < PitMapWidth; ++x)
+                for (int y = std::max(0, PitFloorRow - tiles); y < PitMapHeight; ++y)
+                    rows[y][x] = SolidTile;
+        else
+            for (int x = PitStart; x < PitStart + tiles; ++x)
+            {
+                if (kind == Pit::Spikes)
+                    rows[PitHazardRow][x] = SpikeTile;
+                else
+                    rows[PitFloorRow][x] = 0;
+            }
+
+        TileMapData tileMapData;
+        tileMapData.size = 16;
+        tileMapData.indices = rows;
+        tileMapData.tilePalette = "default";
+        return tileMapData;
+    }
+
+    bool getsAcross(const GameData &gameData, int tiles, Pit kind, bool jump, bool dash)
+    {
+        LevelData levelData;
+        levelData.tileMapData = pitOf(tiles, kind, gameData.tilePalettes);
+        Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+        float pitLeft = static_cast<float>(PitStart) * 16.0f;
+        float pitRight = static_cast<float>(PitStart + tiles) * 16.0f;
+        float floorY = static_cast<float>(PitFloorRow) * 16.0f;
+
+        for (float triggerAt = pitLeft - 80.0f; triggerAt <= pitLeft; triggerAt += 1.0f)
+            for (float dashAfter = 0.0f; dashAfter <= (jump && dash ? 0.45f : 0.0f); dashAfter += 0.025f)
+            {
+                ScriptedIntentions input;
+                Player player(gameData.playerData, input);
+                player.setPosition(glm::vec2(4.0f * 16.0f, floorY - 16.0f));
+
+                FixedTimeStep timestepper;
+                float triggered = -1.0f;
+
+                for (int frame = 0; frame < 240; ++frame)
+                {
+                    float now = frame / 60.0f;
+                    InputIntentions intentions;
+                    intentions.direction.x = 1.0f;
+
+                    if (triggered < 0.0f && player.getPosition().x + 8.0f >= triggerAt)
+                    {
+                        triggered = now;
+                        intentions.jumpRequested = jump;
+                        intentions.dashRequested = dash && dashAfter <= 0.0f;
+                    }
+                    else if (triggered >= 0.0f)
+                    {
+                        intentions.jumpHeld = jump && now - triggered < 0.25f;
+                        intentions.dashRequested = dash && dashAfter > 0.0f &&
+                                                   now - triggered >= dashAfter &&
+                                                   now - triggered < dashAfter + 1.0f / 60.0f;
+                    }
+                    input.set(intentions);
+
+                    player.preFixedUpdate();
+                    timestepper.run(1.0f / 60.0f, [&](float dt)
+                                    { player.fixedUpdate(dt, level); });
+                    player.postFixedUpdate();
+
+                    glm::vec2 position = player.getPosition();
+                    if (kind == Pit::StepUp)
+                    {
+                        float ledgeY = static_cast<float>(PitFloorRow - tiles) * 16.0f;
+                        if (player.getMotion().getState().contacts.onGround &&
+                            position.y + 16.0f <= ledgeY + 0.5f)
+                            return true;
+                        if (position.y > floorY)
+                            break;
+                        continue;
+                    }
+
+                    bool onSpikes = kind == Pit::Spikes &&
+                                    position.x + 12.0f > pitLeft && position.x + 4.0f < pitRight &&
+                                    position.y + 16.0f > static_cast<float>(PitHazardRow) * 16.0f &&
+                                    position.y + 3.0f < floorY;
+                    if (onSpikes || position.y > floorY)
+                        break;
+
+                    if (player.getMotion().getState().contacts.onGround &&
+                        position.x + 4.0f > pitRight)
+                        return true;
+                }
+            }
+
+        return false;
+    }
+}
+
+TEST_CASE("The shipped player's jump is worth three tiles", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+
+    REQUIRE(getsAcross(gameData, 3, Pit::StepUp, true, false));
+    REQUIRE_FALSE(getsAcross(gameData, 4, Pit::StepUp, true, false));
+
+    REQUIRE(getsAcross(gameData, 3, Pit::Hole, true, false));
+    REQUIRE_FALSE(getsAcross(gameData, 4, Pit::Hole, true, false));
+
+    REQUIRE(getsAcross(gameData, 2, Pit::Spikes, true, false));
+    REQUIRE_FALSE(getsAcross(gameData, 3, Pit::Spikes, true, false));
+}
+
+TEST_CASE("The shipped player's dash is worth four tiles, and no spikes", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+
+    REQUIRE(getsAcross(gameData, 4, Pit::Hole, false, true));
+    REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Hole, false, true));
+
+    REQUIRE_FALSE(getsAcross(gameData, 1, Pit::Spikes, false, true));
+}
+
+TEST_CASE("The shipped player's jump and dash together are worth five tiles",
+          "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+
+    REQUIRE(getsAcross(gameData, 5, Pit::Hole, true, true));
+    REQUIRE_FALSE(getsAcross(gameData, 6, Pit::Hole, true, true));
+
+    REQUIRE(getsAcross(gameData, 4, Pit::Spikes, true, true));
+    REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Spikes, true, true));
+
+    REQUIRE(gameData.playerData.actorData.motionData.dashAbilityData->airborneFraction < 1.0f);
+}
+
+TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    struct Step
+    {
+        const char *what;
+        float edgeX, standOn, towards, intoPlatform, landOn;
+    };
+
+    for (Step step : {Step{"floor to the lowest platform", 192.0f, 192.0f, 1.0f, -1.0f, 160.0f},
+                      Step{"lowest to the middle platform", 192.0f, 160.0f, -1.0f, 1.0f, 128.0f},
+                      Step{"middle to the highest platform", 160.0f, 128.0f, -1.0f, -1.0f, 96.0f}})
+    {
+        int takeOffPointsThatWork = 0;
+        for (float back = 0.0f; back <= 44.0f; back += 2.0f)
+        {
+            ScriptedIntentions input;
+            Player player(gameData.playerData, input);
+            player.setPosition(
+                glm::vec2(step.edgeX + step.intoPlatform * back - 8.0f, step.standOn - 16.0f));
+
+            FixedTimeStep timestepper;
+            for (int frame = 0; frame < 150; ++frame)
+            {
+                InputIntentions intentions;
+                intentions.jumpRequested = frame == 0;
+                intentions.jumpHeld = frame < 20;
+                intentions.direction.x = step.towards;
+                input.set(intentions);
+
+                player.preFixedUpdate();
+                timestepper.run(1.0f / 60.0f, [&](float dt)
+                                { player.fixedUpdate(dt, level); });
+                player.postFixedUpdate();
+
+                if (player.getMotion().getState().contacts.onGround &&
+                    std::abs(player.getPosition().y + 16.0f - step.landOn) < 0.5f)
+                {
+                    ++takeOffPointsThatWork;
+                    break;
+                }
+            }
+        }
+
+        INFO(step.what << " worked from " << takeOffPointsThatWork << " take off points");
+        REQUIRE(takeOffPointsThatWork >= 5);
+    }
+}
+
+TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level4.json"), std::string{}));
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    constexpr float GapLeft = 5 * 16.0f;
+    constexpr float GapRight = 8 * 16.0f;
+    glm::vec2 start = level.getTileMap().tileToBottomCenterPosition(levelData.playerStartTilePosition);
+
+    auto runsAtItWith = [&](bool useDash)
+    {
+        int takeOffPointsThatWork = 0;
+        for (float triggerAt = GapLeft - 60.0f; triggerAt <= GapLeft + 14.0f; triggerAt += 1.0f)
+        {
+            ScriptedIntentions input;
+            Player player(gameData.playerData, input);
+            player.setPosition(start - player.getPhysicsBody().getBottomCenterOffset());
+
+            FixedTimeStep timestepper;
+            bool triggered = false;
+            int frameTriggered = 0;
+
+            for (int frame = 0; frame < 240; ++frame)
+            {
+                InputIntentions intentions;
+                intentions.direction.x = 1.0f;
+                if (!triggered && player.getPosition().x + 8.0f >= triggerAt)
+                {
+                    triggered = true;
+                    frameTriggered = frame;
+                    intentions.dashRequested = useDash;
+                    intentions.jumpRequested = !useDash;
+                }
+                else if (triggered && !useDash)
+                    intentions.jumpHeld = frame - frameTriggered < 20;
+                input.set(intentions);
+
+                player.preFixedUpdate();
+                timestepper.run(1.0f / 60.0f, [&](float dt)
+                                { player.fixedUpdate(dt, level); });
+                player.postFixedUpdate();
+
+                glm::vec2 position = player.getPosition();
+                if (position.y + 16.0f > 7 * 16.0f)
+                    break;
+                if (player.getMotion().getState().contacts.onGround &&
+                    position.x + 4.0f > GapRight)
+                {
+                    ++takeOffPointsThatWork;
+                    break;
+                }
+            }
+        }
+        return takeOffPointsThatWork;
+    };
+
+    REQUIRE(runsAtItWith(true) > 10);
+
+    REQUIRE(runsAtItWith(false) == 0);
+}
+
+TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[Level]")
+{
+    GameData gameData = shippedGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level1.json"), std::string{}));
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    float inView = static_cast<float>(gameData.windowWidth) / gameData.cameraData.zoom;
+    INFO("level is " << level.getTileMap().getWorldWidth() << "px, the camera shows " << inView);
+    REQUIRE(static_cast<float>(level.getTileMap().getWorldWidth()) <= inView);
+
+    bool hasPortal = false;
+    const TileMap &tileMap = level.getTileMap();
+    for (int x = 0; x < tileMap.getWidth(); ++x)
+        for (int y = 0; y < tileMap.getHeight(); ++y)
+            if (tileMap.getTileAtTilePosition(glm::ivec2(x, y)).isPortal())
+                hasPortal = true;
+
+    REQUIRE(hasPortal);
 }

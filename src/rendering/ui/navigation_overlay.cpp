@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <set>
 #include <string>
 #include "rendering/ui/navigation_overlay.hpp"
@@ -38,7 +37,8 @@ namespace
         const ImGuiManager &imGuiManager,
         const NavigationGraph &navigationGraph,
         const Camera2D &camera,
-        const NavigationEdge &edge)
+        const NavigationEdge &edge,
+        JumpsDrawnAs jumpsDrawnAs)
     {
         ImU32 color = IM_COL32(255, 255, 255, 255);
         switch (edge.type)
@@ -59,25 +59,30 @@ namespace
 
         ImDrawList *drawList = imGuiManager.getDrawList();
 
-        NavigationNode takeOff = navigationGraph.getNode(edge.fromId);
-        NavigationNode landing = navigationGraph.getNode(edge.toId);
+        auto screen = [&](glm::vec2 world)
+        { return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition()); };
 
         if (!edge.path.empty())
         {
-            float chordY = (takeOff.position.y + landing.position.y) * 0.5f;
-            float apexY = chordY;
+            glm::vec2 leaves = edge.path.front();
+            glm::vec2 comesDown = edge.path.back();
+
+            glm::vec2 apex = leaves;
             for (const glm::vec2 &position : edge.path)
-                apexY = std::min(apexY, position.y);
+                if (position.y < apex.y)
+                    apex = position;
 
-            glm::vec2 control(
-                (takeOff.position.x + landing.position.x) * 0.5f,
-                chordY - 2.0f * (chordY - apexY));
+            glm::vec2 control = 2.0f * apex - (leaves + comesDown) * 0.5f;
 
-            auto screen = [&](glm::vec2 world)
-            { return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition()); };
+            if (jumpsDrawnAs == JumpsDrawnAs::TheFlightItself)
+                for (const glm::vec2 &position : edge.path)
+                    drawList->PathLineTo(screen(position));
+            else
+            {
+                drawList->PathLineTo(screen(leaves));
+                drawList->PathBezierQuadraticCurveTo(screen(control), screen(comesDown));
+            }
 
-            drawList->PathLineTo(screen(takeOff.position));
-            drawList->PathBezierQuadraticCurveTo(screen(control), screen(landing.position));
             drawList->PathStroke(color, ImDrawFlags_None, 1.5f);
             return;
         }
@@ -105,7 +110,8 @@ void drawNavigationGraph(
     const Camera2D &camera,
     const NavigationGraph &navigationGraph,
     std::optional<int> selectedNodeId,
-    std::optional<std::pair<int, int>> selectedEdge)
+    std::optional<std::pair<int, int>> selectedEdge,
+    JumpsDrawnAs jumpsDrawnAs)
 {
     auto edgeShown = [&](const NavigationEdge &edge)
     {
@@ -143,5 +149,5 @@ void drawNavigationGraph(
 
     for (const auto &edge : navigationGraph.getEdges())
         if (edgeShown(edge))
-            drawEdge(imGuiManager, navigationGraph, camera, edge);
+            drawEdge(imGuiManager, navigationGraph, camera, edge, jumpsDrawnAs);
 }

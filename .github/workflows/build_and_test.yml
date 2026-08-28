@@ -3,6 +3,8 @@ name: Build and Test
 on:
   pull_request:
     branches: [master]
+  push:
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -150,8 +152,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          lfs: true
+          lfs: false
           submodules: recursive
+          fetch-depth: 0
 
       - name: Check json assets are formatted
         run: python3 tools/format_json.py --check
@@ -212,6 +215,20 @@ jobs:
         run: cmake --build build/release --target header_self_containment
 
       - name: Check naming and includes
+        env:
+          SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
         run: |
-          find src tests -name '*.cpp' \
+          if [ -n "$SINCE" ]; then
+            TARGETS=$(python3 tools/tidy_targets.py --since "$SINCE")
+          else
+            TARGETS=$(python3 tools/tidy_targets.py)
+          fi
+
+          if [ -z "$TARGETS" ]; then
+            echo "Nothing reaches the sources that changed."
+            exit 0
+          fi
+
+          echo "$TARGETS" | wc -l | xargs printf '%s translation units to check\n'
+          echo "$TARGETS" \
             | xargs -P"$(nproc)" -n1 clang-tidy-"${LLVM}" -p build/release --warnings-as-errors='*' --quiet

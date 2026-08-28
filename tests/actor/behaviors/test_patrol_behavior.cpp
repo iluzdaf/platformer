@@ -45,9 +45,7 @@ namespace
         return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt};
     }
 
-    ActorBehaviorContext standingAt(
-        const NavigationGraph &navigationGraph,
-        glm::vec2 worldPosition)
+    ActorBehaviorContext standingAt(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
     {
         return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt, true};
     }
@@ -132,8 +130,7 @@ TEST_CASE("Asks to jump while crossing a jump edge", "[PatrolBehavior]")
     PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
-    InputIntentions inputIntentions =
-        behavior.decide(0.01f, at(navigationGraph, {0.0f, 192.0f}));
+    InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, {0.0f, 192.0f}));
 
     REQUIRE(inputIntentions.jumpRequested);
     REQUIRE(inputIntentions.direction.x > 0.0f);
@@ -147,8 +144,7 @@ TEST_CASE("Never asks to jump on a platform it can walk", "[PatrolBehavior]")
 
     for (int step = 0; step < 1200; ++step)
     {
-        InputIntentions inputIntentions =
-            behavior.decide(0.01f, at(navigationGraph, position));
+        InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, position));
         REQUIRE_FALSE(inputIntentions.jumpRequested);
         position.x += inputIntentions.direction.x * 2.0f;
     }
@@ -391,7 +387,8 @@ TEST_CASE("Does not steer while falling", "[PatrolBehavior]")
     REQUIRE(behavior.getCurrentNodeId() == 1);
     REQUIRE(behavior.getTargetNodeId() == 2);
 
-    REQUIRE(behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 128.0f})).direction.x != 0.0f);
+    REQUIRE(
+        behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 128.0f})).direction.x != 0.0f);
 
     for (float x : {99.0f, 101.0f, 103.0f, 100.0f, 102.0f})
     {

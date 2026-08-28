@@ -4,7 +4,6 @@
 
 struct WallSlideAbilityState
 {
-    bool active = false,
-         emit = false;
+    bool active = false, emit = false;
     glm::vec2 velocity = glm::vec2(0.0f);
 };

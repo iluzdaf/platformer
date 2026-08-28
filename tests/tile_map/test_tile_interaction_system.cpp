@@ -13,11 +13,8 @@ TEST_CASE("Pickup", "[TileInteractionSystem]")
     pickupTileData2.pickupReplaceIndex = pickupTileData.pickupReplaceIndex = 1;
     pickupTileData.pickupScoreDelta = 100;
     emptyTileData.kind = TileKind::Empty;
-    TileMap tileMap = setupTileMap(
-        10, 10, 16,
-        {{2, pickupTileData},
-         {1, emptyTileData},
-         {3, pickupTileData2}});
+    TileMap tileMap =
+        setupTileMap(10, 10, 16, {{2, pickupTileData}, {1, emptyTileData}, {3, pickupTileData2}});
     tileMap.setTileIndex({1, 1}, 2);
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
@@ -32,8 +29,7 @@ TEST_CASE("Pickup", "[TileInteractionSystem]")
     SECTION("Triggers onPickup")
     {
         int scoreDelta = 0;
-        player.onPickup.connect([&](int delta)
-                                { scoreDelta = delta; });
+        player.onPickup.connect([&](int delta) { scoreDelta = delta; });
         system.fixedUpdate(player, tileMap);
         REQUIRE(scoreDelta == 100);
         tileMap.setTileIndex({1, 1}, 3);
@@ -56,8 +52,7 @@ TEST_CASE("Spikes", "[TileInteractionSystem]")
     SECTION("Triggers onDeath")
     {
         bool died = false;
-        player.onDeath.connect([&]()
-                               { died = true; });
+        player.onDeath.connect([&]() { died = true; });
         system.fixedUpdate(player, tileMap);
         REQUIRE(died);
     }
@@ -99,8 +94,7 @@ TEST_CASE("Portal", "[TileInteractionSystem]")
     SECTION("Triggers onLevelComplete")
     {
         bool completed = false;
-        player.onLevelComplete.connect([&]
-                                       { completed = true; });
+        player.onLevelComplete.connect([&] { completed = true; });
         system.fixedUpdate(player, tileMap);
         REQUIRE(completed);
     }

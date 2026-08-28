@@ -18,9 +18,7 @@ TEST_CASE("Shader does not exist", "[Shader]")
     ShaderData shaderData;
     shaderData.vertexPath = assetPath("shaders/does_not_exist.vs");
     shaderData.fragmentPath = assetPath("shaders/does_not_exist.fs");
-    REQUIRE_THROWS_WITH(
-        Shader(shaderData),
-        "Vertex shader code is empty");
+    REQUIRE_THROWS_WITH(Shader(shaderData), "Vertex shader code is empty");
 }
 
 TEST_CASE("Shader is broken", "[Shader]")

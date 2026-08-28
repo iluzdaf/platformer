@@ -30,10 +30,7 @@ public:
 private:
     std::unordered_map<std::size_t, DebugAABB> debugAABBs;
 
-    void addDebugAABB(
-        AABB aabb,
-        ImU32 color,
-        float duration);
+    void addDebugAABB(AABB aabb, ImU32 color, float duration);
     void drawDebugAABBs(
         ImDrawList *drawList,
         const ImGuiManager &imGuiManager,

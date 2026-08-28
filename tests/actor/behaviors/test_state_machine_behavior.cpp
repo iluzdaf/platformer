@@ -71,8 +71,7 @@ TEST_CASE("Switches state once the threat is close enough", "[StateMachineBehavi
     REQUIRE(behavior.getStateName() == "flee");
 }
 
-TEST_CASE("Stays alarmed while the threat is only a little further off",
-          "[StateMachineBehavior]")
+TEST_CASE("Stays alarmed while the threat is only a little further off", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = setupRun();
     StateMachineBehavior behavior(setupData());
@@ -165,7 +164,8 @@ TEST_CASE("Holds a state while the threat shares its run", "[StateMachineBehavio
     navigationGraph.addNode(5, {192.0f, 288.0f});
 
     StateMachineBehaviorData data = setupData();
-    data.transitions.at(1) = BehaviorTransitionData{"flee", "patrol", std::nullopt, std::nullopt, false, 0.0f};
+    data.transitions.at(1) =
+        BehaviorTransitionData{"flee", "patrol", std::nullopt, std::nullopt, false, 0.0f};
 
     StateMachineBehavior behavior(data);
 

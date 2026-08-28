@@ -78,7 +78,8 @@ TEST_CASE("Cannot add self-loop edge", "[NavigationGraph]")
 {
     NavigationGraph graph;
     graph.addNode(0, {0, 0});
-    REQUIRE_THROWS_WITH(graph.addEdge(0, 0, EdgeType::Walk), "Cannot add self-loop edge: fromId == toId");
+    REQUIRE_THROWS_WITH(
+        graph.addEdge(0, 0, EdgeType::Walk), "Cannot add self-loop edge: fromId == toId");
 }
 
 TEST_CASE("addEdge throws on invalid node IDs", "[NavigationGraph]")

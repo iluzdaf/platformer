@@ -3,9 +3,7 @@
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_path.hpp"
 
-FleeBehavior::FleeBehavior(const FleeBehaviorData &data)
-    : data(data),
-      walker(data.arrivalThreshold)
+FleeBehavior::FleeBehavior(const FleeBehaviorData &data) : data(data), walker(data.arrivalThreshold)
 {
 }
 
@@ -14,9 +12,8 @@ void FleeBehavior::reset()
     walker.reset();
 }
 
-std::optional<int> FleeBehavior::furthestAlong(
-    const ActorBehaviorContext &context,
-    float away) const
+std::optional<int> FleeBehavior::furthestAlong(const ActorBehaviorContext &context, float away)
+    const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
 
@@ -74,9 +71,7 @@ void FleeBehavior::planRoute(const ActorBehaviorContext &context)
     walker.takeRouteTo(context, *refuge);
 }
 
-InputIntentions FleeBehavior::decide(
-    float deltaTime,
-    const ActorBehaviorContext &context)
+InputIntentions FleeBehavior::decide(float deltaTime, const ActorBehaviorContext &context)
 {
     walker.keepInStep(context);
     if (!walker.isAnchored())

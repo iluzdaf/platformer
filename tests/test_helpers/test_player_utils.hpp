@@ -38,8 +38,10 @@ inline const IntentionSource &noIntentions()
 inline PlayerData setupPlayerData()
 {
     PlayerData playerData;
-    playerData.actorData.animationData.idleSpriteAnimationData = SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
-    playerData.actorData.animationData.walkSpriteAnimationData = SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
+    playerData.actorData.animationData.idleSpriteAnimationData =
+        SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
+    playerData.actorData.animationData.walkSpriteAnimationData =
+        SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
     playerData.actorData.motionData.moveAbilityData = MoveAbilityData();
     playerData.actorData.motionData.jumpAbilityData = JumpAbilityData();
     playerData.actorData.motionData.dashAbilityData = DashAbilityData();

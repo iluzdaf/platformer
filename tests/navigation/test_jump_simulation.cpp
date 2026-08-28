@@ -95,8 +95,9 @@ TEST_CASE("A stronger jump reaches higher than a weaker one", "[JumpArc]")
     ActorMotionData weak = jumperMotionData();
     weak.jumpAbilityData->jumpSpeed = -150.0f;
 
-    REQUIRE(peakHeightOf(simulateJumpArc(weak).offsets) <
-            peakHeightOf(simulateJumpArc(jumperMotionData()).offsets));
+    REQUIRE(
+        peakHeightOf(simulateJumpArc(weak).offsets) <
+        peakHeightOf(simulateJumpArc(jumperMotionData()).offsets));
 }
 
 TEST_CASE("A jump held longer reaches further than one cut short", "[JumpArc]")
@@ -104,8 +105,9 @@ TEST_CASE("A jump held longer reaches further than one cut short", "[JumpArc]")
     ActorMotionData brief = jumperMotionData();
     brief.jumpAbilityData->jumpDuration = 0.1f;
 
-    REQUIRE(reachOf(simulateJumpArc(brief).offsets) <
-            reachOf(simulateJumpArc(jumperMotionData()).offsets));
+    REQUIRE(
+        reachOf(simulateJumpArc(brief).offsets) <
+        reachOf(simulateJumpArc(jumperMotionData()).offsets));
 }
 
 TEST_CASE("An actor that cannot move jumps straight up", "[JumpArc]")
@@ -170,8 +172,12 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
     for (float takeOffX = 200.0f; takeOffX <= 250.0f; takeOffX += 1.0f)
     {
         JumpAttempt attempt = simulateJumpAgainst(
-            tileMap, jumperMotionData(), physicsBodyData,
-            glm::vec2(takeOffX, 9.0f * TileSize), 1.0f, 1.0f);
+            tileMap,
+            jumperMotionData(),
+            physicsBodyData,
+            glm::vec2(takeOffX, 9.0f * TileSize),
+            1.0f,
+            1.0f);
         if (!attempt.landed)
             continue;
 

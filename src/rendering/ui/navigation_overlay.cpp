@@ -19,9 +19,7 @@ namespace
         unsigned int colour)
     {
         ImVec2 position = imGuiManager.worldToScreen(
-            node.position,
-            camera.getZoom(),
-            camera.getTopLeftPosition());
+            node.position, camera.getZoom(), camera.getTopLeftPosition());
         ImDrawList *drawList = imGuiManager.getDrawList();
         drawList->AddCircleFilled(position, 5, colour, 16);
 
@@ -60,7 +58,9 @@ namespace
         ImDrawList *drawList = imGuiManager.getDrawList();
 
         auto screen = [&](glm::vec2 world)
-        { return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition()); };
+        {
+            return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition());
+        };
 
         if (!edge.path.empty())
         {
@@ -89,19 +89,11 @@ namespace
 
         NavigationNode fromNode = navigationGraph.getNode(edge.fromId);
         ImVec2 fromPosition = imGuiManager.worldToScreen(
-            fromNode.position,
-            camera.getZoom(),
-            camera.getTopLeftPosition());
+            fromNode.position, camera.getZoom(), camera.getTopLeftPosition());
         NavigationNode toNode = navigationGraph.getNode(edge.toId);
         ImVec2 toPosition = imGuiManager.worldToScreen(
-            toNode.position,
-            camera.getZoom(),
-            camera.getTopLeftPosition());
-        drawList->AddLine(
-            fromPosition,
-            toPosition,
-            color,
-            1.0f);
+            toNode.position, camera.getZoom(), camera.getTopLeftPosition());
+        drawList->AddLine(fromPosition, toPosition, color, 1.0f);
     }
 }
 

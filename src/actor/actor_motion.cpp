@@ -2,8 +2,7 @@
 #include "physics/physics_body.hpp"
 #include "tile_map/tile_map.hpp"
 
-ActorMotion::ActorMotion(const ActorMotionData &data)
-    : abilitySystem(data)
+ActorMotion::ActorMotion(const ActorMotionData &data) : abilitySystem(data)
 {
 }
 

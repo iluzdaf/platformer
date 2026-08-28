@@ -6,8 +6,7 @@
 #include "game/levels.hpp"
 #include "game/levels_data.hpp"
 
-Levels::Levels(const std::string &jsonFilePath)
-    : path(jsonFilePath)
+Levels::Levels(const std::string &jsonFilePath) : path(jsonFilePath)
 {
     LevelsData levelsData;
     auto error = glz::read_file_json(levelsData, path, std::string{});

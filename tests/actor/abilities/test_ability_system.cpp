@@ -67,9 +67,11 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         REQUIRE(state.targetVelocity.y == Approx(motionData.jumpAbilityData->jumpSpeed));
         REQUIRE(state.targetVelocity.x == Approx(0.0f));
         inputIntentions = InputIntentions();
-        simulateMovement(abilitySystem, motionData.jumpAbilityData->jumpDuration, inputIntentions, state);
+        simulateMovement(
+            abilitySystem, motionData.jumpAbilityData->jumpDuration, inputIntentions, state);
         REQUIRE_FALSE(state.jump.active);
-        simulateMovement(abilitySystem, motionData.jumpAbilityData->jumpDuration, inputIntentions, state);
+        simulateMovement(
+            abilitySystem, motionData.jumpAbilityData->jumpDuration, inputIntentions, state);
         REQUIRE(state.wallSlide.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.wallSlideAbilityData->slideSpeed));
         REQUIRE(state.targetVelocity.x == Approx(0.0f));
@@ -78,7 +80,10 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.wallJump.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.wallJumpAbilityData->wallJumpSpeed));
-        REQUIRE(state.targetVelocity.x == Approx(state.wallJump.direction * motionData.wallJumpAbilityData->wallJumpHorizontalSpeed));
+        REQUIRE(
+            state.targetVelocity.x == Approx(
+                                          state.wallJump.direction *
+                                          motionData.wallJumpAbilityData->wallJumpHorizontalSpeed));
     }
 
     SECTION("Can dash into wall then wall jump")
@@ -103,7 +108,10 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.wallJump.active);
         REQUIRE(state.targetVelocity.y == Approx(motionData.wallJumpAbilityData->wallJumpSpeed));
-        REQUIRE(state.targetVelocity.x == Approx(state.wallJump.direction * motionData.wallJumpAbilityData->wallJumpHorizontalSpeed));
+        REQUIRE(
+            state.targetVelocity.x == Approx(
+                                          state.wallJump.direction *
+                                          motionData.wallJumpAbilityData->wallJumpHorizontalSpeed));
     }
 
     SECTION("Cannot jump while dashing")
@@ -183,9 +191,19 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     {
         inputIntentions.dashRequested = true;
         inputIntentions.direction.x = 1.0f;
-        simulateMovement(abilitySystem, motionData.dashAbilityData->dashDuration + 0.01f, inputIntentions, state);
-        REQUIRE(state.targetVelocity.y == Approx(motionData.gravityAbilityData->gravity * (motionData.dashAbilityData->dashDuration + 0.01f)));
+        simulateMovement(
+            abilitySystem,
+            motionData.dashAbilityData->dashDuration + 0.01f,
+            inputIntentions,
+            state);
+        REQUIRE(
+            state.targetVelocity.y == Approx(
+                                          motionData.gravityAbilityData->gravity *
+                                          (motionData.dashAbilityData->dashDuration + 0.01f)));
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
-        REQUIRE(state.targetVelocity.y == Approx(motionData.gravityAbilityData->gravity * (motionData.dashAbilityData->dashDuration + 0.02f)));
+        REQUIRE(
+            state.targetVelocity.y == Approx(
+                                          motionData.gravityAbilityData->gravity *
+                                          (motionData.dashAbilityData->dashDuration + 0.02f)));
     }
 }

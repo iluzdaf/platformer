@@ -6,25 +6,35 @@
 #include "game/level.hpp"
 
 Actor::Actor(const ActorData &data)
-    : motion(data.motionData),
-      physicsBody(data.physicsBodyData),
+    : motion(data.motionData), physicsBody(data.physicsBodyData),
       navigationProfile(buildNavigationProfile(data))
 {
     actorState.size = data.size;
 
     const ActorAnimationData &animationData = data.animationData;
 
-    animationManager.addAnimation(ActorAnimationState::Idle, SpriteAnimation(animationData.idleSpriteAnimationData));
+    animationManager.addAnimation(
+        ActorAnimationState::Idle, SpriteAnimation(animationData.idleSpriteAnimationData));
     if (animationData.walkSpriteAnimationData)
-        animationManager.addAnimation(ActorAnimationState::Walk, SpriteAnimation(animationData.walkSpriteAnimationData.value()));
+        animationManager.addAnimation(
+            ActorAnimationState::Walk,
+            SpriteAnimation(animationData.walkSpriteAnimationData.value()));
     if (animationData.dashSpriteAnimationData)
-        animationManager.addAnimation(ActorAnimationState::Dash, SpriteAnimation(animationData.dashSpriteAnimationData.value()));
+        animationManager.addAnimation(
+            ActorAnimationState::Dash,
+            SpriteAnimation(animationData.dashSpriteAnimationData.value()));
     if (animationData.jumpSpriteAnimationData)
-        animationManager.addAnimation(ActorAnimationState::Jump, SpriteAnimation(animationData.jumpSpriteAnimationData.value()));
+        animationManager.addAnimation(
+            ActorAnimationState::Jump,
+            SpriteAnimation(animationData.jumpSpriteAnimationData.value()));
     if (animationData.fallSpriteAnimationData)
-        animationManager.addAnimation(ActorAnimationState::Fall, SpriteAnimation(animationData.fallSpriteAnimationData.value()));
+        animationManager.addAnimation(
+            ActorAnimationState::Fall,
+            SpriteAnimation(animationData.fallSpriteAnimationData.value()));
     if (animationData.wallSlideSpriteAnimationData)
-        animationManager.addAnimation(ActorAnimationState::WallSlide, SpriteAnimation(animationData.wallSlideSpriteAnimationData.value()));
+        animationManager.addAnimation(
+            ActorAnimationState::WallSlide,
+            SpriteAnimation(animationData.wallSlideSpriteAnimationData.value()));
 }
 
 void Actor::postFixedUpdate()
@@ -44,7 +54,8 @@ void Actor::fixedUpdate(
     const TileMap &tileMap = level.getTileMap();
     ActorBehaviorContext context =
         behaviorContext(level.graphFor(navigationProfile), threatPosition);
-    InputIntentions inputIntentions = behavior ? behavior->decide(deltaTime, context) : InputIntentions();
+    InputIntentions inputIntentions =
+        behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
     motion.applyMovement(deltaTime, inputIntentions);
 
@@ -57,7 +68,9 @@ void Actor::fixedUpdate(
     animationManager.update(deltaTime, motion.getState());
 
     const ActorMotionState &motionState = motion.getState();
-    actorState.facingLeft = motionState.velocity.x > 0 ? false : (motionState.velocity.x < 0 ? true : actorState.facingLeft);
+    actorState.facingLeft = motionState.velocity.x > 0
+                                ? false
+                                : (motionState.velocity.x < 0 ? true : actorState.facingLeft);
     actorState.currentAnimationUVStart = animationManager.getCurrentAnimation().getUVStart();
     actorState.currentAnimationUVEnd = animationManager.getCurrentAnimation().getUVEnd();
     actorState.currentAnimationState = animationManager.getCurrentState();

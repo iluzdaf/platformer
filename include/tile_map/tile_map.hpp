@@ -34,9 +34,8 @@ public:
     const std::unordered_map<int, Tile> &getTiles() const;
     TileMapData toTileMapData() const;
     bool validTilePosition(glm::ivec2 tilePosition) const;
-    bool probeSolidTiles(
-        const AABB &probeAABB,
-        const std::function<bool(const AABB &)> &callback) const;
+    bool probeSolidTiles(const AABB &probeAABB, const std::function<bool(const AABB &)> &callback)
+        const;
 
 private:
     int width = 0, height = 0, tileSize = 0;

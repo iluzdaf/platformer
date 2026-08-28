@@ -3,8 +3,7 @@
 #include "actor/abilities/climb_move_ability.hpp"
 #include "input/input_intentions.hpp"
 
-ClimbMoveAbility::ClimbMoveAbility(const ClimbMoveAbilityData &data)
-    : data(data)
+ClimbMoveAbility::ClimbMoveAbility(const ClimbMoveAbilityData &data) : data(data)
 {
     if (data.climbSpeed <= 0)
         throw std::runtime_error("climbSpeed must be greater than 0");

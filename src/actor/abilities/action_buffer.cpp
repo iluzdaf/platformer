@@ -2,8 +2,7 @@
 #include <stdexcept>
 #include "actor/abilities/action_buffer.hpp"
 
-ActionBuffer::ActionBuffer(float duration)
-    : bufferDuration(duration)
+ActionBuffer::ActionBuffer(float duration) : bufferDuration(duration)
 {
     if (duration <= 0)
         throw std::runtime_error("duration must be greater than 0");

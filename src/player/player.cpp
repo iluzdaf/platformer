@@ -1,8 +1,7 @@
 #include "player/player.hpp"
 
 Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
-    : Actor(data.actorData),
-      data(data)
+    : Actor(data.actorData), data(data)
 {
     setBehavior(std::make_unique<InputBehavior>(intentionSource));
 }

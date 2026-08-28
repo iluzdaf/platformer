@@ -12,16 +12,9 @@ public:
     Player(const PlayerData &data, const IntentionSource &intentionSource);
     void postFixedUpdate() override;
 
-    fteng::signal<void()>
-        onLevelComplete,
-        onDeath,
-        onFallFromHeight,
-        onHitCeiling,
-        onWallJump,
-        onDash,
-        onWallSliding;
-    fteng::signal<void(int)>
-        onPickup;
+    fteng::signal<void()> onLevelComplete, onDeath, onFallFromHeight, onHitCeiling, onWallJump,
+        onDash, onWallSliding;
+    fteng::signal<void(int)> onPickup;
 
 private:
     PlayerData data;

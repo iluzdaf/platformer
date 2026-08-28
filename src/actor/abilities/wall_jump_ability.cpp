@@ -4,8 +4,7 @@
 #include "input/input_intentions.hpp"
 
 WallJumpAbility::WallJumpAbility(const WallJumpAbilityData &data)
-    : data(data),
-      wallJumpBuffer(data.wallJumpBufferDuration),
+    : data(data), wallJumpBuffer(data.wallJumpBufferDuration),
       wallJumpCoyote(data.wallJumpCoyoteDuration)
 {
     if (data.wallJumpSpeed >= 0)
@@ -23,7 +22,8 @@ void WallJumpAbility::applyMovement(
     state.wallJump.velocity = glm::vec2(0.0f);
 
     wallJumpBuffer.update(deltaTime);
-    wallJumpCoyote.update(state.contacts.touchingLeftWall || state.contacts.touchingRightWall, deltaTime);
+    wallJumpCoyote.update(
+        state.contacts.touchingLeftWall || state.contacts.touchingRightWall, deltaTime);
 
     if (state.contacts.onGround)
     {
@@ -51,7 +51,8 @@ void WallJumpAbility::applyMovement(
 
             float bufferedDirection = wallJumpDirectionBuffer.getBufferedDirectionX();
             bool jumpInputCorrect = desiredDirection * bufferedDirection > 0;
-            bool touchingWallNow = state.contacts.touchingLeftWall || state.contacts.touchingRightWall;
+            bool touchingWallNow =
+                state.contacts.touchingLeftWall || state.contacts.touchingRightWall;
             if (touchingWallNow && jumpInputCorrect)
                 startWallJump(state, desiredDirection);
             else if (!touchingWallNow && wallJumpCoyote.isCoyoteAvailable() && jumpInputCorrect)
@@ -61,9 +62,8 @@ void WallJumpAbility::applyMovement(
 
     if (state.wallJump.active)
     {
-        bool switchedSides =
-            (state.contacts.touchingLeftWall && state.wallJump.direction == -1) ||
-            (state.contacts.touchingRightWall && state.wallJump.direction == 1);
+        bool switchedSides = (state.contacts.touchingLeftWall && state.wallJump.direction == -1) ||
+                             (state.contacts.touchingRightWall && state.wallJump.direction == 1);
 
         if (switchedSides)
         {
@@ -80,14 +80,11 @@ void WallJumpAbility::applyMovement(
         }
 
         state.wallJump.velocity = {
-            data.wallJumpHorizontalSpeed * state.wallJump.direction,
-            data.wallJumpSpeed};
+            data.wallJumpHorizontalSpeed * state.wallJump.direction, data.wallJumpSpeed};
     }
 }
 
-void WallJumpAbility::startWallJump(
-    ActorMotionState &state,
-    int direction)
+void WallJumpAbility::startWallJump(ActorMotionState &state, int direction)
 {
     state.wallJump.direction = static_cast<float>(direction);
     state.wallJump.timeLeft = data.wallJumpDuration;

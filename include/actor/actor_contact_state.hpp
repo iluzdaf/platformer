@@ -4,12 +4,7 @@
 
 struct ActorContactState
 {
-    bool onGround = false,
-         hitCeiling = false,
-         touchingRightWall = false,
-         touchingLeftWall = false,
-         wasOnGround = false,
-         wasHitCeiling = false,
-         wasLastWallLeft = false;
+    bool onGround = false, hitCeiling = false, touchingRightWall = false, touchingLeftWall = false,
+         wasOnGround = false, wasHitCeiling = false, wasLastWallLeft = false;
     AABB collisionAABBX, collisionAABBY;
 };

@@ -3,8 +3,7 @@
 #include "actor/abilities/dash_ability.hpp"
 #include "input/input_intentions.hpp"
 
-DashAbility::DashAbility(const DashAbilityData &data)
-    : data(data)
+DashAbility::DashAbility(const DashAbilityData &data) : data(data)
 {
     if (data.dashSpeed <= 0)
         throw std::runtime_error("dashSpeed must be > 0");
@@ -25,16 +24,13 @@ void DashAbility::applyMovement(
     if (state.contacts.onGround && state.dash.timeLeft <= 0.0f)
         state.dash.available = true;
 
-    if (inputIntentions.dashRequested &&
-        std::abs(inputIntentions.direction.x) > 0.0f &&
-        state.dash.available &&
-        !state.contacts.touchingLeftWall &&
+    if (inputIntentions.dashRequested && std::abs(inputIntentions.direction.x) > 0.0f &&
+        state.dash.available && !state.contacts.touchingLeftWall &&
         !state.contacts.touchingRightWall)
     {
         state.dash.direction = inputIntentions.direction.x;
-        state.dash.timeLeft = state.contacts.onGround
-                                  ? data.dashDuration
-                                  : data.dashDuration * data.airborneFraction;
+        state.dash.timeLeft =
+            state.contacts.onGround ? data.dashDuration : data.dashDuration * data.airborneFraction;
         state.dash.available = false;
         state.dash.emit = true;
         state.dash.active = true;

@@ -4,41 +4,48 @@
 #include "game/game.hpp"
 #include "game/level.hpp"
 
-LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath)
-    : scriptPath(scriptPath)
+LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scriptPath)
 {
     lua.open_libraries(
-        sol::lib::base,
-        sol::lib::math,
-        sol::lib::table,
-        sol::lib::string,
-        sol::lib::coroutine);
+        sol::lib::base, sol::lib::math, sol::lib::table, sol::lib::string, sol::lib::coroutine);
 
-    lua.new_usertype<glm::vec2>("vec2",
-                                sol::constructors<glm::vec2(), glm::vec2(float, float)>(),
-                                "x", &glm::vec2::x,
-                                "y", &glm::vec2::y);
-    lua.new_usertype<Game>("Game", "pause", &Game::pause,
-                           "play", &Game::play,
-                           "loadLevel", &Game::loadLevel,
-                           "rebuildPlayer", &Game::rebuildPlayer);
+    lua.new_usertype<glm::vec2>(
+        "vec2",
+        sol::constructors<glm::vec2(), glm::vec2(float, float)>(),
+        "x",
+        &glm::vec2::x,
+        "y",
+        &glm::vec2::y);
+    lua.new_usertype<Game>(
+        "Game",
+        "pause",
+        &Game::pause,
+        "play",
+        &Game::play,
+        "loadLevel",
+        &Game::loadLevel,
+        "rebuildPlayer",
+        &Game::rebuildPlayer);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
     lua.new_usertype<Level>("Level", "getNextLevel", &Level::getNextLevel);
     lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition);
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
 
-    lua.set_function("startCoroutine", [this](sol::function func)
-                     {
-        sol::thread thread = sol::thread::create(lua.lua_state());
-        sol::state_view threadState = thread.state();
-        threadState["f"] = func;
-        sol::function co = threadState.load("return coroutine.wrap(f)")();
-        sol::object result = co();
-        if (result.valid() && result.is<float>())
+    lua.set_function(
+        "startCoroutine",
+        [this](sol::function func)
         {
-            float wait = result.as<float>();
-            waitingCoroutines.push_back({thread, co, wait});
-        } });
+            sol::thread thread = sol::thread::create(lua.lua_state());
+            sol::state_view threadState = thread.state();
+            threadState["f"] = func;
+            sol::function co = threadState.load("return coroutine.wrap(f)")();
+            sol::object result = co();
+            if (result.valid() && result.is<float>())
+            {
+                float wait = result.as<float>();
+                waitingCoroutines.push_back({thread, co, wait});
+            }
+        });
 
     loadScripts();
 }
@@ -144,9 +151,8 @@ void LuaScriptSystem::triggerWallSliding()
 
 void LuaScriptSystem::loadScripts()
 {
-    sol::protected_function_result result = lua.safe_script_file(
-        scriptPath,
-        sol::script_pass_on_error);
+    sol::protected_function_result result =
+        lua.safe_script_file(scriptPath, sol::script_pass_on_error);
 
     if (!result.valid())
     {

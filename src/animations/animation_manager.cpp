@@ -43,9 +43,7 @@ ActorAnimationState AnimationManager::getCurrentState() const
     return currentState;
 }
 
-void AnimationManager::addAnimation(
-    ActorAnimationState state,
-    const SpriteAnimation &animation)
+void AnimationManager::addAnimation(ActorAnimationState state, const SpriteAnimation &animation)
 {
     animations.insert_or_assign(state, animation);
 }

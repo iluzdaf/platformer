@@ -24,7 +24,5 @@ private:
     DirectionBuffer wallJumpDirectionBuffer;
     CoyoteTime wallJumpCoyote;
 
-    void startWallJump(
-        ActorMotionState &state,
-        int direction);
+    void startWallJump(ActorMotionState &state, int direction);
 };

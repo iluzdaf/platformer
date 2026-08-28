@@ -21,8 +21,12 @@ void InputManager::process(GLFWwindow *window)
     intentions.dashRequested = keyboardManager.isPressed(GLFW_KEY_X);
     intentions.climbRequested = keyboardManager.isDown(GLFW_KEY_Z);
     intentions.direction = {
-        keyboardManager.isDown(GLFW_KEY_LEFT) ? -1.0f : (keyboardManager.isDown(GLFW_KEY_RIGHT) ? 1.0f : 0.0f),
-        keyboardManager.isDown(GLFW_KEY_UP) ? -1.0f : (keyboardManager.isDown(GLFW_KEY_DOWN) ? 1.0f : 0.0f)};
+        keyboardManager.isDown(GLFW_KEY_LEFT)
+            ? -1.0f
+            : (keyboardManager.isDown(GLFW_KEY_RIGHT) ? 1.0f : 0.0f),
+        keyboardManager.isDown(GLFW_KEY_UP)
+            ? -1.0f
+            : (keyboardManager.isDown(GLFW_KEY_DOWN) ? 1.0f : 0.0f)};
 }
 
 InputIntentions InputManager::getIntentions() const

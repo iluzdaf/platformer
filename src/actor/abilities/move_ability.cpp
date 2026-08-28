@@ -3,8 +3,7 @@
 #include "actor/abilities/move_ability.hpp"
 #include "input/input_intentions.hpp"
 
-MoveAbility::MoveAbility(const MoveAbilityData &data)
-    : data(data)
+MoveAbility::MoveAbility(const MoveAbilityData &data) : data(data)
 {
     if (data.moveSpeed <= 0)
         throw std::runtime_error("moveSpeed must be greater than 0");

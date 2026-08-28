@@ -2,10 +2,7 @@
 #include <stdexcept>
 #include "cameras/camera2d.hpp"
 
-Camera2D::Camera2D(
-    Camera2DData cameraData,
-    int windowWidth,
-    int windowHeight)
+Camera2D::Camera2D(Camera2DData cameraData, int windowWidth, int windowHeight)
 {
     setZoom(cameraData.zoom);
 

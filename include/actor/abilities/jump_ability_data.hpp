@@ -2,9 +2,7 @@
 
 struct JumpAbilityData
 {
-    float jumpSpeed = -300.0f,
-          jumpBufferDuration = 0.15f,
-          jumpCoyoteDuration = 0.15f,
+    float jumpSpeed = -300.0f, jumpBufferDuration = 0.15f, jumpCoyoteDuration = 0.15f,
           jumpDuration = 0.2f;
 
     bool operator==(const JumpAbilityData &) const = default;

@@ -5,14 +5,9 @@
 SpriteRenderer::SpriteRenderer()
 {
     GLuint vertexBufferObject;
-    float vertices[] = {
-        0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 1.0f, 1.0f,
-        0.0f, 0.0f, 0.0f, 1.0f,
+    float vertices[] = {0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 
-        0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 1.0f, 0.0f,
-        1.0f, 0.0f, 1.0f, 1.0f};
+                        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f};
 
     glGenVertexArrays(1, &quadVertexArrayObject);
     glGenBuffers(1, &vertexBufferObject);

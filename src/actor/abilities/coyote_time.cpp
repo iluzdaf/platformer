@@ -2,8 +2,7 @@
 #include <stdexcept>
 #include "actor/abilities/coyote_time.hpp"
 
-CoyoteTime::CoyoteTime(float duration)
-    : coyoteDuration(duration)
+CoyoteTime::CoyoteTime(float duration) : coyoteDuration(duration)
 {
     if (duration <= 0)
         throw std::runtime_error("duration must be greater than 0");

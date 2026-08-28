@@ -5,6 +5,4 @@
 
 class TileMap;
 
-NavigationGraph buildNavigationGraph(
-    const TileMap &tileMap,
-    const NavigationProfile &profile);
+NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationProfile &profile);

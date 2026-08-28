@@ -15,11 +15,10 @@ namespace
         return path;
     }
 
-    const std::string CountingDeath =
-        "deaths = 0\n"
-        "function onDeath()\n"
-        "    deaths = deaths + 1\n"
-        "end\n";
+    const std::string CountingDeath = "deaths = 0\n"
+                                      "function onDeath()\n"
+                                      "    deaths = deaths + 1\n"
+                                      "end\n";
 }
 
 TEST_CASE("A script that loads gives the game its handlers", "[LuaScriptSystem]")
@@ -37,8 +36,7 @@ TEST_CASE("A script with a syntax error is reported, not swallowed", "[LuaScript
     std::filesystem::path path = writeScript("platformer_lua_broken.lua", "this is not lua ===\n");
 
     REQUIRE_THROWS_WITH(
-        LuaScriptSystem(path.string()),
-        Catch::Matchers::ContainsSubstring("syntax error"));
+        LuaScriptSystem(path.string()), Catch::Matchers::ContainsSubstring("syntax error"));
 }
 
 TEST_CASE("A script that is not there is reported", "[LuaScriptSystem]")

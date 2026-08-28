@@ -21,10 +21,7 @@ namespace
         return !navigationGraph.getOutgoingEdges(nodeId).empty();
     }
 
-    const NavigationEdge *edgeBetween(
-        const NavigationGraph &navigationGraph,
-        int fromId,
-        int toId)
+    const NavigationEdge *edgeBetween(const NavigationGraph &navigationGraph, int fromId, int toId)
     {
         for (const auto &edge : navigationGraph.getOutgoingEdges(fromId))
             if (edge.toId == toId)
@@ -34,8 +31,7 @@ namespace
     }
 }
 
-RouteWalker::RouteWalker(float arrivalThreshold)
-    : arrivalThreshold(arrivalThreshold)
+RouteWalker::RouteWalker(float arrivalThreshold) : arrivalThreshold(arrivalThreshold)
 {
 }
 
@@ -61,8 +57,7 @@ void RouteWalker::anchor(const ActorBehaviorContext &context)
             continue;
 
         float distance = std::abs(node.position.x - context.worldPosition.x);
-        bool nearer = !currentNodeId ||
-                      drop < nearestDrop ||
+        bool nearer = !currentNodeId || drop < nearestDrop ||
                       (drop == nearestDrop && distance < nearestDistance);
         if (!nearer)
             continue;
@@ -166,11 +161,9 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
     NavigationNode targetNode = context.navigationGraph.getNode(*targetNodeId);
     inputIntentions.direction.x = directionTowards(context.worldPosition.x, targetNode.position.x);
 
-    const NavigationEdge *leg =
-        edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
+    const NavigationEdge *leg = edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
-    if (leg && leg->type == EdgeType::Jump && context.onGround &&
-        jumpHeldFor >= leg->holdDuration)
+    if (leg && leg->type == EdgeType::Jump && context.onGround && jumpHeldFor >= leg->holdDuration)
         jumpHeldFor = 0.0f;
 
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)
@@ -223,9 +216,8 @@ bool RouteWalker::hasArrived(const ActorBehaviorContext &context) const
     if (std::abs(targetNode.position.x - context.worldPosition.x) <= reach)
         return true;
 
-    float legDirection = directionTowards(
-        navigationGraph.getNode(*currentNodeId).position.x,
-        targetNode.position.x);
+    float legDirection =
+        directionTowards(navigationGraph.getNode(*currentNodeId).position.x, targetNode.position.x);
 
     return directionTowards(context.worldPosition.x, targetNode.position.x) != legDirection;
 }

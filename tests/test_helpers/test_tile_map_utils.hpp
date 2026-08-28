@@ -10,8 +10,22 @@
 inline const TilePalette &getDefaultTileDataMap()
 {
     static const TilePalette map = {
-        {0, TileData{TileKind::Empty, std::nullopt, std::nullopt, std::nullopt, glm::vec2(0.0f), glm::vec2(16.0f)}},
-        {1, TileData{TileKind::Solid, std::nullopt, std::nullopt, std::nullopt, glm::vec2(0.0f), glm::vec2(16.0f)}}};
+        {0,
+         TileData{
+             TileKind::Empty,
+             std::nullopt,
+             std::nullopt,
+             std::nullopt,
+             glm::vec2(0.0f),
+             glm::vec2(16.0f)}},
+        {1,
+         TileData{
+             TileKind::Solid,
+             std::nullopt,
+             std::nullopt,
+             std::nullopt,
+             glm::vec2(0.0f),
+             glm::vec2(16.0f)}}};
     return map;
 }
 

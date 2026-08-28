@@ -12,13 +12,19 @@ ScreenTransition::ScreenTransition()
 void ScreenTransition::initQuad()
 {
     float vertices[] = {
-        -1.0f, 1.0f,
-        -1.0f, -1.0f,
-        1.0f, -1.0f,
+        -1.0f,
+        1.0f,
+        -1.0f,
+        -1.0f,
+        1.0f,
+        -1.0f,
 
-        -1.0f, 1.0f,
-        1.0f, -1.0f,
-        1.0f, 1.0f};
+        -1.0f,
+        1.0f,
+        1.0f,
+        -1.0f,
+        1.0f,
+        1.0f};
 
     glGenVertexArrays(1, &vertexArrayObject);
     glGenBuffers(1, &vertexBufferObject);

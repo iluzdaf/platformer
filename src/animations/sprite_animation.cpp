@@ -4,8 +4,7 @@
 
 SpriteAnimation::SpriteAnimation(const SpriteAnimationData &spriteAnimationData)
     : frameAnimation(spriteAnimationData.frameAnimationData),
-      frameWidth(spriteAnimationData.frameWidth),
-      frameHeight(spriteAnimationData.frameHeight),
+      frameWidth(spriteAnimationData.frameWidth), frameHeight(spriteAnimationData.frameHeight),
       textureWidth(spriteAnimationData.textureWidth)
 {
     assert(frameWidth > 0);

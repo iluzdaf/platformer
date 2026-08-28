@@ -37,11 +37,7 @@ namespace
         return true;
     }
 
-    bool isWalkableBetween(
-        const TileMap &tileMap,
-        glm::vec2 start,
-        glm::vec2 end,
-        int headroom)
+    bool isWalkableBetween(const TileMap &tileMap, glm::vec2 start, glm::vec2 end, int headroom)
     {
         if (start == end)
             return false;
@@ -71,10 +67,7 @@ namespace
         return true;
     }
 
-    void addNodes(
-        NavigationGraph &navigationGraph,
-        const TileMap &tileMap,
-        int headroom)
+    void addNodes(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom)
     {
         int nextNodeId = 0;
 
@@ -97,10 +90,10 @@ namespace
                 bool isRightCliff = tileMap.validTilePosition(tilePositionRight) &&
                                     !tileMap.getTileAtTilePosition(tilePositionRight).isSolid();
 
-                bool canWalkAboveLeft = !isLeftCliff &&
-                                        canStandOn(tileMap, tilePositionLeft, headroom);
-                bool canWalkAboveRight = !isRightCliff &&
-                                         canStandOn(tileMap, tilePositionRight, headroom);
+                bool canWalkAboveLeft =
+                    !isLeftCliff && canStandOn(tileMap, tilePositionLeft, headroom);
+                bool canWalkAboveRight =
+                    !isRightCliff && canStandOn(tileMap, tilePositionRight, headroom);
 
                 if (!isLeftCliff && !isRightCliff && canWalkAboveLeft && canWalkAboveRight)
                     continue;
@@ -119,10 +112,7 @@ namespace
         }
     }
 
-    void addWalkEdges(
-        NavigationGraph &navigationGraph,
-        const TileMap &tileMap,
-        int headroom)
+    void addWalkEdges(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom)
     {
         std::unordered_map<int, std::vector<NavigationNode>> nodesByRow;
 
@@ -157,10 +147,7 @@ namespace
         }
     }
 
-    bool clearAt(
-        const TileMap &tileMap,
-        glm::vec2 feetPosition,
-        const NavigationProfile &profile)
+    bool clearAt(const TileMap &tileMap, glm::vec2 feetPosition, const NavigationProfile &profile)
     {
         constexpr float Inset = 0.5f;
         float halfWidth = profile.colliderSize.x * 0.5f - Inset;
@@ -210,13 +197,13 @@ namespace
 
             if (descending)
             {
-                glm::ivec2 underfoot = tileMap.worldToTilePosition(position + glm::vec2(0.0f, 1.0f));
+                glm::ivec2 underfoot =
+                    tileMap.worldToTilePosition(position + glm::vec2(0.0f, 1.0f));
                 if (tileMap.validTilePosition(underfoot) &&
                     tileMap.getTileAtTilePosition(underfoot).isSolid())
                 {
                     glm::vec2 landing(
-                        position.x,
-                        static_cast<float>(underfoot.y * tileMap.getTileSize()));
+                        position.x, static_cast<float>(underfoot.y * tileMap.getTileSize()));
                     path.back() = landing;
                     return JumpLanding{landing, path};
                 }
@@ -313,7 +300,11 @@ namespace
             return landingOf(tileMap, takeOff, arc.offsets, direction, profile);
 
         JumpAttempt attempt = simulateJumpAgainst(
-            tileMap, *profile.motionData, *profile.physicsBodyData, takeOff, direction,
+            tileMap,
+            *profile.motionData,
+            *profile.physicsBodyData,
+            takeOff,
+            direction,
             arc.holdFraction);
         if (!attempt.landed)
             return std::nullopt;
@@ -376,8 +367,7 @@ namespace
                     if (components.at(fromId) == components.at(*toId))
                         continue;
 
-                    float reach =
-                        std::abs(navigationGraph.getNode(*toId).position.x - takeOff.x);
+                    float reach = std::abs(navigationGraph.getNode(*toId).position.x - takeOff.x);
 
                     JumpCandidate candidate{*toId, landing->path, arc.holdDuration, reach};
 
@@ -396,9 +386,7 @@ namespace
         return chosen;
     }
 
-    void addJumpLandingNodes(
-        NavigationGraph &navigationGraph,
-        const std::vector<ChosenJump> &jumps)
+    void addJumpLandingNodes(NavigationGraph &navigationGraph, const std::vector<ChosenJump> &jumps)
     {
         int nextNodeId = 0;
         for (const auto &[id, node] : navigationGraph.getNodes())
@@ -580,7 +568,11 @@ namespace
             for (const JumpArc &arc : profile.jumpArcs)
             {
                 JumpAttempt attempt = simulateJumpAgainst(
-                    tileMap, *profile.motionData, *profile.physicsBodyData, from, towards,
+                    tileMap,
+                    *profile.motionData,
+                    *profile.physicsBodyData,
+                    from,
+                    towards,
                     arc.holdFraction);
                 if (!attempt.landed ||
                     std::abs(attempt.path.back().y - ledge.y) >= SurfaceTolerance)
@@ -679,9 +671,7 @@ namespace
     }
 }
 
-NavigationGraph buildNavigationGraph(
-    const TileMap &tileMap,
-    const NavigationProfile &profile)
+NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationProfile &profile)
 {
     NavigationGraph navigationGraph;
     int headroom = tilesOfHeadroom(tileMap, profile);

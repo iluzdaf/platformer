@@ -84,10 +84,9 @@ void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)
 
 bool TileMap::validTilePosition(glm::ivec2 tilePosition) const
 {
-    return (tilePosition.x >= 0 &&
-            tilePosition.x < width &&
-            tilePosition.y >= 0 &&
-            tilePosition.y < height);
+    return (
+        tilePosition.x >= 0 && tilePosition.x < width && tilePosition.y >= 0 &&
+        tilePosition.y < height);
 }
 
 int TileMap::tilePositionToTileIndex(glm::ivec2 tilePosition) const
@@ -100,7 +99,8 @@ int TileMap::tilePositionToTileIndex(glm::ivec2 tilePosition) const
 
 glm::ivec2 TileMap::worldToTilePosition(glm::vec2 worldPosition) const
 {
-    return glm::ivec2(static_cast<int>(worldPosition.x) / tileSize, static_cast<int>(worldPosition.y) / tileSize);
+    return glm::ivec2(
+        static_cast<int>(worldPosition.x) / tileSize, static_cast<int>(worldPosition.y) / tileSize);
 }
 
 int TileMap::worldPositionToTileIndex(glm::vec2 worldPosition) const

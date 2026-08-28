@@ -1,6 +1,10 @@
 BasedOnStyle: Microsoft
-ColumnLimit: 0
+ColumnLimit: 100
 SortIncludes: false
+BinPackParameters: false
+BinPackArguments: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AlignAfterOpenBracket: AlwaysBreak
 AccessModifierOffset: -4
 NamespaceIndentation: All
 FixNamespaceComments: false

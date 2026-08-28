@@ -27,8 +27,7 @@ TEST_CASE("PhysicsBody resolves collisions with solid tiles", "[PhysicsBody]")
     tileMap.setTileIndex(glm::ivec2(0, 5), 1);
     PhysicsBody body = setupBody({0, 4 * 16.0f}, {0, 980});
     FixedTimeStep timeStepper;
-    timeStepper.run(1.0f, [&](float deltaTime)
-                    { body.stepPhysics(deltaTime, tileMap); });
+    timeStepper.run(1.0f, [&](float deltaTime) { body.stepPhysics(deltaTime, tileMap); });
     float expectedY = 4 * 16.0f;
     REQUIRE(body.getPosition().y == Approx(expectedY));
     REQUIRE(body.getVelocity().y == Approx(0.0f).margin(0.01f));

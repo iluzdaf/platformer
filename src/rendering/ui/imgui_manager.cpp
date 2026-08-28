@@ -44,13 +44,15 @@ ImGuiIO &ImGuiManager::getIO() const
     return ImGui::GetIO();
 }
 
-ImVec2 ImGuiManager::worldToScreen(glm::vec2 worldPosition, float zoom, glm::vec2 cameraTopLeft) const
+ImVec2 ImGuiManager::worldToScreen(glm::vec2 worldPosition, float zoom, glm::vec2 cameraTopLeft)
+    const
 {
     glm::vec2 screenPosition = ((worldPosition - cameraTopLeft) * zoom) / getUiScale();
     return ImVec2(screenPosition.x, screenPosition.y);
 }
 
-glm::vec2 ImGuiManager::screenToWorld(ImVec2 screenPosition, float zoom, glm::vec2 cameraTopLeft) const
+glm::vec2 ImGuiManager::screenToWorld(ImVec2 screenPosition, float zoom, glm::vec2 cameraTopLeft)
+    const
 {
     glm::vec2 screen(screenPosition.x, screenPosition.y);
     glm::vec2 worldPosition = (screen * getUiScale()) / zoom + cameraTopLeft;

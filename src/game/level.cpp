@@ -161,7 +161,8 @@ namespace
                 }
 
                 size_t lineStart = out.rfind('\n');
-                size_t column = lineStart == std::string::npos ? out.size() : out.size() - lineStart - 1;
+                size_t column =
+                    lineStart == std::string::npos ? out.size() : out.size() - lineStart - 1;
 
                 Span span = spanOf(json, at);
                 bool nearTop = span.holdsContainer && depth + 1 <= NestingOnLines;
@@ -238,8 +239,7 @@ Level::Level(
     const PlayerData &playerData,
     const std::unordered_map<std::string, NpcData> &npcData,
     const std::string &jsonFilePath)
-    : tileMap(levelData.tileMapData, tilePalettes),
-      path(jsonFilePath)
+    : tileMap(levelData.tileMapData, tilePalettes), path(jsonFilePath)
 {
     initFrom(levelData, playerData, npcData);
 }
@@ -291,8 +291,7 @@ void Level::addGraphFor(const std::string &name, const NavigationProfile &profil
     for (NamedNavigationGraph &existing : graphs)
         if (existing.profile == profile)
         {
-            if (existing.name != name &&
-                existing.name.find(", " + name) == std::string::npos &&
+            if (existing.name != name && existing.name.find(", " + name) == std::string::npos &&
                 !existing.name.starts_with(name + ","))
                 existing.name += ", " + name;
 

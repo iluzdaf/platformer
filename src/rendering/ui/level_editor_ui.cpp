@@ -122,8 +122,7 @@ void LevelEditorUi::draw(
         ImGui::SetNextItemWidth(110.0f);
         if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
         {
-            std::string directory =
-                level.getPath().substr(0, level.getPath().find_last_of("/\\"));
+            std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
             for (const std::string &path : levelPathsIn(directory))
                 if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
                     level.setNextLevel(path);
@@ -187,9 +186,7 @@ void LevelEditorUi::draw(
             selectedTileIndex = tileIndex;
 
         ImGui::GetWindowDrawList()->AddText(
-            tilePos,
-            IM_COL32(255, 255, 255, 255),
-            std::to_string(tileIndex).c_str());
+            tilePos, IM_COL32(255, 255, 255, 255), std::to_string(tileIndex).c_str());
 
         if (previouslySelectedTileIndex == tileIndex)
             ImGui::PopStyleColor(3);
@@ -366,8 +363,8 @@ void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
     {
         ImGui::PushID(leaving ? edge.toId : -edge.fromId - 1);
         std::pair<int, int> ends{edge.fromId, edge.toId};
-        std::string label = std::string(nameOf(edge.type)) + " " +
-                            std::to_string(edge.fromId) + " to " + std::to_string(edge.toId);
+        std::string label = std::string(nameOf(edge.type)) + " " + std::to_string(edge.fromId) +
+                            " to " + std::to_string(edge.toId);
 
         if (ImGui::Selectable(label.c_str(), selectedEdge == ends))
         {
@@ -383,16 +380,14 @@ bool LevelEditorUi::drawsTileMapAABBs() const
     return drawTileMapAABBs;
 }
 
-void LevelEditorUi::update(
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera,
-    Level &level)
+void LevelEditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level)
 {
     if (!editing)
         return;
 
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
-    glm::vec2 worldPosition = imGuiManager.screenToWorld(mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
+    glm::vec2 worldPosition = imGuiManager.screenToWorld(
+        mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
     glm::ivec2 tilePosition = level.getTileMap().worldToTilePosition(worldPosition);
     if (!level.getTileMap().validTilePosition(tilePosition))
         return;

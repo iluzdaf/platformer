@@ -59,13 +59,18 @@ void GameEditorUi::draw(
             ImGui::TextUnformatted(value.c_str());
         };
 
-        drawRow("Velocity", std::format("{:.2f}, {:.2f}", playerMotionState.velocity.x, playerMotionState.velocity.y));
+        drawRow(
+            "Velocity",
+            std::format(
+                "{:.2f}, {:.2f}", playerMotionState.velocity.x, playerMotionState.velocity.y));
         drawRow("Position", std::format("{:.2f}, {:.2f}", playerPosition.x, playerPosition.y));
 
         drawRow("On Ground", playerMotionState.contacts.onGround ? "true" : "false");
         drawRow("Facing Left", actorState.facingLeft ? "true" : "false");
-        drawRow("Touching Left Wall", playerMotionState.contacts.touchingLeftWall ? "true" : "false");
-        drawRow("Touching Right Wall", playerMotionState.contacts.touchingRightWall ? "true" : "false");
+        drawRow(
+            "Touching Left Wall", playerMotionState.contacts.touchingLeftWall ? "true" : "false");
+        drawRow(
+            "Touching Right Wall", playerMotionState.contacts.touchingRightWall ? "true" : "false");
         drawRow("Hit Ceiling", playerMotionState.contacts.hitCeiling ? "true" : "false");
 
         drawRow("Wall Sliding", playerMotionState.wallSlide.active ? "true" : "false");

@@ -4,14 +4,14 @@
             "size":[16.0,16.0],
             "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
             "motionData":{
-                "moveAbilityData":{"moveSpeed":170.0},
+                "moveAbilityData":{"moveSpeed":110.0},
                 "jumpAbilityData":{
-                    "jumpSpeed":-360.0,
+                    "jumpSpeed":-280.0,
                     "jumpBufferDuration":0.15,
                     "jumpCoyoteDuration":0.15,
                     "jumpDuration":0.2
                 },
-                "dashAbilityData":{"dashSpeed":500,"dashDuration":0.2},
+                "dashAbilityData":{"dashSpeed":400.0,"dashDuration":0.15,"airborneFraction":0.6},
                 "wallSlideAbilityData":{"slideSpeed":50},
                 "wallJumpAbilityData":{
                     "wallJumpSpeed":-250,

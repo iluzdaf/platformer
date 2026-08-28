@@ -362,7 +362,8 @@ namespace
     enum class Pit
     {
         Spikes,
-        Hole
+        Hole,
+        StepUp
     };
 
     GameData shippedGameData()
@@ -383,13 +384,18 @@ namespace
         for (int x = 0; x < PitMapWidth; ++x)
             rows[PitFloorRow][x] = SolidTile;
 
-        for (int x = PitStart; x < PitStart + tiles; ++x)
-        {
-            if (kind == Pit::Spikes)
-                rows[PitHazardRow][x] = SpikeTile;
-            else
-                rows[PitFloorRow][x] = 0;
-        }
+        if (kind == Pit::StepUp)
+            for (int x = PitStart; x < PitMapWidth; ++x)
+                for (int y = std::max(0, PitFloorRow - tiles); y < PitMapHeight; ++y)
+                    rows[y][x] = SolidTile;
+        else
+            for (int x = PitStart; x < PitStart + tiles; ++x)
+            {
+                if (kind == Pit::Spikes)
+                    rows[PitHazardRow][x] = SpikeTile;
+                else
+                    rows[PitFloorRow][x] = 0;
+            }
 
         TileMapData tileMapData;
         tileMapData.size = 16;
@@ -447,6 +453,17 @@ namespace
                     player.postFixedUpdate();
 
                     glm::vec2 position = player.getPosition();
+                    if (kind == Pit::StepUp)
+                    {
+                        float ledgeY = static_cast<float>(PitFloorRow - tiles) * 16.0f;
+                        if (player.getMotion().getState().contacts.onGround &&
+                            position.y + 16.0f <= ledgeY + 0.5f)
+                            return true;
+                        if (position.y > floorY)
+                            break;
+                        continue;
+                    }
+
                     bool onSpikes = kind == Pit::Spikes &&
                                     position.x + 12.0f > pitLeft && position.x + 4.0f < pitRight &&
                                     position.y + 16.0f > static_cast<float>(PitHazardRow) * 16.0f &&
@@ -464,26 +481,84 @@ namespace
     }
 }
 
-TEST_CASE("The shipped player just clears four tiles of spikes with a jump", "[Player][Tuning]")
+TEST_CASE("The shipped player's jump is worth three tiles", "[Player][Tuning]")
 {
     GameData gameData = shippedGameData();
 
-    REQUIRE(getsAcross(gameData, 4, Pit::Spikes, true, false));
-    REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Spikes, true, false));
+    // Level 6's platforms are three tiles apart, surface to surface.
+    REQUIRE(getsAcross(gameData, 3, Pit::StepUp, true, false));
+    REQUIRE_FALSE(getsAcross(gameData, 4, Pit::StepUp, true, false));
+
+    REQUIRE(getsAcross(gameData, 3, Pit::Hole, true, false));
+    REQUIRE_FALSE(getsAcross(gameData, 4, Pit::Hole, true, false));
+
+    // Spikes cost two tiles against a hole of the same width: you may land on
+    // the far lip of a hole, but you have to be above spikes the whole way.
+    REQUIRE(getsAcross(gameData, 2, Pit::Spikes, true, false));
+    REQUIRE_FALSE(getsAcross(gameData, 3, Pit::Spikes, true, false));
 }
 
-TEST_CASE("The shipped player just dashes a six tile hole without jumping", "[Player][Tuning]")
+TEST_CASE("The shipped player's dash is worth four tiles, and no spikes", "[Player][Tuning]")
 {
     GameData gameData = shippedGameData();
 
-    REQUIRE(getsAcross(gameData, 6, Pit::Hole, false, true));
-    REQUIRE_FALSE(getsAcross(gameData, 7, Pit::Hole, false, true));
+    REQUIRE(getsAcross(gameData, 4, Pit::Hole, false, true));
+    REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Hole, false, true));
+
+    // A dash is level, so it runs into spikes rather than over them.
+    REQUIRE_FALSE(getsAcross(gameData, 1, Pit::Spikes, false, true));
 }
 
-TEST_CASE("The shipped player needs the dash for eight tiles of spikes", "[Player][Tuning]")
+TEST_CASE("The shipped player's jump and dash together are worth five tiles",
+          "[Player][Tuning]")
 {
     GameData gameData = shippedGameData();
 
-    REQUIRE(getsAcross(gameData, 8, Pit::Spikes, true, true));
-    REQUIRE_FALSE(getsAcross(gameData, 8, Pit::Spikes, true, false));
+    REQUIRE(getsAcross(gameData, 5, Pit::Hole, true, true));
+    REQUIRE_FALSE(getsAcross(gameData, 6, Pit::Hole, true, true));
+
+    REQUIRE(getsAcross(gameData, 4, Pit::Spikes, true, true));
+    REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Spikes, true, true));
+
+    // Five rather than seven because a dash begun in the air is the shorter
+    // one. Without that a jump and a dash simply add.
+    REQUIRE(gameData.playerData.actorData.motionData.dashAbilityData->airborneFraction < 1.0f);
+}
+
+TEST_CASE("The shipped player can climb level6's platforms", "[Player][Tuning]")
+{
+    GameData gameData = shippedGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    // Off the left middle platform at y 112 and up onto the top one at y 64,
+    // which is the highest thing the level asks for.
+    bool climbed = false;
+    for (float footX = 120.0f; footX <= 160.0f && !climbed; footX += 2.0f)
+    {
+        ScriptedIntentions input;
+        Player player(gameData.playerData, input);
+        player.setPosition(glm::vec2(footX - 8.0f, 96.0f));
+
+        FixedTimeStep timestepper;
+        for (int frame = 0; frame < 150 && !climbed; ++frame)
+        {
+            InputIntentions intentions;
+            intentions.jumpRequested = frame == 0;
+            intentions.jumpHeld = frame < 20;
+            intentions.direction.x = -1.0f;
+            input.set(intentions);
+
+            player.preFixedUpdate();
+            timestepper.run(1.0f / 60.0f, [&](float dt)
+                            { player.fixedUpdate(dt, level); });
+            player.postFixedUpdate();
+
+            climbed = player.getMotion().getState().contacts.onGround &&
+                      player.getPosition().y + 16.0f <= 64.5f;
+        }
+    }
+
+    REQUIRE(climbed);
 }

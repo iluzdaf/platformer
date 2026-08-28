@@ -95,3 +95,61 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         REQUIRE_FALSE(state.dash.active);
     }
 }
+namespace
+{
+    // How long a dash lasts when begun from the given footing.
+    float dashRunsFor(const DashAbilityData &data, bool onGround)
+    {
+        ActorMotionState state;
+        DashAbility dashAbility(data);
+
+        state.contacts.onGround = true;
+        dashAbility.applyMovement(0.01f, InputIntentions(), state);
+        state.contacts.onGround = onGround;
+
+        InputIntentions inputIntentions;
+        inputIntentions.direction.x = 1.0f;
+        inputIntentions.dashRequested = true;
+        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        REQUIRE(state.dash.active);
+
+        float lasted = 0.01f;
+        inputIntentions = InputIntentions();
+        while (state.dash.active && lasted < 2.0f)
+        {
+            dashAbility.applyMovement(0.01f, inputIntentions, state);
+            lasted += 0.01f;
+        }
+        return lasted;
+    }
+}
+
+TEST_CASE("A dash begun in the air is the shorter one", "[DashAbility]")
+{
+    DashAbilityData data;
+    data.dashDuration = 0.2f;
+    data.airborneFraction = 0.5f;
+
+    REQUIRE(dashRunsFor(data, true) == Approx(0.21f).margin(0.011f));
+    REQUIRE(dashRunsFor(data, false) == Approx(0.11f).margin(0.011f));
+}
+
+TEST_CASE("A dash is the same either way until it is told otherwise", "[DashAbility]")
+{
+    DashAbilityData data;
+    data.dashDuration = 0.2f;
+
+    REQUIRE(data.airborneFraction == 1.0f);
+    REQUIRE(dashRunsFor(data, true) == Approx(dashRunsFor(data, false)).margin(0.011f));
+}
+
+TEST_CASE("A dash refuses a fraction it cannot use", "[DashAbility]")
+{
+    DashAbilityData data;
+
+    data.airborneFraction = 0.0f;
+    REQUIRE_THROWS(DashAbility{data});
+
+    data.airborneFraction = 1.5f;
+    REQUIRE_THROWS(DashAbility{data});
+}

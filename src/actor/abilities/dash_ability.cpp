@@ -10,6 +10,8 @@ DashAbility::DashAbility(const DashAbilityData &data)
         throw std::runtime_error("dashSpeed must be > 0");
     if (data.dashDuration <= 0)
         throw std::runtime_error("dashDuration must be > 0");
+    if (data.airborneFraction <= 0 || data.airborneFraction > 1)
+        throw std::runtime_error("airborneFraction must be within (0, 1]");
 }
 
 void DashAbility::applyMovement(
@@ -30,7 +32,9 @@ void DashAbility::applyMovement(
         !state.contacts.touchingRightWall)
     {
         state.dash.direction = inputIntentions.direction.x;
-        state.dash.timeLeft = data.dashDuration;
+        state.dash.timeLeft = state.contacts.onGround
+                                  ? data.dashDuration
+                                  : data.dashDuration * data.airborneFraction;
         state.dash.available = false;
         state.dash.emit = true;
         state.dash.active = true;

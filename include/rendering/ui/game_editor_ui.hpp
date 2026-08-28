@@ -1,7 +1,7 @@
 #pragma once
 
-#include <signals.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 
 struct ActorMotionState;
@@ -20,11 +20,10 @@ public:
         const glm::vec2 &playerPosition,
         const ActorState &actorState,
         const Camera2D &camera,
-        bool paused);
+        bool paused,
+        EditorCommands &commands);
 
     bool drawsPlayerAABBs() const;
-
-    fteng::signal<void()> onPlay, onPause, onStep, onToggleZoom, onRespawn;
 
 private:
     bool drawPlayerAABBs = false;

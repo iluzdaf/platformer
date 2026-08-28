@@ -5,6 +5,7 @@
 #include <tuple>
 #include <utility>
 #include "rendering/ui/level_editor_ui.hpp"
+#include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
@@ -28,12 +29,13 @@ void LevelEditorUi::draw(
     EditorSection section,
     Level &level,
     const Texture2D &tileSet,
-    const std::string &firstLevel)
+    const std::string &firstLevel,
+    EditorCommands &commands)
 {
     switch (section)
     {
     case EditorSection::Level:
-        drawLevel(level, firstLevel);
+        drawLevel(level, firstLevel, commands);
         break;
 
     case EditorSection::TileMap:
@@ -45,7 +47,7 @@ void LevelEditorUi::draw(
     }
 }
 
-void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
+void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel, EditorCommands &commands)
 {
     if (!editing)
     {
@@ -64,18 +66,18 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
         if (ImGui::Button("cancel"))
         {
             editing = false;
-            onLoadLevel(level.getPath());
+            commands.onLoadLevel(level.getPath());
             return;
         }
     }
 
     ImGui::Separator();
 
-    std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel);
+    std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel, commands);
     if (chosenLevel)
     {
         editing = false;
-        onLoadLevel(*chosenLevel);
+        commands.onLoadLevel(*chosenLevel);
         return;
     }
 
@@ -179,7 +181,8 @@ void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet)
 
 std::optional<std::string> LevelEditorUi::drawLevelChooser(
     const Level &level,
-    const std::string &firstLevel)
+    const std::string &firstLevel,
+    EditorCommands &commands)
 {
     std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
     std::optional<std::string> chosen;
@@ -201,7 +204,7 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(
         ImGui::SameLine();
         bool isFirst = level.getPath() == firstLevel;
         if (ImGui::Checkbox("first", &isFirst) && isFirst)
-            onSetFirstLevel();
+            commands.onSetFirstLevel();
     }
 
     return chosen;

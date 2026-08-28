@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
+#include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/game_editor_ui.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
@@ -41,8 +42,8 @@ public:
         const;
     void update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level);
 
-    GameEditorUi &getGameEditor();
-    LevelEditorUi &getLevelEditor();
+    EditorCommands commands;
+
     bool drawsPlayerAABBs() const;
     bool drawsTileMapAABBs() const;
 

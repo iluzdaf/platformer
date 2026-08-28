@@ -4,6 +4,7 @@
 #include "rendering/ui/game_editor_ui.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "rendering/ui/imgui_manager.hpp"
+#include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
@@ -30,21 +31,22 @@ void GameEditorUi::draw(
     const glm::vec2 &playerPosition,
     const ActorState &actorState,
     const Camera2D &camera,
-    bool paused)
+    bool paused,
+    EditorCommands &commands)
 {
     if (section == EditorSection::Playback)
     {
         if (ImGui::Button(paused ? "play" : "pause", ImVec2(60.0f, 0.0f)))
         {
             if (paused)
-                onPlay();
+                commands.onPlay();
             else
-                onPause();
+                commands.onPause();
         }
 
         ImGui::SameLine();
         if (ImGui::Button("step", ImVec2(60.0f, 0.0f)))
-            onStep();
+            commands.onStep();
 
         ImGui::TextDisabled("%s", paused ? "stopped" : "running");
         return;
@@ -79,7 +81,7 @@ void GameEditorUi::draw(
     if (section == EditorSection::Camera)
     {
         if (ImGui::Button("Zoom"))
-            onToggleZoom();
+            commands.onToggleZoom();
         ImGui::SameLine();
         ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
 
@@ -94,7 +96,7 @@ void GameEditorUi::draw(
     ImGui::Checkbox("AABBs", &drawPlayerAABBs);
     ImGui::SameLine();
     if (ImGui::Button("Respawn"))
-        onRespawn();
+        commands.onRespawn();
 
     if (ImGui::BeginTable("Inspector", 2, ImGuiTableFlags_BordersInnerV))
     {

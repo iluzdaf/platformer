@@ -51,20 +51,20 @@ Game::Game(Window &window)
     reloadTexture(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
-    editorUi.getGameEditor().onPlay.connect([this] { play(); });
-    editorUi.getGameEditor().onPause.connect([this] { pause(); });
-    editorUi.getGameEditor().onStep.connect([this] { step(); });
-    editorUi.getGameEditor().onToggleZoom.connect(
+    editorUi.commands.onPlay.connect([this] { play(); });
+    editorUi.commands.onPause.connect([this] { pause(); });
+    editorUi.commands.onStep.connect([this] { step(); });
+    editorUi.commands.onToggleZoom.connect(
         [this]
         {
             static float originalZoom = camera.getZoom();
             float currentZoom = camera.getZoom();
             camera.setZoom(std::abs(currentZoom - originalZoom) < 1e-5f ? 3.0f : originalZoom);
         });
-    editorUi.getLevelEditor().onLoadLevel.connect([this](const std::string &levelPath)
-                                                  { loadLevel(levelPath); });
-    editorUi.getGameEditor().onRespawn.connect([this] { rebuildPlayer(); });
-    editorUi.getLevelEditor().onSetFirstLevel.connect(
+    editorUi.commands.onLoadLevel.connect([this](const std::string &levelPath)
+                                          { loadLevel(levelPath); });
+    editorUi.commands.onRespawn.connect([this] { rebuildPlayer(); });
+    editorUi.commands.onSetFirstLevel.connect(
         [this]
         {
             levels.setFirst(level->getPath());

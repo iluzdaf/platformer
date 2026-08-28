@@ -54,7 +54,7 @@ void EditorUi::draw(
     {
     case EditorSection::Level:
     case EditorSection::TileMap:
-        levelEditorUi.draw(section, subject.level, subject.tileSet, subject.firstLevel);
+        levelEditorUi.draw(section, subject.level, subject.tileSet, subject.firstLevel, commands);
         break;
 
     case EditorSection::NpcsInLevel:
@@ -73,7 +73,8 @@ void EditorUi::draw(
             subject.playerPosition,
             subject.playerState,
             subject.camera,
-            subject.paused);
+            subject.paused,
+            commands);
         break;
     }
 
@@ -92,16 +93,6 @@ void EditorUi::drawOverlays(
 void EditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level)
 {
     levelEditorUi.update(imGuiManager, camera, level);
-}
-
-GameEditorUi &EditorUi::getGameEditor()
-{
-    return gameEditorUi;
-}
-
-LevelEditorUi &EditorUi::getLevelEditor()
-{
-    return levelEditorUi;
 }
 
 bool EditorUi::drawsPlayerAABBs() const

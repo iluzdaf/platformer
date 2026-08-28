@@ -357,9 +357,13 @@ namespace
         // happens to have its nodes.
         std::map<std::pair<int, int>, JumpCandidate> easiest;
 
+        // A landing is somewhere to arrive. Where a drop happens to put an
+        // actor is no place to aim a jump from, and taking those as take offs
+        // is what let a way up be an accident of what had fallen.
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
-            takeOffs.emplace_back(id, node.position);
+            if (node.kind == NodeKind::OnFoot)
+                takeOffs.emplace_back(id, node.position);
 
         for (const auto &[fromId, takeOff] : takeOffs)
             for (const JumpArc &arc : profile.jumpArcs)
@@ -483,7 +487,7 @@ namespace
                     if (navigationGraph.hasNodeAtPosition(landing))
                         continue;
 
-                    navigationGraph.addNode(nextNodeId++, landing);
+                    navigationGraph.addNode(nextNodeId++, landing, NodeKind::Landing);
                     added = true;
                 }
         }
@@ -540,10 +544,13 @@ namespace
 
         int nextNodeId = 0;
         std::vector<glm::vec2> ledges;
+        std::vector<glm::vec2> couldJump;
         for (const auto &[id, node] : navigationGraph.getNodes())
         {
             nextNodeId = std::max(nextNodeId, id + 1);
             ledges.push_back(node.position);
+            if (node.kind == NodeKind::OnFoot)
+                couldJump.push_back(node.position);
         }
 
         // Whether a jump lands on the ledge, made from where it is standing.
@@ -567,7 +574,7 @@ namespace
             // Something may already stand where this works from, in which case
             // the way up is there and does not want another node beside it.
             bool alreadyServed = false;
-            for (glm::vec2 standing : ledges)
+            for (glm::vec2 standing : couldJump)
                 if (standing.y > ledge.y && std::abs(standing.x - ledge.x) <= reach &&
                     getsUpTo(standing, ledge))
                     alreadyServed = true;

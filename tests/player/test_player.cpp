@@ -627,3 +627,26 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
     // The block overhead leaves no headroom, which is what makes it a dash.
     REQUIRE(runsAtItWith(false) == 0);
 }
+
+TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[Level]")
+{
+    GameData gameData = shippedGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level1.json"), std::string{}));
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    // The camera only follows once the level is wider than the view. Below that
+    // it centres the whole thing, so everything in the level is on screen.
+    float inView = static_cast<float>(gameData.windowWidth) / gameData.cameraData.zoom;
+    INFO("level is " << level.getTileMap().getWorldWidth() << "px, the camera shows " << inView);
+    REQUIRE(static_cast<float>(level.getTileMap().getWorldWidth()) <= inView);
+
+    bool hasPortal = false;
+    const TileMap &tileMap = level.getTileMap();
+    for (int x = 0; x < tileMap.getWidth(); ++x)
+        for (int y = 0; y < tileMap.getHeight(); ++y)
+            if (tileMap.getTileAtTilePosition(glm::ivec2(x, y)).isPortal())
+                hasPortal = true;
+
+    REQUIRE(hasPortal);
+}

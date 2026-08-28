@@ -59,8 +59,6 @@ namespace
         return data;
     }
 
-    // A patrol is told its two ends now, rather than working out how far it is
-    // willing to go. These fixtures walk between the two nodes in question.
     std::pair<glm::vec2, glm::vec2> between(glm::vec2 from, glm::vec2 to)
     {
         return {from, to};
@@ -302,11 +300,6 @@ TEST_CASE("Holds a longer jump for longer", "[PatrolBehavior]")
 
 namespace
 {
-    // A platform with a one way drop off its right hand end.
-    //
-    //   0 --- 1 --- 2
-    //               |fall
-    //               3 --- 4
     NavigationGraph setupPlatformOverAnother()
     {
         NavigationGraph navigationGraph;
@@ -375,7 +368,6 @@ TEST_CASE("Picks itself up again after coming off its route", "[PatrolBehavior]"
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
     REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
 
-    // Put down on the platform below, nowhere near where the route says it is.
     ActorBehaviorContext knockedDown = standingAt(navigationGraph, {288.0f, 192.0f});
     behavior.decide(0.01f, knockedDown);
 
@@ -385,8 +377,6 @@ TEST_CASE("Picks itself up again after coming off its route", "[PatrolBehavior]"
 
 TEST_CASE("Does not steer while falling", "[PatrolBehavior]")
 {
-    // A ledge with the landing a few pixels off it, which is where a fall edge
-    // puts one, so steering at it from the air overshoots every step.
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {0.0f, 128.0f});
     navigationGraph.addNode(1, {96.0f, 128.0f});
@@ -401,7 +391,6 @@ TEST_CASE("Does not steer while falling", "[PatrolBehavior]")
     REQUIRE(behavior.getCurrentNodeId() == 1);
     REQUIRE(behavior.getTargetNodeId() == 2);
 
-    // On the ledge it walks off. In the air it stops steering and drops.
     REQUIRE(behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 128.0f})).direction.x != 0.0f);
 
     for (float x : {99.0f, 101.0f, 103.0f, 100.0f, 102.0f})
@@ -413,8 +402,6 @@ TEST_CASE("Does not steer while falling", "[PatrolBehavior]")
 
 TEST_CASE("Notices it is on a different platform at the same height", "[PatrolBehavior]")
 {
-    // Two platforms level with one another, which is what level6 had before its
-    // right hand one was lowered.
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {48.0f, 128.0f});
     navigationGraph.addNode(1, {160.0f, 128.0f});
@@ -431,7 +418,6 @@ TEST_CASE("Notices it is on a different platform at the same height", "[PatrolBe
     anchorAt(behavior, navigationGraph, {48.0f, 128.0f});
     REQUIRE(behavior.getCurrentNodeId() == 0);
 
-    // Put down on the far platform, level with where the route thinks it is.
     ActorBehaviorContext elsewhere = standingAt(navigationGraph, {304.0f, 128.0f});
     behavior.decide(0.01f, elsewhere);
 
@@ -452,7 +438,6 @@ TEST_CASE("Tries the jump again after coming up short", "[PatrolBehavior]")
     REQUIRE(behavior.getCurrentNodeId() == 0);
     REQUIRE(behavior.getTargetNodeId() == 1);
 
-    // Back on the ledge it left, which is where a jump that falls short puts it.
     ActorBehaviorContext backWhereItStarted = standingAt(navigationGraph, {0.0f, 128.0f});
     for (int step = 0; step < 40; ++step)
         behavior.decide(0.01f, backWhereItStarted);
@@ -472,7 +457,6 @@ TEST_CASE("Told nowhere to walk, it paces what it is standing on", "[PatrolBehav
     anchorAt(behavior, navigationGraph, {64.0f, 192.0f});
     std::vector<int> visited = walk(behavior, navigationGraph, {64.0f, 192.0f}, 900);
 
-    // The ends of the platform, and everything between, and nothing else.
     REQUIRE(std::ranges::find(visited, 0) != visited.end());
     REQUIRE(std::ranges::find(visited, 2) != visited.end());
 }
@@ -481,7 +465,6 @@ TEST_CASE("Told where to walk, it walks between those two and turns round", "[Pa
 {
     NavigationGraph navigationGraph = setupPlatform(4, 64.0f);
 
-    // The middle two, so the ends of the platform are not the answer.
     PatrolBehavior behavior(setupData(), between({64.0f, 192.0f}, {128.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {64.0f, 192.0f});
 

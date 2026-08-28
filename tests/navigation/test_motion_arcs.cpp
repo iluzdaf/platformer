@@ -149,7 +149,6 @@ TEST_CASE("Every arc offered carries its own hold", "[JumpArc]")
 
 TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
 {
-    // A floor with a ledge two tiles up to land on.
     constexpr int TileSize = 16;
     std::vector<std::vector<int>> rows(12, std::vector<int>(30, 0));
     for (int x = 0; x < 30; ++x)
@@ -167,8 +166,6 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
     physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
     physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);
 
-    // Feet resting on a boundary land a hair either side of it once the sums
-    // are done, and everything that asks what tile they are on floors that.
     bool landedSomewhere = false;
     for (float takeOffX = 200.0f; takeOffX <= 250.0f; takeOffX += 1.0f)
     {

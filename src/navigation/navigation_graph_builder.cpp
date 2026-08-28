@@ -45,9 +45,6 @@ namespace
         if (start == end)
             return false;
 
-        // A pixel below the feet to find what they are standing on. Reading the
-        // tile the feet are in asks which side of the boundary they came to
-        // rest on, which is a question about the last bit of a float.
         glm::vec2 underfoot(0.0f, 1.0f);
         glm::vec2 inwards = glm::normalize(end - start) * NodeTileNudge;
         glm::ivec2 startTilePosition = tileMap.worldToTilePosition(start + inwards + underfoot);
@@ -261,8 +258,6 @@ namespace
         return nearest;
     }
 
-    // Walk edges are cut by gaps and by spikes, so anything reachable on foot
-    // shares a component. A jump within one would have nothing to clear.
     std::unordered_map<int, int> walkComponents(const NavigationGraph &navigationGraph)
     {
         std::unordered_map<int, int> components;
@@ -306,10 +301,6 @@ namespace
         return false;
     }
 
-    // The jump the actor would really make, when the profile knows enough to
-    // run one. Replaying an arc taken in open air has to guess what it would
-    // have hit, and it guesses that grazing a ledge is a jump that failed,
-    // where the physics puts the actor on top of it.
     std::optional<JumpLanding> jumpFrom(
         const TileMap &tileMap,
         glm::vec2 takeOff,
@@ -352,8 +343,6 @@ namespace
         float holdDuration = 0.0f;
     };
 
-    // Every jump worth keeping, before any of them are edges: which one a node
-    // makes to each platform it can reach, and the flight it makes it with.
     std::vector<ChosenJump> chooseJumps(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -362,17 +351,8 @@ namespace
     {
         std::unordered_map<int, int> components = walkComponents(navigationGraph);
 
-        // Landing anywhere on a platform is as good as landing at its near
-        // edge and walking in, so a node offers one jump per platform, the one
-        // it has to hold the least to make. Preferring the nearest landing
-        // instead leaves the same gap crossed by a different arc each way,
-        // because which arc lands nearest depends on where the far platform
-        // happens to have its nodes.
         std::map<std::pair<int, int>, JumpCandidate> easiest;
 
-        // A landing is somewhere to arrive. Where a drop happens to put an
-        // actor is no place to aim a jump from, and taking those as take offs
-        // is what let a way up be an accident of what had fallen.
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
             if (node.kind == NodeKind::OnFoot)
@@ -415,13 +395,6 @@ namespace
         return chosen;
     }
 
-    // A jump comes down where it comes down, which is rarely on top of a node.
-    // Giving it one, as a fall gets one, is what lets an edge end where the
-    // actor does rather than at whichever node was nearest to it.
-    //
-    // Every landing gets one, even a few pixels from a node already there.
-    // Borrowing the near ones instead left an edge ending exactly on its node
-    // or a few pixels short depending on how the ground happened to fall.
     void addJumpLandingNodes(
         NavigationGraph &navigationGraph,
         const std::vector<ChosenJump> &jumps)
@@ -434,7 +407,6 @@ namespace
         {
             glm::vec2 comesDown = jump.path.back();
 
-            // Two jumps that come down together share the one node.
             if (!navigationGraph.hasNodeAtPosition(comesDown))
                 navigationGraph.addNode(nextNodeId++, comesDown, NodeKind::Landing);
         }
@@ -493,8 +465,6 @@ namespace
         return std::nullopt;
     }
 
-    // A fall starts just past the ledge. Dropping from the node itself would go
-    // through the platform it stands on, which is solid under half of them.
     std::vector<glm::vec2> fallLandings(
         const TileMap &tileMap,
         glm::vec2 takeOff,
@@ -528,7 +498,6 @@ namespace
         for (const auto &[id, node] : navigationGraph.getNodes())
             nextNodeId = std::max(nextNodeId, id + 1);
 
-        // A landing can itself be a ledge over something else, so this settles.
         for (bool added = true; added;)
         {
             added = false;
@@ -548,8 +517,6 @@ namespace
         }
     }
 
-    // The highest surface below a height, at a given column, that an actor could
-    // stand on.
     std::optional<glm::vec2> standingBelow(
         const TileMap &tileMap,
         float x,
@@ -578,11 +545,6 @@ namespace
         return std::nullopt;
     }
 
-    // A jump can only start where there is a node, and nodes sit where a surface
-    // ends or where something landed. Whether an actor can get up to a ledge at
-    // all was therefore down to whether anything happened to leave a node within
-    // reach of it. This puts one there on purpose: for each ledge, the spot on
-    // the ground below it that a jump up actually works from.
     void addTakeOffNodes(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -608,10 +570,6 @@ namespace
                 couldJump.push_back(node.position);
         }
 
-        // Where a jump up to the ledge comes down, made with the hold the edge
-        // will be built from, which is the least of those that get there.
-        // Measuring any other hold scores a take off on a jump the graph never
-        // uses, and then the two disagree about where the actor comes down.
         auto landingOnTheLedge = [&](glm::vec2 from, glm::vec2 ledge) -> std::optional<glm::vec2>
         {
             float towards = ledge.x > from.x ? 1.0f : -1.0f;
@@ -627,14 +585,6 @@ namespace
                     std::abs(attempt.path.back().y - ledge.y) >= SurfaceTolerance)
                     continue;
 
-                // Coming down on the very corner counts as landed, because the
-                // body is held up by the half of it that is over the ledge. It
-                // is no use as a destination though: there is no ground under
-                // the middle of the feet, so nothing owns the spot.
-                //
-                // A pixel below the feet, because the feet come to rest exactly
-                // on a tile boundary and which side of it they land on is a
-                // matter of the last bit of the float.
                 glm::ivec2 underfoot =
                     tileMap.worldToTilePosition(attempt.path.back() + glm::vec2(0.0f, 1.0f));
                 if (!tileMap.validTilePosition(underfoot) ||
@@ -655,8 +605,6 @@ namespace
         float step = profile.colliderSize.x;
         for (glm::vec2 ledge : ledges)
         {
-            // Something may already stand where this works from, in which case
-            // the way up is there and does not want another node beside it.
             bool alreadyServed = false;
             for (glm::vec2 standing : couldJump)
                 if (standing.y > ledge.y && std::abs(standing.x - ledge.x) <= reach &&
@@ -666,10 +614,6 @@ namespace
             if (alreadyServed)
                 continue;
 
-            // The first spot a jump works from is only the furthest one back.
-            // Standing there sails over the ledge and comes down well past it,
-            // which is a longer jump than the climb wants. The nearer it comes
-            // down to the ledge, the more the jump is aimed at it.
             std::optional<glm::vec2> aimedAt;
             float overshoot = 0.0f;
 
@@ -680,10 +624,6 @@ namespace
                 if (!takeOff)
                     continue;
 
-                // Right beside an existing node is no use to anyone: the actor
-                // cannot tell them apart and the editor draws them on top of
-                // each other. A jump up usually works from a stretch of ground,
-                // so there is somewhere further along to stand.
                 bool crowded = false;
                 for (const auto &[id, node] : navigationGraph.getNodes())
                     if (glm::distance(node.position, *takeOff) < profile.colliderSize.x)
@@ -753,8 +693,6 @@ NavigationGraph buildNavigationGraph(
     std::vector<ChosenJump> jumps = chooseJumps(navigationGraph, tileMap, profile, headroom);
     addJumpLandingNodes(navigationGraph, jumps);
 
-    // The landings are on surfaces the walk edges were laid without, so lay
-    // them again now everything that stands anywhere is a node.
     navigationGraph.clearEdges();
     addWalkEdges(navigationGraph, tileMap, headroom);
 

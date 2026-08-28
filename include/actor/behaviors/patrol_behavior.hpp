@@ -21,8 +21,6 @@ public:
 private:
     PatrolBehaviorData data;
 
-    // The two ends it walks between, and which one it is presently after.
-    // Without them, the ends of the platform it finds itself on.
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween;
     bool headingForTheSecond = false;
 

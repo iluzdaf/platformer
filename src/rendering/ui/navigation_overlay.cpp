@@ -62,10 +62,6 @@ namespace
         auto screen = [&](glm::vec2 world)
         { return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition()); };
 
-        // A curve through the jump as it was actually made: its own ends and its
-        // own high point. Fitting one between the two nodes instead stretches it
-        // out to wherever the landing was rounded to, which is not where the
-        // actor comes down.
         if (!edge.path.empty())
         {
             glm::vec2 leaves = edge.path.front();
@@ -76,7 +72,6 @@ namespace
                 if (position.y < apex.y)
                     apex = position;
 
-            // Through the high point at the middle of the curve.
             glm::vec2 control = 2.0f * apex - (leaves + comesDown) * 0.5f;
 
             if (jumpsDrawnAs == JumpsDrawnAs::TheFlightItself)

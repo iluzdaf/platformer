@@ -39,9 +39,6 @@ namespace
             {"alsoShort", npcOfHeight(13.0f)}};
     }
 
-    // Built the way a level builds one, so it is the same profile and finds the
-    // same graph. A profile carries what the actor is made of now, not just how
-    // wide it is.
     NavigationProfile profileOfHeight(float height)
     {
         return buildNavigationProfile(npcOfHeight(height).actorData);

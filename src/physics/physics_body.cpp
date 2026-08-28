@@ -91,8 +91,6 @@ void PhysicsBody::resolveCollisionAgainstTile(
         }
     }
 
-    // Overlapping while already on the way out is how a body leaves a tile it
-    // should never have been inside. Stopping it there strands it for good.
     if (!pushedApart)
         return;
 
@@ -228,9 +226,6 @@ bool PhysicsBody::contactWithRightWall(const TileMap &tileMap) const
 
 AABB PhysicsBody::underfootProbe() const
 {
-    // Just below the feet, not the whole body shifted down. Given the whole
-    // body, anything overlapping any part of it reads as ground, so a head
-    // stuck in a tile reports standing on it.
     glm::vec2 probeSize(getColliderSize().x * 0.5f, ContactProbeDepth);
     glm::vec2 probePosition = position + getColliderOffset();
     probePosition.x += getColliderSize().x * 0.25f;

@@ -92,8 +92,6 @@ std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, in
     if (fromId == toId)
         return {fromId};
 
-    // A*, where an edge costs the distance it covers and the guess at what is
-    // left is the straight line to the goal, which no route can beat.
     std::priority_queue<Step, std::vector<Step>, decltype(&furtherThan)> pending(&furtherThan);
     std::unordered_map<int, float> travelled{{fromId, 0.0f}};
     std::unordered_map<int, int> arrivedFrom;

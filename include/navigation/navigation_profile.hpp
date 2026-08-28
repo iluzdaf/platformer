@@ -12,10 +12,6 @@ struct NavigationProfile
     std::vector<JumpArc> jumpArcs;
     bool falls = false;
 
-    // What an actor is made of, so a jump can be tried by running it rather
-    // than by replaying an arc taken in open air and guessing what it would
-    // have hit. Empty for the profiles the tests build by hand, which fall
-    // back to the arcs.
     std::optional<ActorMotionData> motionData;
     std::optional<PhysicsBodyData> physicsBodyData;
 

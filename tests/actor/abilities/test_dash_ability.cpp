@@ -97,7 +97,6 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
 }
 namespace
 {
-    // How long a dash lasts when begun from the given footing.
     float dashRunsFor(const DashAbilityData &data, bool onGround)
     {
         ActorMotionState state;

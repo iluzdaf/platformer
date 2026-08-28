@@ -371,8 +371,6 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
 
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    // Built the way the game builds it, patrol and all, since where it walks
-    // is the level's to say now.
     const NpcSpawnData &spawn = level.getNpcs().at(2);
     REQUIRE(spawn.type == "explorer");
     REQUIRE(spawn.patrol);

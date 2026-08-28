@@ -7,8 +7,6 @@ class ImGuiManager;
 class Camera2D;
 class NavigationGraph;
 
-// A jump can be drawn as the flight it was simulated as, or as a curve fitted
-// to it, which reads more easily and hides how coarse the steps are.
 enum class JumpsDrawnAs
 {
     SmoothArc,

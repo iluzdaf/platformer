@@ -43,7 +43,6 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
         REQUIRE_FALSE(state.jump.active);
         REQUIRE(state.jump.velocity.y == Approx(0.0f));
 
-        // Still held, and well inside the hold, but the jump is spent.
         state.contacts.hitCeiling = false;
         jumpAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.jump.velocity.y == Approx(0.0f));

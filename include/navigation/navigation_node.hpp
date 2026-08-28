@@ -3,11 +3,8 @@
 
 enum class NodeKind
 {
-    // Where a surface ends, or where a jump up is worth making from.
     OnFoot,
 
-    // Where a fall puts an actor down. Somewhere to arrive, not somewhere to
-    // leave from: a drop lands where it lands, which is no place to aim a jump.
     Landing
 };
 

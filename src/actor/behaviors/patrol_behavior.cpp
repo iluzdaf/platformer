@@ -11,8 +11,6 @@ namespace
 {
     constexpr float SurfaceTolerance = 1.0f;
 
-    // How close to the node a jump has to start. A step is under a pixel at the
-    // speeds actors walk, so this is reachable rather than aspirational.
     constexpr float TakeOffReach = 1.5f;
 
     float directionTowards(float from, float to)
@@ -47,8 +45,6 @@ PatrolBehavior::PatrolBehavior(
 {
 }
 
-// Whichever node stands closest to one end of the beat. Without a beat, the far
-// ends of the platform underfoot, so an actor with nowhere named still paces.
 std::optional<int> PatrolBehavior::endOfTheBeat(
     const ActorBehaviorContext &context,
     bool second) const
@@ -129,9 +125,6 @@ void PatrolBehavior::anchor(const ActorBehaviorContext &context)
     }
 }
 
-// Anchoring picks the nearest node, which is rarely the one being stood on, and
-// a route can be lost outright by falling off it. Either way what the graph
-// believes and where the actor is have parted company.
 bool PatrolBehavior::hasLostTheRoute(const ActorBehaviorContext &context) const
 {
     if (!currentNodeId || !context.onGround)
@@ -142,9 +135,6 @@ bool PatrolBehavior::hasLostTheRoute(const ActorBehaviorContext &context) const
     if (std::abs(node.position.y - context.worldPosition.y) > SurfaceTolerance)
         return true;
 
-    // The same height is not the same platform. Another one level with this one
-    // would otherwise pass for being where the route says the actor is, and it
-    // would spend the rest of its life walking at a node it cannot reach.
     float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
     float leftEnd = node.position.x;
     float rightEnd = node.position.x;
@@ -208,16 +198,10 @@ InputIntentions PatrolBehavior::decide(
     const NavigationEdge *leg =
         edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
-    // A jump that fell short puts the actor back on the ground with its hold
-    // spent. Without giving that back it can neither jump again nor ever
-    // arrive, and it walks at a node on another platform for good.
     if (leg && leg->type == EdgeType::Jump && context.onGround &&
         jumpHeldFor >= leg->holdDuration)
         jumpHeldFor = 0.0f;
 
-    // A jump was simulated from the node, so it has to be made from the node,
-    // and close enough to arrive is not close enough to jump. Being a few pixels
-    // short is the difference between clearing a ledge and hitting its side.
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)
     {
         NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
@@ -229,9 +213,6 @@ InputIntentions PatrolBehavior::decide(
         }
     }
 
-    // A fall is a straight drop, and its landing sits a few pixels off the ledge
-    // it leaves. Steering at it from the air overshoots by a step every frame,
-    // so the actor arrives flicking from side to side.
     if (leg && leg->type == EdgeType::Fall && !context.onGround)
         inputIntentions.direction.x = 0.0f;
 
@@ -265,7 +246,6 @@ void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
 
     std::optional<int> destination = endOfTheBeat(context, headingForTheSecond);
 
-    // Standing on the end it was making for, so the other one is next.
     if (destination && *destination == *currentNodeId)
     {
         headingForTheSecond = !headingForTheSecond;

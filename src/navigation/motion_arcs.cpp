@@ -115,13 +115,8 @@ JumpAttempt simulateJumpAgainst(
 
         attempt.path.push_back(feet());
 
-        // Off the ground first, then back on it, is a jump that got somewhere.
         if (step > 0 && state.contacts.onGround)
         {
-            // The feet come to rest on a tile boundary, but a hair either side
-            // of it after the arithmetic, and which side decides what tile
-            // anything asking later thinks they are standing on. They are
-            // standing on the surface, so say so exactly.
             float tileSize = static_cast<float>(tileMap.getTileSize());
             attempt.path.back().y = std::round(attempt.path.back().y / tileSize) * tileSize;
 

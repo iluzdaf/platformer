@@ -313,8 +313,6 @@ TEST_CASE("Player movement ability integration", "[Player]")
 
 TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", "[Player]")
 {
-    // A ledge with open air under its right hand end, so a player sliding down
-    // the right face reaches the corner and keeps pressing into it.
     TileMap tileMap = setupTileMap(20, 20);
     constexpr int LedgeRow = 5;
     constexpr int LedgeLastTile = 6;
@@ -344,7 +342,6 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
         player.postFixedUpdate();
     }
 
-    // Whatever it does, it must not still be inside the ledge.
     float colliderTop = player.getPosition().y + player.getPhysicsBody().getColliderOffset().y;
     INFO("collider top ended at " << colliderTop << ", the ledge spans "
                                   << ledgeTop << " to " << ledgeTop + 16.0f);
@@ -404,8 +401,6 @@ namespace
         return tileMapData;
     }
 
-    // Runs at the pit and tries the technique, trying every take off point on
-    // the way in, since clearing it means clearing it with the best timing.
     bool getsAcross(const GameData &gameData, int tiles, Pit kind, bool jump, bool dash)
     {
         LevelData levelData;
@@ -485,15 +480,12 @@ TEST_CASE("The shipped player's jump is worth three tiles", "[Player][Tuning]")
 {
     GameData gameData = shippedGameData();
 
-    // Level 6's platforms are three tiles apart, surface to surface.
     REQUIRE(getsAcross(gameData, 3, Pit::StepUp, true, false));
     REQUIRE_FALSE(getsAcross(gameData, 4, Pit::StepUp, true, false));
 
     REQUIRE(getsAcross(gameData, 3, Pit::Hole, true, false));
     REQUIRE_FALSE(getsAcross(gameData, 4, Pit::Hole, true, false));
 
-    // Spikes cost two tiles against a hole of the same width: you may land on
-    // the far lip of a hole, but you have to be above spikes the whole way.
     REQUIRE(getsAcross(gameData, 2, Pit::Spikes, true, false));
     REQUIRE_FALSE(getsAcross(gameData, 3, Pit::Spikes, true, false));
 }
@@ -505,7 +497,6 @@ TEST_CASE("The shipped player's dash is worth four tiles, and no spikes", "[Play
     REQUIRE(getsAcross(gameData, 4, Pit::Hole, false, true));
     REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Hole, false, true));
 
-    // A dash is level, so it runs into spikes rather than over them.
     REQUIRE_FALSE(getsAcross(gameData, 1, Pit::Spikes, false, true));
 }
 
@@ -520,8 +511,6 @@ TEST_CASE("The shipped player's jump and dash together are worth five tiles",
     REQUIRE(getsAcross(gameData, 4, Pit::Spikes, true, true));
     REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Spikes, true, true));
 
-    // Five rather than seven because a dash begun in the air is the shorter
-    // one. Without that a jump and a dash simply add.
     REQUIRE(gameData.playerData.actorData.motionData.dashAbilityData->airborneFraction < 1.0f);
 }
 
@@ -532,10 +521,6 @@ TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    // Every step in level6 is two tiles up and two across. Take off points are
-    // swept back from the edge being left, which is not always the edge being
-    // jumped towards: the highest platform overhangs the middle one, so that
-    // climb starts from the middle platform's far end.
     struct Step
     {
         const char *what;
@@ -640,10 +625,8 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
         return takeOffPointsThatWork;
     };
 
-    // Room to get it wrong by a few pixels, rather than a frame perfect dash.
     REQUIRE(runsAtItWith(true) > 10);
 
-    // The block overhead leaves no headroom, which is what makes it a dash.
     REQUIRE(runsAtItWith(false) == 0);
 }
 
@@ -654,8 +637,6 @@ TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[L
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level1.json"), std::string{}));
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    // The camera only follows once the level is wider than the view. Below that
-    // it centres the whole thing, so everything in the level is on screen.
     float inView = static_cast<float>(gameData.windowWidth) / gameData.cameraData.zoom;
     INFO("level is " << level.getTileMap().getWorldWidth() << "px, the camera shows " << inView);
     REQUIRE(static_cast<float>(level.getTileMap().getWorldWidth()) <= inView);

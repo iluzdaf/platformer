@@ -5,12 +5,6 @@
 
 namespace
 {
-    // Two platforms, one above the other, joined by a jump up on the left and a
-    // fall down on the right.
-    //
-    //   0 --- 1 --- 2      upper
-    //   |jump        |fall
-    //   3 --- 4 --- 5      lower
     NavigationGraph setupTwoFloors()
     {
         NavigationGraph navigationGraph;
@@ -68,12 +62,10 @@ TEST_CASE("A route takes the shorter way, not the one with fewer stops", "[Navig
     navigationGraph.addNode(0, glm::vec2(0.0f, 0.0f));
     navigationGraph.addNode(1, glm::vec2(0.0f, 100.0f));
 
-    // Two hops, but a long way round.
     navigationGraph.addNode(2, glm::vec2(250.0f, 0.0f));
     navigationGraph.addEdge(0, 2, EdgeType::Walk);
     navigationGraph.addEdge(2, 1, EdgeType::Walk);
 
-    // Four hops, straight there.
     navigationGraph.addNode(3, glm::vec2(0.0f, 25.0f));
     navigationGraph.addNode(4, glm::vec2(0.0f, 50.0f));
     navigationGraph.addNode(5, glm::vec2(0.0f, 75.0f));
@@ -94,8 +86,6 @@ TEST_CASE("A round trip leaves out what is past a one way drop", "[NavigationPat
 {
     NavigationGraph navigationGraph = setupTwoFloors();
 
-    // Node 0 can reach every node, but the lower floor can only be left by the
-    // jump at node 3, so all of it is still worth going to.
     REQUIRE(roundTripFrom(navigationGraph, 0) == std::vector{0, 1, 2, 3, 4, 5});
 
     navigationGraph.addNode(6, glm::vec2(150.0f, 50.0f));

@@ -502,9 +502,6 @@ namespace
             static_cast<float>(PlatformRow - rowsUp) * tileSize);
     }
 
-    // A jump ends where the actor comes down, and the node it counts as may be
-    // one put there for it rather than the far platform's edge. What the level
-    // asks is whether it gets across, not which node it finishes on.
     bool jumpsAcrossTo(const NavigationGraph &graph, glm::vec2 from, glm::vec2 farSide)
     {
         constexpr float Tolerance = 0.5f;
@@ -520,7 +517,6 @@ namespace
             if (std::abs(to.position.y - farSide.y) > Tolerance)
                 continue;
 
-            // Past the far lip of the gap, whichever side of it that is.
             bool overThere = farSide.x > from.x ? to.position.x >= farSide.x - Tolerance
                                                 : to.position.x <= farSide.x + Tolerance;
             if (overThere)
@@ -742,9 +738,6 @@ TEST_CASE("The shipped explorer can get up to level6's top platform and back",
 
     NavigationGraph graph = buildNavigationGraph(tileMap, explorer);
 
-    // The explorer only carries itself far enough sideways during a jump to
-    // clear the 48px up to the top platform because it moves at 200. At 150 it
-    // is already on its way down by the time it has crossed the gap.
     int topPlatformId = -1;
     for (const auto &[id, node] : graph.getNodes())
         if (node.position.y < 100.0f)
@@ -756,9 +749,6 @@ TEST_CASE("The shipped explorer can get up to level6's top platform and back",
     REQUIRE(reachable.size() > 2);
 }
 
-// The builder used to be harder to please than the physics, and the player was
-// left out of this because of it. It runs the jump now instead of guessing at
-// it, so what it grants and what an actor can do are the same thing.
 TEST_CASE("The shipped actors can reach every surface in level6",
           "[NavigationGraphBuilder][Jump][Level]")
 {
@@ -796,9 +786,6 @@ TEST_CASE("A way up does not depend on something having fallen there",
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
-    // Nodes sit where a surface ends or where something landed, so a jump can
-    // only start from one of those. Without the landings, the only node on the
-    // floor within reach of the platform is one put there to jump from.
     NavigationProfile profile =
         buildNavigationProfile(gameData.npcData.at("explorer").actorData);
     profile.falls = false;
@@ -826,8 +813,6 @@ TEST_CASE("The shipped player is offered every climb level6 asks of it",
     NavigationGraph graph =
         buildNavigationGraph(tileMap, buildNavigationProfile(gameData.playerData.actorData));
 
-    // Level 6 is a staircase of two tile steps, and a player test walks each of
-    // them by jumping. The graph has to offer what the player can do.
     for (auto [from, to] : {std::pair(192.0f, 160.0f), std::pair(160.0f, 128.0f),
                             std::pair(128.0f, 96.0f)})
     {
@@ -852,17 +837,12 @@ TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Le
     NavigationGraph graph = buildNavigationGraph(
         tileMap, buildNavigationProfile(gameData.npcData.at("explorer").actorData));
 
-    // A node means standing somewhere, and standing means feet on a surface, so
-    // its height is that surface exactly. Nothing says the same about x, which
-    // is wherever a ledge ended or a flight came down.
     float tileSize = static_cast<float>(tileMap.getTileSize());
     for (const auto &[id, node] : graph.getNodes())
     {
         INFO("node " << id << " at " << node.position.x << "," << node.position.y);
         REQUIRE(std::fmod(node.position.y, tileSize) == 0.0f);
 
-        // A node at the end of a platform sits exactly on the boundary, so the
-        // ground holding it up is the tile to one side or the other.
         glm::ivec2 under = tileMap.worldToTilePosition(node.position + glm::vec2(0.0f, 1.0f));
         glm::ivec2 justBehind =
             tileMap.worldToTilePosition(node.position + glm::vec2(-1.0f, 1.0f));
@@ -1042,8 +1022,6 @@ namespace
 
         return tileMap;
     }
-    // A fall steps off the ledge before dropping, so the landing sits just
-    // beyond the platform edge rather than under it.
     int nodeJustPastTheLedge(const NavigationGraph &graph, float floorY)
     {
         float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
@@ -1060,9 +1038,6 @@ namespace
     constexpr int FarLedgeStart = 6;
     constexpr int FarLedgeEnd = 12;
 
-    // Two ledges over one long floor, high enough that a jump along the floor
-    // passes under them. Their landings leave enough nodes on the floor that a
-    // jump can reach one without being next to it.
     TileMap setupLedgesAboveFloor()
     {
         TileMap tileMap = setupTileMap(20, TallMapHeightTiles);

@@ -58,8 +58,6 @@ namespace
 
         ImDrawList *drawList = imGuiManager.getDrawList();
 
-        NavigationNode landing = navigationGraph.getNode(edge.toId);
-
         auto screen = [&](glm::vec2 world)
         { return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition()); };
 
@@ -83,9 +81,6 @@ namespace
             drawList->PathLineTo(screen(leaves));
             drawList->PathBezierQuadraticCurveTo(screen(control), screen(comesDown));
             drawList->PathStroke(color, ImDrawFlags_None, 1.5f);
-
-            // It comes down somewhere along the platform, then walks the rest.
-            drawList->AddLine(screen(comesDown), screen(landing.position), color, 1.0f);
             return;
         }
 

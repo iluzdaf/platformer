@@ -553,8 +553,9 @@ namespace
                 couldJump.push_back(node.position);
         }
 
-        // Whether a jump lands on the ledge, made from where it is standing.
-        auto getsUpTo = [&](glm::vec2 from, glm::vec2 ledge)
+        // Where a jump up to the ledge comes down, made from where it is
+        // standing, if it gets there at all.
+        auto landingOnTheLedge = [&](glm::vec2 from, glm::vec2 ledge) -> std::optional<glm::vec2>
         {
             float towards = ledge.x > from.x ? 1.0f : -1.0f;
             for (const JumpArc &arc : profile.jumpArcs)
@@ -562,10 +563,21 @@ namespace
                 JumpAttempt attempt = simulateJumpAgainst(
                     tileMap, *profile.motionData, *profile.physicsBodyData, from, towards,
                     arc.holdFraction);
-                if (attempt.landed && std::abs(attempt.path.back().y - ledge.y) < SurfaceTolerance)
-                    return true;
+                if (!attempt.landed ||
+                    std::abs(attempt.path.back().y - ledge.y) >= SurfaceTolerance)
+                    continue;
+
+                // Coming down on the very corner counts as landed, because the
+                // body is held up by the half of it that is over the ledge. It
+                // is no use as a destination though: there is no ground under
+                // the middle of the feet, so nothing owns the spot.
+                glm::ivec2 underfoot = tileMap.worldToTilePosition(attempt.path.back());
+                if (tileMap.validTilePosition(underfoot) &&
+                    tileMap.getTileAtTilePosition(underfoot).isSolid() &&
+                    canStandOn(tileMap, underfoot, headroom))
+                    return attempt.path.back();
             }
-            return false;
+            return std::nullopt;
         };
 
         float step = profile.colliderSize.x;
@@ -576,11 +588,18 @@ namespace
             bool alreadyServed = false;
             for (glm::vec2 standing : couldJump)
                 if (standing.y > ledge.y && std::abs(standing.x - ledge.x) <= reach &&
-                    getsUpTo(standing, ledge))
+                    landingOnTheLedge(standing, ledge))
                     alreadyServed = true;
 
             if (alreadyServed)
                 continue;
+
+            // The first spot a jump works from is only the furthest one back.
+            // Standing there sails over the ledge and comes down well past it,
+            // which is a longer jump than the climb wants. The nearer it comes
+            // down to the ledge, the more the jump is aimed at it.
+            std::optional<glm::vec2> aimedAt;
+            float overshoot = 0.0f;
 
             for (float x = ledge.x - reach; x <= ledge.x + reach; x += step)
             {
@@ -601,12 +620,20 @@ namespace
                 if (crowded)
                     continue;
 
-                if (getsUpTo(*takeOff, ledge))
+                std::optional<glm::vec2> comesDown = landingOnTheLedge(*takeOff, ledge);
+                if (!comesDown)
+                    continue;
+
+                float past = std::abs(comesDown->x - ledge.x);
+                if (!aimedAt || past < overshoot)
                 {
-                    navigationGraph.addNode(nextNodeId++, *takeOff);
-                    break;
+                    aimedAt = *takeOff;
+                    overshoot = past;
                 }
             }
+
+            if (aimedAt)
+                navigationGraph.addNode(nextNodeId++, *aimedAt);
         }
     }
 

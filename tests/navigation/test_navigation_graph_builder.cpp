@@ -501,6 +501,48 @@ namespace
             static_cast<float>(PlatformRow - rowsUp) * tileSize);
     }
 
+    // A jump ends where the actor comes down, and the node it counts as may be
+    // one put there for it rather than the far platform's edge. What the level
+    // asks is whether it gets across, not which node it finishes on.
+    bool jumpsAcrossTo(const NavigationGraph &graph, glm::vec2 from, glm::vec2 farSide)
+    {
+        constexpr float Tolerance = 0.5f;
+        for (const auto &edge : graph.getEdges())
+        {
+            if (edge.type != EdgeType::Jump)
+                continue;
+
+            if (glm::distance(graph.getNode(edge.fromId).position, from) > Tolerance)
+                continue;
+
+            NavigationNode to = graph.getNode(edge.toId);
+            if (std::abs(to.position.y - farSide.y) > Tolerance)
+                continue;
+
+            // Past the far lip of the gap, whichever side of it that is.
+            bool overThere = farSide.x > from.x ? to.position.x >= farSide.x - Tolerance
+                                                : to.position.x <= farSide.x + Tolerance;
+            if (overThere)
+                return true;
+        }
+
+        return false;
+    }
+
+    const NavigationEdge *onlyJumpFrom(const NavigationGraph &graph, int fromId)
+    {
+        const NavigationEdge *only = nullptr;
+        for (const auto &edge : graph.getOutgoingEdges(fromId))
+            if (edge.type == EdgeType::Jump)
+            {
+                if (only)
+                    return nullptr;
+                only = &edge;
+            }
+
+        return only;
+    }
+
     bool hasEdgeBetween(
         const NavigationGraph &graph,
         glm::vec2 from,
@@ -549,11 +591,7 @@ TEST_CASE("A jumper crosses a gap it can clear", "[NavigationGraphBuilder][Jump]
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    REQUIRE(hasEdgeBetween(
-        graph,
-        takeOffPosition(tileMap),
-        landingPosition(tileMap, GapTiles),
-        EdgeType::Jump));
+    REQUIRE(jumpsAcrossTo(graph, takeOffPosition(tileMap), landingPosition(tileMap, GapTiles)));
 }
 
 TEST_CASE("A jumper crosses a gap in both directions", "[NavigationGraphBuilder][Jump]")
@@ -563,11 +601,7 @@ TEST_CASE("A jumper crosses a gap in both directions", "[NavigationGraphBuilder]
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    REQUIRE(hasEdgeBetween(
-        graph,
-        landingPosition(tileMap, GapTiles),
-        takeOffPosition(tileMap),
-        EdgeType::Jump));
+    REQUIRE(jumpsAcrossTo(graph, landingPosition(tileMap, GapTiles), takeOffPosition(tileMap)));
 }
 
 TEST_CASE("A jumper does not cross a gap beyond its reach", "[NavigationGraphBuilder][Jump]")
@@ -587,11 +621,8 @@ TEST_CASE("A jumper reaches a ledge two tiles up", "[NavigationGraphBuilder][Jum
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    REQUIRE(hasEdgeBetween(
-        graph,
-        takeOffPosition(tileMap),
-        landingPosition(tileMap, GapTiles, RowsUp),
-        EdgeType::Jump));
+    REQUIRE(jumpsAcrossTo(
+        graph, takeOffPosition(tileMap), landingPosition(tileMap, GapTiles, RowsUp)));
 }
 
 TEST_CASE("A jumper does not reach a ledge six tiles up", "[NavigationGraphBuilder][Jump]")
@@ -991,15 +1022,6 @@ namespace
         return tileMap;
     }
 
-    const NavigationEdge *edgeBetween(const NavigationGraph &graph, int fromId, int toId)
-    {
-        for (const auto &edge : graph.getOutgoingEdges(fromId))
-            if (edge.toId == toId)
-                return &edge;
-
-        return nullptr;
-    }
-
     int nodeAt(const NavigationGraph &graph, glm::vec2 position)
     {
         for (const auto &[id, node] : graph.getNodes())
@@ -1024,13 +1046,13 @@ TEST_CASE("A jump is the smallest one that reaches", "[NavigationGraphBuilder][J
     REQUIRE(farSide >= 0);
     REQUIRE(longWayOff >= 0);
 
-    const NavigationEdge *there = edgeBetween(graph, acrossTheGap, farSide);
-    const NavigationEdge *back = edgeBetween(graph, farSide, acrossTheGap);
+    const NavigationEdge *there = onlyJumpFrom(graph, acrossTheGap);
+    const NavigationEdge *back = onlyJumpFrom(graph, farSide);
     REQUIRE(there);
     REQUIRE(back);
     REQUIRE(there->holdDuration == back->holdDuration);
 
-    const NavigationEdge *further = edgeBetween(graph, longWayOff, farSide);
+    const NavigationEdge *further = onlyJumpFrom(graph, longWayOff);
     REQUIRE(further);
     REQUIRE(there->holdDuration < further->holdDuration);
 }
@@ -1048,13 +1070,11 @@ TEST_CASE("A jump crosses to a platform once", "[NavigationGraphBuilder][Jump]")
     REQUIRE(nearEdgeId >= 0);
     REQUIRE(nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeEnd + 1) * 16.0f, ledgeY)) >= 0);
 
-    std::vector<int> jumps;
-    for (const auto &edge : graph.getOutgoingEdges(takeOffId))
-        if (edge.type == EdgeType::Jump)
-            jumps.push_back(edge.toId);
-
-    REQUIRE(jumps.size() == 1);
-    REQUIRE(jumps.front() == nearEdgeId);
+    const NavigationEdge *only = onlyJumpFrom(graph, takeOffId);
+    REQUIRE(only);
+    REQUIRE(graph.getNode(only->toId).position.y == ledgeY);
+    REQUIRE(graph.getNode(only->toId).position.x >=
+            static_cast<float>(FarLedgeStart) * 16.0f - 0.5f);
 }
 
 TEST_CASE("Nothing jumps to where it could walk", "[NavigationGraphBuilder][Jump]")

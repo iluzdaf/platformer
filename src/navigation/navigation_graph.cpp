@@ -64,6 +64,12 @@ const std::vector<NavigationEdge> &NavigationGraph::getOutgoingEdges(int id) con
     return empty;
 }
 
+void NavigationGraph::clearEdges()
+{
+    edges.clear();
+    adjacency.clear();
+}
+
 void NavigationGraph::clear()
 {
     nodes.clear();

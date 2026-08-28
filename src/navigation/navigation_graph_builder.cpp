@@ -341,7 +341,16 @@ namespace
         return candidate.reach < against.reach;
     }
 
-    void addJumpEdges(
+    struct ChosenJump
+    {
+        int fromId = 0;
+        std::vector<glm::vec2> path;
+        float holdDuration = 0.0f;
+    };
+
+    // Every jump worth keeping, before any of them are edges: which one a node
+    // makes to each platform it can reach, and the flight it makes it with.
+    std::vector<ChosenJump> chooseJumps(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
@@ -395,12 +404,55 @@ namespace
                     easiest[platform] = candidate;
                 }
 
+        std::vector<ChosenJump> chosen;
         for (const auto &[platform, candidate] : easiest)
-            navigationGraph.addEdge({platform.first,
-                                     candidate.toId,
-                                     EdgeType::Jump,
-                                     candidate.path,
-                                     candidate.holdDuration});
+            chosen.push_back({platform.first, candidate.path, candidate.holdDuration});
+
+        return chosen;
+    }
+
+    // A jump comes down where it comes down, which is rarely on top of a node.
+    // Giving it one, as a fall gets one, is what lets an edge end where the
+    // actor does rather than at whichever node was nearest to it.
+    void addJumpLandingNodes(
+        NavigationGraph &navigationGraph,
+        const NavigationProfile &profile,
+        const std::vector<ChosenJump> &jumps)
+    {
+        int nextNodeId = 0;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+            nextNodeId = std::max(nextNodeId, id + 1);
+
+        for (const ChosenJump &jump : jumps)
+        {
+            glm::vec2 comesDown = jump.path.back();
+
+            bool crowded = false;
+            for (const auto &[id, node] : navigationGraph.getNodes())
+                if (glm::distance(node.position, comesDown) < profile.colliderSize.x)
+                    crowded = true;
+
+            if (!crowded)
+                navigationGraph.addNode(nextNodeId++, comesDown, NodeKind::Landing);
+        }
+    }
+
+    void addJumpEdges(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        int headroom,
+        const std::vector<ChosenJump> &jumps)
+    {
+        for (const ChosenJump &jump : jumps)
+        {
+            std::optional<int> toId =
+                nodeGoverning(navigationGraph, tileMap, jump.path.back(), headroom);
+            if (!toId || *toId == jump.fromId)
+                continue;
+
+            navigationGraph.addEdge(
+                {jump.fromId, *toId, EdgeType::Jump, jump.path, jump.holdDuration});
+        }
     }
 
     std::optional<glm::vec2> surfaceBelow(
@@ -689,7 +741,16 @@ NavigationGraph buildNavigationGraph(
     addFallLandingNodes(navigationGraph, tileMap, profile, headroom);
     addTakeOffNodes(navigationGraph, tileMap, profile, headroom);
     addWalkEdges(navigationGraph, tileMap, headroom);
-    addJumpEdges(navigationGraph, tileMap, profile, headroom);
+
+    std::vector<ChosenJump> jumps = chooseJumps(navigationGraph, tileMap, profile, headroom);
+    addJumpLandingNodes(navigationGraph, profile, jumps);
+
+    // The landings are on surfaces the walk edges were laid without, so lay
+    // them again now everything that stands anywhere is a node.
+    navigationGraph.clearEdges();
+    addWalkEdges(navigationGraph, tileMap, headroom);
+
+    addJumpEdges(navigationGraph, tileMap, headroom, jumps);
     addFallEdges(navigationGraph, tileMap, profile, headroom);
 
     return navigationGraph;

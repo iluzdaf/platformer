@@ -144,7 +144,9 @@
                     }
                 }
             },
-            "patrolBehaviorData":{"arrivalThreshold":2.0}
+            "stateMachineBehaviorData":{
+                "states":[{"name":"patrol","patrolBehaviorData":{"arrivalThreshold":2.0}}]
+            }
         }
     },
     "tilePalettes":{

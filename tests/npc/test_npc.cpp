@@ -30,7 +30,10 @@ namespace
         npcData.actorData.motionData.gravityAbilityData = GravityAbilityData{};
         npcData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
         npcData.actorData.physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);
-        npcData.patrolBehaviorData = PatrolBehaviorData();
+        BehaviorStateData patrolling;
+        patrolling.name = "patrol";
+        patrolling.patrolBehaviorData = PatrolBehaviorData();
+        npcData.stateMachineBehaviorData = StateMachineBehaviorData{{patrolling}, {}};
         return npcData;
     }
 
@@ -357,7 +360,7 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     const TileMap &tileMap = level.getTileMap();
 
     NpcData npcData = setupNpcData();
-    npcData.patrolBehaviorData.reset();
+    npcData.stateMachineBehaviorData.reset();
 
     Npc npc(npcData);
     standIn(npc, tileMap, SpawnTile);

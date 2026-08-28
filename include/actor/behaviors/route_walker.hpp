@@ -28,5 +28,6 @@ private:
 
     void anchor(const ActorBehaviorContext &context);
     bool hasArrived(const ActorBehaviorContext &context) const;
+    bool withinReachOf(const ActorBehaviorContext &context, int nodeId) const;
     bool hasLostTheRoute(const ActorBehaviorContext &context) const;
 };

@@ -18,6 +18,7 @@ private:
     FleeBehaviorData data;
     RouteWalker walker;
 
+    std::optional<int> furthestAlong(const ActorBehaviorContext &context, float away) const;
     std::optional<int> furthestFrom(const ActorBehaviorContext &context) const;
     bool fleeingTowardsTheThreat(const ActorBehaviorContext &context) const;
     void planRoute(const ActorBehaviorContext &context);

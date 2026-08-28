@@ -140,6 +140,9 @@ void RouteWalker::takeRouteTo(const ActorBehaviorContext &context, int destinati
 
     if (destinationNodeId == *currentNodeId)
     {
+        if (withinReachOf(context, destinationNodeId))
+            return;
+
         legsLeft.assign(1, destinationNodeId);
         targetNodeId = destinationNodeId;
         return;
@@ -192,6 +195,17 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
     }
 
     return inputIntentions;
+}
+
+bool RouteWalker::withinReachOf(const ActorBehaviorContext &context, int nodeId) const
+{
+    NavigationNode node = context.navigationGraph.getNode(nodeId);
+    if (std::abs(node.position.y - context.worldPosition.y) > SurfaceTolerance)
+        return false;
+
+    float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
+
+    return std::abs(node.position.x - context.worldPosition.x) <= reach;
 }
 
 bool RouteWalker::hasArrived(const ActorBehaviorContext &context) const

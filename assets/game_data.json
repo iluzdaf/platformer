@@ -98,7 +98,10 @@
             "stateMachineBehaviorData":{
                 "states":[
                     {"name":"patrol","patrolBehaviorData":{"arrivalThreshold":2.0}},
-                    {"name":"flee","fleeBehaviorData":{"arrivalThreshold":2.0}}
+                    {
+                        "name":"flee",
+                        "fleeBehaviorData":{"arrivalThreshold":2.0,"breakPastWithin":24.0}
+                    }
                 ],
                 "transitions":[
                     {"from":"patrol","to":"flee","threatWithin":40.0},

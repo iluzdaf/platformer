@@ -171,3 +171,34 @@ TEST_CASE("Turns back to the node it set off from when the threat gets behind it
 
     REQUIRE(turningBack.direction.x == 1.0f);
 }
+
+TEST_CASE("Breaks past the threat once it has nowhere left to back into", "[FleeBehavior]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    FleeBehaviorData data = setupData();
+    data.breakPastWithin = 24.0f;
+    FleeBehavior behavior(data);
+
+    glm::vec2 position(104.0f, 96.0f);
+    for (int step = 0; step < 200; ++step)
+    {
+        InputIntentions running =
+            behavior.decide(0.01f, at(navigationGraph, position, glm::vec2(112.0f, 96.0f)));
+        position.x += running.direction.x * 1.0f;
+    }
+
+    REQUIRE(position.x < 24.0f);
+
+    InputIntentions holding = behavior.decide(
+        0.01f, at(navigationGraph, position, glm::vec2(position.x + 40.0f, 96.0f)));
+    REQUIRE(holding.direction.x == 0.0f);
+
+    InputIntentions breakingPast = behavior.decide(
+        0.01f, at(navigationGraph, position, glm::vec2(position.x + 10.0f, 96.0f)));
+    REQUIRE(breakingPast.direction.x == 1.0f);
+}

@@ -757,6 +757,33 @@ TEST_CASE("The shipped explorer can reach every surface in level6",
     REQUIRE(reachesEverySurface(gameData.npcData.at("explorer").actorData));
 }
 
+TEST_CASE("A way up does not depend on something having fallen there",
+          "[NavigationGraphBuilder][Jump][Level]")
+{
+    GameData gameData;
+    REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
+    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+
+    // Nodes sit where a surface ends or where something landed, so a jump can
+    // only start from one of those. Without the landings, the only node on the
+    // floor within reach of the platform is one put there to jump from.
+    NavigationProfile profile =
+        buildNavigationProfile(gameData.npcData.at("explorer").actorData);
+    profile.falls = false;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+    float floorY = 192.0f;
+    bool getsOffTheFloor = false;
+    for (const auto &edge : graph.getEdges())
+        if (edge.type == EdgeType::Jump &&
+            std::abs(graph.getNode(edge.fromId).position.y - floorY) < 0.5f &&
+            graph.getNode(edge.toId).position.y < floorY)
+            getsOffTheFloor = true;
+
+    REQUIRE(getsOffTheFloor);
+}
+
 TEST_CASE("The shipped villager is offered no jumps at all", "[NavigationGraphBuilder][Jump][Level]")
 {
     GameData gameData;

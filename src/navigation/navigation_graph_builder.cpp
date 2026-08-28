@@ -12,6 +12,8 @@ namespace
 {
     constexpr float NodeTileNudge = 0.5f;
 
+    constexpr float SurfaceTolerance = 1.0f;
+
     int tilesOfHeadroom(const TileMap &tileMap, const NavigationProfile &profile)
     {
         float tileSize = static_cast<float>(tileMap.getTileSize());
@@ -487,6 +489,108 @@ namespace
         }
     }
 
+    // The highest surface below a height, at a given column, that an actor could
+    // stand on.
+    std::optional<glm::vec2> standingBelow(
+        const TileMap &tileMap,
+        float x,
+        float below,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        float tileSize = static_cast<float>(tileMap.getTileSize());
+        glm::ivec2 column = tileMap.worldToTilePosition(glm::vec2(x, below));
+
+        for (int y = column.y + 1; y < tileMap.getHeight(); ++y)
+        {
+            glm::ivec2 ground(column.x, y);
+            if (!tileMap.validTilePosition(ground))
+                return std::nullopt;
+            if (!tileMap.getTileAtTilePosition(ground).isSolid())
+                continue;
+
+            glm::vec2 standing(x, static_cast<float>(y) * tileSize);
+            if (canStandOn(tileMap, ground, headroom) && clearAt(tileMap, standing, profile))
+                return standing;
+
+            return std::nullopt;
+        }
+
+        return std::nullopt;
+    }
+
+    // A jump can only start where there is a node, and nodes sit where a surface
+    // ends or where something landed. Whether an actor can get up to a ledge at
+    // all was therefore down to whether anything happened to leave a node within
+    // reach of it. This puts one there on purpose: for each ledge, the spot on
+    // the ground below it that a jump up actually works from.
+    void addTakeOffNodes(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        if (!profile.motionData || !profile.physicsBodyData || profile.jumpArcs.empty())
+            return;
+
+        float reach = 0.0f;
+        for (const JumpArc &arc : profile.jumpArcs)
+            for (glm::vec2 offset : arc.offsets)
+                reach = std::max(reach, std::abs(offset.x));
+
+        int nextNodeId = 0;
+        std::vector<glm::vec2> ledges;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            nextNodeId = std::max(nextNodeId, id + 1);
+            ledges.push_back(node.position);
+        }
+
+        // Whether a jump lands on the ledge, made from where it is standing.
+        auto getsUpTo = [&](glm::vec2 from, glm::vec2 ledge)
+        {
+            float towards = ledge.x > from.x ? 1.0f : -1.0f;
+            for (const JumpArc &arc : profile.jumpArcs)
+            {
+                JumpAttempt attempt = simulateJumpAgainst(
+                    tileMap, *profile.motionData, *profile.physicsBodyData, from, towards,
+                    arc.holdFraction);
+                if (attempt.landed && std::abs(attempt.path.back().y - ledge.y) < SurfaceTolerance)
+                    return true;
+            }
+            return false;
+        };
+
+        float step = profile.colliderSize.x;
+        for (glm::vec2 ledge : ledges)
+        {
+            // Something may already stand where this works from, in which case
+            // the way up is there and does not want another node beside it.
+            bool alreadyServed = false;
+            for (glm::vec2 standing : ledges)
+                if (standing.y > ledge.y && std::abs(standing.x - ledge.x) <= reach &&
+                    getsUpTo(standing, ledge))
+                    alreadyServed = true;
+
+            if (alreadyServed)
+                continue;
+
+            for (float x = ledge.x - reach; x <= ledge.x + reach; x += step)
+            {
+                std::optional<glm::vec2> takeOff =
+                    standingBelow(tileMap, x, ledge.y, profile, headroom);
+                if (!takeOff || navigationGraph.hasNodeAtPosition(*takeOff))
+                    continue;
+
+                if (getsUpTo(*takeOff, ledge))
+                {
+                    navigationGraph.addNode(nextNodeId++, *takeOff);
+                    break;
+                }
+            }
+        }
+    }
+
     void addFallEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -525,6 +629,7 @@ NavigationGraph buildNavigationGraph(
 
     addNodes(navigationGraph, tileMap, headroom);
     addFallLandingNodes(navigationGraph, tileMap, profile, headroom);
+    addTakeOffNodes(navigationGraph, tileMap, profile, headroom);
     addWalkEdges(navigationGraph, tileMap, headroom);
     addJumpEdges(navigationGraph, tileMap, profile, headroom);
     addFallEdges(navigationGraph, tileMap, profile, headroom);

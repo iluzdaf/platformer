@@ -91,8 +91,10 @@ jobs:
       - name: Set up for macOS
         if: runner.os == 'macOS'
         run: |
-          brew update
-          brew install llvm ccache
+          brew install llvm ccache || {
+            brew update
+            brew install llvm ccache
+          }
 
       - name: Set up for Windows
         if: runner.os == 'Windows'

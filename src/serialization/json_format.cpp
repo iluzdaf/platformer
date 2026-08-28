@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <string>
 #include <vector>
 #include "serialization/json_format.hpp"
 

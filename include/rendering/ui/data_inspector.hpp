@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
+#include <cfloat>
 #include <cstddef>
 #include <map>
 #include <optional>

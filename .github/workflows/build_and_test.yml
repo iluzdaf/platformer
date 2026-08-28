@@ -91,9 +91,11 @@ jobs:
       - name: Set up for macOS
         if: runner.os == 'macOS'
         run: |
-          brew install llvm ccache || {
+          LLVM=$(cat .llvm-version)
+          echo "LLVM=$LLVM" >> "$GITHUB_ENV"
+          brew install "llvm@$LLVM" ccache || {
             brew update
-            brew install llvm ccache
+            brew install "llvm@$LLVM" ccache
           }
 
       - name: Set up for Windows
@@ -145,8 +147,8 @@ jobs:
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_C_COMPILER_LAUNCHER=ccache \
               -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-              -DCMAKE_C_COMPILER="/opt/homebrew/opt/llvm/bin/clang" \
-              -DCMAKE_CXX_COMPILER="/opt/homebrew/opt/llvm/bin/clang++" \
+              -DCMAKE_C_COMPILER="$(brew --prefix llvm@${LLVM})/bin/clang" \
+              -DCMAKE_CXX_COMPILER="$(brew --prefix llvm@${LLVM})/bin/clang++" \
               -DCMAKE_OSX_SYSROOT=$(xcrun --sdk macosx --show-sdk-path) \
               -DSKIP_OPENGL_TESTS=ON
           fi

@@ -4,7 +4,7 @@
 #include <vector>
 #include "actor/actor_motion_data.hpp"
 #include "physics/physics_body_data.hpp"
-#include "navigation/motion_arcs.hpp"
+#include "navigation/jump_arc.hpp"
 
 struct NavigationProfile
 {

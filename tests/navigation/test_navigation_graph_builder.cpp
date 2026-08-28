@@ -6,7 +6,7 @@
 #include <vector>
 #include "navigation/navigation_graph_builder.hpp"
 #include <glaze/glaze.hpp>
-#include "navigation/motion_arcs.hpp"
+#include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/game_data.hpp"

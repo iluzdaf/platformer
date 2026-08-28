@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 #include "navigation/navigation_graph_builder.hpp"
+#include "navigation/jump_simulation.hpp"
 #include "tile_map/tile_map.hpp"
 
 namespace

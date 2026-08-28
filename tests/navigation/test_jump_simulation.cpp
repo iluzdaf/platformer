@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
-#include "navigation/motion_arcs.hpp"
+#include "navigation/jump_simulation.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "physics/physics_body_data.hpp"

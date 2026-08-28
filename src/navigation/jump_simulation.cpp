@@ -1,5 +1,5 @@
 #include <cmath>
-#include "navigation/motion_arcs.hpp"
+#include "navigation/jump_simulation.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/abilities/ability_system.hpp"

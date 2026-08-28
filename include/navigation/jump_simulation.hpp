@@ -2,30 +2,21 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include "navigation/jump_arc.hpp"
 
 struct ActorMotionData;
-
-struct JumpArc
-{
-    float holdDuration = 0.0f;
-    float holdFraction = 1.0f;
-    std::vector<glm::vec2> offsets;
-
-    bool operator==(const JumpArc &) const = default;
-};
-
-JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction = 1.0f);
-
-std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData);
-
-class TileMap;
 struct PhysicsBodyData;
+class TileMap;
 
 struct JumpAttempt
 {
     std::vector<glm::vec2> path;
     bool landed = false;
 };
+
+JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction = 1.0f);
+
+std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData);
 
 JumpAttempt simulateJumpAgainst(
     const TileMap &tileMap,

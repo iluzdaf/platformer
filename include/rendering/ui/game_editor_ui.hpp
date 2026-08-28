@@ -6,6 +6,7 @@
 
 struct ActorMotionState;
 struct ActorState;
+struct GameData;
 class Camera2D;
 class ImGuiManager;
 
@@ -14,6 +15,7 @@ class GameEditorUi
 public:
     void draw(
         EditorSection section,
+        GameData &gameData,
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerPosition,
         const ActorState &actorState,

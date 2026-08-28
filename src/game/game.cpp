@@ -226,6 +226,7 @@ void Game::render()
 
         gameEditorUi.draw(
             editorUi.getSection(),
+            gameData,
             player->getMotion().getState(),
             player->getPosition(),
             player->getState(),
@@ -236,8 +237,6 @@ void Game::render()
 
         if (editorUi.getSection() == EditorSection::NpcsInLevel)
             npcsUi.draw(*level.get(), npcs);
-
-        gameDataUi.draw(editorUi.getSection(), gameData);
 
         editorUi.end();
     }

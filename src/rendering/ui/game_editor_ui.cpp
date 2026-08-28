@@ -8,9 +8,24 @@
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
+#include "game/game_data.hpp"
+#include "rendering/ui/data_inspector.hpp"
+
+namespace
+{
+    template <class T, class Save> void drawSaveable(T &value, Save &&save)
+    {
+        if (ImGui::Button("save"))
+            save(value);
+
+        ImGui::Separator();
+        inspector::drawFields(value);
+    }
+}
 
 void GameEditorUi::draw(
     EditorSection section,
+    GameData &gameData,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
     const ActorState &actorState,
@@ -26,12 +41,41 @@ void GameEditorUi::draw(
         return;
     }
 
+    if (section == EditorSection::Game)
+    {
+        drawSaveable(gameData.settings, saveGameSettings);
+        return;
+    }
+
+    if (section == EditorSection::NpcTypes)
+    {
+        if (ImGui::Button("save"))
+            saveNpcData(gameData.npcData);
+
+        ImGui::Separator();
+        inspector::draw("types", gameData.npcData);
+        return;
+    }
+
+    if (section == EditorSection::TilePalettes)
+    {
+        if (ImGui::Button("save"))
+            saveTilePalettes(gameData.tilePalettes);
+
+        ImGui::Separator();
+        inspector::draw("palettes", gameData.tilePalettes);
+        return;
+    }
+
     if (section == EditorSection::Camera)
     {
         if (ImGui::Button("Zoom"))
             onToggleZoom();
         ImGui::SameLine();
         ImGui::Text("shaking %s", camera.shaking() ? "yes" : "no");
+
+        ImGui::Separator();
+        drawSaveable(gameData.cameraData, saveCameraData);
         return;
     }
 
@@ -77,6 +121,9 @@ void GameEditorUi::draw(
 
         ImGui::EndTable();
     }
+
+    ImGui::Separator();
+    drawSaveable(gameData.playerData, savePlayerData);
 }
 bool GameEditorUi::drawsPlayerAABBs() const
 {

@@ -1,6 +1,7 @@
 #include <utility>
 #include <imgui.h>
 #include "rendering/ui/editor_ui.hpp"
+#include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 
 namespace

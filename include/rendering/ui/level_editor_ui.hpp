@@ -27,7 +27,7 @@ public:
     void update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level);
 
     fteng::signal<void(const std::string &)> onLoadLevel;
-    fteng::signal<void()> onRespawn, onSetFirstLevel;
+    fteng::signal<void()> onSetFirstLevel;
 
     bool drawsTileMapAABBs() const;
 
@@ -42,7 +42,7 @@ private:
 
     void drawLevel(Level &level, const std::string &firstLevel);
     void drawNpcs(const Level &level);
-    void drawTilePalette(Level &level, const Texture2D &tileSet);
+    void drawTileMap(Level &level, const Texture2D &tileSet);
     void drawGraphs(const Level &level);
     void drawEdgesOf(const NavigationGraph &graph, int nodeId);
     std::optional<std::string> drawLevelChooser(const Level &level, const std::string &firstLevel);

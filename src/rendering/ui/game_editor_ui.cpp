@@ -50,6 +50,9 @@ void GameEditorUi::draw(
 
     EditorUi::beginInspector(imGuiManager, "Player");
     ImGui::Checkbox("AABBs", &drawPlayerAABBs);
+    ImGui::SameLine();
+    if (ImGui::Button("Respawn"))
+        onRespawn();
 
     if (ImGui::BeginTable("Inspector", 2, ImGuiTableFlags_BordersInnerV))
     {

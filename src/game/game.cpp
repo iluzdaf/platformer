@@ -61,7 +61,7 @@ Game::Game(Window &window)
         });
     levelEditorUi.onLoadLevel.connect([this](const std::string &levelPath)
                                       { loadLevel(levelPath); });
-    levelEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
+    gameEditorUi.onRespawn.connect([this] { rebuildPlayer(); });
     levelEditorUi.onSetFirstLevel.connect(
         [this]
         {

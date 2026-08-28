@@ -76,9 +76,9 @@ void LevelEditorUi::draw(
         EditorUi::endInspector();
         break;
 
-    case EditorSection::TilePalette:
-        EditorUi::beginInspector(imGuiManager, "Tile palette");
-        drawTilePalette(level, tileSet);
+    case EditorSection::TileMap:
+        EditorUi::beginInspector(imGuiManager, "Tile map");
+        drawTileMap(level, tileSet);
         EditorUi::endInspector();
         break;
 
@@ -119,15 +119,6 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
 
     ImGui::Separator();
 
-    ImGui::Checkbox("Tile Info", &drawTileInfo);
-    ImGui::SameLine();
-    ImGui::Checkbox("Grid", &drawGrid);
-    ImGui::Checkbox("TileMap", &drawTileMapAABBs);
-    ImGui::SameLine();
-    if (ImGui::Button("Respawn"))
-        onRespawn();
-    ImGui::Separator();
-
     std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel);
     if (chosenLevel)
     {
@@ -135,12 +126,6 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel)
         onLoadLevel(*chosenLevel);
         return;
     }
-
-    ImGui::Text(
-        "w%dxh%dxs%d",
-        level.getTileMap().getWidth(),
-        level.getTileMap().getHeight(),
-        level.getTileMap().getTileSize());
 
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
@@ -174,8 +159,20 @@ void LevelEditorUi::drawNpcs(const Level &level)
         ImGui::TextUnformatted(npc.type.c_str());
 }
 
-void LevelEditorUi::drawTilePalette(Level &level, const Texture2D &tileSet)
+void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet)
 {
+    ImGui::Text(
+        "w%dxh%dxs%d",
+        level.getTileMap().getWidth(),
+        level.getTileMap().getHeight(),
+        level.getTileMap().getTileSize());
+
+    ImGui::Checkbox("Tile Info", &drawTileInfo);
+    ImGui::SameLine();
+    ImGui::Checkbox("Grid", &drawGrid);
+    ImGui::Checkbox("AABBs", &drawTileMapAABBs);
+    ImGui::Separator();
+
     if (!editing)
     {
         ImGui::TextDisabled("editing the level is off");

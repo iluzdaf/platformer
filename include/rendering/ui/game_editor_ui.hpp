@@ -23,7 +23,7 @@ public:
 
     bool drawsPlayerAABBs() const;
 
-    fteng::signal<void()> onPlay, onStep, onToggleZoom;
+    fteng::signal<void()> onPlay, onStep, onToggleZoom, onRespawn;
 
 private:
     bool drawPlayerAABBs = false;

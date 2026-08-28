@@ -18,9 +18,10 @@ public:
         const ImGuiManager &imGuiManager,
         Level &level,
         const Texture2D &tileSet,
-        const Camera2D &camera,
         const std::string &firstLevel,
         bool showEditors);
+    void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+        const;
     void update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level);
 
     fteng::signal<void(const std::string &)> onLoadLevel;
@@ -37,7 +38,7 @@ private:
     std::optional<int> selectedNodeId;
     std::optional<std::pair<int, int>> selectedEdge;
 
-    void drawGraphs(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
+    void drawGraphs(const Level &level);
     void drawEdgesOf(const NavigationGraph &graph, int nodeId);
     std::optional<std::string> drawLevelChooser(const Level &level, const std::string &firstLevel);
 };

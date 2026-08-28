@@ -220,7 +220,7 @@ void Game::render()
     scoreUi.draw(imGuiManager, scoringSystem, *tileSet.get());
 
     levelEditorUi.draw(
-        imGuiManager, *level.get(), *tileSet.get(), camera, levels.getFirst(), gameData.debug);
+        imGuiManager, *level.get(), *tileSet.get(), levels.getFirst(), gameData.debug);
 
     gameEditorUi.draw(
         imGuiManager,
@@ -238,6 +238,9 @@ void Game::render()
         camera,
         gameEditorUi.drawsPlayerAABBs(),
         levelEditorUi.drawsTileMapAABBs());
+
+    if (gameData.debug)
+        levelEditorUi.drawOverlay(imGuiManager, camera, *level.get());
 
     imGuiManager.render();
 

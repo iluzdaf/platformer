@@ -53,18 +53,11 @@ void LevelEditorUi::draw(
     const ImGuiManager &imGuiManager,
     Level &level,
     const Texture2D &tileSet,
-    const Camera2D &camera,
     const std::string &firstLevel,
     bool showEditors)
 {
     if (!showEditors)
         return;
-
-    if (drawGrid)
-        drawTileGrid(imGuiManager, camera, level.getTileMap());
-
-    if (drawTileInfo)
-        ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
     ImGui::SetNextWindowPos(ImVec2(displaySize.x - 200, 0));
@@ -150,7 +143,7 @@ void LevelEditorUi::draw(
         ImGui::Unindent();
     }
 
-    drawGraphs(imGuiManager, camera, level);
+    drawGraphs(level);
 
     if (!editing)
     {
@@ -255,10 +248,7 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(
     return chosen;
 }
 
-void LevelEditorUi::drawGraphs(
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera,
-    const Level &level)
+void LevelEditorUi::drawGraphs(const Level &level)
 {
     if (!ImGui::CollapsingHeader("navigation", ImGuiTreeNodeFlags_DefaultOpen))
         return;
@@ -300,15 +290,6 @@ void LevelEditorUi::drawGraphs(
         selectedEdge.reset();
     }
 
-    if (showNavigation)
-        drawNavigationGraph(
-            imGuiManager,
-            camera,
-            shown.graph,
-            selectedNodeId,
-            selectedEdge,
-            drawTheFlightItself ? JumpsDrawnAs::TheFlightItself : JumpsDrawnAs::SmoothArc);
-
     std::vector<int> nodeIds;
     for (const auto &[nodeId, node] : shown.graph.getNodes())
         nodeIds.push_back(nodeId);
@@ -344,6 +325,30 @@ void LevelEditorUi::drawGraphs(
     }
 
     ImGui::Unindent();
+}
+
+void LevelEditorUi::drawOverlay(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Level &level) const
+{
+    if (drawGrid)
+        drawTileGrid(imGuiManager, camera, level.getTileMap());
+
+    if (drawTileInfo)
+        ::drawTileInfo(imGuiManager, camera, level.getTileMap());
+
+    const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
+    if (!showNavigation || graphs.empty() || selectedGraphIndex >= graphs.size())
+        return;
+
+    drawNavigationGraph(
+        imGuiManager,
+        camera,
+        graphs[selectedGraphIndex].graph,
+        selectedNodeId,
+        selectedEdge,
+        drawTheFlightItself ? JumpsDrawnAs::TheFlightItself : JumpsDrawnAs::SmoothArc);
 }
 
 void LevelEditorUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)

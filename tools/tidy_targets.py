@@ -7,8 +7,10 @@ backwards from whatever changed and prints the .cpp files that reach it.
     python3 tools/tidy_targets.py --since origin/master
     python3 tools/tidy_targets.py
 
-With no --since it prints every .cpp, which is what a sweep over master wants.
-Only quoted includes are followed, so system and external headers are ignored.
+With no --since it prints every .cpp. So does a change to the rules themselves,
+since those judge every translation unit and none can be assumed to have been read
+under the new ones. Only quoted includes are followed, so system and external
+headers are ignored.
 """
 
 import argparse
@@ -18,6 +20,11 @@ import sys
 from pathlib import Path
 
 ROOTS = ("src", "include", "tests")
+
+# Change any of these and every translation unit is judged by different rules,
+# so none of them can be trusted to have been checked under the new ones.
+RULES = (".clang-tidy", ".llvm-version", "CMakeLists.txt", "tools/tidy_targets.py")
+
 INCLUDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"', re.MULTILINE)
 
 
@@ -64,7 +71,7 @@ def changedSince(ref):
     against = merged.stdout.strip() if merged.returncode == 0 else ref
 
     listed = subprocess.run(
-        ["git", "diff", "--name-only", against, "--"] + list(ROOTS),
+        ["git", "diff", "--name-only", against, "--"] + list(ROOTS) + list(RULES),
         capture_output=True, text=True, check=True)
 
     return [Path(name) for name in listed.stdout.split()]
@@ -80,7 +87,12 @@ def main():
         print("\n".join(str(path) for path in paths if path.suffix == ".cpp"))
         return 0
 
-    changed = [path for path in changedSince(arguments.since) if path in set(paths)]
+    changed = changedSince(arguments.since)
+    if any(str(path) in RULES for path in changed):
+        print("\n".join(str(path) for path in paths if path.suffix == ".cpp"))
+        return 0
+
+    changed = [path for path in changed if path in set(paths)]
     if not changed:
         return 0
 

@@ -1,5 +1,6 @@
 #include "rendering/ui/game_ui.hpp"
 #include "rendering/ui/editor_commands.hpp"
+#include "rendering/ui/editor_ui.hpp"
 #include "game/level.hpp"
 #include "player/player.hpp"
 #include "window/window.hpp"

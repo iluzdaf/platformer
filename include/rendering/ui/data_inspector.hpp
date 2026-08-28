@@ -18,6 +18,30 @@
 
 namespace inspector
 {
+    struct Edited
+    {
+        bool whileEditing = false;
+        bool onCommit = false;
+
+        Edited &operator|=(const Edited &other)
+        {
+            whileEditing = whileEditing || other.whileEditing;
+            onCommit = onCommit || other.onCommit;
+
+            return *this;
+        }
+
+        explicit operator bool() const
+        {
+            return whileEditing || onCommit;
+        }
+    };
+
+    inline Edited justEdited(bool changed)
+    {
+        return {changed, ImGui::IsItemDeactivatedAfterEdit()};
+    }
+
     template <class T> struct IsOptional : std::false_type
     {
     };
@@ -42,7 +66,7 @@ namespace inspector
     {
     };
 
-    template <class T> bool draw(std::string_view name, T &value);
+    template <class T> Edited draw(std::string_view name, T &value);
 
     template <class T, class Visit> void forEachNamedField(T &value, Visit &&visit)
     {
@@ -66,28 +90,28 @@ namespace inspector
         return std::string("##") + std::string(name);
     }
 
-    inline bool drawNamed(std::string_view name, float &value)
+    inline Edited drawNamed(std::string_view name, float &value)
     {
         ImGui::TextUnformatted(name.data(), name.data() + name.size());
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
-        return ImGui::DragFloat(labelled(name).c_str(), &value, 0.5f);
+        return justEdited(ImGui::DragFloat(labelled(name).c_str(), &value, 0.5f));
     }
 
-    inline bool drawNamed(std::string_view name, int &value)
+    inline Edited drawNamed(std::string_view name, int &value)
     {
         ImGui::TextUnformatted(name.data(), name.data() + name.size());
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
-        return ImGui::DragInt(labelled(name).c_str(), &value);
+        return justEdited(ImGui::DragInt(labelled(name).c_str(), &value));
     }
 
-    inline bool drawNamed(std::string_view name, bool &value)
+    inline Edited drawNamed(std::string_view name, bool &value)
     {
-        return ImGui::Checkbox(std::string(name).c_str(), &value);
+        return justEdited(ImGui::Checkbox(std::string(name).c_str(), &value));
     }
 
-    inline bool drawNamed(std::string_view name, std::string &value)
+    inline Edited drawNamed(std::string_view name, std::string &value)
     {
         std::array<char, 256> buffer{};
         value.copy(buffer.data(), std::min(value.size(), buffer.size() - 1));
@@ -95,45 +119,46 @@ namespace inspector
         ImGui::TextUnformatted(name.data(), name.data() + name.size());
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
-        if (!ImGui::InputText(labelled(name).c_str(), buffer.data(), buffer.size()))
-            return false;
+        bool changed = ImGui::InputText(labelled(name).c_str(), buffer.data(), buffer.size());
+        Edited edited = justEdited(changed);
+        if (changed)
+            value = buffer.data();
 
-        value = buffer.data();
-        return true;
+        return edited;
     }
 
-    inline bool drawNamed(std::string_view name, glm::vec2 &value)
+    inline Edited drawNamed(std::string_view name, glm::vec2 &value)
     {
         ImGui::TextUnformatted(name.data(), name.data() + name.size());
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
-        return ImGui::DragFloat2(labelled(name).c_str(), &value.x, 0.5f);
+        return justEdited(ImGui::DragFloat2(labelled(name).c_str(), &value.x, 0.5f));
     }
 
-    inline bool drawNamed(std::string_view name, glm::ivec2 &value)
+    inline Edited drawNamed(std::string_view name, glm::ivec2 &value)
     {
         ImGui::TextUnformatted(name.data(), name.data() + name.size());
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
-        return ImGui::DragInt2(labelled(name).c_str(), &value.x);
+        return justEdited(ImGui::DragInt2(labelled(name).c_str(), &value.x));
     }
 
-    template <class T> bool drawUnder(std::string_view name, T &value)
+    template <class T> Edited drawUnder(std::string_view name, T &value)
     {
         if (!ImGui::TreeNode(std::string(name).c_str()))
-            return false;
+            return {};
 
-        bool edited = false;
+        Edited edited;
         forEachNamedField(
             value,
             [&edited](std::string_view fieldName, auto &field)
-            { edited = draw(fieldName, field) || edited; });
+            { edited |= draw(fieldName, field); });
 
         ImGui::TreePop();
         return edited;
     }
 
-    template <class T> bool draw(std::string_view name, T &value)
+    template <class T> Edited draw(std::string_view name, T &value)
     {
         if constexpr (
             std::is_same_v<T, bool> || std::is_same_v<T, float> || std::is_same_v<T, int> ||
@@ -143,14 +168,15 @@ namespace inspector
         else if constexpr (IsOptional<T>::value)
         {
             bool present = value.has_value();
-            bool edited = ImGui::Checkbox(std::string(name).c_str(), &present);
-            if (edited)
+            bool toggled = ImGui::Checkbox(std::string(name).c_str(), &present);
+            Edited edited = justEdited(toggled);
+            if (toggled)
                 value = present ? std::optional(typename T::value_type{}) : std::nullopt;
 
             if (value)
             {
                 ImGui::Indent();
-                edited = draw(name, *value) || edited;
+                edited |= draw(name, *value);
                 ImGui::Unindent();
             }
 
@@ -159,13 +185,13 @@ namespace inspector
         else if constexpr (IsVector<T>::value)
         {
             if (!ImGui::TreeNode(std::string(name).c_str()))
-                return false;
+                return {};
 
-            bool edited = false;
+            Edited edited;
             for (std::size_t index = 0; index < value.size(); ++index)
             {
                 ImGui::PushID(static_cast<int>(index));
-                edited = draw(std::to_string(index), value[index]) || edited;
+                edited |= draw(std::to_string(index), value[index]);
                 ImGui::PopID();
             }
 
@@ -175,14 +201,14 @@ namespace inspector
         else if constexpr (IsMap<T>::value)
         {
             if (!ImGui::TreeNode(std::string(name).c_str()))
-                return false;
+                return {};
 
-            bool edited = false;
+            Edited edited;
             for (auto &[key, entry] : value)
             {
                 std::string label = keyLabel(key);
                 ImGui::PushID(label.c_str());
-                edited = draw(label, entry) || edited;
+                edited |= draw(label, entry);
                 ImGui::PopID();
             }
 
@@ -194,17 +220,17 @@ namespace inspector
         else
         {
             ImGui::TextDisabled("%s", std::string(name).c_str());
-            return false;
+            return {};
         }
     }
 
-    template <class T> bool drawFields(T &value)
+    template <class T> Edited drawFields(T &value)
     {
-        bool edited = false;
+        Edited edited;
         forEachNamedField(
             value,
             [&edited](std::string_view fieldName, auto &field)
-            { edited = draw(fieldName, field) || edited; });
+            { edited |= draw(fieldName, field); });
 
         return edited;
     }

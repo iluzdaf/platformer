@@ -44,7 +44,7 @@ void GameEditorUi::draw(
     {
         bool reverted = saveable.drawControls("game", gameData.settings, saveGameSettings);
         ImGui::Separator();
-        if (inspector::drawFields(gameData.settings) || reverted)
+        if (inspector::drawFields(gameData.settings).onCommit || reverted)
             commands.onSettingsChanged();
         return;
     }

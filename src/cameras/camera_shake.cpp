@@ -1,13 +1,12 @@
-#include <cstdlib>
+#include <random>
 #include "cameras/camera_shake.hpp"
 
-namespace
+CameraShake::CameraShake() : CameraShake(std::random_device{}())
 {
-    float randomOffset(float magnitude)
-    {
-        float unitRandom = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-        return (unitRandom - 0.5f) * 2.0f * magnitude;
-    }
+}
+
+CameraShake::CameraShake(std::mt19937::result_type seed) : generator(seed)
+{
 }
 
 void CameraShake::start(float shakeDuration, float shakeMagnitude)
@@ -30,7 +29,9 @@ glm::vec2 CameraShake::getOffset(float deltaTime)
         return glm::vec2(0.0f);
     }
 
-    return glm::vec2(randomOffset(magnitude), randomOffset(magnitude));
+    float fading = magnitude * (1.0f - timeElapsed / duration);
+
+    return glm::vec2(offsets(generator) * fading, offsets(generator) * fading);
 }
 
 bool CameraShake::isActive() const

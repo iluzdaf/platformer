@@ -627,7 +627,12 @@ namespace
                 // body is held up by the half of it that is over the ledge. It
                 // is no use as a destination though: there is no ground under
                 // the middle of the feet, so nothing owns the spot.
-                glm::ivec2 underfoot = tileMap.worldToTilePosition(attempt.path.back());
+                //
+                // A pixel below the feet, because the feet come to rest exactly
+                // on a tile boundary and which side of it they land on is a
+                // matter of the last bit of the float.
+                glm::ivec2 underfoot =
+                    tileMap.worldToTilePosition(attempt.path.back() + glm::vec2(0.0f, 1.0f));
                 if (!tileMap.validTilePosition(underfoot) ||
                     !tileMap.getTileAtTilePosition(underfoot).isSolid() ||
                     !canStandOn(tileMap, underfoot, headroom))

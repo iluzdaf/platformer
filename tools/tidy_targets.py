@@ -82,7 +82,13 @@ def changedSince(against):
         ["git", "diff", "--name-only", against, "--"] + list(ROOTS) + list(RULES),
         capture_output=True, text=True, check=True)
 
-    return [Path(name) for name in listed.stdout.split()]
+    # A file nobody has added yet is not in any diff, and locally that is exactly
+    # what a new file is. On CI everything is committed and this finds nothing.
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", "--"] + list(ROOTS),
+        capture_output=True, text=True, check=True)
+
+    return [Path(name) for name in listed.stdout.split() + untracked.stdout.split()]
 
 
 def rulesChanged(changed, against):

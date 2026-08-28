@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string_view>
+#include "rendering/ui/game_ui.hpp"
 #include "game/game_data.hpp"
 #include "game/levels.hpp"
 #include "tile_map/tile_interaction_system.hpp"
@@ -12,12 +13,7 @@
 #include "rendering/shader.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/sprite_renderer.hpp"
-#include "rendering/tile_map_renderer.hpp"
 #include "rendering/screen_transition.hpp"
-#include "rendering/ui/editor_ui.hpp"
-#include "rendering/ui/imgui_manager.hpp"
-#include "rendering/ui/debug_aabb_ui.hpp"
-#include "rendering/ui/score_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "input/input_manager.hpp"
@@ -70,13 +66,9 @@ private:
     std::unique_ptr<Texture2D> tileSet, playerTexture;
     std::unique_ptr<Shader> tileSetShader, screenTransitionShader;
     SpriteRenderer spriteRenderer;
-    TileMapRenderer tileMapRenderer;
     ScreenTransition screenTransition;
-    ImGuiManager imGuiManager;
+    GameUi gameUi;
     Levels levels;
-    EditorUi editorUi;
-    DebugAABBUi debugAABBUi;
-    ScoreUi scoreUi;
     fteng::connection onLevelCompleteConnection;
     bool paused = false, stepFrame = false, showEditors = false;
 };

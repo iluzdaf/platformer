@@ -586,7 +586,19 @@ namespace
             {
                 std::optional<glm::vec2> takeOff =
                     standingBelow(tileMap, x, ledge.y, profile, headroom);
-                if (!takeOff || navigationGraph.hasNodeAtPosition(*takeOff))
+                if (!takeOff)
+                    continue;
+
+                // Right beside an existing node is no use to anyone: the actor
+                // cannot tell them apart and the editor draws them on top of
+                // each other. A jump up usually works from a stretch of ground,
+                // so there is somewhere further along to stand.
+                bool crowded = false;
+                for (const auto &[id, node] : navigationGraph.getNodes())
+                    if (glm::distance(node.position, *takeOff) < profile.colliderSize.x)
+                        crowded = true;
+
+                if (crowded)
                     continue;
 
                 if (getsUpTo(*takeOff, ledge))

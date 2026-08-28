@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <set>
 #include <string>
 #include "rendering/ui/navigation_overlay.hpp"
@@ -59,26 +58,34 @@ namespace
 
         ImDrawList *drawList = imGuiManager.getDrawList();
 
-        NavigationNode takeOff = navigationGraph.getNode(edge.fromId);
         NavigationNode landing = navigationGraph.getNode(edge.toId);
 
+        auto screen = [&](glm::vec2 world)
+        { return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition()); };
+
+        // A curve through the jump as it was actually made: its own ends and its
+        // own high point. Fitting one between the two nodes instead stretches it
+        // out to wherever the landing was rounded to, which is not where the
+        // actor comes down.
         if (!edge.path.empty())
         {
-            float chordY = (takeOff.position.y + landing.position.y) * 0.5f;
-            float apexY = chordY;
+            glm::vec2 leaves = edge.path.front();
+            glm::vec2 comesDown = edge.path.back();
+
+            glm::vec2 apex = leaves;
             for (const glm::vec2 &position : edge.path)
-                apexY = std::min(apexY, position.y);
+                if (position.y < apex.y)
+                    apex = position;
 
-            glm::vec2 control(
-                (takeOff.position.x + landing.position.x) * 0.5f,
-                chordY - 2.0f * (chordY - apexY));
+            // Through the high point at the middle of the curve.
+            glm::vec2 control = 2.0f * apex - (leaves + comesDown) * 0.5f;
 
-            auto screen = [&](glm::vec2 world)
-            { return imGuiManager.worldToScreen(world, camera.getZoom(), camera.getTopLeftPosition()); };
-
-            drawList->PathLineTo(screen(takeOff.position));
-            drawList->PathBezierQuadraticCurveTo(screen(control), screen(landing.position));
+            drawList->PathLineTo(screen(leaves));
+            drawList->PathBezierQuadraticCurveTo(screen(control), screen(comesDown));
             drawList->PathStroke(color, ImDrawFlags_None, 1.5f);
+
+            // It comes down somewhere along the platform, then walks the rest.
+            drawList->AddLine(screen(comesDown), screen(landing.position), color, 1.0f);
             return;
         }
 

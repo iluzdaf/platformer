@@ -492,7 +492,7 @@ namespace
         const NavigationProfile &profile,
         int headroom)
     {
-        if (!profile.falls)
+        if (!profile.falls())
             return;
 
         int nextNodeId = 0;
@@ -656,7 +656,7 @@ namespace
         const NavigationProfile &profile,
         int headroom)
     {
-        if (!profile.falls)
+        if (!profile.falls())
             return;
 
         std::vector<std::pair<int, glm::vec2>> takeOffs;

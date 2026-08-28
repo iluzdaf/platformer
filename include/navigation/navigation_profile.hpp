@@ -10,10 +10,14 @@ struct NavigationProfile
 {
     glm::vec2 colliderSize = glm::vec2(8.0f, 13.0f);
     std::vector<JumpArc> jumpArcs;
-    bool falls = false;
 
     std::optional<ActorMotionData> motionData;
     std::optional<PhysicsBodyData> physicsBodyData;
+
+    bool falls() const
+    {
+        return motionData && motionData->gravityAbilityData.has_value();
+    }
 
     bool operator==(const NavigationProfile &) const = default;
 };

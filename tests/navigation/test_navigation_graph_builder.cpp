@@ -465,12 +465,24 @@ namespace
         return motionData;
     }
 
+    NavigationProfile profileThatMoves(float height, const ActorMotionData &motionData)
+    {
+        NavigationProfile profile = profileOfHeight(height);
+        profile.jumpArcs = simulateJumpArcs(motionData);
+        profile.motionData = motionData;
+        return profile;
+    }
+
+    ActorMotionData fallerMotionData()
+    {
+        ActorMotionData motionData;
+        motionData.gravityAbilityData = GravityAbilityData{};
+        return motionData;
+    }
+
     NavigationProfile jumperProfile()
     {
-        NavigationProfile profile = standardProfile();
-        profile.jumpArcs = simulateJumpArcs(jumperMotionData());
-        profile.falls = true;
-        return profile;
+        return profileThatMoves(13.0f, jumperMotionData());
     }
 
     TileMap setupTwoPlatforms(int gapTiles, int rowsUp = 0, int widthTiles = 20)
@@ -786,19 +798,25 @@ TEST_CASE("A way up does not depend on something having fallen there",
     REQUIRE_FALSE(glz::read_file_json(gameData, assetPath("game_data.json"), std::string{}));
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
-    NavigationProfile profile =
-        buildNavigationProfile(gameData.npcData.at("explorer").actorData);
-    profile.falls = false;
-
-    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+    NavigationGraph graph = buildNavigationGraph(
+        tileMap, buildNavigationProfile(gameData.npcData.at("explorer").actorData));
 
     float floorY = 192.0f;
     bool getsOffTheFloor = false;
     for (const auto &edge : graph.getEdges())
-        if (edge.type == EdgeType::Jump &&
-            std::abs(graph.getNode(edge.fromId).position.y - floorY) < 0.5f &&
+    {
+        if (edge.type != EdgeType::Jump)
+            continue;
+
+        NavigationNode from = graph.getNode(edge.fromId);
+        INFO("jump from node " << edge.fromId << " at " << from.position.x << ","
+                               << from.position.y);
+        REQUIRE(from.kind == NodeKind::OnFoot);
+
+        if (std::abs(from.position.y - floorY) < 0.5f &&
             graph.getNode(edge.toId).position.y < floorY)
             getsOffTheFloor = true;
+    }
 
     REQUIRE(getsOffTheFloor);
 }
@@ -947,8 +965,7 @@ TEST_CASE("Falling is not offered where you could walk", "[NavigationGraphBuilde
 TEST_CASE("A profile that cannot move still falls", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = setupLedgeAboveFloor();
-    NavigationProfile profile = standardProfile();
-    profile.falls = true;
+    NavigationProfile profile = profileThatMoves(13.0f, fallerMotionData());
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profile);
 
@@ -961,8 +978,7 @@ TEST_CASE("A slow actor can still step off a ledge", "[NavigationGraphBuilder][F
     ActorMotionData slow = jumperMotionData();
     slow.moveAbilityData->moveSpeed = 60.0f;
 
-    NavigationProfile profile = standardProfile();
-    profile.falls = true;
+    NavigationProfile profile = profileThatMoves(13.0f, slow);
     TileMap tileMap = setupLedgeAboveFloor();
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profile);

@@ -148,3 +148,43 @@ TEST_CASE("A place is judged by the run under its feet, not the nearest node", "
 
     REQUIRE_FALSE(onTheSameRun(navigationGraph, {60.0f, 96.0f}, {60.0f, 128.0f}));
 }
+
+TEST_CASE("A beat between two ends of one platform can be walked", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 192.0f});
+    navigationGraph.addNode(1, {112.0f, 192.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    REQUIRE(canPatrolBetween(navigationGraph, {16.0f, 192.0f}, {112.0f, 192.0f}));
+}
+
+TEST_CASE("A beat ending somewhere with no way back cannot", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 128.0f});
+    navigationGraph.addNode(1, {112.0f, 128.0f});
+    navigationGraph.addNode(2, {112.0f, 192.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    navigationGraph.addEdge(1, 2, EdgeType::Fall);
+
+    REQUIRE(canPatrolBetween(navigationGraph, {16.0f, 128.0f}, {112.0f, 128.0f}));
+    REQUIRE_FALSE(canPatrolBetween(navigationGraph, {16.0f, 128.0f}, {112.0f, 192.0f}));
+}
+
+TEST_CASE("A beat naming one place twice is walkable by standing still", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 192.0f});
+
+    REQUIRE(canPatrolBetween(navigationGraph, {16.0f, 192.0f}, {16.0f, 192.0f}));
+}
+
+TEST_CASE("A beat against a graph with no nodes cannot be walked", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+
+    REQUIRE_FALSE(canPatrolBetween(navigationGraph, {16.0f, 192.0f}, {112.0f, 192.0f}));
+}

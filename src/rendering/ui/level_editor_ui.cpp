@@ -23,6 +23,7 @@
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_path.hpp"
 #include "npc/npc_spawn_data.hpp"
 
 namespace
@@ -160,12 +161,21 @@ void LevelEditorUi::drawNpcs(const Level &level, const std::vector<std::unique_p
             ImGui::Text("spawns at %d,%d", spawn.tilePosition.x, spawn.tilePosition.y);
 
             if (spawn.patrol)
+            {
                 ImGui::Text(
                     "beat %d,%d to %d,%d",
                     spawn.patrol->from.x,
                     spawn.patrol->from.y,
                     spawn.patrol->to.x,
                     spawn.patrol->to.y);
+
+                std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
+                if (npc && beat &&
+                    !canPatrolBetween(
+                        level.graphFor(npc->getNavigationProfile()), beat->first, beat->second))
+                    ImGui::TextColored(
+                        ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "it cannot get back from there");
+            }
             else
                 ImGui::TextDisabled("no beat");
 

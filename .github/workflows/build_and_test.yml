@@ -3,6 +3,11 @@ name: Build and Test
 on:
   pull_request:
     branches: [master]
+  push:
+    # Only to fill the compiler caches. A branch can restore caches from itself
+    # and from the default branch, so without a run here every new branch starts
+    # cold on all four of them, Windows sccache included.
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -212,7 +217,10 @@ jobs:
       - name: Check headers stand on their own
         run: cmake --build build/release --target header_self_containment
 
+      # Strict status checks mean a branch is up to date before it merges, so
+      # master is already carrying the verdict this step would repeat.
       - name: Check naming and includes
+        if: github.event_name != 'push'
         env:
           SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
         run: |

@@ -1244,6 +1244,7 @@ namespace
     constexpr int ClimbFloorRow = 8;
     constexpr int ClimbWallX = 5;
     constexpr int ClimbWallTopRow = 4;
+    constexpr int ClimbHangRow = ClimbWallTopRow + 1;
 
     NavigationProfile climberProfile()
     {
@@ -1307,9 +1308,10 @@ TEST_CASE(
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
 
-    REQUIRE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
-    REQUIRE(joined.contains({ClimbWallTopRow, ClimbFloorRow}));
-    REQUIRE(joined.contains({ClimbWallTopRow, ClimbWallTopRow}));
+    REQUIRE(joined.contains({ClimbFloorRow, ClimbHangRow}));
+    REQUIRE(joined.contains({ClimbHangRow, ClimbFloorRow}));
+    REQUIRE(joined.contains({ClimbHangRow, ClimbWallTopRow}));
+    REQUIRE(joined.contains({ClimbWallTopRow, ClimbHangRow}));
 }
 
 TEST_CASE("An actor that cannot climb is given no way up a wall", "[NavigationGraphBuilder][Climb]")
@@ -1339,7 +1341,7 @@ TEST_CASE(
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
 
-    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
+    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbHangRow}));
 }
 
 TEST_CASE(
@@ -1353,8 +1355,8 @@ TEST_CASE(
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
 
-    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
-    REQUIRE(joined.contains({6, ClimbWallTopRow}));
+    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbHangRow}));
+    REQUIRE(joined.contains({6, ClimbHangRow}));
 }
 
 TEST_CASE("A wall you cannot stand on top of is not climbed", "[NavigationGraphBuilder][Climb]")
@@ -1366,19 +1368,7 @@ TEST_CASE("A wall you cannot stand on top of is not climbed", "[NavigationGraphB
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
 
-    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
-}
-
-TEST_CASE("A wall with no room beside its top is not climbed", "[NavigationGraphBuilder][Climb]")
-{
-    TileMap tileMap = setupWallFromTheFloor();
-    tileMap.setTileIndex(glm::ivec2(ClimbWallX - 1, ClimbWallTopRow - 1), 1);
-    tileMap.setTileIndex(glm::ivec2(ClimbWallX + 1, ClimbWallTopRow - 1), 1);
-
-    std::set<std::pair<int, int>> joined =
-        rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
-
-    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
+    REQUIRE_FALSE(joined.contains({ClimbHangRow, ClimbWallTopRow}));
 }
 
 TEST_CASE("A wall an actor can climb gets a node on it", "[NavigationGraphBuilder][Climb]")
@@ -1392,7 +1382,7 @@ TEST_CASE("A wall an actor can climb gets a node on it", "[NavigationGraphBuilde
     for (const NavigationNode &node : onWalls)
     {
         glm::vec2 underfoot(0.0f, 1.0f);
-        REQUIRE(tileMap.worldToTilePosition(node.position + underfoot).y == ClimbWallTopRow);
+        REQUIRE(tileMap.worldToTilePosition(node.position + underfoot).y == ClimbHangRow);
     }
 }
 

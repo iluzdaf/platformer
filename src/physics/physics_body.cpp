@@ -225,6 +225,24 @@ bool PhysicsBody::contactWithRightWall(const TileMap &tileMap) const
     return tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
 }
 
+bool PhysicsBody::contactWithLeftWallAtHead(const TileMap &tileMap) const
+{
+    glm::vec2 probeSize = getColliderSize();
+    probeSize.y *= 0.25f;
+    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(-0.1f, 0.0f);
+    AABB probeAABB(probePosition, probeSize);
+    return tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
+}
+
+bool PhysicsBody::contactWithRightWallAtHead(const TileMap &tileMap) const
+{
+    glm::vec2 probeSize = getColliderSize();
+    probeSize.y *= 0.25f;
+    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(0.1f, 0.0f);
+    AABB probeAABB(probePosition, probeSize);
+    return tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
+}
+
 AABB PhysicsBody::underfootProbe() const
 {
     glm::vec2 probeSize(getColliderSize().x * 0.5f, ContactProbeDepth);

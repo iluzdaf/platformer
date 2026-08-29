@@ -8,6 +8,7 @@
 #include "actor/abilities/wall_jump_ability.hpp"
 #include "actor/abilities/wall_hang_ability.hpp"
 #include "actor/abilities/wall_climb_ability.hpp"
+#include "actor/abilities/mantle_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include <memory>
 
@@ -27,6 +28,8 @@ AbilitySystem::AbilitySystem(const ActorMotionData &data)
         abilities.push_back(std::make_unique<WallHangAbility>(data.wallHangAbilityData.value()));
     if (data.wallClimbAbilityData)
         abilities.push_back(std::make_unique<WallClimbAbility>(data.wallClimbAbilityData.value()));
+    if (data.mantleAbilityData)
+        abilities.push_back(std::make_unique<MantleAbility>(data.mantleAbilityData.value()));
     if (data.gravityAbilityData)
         abilities.push_back(std::make_unique<GravityAbility>(data.gravityAbilityData.value()));
 }
@@ -43,6 +46,8 @@ void AbilitySystem::applyMovement(
 
     if (state.dash.active)
         finalVelocity = state.dash.velocity;
+    else if (state.mantle.active)
+        finalVelocity = state.mantle.velocity;
     else
     {
         finalVelocity.x = state.move.velocity.x;

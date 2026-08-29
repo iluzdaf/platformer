@@ -8,6 +8,7 @@
 #include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/abilities/wall_climb_ability_data.hpp"
+#include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "animations/sprite_animation_data.hpp"
 #include "input/intention_source.hpp"
@@ -49,6 +50,7 @@ inline PlayerData setupPlayerData()
     playerData.actorData.motionData.wallJumpAbilityData = WallJumpAbilityData();
     playerData.actorData.motionData.wallHangAbilityData = WallHangAbilityData();
     playerData.actorData.motionData.wallClimbAbilityData = WallClimbAbilityData();
+    playerData.actorData.motionData.mantleAbilityData = MantleAbilityData();
     playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
     return playerData;
 }

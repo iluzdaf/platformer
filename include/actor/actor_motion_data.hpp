@@ -8,6 +8,7 @@
 #include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/abilities/wall_climb_ability_data.hpp"
+#include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 
 struct ActorMotionData
@@ -19,6 +20,7 @@ struct ActorMotionData
     std::optional<WallJumpAbilityData> wallJumpAbilityData;
     std::optional<WallHangAbilityData> wallHangAbilityData;
     std::optional<WallClimbAbilityData> wallClimbAbilityData;
+    std::optional<MantleAbilityData> mantleAbilityData;
     std::optional<GravityAbilityData> gravityAbilityData;
 
     bool operator==(const ActorMotionData &) const = default;

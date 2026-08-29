@@ -12,6 +12,6 @@ public:
 
 private:
     Window window;
-    Game game;
     HotReload hotReload;
+    Game game;
 };

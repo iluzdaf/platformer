@@ -63,7 +63,7 @@ void ScreenTransition::update(float deltaTime)
         active = false;
 }
 
-void ScreenTransition::draw(const Shader &shader)
+void ScreenTransition::draw(const Shader &shader) const
 {
     if (!active)
         return;

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <memory>
-#include <string_view>
+#include <vector>
+#include <signals.hpp>
 #include "rendering/ui/game_ui.hpp"
 #include "game/game_data.hpp"
 #include "game/levels.hpp"
@@ -10,9 +11,7 @@
 #include "player/player.hpp"
 #include "npc/npc.hpp"
 #include "game/scoring_system.hpp"
-#include "rendering/shader.hpp"
-#include "rendering/texture2d.hpp"
-#include "rendering/sprite_renderer.hpp"
+#include "rendering/game_renderer.hpp"
 #include "rendering/screen_transition.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
@@ -21,24 +20,23 @@
 #include "scripting/lua_script_system.hpp"
 #include "window/window.hpp"
 
+struct ReloadCommands;
+
 class Game
 {
 public:
-    explicit Game(Window &window);
+    Game(Window &window, ReloadCommands &reloadCommands);
     ~Game();
     void frame(float deltaTime);
     void loadLevel(const std::string &levelPath);
-    void reload();
-    void reloadShader(const std::string &shaderPath);
-    void reloadTexture(const std::string &texturePath);
-    void reloadScripts();
-    bool isPlaying(const std::string &levelPath) const;
     void rebuildPlayer();
-    void rebuildNpcs();
-    void refreshActors();
 
 private:
-    std::unique_ptr<Shader> loadShader(std::string_view vertex, std::string_view fragment) const;
+    void reload();
+    void reloadScripts();
+    bool isPlaying(const std::string &levelPath) const;
+    void rebuildNpcs();
+    void refreshActors();
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);
     void postFixedUpdate();
@@ -60,12 +58,11 @@ private:
     std::vector<Actor *> actors;
     TileInteractionSystem tileInteractionSystem;
     ScoringSystem scoringSystem;
-    std::unique_ptr<Texture2D> tileSet, playerTexture;
-    std::unique_ptr<Shader> tileSetShader, screenTransitionShader;
-    SpriteRenderer spriteRenderer;
+    GameRenderer renderer;
     ScreenTransition screenTransition;
     GameUi gameUi;
     Levels levels;
-    fteng::connection onLevelCompleteConnection;
+    fteng::connection onLevelCompleteConnection, onResizeConnection;
+    std::vector<fteng::connection> reloadConnections;
     bool showEditors = false;
 };

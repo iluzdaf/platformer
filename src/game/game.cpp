@@ -12,32 +12,25 @@
 #include "rendering/ui/game_ui.hpp"
 #include "cameras/camera2d.hpp"
 #include "actor/actor.hpp"
-#include "actor/actor_state.hpp"
 #include "game/level.hpp"
 #include "game/levels.hpp"
 #include "rendering/screen_transition.hpp"
-#include "rendering/shader.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "npc/npc.hpp"
-#include "rendering/shader_data.hpp"
 #include "assets/asset_paths.hpp"
 #include "window/window.hpp"
 #include "scripting/lua_script_system.hpp"
-#include "rendering/sprite_renderer.hpp"
-#include "rendering/tile_map_drawing.hpp"
-#include "rendering/texture2d.hpp"
+#include "reloading/reload_commands.hpp"
 
-Game::Game(Window &window)
+Game::Game(Window &window, ReloadCommands &reloadCommands)
     : window(window), gameData(loadGameData()),
       camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
       gameUi(window, window.getFramebufferSize().x, window.getFramebufferSize().y),
       levels(assets::pathTo(assets::LevelList))
 {
     window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
-    window.onResize.connect([this](int width, int height) { resize(width, height); });
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    onResizeConnection =
+        window.onResize.connect([this](int width, int height) { resize(width, height); });
 
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
@@ -45,10 +38,6 @@ Game::Game(Window &window)
     showEditors = gameData.settings.debug;
     loadLevel(levels.getFirst());
 
-    reloadTexture(std::string(assets::TileSetTexture));
-    reloadTexture(std::string(assets::PlayerTexture));
-    reloadShader(std::string(assets::TileSetVertexShader));
-    reloadShader(std::string(assets::TransitionVertexShader));
     gameUi.commands().onPlay.connect([this] { playback.play(); });
     gameUi.commands().onPause.connect([this] { playback.pause(); });
     gameUi.commands().onStep.connect([this] { playback.step(); });
@@ -66,6 +55,18 @@ Game::Game(Window &window)
             levels.save();
         });
 
+    reloadCommands.isPlaying = [this](const std::string &levelPath)
+    { return isPlaying(levelPath); };
+    reloadConnections.push_back(reloadCommands.onLoadLevel.connect(
+        [this](const std::string &levelPath) { loadLevel(levelPath); }));
+    reloadConnections.push_back(reloadCommands.onReloadShader.connect(
+        [this](const std::string &shaderPath) { renderer.reloadShader(shaderPath); }));
+    reloadConnections.push_back(reloadCommands.onReloadTexture.connect(
+        [this](const std::string &texturePath) { renderer.reloadTexture(texturePath); }));
+    reloadConnections.push_back(reloadCommands.onReload.connect([this] { reload(); }));
+    reloadConnections.push_back(
+        reloadCommands.onReloadScripts.connect([this] { reloadScripts(); }));
+
     luaScriptSystem.bindGameObjects(this, &playback, &camera, &screenTransition);
 
     luaScriptSystem.triggerGameLoaded();
@@ -78,37 +79,9 @@ bool Game::isPlaying(const std::string &levelPath) const
     return level && level->getPath() == levelPath;
 }
 
-void Game::reloadShader(const std::string &shaderPath)
-{
-    if (shaderPath == assets::TileSetVertexShader || shaderPath == assets::TileSetFragmentShader)
-        tileSetShader = loadShader(assets::TileSetVertexShader, assets::TileSetFragmentShader);
-    else if (
-        shaderPath == assets::TransitionVertexShader ||
-        shaderPath == assets::TransitionFragmentShader)
-        screenTransitionShader =
-            loadShader(assets::TransitionVertexShader, assets::TransitionFragmentShader);
-}
-
-void Game::reloadTexture(const std::string &texturePath)
-{
-    if (texturePath == assets::TileSetTexture)
-        tileSet = std::make_unique<Texture2D>(assets::pathTo(assets::TileSetTexture));
-    else if (texturePath == assets::PlayerTexture)
-        playerTexture = std::make_unique<Texture2D>(assets::pathTo(assets::PlayerTexture));
-}
-
 void Game::reloadScripts()
 {
     luaScriptSystem.loadScripts();
-}
-
-std::unique_ptr<Shader> Game::loadShader(std::string_view vertex, std::string_view fragment) const
-{
-    ShaderData shaderData;
-    shaderData.vertexPath = assets::pathTo(vertex);
-    shaderData.fragmentPath = assets::pathTo(fragment);
-
-    return std::make_unique<Shader>(shaderData);
 }
 
 void Game::frame(float deltaTime)
@@ -175,27 +148,7 @@ void Game::update(float deltaTime)
 
 void Game::render()
 {
-    glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glm::mat4 projection = camera.getProjection();
-
-    drawTileMap(
-        spriteRenderer, level->getTileMap(), projection, *tileSetShader.get(), *tileSet.get());
-
-    for (const Actor *actor : actors)
-    {
-        const ActorState &actorState = actor->getState();
-        spriteRenderer.drawWithUV(
-            *tileSetShader.get(),
-            *playerTexture.get(),
-            projection,
-            actor->getPosition(),
-            actorState.size,
-            actorState.currentAnimationUVStart,
-            actorState.currentAnimationUVEnd,
-            actorState.facingLeft);
-    }
+    renderer.draw(camera.getProjection(), level->getTileMap(), actors);
 
     gameUi.draw(
         GameUiSubject{
@@ -203,14 +156,14 @@ void Game::render()
             *level.get(),
             npcs,
             *player.get(),
-            *tileSet.get(),
+            renderer.getTileSet(),
             levels.getFirst(),
             camera,
             scoringSystem,
             playback.isPaused(),
             showEditors});
 
-    screenTransition.draw(*screenTransitionShader.get());
+    renderer.draw(screenTransition);
 }
 
 void Game::resize(int windowWidth, int windowHeight)

@@ -1,7 +1,7 @@
 #include <GLFW/glfw3.h>
-#include "input/input_manager.hpp"
+#include "input/keyboard_intentions.hpp"
 
-InputManager::InputManager()
+KeyboardIntentions::KeyboardIntentions()
 {
     keyboardManager.registerKey(GLFW_KEY_UP);
     keyboardManager.registerKey(GLFW_KEY_DOWN);
@@ -12,7 +12,7 @@ InputManager::InputManager()
     keyboardManager.registerKey(GLFW_KEY_C);
 }
 
-void InputManager::process(GLFWwindow *window)
+void KeyboardIntentions::process(GLFWwindow *window)
 {
     keyboardManager.poll(window);
 
@@ -29,7 +29,7 @@ void InputManager::process(GLFWwindow *window)
             : (keyboardManager.isDown(GLFW_KEY_DOWN) ? 1.0f : 0.0f)};
 }
 
-InputIntentions InputManager::getIntentions() const
+InputIntentions KeyboardIntentions::getIntentions() const
 {
     return intentions;
 }

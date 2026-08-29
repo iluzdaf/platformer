@@ -4,13 +4,13 @@
 #include <string>
 #include <sol/sol.hpp>
 
-class Game;
 class Playback;
 class Camera2D;
 class TileMap;
 class Level;
 class Player;
 class ScreenTransition;
+class World;
 
 class LuaScriptSystem
 {
@@ -26,10 +26,10 @@ public:
         const std::string &scriptPath = assets::pathTo(assets::GameLogicScript));
     void update(float deltaTime);
     void bindGameObjects(
-        Game *game,
         Playback *playback,
         Camera2D *camera,
-        ScreenTransition *screenTransition);
+        ScreenTransition *screenTransition,
+        World *world);
     void triggerLevelComplete();
     void triggerDeath();
     void bindLevel(Level *level);

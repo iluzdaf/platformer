@@ -1,22 +1,16 @@
-#include <memory>
-#include <cstdlib>
-#include <optional>
-#include <stdexcept>
+#include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <string>
-#include <utility>
 #include "game/game.hpp"
 #include "game/game_data.hpp"
-#include "rendering/ui/game_ui.hpp"
-#include "cameras/camera2d.hpp"
-#include "actor/actor.hpp"
 #include "game/level.hpp"
 #include "game/levels.hpp"
+#include "game/world.hpp"
+#include "player/player.hpp"
+#include "rendering/ui/game_ui.hpp"
 #include "rendering/screen_transition.hpp"
-#include "npc/npc_spawn_data.hpp"
-#include "npc/npc.hpp"
+#include "cameras/camera2d.hpp"
 #include "assets/asset_paths.hpp"
 #include "window/window.hpp"
 #include "scripting/lua_script_system.hpp"
@@ -25,25 +19,38 @@
 Game::Game(Window &window, ReloadCommands &reloadCommands)
     : window(window), gameData(loadGameData()),
       camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
+      world(gameData, keyboardIntentions, luaScriptSystem),
       gameUi(window, window.getFramebufferSize().x, window.getFramebufferSize().y),
       levels(assets::pathTo(assets::LevelList))
 {
     window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
-    onResizeConnection =
-        window.onResize.connect([this](int width, int height) { resize(width, height); });
+    onResizeConnection = window.onResize.connect(
+        [this](int width, int height)
+        {
+            camera.resize(width, height);
+            gameUi.resize(width, height);
+        });
 
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
     keyboardManager.registerKey(GLFW_KEY_F1);
     showEditors = gameData.settings.debug;
-    loadLevel(levels.getFirst());
+
+    world.onLevelLoaded.connect(
+        [this]
+        {
+            const TileMap &tileMap = world.getLevel().getTileMap();
+            camera.setWorldBounds(
+                glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
+        });
+    world.loadLevel(levels.getFirst());
 
     gameUi.commands().onPlay.connect([this] { playback.play(); });
     gameUi.commands().onPause.connect([this] { playback.pause(); });
     gameUi.commands().onStep.connect([this] { playback.step(); });
     gameUi.commands().onLoadLevel.connect([this](const std::string &levelPath)
-                                          { loadLevel(levelPath); });
-    gameUi.commands().onRespawn.connect([this] { rebuildPlayer(); });
+                                          { world.loadLevel(levelPath); });
+    gameUi.commands().onRespawn.connect([this] { world.respawnPlayer(); });
     gameUi.commands().onSettingsChanged.connect(
         [this]
         { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });
@@ -51,38 +58,38 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
     gameUi.commands().onSetFirstLevel.connect(
         [this]
         {
-            levels.setFirst(level->getPath());
+            levels.setFirst(world.getLevelPath());
             levels.save();
         });
 
     reloadCommands.isPlaying = [this](const std::string &levelPath)
-    { return isPlaying(levelPath); };
+    { return world.isPlaying(levelPath); };
     reloadConnections.push_back(reloadCommands.onLoadLevel.connect(
-        [this](const std::string &levelPath) { loadLevel(levelPath); }));
+        [this](const std::string &levelPath) { world.loadLevel(levelPath); }));
     reloadConnections.push_back(reloadCommands.onReloadShader.connect(
         [this](const std::string &shaderPath) { renderer.reloadShader(shaderPath); }));
     reloadConnections.push_back(reloadCommands.onReloadTexture.connect(
         [this](const std::string &texturePath) { renderer.reloadTexture(texturePath); }));
-    reloadConnections.push_back(reloadCommands.onReload.connect([this] { reload(); }));
-    reloadConnections.push_back(
-        reloadCommands.onReloadScripts.connect([this] { reloadScripts(); }));
+    reloadConnections.push_back(reloadCommands.onReload.connect(
+        [this]
+        {
+            gameData = loadGameData();
+            gameUi.forget();
+            this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
+            camera.setZoom(gameData.cameraData.zoom);
 
-    luaScriptSystem.bindGameObjects(this, &playback, &camera, &screenTransition);
+            std::string current = world.getLevelPath();
+            world.loadLevel(current.empty() ? levels.getFirst() : current);
+        }));
+    reloadConnections.push_back(
+        reloadCommands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));
+
+    luaScriptSystem.bindGameObjects(&playback, &camera, &screenTransition, &world);
 
     luaScriptSystem.triggerGameLoaded();
 }
 
 Game::~Game() = default;
-
-bool Game::isPlaying(const std::string &levelPath) const
-{
-    return level && level->getPath() == levelPath;
-}
-
-void Game::reloadScripts()
-{
-    luaScriptSystem.loadScripts();
-}
 
 void Game::frame(float deltaTime)
 {
@@ -97,168 +104,43 @@ void Game::frame(float deltaTime)
     luaScriptSystem.update(deltaTime);
     camera.update(deltaTime);
     screenTransition.update(deltaTime);
-    gameUi.update(deltaTime, *level.get(), camera);
+    gameUi.update(deltaTime, world.getLevel(), camera);
 
     playback.advance(
         deltaTime,
-        [this] { preFixedUpdate(); },
+        [this]
+        {
+            keyboardIntentions.process(window.getHandle());
+            world.preFixedUpdate();
+        },
         [this](float dt)
         {
-            fixedUpdate(dt);
-            postFixedUpdate();
+            world.fixedUpdate(dt);
+            world.postFixedUpdate();
         },
-        [this](float dt) { update(dt); });
+        [this](float dt) { world.update(dt); });
 
-    camera.follow(player->getPosition());
+    camera.follow(world.getPlayer().getPosition());
 
     render();
 }
 
-void Game::preFixedUpdate()
-{
-    inputManager.process(window.getHandle());
-
-    for (Actor *actor : actors)
-        actor->preFixedUpdate();
-}
-
-void Game::fixedUpdate(float deltaTime)
-{
-    std::optional<glm::vec2> playerPosition;
-    if (player)
-        playerPosition = player->getPhysicsBody().getAABB().bottomCenter();
-
-    for (Actor *actor : actors)
-        actor->fixedUpdate(
-            deltaTime, *level.get(), actor == player.get() ? std::nullopt : playerPosition);
-
-    tileInteractionSystem.fixedUpdate(*player.get(), level->getTileMap());
-}
-
-void Game::postFixedUpdate()
-{
-    for (Actor *actor : actors)
-        actor->postFixedUpdate();
-}
-
-void Game::update(float deltaTime)
-{
-    level->getTileMap().update(deltaTime);
-}
-
 void Game::render()
 {
-    renderer.draw(camera.getProjection(), level->getTileMap(), actors);
+    renderer.draw(camera.getProjection(), world.getLevel().getTileMap(), world.getActors());
 
     gameUi.draw(
         GameUiSubject{
             gameData,
-            *level.get(),
-            npcs,
-            *player.get(),
+            world.getLevel(),
+            world.getNpcs(),
+            world.getPlayer(),
             renderer.getTileSet(),
             levels.getFirst(),
             camera,
-            scoringSystem,
+            world.getScoringSystem(),
             playback.isPaused(),
             showEditors});
 
     renderer.draw(screenTransition);
-}
-
-void Game::resize(int windowWidth, int windowHeight)
-{
-    camera.resize(windowWidth, windowHeight);
-
-    gameUi.resize(windowWidth, windowHeight);
-}
-
-void Game::reload()
-{
-    gameData = loadGameData();
-    gameUi.forget();
-
-    window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
-
-    camera.setZoom(gameData.cameraData.zoom);
-
-    loadLevel(level ? level->getPath() : levels.getFirst());
-}
-
-void Game::loadLevel(const std::string &levelPath)
-{
-    rebuildLevel(levelPath);
-
-    camera.setWorldBounds(
-        glm::vec2(0),
-        glm::vec2(level->getTileMap().getWorldWidth(), level->getTileMap().getWorldHeight()));
-
-    rebuildPlayer();
-
-    rebuildNpcs();
-}
-
-void Game::rebuildLevel(const std::string &levelPath)
-{
-    std::unique_ptr<Level> newLevel = std::make_unique<Level>(
-        levelPath, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-    level = std::move(newLevel);
-    luaScriptSystem.bindLevel(level.get());
-}
-
-void Game::rebuildPlayer()
-{
-    if (!level)
-        throw std::runtime_error("Cannot rebuild the player before the tile map");
-
-    std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
-    player = std::move(newPlayer);
-    player->setPosition(
-        level->getTileMap().tileToBottomCenterPosition(level->getPlayerStartTile()) -
-        player->getPhysicsBody().getBottomCenterOffset());
-    player->onDeath.connect([this] { luaScriptSystem.triggerDeath(); });
-    onLevelCompleteConnection = player->onLevelComplete.connect(
-        [this]()
-        {
-            onLevelCompleteConnection.block();
-            luaScriptSystem.triggerLevelComplete();
-        });
-    player->onWallJump.connect([this] { luaScriptSystem.triggerWallJump(); });
-    player->onDash.connect([this] { luaScriptSystem.triggerDash(); });
-    player->onWallSliding.connect([this] { luaScriptSystem.triggerWallSliding(); });
-    player->onFallFromHeight.connect([this] { luaScriptSystem.triggerFallFromHeight(); });
-    player->onHitCeiling.connect([this] { luaScriptSystem.triggerHitCeiling(); });
-    player->onPickup.connect([this](int scoreDelta) { scoringSystem.addScore(scoreDelta); });
-    luaScriptSystem.bindPlayer(player.get());
-
-    refreshActors();
-}
-
-void Game::rebuildNpcs()
-{
-    npcs.clear();
-
-    for (const NpcSpawnData &spawn : level->getNpcs())
-    {
-        auto it = gameData.npcData.find(spawn.type);
-
-        std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second, level->patrolFor(spawn));
-        newNpc->setPosition(
-            level->getTileMap().tileToBottomCenterPosition(spawn.tilePosition) -
-            newNpc->getPhysicsBody().getBottomCenterOffset());
-        npcs.push_back(std::move(newNpc));
-    }
-
-    refreshActors();
-}
-
-void Game::refreshActors()
-{
-    actors.clear();
-
-    for (auto &npc : npcs)
-        actors.push_back(npc.get());
-
-    if (player)
-        actors.push_back(player.get());
 }

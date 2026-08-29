@@ -53,6 +53,12 @@ Terminal commands below assume a Unix shell. On Windows use Git Bash.
     "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
     ```
 
+    If clangd says *couldn't create connection to server*, its output channel will
+    say `command 'clangd.applyFix' already exists`. Another extension that embeds
+    clangd claimed that command first and only one of them can have it. SourceKit
+    LSP does, through the Swift extension. Disable whichever one you are not here
+    to use for this workspace.
+
 2. Clone with submodules:
 
     ```bash
@@ -177,6 +183,17 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - A file watcher catches and logs instead.
 - Each reload builds the replacement before assigning it, so a failure leaves what you
   had.
+
+**Signals rather than an event system of our own.**
+
+- [fteng signals](https://github.com/TheWisp/signals) is one header, so there is no bus,
+  no message types and no registry to keep working.
+- Neither side names the other. `Reloader` says a shader changed and has never heard of
+  the renderer that reloads it.
+- It is what anyone who has written Unity expects: something exposes an event, whoever
+  cares subscribes.
+- Keep the connection when the signal outlives you. `fteng::connection` disconnects when
+  destroyed, which is why `Game` holds the ones to `App`'s window and commands.
 
 **No C++20 modules.**
 

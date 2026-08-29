@@ -3,7 +3,10 @@
 #include <string>
 #include <vector>
 #include "scripting/lua_script_system.hpp"
-#include "game/game.hpp"
+#include "game/world.hpp"
+#include "cameras/camera2d.hpp"
+#include "rendering/screen_transition.hpp"
+#include "player/player.hpp"
 #include "game/playback.hpp"
 #include "game/level.hpp"
 
@@ -19,8 +22,8 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         &glm::vec2::x,
         "y",
         &glm::vec2::y);
-    lua.new_usertype<Game>(
-        "Game", "loadLevel", &Game::loadLevel, "rebuildPlayer", &Game::rebuildPlayer);
+    lua.new_usertype<World>(
+        "World", "loadLevel", &World::loadLevel, "respawnPlayer", &World::respawnPlayer);
     lua.new_usertype<Playback>(
         "Playback", "pause", &Playback::pause, "play", &Playback::play, "step", &Playback::step);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
@@ -74,15 +77,15 @@ void LuaScriptSystem::update(float deltaTime)
 }
 
 void LuaScriptSystem::bindGameObjects(
-    Game *game,
     Playback *playback,
     Camera2D *camera,
-    ScreenTransition *screenTransition)
+    ScreenTransition *screenTransition,
+    World *world)
 {
-    lua["game"] = game;
     lua["playback"] = playback;
     lua["camera"] = camera;
     lua["screenTransition"] = screenTransition;
+    lua["world"] = world;
 }
 
 void LuaScriptSystem::triggerLevelComplete()

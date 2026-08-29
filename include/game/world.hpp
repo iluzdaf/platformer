@@ -8,7 +8,7 @@
 #include "tile_map/tile_interaction_system.hpp"
 
 class Actor;
-class InputManager;
+class IntentionSource;
 class Level;
 class LuaScriptSystem;
 class Npc;
@@ -18,7 +18,10 @@ struct GameData;
 class World
 {
 public:
-    World(GameData &gameData, InputManager &inputManager, LuaScriptSystem &luaScriptSystem);
+    World(
+        GameData &gameData,
+        const IntentionSource &intentionSource,
+        LuaScriptSystem &luaScriptSystem);
     ~World();
 
     void loadLevel(const std::string &levelPath);
@@ -46,7 +49,7 @@ private:
     void refreshActors();
 
     GameData &gameData;
-    InputManager &inputManager;
+    const IntentionSource &intentionSource;
     LuaScriptSystem &luaScriptSystem;
 
     std::unique_ptr<Level> level;

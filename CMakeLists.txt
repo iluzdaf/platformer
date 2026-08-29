@@ -124,7 +124,7 @@ add_library(platformer_lib OBJECT
     src/cameras/camera2d.cpp
     src/cameras/camera_shake.cpp
     src/input/keyboard_manager.cpp
-    src/input/input_manager.cpp
+    src/input/keyboard_intentions.cpp
     src/animations/frame_animation.cpp
     src/animations/sprite_animation.cpp
     src/animations/tile_animation.cpp

@@ -4,10 +4,10 @@
 #include "input/input_intentions.hpp"
 #include "input/intention_source.hpp"
 
-class InputManager : public IntentionSource
+class KeyboardIntentions : public IntentionSource
 {
 public:
-    InputManager();
+    KeyboardIntentions();
     void process(GLFWwindow *window);
     InputIntentions getIntentions() const override;
 

@@ -19,7 +19,7 @@
 Game::Game(Window &window, ReloadCommands &reloadCommands)
     : window(window), gameData(loadGameData()),
       camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
-      world(gameData, inputManager, luaScriptSystem),
+      world(gameData, keyboardIntentions, luaScriptSystem),
       gameUi(window, window.getFramebufferSize().x, window.getFramebufferSize().y),
       levels(assets::pathTo(assets::LevelList))
 {
@@ -110,7 +110,7 @@ void Game::frame(float deltaTime)
         deltaTime,
         [this]
         {
-            inputManager.process(window.getHandle());
+            keyboardIntentions.process(window.getHandle());
             world.preFixedUpdate();
         },
         [this](float dt)

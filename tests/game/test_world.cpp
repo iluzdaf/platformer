@@ -2,18 +2,18 @@
 #include <cstddef>
 #include <string>
 #include "game/world.hpp"
+#include "input/input_intentions.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
-#include "input/input_manager.hpp"
 #include "player/player.hpp"
 #include "scripting/lua_script_system.hpp"
+#include "test_helpers/test_player_utils.hpp"
 
 TEST_CASE("Loading a level fills the world with the level and its cast", "[World]")
 {
     GameData gameData = loadGameData();
-    InputManager inputManager;
     LuaScriptSystem luaScriptSystem;
-    World world(gameData, inputManager, luaScriptSystem);
+    World world(gameData, noIntentions(), luaScriptSystem);
 
     world.loadLevel("levels/level6.json");
 
@@ -29,9 +29,8 @@ TEST_CASE("Loading a level fills the world with the level and its cast", "[World
 TEST_CASE("The player starts standing where the level says", "[World]")
 {
     GameData gameData = loadGameData();
-    InputManager inputManager;
     LuaScriptSystem luaScriptSystem;
-    World world(gameData, inputManager, luaScriptSystem);
+    World world(gameData, noIntentions(), luaScriptSystem);
 
     world.loadLevel("levels/level6.json");
 
@@ -45,9 +44,8 @@ TEST_CASE("The player starts standing where the level says", "[World]")
 TEST_CASE("Respawning the player leaves the rest of the cast alone", "[World]")
 {
     GameData gameData = loadGameData();
-    InputManager inputManager;
     LuaScriptSystem luaScriptSystem;
-    World world(gameData, inputManager, luaScriptSystem);
+    World world(gameData, noIntentions(), luaScriptSystem);
 
     world.loadLevel("levels/level6.json");
     std::size_t npcsBefore = world.getNpcs().size();
@@ -63,9 +61,8 @@ TEST_CASE("Respawning the player leaves the rest of the cast alone", "[World]")
 TEST_CASE("The player cannot be spawned before there is a level to stand on", "[World]")
 {
     GameData gameData = loadGameData();
-    InputManager inputManager;
     LuaScriptSystem luaScriptSystem;
-    World world(gameData, inputManager, luaScriptSystem);
+    World world(gameData, noIntentions(), luaScriptSystem);
 
     REQUIRE(world.getLevelPath().empty());
     REQUIRE_FALSE(world.isPlaying("levels/level1.json"));
@@ -75,9 +72,8 @@ TEST_CASE("The player cannot be spawned before there is a level to stand on", "[
 TEST_CASE("Loading a level says so, for whoever is watching", "[World]")
 {
     GameData gameData = loadGameData();
-    InputManager inputManager;
     LuaScriptSystem luaScriptSystem;
-    World world(gameData, inputManager, luaScriptSystem);
+    World world(gameData, noIntentions(), luaScriptSystem);
 
     int loaded = 0;
     world.onLevelLoaded.connect([&loaded] { loaded++; });
@@ -89,4 +85,28 @@ TEST_CASE("Loading a level says so, for whoever is watching", "[World]")
     world.loadLevel("levels/level1.json");
 
     REQUIRE(loaded == 2);
+}
+
+TEST_CASE("The player acts on the intentions the world was given", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    ScriptedIntentions intentions;
+    World world(gameData, intentions, luaScriptSystem);
+
+    world.loadLevel("levels/level6.json");
+    float startX = world.getPlayer().getPosition().x;
+
+    InputIntentions moveRight;
+    moveRight.direction = {1.0f, 0.0f};
+    intentions.set(moveRight);
+
+    for (int step = 0; step < 30; step++)
+    {
+        world.preFixedUpdate();
+        world.fixedUpdate(1.0f / 60.0f);
+        world.postFixedUpdate();
+    }
+
+    REQUIRE(world.getPlayer().getPosition().x > startX);
 }

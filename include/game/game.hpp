@@ -11,7 +11,7 @@
 #include "rendering/screen_transition.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
-#include "input/input_manager.hpp"
+#include "input/keyboard_intentions.hpp"
 #include "game/playback.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "window/window.hpp"
@@ -32,7 +32,7 @@ private:
     GameData gameData;
     Camera2D camera;
     KeyboardManager keyboardManager;
-    InputManager inputManager;
+    KeyboardIntentions keyboardIntentions;
     Playback playback;
     LuaScriptSystem luaScriptSystem;
     World world;

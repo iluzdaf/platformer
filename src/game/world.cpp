@@ -12,11 +12,14 @@
 #include "npc/npc.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "player/player.hpp"
-#include "input/input_manager.hpp"
+#include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
 
-World::World(GameData &gameData, InputManager &inputManager, LuaScriptSystem &luaScriptSystem)
-    : gameData(gameData), inputManager(inputManager), luaScriptSystem(luaScriptSystem)
+World::World(
+    GameData &gameData,
+    const IntentionSource &intentionSource,
+    LuaScriptSystem &luaScriptSystem)
+    : gameData(gameData), intentionSource(intentionSource), luaScriptSystem(luaScriptSystem)
 {
 }
 
@@ -46,7 +49,8 @@ void World::respawnPlayer()
     if (!level)
         throw std::runtime_error("Cannot spawn the player before the tile map");
 
-    std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
+    std::unique_ptr<Player> newPlayer =
+        std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
     player->setPosition(
         level->getTileMap().tileToBottomCenterPosition(level->getPlayerStartTile()) -

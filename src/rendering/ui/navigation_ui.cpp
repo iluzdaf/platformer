@@ -94,8 +94,11 @@ void NavigationUi::draw(const Level &level)
         bool open = ImGui::TreeNodeEx(nodeLabel.c_str(), flags);
         if (!choosingGraph && ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
         {
-            selectedNodeId = nodeId;
+            bool wasSelected = selectedNodeId == nodeId;
+            selectedNodeId.reset();
             selectedEdge.reset();
+            if (!wasSelected)
+                selectedNodeId = nodeId;
         }
 
         if (open)
@@ -157,8 +160,11 @@ void NavigationUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
 
         if (ImGui::Selectable(label.c_str(), selectedEdge == ends))
         {
-            selectedEdge = ends;
+            bool wasSelected = selectedEdge == ends;
+            selectedEdge.reset();
             selectedNodeId.reset();
+            if (!wasSelected)
+                selectedEdge = ends;
         }
         ImGui::PopID();
     }

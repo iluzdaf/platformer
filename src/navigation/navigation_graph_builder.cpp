@@ -757,11 +757,17 @@ namespace
                         continue;
 
                     int runBottom = footRow - 1;
-                    int topId = endOfTheFace(climbX, wallX, *runTop);
-                    joinBothWays(topId, endOfTheFace(climbX, wallX, runBottom));
-
                     std::optional<int> ledgeId = ledgeAboveTheFace(
                         navigationGraph, tileMap, climbX, wallX, *runTop, headroom);
+
+                    if (runBottom == *runTop && !ledgeId)
+                    {
+                        runTop.reset();
+                        continue;
+                    }
+
+                    int topId = endOfTheFace(climbX, wallX, *runTop);
+                    joinBothWays(topId, endOfTheFace(climbX, wallX, runBottom));
                     if (ledgeId)
                         joinBothWays(topId, *ledgeId);
 

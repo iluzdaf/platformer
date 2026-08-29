@@ -1415,3 +1415,27 @@ TEST_CASE(
 
     REQUIRE(climbs > 0);
 }
+
+TEST_CASE(
+    "No level leaves a wall node with nothing joined to it",
+    "[NavigationGraphBuilder][Climb]")
+{
+    GameData gameData = loadGameData();
+    NavigationProfile player = buildNavigationProfile(gameData.playerData.actorData);
+
+    for (const std::filesystem::directory_entry &entry :
+         std::filesystem::directory_iterator(assetPath("levels")))
+    {
+        TileMap tileMap = tilesOfLevel(entry.path().string());
+        NavigationGraph graph = buildNavigationGraph(tileMap, player);
+
+        for (const auto &[id, node] : graph.getNodes())
+        {
+            if (node.kind != NodeKind::OnWall)
+                continue;
+
+            INFO(entry.path().filename().string() << " node " << id);
+            REQUIRE_FALSE(graph.getOutgoingEdges(id).empty());
+        }
+    }
+}

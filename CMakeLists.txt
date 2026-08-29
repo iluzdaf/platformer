@@ -86,6 +86,7 @@ add_library(platformer_lib OBJECT
     src/rendering/texture2d.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
+    src/rendering/game_renderer.cpp
     src/rendering/tile_map_drawing.cpp
     src/rendering/screen_transition.cpp
     src/rendering/ui/editor_ui.cpp

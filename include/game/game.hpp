@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <string_view>
 #include "rendering/ui/game_ui.hpp"
 #include "game/game_data.hpp"
 #include "game/levels.hpp"
@@ -10,9 +9,7 @@
 #include "player/player.hpp"
 #include "npc/npc.hpp"
 #include "game/scoring_system.hpp"
-#include "rendering/shader.hpp"
-#include "rendering/texture2d.hpp"
-#include "rendering/sprite_renderer.hpp"
+#include "rendering/game_renderer.hpp"
 #include "rendering/screen_transition.hpp"
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
@@ -38,7 +35,6 @@ public:
     void refreshActors();
 
 private:
-    std::unique_ptr<Shader> loadShader(std::string_view vertex, std::string_view fragment) const;
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);
     void postFixedUpdate();
@@ -60,9 +56,7 @@ private:
     std::vector<Actor *> actors;
     TileInteractionSystem tileInteractionSystem;
     ScoringSystem scoringSystem;
-    std::unique_ptr<Texture2D> tileSet, playerTexture;
-    std::unique_ptr<Shader> tileSetShader, screenTransitionShader;
-    SpriteRenderer spriteRenderer;
+    GameRenderer renderer;
     ScreenTransition screenTransition;
     GameUi gameUi;
     Levels levels;

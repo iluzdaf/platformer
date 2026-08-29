@@ -40,7 +40,7 @@ void DashAbility::applyMovement(
 
     if (state.dash.timeLeft > 0.0f && state.dash.active)
     {
-        if (state.contacts.touchingLeftWall || state.contacts.touchingRightWall)
+        if (state.contacts.touchingWall())
         {
             state.dash.timeLeft = 0.0f;
             state.dash.active = false;

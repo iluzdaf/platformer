@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <vector>
 #include "actor/actor_behavior_context.hpp"
+#include "actor/actor_contact_state.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
@@ -47,14 +48,26 @@ namespace
         return navigationGraph;
     }
 
+    ActorContactState standing()
+    {
+        ActorContactState contacts;
+        contacts.onGround = true;
+        return contacts;
+    }
+
     ActorBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
     {
-        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt};
+        return {
+            navigationGraph,
+            worldPosition,
+            glm::vec2(8.0f, 13.0f),
+            std::nullopt,
+            ActorContactState{}};
     }
 
     ActorBehaviorContext standingAt(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
     {
-        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt, true};
+        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt, standing()};
     }
 
     PatrolBehaviorData setupData()

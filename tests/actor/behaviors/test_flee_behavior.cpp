@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <optional>
 #include "actor/actor_behavior_context.hpp"
+#include "actor/actor_contact_state.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
@@ -35,12 +36,19 @@ namespace
         return navigationGraph;
     }
 
+    ActorContactState standing()
+    {
+        ActorContactState contacts;
+        contacts.onGround = true;
+        return contacts;
+    }
+
     ActorBehaviorContext at(
         const NavigationGraph &navigationGraph,
         glm::vec2 worldPosition,
         std::optional<glm::vec2> threatPosition)
     {
-        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), threatPosition, true};
+        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), threatPosition, standing()};
     }
 
     FleeBehaviorData setupData()

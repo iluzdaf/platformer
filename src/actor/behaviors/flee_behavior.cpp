@@ -57,7 +57,7 @@ std::optional<int> FleeBehavior::furthestFrom(const ActorBehaviorContext &contex
 bool FleeBehavior::fleeingTowardsTheThreat(const ActorBehaviorContext &context) const
 {
     std::optional<int> destination = walker.getTargetNodeId();
-    if (!destination || !context.threatPosition || !context.onGround)
+    if (!destination || !context.threatPosition || !context.contacts.onGround)
         return false;
 
     glm::vec2 refuge = context.navigationGraph.getNode(*destination).position;

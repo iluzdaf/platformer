@@ -17,7 +17,7 @@ void WallHangAbility::applyMovement(
     if (!inputIntentions.climbRequested)
         return;
 
-    if (!(state.contacts.touchingLeftWall || state.contacts.touchingRightWall))
+    if (!state.contacts.touchingWall())
         return;
 
     state.wallHang.active = true;

@@ -137,7 +137,5 @@ ActorBehaviorContext Actor::behaviorContext(
         physicsBody.getAABB().bottomCenter(),
         physicsBody.getColliderSize(),
         threatPosition,
-        motion.getState().contacts.onGround,
-        motion.getState().contacts.touchingLeftWall ||
-            motion.getState().contacts.touchingRightWall};
+        motion.getState().contacts};
 }

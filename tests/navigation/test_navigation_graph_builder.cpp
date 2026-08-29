@@ -1267,6 +1267,15 @@ namespace
     }
 
     // Which surfaces climb edges join, named by the tile row each surface sits on.
+    std::vector<NavigationNode> nodesOnWalls(const NavigationGraph &graph)
+    {
+        std::vector<NavigationNode> onWalls;
+        for (const auto &[id, node] : graph.getNodes())
+            if (node.kind == NodeKind::OnWall)
+                onWalls.push_back(node);
+        return onWalls;
+    }
+
     std::set<std::pair<int, int>> rowsJoinedByClimbing(
         const NavigationGraph &graph,
         const TileMap &tileMap)
@@ -1300,6 +1309,7 @@ TEST_CASE(
 
     REQUIRE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
     REQUIRE(joined.contains({ClimbWallTopRow, ClimbFloorRow}));
+    REQUIRE(joined.contains({ClimbWallTopRow, ClimbWallTopRow}));
 }
 
 TEST_CASE("An actor that cannot climb is given no way up a wall", "[NavigationGraphBuilder][Climb]")
@@ -1369,4 +1379,49 @@ TEST_CASE("A wall with no room beside its top is not climbed", "[NavigationGraph
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
 
     REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
+}
+
+TEST_CASE("A wall an actor can climb gets a node on it", "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+
+    std::vector<NavigationNode> onWalls =
+        nodesOnWalls(buildNavigationGraph(tileMap, climberProfile()));
+
+    REQUIRE_FALSE(onWalls.empty());
+    for (const NavigationNode &node : onWalls)
+    {
+        glm::vec2 underfoot(0.0f, 1.0f);
+        REQUIRE(tileMap.worldToTilePosition(node.position + underfoot).y == ClimbWallTopRow);
+    }
+}
+
+TEST_CASE("An actor that cannot climb gets no wall nodes", "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+
+    REQUIRE(nodesOnWalls(buildNavigationGraph(tileMap, standardProfile())).empty());
+}
+
+TEST_CASE(
+    "Climbing goes by way of the wall, never straight onto the ledge",
+    "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+    NavigationGraph graph = buildNavigationGraph(tileMap, climberProfile());
+
+    int climbs = 0;
+    for (const auto &[id, node] : graph.getNodes())
+        for (const NavigationEdge &edge : graph.getOutgoingEdges(id))
+        {
+            if (edge.type != EdgeType::Climb)
+                continue;
+
+            climbs++;
+            REQUIRE(
+                (graph.getNode(edge.fromId).kind == NodeKind::OnWall ||
+                 graph.getNode(edge.toId).kind == NodeKind::OnWall));
+        }
+
+    REQUIRE(climbs > 0);
 }

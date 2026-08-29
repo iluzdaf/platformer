@@ -693,7 +693,20 @@ namespace
         return std::nullopt;
     }
 
-    void addClimbEdges(
+    std::optional<int> wallBesideAt(const TileMap &tileMap, glm::ivec2 tilePosition)
+    {
+        for (int side : {-1, 1})
+        {
+            glm::ivec2 beside = tilePosition + glm::ivec2(side, 0);
+            if (tileMap.validTilePosition(beside) &&
+                tileMap.getTileAtTilePosition(beside).isSolid())
+                return beside.x;
+        }
+
+        return std::nullopt;
+    }
+
+    void addWallNodes(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
@@ -702,10 +715,13 @@ namespace
         if (!profile.climbs())
             return;
 
+        int nextNodeId = 0;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+            nextNodeId = std::max(nextNodeId, id + 1);
+
         glm::vec2 topOfTile(static_cast<float>(tileMap.getTileSize()) / 2.0f, 0.0f);
 
         for (int wallX = 0; wallX < tileMap.getWidth(); ++wallX)
-        {
             for (int topRow = 0; topRow < tileMap.getHeight(); ++topRow)
             {
                 glm::ivec2 wallTop(wallX, topRow);
@@ -715,14 +731,6 @@ namespace
                 glm::ivec2 above = wallTop + glm::ivec2(0, -1);
                 if (tileMap.validTilePosition(above) &&
                     tileMap.getTileAtTilePosition(above).isSolid())
-                    continue;
-
-                std::optional<int> topId = nodeGoverning(
-                    navigationGraph,
-                    tileMap,
-                    tileMap.tileToWorldPosition(wallTop) + topOfTile,
-                    headroom);
-                if (!topId)
                     continue;
 
                 for (int side : {-1, 1})
@@ -735,23 +743,67 @@ namespace
                     if (!wallRunsAllTheWay(tileMap, wallX, topRow, *groundRow - 1))
                         continue;
 
-                    // Everything between the top and the footing is clear by
-                    // construction; what is left to check is body room at the top.
                     if (!columnIsClear(tileMap, climbX, topRow - headroom, *groundRow - 1))
                         continue;
 
-                    glm::ivec2 footing(climbX, *groundRow);
-                    std::optional<int> footId = nodeGoverning(
-                        navigationGraph,
-                        tileMap,
-                        tileMap.tileToWorldPosition(footing) + topOfTile,
-                        headroom);
-                    if (!footId || *footId == *topId)
+                    glm::vec2 hangingAtTheTop =
+                        tileMap.tileToWorldPosition(glm::ivec2(climbX, topRow)) + topOfTile;
+                    if (navigationGraph.hasNodeAtPosition(hangingAtTheTop))
                         continue;
 
-                    navigationGraph.addEdge(*footId, *topId, EdgeType::Climb);
-                    navigationGraph.addEdge(*topId, *footId, EdgeType::Climb);
+                    navigationGraph.addNode(nextNodeId++, hangingAtTheTop, NodeKind::OnWall);
                 }
+            }
+    }
+
+    void addClimbEdges(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        if (!profile.climbs())
+            return;
+
+        glm::vec2 topOfTile(static_cast<float>(tileMap.getTileSize()) / 2.0f, 0.0f);
+        glm::vec2 underfoot(0.0f, 1.0f);
+
+        std::vector<NavigationNode> wallNodes;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+            if (node.kind == NodeKind::OnWall)
+                wallNodes.push_back(node);
+
+        for (const NavigationNode &wallNode : wallNodes)
+        {
+            glm::ivec2 hanging = tileMap.worldToTilePosition(wallNode.position + underfoot);
+            std::optional<int> wallX = wallBesideAt(tileMap, hanging);
+            if (!wallX)
+                continue;
+
+            std::optional<int> groundRow = floorBelow(tileMap, hanging.x, hanging.y + 1);
+            if (!groundRow)
+                continue;
+
+            std::optional<int> footId = nodeGoverning(
+                navigationGraph,
+                tileMap,
+                tileMap.tileToWorldPosition(glm::ivec2(hanging.x, *groundRow)) + topOfTile,
+                headroom);
+            if (footId)
+            {
+                navigationGraph.addEdge(*footId, wallNode.id, EdgeType::Climb);
+                navigationGraph.addEdge(wallNode.id, *footId, EdgeType::Climb);
+            }
+
+            std::optional<int> ledgeId = nodeGoverning(
+                navigationGraph,
+                tileMap,
+                tileMap.tileToWorldPosition(glm::ivec2(*wallX, hanging.y)) + topOfTile,
+                headroom);
+            if (ledgeId)
+            {
+                navigationGraph.addEdge(wallNode.id, *ledgeId, EdgeType::Climb);
+                navigationGraph.addEdge(*ledgeId, wallNode.id, EdgeType::Climb);
             }
         }
     }
@@ -803,6 +855,8 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
 
     addJumpEdges(navigationGraph, tileMap, headroom, jumps);
     addFallEdges(navigationGraph, tileMap, profile, headroom);
+
+    addWallNodes(navigationGraph, tileMap, profile, headroom);
     addClimbEdges(navigationGraph, tileMap, profile, headroom);
 
     return navigationGraph;

@@ -111,6 +111,7 @@ add_library(platformer_lib OBJECT
     src/app/app.cpp
     src/window/window.cpp
     src/game/game.cpp
+    src/game/world.cpp
     src/game/game_data.cpp
     src/game/playback.cpp
     src/serialization/json_format.cpp
@@ -256,6 +257,7 @@ add_executable(tests
     tests/assets/test_asset_paths.cpp
     tests/reloading/test_reloader.cpp
     tests/game/test_game.cpp
+    tests/game/test_world.cpp
     tests/game/test_playback.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp

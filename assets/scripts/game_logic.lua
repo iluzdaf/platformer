@@ -8,7 +8,7 @@ end
 
 function deathCoroutine()
     waitSeconds(0.25)
-    game:rebuildPlayer()
+    world:rebuildPlayer()
     playback:play()
 end
 

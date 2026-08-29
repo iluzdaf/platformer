@@ -11,6 +11,7 @@ class TileMap;
 class Level;
 class Player;
 class ScreenTransition;
+class World;
 
 class LuaScriptSystem
 {
@@ -29,7 +30,8 @@ public:
         Game *game,
         Playback *playback,
         Camera2D *camera,
-        ScreenTransition *screenTransition);
+        ScreenTransition *screenTransition,
+        World *world);
     void triggerLevelComplete();
     void triggerDeath();
     void bindLevel(Level *level);

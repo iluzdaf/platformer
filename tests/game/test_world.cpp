@@ -71,3 +71,22 @@ TEST_CASE("The player cannot be built before there is a level to stand on", "[Wo
     REQUIRE_FALSE(world.isPlaying("levels/level1.json"));
     REQUIRE_THROWS(world.rebuildPlayer());
 }
+
+TEST_CASE("Loading a level says so, for whoever is watching", "[World]")
+{
+    GameData gameData = loadGameData();
+    InputManager inputManager;
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, inputManager, luaScriptSystem);
+
+    int loaded = 0;
+    world.onLevelLoaded.connect([&loaded] { loaded++; });
+
+    world.loadLevel("levels/level6.json");
+
+    REQUIRE(loaded == 1);
+
+    world.loadLevel("levels/level1.json");
+
+    REQUIRE(loaded == 2);
+}

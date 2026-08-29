@@ -29,6 +29,8 @@ void World::loadLevel(const std::string &levelPath)
     rebuildPlayer();
 
     rebuildNpcs();
+
+    onLevelLoaded();
 }
 
 void World::rebuildLevel(const std::string &levelPath)

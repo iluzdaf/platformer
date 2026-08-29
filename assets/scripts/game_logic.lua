@@ -19,7 +19,7 @@ end
 function levelCompleteCoroutine()    
     waitSeconds(0);
     playback:pause()
-    game:loadLevel(level:getNextLevel())
+    world:loadLevel(level:getNextLevel())
     screenTransition:start(0.5, true)
     waitSeconds(0.5)
     playback:play()

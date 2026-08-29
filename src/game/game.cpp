@@ -31,13 +31,21 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
     keyboardManager.registerKey(GLFW_KEY_S);
     keyboardManager.registerKey(GLFW_KEY_F1);
     showEditors = gameData.settings.debug;
-    loadLevel(levels.getFirst());
+
+    world.onLevelLoaded.connect(
+        [this]
+        {
+            const TileMap &tileMap = world.getLevel().getTileMap();
+            camera.setWorldBounds(
+                glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
+        });
+    world.loadLevel(levels.getFirst());
 
     gameUi.commands().onPlay.connect([this] { playback.play(); });
     gameUi.commands().onPause.connect([this] { playback.pause(); });
     gameUi.commands().onStep.connect([this] { playback.step(); });
     gameUi.commands().onLoadLevel.connect([this](const std::string &levelPath)
-                                          { loadLevel(levelPath); });
+                                          { world.loadLevel(levelPath); });
     gameUi.commands().onRespawn.connect([this] { world.rebuildPlayer(); });
     gameUi.commands().onSettingsChanged.connect(
         [this]
@@ -53,7 +61,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
     reloadCommands.isPlaying = [this](const std::string &levelPath)
     { return world.isPlaying(levelPath); };
     reloadConnections.push_back(reloadCommands.onLoadLevel.connect(
-        [this](const std::string &levelPath) { loadLevel(levelPath); }));
+        [this](const std::string &levelPath) { world.loadLevel(levelPath); }));
     reloadConnections.push_back(reloadCommands.onReloadShader.connect(
         [this](const std::string &shaderPath) { renderer.reloadShader(shaderPath); }));
     reloadConnections.push_back(reloadCommands.onReloadTexture.connect(
@@ -62,7 +70,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
     reloadConnections.push_back(
         reloadCommands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));
 
-    luaScriptSystem.bindGameObjects(this, &playback, &camera, &screenTransition, &world);
+    luaScriptSystem.bindGameObjects(&playback, &camera, &screenTransition, &world);
 
     luaScriptSystem.triggerGameLoaded();
 }
@@ -140,14 +148,5 @@ void Game::reload()
     camera.setZoom(gameData.cameraData.zoom);
 
     std::string current = world.getLevelPath();
-    loadLevel(current.empty() ? levels.getFirst() : current);
-}
-
-void Game::loadLevel(const std::string &levelPath)
-{
-    world.loadLevel(levelPath);
-
-    const TileMap &tileMap = world.getLevel().getTileMap();
-    camera.setWorldBounds(
-        glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
+    world.loadLevel(current.empty() ? levels.getFirst() : current);
 }

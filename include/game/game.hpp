@@ -24,7 +24,6 @@ public:
     Game(Window &window, ReloadCommands &reloadCommands);
     ~Game();
     void frame(float deltaTime);
-    void loadLevel(const std::string &levelPath);
 
 private:
     void reload();

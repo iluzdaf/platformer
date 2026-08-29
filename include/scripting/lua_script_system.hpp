@@ -4,7 +4,6 @@
 #include <string>
 #include <sol/sol.hpp>
 
-class Game;
 class Playback;
 class Camera2D;
 class TileMap;
@@ -27,7 +26,6 @@ public:
         const std::string &scriptPath = assets::pathTo(assets::GameLogicScript));
     void update(float deltaTime);
     void bindGameObjects(
-        Game *game,
         Playback *playback,
         Camera2D *camera,
         ScreenTransition *screenTransition,

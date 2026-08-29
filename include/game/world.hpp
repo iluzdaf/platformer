@@ -22,6 +22,8 @@ public:
     ~World();
 
     void loadLevel(const std::string &levelPath);
+
+    fteng::signal<void()> onLevelLoaded;
     void rebuildPlayer();
 
     void preFixedUpdate();

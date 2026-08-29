@@ -111,6 +111,7 @@ add_library(platformer_lib OBJECT
     src/window/window.cpp
     src/game/game.cpp
     src/game/game_data.cpp
+    src/game/playback.cpp
     src/serialization/json_format.cpp
     src/game/level.cpp
     src/game/levels.cpp
@@ -253,6 +254,7 @@ add_executable(tests
     tests/npc/test_npc.cpp
     tests/assets/test_asset_paths.cpp
     tests/reloading/test_reloader.cpp
+    tests/game/test_playback.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp
     tests/tile_map/test_tile_map_navigation.cpp

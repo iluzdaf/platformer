@@ -15,3 +15,7 @@ void FixedTimeStep::run(float deltaTime, const std::function<void(float)> &stepF
         deltaTime -= dt;
     }
 }
+float FixedTimeStep::getMaxStep() const
+{
+    return maxStep;
+}

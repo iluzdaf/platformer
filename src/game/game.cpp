@@ -1,6 +1,5 @@
 #include <memory>
 #include <cstdlib>
-#include <algorithm>
 #include <optional>
 #include <stdexcept>
 #include <glad/glad.h>
@@ -116,7 +115,7 @@ void Game::frame(float deltaTime)
 {
     keyboardManager.poll(window.getHandle());
     if (keyboardManager.isPressed(GLFW_KEY_P))
-        paused ? play() : pause();
+        playback.isPaused() ? play() : pause();
     if (keyboardManager.isPressed(GLFW_KEY_F1))
         showEditors = !showEditors;
     if (keyboardManager.isPressed(GLFW_KEY_S))
@@ -127,31 +126,15 @@ void Game::frame(float deltaTime)
     screenTransition.update(deltaTime);
     gameUi.update(deltaTime, *level.get(), camera);
 
-    if (!paused || stepFrame)
-    {
-        preFixedUpdate();
-
-        if (stepFrame)
+    playback.advance(
+        deltaTime,
+        [this] { preFixedUpdate(); },
+        [this](float dt)
         {
-            float dt = std::min(deltaTime, 0.01f);
             fixedUpdate(dt);
             postFixedUpdate();
-            update(dt);
-        }
-        else
-        {
-            timestepper.run(
-                deltaTime,
-                [&](float dt)
-                {
-                    fixedUpdate(dt);
-                    postFixedUpdate();
-                });
-            update(deltaTime);
-        }
-
-        stepFrame = false;
-    }
+        },
+        [this](float dt) { update(dt); });
 
     camera.follow(player->getPosition());
 
@@ -224,7 +207,7 @@ void Game::render()
             levels.getFirst(),
             camera,
             scoringSystem,
-            paused,
+            playback.isPaused(),
             showEditors});
 
     screenTransition.draw(*screenTransitionShader.get());
@@ -264,19 +247,17 @@ void Game::loadLevel(const std::string &levelPath)
 
 void Game::pause()
 {
-    paused = true;
+    playback.pause();
 }
 
 void Game::step()
 {
-    paused = true;
-    stepFrame = true;
+    playback.step();
 }
 
 void Game::play()
 {
-    paused = false;
-    stepFrame = false;
+    playback.play();
 }
 
 void Game::rebuildLevel(const std::string &levelPath)

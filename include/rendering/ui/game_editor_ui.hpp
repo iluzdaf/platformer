@@ -26,7 +26,7 @@ public:
 
     bool drawsPlayerAABBs() const;
 
-    void forget();
+    void valuesReplaced();
 
 private:
     Saveable saveable;

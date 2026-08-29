@@ -57,7 +57,7 @@ void TilePalettesUi::draw(
     inspector::drawFields(palette.at(selectedTileIndex));
 }
 
-void TilePalettesUi::forget()
+void TilePalettesUi::valuesReplaced()
 {
-    saveable.forget();
+    saveable.valuesReplaced();
 }

@@ -13,11 +13,11 @@ public:
     template <class T, class Save> bool drawControls(std::string_view name, T &value, Save &&save)
     {
         std::string now = asJson(value);
-        std::string &saved = asSaved[std::string(name)];
-        if (saved.empty())
-            saved = now;
+        std::string &lastSeen = asLastSeen[std::string(name)];
+        if (lastSeen.empty())
+            lastSeen = now;
 
-        if (saved == now)
+        if (lastSeen == now)
         {
             ImGui::TextDisabled("saved");
             return false;
@@ -26,13 +26,13 @@ public:
         if (ImGui::Button("save"))
         {
             save(value);
-            saved = asJson(value);
+            lastSeen = asJson(value);
         }
 
         ImGui::SameLine();
         if (ImGui::Button("revert"))
         {
-            std::ignore = glz::read_json(value, saved);
+            std::ignore = glz::read_json(value, lastSeen);
             return true;
         }
 
@@ -42,13 +42,13 @@ public:
         return false;
     }
 
-    void forget()
+    void valuesReplaced()
     {
-        asSaved.clear();
+        asLastSeen.clear();
     }
 
 private:
-    std::map<std::string, std::string> asSaved;
+    std::map<std::string, std::string> asLastSeen;
 
     template <class T> static std::string asJson(const T &value)
     {

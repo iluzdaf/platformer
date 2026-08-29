@@ -112,10 +112,10 @@ void EditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, 
     levelEditorUi.update(imGuiManager, camera, level, selectedTileIndex);
 }
 
-void EditorUi::forget()
+void EditorUi::valuesReplaced()
 {
-    gameEditorUi.forget();
-    tilePalettesUi.forget();
+    gameEditorUi.valuesReplaced();
+    tilePalettesUi.valuesReplaced();
 }
 
 bool EditorUi::drawsPlayerAABBs() const

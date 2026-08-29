@@ -39,7 +39,7 @@ public:
     void draw(const GameUiSubject &subject);
     void update(float deltaTime, Level &level, const Camera2D &camera);
     void resize(int width, int height);
-    void forget();
+    void valuesReplaced();
 
     EditorCommands &commands();
 

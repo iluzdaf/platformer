@@ -118,9 +118,9 @@ void GameEditorUi::draw(
     inspector::drawFields(gameData.playerData);
 }
 
-void GameEditorUi::forget()
+void GameEditorUi::valuesReplaced()
 {
-    saveable.forget();
+    saveable.valuesReplaced();
 }
 bool GameEditorUi::drawsPlayerAABBs() const
 {

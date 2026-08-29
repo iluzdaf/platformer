@@ -15,7 +15,7 @@ public:
         int tileSize,
         int &selectedTileIndex);
 
-    void forget();
+    void valuesReplaced();
 
 private:
     Saveable saveable;

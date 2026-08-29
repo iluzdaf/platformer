@@ -74,7 +74,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
         [this]
         {
             gameData = loadGameData();
-            gameUi.forget();
+            gameUi.valuesReplaced();
             this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
             camera.setZoom(gameData.cameraData.zoom);
 

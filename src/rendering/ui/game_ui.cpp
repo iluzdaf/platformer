@@ -57,9 +57,9 @@ void GameUi::resize(int width, int height)
     imGuiManager.resize(width, height);
 }
 
-void GameUi::forget()
+void GameUi::valuesReplaced()
 {
-    editorUi.forget();
+    editorUi.valuesReplaced();
 }
 
 EditorCommands &GameUi::commands()

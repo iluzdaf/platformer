@@ -3,6 +3,9 @@
 #include <utility>
 #include <imgui.h>
 #include "rendering/ui/editor_ui.hpp"
+#include "game/game_data.hpp"
+#include "game/level.hpp"
+#include "tile_map/tile_map.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 
@@ -54,7 +57,13 @@ void EditorUi::draw(
     {
     case EditorSection::Level:
     case EditorSection::TileMap:
-        levelEditorUi.draw(section, subject.level, subject.tileSet, subject.firstLevel, commands);
+        levelEditorUi.draw(
+            section,
+            subject.level,
+            subject.tileSet,
+            subject.firstLevel,
+            selectedTileIndex,
+            commands);
         break;
 
     case EditorSection::NpcsInLevel:
@@ -63,6 +72,14 @@ void EditorUi::draw(
 
     case EditorSection::Navigation:
         navigationUi.draw(subject.level);
+        break;
+
+    case EditorSection::TilePalettes:
+        tilePalettesUi.draw(
+            subject.gameData.tilePalettes,
+            subject.tileSet,
+            subject.level.getTileMap().getTileSize(),
+            selectedTileIndex);
         break;
 
     default:
@@ -92,12 +109,13 @@ void EditorUi::drawOverlays(
 
 void EditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level)
 {
-    levelEditorUi.update(imGuiManager, camera, level);
+    levelEditorUi.update(imGuiManager, camera, level, selectedTileIndex);
 }
 
-void EditorUi::forget()
+void EditorUi::valuesReplaced()
 {
-    gameEditorUi.forget();
+    gameEditorUi.valuesReplaced();
+    tilePalettesUi.valuesReplaced();
 }
 
 bool EditorUi::drawsPlayerAABBs() const

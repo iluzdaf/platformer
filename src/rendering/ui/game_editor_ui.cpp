@@ -57,14 +57,6 @@ void GameEditorUi::draw(
         return;
     }
 
-    if (section == EditorSection::TilePalettes)
-    {
-        saveable.drawControls("palettes", gameData.tilePalettes, saveTilePalettes);
-        ImGui::Separator();
-        inspector::draw("palettes", gameData.tilePalettes);
-        return;
-    }
-
     if (section == EditorSection::Camera)
     {
         ImGui::TextDisabled("%s", camera.shaking() ? "shaking" : "still");
@@ -126,9 +118,9 @@ void GameEditorUi::draw(
     inspector::drawFields(gameData.playerData);
 }
 
-void GameEditorUi::forget()
+void GameEditorUi::valuesReplaced()
 {
-    saveable.forget();
+    saveable.valuesReplaced();
 }
 bool GameEditorUi::drawsPlayerAABBs() const
 {

@@ -1,10 +1,9 @@
 #include <string>
 #include <cstddef>
 #include <optional>
-#include <cstdint>
-#include <tuple>
-#include <utility>
+#include <vector>
 #include "rendering/ui/level_editor_ui.hpp"
+#include "rendering/ui/tile_picker.hpp"
 #include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/texture2d.hpp"
@@ -30,6 +29,7 @@ void LevelEditorUi::draw(
     Level &level,
     const Texture2D &tileSet,
     const std::string &firstLevel,
+    int &selectedTileIndex,
     EditorCommands &commands)
 {
     switch (section)
@@ -39,7 +39,7 @@ void LevelEditorUi::draw(
         break;
 
     case EditorSection::TileMap:
-        drawTileMap(level, tileSet);
+        drawTileMap(level, tileSet, selectedTileIndex);
         break;
 
     default:
@@ -100,7 +100,7 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel, Edito
     }
 }
 
-void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet)
+void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet, int &selectedTileIndex)
 {
     ImGui::Text(
         "w%dxh%dxs%d",
@@ -120,45 +120,12 @@ void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet)
         return;
     }
 
-    const auto &tiles = level.getTileMap().getTiles();
-    int columns = 4;
-    int count = 0;
-    int tileSize = level.getTileMap().getTileSize();
-    ImTextureID imguiTextureID = (ImTextureID)(intptr_t)tileSet.getTextureID();
+    std::vector<int> tileIndices;
+    for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())
+        tileIndices.push_back(tileIndex);
 
-    for (const auto &[tileIndex, tile] : tiles)
-    {
-        ImGui::PushID(tileIndex);
-        auto [uvStart, uvEnd] = tileSet.getUVRange(tileIndex, tileSize, false);
-        int previouslySelectedTileIndex = selectedTileIndex;
-
-        if (previouslySelectedTileIndex == tileIndex)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 255, 0, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(255, 255, 0, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(255, 255, 0, 255));
-        }
-
-        ImVec2 tilePos = ImGui::GetCursorScreenPos();
-        if (ImGui::ImageButton(
-                "##tile",
-                imguiTextureID,
-                ImVec2(32, 32),
-                ImVec2(uvStart.x, uvStart.y),
-                ImVec2(uvEnd.x, uvEnd.y)))
-            selectedTileIndex = tileIndex;
-
-        ImGui::GetWindowDrawList()->AddText(
-            tilePos, IM_COL32(255, 255, 255, 255), std::to_string(tileIndex).c_str());
-
-        if (previouslySelectedTileIndex == tileIndex)
-            ImGui::PopStyleColor(3);
-
-        if (++count % columns != 0)
-            ImGui::SameLine();
-
-        ImGui::PopID();
-    }
+    selectedTileIndex =
+        drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, selectedTileIndex);
 
     bool previouslyEditingPlayerStartTile = editingPlayerStartTile;
     if (previouslyEditingPlayerStartTile)
@@ -227,7 +194,11 @@ bool LevelEditorUi::drawsTileMapAABBs() const
     return drawTileMapAABBs;
 }
 
-void LevelEditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level)
+void LevelEditorUi::update(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    Level &level,
+    int selectedTileIndex)
 {
     if (!editing)
         return;

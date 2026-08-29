@@ -184,6 +184,17 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - Each reload builds the replacement before assigning it, so a failure leaves what you
   had.
 
+**Signals rather than an event system of our own.**
+
+- [fteng signals](https://github.com/TheWisp/signals) is one header, so there is no bus,
+  no message types and no registry to keep working.
+- Neither side names the other. `Reloader` says a shader changed and has never heard of
+  the renderer that reloads it.
+- It is what anyone who has written Unity expects: something exposes an event, whoever
+  cares subscribes.
+- Keep the connection when the signal outlives you. `fteng::connection` disconnects when
+  destroyed, which is why `Game` holds the ones to `App`'s window and commands.
+
 **No C++20 modules.**
 
 - The tooling is not ready. clangd, which this repo leans on for code intelligence,

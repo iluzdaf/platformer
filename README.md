@@ -53,6 +53,12 @@ Terminal commands below assume a Unix shell. On Windows use Git Bash.
     "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd"
     ```
 
+    If clangd says *couldn't create connection to server*, its output channel will
+    say `command 'clangd.applyFix' already exists`. Another extension that embeds
+    clangd claimed that command first and only one of them can have it. SourceKit
+    LSP does, through the Swift extension. Disable whichever one you are not here
+    to use for this workspace.
+
 2. Clone with submodules:
 
     ```bash

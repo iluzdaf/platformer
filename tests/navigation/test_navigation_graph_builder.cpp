@@ -1256,7 +1256,6 @@ namespace
         return profile;
     }
 
-    // A floor at row 8, and a wall rising from it to row 4 whose top can be stood on.
     TileMap setupWallFromTheFloor()
     {
         TileMap tileMap = setupTileMap(10, 12);
@@ -1267,7 +1266,6 @@ namespace
         return tileMap;
     }
 
-    // Which surfaces climb edges join, named by the tile row each surface sits on.
     std::vector<NavigationNode> nodesOnWalls(const NavigationGraph &graph)
     {
         std::vector<NavigationNode> onWalls;

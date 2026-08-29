@@ -10,6 +10,7 @@
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/navigation_ui.hpp"
 #include "rendering/ui/npcs_ui.hpp"
+#include "rendering/ui/tile_palettes_ui.hpp"
 
 struct ActorMotionState;
 struct ActorState;
@@ -54,4 +55,6 @@ private:
     LevelEditorUi levelEditorUi;
     NavigationUi navigationUi;
     NpcsUi npcsUi;
+    TilePalettesUi tilePalettesUi;
+    int selectedTileIndex = 0;
 };

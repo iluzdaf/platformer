@@ -57,14 +57,6 @@ void GameEditorUi::draw(
         return;
     }
 
-    if (section == EditorSection::TilePalettes)
-    {
-        saveable.drawControls("palettes", gameData.tilePalettes, saveTilePalettes);
-        ImGui::Separator();
-        inspector::draw("palettes", gameData.tilePalettes);
-        return;
-    }
-
     if (section == EditorSection::Camera)
     {
         ImGui::TextDisabled("%s", camera.shaking() ? "shaking" : "still");

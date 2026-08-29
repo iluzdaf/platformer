@@ -96,6 +96,8 @@ add_library(platformer_lib OBJECT
     src/rendering/ui/tile_map_overlays.cpp
     src/rendering/ui/debug_aabb_ui.cpp
     src/rendering/ui/level_editor_ui.cpp
+    src/rendering/ui/tile_picker.cpp
+    src/rendering/ui/tile_palettes_ui.cpp
     src/rendering/ui/score_ui.cpp
     src/rendering/ui/navigation_overlay.cpp
     src/rendering/ui/navigation_ui.cpp

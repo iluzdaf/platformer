@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <signals.hpp>
 #include "rendering/ui/game_ui.hpp"
 #include "game/game_data.hpp"
 #include "game/levels.hpp"
@@ -18,23 +20,23 @@
 #include "scripting/lua_script_system.hpp"
 #include "window/window.hpp"
 
+struct ReloadCommands;
+
 class Game
 {
 public:
-    explicit Game(Window &window);
+    Game(Window &window, ReloadCommands &reloadCommands);
     ~Game();
     void frame(float deltaTime);
     void loadLevel(const std::string &levelPath);
-    void reload();
-    void reloadShader(const std::string &shaderPath);
-    void reloadTexture(const std::string &texturePath);
-    void reloadScripts();
-    bool isPlaying(const std::string &levelPath) const;
     void rebuildPlayer();
-    void rebuildNpcs();
-    void refreshActors();
 
 private:
+    void reload();
+    void reloadScripts();
+    bool isPlaying(const std::string &levelPath) const;
+    void rebuildNpcs();
+    void refreshActors();
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);
     void postFixedUpdate();
@@ -61,5 +63,6 @@ private:
     GameUi gameUi;
     Levels levels;
     fteng::connection onLevelCompleteConnection;
+    std::vector<fteng::connection> reloadConnections;
     bool showEditors = false;
 };

@@ -20,8 +20,9 @@
 #include "assets/asset_paths.hpp"
 #include "window/window.hpp"
 #include "scripting/lua_script_system.hpp"
+#include "reloading/reload_commands.hpp"
 
-Game::Game(Window &window)
+Game::Game(Window &window, ReloadCommands &reloadCommands)
     : window(window), gameData(loadGameData()),
       camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
       gameUi(window, window.getFramebufferSize().x, window.getFramebufferSize().y),
@@ -53,6 +54,18 @@ Game::Game(Window &window)
             levels.save();
         });
 
+    reloadCommands.isPlaying = [this](const std::string &levelPath)
+    { return isPlaying(levelPath); };
+    reloadConnections.push_back(reloadCommands.onLoadLevel.connect(
+        [this](const std::string &levelPath) { loadLevel(levelPath); }));
+    reloadConnections.push_back(reloadCommands.onReloadShader.connect(
+        [this](const std::string &shaderPath) { renderer.reloadShader(shaderPath); }));
+    reloadConnections.push_back(reloadCommands.onReloadTexture.connect(
+        [this](const std::string &texturePath) { renderer.reloadTexture(texturePath); }));
+    reloadConnections.push_back(reloadCommands.onReload.connect([this] { reload(); }));
+    reloadConnections.push_back(
+        reloadCommands.onReloadScripts.connect([this] { reloadScripts(); }));
+
     luaScriptSystem.bindGameObjects(this, &playback, &camera, &screenTransition);
 
     luaScriptSystem.triggerGameLoaded();
@@ -63,16 +76,6 @@ Game::~Game() = default;
 bool Game::isPlaying(const std::string &levelPath) const
 {
     return level && level->getPath() == levelPath;
-}
-
-void Game::reloadShader(const std::string &shaderPath)
-{
-    renderer.reloadShader(shaderPath);
-}
-
-void Game::reloadTexture(const std::string &texturePath)
-{
-    renderer.reloadTexture(texturePath);
 }
 
 void Game::reloadScripts()

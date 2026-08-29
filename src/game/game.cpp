@@ -24,8 +24,12 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
       levels(assets::pathTo(assets::LevelList))
 {
     window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
-    onResizeConnection =
-        window.onResize.connect([this](int width, int height) { resize(width, height); });
+    onResizeConnection = window.onResize.connect(
+        [this](int width, int height)
+        {
+            camera.resize(width, height);
+            gameUi.resize(width, height);
+        });
 
     keyboardManager.registerKey(GLFW_KEY_P);
     keyboardManager.registerKey(GLFW_KEY_S);
@@ -129,13 +133,6 @@ void Game::render()
             showEditors});
 
     renderer.draw(screenTransition);
-}
-
-void Game::resize(int windowWidth, int windowHeight)
-{
-    camera.resize(windowWidth, windowHeight);
-
-    gameUi.resize(windowWidth, windowHeight);
 }
 
 void Game::reload()

@@ -28,7 +28,6 @@ public:
 private:
     void reload();
     void render();
-    void resize(int width, int height);
 
     Window &window;
     GameData gameData;

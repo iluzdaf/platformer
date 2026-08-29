@@ -27,9 +27,6 @@ public:
     explicit Game(Window &window);
     ~Game();
     void frame(float deltaTime);
-    void pause();
-    void step();
-    void play();
     void loadLevel(const std::string &levelPath);
     void reload();
     void reloadShader(const std::string &shaderPath);

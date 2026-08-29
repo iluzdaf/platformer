@@ -1,7 +1,7 @@
 waitSeconds = coroutine.yield
 
 function onDeath()
-    game:pause()
+    playback:pause()
     camera:startShake(0.25, 4)
     startCoroutine(deathCoroutine)
 end
@@ -9,7 +9,7 @@ end
 function deathCoroutine()
     waitSeconds(0.25)
     game:rebuildPlayer()
-    game:play()
+    playback:play()
 end
 
 function onLevelComplete()    
@@ -18,11 +18,11 @@ end
 
 function levelCompleteCoroutine()    
     waitSeconds(0);
-    game:pause()
+    playback:pause()
     game:loadLevel(level:getNextLevel())
     screenTransition:start(0.5, true)
     waitSeconds(0.5)
-    game:play()
+    playback:play()
 end
 
 function onWallJump()

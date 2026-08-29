@@ -49,9 +49,9 @@ Game::Game(Window &window)
     reloadTexture(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
-    gameUi.commands().onPlay.connect([this] { play(); });
-    gameUi.commands().onPause.connect([this] { pause(); });
-    gameUi.commands().onStep.connect([this] { step(); });
+    gameUi.commands().onPlay.connect([this] { playback.play(); });
+    gameUi.commands().onPause.connect([this] { playback.pause(); });
+    gameUi.commands().onStep.connect([this] { playback.step(); });
     gameUi.commands().onLoadLevel.connect([this](const std::string &levelPath)
                                           { loadLevel(levelPath); });
     gameUi.commands().onRespawn.connect([this] { rebuildPlayer(); });
@@ -66,7 +66,7 @@ Game::Game(Window &window)
             levels.save();
         });
 
-    luaScriptSystem.bindGameObjects(this, &camera, &screenTransition);
+    luaScriptSystem.bindGameObjects(this, &playback, &camera, &screenTransition);
 
     luaScriptSystem.triggerGameLoaded();
 }
@@ -115,11 +115,11 @@ void Game::frame(float deltaTime)
 {
     keyboardManager.poll(window.getHandle());
     if (keyboardManager.isPressed(GLFW_KEY_P))
-        playback.isPaused() ? play() : pause();
+        playback.isPaused() ? playback.play() : playback.pause();
     if (keyboardManager.isPressed(GLFW_KEY_F1))
         showEditors = !showEditors;
     if (keyboardManager.isPressed(GLFW_KEY_S))
-        step();
+        playback.step();
 
     luaScriptSystem.update(deltaTime);
     camera.update(deltaTime);
@@ -243,21 +243,6 @@ void Game::loadLevel(const std::string &levelPath)
     rebuildPlayer();
 
     rebuildNpcs();
-}
-
-void Game::pause()
-{
-    playback.pause();
-}
-
-void Game::step()
-{
-    playback.step();
-}
-
-void Game::play()
-{
-    playback.play();
 }
 
 void Game::rebuildLevel(const std::string &levelPath)

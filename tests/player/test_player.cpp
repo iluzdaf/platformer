@@ -7,7 +7,7 @@
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_animation_state.hpp"
 #include <vector>
-#include "physics/fixed_time_step.hpp"
+#include "timing/fixed_time_step.hpp"
 #include "input/input_intentions.hpp"
 #include "player/player.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"

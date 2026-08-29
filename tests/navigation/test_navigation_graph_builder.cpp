@@ -10,6 +10,9 @@
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
+#include "actor/abilities/wall_hang_ability_data.hpp"
+#include "actor/abilities/wall_climb_ability_data.hpp"
+#include <utility>
 #include "navigation/navigation_graph_builder.hpp"
 #include <glaze/glaze.hpp>
 #include "navigation/jump_simulation.hpp"
@@ -1234,4 +1237,136 @@ TEST_CASE("A fall clears the platform it leaves", "[NavigationGraphBuilder][Fall
         REQUIRE(stepOff > 0.0f);
         REQUIRE(stepOff < 8.0f);
     }
+}
+
+namespace
+{
+    constexpr int ClimbFloorRow = 8;
+    constexpr int ClimbWallX = 5;
+    constexpr int ClimbWallTopRow = 4;
+
+    NavigationProfile climberProfile()
+    {
+        NavigationProfile profile = profileOfHeight(13.0f);
+        ActorMotionData motionData;
+        motionData.wallHangAbilityData = WallHangAbilityData();
+        motionData.wallClimbAbilityData = WallClimbAbilityData();
+        profile.motionData = motionData;
+        return profile;
+    }
+
+    // A floor at row 8, and a wall rising from it to row 4 whose top can be stood on.
+    TileMap setupWallFromTheFloor()
+    {
+        TileMap tileMap = setupTileMap(10, 12);
+        for (int x = 0; x < 10; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, ClimbFloorRow), 1);
+        for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)
+            tileMap.setTileIndex(glm::ivec2(ClimbWallX, y), 1);
+        return tileMap;
+    }
+
+    // Which surfaces climb edges join, named by the tile row each surface sits on.
+    std::set<std::pair<int, int>> rowsJoinedByClimbing(
+        const NavigationGraph &graph,
+        const TileMap &tileMap)
+    {
+        std::set<std::pair<int, int>> joined;
+        for (const auto &[id, node] : graph.getNodes())
+            for (const NavigationEdge &edge : graph.getOutgoingEdges(id))
+            {
+                if (edge.type != EdgeType::Climb)
+                    continue;
+
+                glm::vec2 underfoot(0.0f, 1.0f);
+                int from =
+                    tileMap.worldToTilePosition(graph.getNode(edge.fromId).position + underfoot).y;
+                int to =
+                    tileMap.worldToTilePosition(graph.getNode(edge.toId).position + underfoot).y;
+                joined.insert({from, to});
+            }
+        return joined;
+    }
+}
+
+TEST_CASE(
+    "A wall an actor can hang on becomes a way up and back down",
+    "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+
+    std::set<std::pair<int, int>> joined =
+        rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
+
+    REQUIRE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
+    REQUIRE(joined.contains({ClimbWallTopRow, ClimbFloorRow}));
+}
+
+TEST_CASE("An actor that cannot climb is given no way up a wall", "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+
+    REQUIRE(
+        rowsJoinedByClimbing(buildNavigationGraph(tileMap, standardProfile()), tileMap).empty());
+}
+
+TEST_CASE("Hanging without climbing is no way up", "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+    NavigationProfile hangsOnly = climberProfile();
+    hangsOnly.motionData->wallClimbAbilityData.reset();
+
+    REQUIRE(rowsJoinedByClimbing(buildNavigationGraph(tileMap, hangsOnly), tileMap).empty());
+}
+
+TEST_CASE(
+    "A wall that does not reach the floor is not climbed from it",
+    "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+    tileMap.setTileIndex(glm::ivec2(ClimbWallX, ClimbFloorRow - 1), 0);
+
+    std::set<std::pair<int, int>> joined =
+        rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
+
+    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
+}
+
+TEST_CASE(
+    "A ledge beside the wall breaks one long climb into two",
+    "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+    tileMap.setTileIndex(glm::ivec2(ClimbWallX - 1, 6), 1);
+    tileMap.setTileIndex(glm::ivec2(ClimbWallX + 1, 6), 1);
+
+    std::set<std::pair<int, int>> joined =
+        rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
+
+    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
+    REQUIRE(joined.contains({6, ClimbWallTopRow}));
+}
+
+TEST_CASE("A wall you cannot stand on top of is not climbed", "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+    for (int x = 0; x < 10; ++x)
+        tileMap.setTileIndex(glm::ivec2(x, ClimbWallTopRow - 1), 1);
+
+    std::set<std::pair<int, int>> joined =
+        rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
+
+    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
+}
+
+TEST_CASE("A wall with no room beside its top is not climbed", "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+    tileMap.setTileIndex(glm::ivec2(ClimbWallX - 1, ClimbWallTopRow - 1), 1);
+    tileMap.setTileIndex(glm::ivec2(ClimbWallX + 1, ClimbWallTopRow - 1), 1);
+
+    std::set<std::pair<int, int>> joined =
+        rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
+
+    REQUIRE_FALSE(joined.contains({ClimbFloorRow, ClimbWallTopRow}));
 }

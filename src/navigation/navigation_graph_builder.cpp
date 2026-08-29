@@ -649,6 +649,113 @@ namespace
         }
     }
 
+    bool columnIsClear(const TileMap &tileMap, int x, int fromRow, int toRow)
+    {
+        for (int y = fromRow; y <= toRow; ++y)
+        {
+            glm::ivec2 tilePosition(x, y);
+            if (!tileMap.validTilePosition(tilePosition))
+                return false;
+
+            const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
+            if (tile.isSolid() || tile.isSpikes())
+                return false;
+        }
+
+        return true;
+    }
+
+    bool wallRunsAllTheWay(const TileMap &tileMap, int x, int fromRow, int toRow)
+    {
+        for (int y = fromRow; y <= toRow; ++y)
+        {
+            glm::ivec2 tilePosition(x, y);
+            if (!tileMap.validTilePosition(tilePosition) ||
+                !tileMap.getTileAtTilePosition(tilePosition).isSolid())
+                return false;
+        }
+
+        return true;
+    }
+
+    std::optional<int> floorBelow(const TileMap &tileMap, int x, int fromRow)
+    {
+        for (int y = fromRow; y < tileMap.getHeight(); ++y)
+        {
+            glm::ivec2 tilePosition(x, y);
+            if (!tileMap.validTilePosition(tilePosition))
+                return std::nullopt;
+
+            if (tileMap.getTileAtTilePosition(tilePosition).isSolid())
+                return y;
+        }
+
+        return std::nullopt;
+    }
+
+    void addClimbEdges(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        if (!profile.climbs())
+            return;
+
+        glm::vec2 topOfTile(static_cast<float>(tileMap.getTileSize()) / 2.0f, 0.0f);
+
+        for (int wallX = 0; wallX < tileMap.getWidth(); ++wallX)
+        {
+            for (int topRow = 0; topRow < tileMap.getHeight(); ++topRow)
+            {
+                glm::ivec2 wallTop(wallX, topRow);
+                if (!tileMap.getTileAtTilePosition(wallTop).isSolid())
+                    continue;
+
+                glm::ivec2 above = wallTop + glm::ivec2(0, -1);
+                if (tileMap.validTilePosition(above) &&
+                    tileMap.getTileAtTilePosition(above).isSolid())
+                    continue;
+
+                std::optional<int> topId = nodeGoverning(
+                    navigationGraph,
+                    tileMap,
+                    tileMap.tileToWorldPosition(wallTop) + topOfTile,
+                    headroom);
+                if (!topId)
+                    continue;
+
+                for (int side : {-1, 1})
+                {
+                    int climbX = wallX + side;
+                    std::optional<int> groundRow = floorBelow(tileMap, climbX, topRow + 1);
+                    if (!groundRow)
+                        continue;
+
+                    if (!wallRunsAllTheWay(tileMap, wallX, topRow, *groundRow - 1))
+                        continue;
+
+                    // Everything between the top and the footing is clear by
+                    // construction; what is left to check is body room at the top.
+                    if (!columnIsClear(tileMap, climbX, topRow - headroom, *groundRow - 1))
+                        continue;
+
+                    glm::ivec2 footing(climbX, *groundRow);
+                    std::optional<int> footId = nodeGoverning(
+                        navigationGraph,
+                        tileMap,
+                        tileMap.tileToWorldPosition(footing) + topOfTile,
+                        headroom);
+                    if (!footId || *footId == *topId)
+                        continue;
+
+                    navigationGraph.addEdge(*footId, *topId, EdgeType::Climb);
+                    navigationGraph.addEdge(*topId, *footId, EdgeType::Climb);
+                }
+            }
+        }
+    }
+
     void addFallEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -696,6 +803,7 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
 
     addJumpEdges(navigationGraph, tileMap, headroom, jumps);
     addFallEdges(navigationGraph, tileMap, profile, headroom);
+    addClimbEdges(navigationGraph, tileMap, profile, headroom);
 
     return navigationGraph;
 }

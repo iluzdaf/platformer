@@ -62,7 +62,7 @@ private:
     ScreenTransition screenTransition;
     GameUi gameUi;
     Levels levels;
-    fteng::connection onLevelCompleteConnection;
+    fteng::connection onLevelCompleteConnection, onResizeConnection;
     std::vector<fteng::connection> reloadConnections;
     bool showEditors = false;
 };

@@ -1,6 +1,5 @@
 #include <memory>
 #include <cstdlib>
-#include <algorithm>
 #include <optional>
 #include <stdexcept>
 #include <glad/glad.h>
@@ -50,9 +49,9 @@ Game::Game(Window &window)
     reloadTexture(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
-    gameUi.commands().onPlay.connect([this] { play(); });
-    gameUi.commands().onPause.connect([this] { pause(); });
-    gameUi.commands().onStep.connect([this] { step(); });
+    gameUi.commands().onPlay.connect([this] { playback.play(); });
+    gameUi.commands().onPause.connect([this] { playback.pause(); });
+    gameUi.commands().onStep.connect([this] { playback.step(); });
     gameUi.commands().onLoadLevel.connect([this](const std::string &levelPath)
                                           { loadLevel(levelPath); });
     gameUi.commands().onRespawn.connect([this] { rebuildPlayer(); });
@@ -67,7 +66,7 @@ Game::Game(Window &window)
             levels.save();
         });
 
-    luaScriptSystem.bindGameObjects(this, &camera, &screenTransition);
+    luaScriptSystem.bindGameObjects(this, &playback, &camera, &screenTransition);
 
     luaScriptSystem.triggerGameLoaded();
 }
@@ -116,42 +115,26 @@ void Game::frame(float deltaTime)
 {
     keyboardManager.poll(window.getHandle());
     if (keyboardManager.isPressed(GLFW_KEY_P))
-        paused ? play() : pause();
+        playback.isPaused() ? playback.play() : playback.pause();
     if (keyboardManager.isPressed(GLFW_KEY_F1))
         showEditors = !showEditors;
     if (keyboardManager.isPressed(GLFW_KEY_S))
-        step();
+        playback.step();
 
     luaScriptSystem.update(deltaTime);
     camera.update(deltaTime);
     screenTransition.update(deltaTime);
     gameUi.update(deltaTime, *level.get(), camera);
 
-    if (!paused || stepFrame)
-    {
-        preFixedUpdate();
-
-        if (stepFrame)
+    playback.advance(
+        deltaTime,
+        [this] { preFixedUpdate(); },
+        [this](float dt)
         {
-            float dt = std::min(deltaTime, 0.01f);
             fixedUpdate(dt);
             postFixedUpdate();
-            update(dt);
-        }
-        else
-        {
-            timestepper.run(
-                deltaTime,
-                [&](float dt)
-                {
-                    fixedUpdate(dt);
-                    postFixedUpdate();
-                });
-            update(deltaTime);
-        }
-
-        stepFrame = false;
-    }
+        },
+        [this](float dt) { update(dt); });
 
     camera.follow(player->getPosition());
 
@@ -224,7 +207,7 @@ void Game::render()
             levels.getFirst(),
             camera,
             scoringSystem,
-            paused,
+            playback.isPaused(),
             showEditors});
 
     screenTransition.draw(*screenTransitionShader.get());
@@ -260,23 +243,6 @@ void Game::loadLevel(const std::string &levelPath)
     rebuildPlayer();
 
     rebuildNpcs();
-}
-
-void Game::pause()
-{
-    paused = true;
-}
-
-void Game::step()
-{
-    paused = true;
-    stepFrame = true;
-}
-
-void Game::play()
-{
-    paused = false;
-    stepFrame = false;
 }
 
 void Game::rebuildLevel(const std::string &levelPath)

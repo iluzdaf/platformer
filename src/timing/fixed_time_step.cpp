@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <functional>
-#include "physics/fixed_time_step.hpp"
+#include "timing/fixed_time_step.hpp"
 
 FixedTimeStep::FixedTimeStep(float maxStep) : maxStep(maxStep)
 {
@@ -14,4 +14,8 @@ void FixedTimeStep::run(float deltaTime, const std::function<void(float)> &stepF
         stepFunc(dt);
         deltaTime -= dt;
     }
+}
+float FixedTimeStep::getMaxStep() const
+{
+    return maxStep;
 }

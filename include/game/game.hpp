@@ -17,7 +17,7 @@
 #include "cameras/camera2d.hpp"
 #include "input/keyboard_manager.hpp"
 #include "input/input_manager.hpp"
-#include "physics/fixed_time_step.hpp"
+#include "game/playback.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "window/window.hpp"
 
@@ -27,9 +27,6 @@ public:
     explicit Game(Window &window);
     ~Game();
     void frame(float deltaTime);
-    void pause();
-    void step();
-    void play();
     void loadLevel(const std::string &levelPath);
     void reload();
     void reloadShader(const std::string &shaderPath);
@@ -55,7 +52,7 @@ private:
     Camera2D camera;
     KeyboardManager keyboardManager;
     InputManager inputManager;
-    FixedTimeStep timestepper;
+    Playback playback;
     LuaScriptSystem luaScriptSystem;
     std::unique_ptr<Level> level;
     std::unique_ptr<Player> player;
@@ -70,5 +67,5 @@ private:
     GameUi gameUi;
     Levels levels;
     fteng::connection onLevelCompleteConnection;
-    bool paused = false, stepFrame = false, showEditors = false;
+    bool showEditors = false;
 };

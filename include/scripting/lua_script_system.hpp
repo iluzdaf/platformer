@@ -5,6 +5,7 @@
 #include <sol/sol.hpp>
 
 class Game;
+class Playback;
 class Camera2D;
 class TileMap;
 class Level;
@@ -24,7 +25,11 @@ public:
     explicit LuaScriptSystem(
         const std::string &scriptPath = assets::pathTo(assets::GameLogicScript));
     void update(float deltaTime);
-    void bindGameObjects(Game *game, Camera2D *camera, ScreenTransition *screenTransition);
+    void bindGameObjects(
+        Game *game,
+        Playback *playback,
+        Camera2D *camera,
+        ScreenTransition *screenTransition);
     void triggerLevelComplete();
     void triggerDeath();
     void bindLevel(Level *level);

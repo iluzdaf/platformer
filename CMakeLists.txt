@@ -111,12 +111,13 @@ add_library(platformer_lib OBJECT
     src/window/window.cpp
     src/game/game.cpp
     src/game/game_data.cpp
+    src/game/playback.cpp
     src/serialization/json_format.cpp
     src/game/level.cpp
     src/game/levels.cpp
     src/game/scoring_system.cpp
     src/physics/aabb.cpp
-    src/physics/fixed_time_step.cpp
+    src/timing/fixed_time_step.cpp
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp
     src/cameras/camera_shake.cpp
@@ -232,7 +233,7 @@ add_executable(tests
     tests/tile_map/test_tile.cpp
     tests/tile_map/test_tile_interaction_system.cpp
     tests/player/test_player.cpp
-    tests/physics/test_fixed_time_step.cpp
+    tests/timing/test_fixed_time_step.cpp
     tests/physics/tests_aabb.cpp
     tests/physics/tests_physics_body.cpp
     tests/cameras/test_camera2d.cpp
@@ -253,6 +254,7 @@ add_executable(tests
     tests/npc/test_npc.cpp
     tests/assets/test_asset_paths.cpp
     tests/reloading/test_reloader.cpp
+    tests/game/test_playback.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp
     tests/tile_map/test_tile_map_navigation.cpp

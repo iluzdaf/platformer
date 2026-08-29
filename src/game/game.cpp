@@ -70,7 +70,17 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
         [this](const std::string &shaderPath) { renderer.reloadShader(shaderPath); }));
     reloadConnections.push_back(reloadCommands.onReloadTexture.connect(
         [this](const std::string &texturePath) { renderer.reloadTexture(texturePath); }));
-    reloadConnections.push_back(reloadCommands.onReload.connect([this] { reload(); }));
+    reloadConnections.push_back(reloadCommands.onReload.connect(
+        [this]
+        {
+            gameData = loadGameData();
+            gameUi.forget();
+            this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
+            camera.setZoom(gameData.cameraData.zoom);
+
+            std::string current = world.getLevelPath();
+            world.loadLevel(current.empty() ? levels.getFirst() : current);
+        }));
     reloadConnections.push_back(
         reloadCommands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));
 
@@ -133,17 +143,4 @@ void Game::render()
             showEditors});
 
     renderer.draw(screenTransition);
-}
-
-void Game::reload()
-{
-    gameData = loadGameData();
-    gameUi.forget();
-
-    window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
-
-    camera.setZoom(gameData.cameraData.zoom);
-
-    std::string current = world.getLevelPath();
-    world.loadLevel(current.empty() ? levels.getFirst() : current);
 }

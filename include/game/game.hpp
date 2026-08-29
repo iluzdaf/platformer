@@ -26,7 +26,6 @@ public:
     void frame(float deltaTime);
 
 private:
-    void reload();
     void render();
 
     Window &window;

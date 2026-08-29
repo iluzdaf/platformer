@@ -656,3 +656,28 @@ TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[L
 
     REQUIRE(hasPortal);
 }
+
+TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]")
+{
+    TileMap tileMap = setupTileMap(12, 10);
+    for (int x = 0; x < 12; ++x)
+        tileMap.setTileIndex(glm::ivec2(x, 8), 1);
+    for (int x = 5; x < 8; ++x)
+        for (int y = 5; y < 8; ++y)
+            tileMap.setTileIndex(glm::ivec2(x, y), 1);
+
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
+    const ActorMotionState &state = player.getMotion().getState();
+
+    player.setPosition(glm::vec2(4 * 16.0f + 4.0f, 8 * 16.0f - 16.0f));
+
+    InputIntentions holdingTheWallAndPressingUp;
+    holdingTheWallAndPressingUp.climbRequested = true;
+    holdingTheWallAndPressingUp.direction = glm::vec2(1.0f, -1.0f);
+    simulatePlayer(player, input, tileMap, 0.8f, holdingTheWallAndPressingUp);
+    simulatePlayer(player, input, tileMap, 0.5f);
+
+    REQUIRE(state.contacts.onGround);
+    REQUIRE(player.getPhysicsBody().getAABB().bottomCenter().y == Approx(5 * 16.0f));
+}

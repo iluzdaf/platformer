@@ -9,6 +9,7 @@
 #include "actor/abilities/wall_jump_ability_state.hpp"
 #include "actor/abilities/wall_hang_ability_state.hpp"
 #include "actor/abilities/wall_climb_ability_state.hpp"
+#include "actor/abilities/mantle_ability_state.hpp"
 #include "actor/abilities/gravity_ability_state.hpp"
 
 struct ActorMotionState
@@ -25,5 +26,6 @@ struct ActorMotionState
     WallJumpAbilityState wallJump;
     WallHangAbilityState wallHang;
     WallClimbAbilityState wallClimb;
+    MantleAbilityState mantle;
     GravityAbilityState gravity;
 };

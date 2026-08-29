@@ -21,6 +21,7 @@
             },
             "wallHangAbilityData":{},
             "wallClimbAbilityData":{"climbSpeed":80},
+            "mantleAbilityData":{"mantleSpeed":90,"mantleDuration":0.3},
             "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
         },
         "animationData":{

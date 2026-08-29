@@ -60,7 +60,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
         [this](const std::string &texturePath) { renderer.reloadTexture(texturePath); }));
     reloadConnections.push_back(reloadCommands.onReload.connect([this] { reload(); }));
     reloadConnections.push_back(
-        reloadCommands.onReloadScripts.connect([this] { reloadScripts(); }));
+        reloadCommands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));
 
     luaScriptSystem.bindGameObjects(this, &playback, &camera, &screenTransition, &world);
 
@@ -68,11 +68,6 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
 }
 
 Game::~Game() = default;
-
-void Game::reloadScripts()
-{
-    luaScriptSystem.loadScripts();
-}
 
 void Game::frame(float deltaTime)
 {

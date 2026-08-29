@@ -28,7 +28,6 @@ public:
 
 private:
     void reload();
-    void reloadScripts();
     void render();
     void resize(int width, int height);
 

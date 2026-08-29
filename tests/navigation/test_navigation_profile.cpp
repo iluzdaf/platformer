@@ -38,13 +38,11 @@ TEST_CASE("Climbing takes both holding on and moving", "[NavigationProfile]")
     }
 }
 
-TEST_CASE("The player climbs and the npcs shipped with the game do not", "[NavigationProfile]")
+TEST_CASE("Who climbs, of the things shipped with the game", "[NavigationProfile]")
 {
     GameData gameData = loadGameData();
 
     REQUIRE(buildNavigationProfile(gameData.playerData.actorData).climbs());
-
-    REQUIRE_FALSE(gameData.npcData.empty());
-    for (const auto &[name, npcData] : gameData.npcData)
-        REQUIRE_FALSE(buildNavigationProfile(npcData.actorData).climbs());
+    REQUIRE(buildNavigationProfile(gameData.npcData.at("explorer").actorData).climbs());
+    REQUIRE_FALSE(buildNavigationProfile(gameData.npcData.at("villager").actorData).climbs());
 }

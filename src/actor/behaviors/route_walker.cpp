@@ -76,7 +76,7 @@ void RouteWalker::anchor(const ActorBehaviorContext &context)
 
 bool RouteWalker::hasLostTheRoute(const ActorBehaviorContext &context) const
 {
-    if (!currentNodeId || !context.onGround)
+    if (!currentNodeId || !context.contacts.onGround)
         return false;
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
@@ -169,7 +169,8 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
 
     const NavigationEdge *leg = edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
-    if (leg && leg->type == EdgeType::Jump && context.onGround && jumpHeldFor >= leg->holdDuration)
+    if (leg && leg->type == EdgeType::Jump && context.contacts.onGround &&
+        jumpHeldFor >= leg->holdDuration)
         jumpHeldFor = 0.0f;
 
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)
@@ -183,8 +184,19 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
         }
     }
 
-    if (leg && leg->type == EdgeType::Fall && !context.onGround)
+    if (leg && leg->type == EdgeType::Fall && !context.contacts.onGround)
         inputIntentions.direction.x = 0.0f;
+
+    if (leg && leg->type == EdgeType::Climb)
+    {
+        inputIntentions.climbRequested = true;
+        if (context.contacts.touchingWall())
+        {
+            inputIntentions.direction.x = leg->wallDirection;
+            inputIntentions.direction.y =
+                directionTowards(context.worldPosition.y, targetNode.position.y);
+        }
+    }
 
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor < leg->holdDuration)
     {

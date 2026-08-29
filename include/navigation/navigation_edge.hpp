@@ -17,4 +17,5 @@ struct NavigationEdge
     EdgeType type;
     std::vector<glm::vec2> path;
     float holdDuration = 0.0f;
+    float wallDirection = 0.0f;
 };

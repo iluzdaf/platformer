@@ -867,6 +867,9 @@ TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Le
     float tileSize = static_cast<float>(tileMap.getTileSize());
     for (const auto &[id, node] : graph.getNodes())
     {
+        if (node.kind == NodeKind::OnWall)
+            continue;
+
         INFO("node " << id << " at " << node.position.x << "," << node.position.y);
         REQUIRE(std::fmod(node.position.y, tileSize) == 0.0f);
 

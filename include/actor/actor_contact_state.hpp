@@ -8,4 +8,9 @@ struct ActorContactState
          wasOnGround = false, wasHitCeiling = false, wasLastWallLeft = false, ledgeOnLeft = false,
          ledgeOnRight = false;
     AABB collisionAABBX, collisionAABBY;
+
+    bool touchingWall() const
+    {
+        return touchingLeftWall || touchingRightWall;
+    }
 };

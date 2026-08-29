@@ -186,6 +186,17 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
     if (leg && leg->type == EdgeType::Fall && !context.onGround)
         inputIntentions.direction.x = 0.0f;
 
+    if (leg && leg->type == EdgeType::Climb)
+    {
+        inputIntentions.climbRequested = true;
+        if (context.touchingWall)
+        {
+            inputIntentions.direction.x = leg->wallDirection;
+            inputIntentions.direction.y =
+                directionTowards(context.worldPosition.y, targetNode.position.y);
+        }
+    }
+
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor < leg->holdDuration)
     {
         jumpHeldFor += deltaTime;

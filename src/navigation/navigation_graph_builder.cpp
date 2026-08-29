@@ -716,13 +716,15 @@ namespace
         for (const auto &[id, node] : navigationGraph.getNodes())
             nextNodeId = std::max(nextNodeId, id + 1);
 
-        auto joinBothWays = [&](int fromId, int toId)
+        auto joinBothWays = [&](int fromId, int toId, float wallDirection)
         {
             if (fromId == toId)
                 return;
 
-            navigationGraph.addEdge(fromId, toId, EdgeType::Climb);
-            navigationGraph.addEdge(toId, fromId, EdgeType::Climb);
+            navigationGraph.addEdge(
+                NavigationEdge{fromId, toId, EdgeType::Climb, {}, 0.0f, wallDirection});
+            navigationGraph.addEdge(
+                NavigationEdge{toId, fromId, EdgeType::Climb, {}, 0.0f, wallDirection});
         };
 
         auto endOfTheFace = [&](int climbX, int wallX, int footRow)
@@ -767,9 +769,10 @@ namespace
                     }
 
                     int topId = endOfTheFace(climbX, wallX, *runTop);
-                    joinBothWays(topId, endOfTheFace(climbX, wallX, runBottom));
+                    float wallDirection = static_cast<float>(side);
+                    joinBothWays(topId, endOfTheFace(climbX, wallX, runBottom), wallDirection);
                     if (ledgeId)
-                        joinBothWays(topId, *ledgeId);
+                        joinBothWays(topId, *ledgeId, wallDirection);
 
                     runTop.reset();
                 }

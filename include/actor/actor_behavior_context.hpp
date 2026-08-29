@@ -12,5 +12,5 @@ struct ActorBehaviorContext
     glm::vec2 colliderSize;
     std::optional<glm::vec2> threatPosition;
 
-    bool onGround = false;
+    bool onGround = false, touchingWall = false;
 };

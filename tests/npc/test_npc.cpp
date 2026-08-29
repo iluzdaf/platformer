@@ -675,3 +675,41 @@ TEST_CASE("A beat a villager cannot make a round trip of is not walkable", "[Npc
     REQUIRE(impossible);
     REQUIRE_FALSE(canPatrolBetween(graph, impossible->first, impossible->second));
 }
+
+TEST_CASE("The shipped explorer climbs the wall above level6's platform", "[Npc][Level][Climb]")
+{
+    GameData gameData = loadGameData();
+    LevelData levelData;
+    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+
+    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+
+    const NpcSpawnData &spawn = level.getNpcs().at(3);
+    REQUIRE(spawn.type == "explorer");
+    REQUIRE(spawn.patrol);
+
+    Npc npc(gameData.npcData.at("explorer"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    constexpr float Platform = 96.0f;
+    constexpr float TopOfTheFace = 16.0f;
+
+    float highest = footOf(npc).y;
+    int reachedTheTopAt = -1;
+    bool cameBackDown = false;
+    for (int step = 0; step < 4000; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level);
+        highest = std::min(highest, footOf(npc).y);
+        if (reachedTheTopAt < 0 && highest <= TopOfTheFace + 1.0f)
+            reachedTheTopAt = step;
+        if (reachedTheTopAt >= 0 && footOf(npc).y >= Platform - 1.0f)
+            cameBackDown = true;
+    }
+
+    INFO("highest foot reached " << highest << " at step " << reachedTheTopAt);
+    REQUIRE(highest <= TopOfTheFace + 1.0f);
+    REQUIRE(cameBackDown);
+    REQUIRE(reachedTheTopAt < 200);
+}

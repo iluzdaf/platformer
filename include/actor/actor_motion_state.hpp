@@ -7,8 +7,8 @@
 #include "actor/abilities/jump_ability_state.hpp"
 #include "actor/abilities/wall_slide_ability_state.hpp"
 #include "actor/abilities/wall_jump_ability_state.hpp"
-#include "actor/abilities/climb_ability_state.hpp"
-#include "actor/abilities/climb_move_ability_state.hpp"
+#include "actor/abilities/wall_hang_ability_state.hpp"
+#include "actor/abilities/wall_climb_ability_state.hpp"
 #include "actor/abilities/gravity_ability_state.hpp"
 
 struct ActorMotionState
@@ -23,7 +23,7 @@ struct ActorMotionState
     JumpAbilityState jump;
     WallSlideAbilityState wallSlide;
     WallJumpAbilityState wallJump;
-    ClimbAbilityState climb;
-    ClimbMoveAbilityState climbMove;
+    WallHangAbilityState wallHang;
+    WallClimbAbilityState wallClimb;
     GravityAbilityState gravity;
 };

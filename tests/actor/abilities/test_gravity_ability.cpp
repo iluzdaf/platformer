@@ -18,7 +18,7 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
     SECTION("Gravity accumulates when airborne")
     {
         state.contacts.onGround = false;
-        state.climb.active = false;
+        state.wallHang.active = false;
         state.wallSlide.active = false;
         ability.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.gravity.velocity.y == Approx(data.gravity * 0.01f));
@@ -29,7 +29,7 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
     SECTION("Gravity is capped at max fall speed")
     {
         state.contacts.onGround = false;
-        state.climb.active = false;
+        state.wallHang.active = false;
         state.wallSlide.active = false;
 
         int iterationsToMaxFallSpeed =
@@ -53,11 +53,11 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
         REQUIRE(state.gravity.velocity.y == 0.0f);
 
         state.contacts.onGround = false;
-        state.climb.active = true;
+        state.wallHang.active = true;
         ability.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.gravity.velocity.y == 0.0f);
 
-        state.climb.active = false;
+        state.wallHang.active = false;
         state.wallSlide.active = true;
         ability.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.gravity.velocity.y == 0.0f);

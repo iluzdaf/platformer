@@ -1,6 +1,6 @@
 #pragma once
 
-struct ClimbAbilityState
+struct WallHangAbilityState
 {
     bool active = false;
 };

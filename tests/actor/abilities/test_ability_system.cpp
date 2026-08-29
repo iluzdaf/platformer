@@ -8,8 +8,8 @@
 #include "actor/abilities/dash_ability.hpp"
 #include "actor/abilities/wall_slide_ability.hpp"
 #include "actor/abilities/wall_jump_ability.hpp"
-#include "actor/abilities/climb_ability.hpp"
-#include "actor/abilities/climb_move_ability.hpp"
+#include "actor/abilities/wall_hang_ability.hpp"
+#include "actor/abilities/wall_climb_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -38,8 +38,8 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     motionData.dashAbilityData = DashAbilityData();
     motionData.wallSlideAbilityData = WallSlideAbilityData();
     motionData.wallJumpAbilityData = WallJumpAbilityData();
-    motionData.climbAbilityData = ClimbAbilityData();
-    motionData.climbMoveAbilityData = ClimbMoveAbilityData();
+    motionData.wallHangAbilityData = WallHangAbilityData();
+    motionData.wallClimbAbilityData = WallClimbAbilityData();
     motionData.gravityAbilityData = GravityAbilityData();
     AbilitySystem abilitySystem(motionData);
     InputIntentions inputIntentions;

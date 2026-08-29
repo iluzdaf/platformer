@@ -19,8 +19,8 @@
                 "wallJumpBufferDuration":0.15,
                 "wallJumpCoyoteDuration":0.15
             },
-            "climbAbilityData":{},
-            "climbMoveAbilityData":{"climbSpeed":80},
+            "wallHangAbilityData":{},
+            "wallClimbAbilityData":{"climbSpeed":80},
             "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
         },
         "animationData":{

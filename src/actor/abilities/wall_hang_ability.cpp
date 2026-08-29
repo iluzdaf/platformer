@@ -1,18 +1,18 @@
-#include "actor/abilities/climb_ability_data.hpp"
+#include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
-#include "actor/abilities/climb_ability.hpp"
+#include "actor/abilities/wall_hang_ability.hpp"
 #include "input/input_intentions.hpp"
 
-ClimbAbility::ClimbAbility(const ClimbAbilityData &)
+WallHangAbility::WallHangAbility(const WallHangAbilityData &)
 {
 }
 
-void ClimbAbility::applyMovement(
+void WallHangAbility::applyMovement(
     float,
     const InputIntentions &inputIntentions,
     ActorMotionState &state)
 {
-    state.climb.active = false;
+    state.wallHang.active = false;
 
     if (!inputIntentions.climbRequested)
         return;
@@ -20,5 +20,5 @@ void ClimbAbility::applyMovement(
     if (!(state.contacts.touchingLeftWall || state.contacts.touchingRightWall))
         return;
 
-    state.climb.active = true;
+    state.wallHang.active = true;
 }

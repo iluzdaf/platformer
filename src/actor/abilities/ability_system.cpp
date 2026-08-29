@@ -6,8 +6,8 @@
 #include "actor/abilities/dash_ability.hpp"
 #include "actor/abilities/wall_slide_ability.hpp"
 #include "actor/abilities/wall_jump_ability.hpp"
-#include "actor/abilities/climb_ability.hpp"
-#include "actor/abilities/climb_move_ability.hpp"
+#include "actor/abilities/wall_hang_ability.hpp"
+#include "actor/abilities/wall_climb_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include <memory>
 
@@ -23,10 +23,10 @@ AbilitySystem::AbilitySystem(const ActorMotionData &data)
         abilities.push_back(std::make_unique<WallSlideAbility>(data.wallSlideAbilityData.value()));
     if (data.wallJumpAbilityData)
         abilities.push_back(std::make_unique<WallJumpAbility>(data.wallJumpAbilityData.value()));
-    if (data.climbAbilityData)
-        abilities.push_back(std::make_unique<ClimbAbility>(data.climbAbilityData.value()));
-    if (data.climbMoveAbilityData)
-        abilities.push_back(std::make_unique<ClimbMoveAbility>(data.climbMoveAbilityData.value()));
+    if (data.wallHangAbilityData)
+        abilities.push_back(std::make_unique<WallHangAbility>(data.wallHangAbilityData.value()));
+    if (data.wallClimbAbilityData)
+        abilities.push_back(std::make_unique<WallClimbAbility>(data.wallClimbAbilityData.value()));
     if (data.gravityAbilityData)
         abilities.push_back(std::make_unique<GravityAbility>(data.gravityAbilityData.value()));
 }
@@ -51,8 +51,8 @@ void AbilitySystem::applyMovement(
             finalVelocity.y = state.jump.velocity.y;
         else if (state.wallJump.active)
             finalVelocity = state.wallJump.velocity;
-        else if (state.climb.active)
-            finalVelocity.y = state.climbMove.velocity.y;
+        else if (state.wallHang.active)
+            finalVelocity.y = state.wallClimb.velocity.y;
         else if (state.wallSlide.active)
             finalVelocity.y = state.wallSlide.velocity.y;
     }

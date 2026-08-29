@@ -148,8 +148,8 @@ add_library(platformer_lib OBJECT
     src/actor/abilities/move_ability.cpp
     src/actor/abilities/wall_slide_ability.cpp
     src/actor/abilities/wall_jump_ability.cpp
-    src/actor/abilities/climb_ability.cpp
-    src/actor/abilities/climb_move_ability.cpp
+    src/actor/abilities/wall_hang_ability.cpp
+    src/actor/abilities/wall_climb_ability.cpp
     src/actor/abilities/action_buffer.cpp
     src/actor/abilities/coyote_time.cpp
     src/actor/abilities/direction_buffer.cpp
@@ -267,8 +267,8 @@ add_executable(tests
     tests/actor/abilities/test_move_ability.cpp
     tests/actor/abilities/test_wall_slide_ability.cpp
     tests/actor/abilities/test_wall_jump_ability.cpp
-    tests/actor/abilities/test_climb_ability.cpp
-    tests/actor/abilities/test_climb_move_ability.cpp
+    tests/actor/abilities/test_wall_hang_ability.cpp
+    tests/actor/abilities/test_wall_climb_ability.cpp
     tests/actor/abilities/test_coyote_time.cpp
     tests/actor/abilities/test_action_buffer.cpp
     tests/actor/abilities/test_direction_buffer.cpp

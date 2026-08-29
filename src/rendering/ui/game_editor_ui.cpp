@@ -113,7 +113,7 @@ void GameEditorUi::draw(
         drawRow("Wall Sliding", playerMotionState.wallSlide.active ? "true" : "false");
         drawRow("Wall Jumping", playerMotionState.wallJump.active ? "true" : "false");
         drawRow("Dashing", playerMotionState.dash.active ? "true" : "false");
-        drawRow("Climbing", playerMotionState.climb.active ? "true" : "false");
+        drawRow("Hanging", playerMotionState.wallHang.active ? "true" : "false");
 
         drawRow("Animation", toString(actorState.currentAnimationState));
 

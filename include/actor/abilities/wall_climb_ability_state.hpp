@@ -2,7 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-struct ClimbMoveAbilityState
+struct WallClimbAbilityState
 {
     glm::vec2 velocity = glm::vec2(0.0f);
 };

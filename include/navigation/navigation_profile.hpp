@@ -19,5 +19,11 @@ struct NavigationProfile
         return motionData && motionData->gravityAbilityData.has_value();
     }
 
+    bool climbs() const
+    {
+        return motionData && motionData->wallHangAbilityData.has_value() &&
+               motionData->wallClimbAbilityData.has_value();
+    }
+
     bool operator==(const NavigationProfile &) const = default;
 };

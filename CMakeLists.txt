@@ -250,6 +250,7 @@ add_executable(tests
     tests/scripting/test_lua_script_system.cpp
     tests/navigation/test_navigation_graph_builder.cpp
     tests/navigation/test_navigation_path.cpp
+    tests/navigation/test_navigation_profile.cpp
     tests/navigation/test_jump_simulation.cpp
     tests/actor/behaviors/test_flee_behavior.cpp
     tests/actor/behaviors/test_patrol_behavior.cpp

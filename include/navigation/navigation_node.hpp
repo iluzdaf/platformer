@@ -5,7 +5,9 @@ enum class NodeKind
 {
     OnFoot,
 
-    Landing
+    Landing,
+
+    OnWall
 };
 
 struct NavigationNode

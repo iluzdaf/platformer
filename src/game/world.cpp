@@ -26,7 +26,7 @@ void World::loadLevel(const std::string &levelPath)
 {
     rebuildLevel(levelPath);
 
-    rebuildPlayer();
+    respawnPlayer();
 
     rebuildNpcs();
 
@@ -41,10 +41,10 @@ void World::rebuildLevel(const std::string &levelPath)
     luaScriptSystem.bindLevel(level.get());
 }
 
-void World::rebuildPlayer()
+void World::respawnPlayer()
 {
     if (!level)
-        throw std::runtime_error("Cannot rebuild the player before the tile map");
+        throw std::runtime_error("Cannot spawn the player before the tile map");
 
     std::unique_ptr<Player> newPlayer = std::make_unique<Player>(gameData.playerData, inputManager);
     player = std::move(newPlayer);

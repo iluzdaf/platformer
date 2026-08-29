@@ -42,7 +42,7 @@ TEST_CASE("The player starts standing where the level says", "[World]")
                     world.getLevel().getPlayerStartTile()));
 }
 
-TEST_CASE("Rebuilding the player leaves the rest of the cast alone", "[World]")
+TEST_CASE("Respawning the player leaves the rest of the cast alone", "[World]")
 {
     GameData gameData = loadGameData();
     InputManager inputManager;
@@ -53,14 +53,14 @@ TEST_CASE("Rebuilding the player leaves the rest of the cast alone", "[World]")
     std::size_t npcsBefore = world.getNpcs().size();
     const Player *before = &world.getPlayer();
 
-    world.rebuildPlayer();
+    world.respawnPlayer();
 
     REQUIRE(&world.getPlayer() != before);
     REQUIRE(world.getNpcs().size() == npcsBefore);
     REQUIRE(world.getActors().size() == npcsBefore + 1);
 }
 
-TEST_CASE("The player cannot be built before there is a level to stand on", "[World]")
+TEST_CASE("The player cannot be spawned before there is a level to stand on", "[World]")
 {
     GameData gameData = loadGameData();
     InputManager inputManager;
@@ -69,7 +69,7 @@ TEST_CASE("The player cannot be built before there is a level to stand on", "[Wo
 
     REQUIRE(world.getLevelPath().empty());
     REQUIRE_FALSE(world.isPlaying("levels/level1.json"));
-    REQUIRE_THROWS(world.rebuildPlayer());
+    REQUIRE_THROWS(world.respawnPlayer());
 }
 
 TEST_CASE("Loading a level says so, for whoever is watching", "[World]")

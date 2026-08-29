@@ -23,7 +23,7 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         "y",
         &glm::vec2::y);
     lua.new_usertype<World>(
-        "World", "loadLevel", &World::loadLevel, "rebuildPlayer", &World::rebuildPlayer);
+        "World", "loadLevel", &World::loadLevel, "respawnPlayer", &World::respawnPlayer);
     lua.new_usertype<Playback>(
         "Playback", "pause", &Playback::pause, "play", &Playback::play, "step", &Playback::step);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);

@@ -50,7 +50,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
     gameUi.commands().onStep.connect([this] { playback.step(); });
     gameUi.commands().onLoadLevel.connect([this](const std::string &levelPath)
                                           { world.loadLevel(levelPath); });
-    gameUi.commands().onRespawn.connect([this] { world.rebuildPlayer(); });
+    gameUi.commands().onRespawn.connect([this] { world.respawnPlayer(); });
     gameUi.commands().onSettingsChanged.connect(
         [this]
         { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });

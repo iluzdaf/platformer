@@ -24,7 +24,7 @@ public:
     void loadLevel(const std::string &levelPath);
 
     fteng::signal<void()> onLevelLoaded;
-    void rebuildPlayer();
+    void respawnPlayer();
 
     void preFixedUpdate();
     void fixedUpdate(float deltaTime);

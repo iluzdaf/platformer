@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <stdexcept>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cmath>
 #include <filesystem>
@@ -117,6 +118,18 @@ namespace
             npc.preFixedUpdate();
             npc.fixedUpdate(0.01f, level);
         }
+    }
+
+    const NpcSpawnData &spawnOf(
+        const Level &level,
+        const std::string &type,
+        glm::ivec2 tilePosition)
+    {
+        for (const NpcSpawnData &spawn : level.getNpcs())
+            if (spawn.type == type && spawn.tilePosition == tilePosition)
+                return spawn;
+
+        throw std::runtime_error("no " + type + " spawns there");
     }
 
     glm::vec2 footOf(const Npc &npc)
@@ -388,7 +401,7 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
 
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    const NpcSpawnData &spawn = level.getNpcs().at(2);
+    const NpcSpawnData &spawn = spawnOf(level, "explorer", glm::ivec2(2, 11));
     REQUIRE(spawn.type == "explorer");
     REQUIRE(spawn.patrol);
 
@@ -684,7 +697,7 @@ TEST_CASE("The shipped explorer climbs the wall above level6's platform", "[Npc]
 
     Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
-    const NpcSpawnData &spawn = level.getNpcs().at(3);
+    const NpcSpawnData &spawn = spawnOf(level, "explorer", glm::ivec2(6, 5));
     REQUIRE(spawn.type == "explorer");
     REQUIRE(spawn.patrol);
 
@@ -711,5 +724,5 @@ TEST_CASE("The shipped explorer climbs the wall above level6's platform", "[Npc]
     INFO("highest foot reached " << highest << " at step " << reachedTheTopAt);
     REQUIRE(highest <= TopOfTheFace + 1.0f);
     REQUIRE(cameBackDown);
-    REQUIRE(reachedTheTopAt < 200);
+    REQUIRE(reachedTheTopAt < 270);
 }

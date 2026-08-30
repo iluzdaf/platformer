@@ -123,7 +123,7 @@ void EditorUi::drawOverlays(
     if (levelUi.drawsTileMapAABBs())
         drawTileMapAABBs(imGuiManager, camera, level);
     if (playerUi.drawsContactProbes())
-        drawContactProbes(imGuiManager, camera, player);
+        drawContactProbes(imGuiManager, camera, player, fadingAABBs);
     drawFadingAABBs(imGuiManager, camera, fadingAABBs);
 }
 

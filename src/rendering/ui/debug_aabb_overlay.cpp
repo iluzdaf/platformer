@@ -14,6 +14,20 @@
 
 namespace
 {
+    constexpr float MinimumProbeDepth = 1.0f;
+
+    AABB thickEnoughToSee(AABB probe, bool surfaceIsTopEdge)
+    {
+        if (probe.size.y >= MinimumProbeDepth)
+            return probe;
+
+        glm::vec2 size(probe.size.x, MinimumProbeDepth);
+        if (surfaceIsTopEdge)
+            return AABB(probe.position, size);
+        return AABB(
+            glm::vec2(probe.position.x, probe.position.y + probe.size.y - MinimumProbeDepth), size);
+    }
+
     void drawAABB(
         ImDrawList *drawList,
         const ImGuiManager &imGuiManager,
@@ -98,7 +112,8 @@ void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, 
 void drawContactProbes(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    const Player &player)
+    const Player &player,
+    FadingAABBs &fadingAABBs)
 {
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
     const PhysicsBody &physicsBody = player.getPhysicsBody();
@@ -113,18 +128,16 @@ void drawContactProbes(
         return IM_COL32(128, 128, 128, 128);
     };
 
+    AABB overhead = thickEnoughToSee(physicsBody.overheadProbe(), false);
     drawAABB(
         drawList,
         imGuiManager,
-        physicsBody.underfootProbe(),
+        thickEnoughToSee(physicsBody.underfootProbe(), true),
         camera,
         probeColor(contacts.onGround, false));
-    drawAABB(
-        drawList,
-        imGuiManager,
-        physicsBody.overheadProbe(),
-        camera,
-        probeColor(contacts.hitCeiling, false));
+    drawAABB(drawList, imGuiManager, overhead, camera, probeColor(contacts.hitCeiling, false));
+    if (contacts.hitCeiling)
+        fadingAABBs.add(overhead, probeColor(true, false), 0.2f);
     drawAABB(
         drawList,
         imGuiManager,

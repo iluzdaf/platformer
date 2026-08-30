@@ -1,5 +1,6 @@
 #include <optional>
 #include "rendering/ui/debug_aabb_ui.hpp"
+#include "game/level.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
@@ -7,26 +8,22 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include <cstddef>
 
-void DebugAABBUi::draw(
+void DebugAABBUi::drawOverlay(
     const ImGuiManager &imGuiManager,
-    const Player &player,
-    const TileMap &tileMap,
-    glm::ivec2 playerStartTile,
     const Camera2D &camera,
+    const Level &level,
+    const Player &player,
     bool shouldDrawPlayerAABBs,
     bool shouldDrawTileMapAABBs)
 {
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
 
     if (shouldDrawPlayerAABBs)
-    {
         drawPlayerAABBs(drawList, imGuiManager, player, camera);
-    }
 
     if (shouldDrawTileMapAABBs)
-    {
-        drawTileMapAABBs(drawList, imGuiManager, tileMap, playerStartTile, camera);
-    }
+        drawTileMapAABBs(
+            drawList, imGuiManager, level.getTileMap(), level.getPlayerStartTile(), camera);
 
     drawDebugAABBs(drawList, imGuiManager, camera);
 }

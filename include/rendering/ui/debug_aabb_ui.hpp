@@ -6,6 +6,7 @@ class ImGuiManager;
 class Camera2D;
 class Player;
 class TileMap;
+class Level;
 
 class DebugAABBUi
 {
@@ -17,12 +18,11 @@ public:
         float lifetime;
     };
 
-    void draw(
+    void drawOverlay(
         const ImGuiManager &imGuiManager,
-        const Player &player,
-        const TileMap &tileMap,
-        glm::ivec2 playerStartTile,
         const Camera2D &camera,
+        const Level &level,
+        const Player &player,
         bool shouldDrawPlayerAABBs,
         bool shouldDrawTileMapAABBs);
     void update(float deltaTime);

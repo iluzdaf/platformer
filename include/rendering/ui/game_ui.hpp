@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "rendering/ui/debug_aabb_ui.hpp"
 #include "rendering/ui/editor_ui.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "rendering/ui/score_ui.hpp"
@@ -47,6 +46,5 @@ public:
 private:
     ImGuiManager imGuiManager;
     EditorUi editorUi;
-    DebugAABBUi debugAABBUi;
     ScoreUi scoreUi;
 };

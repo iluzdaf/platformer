@@ -31,25 +31,15 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.paused},
         subject.showEditors);
 
-    debugAABBUi.draw(
-        imGuiManager,
-        subject.player,
-        subject.level.getTileMap(),
-        subject.level.getPlayerStartTile(),
-        subject.camera,
-        editorUi.drawsPlayerAABBs(),
-        editorUi.drawsTileMapAABBs());
-
     if (subject.showEditors)
-        editorUi.drawOverlays(imGuiManager, subject.camera, subject.level);
+        editorUi.drawOverlays(imGuiManager, subject.camera, subject.level, subject.player);
 
     imGuiManager.render();
 }
 
 void GameUi::update(float deltaTime, Level &level, const Camera2D &camera)
 {
-    debugAABBUi.update(deltaTime);
-    editorUi.update(imGuiManager, camera, level);
+    editorUi.update(deltaTime, imGuiManager, camera, level);
 }
 
 void GameUi::resize(int width, int height)

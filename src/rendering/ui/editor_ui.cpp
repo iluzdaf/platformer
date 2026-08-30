@@ -5,6 +5,7 @@
 #include "rendering/ui/editor_ui.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
+#include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/imgui_manager.hpp"
@@ -111,14 +112,27 @@ void EditorUi::draw(
 void EditorUi::drawOverlays(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    const Level &level) const
+    const Level &level,
+    const Player &player)
 {
     levelUi.drawOverlay(imGuiManager, camera, level);
     navigationUi.drawOverlay(imGuiManager, camera, level);
+    debugAABBUi.drawOverlay(
+        imGuiManager,
+        camera,
+        level,
+        player,
+        playerUi.drawsPlayerAABBs(),
+        levelUi.drawsTileMapAABBs());
 }
 
-void EditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level)
+void EditorUi::update(
+    float deltaTime,
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    Level &level)
 {
+    debugAABBUi.update(deltaTime);
     levelUi.update(imGuiManager, camera, level, brush);
 }
 
@@ -131,14 +145,4 @@ void EditorUi::valuesReplaced()
     tilePalettesUi.valuesReplaced();
     levelUi.valuesReplaced();
     levelsUi.valuesReplaced();
-}
-
-bool EditorUi::drawsPlayerAABBs() const
-{
-    return playerUi.drawsPlayerAABBs();
-}
-
-bool EditorUi::drawsTileMapAABBs() const
-{
-    return levelUi.drawsTileMapAABBs();
 }

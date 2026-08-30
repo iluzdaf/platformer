@@ -88,10 +88,13 @@ void LevelUi::drawTileMap(
         level.getTileMap().getHeight(),
         level.getTileMap().getTileSize());
 
-    ImGui::Checkbox("Tile Info", &drawTileInfo);
-    ImGui::SameLine();
-    ImGui::Checkbox("Grid", &drawGrid);
-    ImGui::Checkbox("AABBs", &drawTileMapAABBs);
+    if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Checkbox("Tile Info", &drawTileInfo);
+        ImGui::SameLine();
+        ImGui::Checkbox("Grid", &drawGrid);
+        ImGui::Checkbox("AABBs", &drawTileMapAABBs);
+    }
     ImGui::Separator();
 
     std::vector<int> tileIndices;

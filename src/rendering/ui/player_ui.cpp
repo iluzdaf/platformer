@@ -16,10 +16,13 @@ void PlayerUi::draw(
     const ActorState &actorState,
     EditorCommands &commands)
 {
-    ImGui::Checkbox("AABBs", &drawPlayerAABBs);
-    ImGui::SameLine();
-    ImGui::Checkbox("Probes", &drawContactProbes);
-    ImGui::SameLine();
+    if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Checkbox("AABBs", &drawPlayerAABBs);
+        ImGui::SameLine();
+        ImGui::Checkbox("Probes", &drawContactProbes);
+    }
+
     if (ImGui::Button("Respawn"))
         commands.onRespawn();
 

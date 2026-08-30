@@ -90,7 +90,7 @@ void LevelUi::drawTileMap(
 
     if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::Checkbox("Tile Info", &drawTileInfo);
+        ImGui::Checkbox("Info", &drawTileInfo);
         ImGui::SameLine();
         ImGui::Checkbox("Grid", &drawGrid);
         ImGui::Checkbox("Colliders", &drawTileColliders);

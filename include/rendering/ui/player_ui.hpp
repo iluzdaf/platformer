@@ -18,12 +18,14 @@ public:
         const ActorState &actorState,
         EditorCommands &commands);
 
-    bool drawsPlayerAABBs() const;
+    bool drawsPlayerCollider() const;
+    bool drawsPlayerCollisions() const;
     bool drawsContactProbes() const;
     void valuesReplaced();
 
 private:
     Saveable saveable;
-    bool drawPlayerAABBs = false;
+    bool drawPlayerCollider = false;
+    bool drawPlayerCollisions = false;
     bool drawContactProbes = false;
 };

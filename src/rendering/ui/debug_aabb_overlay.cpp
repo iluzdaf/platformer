@@ -18,6 +18,12 @@ namespace
     constexpr ImU32 ProbeIdleColor = IM_COL32(0, 200, 230, 110);
     constexpr ImU32 ProbeFoundColor = IM_COL32(0, 220, 255, 255);
     constexpr ImU32 ProbeGripColor = IM_COL32(0, 220, 255, 70);
+    constexpr ImU32 PlayerColliderColor = IM_COL32(0, 255, 0, 255);
+    constexpr ImU32 PlayerCollisionColor = IM_COL32(255, 127, 0, 255);
+    constexpr ImU32 TileColliderColor = IM_COL32(230, 230, 230, 255);
+    constexpr ImU32 DeadlyTileColliderColor = IM_COL32(255, 0, 0, 255);
+    constexpr ImU32 LevelBoundsColor = IM_COL32(255, 255, 0, 255);
+    constexpr ImU32 PlayerStartColor = IM_COL32(255, 0, 255, 255);
 
     AABB thickEnoughToSee(AABB probe, bool surfaceIsTopEdge)
     {
@@ -69,25 +75,27 @@ namespace
     }
 }
 
-void drawPlayerAABBs(
+void drawPlayerCollider(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    const Player &player,
-    FadingAABBs &fadingAABBs)
+    const Player &player)
 {
     drawAABB(
         ImGui::GetBackgroundDrawList(),
         imGuiManager,
         player.getPhysicsBody().getAABB(),
         camera,
-        IM_COL32(0, 255, 0, 255));
-
-    ActorMotionState state = player.getMotion().getState();
-    fadingAABBs.add(state.contacts.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
-    fadingAABBs.add(state.contacts.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
+        PlayerColliderColor);
 }
 
-void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs)
+{
+    ActorMotionState state = player.getMotion().getState();
+    fadingAABBs.add(state.contacts.collisionAABBX, PlayerCollisionColor, 0.1f);
+    fadingAABBs.add(state.contacts.collisionAABBY, PlayerCollisionColor, 0.1f);
+}
+
+void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
 {
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
     const TileMap &tileMap = level.getTileMap();
@@ -112,23 +120,31 @@ void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, 
             imGuiManager,
             *tileAABB,
             camera,
-            tile.isDeadly() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
+            tile.isDeadly() ? DeadlyTileColliderColor : TileColliderColor);
     }
+}
 
+void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+{
+    const TileMap &tileMap = level.getTileMap();
     drawAABB(
-        drawList,
+        ImGui::GetBackgroundDrawList(),
         imGuiManager,
         AABB(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight())),
         camera,
-        IM_COL32(255, 255, 0, 255));
+        LevelBoundsColor);
+}
 
+void drawPlayerStart(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+{
+    const TileMap &tileMap = level.getTileMap();
     glm::vec2 playerStartWorldPosition = tileMap.tileToWorldPosition(level.getPlayerStartTile());
     drawAABB(
-        drawList,
+        ImGui::GetBackgroundDrawList(),
         imGuiManager,
         AABB(playerStartWorldPosition, glm::vec2(static_cast<float>(tileMap.getTileSize()))),
         camera,
-        IM_COL32(255, 0, 255, 255));
+        PlayerStartColor);
 }
 
 void drawContactProbes(

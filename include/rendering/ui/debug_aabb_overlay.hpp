@@ -6,13 +6,21 @@ class Player;
 class Level;
 class FadingAABBs;
 
-void drawPlayerAABBs(
+void drawPlayerCollider(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    const Player &player,
-    FadingAABBs &fadingAABBs);
+    const Player &player);
 
-void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
+void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs);
+
+void drawTileColliders(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Level &level);
+
+void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
+
+void drawPlayerStart(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
 
 void drawContactProbes(
     const ImGuiManager &imGuiManager,

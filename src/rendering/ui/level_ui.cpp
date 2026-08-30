@@ -93,7 +93,11 @@ void LevelUi::drawTileMap(
         ImGui::Checkbox("Tile Info", &drawTileInfo);
         ImGui::SameLine();
         ImGui::Checkbox("Grid", &drawGrid);
-        ImGui::Checkbox("AABBs", &drawTileMapAABBs);
+        ImGui::Checkbox("Colliders", &drawTileColliders);
+        ImGui::SameLine();
+        ImGui::Checkbox("Bounds", &drawLevelBounds);
+        ImGui::SameLine();
+        ImGui::Checkbox("Spawn", &drawPlayerStart);
     }
     ImGui::Separator();
 
@@ -149,9 +153,19 @@ void LevelUi::drawOverlay(
         ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 }
 
-bool LevelUi::drawsTileMapAABBs() const
+bool LevelUi::drawsTileColliders() const
 {
-    return drawTileMapAABBs;
+    return drawTileColliders;
+}
+
+bool LevelUi::drawsLevelBounds() const
+{
+    return drawLevelBounds;
+}
+
+bool LevelUi::drawsPlayerStart() const
+{
+    return drawPlayerStart;
 }
 
 void LevelUi::update(

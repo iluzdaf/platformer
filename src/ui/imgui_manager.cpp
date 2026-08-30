@@ -2,7 +2,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
 #include <stdexcept>
-#include "rendering/ui/imgui_manager.hpp"
+#include "ui/imgui_manager.hpp"
 
 ImGuiManager::ImGuiManager(
     GLFWwindow *window,

@@ -6,8 +6,8 @@
 #include <string_view>
 #include <vector>
 #include <imgui.h>
-#include "rendering/ui/navigation_ui.hpp"
-#include "rendering/ui/navigation_overlay.hpp"
+#include "ui/navigation_ui.hpp"
+#include "ui/navigation_overlay.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"

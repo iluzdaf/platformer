@@ -5,7 +5,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
-#include "rendering/ui/tile_picker.hpp"
+#include "ui/tile_picker.hpp"
 #include "rendering/texture2d.hpp"
 
 std::optional<int> drawTilePicker(

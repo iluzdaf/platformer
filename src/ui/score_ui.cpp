@@ -1,9 +1,9 @@
 #include <cstdint>
 #include <format>
 #include <string>
-#include "rendering/ui/score_ui.hpp"
+#include "ui/score_ui.hpp"
 #include "rendering/texture2d.hpp"
-#include "rendering/ui/imgui_manager.hpp"
+#include "ui/imgui_manager.hpp"
 #include "game/scoring_system.hpp"
 
 void ScoreUi::draw(

@@ -2,14 +2,14 @@
 #include <string_view>
 #include <utility>
 #include <imgui.h>
-#include "rendering/ui/editor_ui.hpp"
+#include "ui/editor_ui.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
-#include "rendering/ui/editor_section.hpp"
-#include "rendering/ui/imgui_manager.hpp"
-#include "rendering/ui/debug_aabb_overlay.hpp"
+#include "ui/editor_section.hpp"
+#include "ui/imgui_manager.hpp"
+#include "ui/debug_aabb_overlay.hpp"
 
 namespace
 {

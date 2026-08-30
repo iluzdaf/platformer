@@ -4,10 +4,10 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "rendering/ui/editor_commands.hpp"
-#include "rendering/ui/editor_section.hpp"
-#include "rendering/ui/brush.hpp"
-#include "rendering/ui/saveable.hpp"
+#include "ui/editor_commands.hpp"
+#include "ui/editor_section.hpp"
+#include "ui/brush.hpp"
+#include "ui/saveable.hpp"
 
 class ImGuiManager;
 class TileMap;

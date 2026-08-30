@@ -1,8 +1,8 @@
 #include <optional>
 #include <imgui.h>
-#include "rendering/ui/debug_aabb_overlay.hpp"
-#include "rendering/ui/fading_aabbs.hpp"
-#include "rendering/ui/imgui_manager.hpp"
+#include "ui/debug_aabb_overlay.hpp"
+#include "ui/fading_aabbs.hpp"
+#include "ui/imgui_manager.hpp"
 #include "game/level.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"

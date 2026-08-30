@@ -3,9 +3,9 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "rendering/ui/editor_ui.hpp"
-#include "rendering/ui/imgui_manager.hpp"
-#include "rendering/ui/score_ui.hpp"
+#include "ui/editor_ui.hpp"
+#include "ui/imgui_manager.hpp"
+#include "ui/score_ui.hpp"
 
 struct GameData;
 class Camera2D;

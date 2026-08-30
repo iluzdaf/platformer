@@ -1,6 +1,6 @@
 #include <cstddef>
 #include <unordered_map>
-#include "rendering/ui/fading_aabbs.hpp"
+#include "ui/fading_aabbs.hpp"
 #include "physics/aabb.hpp"
 
 void FadingAABBs::add(AABB box, ImU32 color, float seconds)

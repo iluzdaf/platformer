@@ -1,9 +1,9 @@
 #include <format>
 #include <string>
 #include <imgui.h>
-#include "rendering/ui/player_ui.hpp"
-#include "rendering/ui/data_inspector.hpp"
-#include "rendering/ui/editor_commands.hpp"
+#include "ui/player_ui.hpp"
+#include "ui/data_inspector.hpp"
+#include "ui/editor_commands.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"

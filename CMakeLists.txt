@@ -89,25 +89,25 @@ add_library(platformer_lib OBJECT
     src/rendering/game_renderer.cpp
     src/rendering/tile_map_drawing.cpp
     src/rendering/screen_transition.cpp
-    src/rendering/ui/editor_ui.cpp
-    src/rendering/ui/game_ui.cpp
-    src/rendering/ui/imgui_manager.cpp
-    src/rendering/ui/tile_map_overlays.cpp
-    src/rendering/ui/debug_aabb_overlay.cpp
-    src/rendering/ui/fading_aabbs.cpp
-    src/rendering/ui/level_ui.cpp
-    src/rendering/ui/playback_ui.cpp
-    src/rendering/ui/game_settings_ui.cpp
-    src/rendering/ui/npc_types_ui.cpp
-    src/rendering/ui/camera_ui.cpp
-    src/rendering/ui/player_ui.cpp
-    src/rendering/ui/levels_ui.cpp
-    src/rendering/ui/tile_picker.cpp
-    src/rendering/ui/tile_palettes_ui.cpp
-    src/rendering/ui/score_ui.cpp
-    src/rendering/ui/navigation_overlay.cpp
-    src/rendering/ui/navigation_ui.cpp
-    src/rendering/ui/npcs_ui.cpp
+    src/ui/editor_ui.cpp
+    src/ui/game_ui.cpp
+    src/ui/imgui_manager.cpp
+    src/ui/tile_map_overlays.cpp
+    src/ui/debug_aabb_overlay.cpp
+    src/ui/fading_aabbs.cpp
+    src/ui/level_ui.cpp
+    src/ui/playback_ui.cpp
+    src/ui/game_settings_ui.cpp
+    src/ui/npc_types_ui.cpp
+    src/ui/camera_ui.cpp
+    src/ui/player_ui.cpp
+    src/ui/levels_ui.cpp
+    src/ui/tile_picker.cpp
+    src/ui/tile_palettes_ui.cpp
+    src/ui/score_ui.cpp
+    src/ui/navigation_overlay.cpp
+    src/ui/navigation_ui.cpp
+    src/ui/npcs_ui.cpp
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/tile_interaction_system.cpp

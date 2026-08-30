@@ -1,7 +1,7 @@
 #include <imgui.h>
-#include "rendering/ui/game_settings_ui.hpp"
-#include "rendering/ui/data_inspector.hpp"
-#include "rendering/ui/editor_commands.hpp"
+#include "ui/game_settings_ui.hpp"
+#include "ui/data_inspector.hpp"
+#include "ui/editor_commands.hpp"
 #include "game/game_data.hpp"
 
 void GameSettingsUi::draw(GameData &gameData, EditorCommands &commands)

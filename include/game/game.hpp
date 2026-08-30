@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <signals.hpp>
-#include "rendering/ui/game_ui.hpp"
+#include "ui/game_ui.hpp"
 #include "game/game_data.hpp"
 #include "game/levels.hpp"
 #include "game/world.hpp"

@@ -8,7 +8,7 @@ class Player;
 class TileMap;
 class Level;
 
-class DebugAABBUi
+class DebugAABBOverlay
 {
 public:
     struct DebugAABB

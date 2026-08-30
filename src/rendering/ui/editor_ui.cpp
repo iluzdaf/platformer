@@ -117,7 +117,7 @@ void EditorUi::drawOverlays(
 {
     levelUi.drawOverlay(imGuiManager, camera, level);
     navigationUi.drawOverlay(imGuiManager, camera, level);
-    debugAABBUi.drawOverlay(
+    debugAABBOverlay.drawOverlay(
         imGuiManager,
         camera,
         level,
@@ -132,7 +132,7 @@ void EditorUi::update(
     const Camera2D &camera,
     Level &level)
 {
-    debugAABBUi.update(deltaTime);
+    debugAABBOverlay.update(deltaTime);
     levelUi.update(imGuiManager, camera, level, brush);
 }
 

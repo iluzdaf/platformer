@@ -1,5 +1,5 @@
 #include <optional>
-#include "rendering/ui/debug_aabb_ui.hpp"
+#include "rendering/ui/debug_aabb_overlay.hpp"
 #include "game/level.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
@@ -8,7 +8,7 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include <cstddef>
 
-void DebugAABBUi::drawOverlay(
+void DebugAABBOverlay::drawOverlay(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     const Level &level,
@@ -28,7 +28,7 @@ void DebugAABBUi::drawOverlay(
     drawDebugAABBs(drawList, imGuiManager, camera);
 }
 
-void DebugAABBUi::update(float deltaTime)
+void DebugAABBOverlay::update(float deltaTime)
 {
     for (auto it = debugAABBs.begin(); it != debugAABBs.end();)
     {
@@ -40,7 +40,7 @@ void DebugAABBUi::update(float deltaTime)
     }
 }
 
-void DebugAABBUi::drawPlayerAABBs(
+void DebugAABBOverlay::drawPlayerAABBs(
     ImDrawList *drawList,
     const ImGuiManager &imGuiManager,
     const Player &player,
@@ -57,7 +57,7 @@ void DebugAABBUi::drawPlayerAABBs(
     addDebugAABB(state.contacts.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
 }
 
-void DebugAABBUi::drawTileMapAABBs(
+void DebugAABBOverlay::drawTileMapAABBs(
     ImDrawList *drawList,
     const ImGuiManager &imGuiManager,
     const TileMap &tileMap,
@@ -103,7 +103,7 @@ void DebugAABBUi::drawTileMapAABBs(
         IM_COL32(255, 0, 255, 255));
 }
 
-void DebugAABBUi::drawAABB(
+void DebugAABBOverlay::drawAABB(
     ImDrawList *drawList,
     const ImGuiManager &imGuiManager,
     AABB aabb,
@@ -121,7 +121,7 @@ void DebugAABBUi::drawAABB(
     drawList->AddRect(topLeft, bottomRight, color);
 }
 
-void DebugAABBUi::addDebugAABB(AABB aabb, ImU32 color, float duration)
+void DebugAABBOverlay::addDebugAABB(AABB aabb, ImU32 color, float duration)
 {
     if (aabb.isEmpty())
     {
@@ -139,7 +139,7 @@ void DebugAABBUi::addDebugAABB(AABB aabb, ImU32 color, float duration)
     }
 }
 
-void DebugAABBUi::drawDebugAABBs(
+void DebugAABBOverlay::drawDebugAABBs(
     ImDrawList *drawList,
     const ImGuiManager &imGuiManager,
     const Camera2D &camera)

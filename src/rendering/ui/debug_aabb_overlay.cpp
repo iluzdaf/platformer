@@ -15,6 +15,9 @@
 namespace
 {
     constexpr float MinimumProbeDepth = 1.0f;
+    constexpr ImU32 ProbeIdleColor = IM_COL32(0, 200, 230, 110);
+    constexpr ImU32 ProbeFoundColor = IM_COL32(0, 220, 255, 255);
+    constexpr ImU32 ProbeGripColor = IM_COL32(0, 220, 255, 70);
 
     AABB thickEnoughToSee(AABB probe, bool surfaceIsTopEdge)
     {
@@ -44,6 +47,25 @@ namespace
         ImVec2 bottomRight = imGuiManager.worldToScreen(
             aabb.position + aabb.size, camera.getZoom(), camera.getTopLeftPosition());
         drawList->AddRect(topLeft, bottomRight, color);
+    }
+
+    void drawProbe(
+        ImDrawList *drawList,
+        const ImGuiManager &imGuiManager,
+        AABB probe,
+        const Camera2D &camera,
+        bool found,
+        bool grippable)
+    {
+        if (grippable)
+        {
+            ImVec2 topLeft = imGuiManager.worldToScreen(
+                probe.position, camera.getZoom(), camera.getTopLeftPosition());
+            ImVec2 bottomRight = imGuiManager.worldToScreen(
+                probe.position + probe.size, camera.getZoom(), camera.getTopLeftPosition());
+            drawList->AddRectFilled(topLeft, bottomRight, ProbeGripColor);
+        }
+        drawAABB(drawList, imGuiManager, probe, camera, found ? ProbeFoundColor : ProbeIdleColor);
     }
 }
 
@@ -119,49 +141,45 @@ void drawContactProbes(
     const PhysicsBody &physicsBody = player.getPhysicsBody();
     ActorContactState contacts = player.getMotion().getState().contacts;
 
-    auto probeColor = [](bool touching, bool grippable)
-    {
-        if (grippable)
-            return IM_COL32(0, 255, 128, 255);
-        if (touching)
-            return IM_COL32(0, 191, 255, 255);
-        return IM_COL32(128, 128, 128, 128);
-    };
-
     AABB overhead = thickEnoughToSee(physicsBody.overheadProbe(), false);
-    drawAABB(
+    drawProbe(
         drawList,
         imGuiManager,
         thickEnoughToSee(physicsBody.underfootProbe(), true),
         camera,
-        probeColor(contacts.onGround, false));
-    drawAABB(drawList, imGuiManager, overhead, camera, probeColor(contacts.bumpedCeiling, false));
+        contacts.onGround,
+        false);
+    drawProbe(drawList, imGuiManager, overhead, camera, contacts.bumpedCeiling, false);
     if (contacts.bumpedCeiling)
-        fadingAABBs.add(overhead, probeColor(true, false), 0.2f);
-    drawAABB(
+        fadingAABBs.add(overhead, ProbeFoundColor, 0.2f);
+    drawProbe(
         drawList,
         imGuiManager,
         physicsBody.wallProbe(-1.0f),
         camera,
-        probeColor(contacts.touchingLeftWall, contacts.grippableLeftWall));
-    drawAABB(
+        contacts.touchingLeftWall,
+        contacts.grippableLeftWall);
+    drawProbe(
         drawList,
         imGuiManager,
         physicsBody.wallProbe(1.0f),
         camera,
-        probeColor(contacts.touchingRightWall, contacts.grippableRightWall));
-    drawAABB(
+        contacts.touchingRightWall,
+        contacts.grippableRightWall);
+    drawProbe(
         drawList,
         imGuiManager,
         physicsBody.wallProbeAtHead(-1.0f),
         camera,
-        probeColor(contacts.touchingLeftWall && !contacts.ledgeOnLeft, false));
-    drawAABB(
+        contacts.touchingLeftWall && !contacts.ledgeOnLeft,
+        false);
+    drawProbe(
         drawList,
         imGuiManager,
         physicsBody.wallProbeAtHead(1.0f),
         camera,
-        probeColor(contacts.touchingRightWall && !contacts.ledgeOnRight, false));
+        contacts.touchingRightWall && !contacts.ledgeOnRight,
+        false);
 }
 
 void drawFadingAABBs(

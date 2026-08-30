@@ -8,6 +8,7 @@
 #include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/camera_ui.hpp"
+#include "rendering/ui/fading_aabbs.hpp"
 #include "rendering/ui/game_settings_ui.hpp"
 #include "rendering/ui/npc_types_ui.hpp"
 #include "rendering/ui/playback_ui.hpp"
@@ -27,6 +28,7 @@ class ImGuiManager;
 class Level;
 class Levels;
 class Npc;
+class Player;
 class Texture2D;
 
 struct EditorSubject
@@ -47,18 +49,24 @@ class EditorUi
 {
 public:
     void draw(const ImGuiManager &imGuiManager, const EditorSubject &subject, bool showEditors);
-    void drawOverlays(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
-        const;
-    void update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level);
+    void drawOverlays(
+        const ImGuiManager &imGuiManager,
+        const Camera2D &camera,
+        const Level &level,
+        const Player &player);
+    void update(
+        float deltaTime,
+        const ImGuiManager &imGuiManager,
+        const Camera2D &camera,
+        Level &level);
 
     EditorCommands commands;
 
     void valuesReplaced();
-    bool drawsPlayerAABBs() const;
-    bool drawsTileMapAABBs() const;
 
 private:
     EditorSection section = EditorSection::Playback;
+    FadingAABBs fadingAABBs;
     PlaybackUi playbackUi;
     GameSettingsUi gameSettingsUi;
     CameraUi cameraUi;

@@ -55,12 +55,6 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
         [this]
         { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });
     gameUi.commands().onCameraChanged.connect([this] { camera.setZoom(gameData.cameraData.zoom); });
-    gameUi.commands().onSetFirstLevel.connect(
-        [this]
-        {
-            levels.setFirst(world.getLevelPath());
-            levels.save();
-        });
 
     reloadCommands.isPlaying = [this](const std::string &levelPath)
     { return world.isPlaying(levelPath); };
@@ -136,7 +130,7 @@ void Game::render()
             world.getNpcs(),
             world.getPlayer(),
             renderer.getTileSet(),
-            levels.getFirst(),
+            levels,
             camera,
             world.getScoringSystem(),
             playback.isPaused(),

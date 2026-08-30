@@ -11,6 +11,7 @@
 struct GameData;
 class Camera2D;
 class Level;
+class Levels;
 class Npc;
 class Player;
 class ScoringSystem;
@@ -24,7 +25,7 @@ struct GameUiSubject
     const std::vector<std::unique_ptr<Npc>> &npcs;
     const Player &player;
     const Texture2D &tileSet;
-    const std::string &firstLevel;
+    Levels &levels;
     const Camera2D &camera;
     const ScoringSystem &scoringSystem;
     bool paused = false;

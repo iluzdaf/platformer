@@ -2,25 +2,33 @@
 #include <cstddef>
 #include <optional>
 #include <vector>
+#include <tuple>
+#include <glaze/glaze.hpp>
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/tile_picker.hpp"
+#include "rendering/ui/brush.hpp"
 #include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/game_data.hpp"
+#include "rendering/ui/data_inspector.hpp"
+#include "tile_map/tile_data.hpp"
+#include "tile_map/tile_palette.hpp"
 #include "rendering/ui/tile_map_overlays.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 
 namespace
 {
-    std::string levelName(const std::string &levelPath)
+    std::optional<int> tileOf(const std::optional<Brush> &brush)
     {
-        std::string name = levelPath.substr(levelPath.find_last_of("/\\") + 1);
-        size_t extension = name.rfind(".json");
-        return extension == std::string::npos ? name : name.substr(0, extension);
+        if (!brush || brush->kind != Brush::Kind::Tile)
+            return std::nullopt;
+
+        return brush->tileIndex;
     }
 }
 
@@ -28,79 +36,51 @@ void LevelEditorUi::draw(
     EditorSection section,
     Level &level,
     const Texture2D &tileSet,
-    const std::string &firstLevel,
-    int &selectedTileIndex,
+    const GameData &gameData,
+    std::optional<Brush> &brush,
     EditorCommands &commands)
 {
-    switch (section)
-    {
-    case EditorSection::Level:
-        drawLevel(level, firstLevel, commands);
-        break;
+    if (section != EditorSection::Level)
+        return;
 
-    case EditorSection::TileMap:
-        drawTileMap(level, tileSet, selectedTileIndex);
-        break;
-
-    default:
-        break;
-    }
+    drawTileMap(level, tileSet, gameData, brush);
+    ImGui::Separator();
+    drawLevel(level, commands);
 }
 
-void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel, EditorCommands &commands)
+void LevelEditorUi::drawLevel(Level &level, EditorCommands &commands)
 {
-    if (!editing)
-    {
-        if (ImGui::Button("edit"))
-            editing = true;
-    }
-    else
-    {
-        if (ImGui::Button("save"))
-        {
-            level.save();
-            editing = false;
-        }
-
-        ImGui::SameLine();
-        if (ImGui::Button("cancel"))
-        {
-            editing = false;
-            commands.onLoadLevel(level.getPath());
-            return;
-        }
-    }
+    std::string json;
+    std::ignore = glz::write_json(level.toLevelData(), json);
+    bool reverted = saveable.drawControls(
+        level.getPath(),
+        json,
+        [&level] { level.save(); },
+        [&](const std::string &) { commands.onLoadLevel(level.getPath()); });
+    if (reverted)
+        return;
 
     ImGui::Separator();
 
-    std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel, commands);
-    if (chosenLevel)
-    {
-        editing = false;
-        commands.onLoadLevel(*chosenLevel);
-        return;
-    }
-
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
-    if (!editing)
-        ImGui::TextUnformatted(levelName(level.getNextLevel()).c_str());
-    else
+    ImGui::SetNextItemWidth(110.0f);
+    if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
     {
-        ImGui::SetNextItemWidth(110.0f);
-        if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
-        {
-            std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
-            for (const std::string &path : levelPathsIn(directory))
-                if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
-                    level.setNextLevel(path);
+        std::string directory = directoryOf(level.getPath());
+        for (const std::string &path : levelPathsIn(directory))
+            if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
+                level.setNextLevel(path);
 
-            ImGui::EndCombo();
-        }
+        ImGui::EndCombo();
     }
 }
 
-void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet, int &selectedTileIndex)
+void LevelEditorUi::drawTileMap(
+    Level &level,
+    const Texture2D &tileSet,
+    const GameData &gameData,
+    std::optional<Brush> &brush)
 {
     ImGui::Text(
         "w%dxh%dxs%d",
@@ -114,67 +94,44 @@ void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet, int &sel
     ImGui::Checkbox("AABBs", &drawTileMapAABBs);
     ImGui::Separator();
 
-    if (!editing)
-    {
-        ImGui::TextDisabled("editing the level is off");
-        return;
-    }
-
     std::vector<int> tileIndices;
     for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())
         tileIndices.push_back(tileIndex);
 
-    selectedTileIndex =
-        drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, selectedTileIndex);
+    std::optional<int> paintingTile = tileOf(brush);
+    std::optional<int> picked =
+        drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, paintingTile);
+    if (picked != paintingTile)
+        brush = picked ? std::optional<Brush>(Brush{Brush::Kind::Tile, *picked}) : std::nullopt;
 
-    bool previouslyEditingPlayerStartTile = editingPlayerStartTile;
-    if (previouslyEditingPlayerStartTile)
+    bool placingPlayerStart = brush && brush->kind == Brush::Kind::PlayerStart;
+    if (placingPlayerStart)
     {
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 100, 255, 255));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(255, 100, 255, 255));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(255, 100, 255, 255));
+        ImGui::PushStyleColor(ImGuiCol_Button, TilePickerArmedColour);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, TilePickerArmedColour);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, TilePickerArmedColour);
     }
 
-    ImGui::NewLine();
-    if (ImGui::Button("Spawn"))
-    {
-        editingPlayerStartTile = true;
-        selectedTileIndex = 0;
-    }
+    ImVec2 padding = ImGui::GetStyle().FramePadding;
+    if (ImGui::Button(
+            "spawn",
+            ImVec2(TilePickerCellSize + padding.x * 2.0f, TilePickerCellSize + padding.y * 2.0f)))
+        brush = placingPlayerStart ? std::nullopt
+                                   : std::optional<Brush>(Brush{Brush::Kind::PlayerStart, 0});
 
-    if (previouslyEditingPlayerStartTile)
+    if (placingPlayerStart)
         ImGui::PopStyleColor(3);
-}
 
-std::optional<std::string> LevelEditorUi::drawLevelChooser(
-    const Level &level,
-    const std::string &firstLevel,
-    EditorCommands &commands)
-{
-    std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
-    std::optional<std::string> chosen;
-
-    ImGui::SetNextItemWidth(110.0f);
-    if (ImGui::BeginCombo("##level", levelName(level.getPath()).c_str()))
+    const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
+    if (picked && palette.contains(*picked))
     {
-        for (const std::string &path : levelPathsIn(directory))
-        {
-            bool current = path == level.getPath();
-            if (ImGui::Selectable(levelName(path).c_str(), current) && !current)
-                chosen = path;
-        }
-        ImGui::EndCombo();
+        ImGui::Separator();
+        TileData shown = palette.at(*picked);
+        ImGui::BeginDisabled();
+        inspector::drawFields(shown);
+        ImGui::EndDisabled();
+        ImGui::Separator();
     }
-
-    if (editing)
-    {
-        ImGui::SameLine();
-        bool isFirst = level.getPath() == firstLevel;
-        if (ImGui::Checkbox("first", &isFirst) && isFirst)
-            commands.onSetFirstLevel();
-    }
-
-    return chosen;
 }
 
 void LevelEditorUi::drawOverlay(
@@ -198,11 +155,8 @@ void LevelEditorUi::update(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     Level &level,
-    int selectedTileIndex)
+    std::optional<Brush> &brush)
 {
-    if (!editing)
-        return;
-
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = imGuiManager.screenToWorld(
         mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
@@ -210,17 +164,28 @@ void LevelEditorUi::update(
     if (!level.getTileMap().validTilePosition(tilePosition))
         return;
 
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !imGuiManager.getIO().WantCaptureMouse)
+    if (!brush || !ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
+        imGuiManager.getIO().WantCaptureMouse)
+        return;
+
+    switch (brush->kind)
     {
-        if (editingPlayerStartTile)
+    case Brush::Kind::PlayerStart:
+        level.setPlayerStartTile(tilePosition);
+        brush.reset();
+        break;
+
+    case Brush::Kind::Tile:
+        if (level.getTileMap().tilePositionToTileIndex(tilePosition) != brush->tileIndex)
         {
-            level.setPlayerStartTile(tilePosition);
-            editingPlayerStartTile = false;
-        }
-        else if (level.getTileMap().tilePositionToTileIndex(tilePosition) != selectedTileIndex)
-        {
-            level.getTileMap().setTileIndex(tilePosition, selectedTileIndex);
+            level.getTileMap().setTileIndex(tilePosition, brush->tileIndex);
             level.rebuildGraphs();
         }
+        break;
     }
+}
+
+void LevelEditorUi::valuesReplaced()
+{
+    saveable.valuesReplaced();
 }

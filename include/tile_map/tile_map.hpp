@@ -44,5 +44,9 @@ private:
     std::unordered_map<int, Tile> tiles;
     std::string tilePalette;
 
+public:
+    const std::string &getTilePalette() const;
+
+private:
     void initFrom(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
 };

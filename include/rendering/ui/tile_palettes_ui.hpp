@@ -1,6 +1,8 @@
 #pragma once
 
+#include <optional>
 #include <string>
+#include "rendering/ui/brush.hpp"
 #include "rendering/ui/saveable.hpp"
 #include "tile_map/tile_palette.hpp"
 
@@ -13,7 +15,7 @@ public:
         TilePalettes &tilePalettes,
         const Texture2D &tileSet,
         int tileSize,
-        int &selectedTileIndex);
+        std::optional<Brush> &brush);
 
     void valuesReplaced();
 

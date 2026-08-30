@@ -5,6 +5,9 @@
 
 class Texture2D;
 
+inline constexpr float TilePickerCellSize = 32.0f;
+inline constexpr unsigned int TilePickerArmedColour = 0xFF00FFFF;
+
 std::optional<int> drawTilePicker(
     const Texture2D &tileSet,
     int tileSize,

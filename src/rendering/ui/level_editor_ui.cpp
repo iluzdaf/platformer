@@ -104,6 +104,24 @@ void LevelEditorUi::drawTileMap(
     if (picked != paintingTile)
         brush = picked ? std::optional<Brush>(Brush{Brush::Kind::Tile, *picked}) : std::nullopt;
 
+    bool placingPlayerStart = brush && brush->kind == Brush::Kind::PlayerStart;
+    if (placingPlayerStart)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, TilePickerArmedColour);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, TilePickerArmedColour);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, TilePickerArmedColour);
+    }
+
+    ImVec2 padding = ImGui::GetStyle().FramePadding;
+    if (ImGui::Button(
+            "spawn",
+            ImVec2(TilePickerCellSize + padding.x * 2.0f, TilePickerCellSize + padding.y * 2.0f)))
+        brush = placingPlayerStart ? std::nullopt
+                                   : std::optional<Brush>(Brush{Brush::Kind::PlayerStart, 0});
+
+    if (placingPlayerStart)
+        ImGui::PopStyleColor(3);
+
     const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
     if (picked && palette.contains(*picked))
     {
@@ -114,22 +132,6 @@ void LevelEditorUi::drawTileMap(
         ImGui::EndDisabled();
         ImGui::Separator();
     }
-
-    bool placingPlayerStart = brush && brush->kind == Brush::Kind::PlayerStart;
-    if (placingPlayerStart)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 100, 255, 255));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(255, 100, 255, 255));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(255, 100, 255, 255));
-    }
-
-    ImGui::NewLine();
-    if (ImGui::Button("Spawn"))
-        brush = placingPlayerStart ? std::nullopt
-                                   : std::optional<Brush>(Brush{Brush::Kind::PlayerStart, 0});
-
-    if (placingPlayerStart)
-        ImGui::PopStyleColor(3);
 }
 
 void LevelEditorUi::drawOverlay(

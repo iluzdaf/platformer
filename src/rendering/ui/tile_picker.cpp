@@ -27,16 +27,16 @@ std::optional<int> drawTilePicker(
 
         if (isSelected)
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 255, 0, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(255, 255, 0, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(255, 255, 0, 255));
+            ImGui::PushStyleColor(ImGuiCol_Button, TilePickerArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, TilePickerArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, TilePickerArmedColour);
         }
 
         ImVec2 tilePosition = ImGui::GetCursorScreenPos();
         if (ImGui::ImageButton(
                 "##tile",
                 imguiTextureID,
-                ImVec2(32, 32),
+                ImVec2(TilePickerCellSize, TilePickerCellSize),
                 ImVec2(uvStart.x, uvStart.y),
                 ImVec2(uvEnd.x, uvEnd.y)))
             picked = isSelected ? std::nullopt : std::optional<int>(tileIndex);

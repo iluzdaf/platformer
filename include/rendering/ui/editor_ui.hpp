@@ -9,6 +9,7 @@
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/game_editor_ui.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
+#include "rendering/ui/levels_ui.hpp"
 #include "rendering/ui/navigation_ui.hpp"
 #include "rendering/ui/npcs_ui.hpp"
 #include "rendering/ui/tile_palettes_ui.hpp"
@@ -19,6 +20,7 @@ struct GameData;
 class Camera2D;
 class ImGuiManager;
 class Level;
+class Levels;
 class Npc;
 class Texture2D;
 
@@ -28,7 +30,7 @@ struct EditorSubject
     Level &level;
     const std::vector<std::unique_ptr<Npc>> &npcs;
     const Texture2D &tileSet;
-    const std::string &firstLevel;
+    Levels &levels;
     const ActorMotionState &playerMotionState;
     glm::vec2 playerPosition;
     const ActorState &playerState;
@@ -57,5 +59,6 @@ private:
     NavigationUi navigationUi;
     NpcsUi npcsUi;
     TilePalettesUi tilePalettesUi;
+    LevelsUi levelsUi;
     std::optional<int> selectedTileIndex;
 };

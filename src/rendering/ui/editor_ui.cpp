@@ -55,16 +55,13 @@ void EditorUi::draw(
 
     switch (section)
     {
+    case EditorSection::Levels:
+        levelsUi.draw(subject.levels);
+        break;
+
     case EditorSection::Level:
-    case EditorSection::TileMap:
         levelEditorUi.draw(
-            section,
-            subject.level,
-            subject.tileSet,
-            subject.firstLevel,
-            subject.gameData,
-            selectedTileIndex,
-            commands);
+            section, subject.level, subject.tileSet, subject.gameData, selectedTileIndex, commands);
         break;
 
     case EditorSection::NpcsInLevel:
@@ -118,6 +115,7 @@ void EditorUi::valuesReplaced()
     gameEditorUi.valuesReplaced();
     tilePalettesUi.valuesReplaced();
     levelEditorUi.valuesReplaced();
+    levelsUi.valuesReplaced();
 }
 
 bool EditorUi::drawsPlayerAABBs() const

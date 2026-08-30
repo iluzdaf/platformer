@@ -23,7 +23,6 @@ public:
         EditorSection section,
         Level &level,
         const Texture2D &tileSet,
-        const std::string &firstLevel,
         const GameData &gameData,
         std::optional<int> &selectedTileIndex,
         EditorCommands &commands);
@@ -43,14 +42,11 @@ private:
     bool editingPlayerStartTile = false;
     bool drawGrid = false, drawTileInfo = false, drawTileMapAABBs = false;
 
-    void drawLevel(Level &level, const std::string &firstLevel, EditorCommands &commands);
+    void drawLevel(Level &level, EditorCommands &commands);
     void drawTileMap(
         Level &level,
         const Texture2D &tileSet,
         const GameData &gameData,
         std::optional<int> &selectedTileIndex);
-    std::optional<std::string> drawLevelChooser(
-        const Level &level,
-        const std::string &firstLevel,
-        EditorCommands &commands);
+    std::optional<std::string> drawLevelChooser(const Level &level);
 };

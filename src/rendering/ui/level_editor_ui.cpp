@@ -20,41 +20,23 @@
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 
-namespace
-{
-    std::string levelName(const std::string &levelPath)
-    {
-        std::string name = levelPath.substr(levelPath.find_last_of("/\\") + 1);
-        size_t extension = name.rfind(".json");
-        return extension == std::string::npos ? name : name.substr(0, extension);
-    }
-}
-
 void LevelEditorUi::draw(
     EditorSection section,
     Level &level,
     const Texture2D &tileSet,
-    const std::string &firstLevel,
     const GameData &gameData,
     std::optional<int> &selectedTileIndex,
     EditorCommands &commands)
 {
-    switch (section)
-    {
-    case EditorSection::Level:
-        drawLevel(level, firstLevel, commands);
-        break;
+    if (section != EditorSection::Level)
+        return;
 
-    case EditorSection::TileMap:
-        drawTileMap(level, tileSet, gameData, selectedTileIndex);
-        break;
-
-    default:
-        break;
-    }
+    drawLevel(level, commands);
+    ImGui::Separator();
+    drawTileMap(level, tileSet, gameData, selectedTileIndex);
 }
 
-void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel, EditorCommands &commands)
+void LevelEditorUi::drawLevel(Level &level, EditorCommands &commands)
 {
     std::string json;
     std::ignore = glz::write_json(level.toLevelData(), json);
@@ -68,7 +50,7 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel, Edito
 
     ImGui::Separator();
 
-    std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel, commands);
+    std::optional<std::string> chosenLevel = drawLevelChooser(level);
     if (chosenLevel)
     {
         commands.onLoadLevel(*chosenLevel);
@@ -80,7 +62,7 @@ void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel, Edito
     ImGui::SetNextItemWidth(110.0f);
     if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
     {
-        std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
+        std::string directory = directoryOf(level.getPath());
         for (const std::string &path : levelPathsIn(directory))
             if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
                 level.setNextLevel(path);
@@ -144,18 +126,14 @@ void LevelEditorUi::drawTileMap(
         ImGui::PopStyleColor(3);
 }
 
-std::optional<std::string> LevelEditorUi::drawLevelChooser(
-    const Level &level,
-    const std::string &firstLevel,
-    EditorCommands &commands)
+std::optional<std::string> LevelEditorUi::drawLevelChooser(const Level &level)
 {
-    std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
     std::optional<std::string> chosen;
 
     ImGui::SetNextItemWidth(110.0f);
     if (ImGui::BeginCombo("##level", levelName(level.getPath()).c_str()))
     {
-        for (const std::string &path : levelPathsIn(directory))
+        for (const std::string &path : levelPathsIn(directoryOf(level.getPath())))
         {
             bool current = path == level.getPath();
             if (ImGui::Selectable(levelName(path).c_str(), current) && !current)
@@ -163,11 +141,6 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(
         }
         ImGui::EndCombo();
     }
-
-    ImGui::SameLine();
-    bool isFirst = level.getPath() == firstLevel;
-    if (ImGui::Checkbox("first", &isFirst) && isFirst)
-        commands.onSetFirstLevel();
 
     return chosen;
 }

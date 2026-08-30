@@ -23,7 +23,7 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.level,
             subject.npcs,
             subject.tileSet,
-            subject.firstLevel,
+            subject.levels,
             subject.player.getMotion().getState(),
             subject.player.getPosition(),
             subject.player.getState(),

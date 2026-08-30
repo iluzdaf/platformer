@@ -1,77 +1,21 @@
-#include <imgui.h>
 #include <format>
 #include <string>
-#include "rendering/ui/game_editor_ui.hpp"
-#include "actor/actor_animation_state.hpp"
-#include "rendering/ui/imgui_manager.hpp"
+#include <imgui.h>
+#include "rendering/ui/player_ui.hpp"
+#include "rendering/ui/data_inspector.hpp"
 #include "rendering/ui/editor_commands.hpp"
-#include "rendering/ui/editor_section.hpp"
+#include "actor/actor_animation_state.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
-#include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
-#include "rendering/ui/data_inspector.hpp"
 
-void GameEditorUi::draw(
-    EditorSection section,
+void PlayerUi::draw(
     GameData &gameData,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
     const ActorState &actorState,
-    const Camera2D &camera,
-    bool paused,
     EditorCommands &commands)
 {
-    if (section == EditorSection::Playback)
-    {
-        if (ImGui::Button(paused ? "play" : "pause", ImVec2(60.0f, 0.0f)))
-        {
-            if (paused)
-                commands.onPlay();
-            else
-                commands.onPause();
-        }
-
-        ImGui::SameLine();
-        if (ImGui::Button("step", ImVec2(60.0f, 0.0f)))
-            commands.onStep();
-
-        ImGui::TextDisabled("%s", paused ? "stopped" : "running");
-        return;
-    }
-
-    if (section == EditorSection::Game)
-    {
-        bool reverted = saveable.drawControls("game", gameData.settings, saveGameSettings);
-        ImGui::Separator();
-        if (inspector::drawFields(gameData.settings).onCommit || reverted)
-            commands.onSettingsChanged();
-        return;
-    }
-
-    if (section == EditorSection::NpcTypes)
-    {
-        saveable.drawControls("npcs", gameData.npcData, saveNpcData);
-        ImGui::Separator();
-        inspector::draw("types", gameData.npcData);
-        return;
-    }
-
-    if (section == EditorSection::Camera)
-    {
-        ImGui::TextDisabled("%s", camera.shaking() ? "shaking" : "still");
-
-        ImGui::Separator();
-        bool reverted = saveable.drawControls("camera", gameData.cameraData, saveCameraData);
-        ImGui::Separator();
-        if (inspector::drawFields(gameData.cameraData) || reverted)
-            commands.onCameraChanged();
-        return;
-    }
-
-    if (section != EditorSection::Player)
-        return;
-
     ImGui::Checkbox("AABBs", &drawPlayerAABBs);
     ImGui::SameLine();
     if (ImGui::Button("Respawn"))
@@ -118,11 +62,12 @@ void GameEditorUi::draw(
     inspector::drawFields(gameData.playerData);
 }
 
-void GameEditorUi::valuesReplaced()
-{
-    saveable.valuesReplaced();
-}
-bool GameEditorUi::drawsPlayerAABBs() const
+bool PlayerUi::drawsPlayerAABBs() const
 {
     return drawPlayerAABBs;
+}
+
+void PlayerUi::valuesReplaced()
+{
+    saveable.valuesReplaced();
 }

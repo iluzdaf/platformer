@@ -4,7 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <glaze/glaze.hpp>
-#include "rendering/ui/level_editor_ui.hpp"
+#include "rendering/ui/level_ui.hpp"
 #include "rendering/ui/tile_picker.hpp"
 #include "rendering/ui/brush.hpp"
 #include "rendering/ui/editor_commands.hpp"
@@ -32,7 +32,7 @@ namespace
     }
 }
 
-void LevelEditorUi::draw(
+void LevelUi::draw(
     EditorSection section,
     Level &level,
     const Texture2D &tileSet,
@@ -48,7 +48,7 @@ void LevelEditorUi::draw(
     drawLevel(level, commands);
 }
 
-void LevelEditorUi::drawLevel(Level &level, EditorCommands &commands)
+void LevelUi::drawLevel(Level &level, EditorCommands &commands)
 {
     std::string json;
     std::ignore = glz::write_json(level.toLevelData(), json);
@@ -76,7 +76,7 @@ void LevelEditorUi::drawLevel(Level &level, EditorCommands &commands)
     }
 }
 
-void LevelEditorUi::drawTileMap(
+void LevelUi::drawTileMap(
     Level &level,
     const Texture2D &tileSet,
     const GameData &gameData,
@@ -134,7 +134,7 @@ void LevelEditorUi::drawTileMap(
     }
 }
 
-void LevelEditorUi::drawOverlay(
+void LevelUi::drawOverlay(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     const Level &level) const
@@ -146,12 +146,12 @@ void LevelEditorUi::drawOverlay(
         ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 }
 
-bool LevelEditorUi::drawsTileMapAABBs() const
+bool LevelUi::drawsTileMapAABBs() const
 {
     return drawTileMapAABBs;
 }
 
-void LevelEditorUi::update(
+void LevelUi::update(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     Level &level,
@@ -185,7 +185,7 @@ void LevelEditorUi::update(
     }
 }
 
-void LevelEditorUi::valuesReplaced()
+void LevelUi::valuesReplaced()
 {
     saveable.valuesReplaced();
 }

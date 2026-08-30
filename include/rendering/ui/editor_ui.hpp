@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
@@ -56,5 +57,5 @@ private:
     NavigationUi navigationUi;
     NpcsUi npcsUi;
     TilePalettesUi tilePalettesUi;
-    int selectedTileIndex = 0;
+    std::optional<int> selectedTileIndex;
 };

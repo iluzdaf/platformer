@@ -62,6 +62,7 @@ void EditorUi::draw(
             subject.level,
             subject.tileSet,
             subject.firstLevel,
+            subject.gameData,
             selectedTileIndex,
             commands);
         break;
@@ -116,6 +117,7 @@ void EditorUi::valuesReplaced()
 {
     gameEditorUi.valuesReplaced();
     tilePalettesUi.valuesReplaced();
+    levelEditorUi.valuesReplaced();
 }
 
 bool EditorUi::drawsPlayerAABBs() const

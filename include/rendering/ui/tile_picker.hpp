@@ -1,11 +1,12 @@
 #pragma once
 
+#include <optional>
 #include <vector>
 
 class Texture2D;
 
-int drawTilePicker(
+std::optional<int> drawTilePicker(
     const Texture2D &tileSet,
     int tileSize,
     const std::vector<int> &tileIndices,
-    int selected);
+    std::optional<int> selected);

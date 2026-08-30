@@ -12,7 +12,16 @@ class Saveable
 public:
     template <class T, class Save> bool drawControls(std::string_view name, T &value, Save &&save)
     {
-        std::string now = asJson(value);
+        return drawControls(
+            name,
+            asJson(value),
+            [&] { save(value); },
+            [&](const std::string &lastSeen) { std::ignore = glz::read_json(value, lastSeen); });
+    }
+
+    template <class Save, class Revert>
+    bool drawControls(std::string_view name, std::string now, Save &&save, Revert &&revert)
+    {
         std::string &lastSeen = asLastSeen[std::string(name)];
         if (lastSeen.empty())
             lastSeen = now;
@@ -25,14 +34,15 @@ public:
 
         if (ImGui::Button("save"))
         {
-            save(value);
-            lastSeen = asJson(value);
+            save();
+            lastSeen = std::move(now);
+            return false;
         }
 
         ImGui::SameLine();
         if (ImGui::Button("revert"))
         {
-            std::ignore = glz::read_json(value, lastSeen);
+            revert(lastSeen);
             return true;
         }
 

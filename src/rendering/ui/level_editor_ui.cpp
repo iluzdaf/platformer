@@ -2,6 +2,8 @@
 #include <cstddef>
 #include <optional>
 #include <vector>
+#include <tuple>
+#include <glaze/glaze.hpp>
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/tile_picker.hpp"
 #include "rendering/ui/editor_commands.hpp"
@@ -10,6 +12,10 @@
 #include "rendering/ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/game_data.hpp"
+#include "rendering/ui/data_inspector.hpp"
+#include "tile_map/tile_data.hpp"
+#include "tile_map/tile_palette.hpp"
 #include "rendering/ui/tile_map_overlays.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
@@ -29,7 +35,8 @@ void LevelEditorUi::draw(
     Level &level,
     const Texture2D &tileSet,
     const std::string &firstLevel,
-    int &selectedTileIndex,
+    const GameData &gameData,
+    std::optional<int> &selectedTileIndex,
     EditorCommands &commands)
 {
     switch (section)
@@ -39,7 +46,7 @@ void LevelEditorUi::draw(
         break;
 
     case EditorSection::TileMap:
-        drawTileMap(level, tileSet, selectedTileIndex);
+        drawTileMap(level, tileSet, gameData, selectedTileIndex);
         break;
 
     default:
@@ -49,58 +56,44 @@ void LevelEditorUi::draw(
 
 void LevelEditorUi::drawLevel(Level &level, const std::string &firstLevel, EditorCommands &commands)
 {
-    if (!editing)
-    {
-        if (ImGui::Button("edit"))
-            editing = true;
-    }
-    else
-    {
-        if (ImGui::Button("save"))
-        {
-            level.save();
-            editing = false;
-        }
-
-        ImGui::SameLine();
-        if (ImGui::Button("cancel"))
-        {
-            editing = false;
-            commands.onLoadLevel(level.getPath());
-            return;
-        }
-    }
+    std::string json;
+    std::ignore = glz::write_json(level.toLevelData(), json);
+    bool reverted = saveable.drawControls(
+        level.getPath(),
+        json,
+        [&level] { level.save(); },
+        [&](const std::string &) { commands.onLoadLevel(level.getPath()); });
+    if (reverted)
+        return;
 
     ImGui::Separator();
 
     std::optional<std::string> chosenLevel = drawLevelChooser(level, firstLevel, commands);
     if (chosenLevel)
     {
-        editing = false;
         commands.onLoadLevel(*chosenLevel);
         return;
     }
 
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
-    if (!editing)
-        ImGui::TextUnformatted(levelName(level.getNextLevel()).c_str());
-    else
+    ImGui::SetNextItemWidth(110.0f);
+    if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
     {
-        ImGui::SetNextItemWidth(110.0f);
-        if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
-        {
-            std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
-            for (const std::string &path : levelPathsIn(directory))
-                if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
-                    level.setNextLevel(path);
+        std::string directory = level.getPath().substr(0, level.getPath().find_last_of("/\\"));
+        for (const std::string &path : levelPathsIn(directory))
+            if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
+                level.setNextLevel(path);
 
-            ImGui::EndCombo();
-        }
+        ImGui::EndCombo();
     }
 }
 
-void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet, int &selectedTileIndex)
+void LevelEditorUi::drawTileMap(
+    Level &level,
+    const Texture2D &tileSet,
+    const GameData &gameData,
+    std::optional<int> &selectedTileIndex)
 {
     ImGui::Text(
         "w%dxh%dxs%d",
@@ -114,18 +107,23 @@ void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet, int &sel
     ImGui::Checkbox("AABBs", &drawTileMapAABBs);
     ImGui::Separator();
 
-    if (!editing)
-    {
-        ImGui::TextDisabled("editing the level is off");
-        return;
-    }
-
     std::vector<int> tileIndices;
     for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())
         tileIndices.push_back(tileIndex);
 
     selectedTileIndex =
         drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, selectedTileIndex);
+
+    const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
+    if (selectedTileIndex && palette.contains(*selectedTileIndex))
+    {
+        ImGui::Separator();
+        TileData shown = palette.at(*selectedTileIndex);
+        ImGui::BeginDisabled();
+        inspector::drawFields(shown);
+        ImGui::EndDisabled();
+        ImGui::Separator();
+    }
 
     bool previouslyEditingPlayerStartTile = editingPlayerStartTile;
     if (previouslyEditingPlayerStartTile)
@@ -139,7 +137,7 @@ void LevelEditorUi::drawTileMap(Level &level, const Texture2D &tileSet, int &sel
     if (ImGui::Button("Spawn"))
     {
         editingPlayerStartTile = true;
-        selectedTileIndex = 0;
+        selectedTileIndex.reset();
     }
 
     if (previouslyEditingPlayerStartTile)
@@ -166,13 +164,10 @@ std::optional<std::string> LevelEditorUi::drawLevelChooser(
         ImGui::EndCombo();
     }
 
-    if (editing)
-    {
-        ImGui::SameLine();
-        bool isFirst = level.getPath() == firstLevel;
-        if (ImGui::Checkbox("first", &isFirst) && isFirst)
-            commands.onSetFirstLevel();
-    }
+    ImGui::SameLine();
+    bool isFirst = level.getPath() == firstLevel;
+    if (ImGui::Checkbox("first", &isFirst) && isFirst)
+        commands.onSetFirstLevel();
 
     return chosen;
 }
@@ -198,11 +193,8 @@ void LevelEditorUi::update(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     Level &level,
-    int selectedTileIndex)
+    std::optional<int> selectedTileIndex)
 {
-    if (!editing)
-        return;
-
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = imGuiManager.screenToWorld(
         mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
@@ -217,10 +209,17 @@ void LevelEditorUi::update(
             level.setPlayerStartTile(tilePosition);
             editingPlayerStartTile = false;
         }
-        else if (level.getTileMap().tilePositionToTileIndex(tilePosition) != selectedTileIndex)
+        else if (
+            selectedTileIndex &&
+            level.getTileMap().tilePositionToTileIndex(tilePosition) != *selectedTileIndex)
         {
-            level.getTileMap().setTileIndex(tilePosition, selectedTileIndex);
+            level.getTileMap().setTileIndex(tilePosition, *selectedTileIndex);
             level.rebuildGraphs();
         }
     }
+}
+
+void LevelEditorUi::valuesReplaced()
+{
+    saveable.valuesReplaced();
 }

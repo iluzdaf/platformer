@@ -1,4 +1,5 @@
 #include <cfloat>
+#include <optional>
 #include <string>
 #include <vector>
 #include <imgui.h>
@@ -12,7 +13,7 @@ void TilePalettesUi::draw(
     TilePalettes &tilePalettes,
     const Texture2D &tileSet,
     int tileSize,
-    int &selectedTileIndex)
+    std::optional<int> &selectedTileIndex)
 {
     saveable.drawControls("palettes", tilePalettes, saveTilePalettes);
     ImGui::Separator();
@@ -47,14 +48,20 @@ void TilePalettesUi::draw(
         return;
     }
 
-    if (!palette.contains(selectedTileIndex))
-        selectedTileIndex = tileIndices.front();
+    if (selectedTileIndex && !palette.contains(*selectedTileIndex))
+        selectedTileIndex.reset();
 
     selectedTileIndex = drawTilePicker(tileSet, tileSize, tileIndices, selectedTileIndex);
 
     ImGui::Separator();
-    ImGui::Text("tile %d", selectedTileIndex);
-    inspector::drawFields(palette.at(selectedTileIndex));
+    if (!selectedTileIndex)
+    {
+        ImGui::TextDisabled("pick a tile");
+        return;
+    }
+
+    ImGui::Text("tile %d", *selectedTileIndex);
+    inspector::drawFields(palette.at(*selectedTileIndex));
 }
 
 void TilePalettesUi::valuesReplaced()

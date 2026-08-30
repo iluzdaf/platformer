@@ -237,3 +237,8 @@ bool TileMap::probeSolidTiles(
     }
     return false;
 }
+
+const std::string &TileMap::getTilePalette() const
+{
+    return tilePalette;
+}

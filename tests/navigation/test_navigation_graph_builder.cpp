@@ -1435,3 +1435,20 @@ TEST_CASE(
         }
     }
 }
+
+TEST_CASE("A wall an actor cannot grip is not climbed", "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = setupWallFromTheFloor();
+
+    TilePalette palette = getDefaultTileDataMap();
+    TileData ungrippable;
+    ungrippable.solid = true;
+    ungrippable.grippable = false;
+    palette[2] = ungrippable;
+
+    TileMap ungrippableWall(tileMap.toTileMapData(), palettesFrom(palette));
+    for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)
+        ungrippableWall.setTileIndex(glm::ivec2(ClimbWallX, y), 2);
+
+    REQUIRE(nodesOnWalls(buildNavigationGraph(ungrippableWall, climberProfile())).empty());
+}

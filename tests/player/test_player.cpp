@@ -18,6 +18,7 @@
 #include "game/game_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_data.hpp"
 
 using Catch::Approx;
 
@@ -29,12 +30,13 @@ namespace
         TileMap &tileMap,
         float totalTime,
         InputIntentions intentions = InputIntentions(),
-        float step = 0.01f)
+        float step = 0.01f,
+        const TilePalette &palette = getDefaultTileDataMap())
     {
         LevelData levelData;
         levelData.tileMapData = tileMap.toTileMapData();
 
-        Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {});
+        Level level(levelData, palettesFrom(palette), setupPlayerData(), {});
 
         FixedTimeStep timeStepper(step);
         input.set(intentions);
@@ -679,4 +681,32 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
 
     REQUIRE(state.contacts.onGround);
     REQUIRE(player.getPhysicsBody().getAABB().bottomCenter().y == Approx(5 * 16.0f));
+}
+
+TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
+{
+    TilePalette palette = getDefaultTileDataMap();
+    TileData ungrippable;
+    ungrippable.solid = true;
+    ungrippable.grippable = false;
+    palette[2] = ungrippable;
+
+    TileMap tileMap = setupTileMap(10, 10, 16, palette);
+    for (int y = 0; y < 8; ++y)
+        tileMap.setTileIndex(glm::ivec2(5, y), 2);
+
+    ScriptedIntentions input;
+    Player player = setupPlayer(input);
+    const ActorMotionState &state = player.getMotion().getState();
+    player.setPosition(glm::vec2(4 * 16.0f + 4.0f, 16.0f));
+
+    InputIntentions holdingTheWall;
+    holdingTheWall.climbRequested = true;
+    holdingTheWall.direction = glm::vec2(1.0f, -1.0f);
+    simulatePlayer(player, input, tileMap, 0.5f, holdingTheWall, 0.01f, palette);
+
+    REQUIRE(state.contacts.touchingRightWall);
+    REQUIRE_FALSE(state.contacts.grippableRightWall);
+    REQUIRE_FALSE(state.wallHang.active);
+    REQUIRE(state.velocity.y > 0.0f);
 }

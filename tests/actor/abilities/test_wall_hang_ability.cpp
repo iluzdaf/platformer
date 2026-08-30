@@ -13,7 +13,7 @@ TEST_CASE("WallHangAbility basic movement behaviour", "[WallHangAbility]")
 
     SECTION("Can climb")
     {
-        state.contacts.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = state.contacts.grippableLeftWall = true;
         inputIntentions.climbRequested = true;
         wallHangAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.wallHang.active);

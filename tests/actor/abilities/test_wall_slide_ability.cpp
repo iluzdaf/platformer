@@ -16,7 +16,7 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 
     SECTION("Can wall slide")
     {
-        state.contacts.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = state.contacts.grippableLeftWall = true;
         state.contacts.onGround = false;
         state.velocity.y = 980.0f;
         slideAbility.applyMovement(0.01f, inputIntentions, state);
@@ -34,7 +34,7 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 
     SECTION("Cannot wall slide when on ground")
     {
-        state.contacts.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = state.contacts.grippableLeftWall = true;
         state.contacts.onGround = true;
         slideAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE_FALSE(state.wallSlide.active);
@@ -43,7 +43,7 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 
     SECTION("Cannot wall slide if not falling")
     {
-        state.contacts.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = state.contacts.grippableLeftWall = true;
         state.contacts.onGround = false;
         state.velocity.y = 0.0f;
         slideAbility.applyMovement(0.01f, inputIntentions, state);

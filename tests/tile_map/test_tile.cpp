@@ -72,3 +72,19 @@ TEST_CASE("A tile that does not say its shape takes a whole tile", "[Tile]")
     REQUIRE(aabb->position == glm::vec2(32.0f, 48.0f));
     REQUIRE(aabb->size == glm::vec2(16.0f, 16.0f));
 }
+
+TEST_CASE("Only a solid tile that says so can be gripped", "[Tile]")
+{
+    TileData solid;
+    solid.solid = true;
+    REQUIRE(Tile(1, solid).isGrippable());
+
+    TileData ungrippable;
+    ungrippable.solid = true;
+    ungrippable.grippable = false;
+    REQUIRE_FALSE(Tile(2, ungrippable).isGrippable());
+
+    TileData deadly;
+    deadly.deadly = true;
+    REQUIRE_FALSE(Tile(3, deadly).isGrippable());
+}

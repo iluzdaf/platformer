@@ -6,7 +6,7 @@
 
 struct TileData
 {
-    bool solid = false, deadly = false, portal = false;
+    bool solid = false, deadly = false, portal = false, grippable = true;
     std::optional<TileAnimationData> animationData;
     std::optional<TilePickupData> pickup;
     std::optional<TileColliderData> collider;

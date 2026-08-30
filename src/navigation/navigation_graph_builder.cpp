@@ -658,7 +658,7 @@ namespace
             if (!tileMap.validTilePosition(beside) || !tileMap.validTilePosition(body))
                 return false;
 
-            if (!tileMap.getTileAtTilePosition(beside).isSolid())
+            if (!tileMap.getTileAtTilePosition(beside).isGrippable())
                 return false;
 
             const Tile &bodyTile = tileMap.getTileAtTilePosition(body);

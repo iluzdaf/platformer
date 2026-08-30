@@ -22,9 +22,9 @@
         "32":{"solid":true,"collider":{"offset":[2,1],"size":[12,15]}},
         "33":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
         "34":{"solid":true,"collider":{"offset":[0,1],"size":[16,15]}},
-        "39":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-        "40":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-        "41":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
+        "39":{"solid":true,"grippable":false,"collider":{"offset":[0,0],"size":[16,16]}},
+        "40":{"solid":true,"grippable":false,"collider":{"offset":[0,0],"size":[16,16]}},
+        "41":{"solid":true,"grippable":false,"collider":{"offset":[0,0],"size":[16,16]}},
         "42":{
             "pickup":{"replaceIndex":0},
             "animationData":{

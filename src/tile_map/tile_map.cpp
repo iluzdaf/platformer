@@ -218,7 +218,7 @@ TileMapData TileMap::toTileMapData() const
 
 bool TileMap::probeSolidTiles(
     const AABB &probeAABB,
-    const std::function<bool(const AABB &)> &callback) const
+    const std::function<bool(const Tile &, const AABB &)> &callback) const
 {
     auto tilePositions = worldToTilePositions(probeAABB.position, probeAABB.size);
     for (const auto &tilePosition : tilePositions)
@@ -232,7 +232,7 @@ bool TileMap::probeSolidTiles(
 
         auto tileWorldPosition = tileToWorldPosition(tilePosition);
         std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);
-        if (tileAABB && tileAABB->intersects(probeAABB) && callback(*tileAABB))
+        if (tileAABB && tileAABB->intersects(probeAABB) && callback(tile, *tileAABB))
             return true;
     }
     return false;

@@ -84,6 +84,34 @@ TEST_CASE("PhysicsBody detects contact with right wall", "[PhysicsBody]")
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithRightWall(tileMap));
 }
+TEST_CASE("PhysicsBody detects a wall beside its head", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(0, 3), 1);
+    PhysicsBody body = setupBody({16, 48});
+    REQUIRE(body.contactWithLeftWallAtHead(tileMap));
+}
+
+TEST_CASE("PhysicsBody beside a ledge touches the wall but not at its head", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(0, 4), 1);
+    PhysicsBody body = setupBody({16, 56});
+    REQUIRE(body.contactWithLeftWall(tileMap));
+    REQUIRE_FALSE(body.contactWithLeftWallAtHead(tileMap));
+}
+
+TEST_CASE(
+    "PhysicsBody beside a ledge on its right touches the wall but not at its head",
+    "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(2, 4), 1);
+    PhysicsBody body = setupBody({16, 56});
+    REQUIRE(body.contactWithRightWall(tileMap));
+    REQUIRE_FALSE(body.contactWithRightWallAtHead(tileMap));
+}
+
 TEST_CASE("PhysicsBody knows how far its feet sit from its position", "[PhysicsBody]")
 {
     PhysicsBody body = setupBody({0, 0}, {0, 0}, {6, 10}, {2, 5});

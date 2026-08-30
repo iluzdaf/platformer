@@ -16,8 +16,15 @@ void PlayerUi::draw(
     const ActorState &actorState,
     EditorCommands &commands)
 {
-    ImGui::Checkbox("AABBs", &drawPlayerAABBs);
-    ImGui::SameLine();
+    if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Checkbox("Collider", &drawPlayerCollider);
+        ImGui::SameLine();
+        ImGui::Checkbox("Collisions", &drawPlayerCollisions);
+        ImGui::SameLine();
+        ImGui::Checkbox("Probes", &drawContactProbes);
+    }
+
     if (ImGui::Button("Respawn"))
         commands.onRespawn();
 
@@ -62,9 +69,19 @@ void PlayerUi::draw(
     inspector::drawFields(gameData.playerData);
 }
 
-bool PlayerUi::drawsPlayerAABBs() const
+bool PlayerUi::drawsPlayerCollider() const
 {
-    return drawPlayerAABBs;
+    return drawPlayerCollider;
+}
+
+bool PlayerUi::drawsPlayerCollisions() const
+{
+    return drawPlayerCollisions;
+}
+
+bool PlayerUi::drawsContactProbes() const
+{
+    return drawContactProbes;
 }
 
 void PlayerUi::valuesReplaced()

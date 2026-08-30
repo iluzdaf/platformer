@@ -35,12 +35,15 @@ public:
         Level &level,
         std::optional<Brush> &brush);
 
-    bool drawsTileMapAABBs() const;
+    bool drawsTileColliders() const;
+    bool drawsLevelBounds() const;
+    bool drawsPlayerStart() const;
     void valuesReplaced();
 
 private:
     Saveable saveable;
-    bool drawGrid = false, drawTileInfo = false, drawTileMapAABBs = false;
+    bool drawGrid = false, drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false,
+         drawPlayerStart = false;
 
     void drawLevel(Level &level, EditorCommands &commands);
     void drawTileMap(

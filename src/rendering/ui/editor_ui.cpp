@@ -118,10 +118,18 @@ void EditorUi::drawOverlays(
 {
     levelUi.drawOverlay(imGuiManager, camera, level);
     navigationUi.drawOverlay(imGuiManager, camera, level);
-    if (playerUi.drawsPlayerAABBs())
-        drawPlayerAABBs(imGuiManager, camera, player, fadingAABBs);
-    if (levelUi.drawsTileMapAABBs())
-        drawTileMapAABBs(imGuiManager, camera, level);
+    if (playerUi.drawsPlayerCollider())
+        drawPlayerCollider(imGuiManager, camera, player);
+    if (playerUi.drawsPlayerCollisions())
+        drawPlayerCollisions(player, fadingAABBs);
+    if (levelUi.drawsTileColliders())
+        drawTileColliders(imGuiManager, camera, level);
+    if (levelUi.drawsLevelBounds())
+        drawLevelBounds(imGuiManager, camera, level);
+    if (levelUi.drawsPlayerStart())
+        drawPlayerStart(imGuiManager, camera, level);
+    if (playerUi.drawsContactProbes())
+        drawContactProbes(imGuiManager, camera, player, fadingAABBs);
     drawFadingAABBs(imGuiManager, camera, fadingAABBs);
 }
 

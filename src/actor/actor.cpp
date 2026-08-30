@@ -52,7 +52,7 @@ void Actor::postFixedUpdate()
 
 void Actor::preFixedUpdate()
 {
-    motion.resetCollisionAABB();
+    motion.beginFrame();
 }
 
 void Actor::fixedUpdate(

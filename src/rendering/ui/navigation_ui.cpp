@@ -38,8 +38,12 @@ void NavigationUi::draw(const Level &level)
 {
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
     ImGui::Indent();
-    ImGui::Checkbox("render", &showNavigation);
-    ImGui::Checkbox("real trajectory", &drawTheFlightItself);
+    if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Checkbox("Graph", &showNavigation);
+        ImGui::SameLine();
+        ImGui::Checkbox("Real Trajectory", &drawTheFlightItself);
+    }
 
     if (graphs.empty())
     {

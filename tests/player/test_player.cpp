@@ -710,3 +710,55 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
     REQUIRE_FALSE(state.wallHang.active);
     REQUIRE(state.velocity.y > 0.0f);
 }
+
+TEST_CASE("A ceiling bump is over before the frame it happened in ends", "[Player]")
+{
+    TileMap tileMap = setupTileMap(20, 20);
+    for (int x = 0; x < 20; ++x)
+    {
+        tileMap.setTileIndex(glm::ivec2(x, 10), 1);
+        tileMap.setTileIndex(glm::ivec2(x, 6), 1);
+    }
+
+    LevelData levelData;
+    levelData.tileMapData = tileMap.toTileMapData();
+    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {});
+
+    ScriptedIntentions input;
+    Player player(setupPlayerData(), input);
+    player.setPosition(glm::vec2(5 * 16.0f, 10 * 16.0f - 16.0f));
+
+    FixedTimeStep timestepper;
+    int stepsTouchingCeiling = 0;
+    int framesEndingWithHitCeiling = 0;
+    int framesEndingWithBumpedCeiling = 0;
+
+    for (int frame = 0; frame < 180; ++frame)
+    {
+        InputIntentions intentions;
+        intentions.jumpRequested = frame == 30;
+        intentions.jumpHeld = frame >= 30 && frame < 45;
+        input.set(intentions);
+
+        player.preFixedUpdate();
+        timestepper.run(
+            1.0f / 60.0f,
+            [&](float dt)
+            {
+                player.fixedUpdate(dt, level);
+                if (player.getMotion().getState().contacts.hitCeiling)
+                    ++stepsTouchingCeiling;
+            });
+        player.postFixedUpdate();
+
+        const ActorContactState &contacts = player.getMotion().getState().contacts;
+        if (contacts.hitCeiling)
+            ++framesEndingWithHitCeiling;
+        if (contacts.bumpedCeiling)
+            ++framesEndingWithBumpedCeiling;
+    }
+
+    REQUIRE(stepsTouchingCeiling == 1);
+    REQUIRE(framesEndingWithHitCeiling == 0);
+    REQUIRE(framesEndingWithBumpedCeiling == 1);
+}

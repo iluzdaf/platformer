@@ -18,6 +18,8 @@ void ActorMotion::readContacts(const PhysicsBody &physicsBody, const TileMap &ti
     state.contacts.onGround = physicsBody.contactWithGround(tileMap);
     state.contacts.wasHitCeiling = state.contacts.hitCeiling;
     state.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
+    if (state.contacts.hitCeiling)
+        state.contacts.bumpedCeiling = true;
     state.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
     state.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
     state.contacts.grippableLeftWall = physicsBody.gripOnLeftWall(tileMap);
@@ -42,10 +44,11 @@ void ActorMotion::readMotion(const PhysicsBody &physicsBody)
     state.velocity = physicsBody.getVelocity();
 }
 
-void ActorMotion::resetCollisionAABB()
+void ActorMotion::beginFrame()
 {
     state.contacts.collisionAABBX = AABB();
     state.contacts.collisionAABBY = AABB();
+    state.contacts.bumpedCeiling = false;
 }
 
 const ActorMotionState &ActorMotion::getState() const

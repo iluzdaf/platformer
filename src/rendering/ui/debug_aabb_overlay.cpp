@@ -8,10 +8,35 @@
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
 #include "cameras/camera2d.hpp"
+#include "actor/actor_contact_state.hpp"
+#include "physics/physics_body.hpp"
 #include "physics/aabb.hpp"
 
 namespace
 {
+    constexpr float MinimumProbeDepth = 1.0f;
+    constexpr ImU32 ProbeIdleColor = IM_COL32(0, 200, 230, 110);
+    constexpr ImU32 ProbeFoundColor = IM_COL32(0, 220, 255, 255);
+    constexpr ImU32 ProbeGripColor = IM_COL32(0, 220, 255, 70);
+    constexpr ImU32 PlayerColliderColor = IM_COL32(0, 255, 0, 255);
+    constexpr ImU32 PlayerCollisionColor = IM_COL32(255, 127, 0, 255);
+    constexpr ImU32 TileColliderColor = IM_COL32(230, 230, 230, 255);
+    constexpr ImU32 DeadlyTileColliderColor = IM_COL32(255, 0, 0, 255);
+    constexpr ImU32 LevelBoundsColor = IM_COL32(255, 255, 0, 255);
+    constexpr ImU32 PlayerStartColor = IM_COL32(255, 0, 255, 255);
+
+    AABB thickEnoughToSee(AABB probe, bool surfaceIsTopEdge)
+    {
+        if (probe.size.y >= MinimumProbeDepth)
+            return probe;
+
+        glm::vec2 size(probe.size.x, MinimumProbeDepth);
+        if (surfaceIsTopEdge)
+            return AABB(probe.position, size);
+        return AABB(
+            glm::vec2(probe.position.x, probe.position.y + probe.size.y - MinimumProbeDepth), size);
+    }
+
     void drawAABB(
         ImDrawList *drawList,
         const ImGuiManager &imGuiManager,
@@ -29,27 +54,48 @@ namespace
             aabb.position + aabb.size, camera.getZoom(), camera.getTopLeftPosition());
         drawList->AddRect(topLeft, bottomRight, color);
     }
+
+    void drawProbe(
+        ImDrawList *drawList,
+        const ImGuiManager &imGuiManager,
+        AABB probe,
+        const Camera2D &camera,
+        bool found,
+        bool grippable)
+    {
+        if (grippable)
+        {
+            ImVec2 topLeft = imGuiManager.worldToScreen(
+                probe.position, camera.getZoom(), camera.getTopLeftPosition());
+            ImVec2 bottomRight = imGuiManager.worldToScreen(
+                probe.position + probe.size, camera.getZoom(), camera.getTopLeftPosition());
+            drawList->AddRectFilled(topLeft, bottomRight, ProbeGripColor);
+        }
+        drawAABB(drawList, imGuiManager, probe, camera, found ? ProbeFoundColor : ProbeIdleColor);
+    }
 }
 
-void drawPlayerAABBs(
+void drawPlayerCollider(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    const Player &player,
-    FadingAABBs &fadingAABBs)
+    const Player &player)
 {
     drawAABB(
         ImGui::GetBackgroundDrawList(),
         imGuiManager,
         player.getPhysicsBody().getAABB(),
         camera,
-        IM_COL32(0, 255, 0, 255));
-
-    ActorMotionState state = player.getMotion().getState();
-    fadingAABBs.add(state.contacts.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
-    fadingAABBs.add(state.contacts.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
+        PlayerColliderColor);
 }
 
-void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs)
+{
+    ActorMotionState state = player.getMotion().getState();
+    fadingAABBs.add(state.contacts.collisionAABBX, PlayerCollisionColor, 0.1f);
+    fadingAABBs.add(state.contacts.collisionAABBY, PlayerCollisionColor, 0.1f);
+}
+
+void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
 {
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
     const TileMap &tileMap = level.getTileMap();
@@ -74,23 +120,82 @@ void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, 
             imGuiManager,
             *tileAABB,
             camera,
-            tile.isDeadly() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
+            tile.isDeadly() ? DeadlyTileColliderColor : TileColliderColor);
     }
+}
 
+void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+{
+    const TileMap &tileMap = level.getTileMap();
     drawAABB(
-        drawList,
+        ImGui::GetBackgroundDrawList(),
         imGuiManager,
         AABB(glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight())),
         camera,
-        IM_COL32(255, 255, 0, 255));
+        LevelBoundsColor);
+}
 
+void drawPlayerStart(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+{
+    const TileMap &tileMap = level.getTileMap();
     glm::vec2 playerStartWorldPosition = tileMap.tileToWorldPosition(level.getPlayerStartTile());
     drawAABB(
-        drawList,
+        ImGui::GetBackgroundDrawList(),
         imGuiManager,
         AABB(playerStartWorldPosition, glm::vec2(static_cast<float>(tileMap.getTileSize()))),
         camera,
-        IM_COL32(255, 0, 255, 255));
+        PlayerStartColor);
+}
+
+void drawContactProbes(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Player &player,
+    FadingAABBs &fadingAABBs)
+{
+    ImDrawList *drawList = ImGui::GetBackgroundDrawList();
+    const PhysicsBody &physicsBody = player.getPhysicsBody();
+    ActorContactState contacts = player.getMotion().getState().contacts;
+
+    AABB overhead = thickEnoughToSee(physicsBody.overheadProbe(), false);
+    drawProbe(
+        drawList,
+        imGuiManager,
+        thickEnoughToSee(physicsBody.underfootProbe(), true),
+        camera,
+        contacts.onGround,
+        false);
+    drawProbe(drawList, imGuiManager, overhead, camera, contacts.bumpedCeiling, false);
+    if (contacts.bumpedCeiling)
+        fadingAABBs.add(overhead, ProbeFoundColor, 0.2f);
+    drawProbe(
+        drawList,
+        imGuiManager,
+        physicsBody.wallProbe(-1.0f),
+        camera,
+        contacts.touchingLeftWall,
+        contacts.grippableLeftWall);
+    drawProbe(
+        drawList,
+        imGuiManager,
+        physicsBody.wallProbe(1.0f),
+        camera,
+        contacts.touchingRightWall,
+        contacts.grippableRightWall);
+    drawProbe(
+        drawList,
+        imGuiManager,
+        physicsBody.wallProbeAtHead(-1.0f),
+        camera,
+        contacts.touchingLeftWall && !contacts.ledgeOnLeft,
+        false);
+    drawProbe(
+        drawList,
+        imGuiManager,
+        physicsBody.wallProbeAtHead(1.0f),
+        camera,
+        contacts.touchingRightWall && !contacts.ledgeOnRight,
+        false);
 }
 
 void drawFadingAABBs(

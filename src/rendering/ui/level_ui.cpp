@@ -88,10 +88,17 @@ void LevelUi::drawTileMap(
         level.getTileMap().getHeight(),
         level.getTileMap().getTileSize());
 
-    ImGui::Checkbox("Tile Info", &drawTileInfo);
-    ImGui::SameLine();
-    ImGui::Checkbox("Grid", &drawGrid);
-    ImGui::Checkbox("AABBs", &drawTileMapAABBs);
+    if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Checkbox("Info", &drawTileInfo);
+        ImGui::SameLine();
+        ImGui::Checkbox("Grid", &drawGrid);
+        ImGui::Checkbox("Colliders", &drawTileColliders);
+        ImGui::SameLine();
+        ImGui::Checkbox("Bounds", &drawLevelBounds);
+        ImGui::SameLine();
+        ImGui::Checkbox("Spawn", &drawPlayerStart);
+    }
     ImGui::Separator();
 
     std::vector<int> tileIndices;
@@ -146,9 +153,19 @@ void LevelUi::drawOverlay(
         ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 }
 
-bool LevelUi::drawsTileMapAABBs() const
+bool LevelUi::drawsTileColliders() const
 {
-    return drawTileMapAABBs;
+    return drawTileColliders;
+}
+
+bool LevelUi::drawsLevelBounds() const
+{
+    return drawLevelBounds;
+}
+
+bool LevelUi::drawsPlayerStart() const
+{
+    return drawPlayerStart;
 }
 
 void LevelUi::update(

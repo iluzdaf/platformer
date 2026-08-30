@@ -14,6 +14,14 @@ Tile::Tile(int tileIndex, const TileData &tileData)
     if (tileIndex < 0)
         throw std::runtime_error("TileIndex must be 0 or more");
 
+    if (solid && (deadly || pickup || portal))
+        throw std::runtime_error(
+            "A solid tile is never touched, so it cannot be deadly, a pickup or a portal");
+
+    if (deadly && (pickup || portal))
+        throw std::runtime_error(
+            "A deadly tile kills on touch, so it cannot also be a pickup or a portal");
+
     if (tileData.animationData.has_value())
         animation = TileAnimation(tileData.animationData.value());
 }

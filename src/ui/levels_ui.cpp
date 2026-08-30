@@ -31,10 +31,38 @@ namespace
     }
 }
 
-void LevelsUi::draw(Levels &levels, const Level &level, EditorCommands &commands)
+void LevelsUi::draw(
+    Levels &levels,
+    const Level &level,
+    EditorCommands &commands,
+    bool levelHasUnsavedChanges)
 {
+    if (!levelHasUnsavedChanges)
+        askedToSwitchTo.reset();
+
     if (std::optional<std::string> chosen = levelChooser("playing", level.getPath()))
-        commands.onLoadLevel(*chosen);
+    {
+        if (levelHasUnsavedChanges)
+            askedToSwitchTo = *chosen;
+        else
+            commands.onLoadLevel(*chosen);
+    }
+
+    if (askedToSwitchTo)
+    {
+        ImGui::TextUnformatted(("switching to " + levelName(*askedToSwitchTo) +
+                                " discards unsaved changes to " + levelName(level.getPath()))
+                                   .c_str());
+        if (ImGui::Button("switch"))
+        {
+            std::string switchTo = *askedToSwitchTo;
+            askedToSwitchTo.reset();
+            commands.onLoadLevel(switchTo);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("cancel"))
+            askedToSwitchTo.reset();
+    }
 
     ImGui::Separator();
 
@@ -52,5 +80,6 @@ void LevelsUi::draw(Levels &levels, const Level &level, EditorCommands &commands
 
 void LevelsUi::valuesReplaced()
 {
+    askedToSwitchTo.reset();
     saveable.valuesReplaced();
 }

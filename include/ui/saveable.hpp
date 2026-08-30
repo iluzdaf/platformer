@@ -52,6 +52,12 @@ public:
         return false;
     }
 
+    bool unsaved(std::string_view name, const std::string &now) const
+    {
+        auto it = asLastSeen.find(std::string(name));
+        return it != asLastSeen.end() && !it->second.empty() && it->second != now;
+    }
+
     void valuesReplaced()
     {
         asLastSeen.clear();

@@ -153,6 +153,13 @@ void LevelUi::drawOverlay(
         ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 }
 
+bool LevelUi::hasUnsavedChanges(const Level &level) const
+{
+    std::string json;
+    std::ignore = glz::write_json(level.toLevelData(), json);
+    return saveable.unsaved(level.getPath(), json);
+}
+
 bool LevelUi::drawsTileColliders() const
 {
     return drawTileColliders;

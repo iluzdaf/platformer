@@ -8,11 +8,19 @@
 
 Tile::Tile(int tileIndex, const TileData &tileData)
     : solid(tileData.solid), deadly(tileData.deadly), portal(tileData.portal),
-      pickup(tileData.pickup), collider(tileData.collider.value_or(TileColliderData{})),
-      tileIndex(tileIndex)
+      grippable(tileData.grippable), pickup(tileData.pickup),
+      collider(tileData.collider.value_or(TileColliderData{})), tileIndex(tileIndex)
 {
     if (tileIndex < 0)
         throw std::runtime_error("TileIndex must be 0 or more");
+
+    if (solid && (deadly || pickup || portal))
+        throw std::runtime_error(
+            "A solid tile is never touched, so it cannot be deadly, a pickup or a portal");
+
+    if (deadly && (pickup || portal))
+        throw std::runtime_error(
+            "A deadly tile kills on touch, so it cannot also be a pickup or a portal");
 
     if (tileData.animationData.has_value())
         animation = TileAnimation(tileData.animationData.value());
@@ -35,6 +43,11 @@ int Tile::getCurrentFrame() const
 bool Tile::isSolid() const
 {
     return solid;
+}
+
+bool Tile::isGrippable() const
+{
+    return solid && grippable;
 }
 
 bool Tile::isDeadly() const

@@ -3,6 +3,7 @@
 #include "physics/physics_body_data.hpp"
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
+#include "tile_map/tile.hpp"
 
 PhysicsBody::PhysicsBody(const PhysicsBodyData &data) : data(data)
 {
@@ -115,7 +116,7 @@ void PhysicsBody::resolveHorizontalCollision(const TileMap &tileMap)
 
     tileMap.probeSolidTiles(
         proposedAABB,
-        [&](const AABB &tileAABB)
+        [&](const Tile &, const AABB &tileAABB)
         {
             resolveCollisionAgainstTile(
                 proposedAABB,
@@ -146,7 +147,7 @@ void PhysicsBody::resolveVerticalCollision(const TileMap &tileMap)
 
     tileMap.probeSolidTiles(
         proposedAABB,
-        [&](const AABB &tileAABB)
+        [&](const Tile &, const AABB &tileAABB)
         {
             resolveCollisionAgainstTile(
                 proposedAABB,
@@ -205,24 +206,37 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
     }
 }
 
-bool PhysicsBody::contactWithLeftWall(const TileMap &tileMap) const
+AABB PhysicsBody::wallProbe(float side) const
 {
     glm::vec2 probeSize = getColliderSize();
     probeSize.y *= 0.5f;
-    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(-0.1f, 0.0f);
+    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(side * 0.1f, 0.0f);
     probePosition.y += (getColliderSize().y - probeSize.y) * 0.5f;
-    AABB probeAABB(probePosition, probeSize);
-    return tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
+    return AABB(probePosition, probeSize);
+}
+
+bool PhysicsBody::contactWithLeftWall(const TileMap &tileMap) const
+{
+    return tileMap.probeSolidTiles(
+        wallProbe(-1.0f), [](const Tile &, const AABB &) { return true; });
 }
 
 bool PhysicsBody::contactWithRightWall(const TileMap &tileMap) const
 {
-    glm::vec2 probeSize = getColliderSize();
-    probeSize.y *= 0.5f;
-    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(0.1f, 0.0f);
-    probePosition.y += (getColliderSize().y - probeSize.y) * 0.5f;
-    AABB probeAABB(probePosition, probeSize);
-    return tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
+    return tileMap.probeSolidTiles(
+        wallProbe(1.0f), [](const Tile &, const AABB &) { return true; });
+}
+
+bool PhysicsBody::gripOnLeftWall(const TileMap &tileMap) const
+{
+    return tileMap.probeSolidTiles(
+        wallProbe(-1.0f), [](const Tile &tile, const AABB &) { return tile.isGrippable(); });
+}
+
+bool PhysicsBody::gripOnRightWall(const TileMap &tileMap) const
+{
+    return tileMap.probeSolidTiles(
+        wallProbe(1.0f), [](const Tile &tile, const AABB &) { return tile.isGrippable(); });
 }
 
 bool PhysicsBody::contactWithLeftWallAtHead(const TileMap &tileMap) const
@@ -231,7 +245,7 @@ bool PhysicsBody::contactWithLeftWallAtHead(const TileMap &tileMap) const
     probeSize.y *= 0.25f;
     glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(-0.1f, 0.0f);
     AABB probeAABB(probePosition, probeSize);
-    return tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
+    return tileMap.probeSolidTiles(probeAABB, [](const Tile &, const AABB &) { return true; });
 }
 
 bool PhysicsBody::contactWithRightWallAtHead(const TileMap &tileMap) const
@@ -240,7 +254,7 @@ bool PhysicsBody::contactWithRightWallAtHead(const TileMap &tileMap) const
     probeSize.y *= 0.25f;
     glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(0.1f, 0.0f);
     AABB probeAABB(probePosition, probeSize);
-    return tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
+    return tileMap.probeSolidTiles(probeAABB, [](const Tile &, const AABB &) { return true; });
 }
 
 AABB PhysicsBody::underfootProbe() const
@@ -263,14 +277,16 @@ AABB PhysicsBody::overheadProbe() const
 
 bool PhysicsBody::contactWithGround(const TileMap &tileMap) const
 {
-    return tileMap.probeSolidTiles(underfootProbe(), [](const AABB &) { return true; }) ||
+    return tileMap.probeSolidTiles(
+               underfootProbe(), [](const Tile &, const AABB &) { return true; }) ||
            AABB(position + getColliderOffset(), getColliderSize()).bottom() >=
                tileMap.getWorldHeight();
 }
 
 bool PhysicsBody::contactWithCeiling(const TileMap &tileMap) const
 {
-    return tileMap.probeSolidTiles(overheadProbe(), [](const AABB &) { return true; });
+    return tileMap.probeSolidTiles(
+        overheadProbe(), [](const Tile &, const AABB &) { return true; });
 }
 
 void PhysicsBody::stepPhysics(float deltaTime, const TileMap &tileMap)

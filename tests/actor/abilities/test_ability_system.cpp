@@ -58,7 +58,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     SECTION("Can jump, wall slide then wall jump")
     {
         state.contacts.onGround = true;
-        state.contacts.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = state.contacts.grippableLeftWall = true;
         inputIntentions.jumpRequested = true;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         state.contacts.onGround = false;
@@ -89,13 +89,13 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     SECTION("Can dash into wall then wall jump")
     {
         state.contacts.onGround = false;
-        state.contacts.touchingLeftWall = false;
+        state.contacts.touchingLeftWall = state.contacts.grippableLeftWall = false;
         inputIntentions.dashRequested = true;
         inputIntentions.direction.x = 1.0f;
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(motionData.dashAbilityData->dashSpeed));
-        state.contacts.touchingLeftWall = true;
+        state.contacts.touchingLeftWall = state.contacts.grippableLeftWall = true;
         inputIntentions = InputIntentions();
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE_FALSE(state.dash.active);

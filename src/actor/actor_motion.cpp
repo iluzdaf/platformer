@@ -20,6 +20,8 @@ void ActorMotion::readContacts(const PhysicsBody &physicsBody, const TileMap &ti
     state.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
     state.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
     state.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+    state.contacts.grippableLeftWall = physicsBody.gripOnLeftWall(tileMap);
+    state.contacts.grippableRightWall = physicsBody.gripOnRightWall(tileMap);
     state.contacts.ledgeOnLeft =
         state.contacts.touchingLeftWall && !physicsBody.contactWithLeftWallAtHead(tileMap);
     state.contacts.ledgeOnRight =

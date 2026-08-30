@@ -16,7 +16,7 @@ void WallSlideAbility::applyMovement(float, const InputIntentions &, ActorMotion
     state.wallSlide.velocity = glm::vec2(0.0f);
     state.wallSlide.active = false;
 
-    if (state.contacts.onGround || !state.contacts.touchingWall() || state.velocity.y <= 0.0f)
+    if (state.contacts.onGround || !state.contacts.grippableWall() || state.velocity.y <= 0.0f)
         return;
 
     state.wallSlide.velocity.y = data.slideSpeed;

@@ -170,7 +170,8 @@ TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]
 
     AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
 
-    bool result = tileMap.probeSolidTiles(probeAABB, [](const AABB &) { return true; });
+    bool result =
+        tileMap.probeSolidTiles(probeAABB, [](const Tile &, const AABB &) { return true; });
 
     REQUIRE(result == true);
 }

@@ -23,7 +23,6 @@
 #include "game/game_data.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_kind.hpp"
 #include "tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
@@ -1033,13 +1032,9 @@ namespace
     TilePalette paletteWithSpikes()
     {
         TilePalette palette = getDefaultTileDataMap();
-        palette[SpikeTileIndex] = TileData{
-            TileKind::Spikes,
-            std::nullopt,
-            std::nullopt,
-            std::nullopt,
-            glm::vec2(0.0f),
-            glm::vec2(16.0f)};
+        TileData spikes;
+        spikes.deadly = true;
+        palette[SpikeTileIndex] = spikes;
         return palette;
     }
 

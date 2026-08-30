@@ -134,7 +134,7 @@ void Level::initFrom(
     const Tile &startTile = tileMap.getTileAtTilePosition(playerStartTilePosition);
     if (startTile.isSolid())
         throw std::runtime_error("Player start position is on a solid tile");
-    if (startTile.isSpikes())
+    if (startTile.isDeadly())
         throw std::runtime_error("Player start position is on a spike tile");
     if (startTile.isPortal())
         throw std::runtime_error("Player start position is on a portal tile");

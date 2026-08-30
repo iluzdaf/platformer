@@ -24,7 +24,7 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
             continue;
         }
 
-        if (tile.isSpikes())
+        if (tile.isDeadly())
         {
             player.onDeath();
             break;

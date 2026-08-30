@@ -82,7 +82,7 @@ void DebugAABBUi::drawTileMapAABBs(
             imGuiManager,
             tile.getAABBAt(tileWorldPosition),
             camera,
-            tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
+            tile.isDeadly() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
     }
 
     drawAABB(

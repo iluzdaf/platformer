@@ -37,7 +37,7 @@ namespace
                 return false;
 
             const Tile &tile = tileMap.getTileAtTilePosition(above);
-            if (tile.isSolid() || tile.isSpikes())
+            if (tile.isSolid() || tile.isDeadly())
                 return false;
         }
 
@@ -172,7 +172,7 @@ namespace
                     return false;
 
                 const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
-                if (tile.isSolid() || tile.isSpikes())
+                if (tile.isSolid() || tile.isDeadly())
                     return false;
             }
 
@@ -662,7 +662,7 @@ namespace
                 return false;
 
             const Tile &bodyTile = tileMap.getTileAtTilePosition(body);
-            if (bodyTile.isSolid() || bodyTile.isSpikes())
+            if (bodyTile.isSolid() || bodyTile.isDeadly())
                 return false;
         }
 

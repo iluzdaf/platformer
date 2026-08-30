@@ -20,6 +20,9 @@ Makefile
 # Python tooling
 __pycache__/
 
+# Runtime state
+imgui.ini
+
 # OS clutter
 .DS_Store
 Thumbs.db

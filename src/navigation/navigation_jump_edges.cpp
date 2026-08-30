@@ -18,6 +18,8 @@
 
 namespace
 {
+    constexpr float SurfaceTolerance = 1.0f;
+
     struct JumpLanding
     {
         glm::vec2 position;
@@ -134,6 +136,35 @@ namespace
 
         return candidate.reach < against.reach;
     }
+
+    std::optional<glm::vec2> standingBelow(
+        const TileMap &tileMap,
+        float x,
+        float below,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        float tileSize = static_cast<float>(tileMap.getTileSize());
+        glm::ivec2 column = tileMap.worldToTilePosition(glm::vec2(x, below));
+
+        for (int y = column.y + 1; y < tileMap.getHeight(); ++y)
+        {
+            glm::ivec2 ground(column.x, y);
+            if (!tileMap.validTilePosition(ground))
+                return std::nullopt;
+            if (!tileMap.getTileAtTilePosition(ground).isSolid())
+                continue;
+
+            glm::vec2 standing(x, static_cast<float>(y) * tileSize);
+            if (navigation::canStandOn(tileMap, ground, headroom) &&
+                navigation::clearAt(tileMap, standing, profile))
+                return standing;
+
+            return std::nullopt;
+        }
+
+        return std::nullopt;
+    }
 }
 
 namespace navigation
@@ -219,6 +250,114 @@ namespace navigation
 
             navigationGraph.addEdge(
                 {jump.fromId, *toId, EdgeType::Jump, jump.path, jump.holdDuration});
+        }
+    }
+
+    void addTakeOffNodes(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        if (!profile.motionData || !profile.physicsBodyData || profile.jumpArcs.empty())
+            return;
+
+        float reach = 0.0f;
+        for (const JumpArc &arc : profile.jumpArcs)
+            for (glm::vec2 offset : arc.offsets)
+                reach = std::max(reach, std::abs(offset.x));
+
+        int nextNodeId = 0;
+        std::vector<glm::vec2> ledges;
+        std::vector<glm::vec2> couldJump;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            nextNodeId = std::max(nextNodeId, id + 1);
+            ledges.push_back(node.position);
+            if (node.kind == NodeKind::OnFoot)
+                couldJump.push_back(node.position);
+        }
+
+        auto landingOnTheLedge = [&](glm::vec2 from, glm::vec2 ledge) -> std::optional<glm::vec2>
+        {
+            float towards = ledge.x > from.x ? 1.0f : -1.0f;
+            std::optional<glm::vec2> comesDown;
+            float heldFor = 0.0f;
+
+            for (const JumpArc &arc : profile.jumpArcs)
+            {
+                JumpAttempt attempt = simulateJumpAgainst(
+                    tileMap,
+                    *profile.motionData,
+                    *profile.physicsBodyData,
+                    from,
+                    towards,
+                    arc.holdFraction);
+                if (!attempt.landed ||
+                    std::abs(attempt.path.back().y - ledge.y) >= SurfaceTolerance)
+                    continue;
+
+                glm::ivec2 underfoot =
+                    tileMap.worldToTilePosition(attempt.path.back() + glm::vec2(0.0f, 1.0f));
+                if (!tileMap.validTilePosition(underfoot) ||
+                    !tileMap.getTileAtTilePosition(underfoot).isSolid() ||
+                    !canStandOn(tileMap, underfoot, headroom))
+                    continue;
+
+                if (!comesDown || arc.holdDuration < heldFor)
+                {
+                    comesDown = attempt.path.back();
+                    heldFor = arc.holdDuration;
+                }
+            }
+
+            return comesDown;
+        };
+
+        float step = profile.colliderSize.x;
+        for (glm::vec2 ledge : ledges)
+        {
+            bool alreadyServed = false;
+            for (glm::vec2 standing : couldJump)
+                if (standing.y > ledge.y && std::abs(standing.x - ledge.x) <= reach &&
+                    landingOnTheLedge(standing, ledge))
+                    alreadyServed = true;
+
+            if (alreadyServed)
+                continue;
+
+            std::optional<glm::vec2> aimedAt;
+            float overshoot = 0.0f;
+
+            for (float x = ledge.x - reach; x <= ledge.x + reach; x += step)
+            {
+                std::optional<glm::vec2> takeOff =
+                    standingBelow(tileMap, x, ledge.y, profile, headroom);
+                if (!takeOff)
+                    continue;
+
+                bool crowded = false;
+                for (const auto &[id, node] : navigationGraph.getNodes())
+                    if (glm::distance(node.position, *takeOff) < profile.colliderSize.x)
+                        crowded = true;
+
+                if (crowded)
+                    continue;
+
+                std::optional<glm::vec2> comesDown = landingOnTheLedge(*takeOff, ledge);
+                if (!comesDown)
+                    continue;
+
+                float past = std::abs(comesDown->x - ledge.x);
+                if (!aimedAt || past < overshoot)
+                {
+                    aimedAt = *takeOff;
+                    overshoot = past;
+                }
+            }
+
+            if (aimedAt)
+                navigationGraph.addNode(nextNodeId++, *aimedAt);
         }
     }
 }

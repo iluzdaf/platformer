@@ -140,6 +140,10 @@ add_library(platformer_lib OBJECT
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
     src/navigation/navigation_graph_builder.cpp
+    src/navigation/navigation_walk_edges.cpp
+    src/navigation/navigation_jump_edges.cpp
+    src/navigation/navigation_fall_edges.cpp
+    src/navigation/navigation_climb_edges.cpp
     src/navigation/navigation_path.cpp
     src/navigation/jump_simulation.cpp
     src/navigation/navigation_profile_builder.cpp

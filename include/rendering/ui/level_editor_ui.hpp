@@ -6,6 +6,7 @@
 #include <vector>
 #include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
+#include "rendering/ui/brush.hpp"
 #include "rendering/ui/saveable.hpp"
 
 class ImGuiManager;
@@ -24,7 +25,7 @@ public:
         Level &level,
         const Texture2D &tileSet,
         const GameData &gameData,
-        std::optional<int> &selectedTileIndex,
+        std::optional<Brush> &brush,
         EditorCommands &commands);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
         const;
@@ -32,14 +33,13 @@ public:
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
         Level &level,
-        std::optional<int> selectedTileIndex);
+        std::optional<Brush> &brush);
 
     bool drawsTileMapAABBs() const;
     void valuesReplaced();
 
 private:
     Saveable saveable;
-    bool editingPlayerStartTile = false;
     bool drawGrid = false, drawTileInfo = false, drawTileMapAABBs = false;
 
     void drawLevel(Level &level, EditorCommands &commands);
@@ -47,5 +47,5 @@ private:
         Level &level,
         const Texture2D &tileSet,
         const GameData &gameData,
-        std::optional<int> &selectedTileIndex);
+        std::optional<Brush> &brush);
 };

@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include "rendering/ui/tile_palettes_ui.hpp"
 #include "rendering/ui/data_inspector.hpp"
+#include "rendering/ui/brush.hpp"
 #include "rendering/ui/tile_picker.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_palette.hpp"
@@ -13,7 +14,7 @@ void TilePalettesUi::draw(
     TilePalettes &tilePalettes,
     const Texture2D &tileSet,
     int tileSize,
-    std::optional<int> &selectedTileIndex)
+    std::optional<Brush> &brush)
 {
     saveable.drawControls("palettes", tilePalettes, saveTilePalettes);
     ImGui::Separator();
@@ -48,20 +49,23 @@ void TilePalettesUi::draw(
         return;
     }
 
-    if (selectedTileIndex && !palette.contains(*selectedTileIndex))
-        selectedTileIndex.reset();
+    std::optional<int> showing;
+    if (brush && brush->kind == Brush::Kind::Tile && palette.contains(brush->tileIndex))
+        showing = brush->tileIndex;
 
-    selectedTileIndex = drawTilePicker(tileSet, tileSize, tileIndices, selectedTileIndex);
+    std::optional<int> picked = drawTilePicker(tileSet, tileSize, tileIndices, showing);
+    if (picked != showing)
+        brush = picked ? std::optional<Brush>(Brush{Brush::Kind::Tile, *picked}) : std::nullopt;
 
     ImGui::Separator();
-    if (!selectedTileIndex)
+    if (!picked)
     {
         ImGui::TextDisabled("pick a tile");
         return;
     }
 
-    ImGui::Text("tile %d", *selectedTileIndex);
-    inspector::drawFields(palette.at(*selectedTileIndex));
+    ImGui::Text("tile %d", *picked);
+    inspector::drawFields(palette.at(*picked));
 }
 
 void TilePalettesUi::valuesReplaced()

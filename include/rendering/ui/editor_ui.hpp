@@ -8,6 +8,7 @@
 #include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/game_editor_ui.hpp"
+#include "rendering/ui/brush.hpp"
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/levels_ui.hpp"
 #include "rendering/ui/navigation_ui.hpp"
@@ -60,5 +61,5 @@ private:
     NpcsUi npcsUi;
     TilePalettesUi tilePalettesUi;
     LevelsUi levelsUi;
-    std::optional<int> selectedTileIndex;
+    std::optional<Brush> brush;
 };

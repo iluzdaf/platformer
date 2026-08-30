@@ -61,7 +61,7 @@ void EditorUi::draw(
 
     case EditorSection::Level:
         levelEditorUi.draw(
-            section, subject.level, subject.tileSet, subject.gameData, selectedTileIndex, commands);
+            section, subject.level, subject.tileSet, subject.gameData, brush, commands);
         break;
 
     case EditorSection::NpcsInLevel:
@@ -77,7 +77,7 @@ void EditorUi::draw(
             subject.gameData.tilePalettes,
             subject.tileSet,
             subject.level.getTileMap().getTileSize(),
-            selectedTileIndex);
+            brush);
         break;
 
     default:
@@ -107,7 +107,7 @@ void EditorUi::drawOverlays(
 
 void EditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level)
 {
-    levelEditorUi.update(imGuiManager, camera, level, selectedTileIndex);
+    levelEditorUi.update(imGuiManager, camera, level, brush);
 }
 
 void EditorUi::valuesReplaced()

@@ -6,6 +6,7 @@
 #include <glaze/glaze.hpp>
 #include "rendering/ui/level_editor_ui.hpp"
 #include "rendering/ui/tile_picker.hpp"
+#include "rendering/ui/brush.hpp"
 #include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/texture2d.hpp"
@@ -20,18 +21,29 @@
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 
+namespace
+{
+    std::optional<int> tileOf(const std::optional<Brush> &brush)
+    {
+        if (!brush || brush->kind != Brush::Kind::Tile)
+            return std::nullopt;
+
+        return brush->tileIndex;
+    }
+}
+
 void LevelEditorUi::draw(
     EditorSection section,
     Level &level,
     const Texture2D &tileSet,
     const GameData &gameData,
-    std::optional<int> &selectedTileIndex,
+    std::optional<Brush> &brush,
     EditorCommands &commands)
 {
     if (section != EditorSection::Level)
         return;
 
-    drawTileMap(level, tileSet, gameData, selectedTileIndex);
+    drawTileMap(level, tileSet, gameData, brush);
     ImGui::Separator();
     drawLevel(level, commands);
 }
@@ -68,7 +80,7 @@ void LevelEditorUi::drawTileMap(
     Level &level,
     const Texture2D &tileSet,
     const GameData &gameData,
-    std::optional<int> &selectedTileIndex)
+    std::optional<Brush> &brush)
 {
     ImGui::Text(
         "w%dxh%dxs%d",
@@ -86,22 +98,25 @@ void LevelEditorUi::drawTileMap(
     for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())
         tileIndices.push_back(tileIndex);
 
-    selectedTileIndex =
-        drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, selectedTileIndex);
+    std::optional<int> paintingTile = tileOf(brush);
+    std::optional<int> picked =
+        drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, paintingTile);
+    if (picked != paintingTile)
+        brush = picked ? std::optional<Brush>(Brush{Brush::Kind::Tile, *picked}) : std::nullopt;
 
     const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
-    if (selectedTileIndex && palette.contains(*selectedTileIndex))
+    if (picked && palette.contains(*picked))
     {
         ImGui::Separator();
-        TileData shown = palette.at(*selectedTileIndex);
+        TileData shown = palette.at(*picked);
         ImGui::BeginDisabled();
         inspector::drawFields(shown);
         ImGui::EndDisabled();
         ImGui::Separator();
     }
 
-    bool previouslyEditingPlayerStartTile = editingPlayerStartTile;
-    if (previouslyEditingPlayerStartTile)
+    bool placingPlayerStart = brush && brush->kind == Brush::Kind::PlayerStart;
+    if (placingPlayerStart)
     {
         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 100, 255, 255));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(255, 100, 255, 255));
@@ -110,12 +125,10 @@ void LevelEditorUi::drawTileMap(
 
     ImGui::NewLine();
     if (ImGui::Button("Spawn"))
-    {
-        editingPlayerStartTile = true;
-        selectedTileIndex.reset();
-    }
+        brush = placingPlayerStart ? std::nullopt
+                                   : std::optional<Brush>(Brush{Brush::Kind::PlayerStart, 0});
 
-    if (previouslyEditingPlayerStartTile)
+    if (placingPlayerStart)
         ImGui::PopStyleColor(3);
 }
 
@@ -140,7 +153,7 @@ void LevelEditorUi::update(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     Level &level,
-    std::optional<int> selectedTileIndex)
+    std::optional<Brush> &brush)
 {
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = imGuiManager.screenToWorld(
@@ -149,20 +162,24 @@ void LevelEditorUi::update(
     if (!level.getTileMap().validTilePosition(tilePosition))
         return;
 
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !imGuiManager.getIO().WantCaptureMouse)
+    if (!brush || !ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
+        imGuiManager.getIO().WantCaptureMouse)
+        return;
+
+    switch (brush->kind)
     {
-        if (editingPlayerStartTile)
+    case Brush::Kind::PlayerStart:
+        level.setPlayerStartTile(tilePosition);
+        brush.reset();
+        break;
+
+    case Brush::Kind::Tile:
+        if (level.getTileMap().tilePositionToTileIndex(tilePosition) != brush->tileIndex)
         {
-            level.setPlayerStartTile(tilePosition);
-            editingPlayerStartTile = false;
-        }
-        else if (
-            selectedTileIndex &&
-            level.getTileMap().tilePositionToTileIndex(tilePosition) != *selectedTileIndex)
-        {
-            level.getTileMap().setTileIndex(tilePosition, *selectedTileIndex);
+            level.getTileMap().setTileIndex(tilePosition, brush->tileIndex);
             level.rebuildGraphs();
         }
+        break;
     }
 }
 

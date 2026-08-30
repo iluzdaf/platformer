@@ -1,8 +1,9 @@
 #pragma once
 #include <optional>
 #include <glm/gtc/matrix_transform.hpp>
-#include "tile_map/tile_kind.hpp"
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_collider_data.hpp"
+#include "tile_map/tile_pickup_data.hpp"
 #include "animations/tile_animation.hpp"
 #include "physics/aabb.hpp"
 
@@ -13,23 +14,19 @@ public:
     void update(float deltaTime);
     int getCurrentFrame() const;
     bool isSolid() const;
-    bool isAnimated() const;
-    TileKind getKind() const;
-    bool isPickup() const;
-    std::optional<int> getPickupReplaceIndex() const;
-    bool isSpikes() const;
-    glm::vec2 getColliderOffset() const;
-    glm::vec2 getColliderSize() const;
-    AABB getAABBAt(glm::vec2 worldPosition) const;
-    TileData toTileData() const;
+    bool isDeadly() const;
     bool isPortal() const;
+    bool isPickup() const;
     bool isEmpty() const;
+    bool isAnimated() const;
+    std::optional<int> getPickupReplaceIndex() const;
     std::optional<int> getPickupScoreDelta() const;
+    std::optional<AABB> getAABBAt(glm::vec2 worldPosition) const;
 
 private:
-    TileKind kind = TileKind::Empty;
+    bool solid = false, deadly = false, portal = false;
     std::optional<TileAnimation> animation;
-    std::optional<int> pickupReplaceIndex, pickupScoreDelta;
-    glm::vec2 colliderOffset = glm::vec2(0, 0), colliderSize = glm::vec2(16, 16);
+    std::optional<TilePickupData> pickup;
+    TileColliderData collider;
     int tileIndex;
 };

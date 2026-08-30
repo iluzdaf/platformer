@@ -1,3 +1,4 @@
+#include <optional>
 #include "tile_map/tile_interaction_system.hpp"
 #include "physics/aabb.hpp"
 #include "player/player.hpp"
@@ -17,14 +18,11 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 
         const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
         glm::vec2 tileWorldPosition = tileMap.tileToWorldPosition(tilePosition);
-        AABB tileAABB = tile.getAABBAt(tileWorldPosition);
-
-        if (!playerAABB.intersects(tileAABB))
-        {
+        std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);
+        if (!tileAABB || !playerAABB.intersects(*tileAABB))
             continue;
-        }
 
-        if (tile.isSpikes())
+        if (tile.isDeadly())
         {
             player.onDeath();
             break;

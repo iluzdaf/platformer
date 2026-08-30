@@ -6,7 +6,7 @@
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_kind.hpp"
+#include "tile_map/tile_pickup_data.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "tile_map/tile.hpp"
@@ -67,8 +67,7 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 TEST_CASE("TileMap returns correct tile", "[TileMap]")
 {
     TileData solidTileData, emptyTileData;
-    solidTileData.kind = TileKind::Solid;
-    emptyTileData.kind = TileKind::Empty;
+    solidTileData.solid = true;
     TileMapData tileMapData;
     tileMapData.width = 3;
     tileMapData.height = 3;
@@ -78,15 +77,15 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     SECTION("Known indices")
     {
         const Tile &tile1 = tileMap.getTile(1);
-        REQUIRE(tile1.getKind() == TileKind::Solid);
+        REQUIRE(tile1.isSolid());
         REQUIRE_FALSE(tile1.isAnimated());
 
         const Tile &tile2 = tileMap.getTile(0);
-        REQUIRE(tile2.getKind() == TileKind::Empty);
+        REQUIRE(tile2.isEmpty());
         REQUIRE_FALSE(tile2.isAnimated());
 
         const Tile &tile3 = tileMap.getTile(3);
-        REQUIRE(tile3.getKind() == TileKind::Empty);
+        REQUIRE(tile3.isEmpty());
         REQUIRE_FALSE(tile3.isAnimated());
     }
 
@@ -99,7 +98,6 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
 TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 {
     TileData animatedTileData1, animatedTileData2, emptyTileData;
-    animatedTileData1.kind = animatedTileData2.kind = emptyTileData.kind = TileKind::Empty;
     animatedTileData1.animationData = {{{10, 11, 12}, 0.1f}};
     animatedTileData2.animationData = {{{5, 6}, 0.1f}};
     TileMapData tileMapData;
@@ -134,9 +132,7 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
 {
     TileData emptyTileData, pickupTileData;
-    emptyTileData.kind = TileKind::Empty;
-    pickupTileData.kind = TileKind::Pickup;
-    pickupTileData.pickupReplaceIndex = 0;
+    pickupTileData.pickup = TilePickupData{0, std::nullopt};
     pickupTileData.animationData = std::nullopt;
     TileMapData tileMapData;
     tileMapData.width = 2;

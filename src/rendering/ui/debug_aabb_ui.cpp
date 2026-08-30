@@ -1,3 +1,4 @@
+#include <optional>
 #include "rendering/ui/debug_aabb_ui.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
@@ -77,12 +78,16 @@ void DebugAABBUi::drawTileMapAABBs(
         }
 
         glm::vec2 tileWorldPosition = tileMap.tileToWorldPosition(tilePosition);
+        std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);
+        if (!tileAABB)
+            continue;
+
         drawAABB(
             drawList,
             imGuiManager,
-            tile.getAABBAt(tileWorldPosition),
+            *tileAABB,
             camera,
-            tile.isSpikes() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
+            tile.isDeadly() ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255));
     }
 
     drawAABB(

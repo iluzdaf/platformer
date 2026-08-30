@@ -3,18 +3,17 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_pickup_data.hpp"
+#include <optional>
 #include "tile_map/tile_interaction_system.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/test_player_utils.hpp"
-#include "tile_map/tile_kind.hpp"
 
 TEST_CASE("Pickup", "[TileInteractionSystem]")
 {
     TileData pickupTileData, pickupTileData2, emptyTileData;
-    pickupTileData2.kind = pickupTileData.kind = TileKind::Pickup;
-    pickupTileData2.pickupReplaceIndex = pickupTileData.pickupReplaceIndex = 1;
-    pickupTileData.pickupScoreDelta = 100;
-    emptyTileData.kind = TileKind::Empty;
+    pickupTileData.pickup = TilePickupData{1, 100};
+    pickupTileData2.pickup = TilePickupData{1, std::nullopt};
     TileMap tileMap =
         setupTileMap(10, 10, 16, {{2, pickupTileData}, {1, emptyTileData}, {3, pickupTileData2}});
     tileMap.setTileIndex({1, 1}, 2);
@@ -44,7 +43,7 @@ TEST_CASE("Pickup", "[TileInteractionSystem]")
 TEST_CASE("Spikes", "[TileInteractionSystem]")
 {
     TileData spikeTileData;
-    spikeTileData.kind = TileKind::Spikes;
+    spikeTileData.deadly = true;
     TileMap tileMap = setupTileMap(10, 10, 16, {{3, spikeTileData}});
     tileMap.setTileIndex({1, 1}, 3);
     Player player = setupPlayer();
@@ -69,7 +68,6 @@ TEST_CASE("Spikes", "[TileInteractionSystem]")
 TEST_CASE("Empty", "[TileInteractionSystem]")
 {
     TileData emptyTileData;
-    emptyTileData.kind = TileKind::Empty;
     TileMap tileMap = setupTileMap(10, 10, 16, {{0, emptyTileData}});
     tileMap.setTileIndex({1, 1}, 0);
     Player player = setupPlayer();
@@ -86,7 +84,7 @@ TEST_CASE("Empty", "[TileInteractionSystem]")
 TEST_CASE("Portal", "[TileInteractionSystem]")
 {
     TileData portalTileData;
-    portalTileData.kind = TileKind::Portal;
+    portalTileData.portal = true;
     TileMap tileMap = setupTileMap(10, 10, 16, {{4, portalTileData}});
     tileMap.setTileIndex({1, 1}, 4);
     Player player = setupPlayer();

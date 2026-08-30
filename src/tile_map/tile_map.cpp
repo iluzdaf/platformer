@@ -1,3 +1,4 @@
+#include <optional>
 #include <cmath>
 #include <functional>
 #include <stdexcept>
@@ -9,7 +10,6 @@
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_kind.hpp"
 #include "physics/aabb.hpp"
 
 TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
@@ -69,7 +69,7 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
     if (palette == tilePalettes.end())
         throw std::runtime_error("Unknown tile palette \"" + tilePalette + "\"");
 
-    tiles.insert_or_assign(0, Tile(0, TileData(TileKind::Empty)));
+    tiles.insert_or_assign(0, Tile(0, TileData{}));
     for (const auto &[tileIndex, tileData] : palette->second)
         tiles.insert_or_assign(tileIndex, Tile(tileIndex, tileData));
 }
@@ -231,8 +231,8 @@ bool TileMap::probeSolidTiles(
             continue;
 
         auto tileWorldPosition = tileToWorldPosition(tilePosition);
-        AABB tileAABB = tile.getAABBAt(tileWorldPosition);
-        if (tileAABB.intersects(probeAABB) && callback(tileAABB))
+        std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);
+        if (tileAABB && tileAABB->intersects(probeAABB) && callback(*tileAABB))
             return true;
     }
     return false;

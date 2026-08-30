@@ -18,7 +18,6 @@
 #include "game/game_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette.hpp"
-#include "tile_map/tile_kind.hpp"
 
 using Catch::Approx;
 
@@ -382,8 +381,8 @@ namespace
     {
         constexpr int SolidTile = 14;
         constexpr int SpikeTile = 1;
-        REQUIRE(tilePalettes.at("default").at(SolidTile).kind == TileKind::Solid);
-        REQUIRE(tilePalettes.at("default").at(SpikeTile).kind == TileKind::Spikes);
+        REQUIRE(tilePalettes.at("default").at(SolidTile).solid);
+        REQUIRE(tilePalettes.at("default").at(SpikeTile).deadly);
 
         std::vector<std::vector<int>> rows(PitMapHeight, std::vector<int>(PitMapWidth, 0));
         for (int x = 0; x < PitMapWidth; ++x)

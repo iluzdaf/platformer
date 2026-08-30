@@ -17,7 +17,7 @@ class Camera2D;
 struct GameData;
 class Npc;
 
-class LevelEditorUi
+class LevelUi
 {
 public:
     void draw(

@@ -55,13 +55,37 @@ void EditorUi::draw(
 
     switch (section)
     {
+    case EditorSection::Playback:
+        playbackUi.draw(subject.paused, commands);
+        break;
+
+    case EditorSection::Game:
+        gameSettingsUi.draw(subject.gameData, commands);
+        break;
+
+    case EditorSection::Camera:
+        cameraUi.draw(subject.gameData, subject.camera, commands);
+        break;
+
+    case EditorSection::Player:
+        playerUi.draw(
+            subject.gameData,
+            subject.playerMotionState,
+            subject.playerPosition,
+            subject.playerState,
+            commands);
+        break;
+
+    case EditorSection::NpcTypes:
+        npcTypesUi.draw(subject.gameData);
+        break;
+
     case EditorSection::Levels:
         levelsUi.draw(subject.levels, subject.level, commands);
         break;
 
     case EditorSection::Level:
-        levelEditorUi.draw(
-            section, subject.level, subject.tileSet, subject.gameData, brush, commands);
+        levelUi.draw(section, subject.level, subject.tileSet, subject.gameData, brush, commands);
         break;
 
     case EditorSection::NpcsInLevel:
@@ -79,18 +103,6 @@ void EditorUi::draw(
             subject.level.getTileMap().getTileSize(),
             brush);
         break;
-
-    default:
-        gameEditorUi.draw(
-            section,
-            subject.gameData,
-            subject.playerMotionState,
-            subject.playerPosition,
-            subject.playerState,
-            subject.camera,
-            subject.paused,
-            commands);
-        break;
     }
 
     ImGui::End();
@@ -101,29 +113,32 @@ void EditorUi::drawOverlays(
     const Camera2D &camera,
     const Level &level) const
 {
-    levelEditorUi.drawOverlay(imGuiManager, camera, level);
+    levelUi.drawOverlay(imGuiManager, camera, level);
     navigationUi.drawOverlay(imGuiManager, camera, level);
 }
 
 void EditorUi::update(const ImGuiManager &imGuiManager, const Camera2D &camera, Level &level)
 {
-    levelEditorUi.update(imGuiManager, camera, level, brush);
+    levelUi.update(imGuiManager, camera, level, brush);
 }
 
 void EditorUi::valuesReplaced()
 {
-    gameEditorUi.valuesReplaced();
+    gameSettingsUi.valuesReplaced();
+    cameraUi.valuesReplaced();
+    playerUi.valuesReplaced();
+    npcTypesUi.valuesReplaced();
     tilePalettesUi.valuesReplaced();
-    levelEditorUi.valuesReplaced();
+    levelUi.valuesReplaced();
     levelsUi.valuesReplaced();
 }
 
 bool EditorUi::drawsPlayerAABBs() const
 {
-    return gameEditorUi.drawsPlayerAABBs();
+    return playerUi.drawsPlayerAABBs();
 }
 
 bool EditorUi::drawsTileMapAABBs() const
 {
-    return levelEditorUi.drawsTileMapAABBs();
+    return levelUi.drawsTileMapAABBs();
 }

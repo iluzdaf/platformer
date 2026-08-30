@@ -7,9 +7,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
-#include "rendering/ui/game_editor_ui.hpp"
+#include "rendering/ui/camera_ui.hpp"
+#include "rendering/ui/game_settings_ui.hpp"
+#include "rendering/ui/npc_types_ui.hpp"
+#include "rendering/ui/playback_ui.hpp"
+#include "rendering/ui/player_ui.hpp"
 #include "rendering/ui/brush.hpp"
-#include "rendering/ui/level_editor_ui.hpp"
+#include "rendering/ui/level_ui.hpp"
 #include "rendering/ui/levels_ui.hpp"
 #include "rendering/ui/navigation_ui.hpp"
 #include "rendering/ui/npcs_ui.hpp"
@@ -55,8 +59,12 @@ public:
 
 private:
     EditorSection section = EditorSection::Playback;
-    GameEditorUi gameEditorUi;
-    LevelEditorUi levelEditorUi;
+    PlaybackUi playbackUi;
+    GameSettingsUi gameSettingsUi;
+    CameraUi cameraUi;
+    PlayerUi playerUi;
+    NpcTypesUi npcTypesUi;
+    LevelUi levelUi;
     NavigationUi navigationUi;
     NpcsUi npcsUi;
     TilePalettesUi tilePalettesUi;

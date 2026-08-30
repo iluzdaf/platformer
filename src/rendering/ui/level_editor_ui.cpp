@@ -50,13 +50,6 @@ void LevelEditorUi::drawLevel(Level &level, EditorCommands &commands)
 
     ImGui::Separator();
 
-    std::optional<std::string> chosenLevel = drawLevelChooser(level);
-    if (chosenLevel)
-    {
-        commands.onLoadLevel(*chosenLevel);
-        return;
-    }
-
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(110.0f);
@@ -124,25 +117,6 @@ void LevelEditorUi::drawTileMap(
 
     if (previouslyEditingPlayerStartTile)
         ImGui::PopStyleColor(3);
-}
-
-std::optional<std::string> LevelEditorUi::drawLevelChooser(const Level &level)
-{
-    std::optional<std::string> chosen;
-
-    ImGui::SetNextItemWidth(110.0f);
-    if (ImGui::BeginCombo("##level", levelName(level.getPath()).c_str()))
-    {
-        for (const std::string &path : levelPathsIn(directoryOf(level.getPath())))
-        {
-            bool current = path == level.getPath();
-            if (ImGui::Selectable(levelName(path).c_str(), current) && !current)
-                chosen = path;
-        }
-        ImGui::EndCombo();
-    }
-
-    return chosen;
 }
 
 void LevelEditorUi::drawOverlay(

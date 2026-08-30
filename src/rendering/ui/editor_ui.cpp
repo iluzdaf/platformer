@@ -56,7 +56,7 @@ void EditorUi::draw(
     switch (section)
     {
     case EditorSection::Levels:
-        levelsUi.draw(subject.levels);
+        levelsUi.draw(subject.levels, subject.level, commands);
         break;
 
     case EditorSection::Level:

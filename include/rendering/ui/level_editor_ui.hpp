@@ -48,5 +48,4 @@ private:
         const Texture2D &tileSet,
         const GameData &gameData,
         std::optional<int> &selectedTileIndex);
-    std::optional<std::string> drawLevelChooser(const Level &level);
 };

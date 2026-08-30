@@ -2,13 +2,14 @@
 #include <stdexcept>
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_collider_data.hpp"
 #include "animations/tile_animation.hpp"
 #include "physics/aabb.hpp"
 
 Tile::Tile(int tileIndex, const TileData &tileData)
     : solid(tileData.solid), deadly(tileData.deadly), portal(tileData.portal),
-      pickup(tileData.pickup), colliderOffset(tileData.colliderOffset),
-      colliderSize(tileData.colliderSize), tileIndex(tileIndex)
+      pickup(tileData.pickup), collider(tileData.collider.value_or(TileColliderData{})),
+      tileIndex(tileIndex)
 {
     if (tileIndex < 0)
         throw std::runtime_error("TileIndex must be 0 or more");
@@ -77,17 +78,10 @@ std::optional<int> Tile::getPickupScoreDelta() const
     return pickup->scoreDelta;
 }
 
-glm::vec2 Tile::getColliderOffset() const
+std::optional<AABB> Tile::getAABBAt(glm::vec2 worldPosition) const
 {
-    return colliderOffset;
-}
+    if (isEmpty())
+        return std::nullopt;
 
-glm::vec2 Tile::getColliderSize() const
-{
-    return colliderSize;
-}
-
-AABB Tile::getAABBAt(glm::vec2 worldPosition) const
-{
-    return AABB(worldPosition + colliderOffset, colliderSize);
+    return AABB(worldPosition + collider.offset, collider.size);
 }

@@ -1,3 +1,4 @@
+#include <optional>
 #include <cmath>
 #include <functional>
 #include <stdexcept>
@@ -230,8 +231,8 @@ bool TileMap::probeSolidTiles(
             continue;
 
         auto tileWorldPosition = tileToWorldPosition(tilePosition);
-        AABB tileAABB = tile.getAABBAt(tileWorldPosition);
-        if (tileAABB.intersects(probeAABB) && callback(tileAABB))
+        std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);
+        if (tileAABB && tileAABB->intersects(probeAABB) && callback(*tileAABB))
             return true;
     }
     return false;

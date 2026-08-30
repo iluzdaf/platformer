@@ -1,8 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
+#include <optional>
+#include "physics/aabb.hpp"
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_data.hpp"
 
-TEST_CASE("Tile correctly stores kind", "[Tile]")
+TEST_CASE("A tile says what it does", "[Tile]")
 {
     TileData solidTileData, emptyTileData;
     solidTileData.solid = true;
@@ -44,4 +46,29 @@ TEST_CASE("Tile updates animation over time", "[Tile]")
 
     tile.update(0.5f);
     REQUIRE(tile.getCurrentFrame() == 10);
+}
+TEST_CASE("Only a tile that does something has a shape to collide with", "[Tile]")
+{
+    TileData nothing;
+    REQUIRE_FALSE(Tile(0, nothing).getAABBAt(glm::vec2(0.0f)).has_value());
+
+    TileData solid;
+    solid.solid = true;
+    REQUIRE(Tile(1, solid).getAABBAt(glm::vec2(0.0f)).has_value());
+
+    TileData deadly;
+    deadly.deadly = true;
+    REQUIRE(Tile(2, deadly).getAABBAt(glm::vec2(0.0f)).has_value());
+}
+
+TEST_CASE("A tile that does not say its shape takes a whole tile", "[Tile]")
+{
+    TileData solid;
+    solid.solid = true;
+
+    std::optional<AABB> aabb = Tile(1, solid).getAABBAt(glm::vec2(32.0f, 48.0f));
+
+    REQUIRE(aabb);
+    REQUIRE(aabb->position == glm::vec2(32.0f, 48.0f));
+    REQUIRE(aabb->size == glm::vec2(16.0f, 16.0f));
 }

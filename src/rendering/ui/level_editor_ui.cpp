@@ -31,9 +31,9 @@ void LevelEditorUi::draw(
     if (section != EditorSection::Level)
         return;
 
-    drawLevel(level, commands);
-    ImGui::Separator();
     drawTileMap(level, tileSet, gameData, selectedTileIndex);
+    ImGui::Separator();
+    drawLevel(level, commands);
 }
 
 void LevelEditorUi::drawLevel(Level &level, EditorCommands &commands)

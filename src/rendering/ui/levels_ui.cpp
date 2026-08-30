@@ -8,14 +8,6 @@
 
 void LevelsUi::draw(Levels &levels, const Level &level, EditorCommands &commands)
 {
-    saveable.drawControls(
-        "levels",
-        levels.getFirst(),
-        [&levels] { levels.save(); },
-        [&levels](const std::string &lastSeen) { levels.setFirst(lastSeen); });
-
-    ImGui::Separator();
-
     ImGui::TextUnformatted("playing");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(-FLT_MIN);
@@ -29,6 +21,16 @@ void LevelsUi::draw(Levels &levels, const Level &level, EditorCommands &commands
         }
         ImGui::EndCombo();
     }
+
+    ImGui::Separator();
+
+    saveable.drawControls(
+        "levels",
+        levels.getFirst(),
+        [&levels] { levels.save(); },
+        [&levels](const std::string &lastSeen) { levels.setFirst(lastSeen); });
+
+    ImGui::Separator();
 
     ImGui::TextUnformatted("first");
     ImGui::SameLine();

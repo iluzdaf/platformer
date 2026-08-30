@@ -50,9 +50,8 @@ void LevelsUi::draw(
 
     if (askedToSwitchTo)
     {
-        ImGui::TextUnformatted(("switching to " + levelName(*askedToSwitchTo) +
-                                " discards unsaved changes to " + levelName(level.getPath()))
-                                   .c_str());
+        ImGui::TextWrapped(
+            "switching discards unsaved changes to %s", levelName(level.getPath()).c_str());
         if (ImGui::Button("switch"))
         {
             std::string switchTo = *askedToSwitchTo;

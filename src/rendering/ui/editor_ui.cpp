@@ -9,6 +9,7 @@
 #include "tile_map/tile_map.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/imgui_manager.hpp"
+#include "rendering/ui/debug_aabb_overlay.hpp"
 
 namespace
 {
@@ -117,13 +118,11 @@ void EditorUi::drawOverlays(
 {
     levelUi.drawOverlay(imGuiManager, camera, level);
     navigationUi.drawOverlay(imGuiManager, camera, level);
-    debugAABBOverlay.drawOverlay(
-        imGuiManager,
-        camera,
-        level,
-        player,
-        playerUi.drawsPlayerAABBs(),
-        levelUi.drawsTileMapAABBs());
+    if (playerUi.drawsPlayerAABBs())
+        drawPlayerAABBs(imGuiManager, camera, player, fadingAABBs);
+    if (levelUi.drawsTileMapAABBs())
+        drawTileMapAABBs(imGuiManager, camera, level);
+    drawFadingAABBs(imGuiManager, camera, fadingAABBs);
 }
 
 void EditorUi::update(
@@ -132,7 +131,7 @@ void EditorUi::update(
     const Camera2D &camera,
     Level &level)
 {
-    debugAABBOverlay.update(deltaTime);
+    fadingAABBs.update(deltaTime);
     levelUi.update(imGuiManager, camera, level, brush);
 }
 

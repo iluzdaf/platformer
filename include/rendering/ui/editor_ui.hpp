@@ -8,7 +8,7 @@
 #include "rendering/ui/editor_commands.hpp"
 #include "rendering/ui/editor_section.hpp"
 #include "rendering/ui/camera_ui.hpp"
-#include "rendering/ui/debug_aabb_overlay.hpp"
+#include "rendering/ui/fading_aabbs.hpp"
 #include "rendering/ui/game_settings_ui.hpp"
 #include "rendering/ui/npc_types_ui.hpp"
 #include "rendering/ui/playback_ui.hpp"
@@ -66,7 +66,7 @@ public:
 
 private:
     EditorSection section = EditorSection::Playback;
-    DebugAABBOverlay debugAABBOverlay;
+    FadingAABBs fadingAABBs;
     PlaybackUi playbackUi;
     GameSettingsUi gameSettingsUi;
     CameraUi cameraUi;

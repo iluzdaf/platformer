@@ -1,69 +1,59 @@
 #include <optional>
+#include <imgui.h>
 #include "rendering/ui/debug_aabb_overlay.hpp"
+#include "rendering/ui/fading_aabbs.hpp"
+#include "rendering/ui/imgui_manager.hpp"
 #include "game/level.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
 #include "cameras/camera2d.hpp"
-#include "rendering/ui/imgui_manager.hpp"
-#include <cstddef>
+#include "physics/aabb.hpp"
 
-void DebugAABBOverlay::drawOverlay(
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera,
-    const Level &level,
-    const Player &player,
-    bool shouldDrawPlayerAABBs,
-    bool shouldDrawTileMapAABBs)
+namespace
 {
-    ImDrawList *drawList = ImGui::GetBackgroundDrawList();
-
-    if (shouldDrawPlayerAABBs)
-        drawPlayerAABBs(drawList, imGuiManager, player, camera);
-
-    if (shouldDrawTileMapAABBs)
-        drawTileMapAABBs(
-            drawList, imGuiManager, level.getTileMap(), level.getPlayerStartTile(), camera);
-
-    drawDebugAABBs(drawList, imGuiManager, camera);
-}
-
-void DebugAABBOverlay::update(float deltaTime)
-{
-    for (auto it = debugAABBs.begin(); it != debugAABBs.end();)
+    void drawAABB(
+        ImDrawList *drawList,
+        const ImGuiManager &imGuiManager,
+        AABB aabb,
+        const Camera2D &camera,
+        ImU32 color)
     {
-        it->second.lifetime -= deltaTime;
-        if (it->second.lifetime <= 0.0f)
-            it = debugAABBs.erase(it);
-        else
-            ++it;
+        if (aabb.isEmpty())
+        {
+            return;
+        }
+        ImVec2 topLeft = imGuiManager.worldToScreen(
+            aabb.position, camera.getZoom(), camera.getTopLeftPosition());
+        ImVec2 bottomRight = imGuiManager.worldToScreen(
+            aabb.position + aabb.size, camera.getZoom(), camera.getTopLeftPosition());
+        drawList->AddRect(topLeft, bottomRight, color);
     }
 }
 
-void DebugAABBOverlay::drawPlayerAABBs(
-    ImDrawList *drawList,
+void drawPlayerAABBs(
     const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
     const Player &player,
-    const Camera2D &camera)
+    FadingAABBs &fadingAABBs)
 {
     drawAABB(
-        drawList,
+        ImGui::GetBackgroundDrawList(),
         imGuiManager,
         player.getPhysicsBody().getAABB(),
         camera,
         IM_COL32(0, 255, 0, 255));
+
     ActorMotionState state = player.getMotion().getState();
-    addDebugAABB(state.contacts.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
-    addDebugAABB(state.contacts.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
+    fadingAABBs.add(state.contacts.collisionAABBX, IM_COL32(255, 255, 0, 255), 0.1f);
+    fadingAABBs.add(state.contacts.collisionAABBY, IM_COL32(255, 127, 0, 255), 0.1f);
 }
 
-void DebugAABBOverlay::drawTileMapAABBs(
-    ImDrawList *drawList,
-    const ImGuiManager &imGuiManager,
-    const TileMap &tileMap,
-    glm::ivec2 playerStartTile,
-    const Camera2D &camera)
+void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
 {
+    ImDrawList *drawList = ImGui::GetBackgroundDrawList();
+    const TileMap &tileMap = level.getTileMap();
+
     auto tilePositions =
         tileMap.worldToTilePositions(camera.getTopLeftPosition(), camera.getWindowSize());
     for (auto tilePosition : tilePositions)
@@ -94,7 +84,7 @@ void DebugAABBOverlay::drawTileMapAABBs(
         camera,
         IM_COL32(255, 255, 0, 255));
 
-    glm::vec2 playerStartWorldPosition = tileMap.tileToWorldPosition(playerStartTile);
+    glm::vec2 playerStartWorldPosition = tileMap.tileToWorldPosition(level.getPlayerStartTile());
     drawAABB(
         drawList,
         imGuiManager,
@@ -103,49 +93,14 @@ void DebugAABBOverlay::drawTileMapAABBs(
         IM_COL32(255, 0, 255, 255));
 }
 
-void DebugAABBOverlay::drawAABB(
-    ImDrawList *drawList,
+void drawFadingAABBs(
     const ImGuiManager &imGuiManager,
-    AABB aabb,
     const Camera2D &camera,
-    ImU32 color)
+    const FadingAABBs &fadingAABBs)
 {
-    if (aabb.isEmpty())
+    ImDrawList *drawList = ImGui::GetBackgroundDrawList();
+    for (const auto &[hash, fading] : fadingAABBs.all())
     {
-        return;
-    }
-    ImVec2 topLeft =
-        imGuiManager.worldToScreen(aabb.position, camera.getZoom(), camera.getTopLeftPosition());
-    ImVec2 bottomRight = imGuiManager.worldToScreen(
-        aabb.position + aabb.size, camera.getZoom(), camera.getTopLeftPosition());
-    drawList->AddRect(topLeft, bottomRight, color);
-}
-
-void DebugAABBOverlay::addDebugAABB(AABB aabb, ImU32 color, float duration)
-{
-    if (aabb.isEmpty())
-    {
-        return;
-    }
-    std::size_t hash = aabb.hash();
-    auto it = debugAABBs.find(hash);
-    if (it != debugAABBs.end())
-    {
-        it->second.lifetime = duration;
-    }
-    else
-    {
-        debugAABBs[hash] = DebugAABB{aabb, color, duration};
-    }
-}
-
-void DebugAABBOverlay::drawDebugAABBs(
-    ImDrawList *drawList,
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera)
-{
-    for (const auto &[hash, debugAABB] : debugAABBs)
-    {
-        drawAABB(drawList, imGuiManager, debugAABB.box, camera, debugAABB.color);
+        drawAABB(drawList, imGuiManager, fading.box, camera, fading.color);
     }
 }

@@ -94,6 +94,7 @@ add_library(platformer_lib OBJECT
     src/rendering/ui/imgui_manager.cpp
     src/rendering/ui/tile_map_overlays.cpp
     src/rendering/ui/debug_aabb_overlay.cpp
+    src/rendering/ui/fading_aabbs.cpp
     src/rendering/ui/level_ui.cpp
     src/rendering/ui/playback_ui.cpp
     src/rendering/ui/game_settings_ui.cpp

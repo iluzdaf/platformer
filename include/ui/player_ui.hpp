@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
-#include "rendering/ui/saveable.hpp"
+#include "ui/saveable.hpp"
 
 struct ActorMotionState;
 struct ActorState;

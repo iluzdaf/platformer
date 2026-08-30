@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rendering/ui/saveable.hpp"
+#include "ui/saveable.hpp"
 
 struct EditorCommands;
 struct GameData;

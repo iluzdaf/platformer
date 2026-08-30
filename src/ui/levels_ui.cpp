@@ -2,10 +2,10 @@
 #include <optional>
 #include <string>
 #include <imgui.h>
-#include "rendering/ui/levels_ui.hpp"
+#include "ui/levels_ui.hpp"
 #include "game/levels.hpp"
 #include "game/level.hpp"
-#include "rendering/ui/editor_commands.hpp"
+#include "ui/editor_commands.hpp"
 
 namespace
 {

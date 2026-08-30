@@ -1,6 +1,6 @@
 #include <imgui.h>
-#include "rendering/ui/npc_types_ui.hpp"
-#include "rendering/ui/data_inspector.hpp"
+#include "ui/npc_types_ui.hpp"
+#include "ui/data_inspector.hpp"
 #include "game/game_data.hpp"
 
 void NpcTypesUi::draw(GameData &gameData)

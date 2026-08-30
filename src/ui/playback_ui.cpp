@@ -1,6 +1,6 @@
 #include <imgui.h>
-#include "rendering/ui/playback_ui.hpp"
-#include "rendering/ui/editor_commands.hpp"
+#include "ui/playback_ui.hpp"
+#include "ui/editor_commands.hpp"
 
 void PlaybackUi::draw(bool paused, EditorCommands &commands) const
 {

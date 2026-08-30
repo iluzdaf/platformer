@@ -1,7 +1,7 @@
 #include <imgui.h>
-#include "rendering/ui/camera_ui.hpp"
-#include "rendering/ui/data_inspector.hpp"
-#include "rendering/ui/editor_commands.hpp"
+#include "ui/camera_ui.hpp"
+#include "ui/data_inspector.hpp"
+#include "ui/editor_commands.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
 

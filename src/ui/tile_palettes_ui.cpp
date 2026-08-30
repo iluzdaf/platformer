@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 #include <imgui.h>
-#include "rendering/ui/tile_palettes_ui.hpp"
-#include "rendering/ui/data_inspector.hpp"
-#include "rendering/ui/brush.hpp"
-#include "rendering/ui/tile_picker.hpp"
+#include "ui/tile_palettes_ui.hpp"
+#include "ui/data_inspector.hpp"
+#include "ui/brush.hpp"
+#include "ui/tile_picker.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_palette.hpp"
 

@@ -7,7 +7,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
-#include "rendering/ui/npcs_ui.hpp"
+#include "ui/npcs_ui.hpp"
 #include "game/level.hpp"
 #include "navigation/navigation_path.hpp"
 #include "npc/npc.hpp"

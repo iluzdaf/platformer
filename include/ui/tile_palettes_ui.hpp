@@ -2,8 +2,8 @@
 
 #include <optional>
 #include <string>
-#include "rendering/ui/brush.hpp"
-#include "rendering/ui/saveable.hpp"
+#include "ui/brush.hpp"
+#include "ui/saveable.hpp"
 #include "tile_map/tile_palette.hpp"
 
 class Texture2D;

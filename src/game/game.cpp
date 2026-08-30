@@ -8,7 +8,7 @@
 #include "game/levels.hpp"
 #include "game/world.hpp"
 #include "player/player.hpp"
-#include "rendering/ui/game_ui.hpp"
+#include "ui/game_ui.hpp"
 #include "rendering/screen_transition.hpp"
 #include "cameras/camera2d.hpp"
 #include "assets/asset_paths.hpp"

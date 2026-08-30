@@ -135,8 +135,8 @@ void drawContactProbes(
         thickEnoughToSee(physicsBody.underfootProbe(), true),
         camera,
         probeColor(contacts.onGround, false));
-    drawAABB(drawList, imGuiManager, overhead, camera, probeColor(contacts.hitCeiling, false));
-    if (contacts.hitCeiling)
+    drawAABB(drawList, imGuiManager, overhead, camera, probeColor(contacts.bumpedCeiling, false));
+    if (contacts.bumpedCeiling)
         fadingAABBs.add(overhead, probeColor(true, false), 0.2f);
     drawAABB(
         drawList,

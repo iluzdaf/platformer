@@ -15,7 +15,7 @@ public:
     void applyMovement(float deltaTime, const InputIntentions &inputIntentions);
     void readContacts(const PhysicsBody &physicsBody, const TileMap &tileMap);
     void readMotion(const PhysicsBody &physicsBody);
-    void resetCollisionAABB();
+    void beginFrame();
     const ActorMotionState &getState() const;
     const AbilitySystem &getAbilitySystem() const;
 

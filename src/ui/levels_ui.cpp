@@ -50,10 +50,12 @@ void LevelsUi::draw(
 
     if (askedToSwitchTo)
     {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
         ImGui::TextWrapped(
             "switching to %s discards unsaved changes to %s",
             levelName(*askedToSwitchTo).c_str(),
             levelName(level.getPath()).c_str());
+        ImGui::PopStyleColor();
         if (ImGui::Button("switch"))
         {
             std::string switchTo = *askedToSwitchTo;

@@ -25,7 +25,7 @@ public:
     std::optional<AABB> getAABBAt(glm::vec2 worldPosition) const;
 
 private:
-    bool solid = false, deadly = false, portal = false, grippable = true;
+    bool solid = false, deadly = false, portal = false, grippable = false;
     std::optional<TileAnimation> animation;
     std::optional<TilePickupData> pickup;
     TileColliderData collider;

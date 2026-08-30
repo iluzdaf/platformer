@@ -76,17 +76,16 @@ TEST_CASE("A tile that does not say its shape takes a whole tile", "[Tile]")
 
 TEST_CASE("Only a solid tile that says so can be gripped", "[Tile]")
 {
-    TileData solid;
-    solid.solid = true;
-    REQUIRE(Tile(1, solid).isGrippable());
+    TileData grippable;
+    grippable.solid = grippable.grippable = true;
+    REQUIRE(Tile(1, grippable).isGrippable());
 
-    TileData ungrippable;
-    ungrippable.solid = true;
-    ungrippable.grippable = false;
-    REQUIRE_FALSE(Tile(2, ungrippable).isGrippable());
+    TileData solidButNotGrippable;
+    solidButNotGrippable.solid = true;
+    REQUIRE_FALSE(Tile(2, solidButNotGrippable).isGrippable());
 
     TileData deadly;
-    deadly.deadly = true;
+    deadly.deadly = deadly.grippable = true;
     REQUIRE_FALSE(Tile(3, deadly).isGrippable());
 }
 

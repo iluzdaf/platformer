@@ -15,7 +15,7 @@ inline const TilePalette &getDefaultTileDataMap()
         TilePalette palette;
         palette[0] = TileData{};
         TileData solid;
-        solid.solid = true;
+        solid.solid = solid.grippable = true;
         palette[1] = solid;
         return palette;
     }();

@@ -8,6 +8,8 @@
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
 #include "cameras/camera2d.hpp"
+#include "actor/actor_contact_state.hpp"
+#include "physics/physics_body.hpp"
 #include "physics/aabb.hpp"
 
 namespace
@@ -91,6 +93,62 @@ void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, 
         AABB(playerStartWorldPosition, glm::vec2(static_cast<float>(tileMap.getTileSize()))),
         camera,
         IM_COL32(255, 0, 255, 255));
+}
+
+void drawContactProbes(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Player &player)
+{
+    ImDrawList *drawList = ImGui::GetBackgroundDrawList();
+    const PhysicsBody &physicsBody = player.getPhysicsBody();
+    ActorContactState contacts = player.getMotion().getState().contacts;
+
+    auto probeColor = [](bool touching, bool grippable)
+    {
+        if (grippable)
+            return IM_COL32(0, 255, 128, 255);
+        if (touching)
+            return IM_COL32(0, 191, 255, 255);
+        return IM_COL32(128, 128, 128, 128);
+    };
+
+    drawAABB(
+        drawList,
+        imGuiManager,
+        physicsBody.underfootProbe(),
+        camera,
+        probeColor(contacts.onGround, false));
+    drawAABB(
+        drawList,
+        imGuiManager,
+        physicsBody.overheadProbe(),
+        camera,
+        probeColor(contacts.hitCeiling, false));
+    drawAABB(
+        drawList,
+        imGuiManager,
+        physicsBody.wallProbe(-1.0f),
+        camera,
+        probeColor(contacts.touchingLeftWall, contacts.grippableLeftWall));
+    drawAABB(
+        drawList,
+        imGuiManager,
+        physicsBody.wallProbe(1.0f),
+        camera,
+        probeColor(contacts.touchingRightWall, contacts.grippableRightWall));
+    drawAABB(
+        drawList,
+        imGuiManager,
+        physicsBody.wallProbeAtHead(-1.0f),
+        camera,
+        probeColor(contacts.touchingLeftWall && !contacts.ledgeOnLeft, false));
+    drawAABB(
+        drawList,
+        imGuiManager,
+        physicsBody.wallProbeAtHead(1.0f),
+        camera,
+        probeColor(contacts.touchingRightWall && !contacts.ledgeOnRight, false));
 }
 
 void drawFadingAABBs(

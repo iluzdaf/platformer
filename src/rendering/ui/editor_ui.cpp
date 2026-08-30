@@ -122,6 +122,8 @@ void EditorUi::drawOverlays(
         drawPlayerAABBs(imGuiManager, camera, player, fadingAABBs);
     if (levelUi.drawsTileMapAABBs())
         drawTileMapAABBs(imGuiManager, camera, level);
+    if (playerUi.drawsContactProbes())
+        drawContactProbes(imGuiManager, camera, player);
     drawFadingAABBs(imGuiManager, camera, fadingAABBs);
 }
 

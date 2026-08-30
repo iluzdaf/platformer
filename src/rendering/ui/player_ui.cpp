@@ -18,6 +18,8 @@ void PlayerUi::draw(
 {
     ImGui::Checkbox("AABBs", &drawPlayerAABBs);
     ImGui::SameLine();
+    ImGui::Checkbox("Probes", &drawContactProbes);
+    ImGui::SameLine();
     if (ImGui::Button("Respawn"))
         commands.onRespawn();
 
@@ -65,6 +67,11 @@ void PlayerUi::draw(
 bool PlayerUi::drawsPlayerAABBs() const
 {
     return drawPlayerAABBs;
+}
+
+bool PlayerUi::drawsContactProbes() const
+{
+    return drawContactProbes;
 }
 
 void PlayerUi::valuesReplaced()

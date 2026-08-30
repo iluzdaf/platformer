@@ -25,6 +25,7 @@ public:
     bool contactWithLeftWallAtHead(const TileMap &tileMap) const;
     bool contactWithRightWallAtHead(const TileMap &tileMap) const;
     AABB wallProbe(float side) const;
+    AABB wallProbeAtHead(float side) const;
     AABB underfootProbe() const;
     AABB overheadProbe() const;
     bool contactWithGround(const TileMap &tileMap) const;

@@ -14,6 +14,11 @@ void drawPlayerAABBs(
 
 void drawTileMapAABBs(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
 
+void drawContactProbes(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Player &player);
+
 void drawFadingAABBs(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,

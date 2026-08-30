@@ -19,9 +19,11 @@ public:
         EditorCommands &commands);
 
     bool drawsPlayerAABBs() const;
+    bool drawsContactProbes() const;
     void valuesReplaced();
 
 private:
     Saveable saveable;
     bool drawPlayerAABBs = false;
+    bool drawContactProbes = false;
 };

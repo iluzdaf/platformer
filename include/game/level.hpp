@@ -2,8 +2,9 @@
 
 #include <string>
 #include <map>
-#include <unordered_map>
 #include <vector>
+#include <optional>
+#include <utility>
 #include "game/level_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "npc/npc_data.hpp"
@@ -11,6 +12,8 @@
 #include "navigation/navigation_graph.hpp"
 #include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_profile.hpp"
+#include "tile_map/tile_palette.hpp"
+#include "npc/npc_spawn_data.hpp"
 
 class Level
 {

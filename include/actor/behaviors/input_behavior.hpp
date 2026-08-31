@@ -2,6 +2,8 @@
 
 #include "actor/actor_behavior.hpp"
 #include "input/intention_source.hpp"
+#include "actor/actor_behavior_context.hpp"
+#include "input/input_intentions.hpp"
 
 class InputBehavior : public ActorBehavior
 {

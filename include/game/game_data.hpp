@@ -2,7 +2,6 @@
 
 #include <string>
 #include <map>
-#include <unordered_map>
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
 #include "tile_map/tile_palette.hpp"

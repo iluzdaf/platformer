@@ -3,7 +3,6 @@
 #include <signals.hpp>
 #include "player/player_data.hpp"
 #include "actor/actor.hpp"
-#include "actor/behaviors/input_behavior.hpp"
 #include "input/intention_source.hpp"
 
 class Player : public Actor

@@ -223,11 +223,8 @@ foreach(headerRoot include tests)
     file(GLOB_RECURSE selfContainmentHeaders CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/${headerRoot}/*.hpp)
 
     foreach(header ${selfContainmentHeaders})
-        file(RELATIVE_PATH includedPath ${CMAKE_SOURCE_DIR}/${headerRoot} ${header})
-        string(REPLACE "/" "_" translationUnitName ${includedPath})
-        set(translationUnit ${CMAKE_BINARY_DIR}/header_self_containment/${translationUnitName}.cpp)
-        file(WRITE ${translationUnit} "#include \"${includedPath}\"\n")
-        list(APPEND selfContainmentSources ${translationUnit})
+        set_source_files_properties(${header} PROPERTIES LANGUAGE CXX)
+        list(APPEND selfContainmentSources ${header})
     endforeach()
 endforeach()
 
@@ -236,6 +233,10 @@ add_library(header_self_containment OBJECT EXCLUDE_FROM_ALL ${selfContainmentSou
 target_compile_definitions(header_self_containment PRIVATE PLATFORMER_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets")
 
 target_include_directories(header_self_containment PRIVATE tests)
+
+if(NOT MSVC)
+    target_compile_options(header_self_containment PRIVATE -Wno-pragma-once-outside-header)
+endif()
 
 target_link_libraries(header_self_containment PRIVATE platformer_lib)
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include <signals.hpp>
+#include <string>
 #include "reloading/file_watcher.hpp"
 #include "assets/asset_paths.hpp"
 

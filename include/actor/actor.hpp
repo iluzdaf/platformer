@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <optional>
+#include <string_view>
 #include "actor/actor_state.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/actor_motion.hpp"
@@ -9,6 +10,7 @@
 #include "animations/animation_manager.hpp"
 #include "physics/physics_body.hpp"
 #include "navigation/navigation_profile.hpp"
+#include "actor/actor_behavior_context.hpp"
 
 class TileMap;
 class Level;

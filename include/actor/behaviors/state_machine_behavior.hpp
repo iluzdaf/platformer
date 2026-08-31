@@ -6,8 +6,12 @@
 #include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string_view>
+#include <cstddef>
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/actor_behavior_context.hpp"
+#include "input/input_intentions.hpp"
 
 class StateMachineBehavior : public ActorBehavior
 {

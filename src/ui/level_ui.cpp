@@ -17,7 +17,6 @@
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "game/game_data.hpp"
-#include "ui/data_inspector.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "ui/tile_map_overlays.hpp"
@@ -26,6 +25,51 @@
 
 namespace
 {
+    void drawTileSummary(const TileData &tile)
+    {
+        std::string flags;
+        auto note = [&flags](bool set, const char *name)
+        {
+            if (!set)
+                return;
+
+            if (!flags.empty())
+                flags += "  ";
+            flags += name;
+        };
+
+        note(tile.solid, "solid");
+        note(tile.deadly, "deadly");
+        note(tile.portal, "portal");
+        note(tile.grippable, "grippable");
+
+        if (!flags.empty())
+            ImGui::TextUnformatted(flags.c_str());
+
+        if (tile.collider)
+            ImGui::Text(
+                "collider %.0f,%.0f %.0fx%.0f",
+                tile.collider->offset.x,
+                tile.collider->offset.y,
+                tile.collider->size.x,
+                tile.collider->size.y);
+
+        if (tile.pickup && tile.pickup->scoreDelta)
+            ImGui::Text(
+                "pickup leaves %d, scores %d", tile.pickup->replaceIndex, *tile.pickup->scoreDelta);
+        else if (tile.pickup)
+            ImGui::Text("pickup leaves %d", tile.pickup->replaceIndex);
+
+        if (tile.animationData)
+            ImGui::Text(
+                "animates %d frames at %.2fs",
+                static_cast<int>(tile.animationData->frameAnimationData.frames.size()),
+                tile.animationData->frameAnimationData.frameDuration);
+
+        if (flags.empty() && !tile.collider && !tile.pickup && !tile.animationData)
+            ImGui::TextDisabled("nothing set");
+    }
+
     std::optional<int> tileOf(const std::optional<Brush> &brush)
     {
         if (!brush || brush->kind != Brush::Kind::Tile)
@@ -123,11 +167,7 @@ void LevelUi::drawTileMap(
     if (picked && palette.contains(*picked))
     {
         ImGui::Separator();
-        TileData shown = palette.at(*picked);
-        ImGui::BeginDisabled();
-        inspector::drawFields(shown);
-        ImGui::EndDisabled();
-        ImGui::Separator();
+        drawTileSummary(palette.at(*picked));
     }
 }
 

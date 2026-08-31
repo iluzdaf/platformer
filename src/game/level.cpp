@@ -1,3 +1,4 @@
+#include <cmath>
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
@@ -238,12 +239,26 @@ glm::ivec2 Level::beatEndAt(const NpcSpawnData &spawn, glm::ivec2 tilePosition) 
         throw std::runtime_error("Tile coordinates out of bounds");
 
     const NavigationGraph &graph = graphForNpc(spawn);
-    std::optional<int> standing =
-        nodeUnderfoot(graph, tileMap.tileToBottomCenterPosition(tilePosition));
+    glm::vec2 asked = tileMap.tileToBottomCenterPosition(tilePosition);
+    std::optional<int> standing = nodeUnderfoot(graph, asked);
     if (!standing)
         return tilePosition;
 
-    return tileMap.bottomCenterToTilePosition(graph.getNode(*standing).position);
+    float surface = graph.getNode(*standing).position.y;
+    float leftEnd = graph.getNode(*standing).position.x;
+    float rightEnd = leftEnd;
+    for (int id : walkableFrom(graph, *standing))
+    {
+        glm::vec2 node = graph.getNode(id).position;
+        if (std::abs(node.y - surface) > 1.0f)
+            continue;
+
+        leftEnd = std::min(leftEnd, node.x);
+        rightEnd = std::max(rightEnd, node.x);
+    }
+
+    return tileMap.bottomCenterToTilePosition(
+        glm::vec2(std::clamp(asked.x, leftEnd, rightEnd), surface));
 }
 
 std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const

@@ -484,26 +484,26 @@ TEST_CASE("A beat end picked on a ledge names a tile of that ledge", "[Level]")
     }
 }
 
-TEST_CASE("What a beat end is saved as is what the npc walks to", "[Level]")
+TEST_CASE("A beat end keeps the tile that was picked", "[Level]")
 {
     Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
     const NpcSpawnData &spawn = level.getNpcs().front();
-    const NavigationGraph &graph = level.graphForNpc(spawn);
-    const TileMap &tileMap = level.getTileMap();
 
     for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
     {
         glm::ivec2 clicked(x, LedgeRow - 1);
-        std::optional<int> shown =
-            nodeUnderfoot(graph, tileMap.tileToBottomCenterPosition(clicked));
-        REQUIRE(shown);
-
-        glm::ivec2 saved = level.beatEndAt(spawn, clicked);
-        std::optional<int> walkedTo =
-            nearestNodeTo(graph, tileMap.tileToBottomCenterPosition(saved));
-
-        REQUIRE(walkedTo == shown);
+        REQUIRE(level.beatEndAt(spawn, clicked) == clicked);
     }
+}
+
+TEST_CASE("A beat end picked past the run stops at the end of it", "[Level]")
+{
+    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
+    const NpcSpawnData &spawn = level.getNpcs().front();
+
+    glm::ivec2 pastTheEnd(LedgeLastTile + 2, LedgeRow - 1);
+
+    REQUIRE(level.beatEndAt(spawn, pastTheEnd) == glm::ivec2(LedgeLastTile, LedgeRow - 1));
 }
 
 TEST_CASE("A level refuses a beat end off the map", "[Level]")

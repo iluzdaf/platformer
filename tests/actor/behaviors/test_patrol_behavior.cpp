@@ -1,3 +1,4 @@
+#include <cmath>
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
 #include <optional>
@@ -108,6 +109,47 @@ namespace
         }
         return visited;
     }
+
+    bool goesThereAndComesBack(
+        PatrolBehavior &behavior,
+        const NavigationGraph &navigationGraph,
+        glm::vec2 start,
+        float farEnd,
+        int steps)
+    {
+        glm::vec2 position = start;
+        bool gotThere = false;
+        for (int step = 0; step < steps; ++step)
+        {
+            InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, position));
+            position.x += inputIntentions.direction.x * 2.0f;
+
+            if (std::abs(position.x - farEnd) < 8.0f)
+                gotThere = true;
+
+            if (gotThere && std::abs(position.x - start.x) < 8.0f)
+                return true;
+        }
+        return false;
+    }
+
+    std::pair<float, float> pacedBetween(
+        PatrolBehavior &behavior,
+        const NavigationGraph &navigationGraph,
+        glm::vec2 start,
+        int steps)
+    {
+        glm::vec2 position = start;
+        float leftMost = position.x, rightMost = position.x;
+        for (int step = 0; step < steps; ++step)
+        {
+            InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, position));
+            position.x += inputIntentions.direction.x * 2.0f;
+            leftMost = std::min(leftMost, position.x);
+            rightMost = std::max(rightMost, position.x);
+        }
+        return {leftMost, rightMost};
+    }
 }
 
 TEST_CASE("Starts at the nearest node with somewhere to walk", "[PatrolBehavior]")
@@ -173,7 +215,7 @@ TEST_CASE("Never asks to jump on a platform it can walk", "[PatrolBehavior]")
 TEST_CASE("Does not arrive at a ledge it is still below", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupLedge();
-    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 160.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
     REQUIRE(behavior.getTargetNodeId() == 1);
@@ -186,7 +228,7 @@ TEST_CASE("Does not arrive at a ledge it is still below", "[PatrolBehavior]")
 TEST_CASE("Arrives at a ledge once it stands on it", "[PatrolBehavior]")
 {
     NavigationGraph navigationGraph = setupLedge();
-    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 160.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
     behavior.decide(0.01f, at(navigationGraph, {96.0f, 160.0f}));
@@ -490,4 +532,62 @@ TEST_CASE("Told where to walk, it walks between those two and turns round", "[Pa
     REQUIRE(std::ranges::find(visited, 1) != visited.end());
     REQUIRE(std::ranges::find(visited, 2) != visited.end());
     REQUIRE(std::ranges::find(visited, 3) == visited.end());
+}
+
+TEST_CASE("A beat may end between two nodes rather than at one", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(2, 192.0f);
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
+
+    auto [leftMost, rightMost] = pacedBetween(behavior, navigationGraph, {0.0f, 192.0f}, 900);
+
+    REQUIRE(rightMost < 192.0f - 32.0f);
+    REQUIRE(rightMost > 96.0f - 32.0f);
+    REQUIRE(leftMost < 32.0f);
+}
+
+TEST_CASE("A beat ending between nodes still turns round and comes back", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(2, 192.0f);
+    PatrolBehavior behavior(setupData(), between({48.0f, 192.0f}, {144.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {48.0f, 192.0f});
+
+    auto [leftMost, rightMost] = pacedBetween(behavior, navigationGraph, {48.0f, 192.0f}, 1800);
+
+    REQUIRE(rightMost > 144.0f - 32.0f);
+    REQUIRE(rightMost < 192.0f - 16.0f);
+    REQUIRE(leftMost < 48.0f + 32.0f);
+}
+
+TEST_CASE("A beat end past the end of a run means the end of the run", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(2, 192.0f);
+    PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {4000.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
+
+    REQUIRE(goesThereAndComesBack(behavior, navigationGraph, {0.0f, 192.0f}, 192.0f, 1800));
+}
+
+TEST_CASE("A beat end several nodes along is still stopped at", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(4, 64.0f);
+    PatrolBehavior behavior(setupData(), between({32.0f, 192.0f}, {160.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {32.0f, 192.0f});
+
+    auto [leftMost, rightMost] = pacedBetween(behavior, navigationGraph, {32.0f, 192.0f}, 1800);
+
+    REQUIRE(rightMost > 160.0f - 16.0f);
+    REQUIRE(rightMost < 192.0f - 8.0f);
+    REQUIRE(leftMost < 32.0f + 16.0f);
+    REQUIRE(leftMost > 0.0f + 8.0f);
+}
+
+TEST_CASE("A beat end several nodes along is reached and left again", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(4, 64.0f);
+    PatrolBehavior behavior(setupData(), between({32.0f, 192.0f}, {160.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {32.0f, 192.0f});
+
+    REQUIRE(goesThereAndComesBack(behavior, navigationGraph, {32.0f, 192.0f}, 160.0f, 2400));
 }

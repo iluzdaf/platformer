@@ -83,7 +83,8 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Levels:
-        levelsUi.draw(subject.levels, subject.level, commands);
+        levelsUi.draw(
+            subject.levels, subject.level, commands, levelUi.hasUnsavedChanges(subject.level));
         break;
 
     case EditorSection::Level:

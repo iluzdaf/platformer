@@ -35,6 +35,7 @@ public:
         Level &level,
         std::optional<Brush> &brush);
 
+    bool hasUnsavedChanges(const Level &level) const;
     bool drawsTileColliders() const;
     bool drawsLevelBounds() const;
     bool drawsPlayerStart() const;

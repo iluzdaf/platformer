@@ -4,6 +4,7 @@
 #include <vector>
 #include <imgui.h>
 #include "ui/tile_palettes_ui.hpp"
+#include "ui/save_controls.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/brush.hpp"
 #include "ui/tile_picker.hpp"
@@ -16,7 +17,7 @@ void TilePalettesUi::draw(
     int tileSize,
     std::optional<Brush> &brush)
 {
-    saveable.drawControls("palettes", tilePalettes, saveTilePalettes);
+    drawSaveControls(saveable, "palettes", tilePalettes, saveTilePalettes);
     ImGui::Separator();
 
     if (tilePalettes.empty())

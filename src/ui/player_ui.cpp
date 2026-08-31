@@ -2,6 +2,7 @@
 #include <string>
 #include <imgui.h>
 #include "ui/player_ui.hpp"
+#include "ui/save_controls.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
 #include "actor/actor_animation_state.hpp"
@@ -64,7 +65,7 @@ void PlayerUi::draw(
     }
 
     ImGui::Separator();
-    saveable.drawControls("player", gameData.playerData, savePlayerData);
+    drawSaveControls(saveable, "player", gameData.playerData, savePlayerData);
     ImGui::Separator();
     inspector::drawFields(gameData.playerData);
 }

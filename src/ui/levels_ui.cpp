@@ -3,6 +3,7 @@
 #include <string>
 #include <imgui.h>
 #include "ui/levels_ui.hpp"
+#include "ui/save_controls.hpp"
 #include "game/levels.hpp"
 #include "game/level.hpp"
 #include "ui/editor_commands.hpp"
@@ -31,14 +32,46 @@ namespace
     }
 }
 
-void LevelsUi::draw(Levels &levels, const Level &level, EditorCommands &commands)
+void LevelsUi::draw(
+    Levels &levels,
+    const Level &level,
+    EditorCommands &commands,
+    bool levelHasUnsavedChanges)
 {
+    if (!levelHasUnsavedChanges)
+        askedToSwitchTo.reset();
+
     if (std::optional<std::string> chosen = levelChooser("playing", level.getPath()))
-        commands.onLoadLevel(*chosen);
+    {
+        if (levelHasUnsavedChanges)
+            askedToSwitchTo = *chosen;
+        else
+            commands.onLoadLevel(*chosen);
+    }
+
+    if (askedToSwitchTo)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
+        ImGui::TextWrapped(
+            "switching to %s discards unsaved changes to %s",
+            levelName(*askedToSwitchTo).c_str(),
+            levelName(level.getPath()).c_str());
+        ImGui::PopStyleColor();
+        if (ImGui::Button("switch"))
+        {
+            std::string switchTo = *askedToSwitchTo;
+            askedToSwitchTo.reset();
+            commands.onLoadLevel(switchTo);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("cancel"))
+            askedToSwitchTo.reset();
+    }
 
     ImGui::Separator();
 
-    saveable.drawControls(
+    drawSaveControls(
+        saveable,
         "levels",
         levels.getFirst(),
         [&levels] { levels.save(); },
@@ -52,5 +85,6 @@ void LevelsUi::draw(Levels &levels, const Level &level, EditorCommands &commands
 
 void LevelsUi::valuesReplaced()
 {
+    askedToSwitchTo.reset();
     saveable.valuesReplaced();
 }

@@ -44,12 +44,9 @@ void NavigationUi::drawOverlayToggles()
 void NavigationUi::draw(const Level &level)
 {
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
-    ImGui::Indent();
-
     if (graphs.empty())
     {
         ImGui::TextDisabled("none");
-        ImGui::Unindent();
         return;
     }
 
@@ -114,8 +111,6 @@ void NavigationUi::draw(const Level &level)
 
         ImGui::PopID();
     }
-
-    ImGui::Unindent();
 }
 
 void NavigationUi::drawOverlay(

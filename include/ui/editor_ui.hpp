@@ -27,6 +27,8 @@ class Npc;
 class Player;
 class Texture2D;
 
+inline constexpr float InspectorWidth = 280.0f;
+
 struct EditorSubject
 {
     GameData &gameData;

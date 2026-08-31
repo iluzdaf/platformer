@@ -17,7 +17,6 @@
 
 namespace
 {
-    constexpr float InspectorWidth = 260.0f;
 
     std::string_view nameOf(EditorSection section)
     {

@@ -234,6 +234,11 @@ const std::vector<NpcSpawnData> &Level::getNpcs() const
     return npcs;
 }
 
+void Level::addNpc(const NpcSpawnData &spawn)
+{
+    npcs.push_back(spawn);
+}
+
 const std::string &Level::getPath() const
 {
     return path;

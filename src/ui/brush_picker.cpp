@@ -30,6 +30,19 @@ namespace
         return clicked;
     }
 
+    bool drawNpcCell(const std::string &type)
+    {
+        ImVec2 padding = ImGui::GetStyle().FramePadding;
+        bool clicked = ImGui::Button(
+            type.c_str(),
+            ImVec2(BrushPickerCellSize + padding.x * 2.0f, BrushPickerCellSize + padding.y * 2.0f));
+
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", type.c_str());
+
+        return clicked;
+    }
+
     bool drawPlayerStartCell()
     {
         ImVec2 padding = ImGui::GetStyle().FramePadding;
@@ -73,6 +86,10 @@ std::optional<Brush> drawBrushPicker(
 
         case Brush::Kind::PlayerStart:
             clicked = drawPlayerStartCell();
+            break;
+
+        case Brush::Kind::Npc:
+            clicked = drawNpcCell(brush.npcType);
             break;
         }
 

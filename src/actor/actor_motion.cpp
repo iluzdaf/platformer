@@ -28,9 +28,9 @@ void ActorMotion::readContacts(const PhysicsBody &physicsBody, const TileMap &ti
         state.contacts.touchingLeftWall && !physicsBody.contactWithLeftWallAtHead(tileMap);
     state.contacts.ledgeOnRight =
         state.contacts.touchingRightWall && !physicsBody.contactWithRightWallAtHead(tileMap);
-    if (state.contacts.touchingLeftWall)
+    if (state.contacts.grippableLeftWall)
         state.contacts.wasLastWallLeft = true;
-    else if (state.contacts.touchingRightWall)
+    else if (state.contacts.grippableRightWall)
         state.contacts.wasLastWallLeft = false;
     if (!physicsBody.getCollisionAABBX().isEmpty())
         state.contacts.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());

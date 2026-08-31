@@ -16,6 +16,7 @@ public:
         const Level &level,
         EditorCommands &commands,
         bool levelHasUnsavedChanges);
+    bool hasUnsavedChanges(const Levels &levels) const;
     void valuesReplaced();
 
 private:

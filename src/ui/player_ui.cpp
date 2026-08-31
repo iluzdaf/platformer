@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include "ui/player_ui.hpp"
 #include "ui/save_controls.hpp"
+#include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
 #include "actor/actor_animation_state.hpp"
@@ -83,6 +84,11 @@ bool PlayerUi::drawsPlayerCollisions() const
 bool PlayerUi::drawsContactProbes() const
 {
     return drawContactProbes;
+}
+
+bool PlayerUi::hasUnsavedChanges(const GameData &gameData) const
+{
+    return saveable.unsaved("player", asJson(gameData.playerData));
 }
 
 void PlayerUi::valuesReplaced()

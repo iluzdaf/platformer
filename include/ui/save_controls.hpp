@@ -8,6 +8,8 @@
 #include <glaze/glaze.hpp>
 #include "ui/saveable.hpp"
 
+inline const ImVec4 UnsavedColour(1.0f, 1.0f, 0.4f, 1.0f);
+
 template <class Save, class Revert>
 bool drawSaveControls(
     Saveable &saveable,

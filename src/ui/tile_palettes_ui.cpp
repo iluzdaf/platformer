@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/save_controls.hpp"
+#include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/brush.hpp"
 #include "ui/brush_picker.hpp"
@@ -74,6 +75,11 @@ void TilePalettesUi::draw(
 
     ImGui::Text("tile %d", *picked);
     inspector::drawFields(palette.at(*picked));
+}
+
+bool TilePalettesUi::hasUnsavedChanges(const TilePalettes &tilePalettes) const
+{
+    return saveable.unsaved("palettes", asJson(tilePalettes));
 }
 
 void TilePalettesUi::valuesReplaced()

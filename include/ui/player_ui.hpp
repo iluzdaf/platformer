@@ -21,6 +21,7 @@ public:
     bool drawsPlayerCollider() const;
     bool drawsPlayerCollisions() const;
     bool drawsContactProbes() const;
+    bool hasUnsavedChanges(const GameData &gameData) const;
     void valuesReplaced();
 
 private:

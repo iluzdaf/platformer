@@ -771,3 +771,25 @@ TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level
     REQUIRE(leftMost - half < ledgeLeft + 4.0f);
     REQUIRE(rightMost + half > ledgeRight - 4.0f);
 }
+
+TEST_CASE("A beat ending partway up a wall is climbed to and no further", "[Npc][Level][Climb]")
+{
+    NpcSpawnData spawn =
+        patrolling("explorer", LedgeRightEnd, LedgeRightEnd, glm::ivec2(1, LedgeRow - 3));
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(shippedNpcData().at("explorer"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    float highest = footOf(npc).y;
+    for (int step = 0; step < 4000; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level);
+        highest = std::min(highest, footOf(npc).y);
+    }
+
+    float askedFor = surfaceOf(LedgeRow - 2);
+
+    REQUIRE(highest <= askedFor + 4.0f);
+    REQUIRE(highest > surfaceOf(1));
+}

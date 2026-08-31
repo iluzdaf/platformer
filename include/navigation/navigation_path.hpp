@@ -16,7 +16,16 @@ std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::ve
 
 std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::vec2 position);
 
-glm::vec2 placeOnTheRun(const NavigationGraph &navigationGraph, glm::vec2 asked);
+struct PlaceOnThePath
+{
+    glm::vec2 position = glm::vec2(0.0f);
+    int fromId = 0;
+    int toId = 0;
+};
+
+std::optional<PlaceOnThePath> placeOnThePath(
+    const NavigationGraph &navigationGraph,
+    glm::vec2 asked);
 
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there);
 

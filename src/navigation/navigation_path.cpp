@@ -193,25 +193,63 @@ std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::ve
     return standingOn ? standingOn : nearestNodeTo(navigationGraph, position);
 }
 
-glm::vec2 placeOnTheRun(const NavigationGraph &navigationGraph, glm::vec2 asked)
+namespace
 {
-    std::optional<int> standing = nodeUnderfoot(navigationGraph, asked);
-    if (!standing)
-        return asked;
-
-    glm::vec2 anchor = navigationGraph.getNode(*standing).position;
-    float leftEnd = anchor.x, rightEnd = anchor.x;
-    for (int id : walkableFrom(navigationGraph, *standing))
+    glm::vec2 nearestPointOn(glm::vec2 from, glm::vec2 to, glm::vec2 asked)
     {
-        glm::vec2 node = navigationGraph.getNode(id).position;
-        if (std::abs(node.y - anchor.y) > SurfaceTolerance)
-            continue;
+        glm::vec2 along = to - from;
+        float lengthSquared = glm::dot(along, along);
+        if (lengthSquared == 0.0f)
+            return from;
 
-        leftEnd = std::min(leftEnd, node.x);
-        rightEnd = std::max(rightEnd, node.x);
+        float howFar = std::clamp(glm::dot(asked - from, along) / lengthSquared, 0.0f, 1.0f);
+
+        return from + along * howFar;
     }
 
-    return glm::vec2(std::clamp(asked.x, leftEnd, rightEnd), anchor.y);
+    bool travelledInContact(EdgeType type)
+    {
+        return type == EdgeType::Walk || type == EdgeType::Climb;
+    }
+}
+
+std::optional<PlaceOnThePath> placeOnThePath(
+    const NavigationGraph &navigationGraph,
+    glm::vec2 asked)
+{
+    std::optional<PlaceOnThePath> nearest;
+    float nearestDistance = 0.0f;
+
+    auto consider = [&](PlaceOnThePath place)
+    {
+        float distance = glm::distance(place.position, asked);
+        if (nearest && distance >= nearestDistance)
+            return;
+
+        nearest = place;
+        nearestDistance = distance;
+    };
+
+    for (const auto &[id, node] : navigationGraph.getNodes())
+        consider(PlaceOnThePath{node.position, id, id});
+
+    for (const auto &[id, node] : navigationGraph.getNodes())
+        for (const NavigationEdge &edge : navigationGraph.getOutgoingEdges(id))
+        {
+            if (!travelledInContact(edge.type))
+                continue;
+
+            consider(
+                PlaceOnThePath{
+                    nearestPointOn(
+                        navigationGraph.getNode(edge.fromId).position,
+                        navigationGraph.getNode(edge.toId).position,
+                        asked),
+                    edge.fromId,
+                    edge.toId});
+        }
+
+    return nearest;
 }
 
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)

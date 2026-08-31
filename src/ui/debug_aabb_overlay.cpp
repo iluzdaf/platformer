@@ -184,8 +184,13 @@ void drawSpawnOf(
         return;
 
     const NavigationGraph &graph = level.graphForNpc(spawn);
-    glm::vec2 setsOffFrom = placeOnTheRun(graph, beat->first);
-    glm::vec2 turnsRoundAt = placeOnTheRun(graph, beat->second);
+    std::optional<PlaceOnThePath> setsOff = placeOnThePath(graph, beat->first);
+    std::optional<PlaceOnThePath> turnsRound = placeOnThePath(graph, beat->second);
+    if (!setsOff || !turnsRound)
+        return;
+
+    glm::vec2 setsOffFrom = setsOff->position;
+    glm::vec2 turnsRoundAt = turnsRound->position;
     std::optional<int> fromId = nodeUnderfoot(graph, setsOffFrom);
     std::optional<int> toId = nodeUnderfoot(graph, turnsRoundAt);
     if (!fromId || !toId)

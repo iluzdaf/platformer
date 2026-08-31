@@ -1,3 +1,4 @@
+#include <optional>
 #include <catch2/catch_test_macros.hpp>
 #include <utility>
 #include <vector>
@@ -189,7 +190,7 @@ TEST_CASE("A beat against a graph with no nodes cannot be walked", "[NavigationP
     REQUIRE_FALSE(canPatrolBetween(navigationGraph, {16.0f, 192.0f}, {112.0f, 192.0f}));
 }
 
-TEST_CASE("A place on a run keeps the spot asked for", "[NavigationPath]")
+TEST_CASE("A place on a path keeps the spot asked for", "[NavigationPath]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {16.0f, 96.0f});
@@ -197,10 +198,10 @@ TEST_CASE("A place on a run keeps the spot asked for", "[NavigationPath]")
     navigationGraph.addEdge(0, 1, EdgeType::Walk);
     navigationGraph.addEdge(1, 0, EdgeType::Walk);
 
-    REQUIRE(placeOnTheRun(navigationGraph, {88.0f, 96.0f}) == glm::vec2(88.0f, 96.0f));
+    REQUIRE(placeOnThePath(navigationGraph, {88.0f, 96.0f})->position == glm::vec2(88.0f, 96.0f));
 }
 
-TEST_CASE("A place past the end of a run is the end of it", "[NavigationPath]")
+TEST_CASE("A place past the end of a path is the end of it", "[NavigationPath]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {16.0f, 96.0f});
@@ -208,11 +209,11 @@ TEST_CASE("A place past the end of a run is the end of it", "[NavigationPath]")
     navigationGraph.addEdge(0, 1, EdgeType::Walk);
     navigationGraph.addEdge(1, 0, EdgeType::Walk);
 
-    REQUIRE(placeOnTheRun(navigationGraph, {400.0f, 96.0f}) == glm::vec2(112.0f, 96.0f));
-    REQUIRE(placeOnTheRun(navigationGraph, {-40.0f, 96.0f}) == glm::vec2(16.0f, 96.0f));
+    REQUIRE(placeOnThePath(navigationGraph, {400.0f, 96.0f})->position == glm::vec2(112.0f, 96.0f));
+    REQUIRE(placeOnThePath(navigationGraph, {-40.0f, 96.0f})->position == glm::vec2(16.0f, 96.0f));
 }
 
-TEST_CASE("A place stays on the run it was asked about", "[NavigationPath]")
+TEST_CASE("A place stays on the path it was asked about", "[NavigationPath]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {16.0f, 96.0f});
@@ -224,11 +225,11 @@ TEST_CASE("A place stays on the run it was asked about", "[NavigationPath]")
     navigationGraph.addEdge(2, 3, EdgeType::Walk);
     navigationGraph.addEdge(3, 2, EdgeType::Walk);
 
-    REQUIRE(placeOnTheRun(navigationGraph, {72.0f, 96.0f}).y == 96.0f);
-    REQUIRE(placeOnTheRun(navigationGraph, {72.0f, 128.0f}).y == 128.0f);
+    REQUIRE(placeOnThePath(navigationGraph, {72.0f, 96.0f})->position.y == 96.0f);
+    REQUIRE(placeOnThePath(navigationGraph, {72.0f, 128.0f})->position.y == 128.0f);
 }
 
-TEST_CASE("A place asked for off any run falls to the run nearest it", "[NavigationPath]")
+TEST_CASE("A place asked for off every path falls to the path nearest it", "[NavigationPath]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {16.0f, 96.0f});
@@ -236,6 +237,52 @@ TEST_CASE("A place asked for off any run falls to the run nearest it", "[Navigat
     navigationGraph.addEdge(0, 1, EdgeType::Walk);
     navigationGraph.addEdge(1, 0, EdgeType::Walk);
 
-    REQUIRE(placeOnTheRun(navigationGraph, {64.0f, 32.0f}) == glm::vec2(64.0f, 96.0f));
-    REQUIRE(placeOnTheRun(navigationGraph, {400.0f, 32.0f}) == glm::vec2(112.0f, 96.0f));
+    REQUIRE(placeOnThePath(navigationGraph, {64.0f, 32.0f})->position == glm::vec2(64.0f, 96.0f));
+    REQUIRE(placeOnThePath(navigationGraph, {400.0f, 32.0f})->position == glm::vec2(112.0f, 96.0f));
+}
+
+TEST_CASE("A place can be partway up a climb", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {16.0f, 16.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Climb);
+    navigationGraph.addEdge(1, 0, EdgeType::Climb);
+
+    std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, {24.0f, 64.0f});
+
+    REQUIRE(place);
+    REQUIRE(place->position == glm::vec2(16.0f, 64.0f));
+}
+
+TEST_CASE("A place beside a wall prefers the wall to the floor below it", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    navigationGraph.addNode(2, {16.0f, 16.0f});
+    navigationGraph.addEdge(0, 2, EdgeType::Climb);
+    navigationGraph.addEdge(2, 0, EdgeType::Climb);
+
+    std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, {24.0f, 64.0f});
+
+    REQUIRE(place);
+    REQUIRE(place->position == glm::vec2(16.0f, 64.0f));
+}
+
+TEST_CASE("A jump is not somewhere to stop partway", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, 192.0f});
+    navigationGraph.addNode(1, {96.0f, 96.0f});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
+
+    std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, {48.0f, 144.0f});
+
+    REQUIRE(place);
+    REQUIRE(
+        (place->position == glm::vec2(0.0f, 192.0f) || place->position == glm::vec2(96.0f, 96.0f)));
 }

@@ -117,6 +117,8 @@ void Game::frame(float deltaTime)
     camera.follow(world.getPlayer().getPosition());
 
     render();
+
+    gameUi.commands().drain();
 }
 
 void Game::render()

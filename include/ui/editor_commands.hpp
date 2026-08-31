@@ -1,11 +1,22 @@
 #pragma once
 
 #include <string>
-#include <signals.hpp>
+#include "ui/editor_command.hpp"
 
 struct EditorCommands
 {
-    fteng::signal<void()> onPlay, onPause, onStep, onRespawn;
-    fteng::signal<void()> onSettingsChanged, onCameraChanged;
-    fteng::signal<void(const std::string &)> onLoadLevel;
+    EditorCommand<> onPlay, onPause, onStep, onRespawn;
+    EditorCommand<> onSettingsChanged, onCameraChanged;
+    EditorCommand<const std::string &> onLoadLevel;
+
+    void drain()
+    {
+        onPlay.drain();
+        onPause.drain();
+        onStep.drain();
+        onRespawn.drain();
+        onSettingsChanged.drain();
+        onCameraChanged.drain();
+        onLoadLevel.drain();
+    }
 };

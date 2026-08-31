@@ -1,0 +1,33 @@
+#pragma once
+
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <vector>
+#include <signals.hpp>
+
+template <class... Args> class EditorCommand
+{
+public:
+    void operator()(Args... args)
+    {
+        requested.emplace_back(args...);
+    }
+
+    template <class Handler> fteng::connection connect(Handler &&handler)
+    {
+        return signal.connect(std::forward<Handler>(handler));
+    }
+
+    void drain()
+    {
+        std::vector<std::tuple<std::decay_t<Args>...>> firing;
+        firing.swap(requested);
+        for (const auto &args : firing)
+            std::apply([this](const auto &...unpacked) { signal(unpacked...); }, args);
+    }
+
+private:
+    fteng::signal<void(Args...)> signal;
+    std::vector<std::tuple<std::decay_t<Args>...>> requested;
+};

@@ -12,6 +12,7 @@ class NavigationGraph;
 class NavigationUi
 {
 public:
+    void drawOverlayToggles();
     void draw(const Level &level);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
         const;

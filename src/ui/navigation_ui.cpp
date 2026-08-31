@@ -34,16 +34,17 @@ namespace
     }
 }
 
+void NavigationUi::drawOverlayToggles()
+{
+    ImGui::Checkbox("Graph", &showNavigation);
+    ImGui::SameLine();
+    ImGui::Checkbox("Real Trajectory", &drawTheFlightItself);
+}
+
 void NavigationUi::draw(const Level &level)
 {
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
     ImGui::Indent();
-    if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::Checkbox("Graph", &showNavigation);
-        ImGui::SameLine();
-        ImGui::Checkbox("Real Trajectory", &drawTheFlightItself);
-    }
 
     if (graphs.empty())
     {

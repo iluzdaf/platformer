@@ -118,15 +118,8 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Level:
-        levelUi.draw(section, subject.level, subject.tileSet, subject.gameData, brush, commands);
-        break;
-
-    case EditorSection::NpcsInLevel:
-        npcsUi.draw(subject.level, subject.npcs);
-        break;
-
-    case EditorSection::Navigation:
-        navigationUi.draw(subject.level);
+        levelUi.draw(
+            subject.level, subject.npcs, subject.tileSet, subject.gameData, brush, commands);
         break;
 
     case EditorSection::TilePalettes:
@@ -148,7 +141,6 @@ void EditorUi::drawOverlays(
     const Player &player)
 {
     levelUi.drawOverlay(imGuiManager, camera, level);
-    navigationUi.drawOverlay(imGuiManager, camera, level);
     if (playerUi.drawsPlayerCollider())
         drawPlayerCollider(imGuiManager, camera, player);
     if (playerUi.drawsPlayerCollisions())
@@ -200,8 +192,6 @@ bool EditorUi::unsavedIn(EditorSection listed, const EditorSubject &subject) con
         return tilePalettesUi.hasUnsavedChanges(subject.gameData.tilePalettes);
 
     case EditorSection::Playback:
-    case EditorSection::NpcsInLevel:
-    case EditorSection::Navigation:
         break;
     }
 

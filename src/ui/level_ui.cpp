@@ -1,15 +1,16 @@
 #include <string>
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <vector>
 #include <tuple>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "ui/npcs_in_level.hpp"
 #include "ui/save_controls.hpp"
 #include "ui/brush_picker.hpp"
 #include "ui/brush.hpp"
 #include "ui/editor_commands.hpp"
-#include "ui/editor_section.hpp"
 #include "rendering/texture2d.hpp"
 #include "ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
@@ -34,19 +35,25 @@ namespace
 }
 
 void LevelUi::draw(
-    EditorSection section,
     Level &level,
+    const std::vector<std::unique_ptr<Npc>> &npcs,
     const Texture2D &tileSet,
     const GameData &gameData,
     std::optional<Brush> &brush,
     EditorCommands &commands)
 {
-    if (section != EditorSection::Level)
-        return;
-
     drawTileMap(level, tileSet, gameData, brush);
+
+    ImGui::Separator();
+    if (ImGui::CollapsingHeader("Navigation", ImGuiTreeNodeFlags_DefaultOpen))
+        navigationUi.draw(level);
+
     ImGui::Separator();
     drawLevel(level, commands);
+
+    ImGui::Separator();
+    if (ImGui::CollapsingHeader("NPCs", ImGuiTreeNodeFlags_DefaultOpen))
+        drawNpcsInLevel(level, npcs);
 }
 
 void LevelUi::drawLevel(Level &level, EditorCommands &commands)
@@ -133,6 +140,8 @@ void LevelUi::drawOverlay(
 
     if (drawTileInfo)
         ::drawTileInfo(imGuiManager, camera, level.getTileMap());
+
+    navigationUi.drawOverlay(imGuiManager, camera, level);
 }
 
 bool LevelUi::hasUnsavedChanges(const Level &level) const

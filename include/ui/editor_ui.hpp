@@ -15,8 +15,6 @@
 #include "ui/brush.hpp"
 #include "ui/level_ui.hpp"
 #include "ui/levels_ui.hpp"
-#include "ui/navigation_ui.hpp"
-#include "ui/npcs_ui.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 struct ActorMotionState;
@@ -75,8 +73,6 @@ private:
     PlayerUi playerUi;
     NpcTypesUi npcTypesUi;
     LevelUi levelUi;
-    NavigationUi navigationUi;
-    NpcsUi npcsUi;
     TilePalettesUi tilePalettesUi;
     LevelsUi levelsUi;
     std::optional<Brush> brush;

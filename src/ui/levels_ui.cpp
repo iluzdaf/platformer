@@ -3,6 +3,7 @@
 #include <string>
 #include <imgui.h>
 #include "ui/levels_ui.hpp"
+#include "ui/save_controls.hpp"
 #include "game/levels.hpp"
 #include "game/level.hpp"
 #include "ui/editor_commands.hpp"
@@ -69,7 +70,8 @@ void LevelsUi::draw(
 
     ImGui::Separator();
 
-    saveable.drawControls(
+    drawSaveControls(
+        saveable,
         "levels",
         levels.getFirst(),
         [&levels] { levels.save(); },

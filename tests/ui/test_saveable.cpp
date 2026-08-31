@@ -1,80 +1,83 @@
 #include <string>
-#include <tuple>
 #include <catch2/catch_test_macros.hpp>
-#include <glaze/glaze.hpp>
 #include "cameras/camera2d_data.hpp"
-#include "test_helpers/headless_imgui.hpp"
 #include "ui/saveable.hpp"
-
-namespace
-{
-    std::string jsonOf(const Camera2DData &data)
-    {
-        std::string json;
-        std::ignore = glz::write_json(data, json);
-        return json;
-    }
-
-    void drawOnce(HeadlessImGui &gui, Saveable &saveable, Camera2DData &data)
-    {
-        gui.frame([&] { saveable.drawControls("camera", data, [](const Camera2DData &) {}); });
-    }
-}
 
 TEST_CASE("Saveable has nothing to save until a value changes", "[Saveable]")
 {
-    HeadlessImGui gui;
     Saveable saveable;
     Camera2DData data;
 
-    drawOnce(gui, saveable, data);
+    saveable.seen("camera", asJson(data));
 
-    REQUIRE_FALSE(saveable.unsaved("camera", jsonOf(data)));
+    REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
 }
 
 TEST_CASE("Saveable notices a changed value", "[Saveable]")
 {
-    HeadlessImGui gui;
     Saveable saveable;
     Camera2DData data;
 
-    drawOnce(gui, saveable, data);
+    saveable.seen("camera", asJson(data));
     data.zoom += 1.0f;
 
-    REQUIRE(saveable.unsaved("camera", jsonOf(data)));
+    REQUIRE(saveable.unsaved("camera", asJson(data)));
 }
 
-TEST_CASE("Saveable does not treat drawing as saving", "[Saveable]")
+TEST_CASE("Saveable keeps its first baseline however often it sees a value", "[Saveable]")
 {
-    HeadlessImGui gui;
     Saveable saveable;
     Camera2DData data;
 
-    drawOnce(gui, saveable, data);
+    saveable.seen("camera", asJson(data));
     data.zoom += 1.0f;
-    drawOnce(gui, saveable, data);
+    saveable.seen("camera", asJson(data));
 
-    REQUIRE(saveable.unsaved("camera", jsonOf(data)));
+    REQUIRE(saveable.unsaved("camera", asJson(data)));
+}
+
+TEST_CASE("Saveable moves its baseline when a value is saved", "[Saveable]")
+{
+    Saveable saveable;
+    Camera2DData data;
+
+    saveable.seen("camera", asJson(data));
+    data.zoom += 1.0f;
+    saveable.saved("camera", asJson(data));
+
+    REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
 }
 
 TEST_CASE("Saveable takes replaced values as the new baseline", "[Saveable]")
 {
-    HeadlessImGui gui;
     Saveable saveable;
     Camera2DData data;
 
-    drawOnce(gui, saveable, data);
+    saveable.seen("camera", asJson(data));
     data.zoom += 1.0f;
     saveable.valuesReplaced();
-    drawOnce(gui, saveable, data);
+    saveable.seen("camera", asJson(data));
 
-    REQUIRE_FALSE(saveable.unsaved("camera", jsonOf(data)));
+    REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
 }
 
-TEST_CASE("Saveable has nothing to say about a name it has never drawn", "[Saveable]")
+TEST_CASE("Saveable remembers the baseline a revert would go back to", "[Saveable]")
+{
+    Saveable saveable;
+    Camera2DData data;
+    std::string wasOnDisk = asJson(data);
+
+    saveable.seen("camera", wasOnDisk);
+    data.zoom += 1.0f;
+
+    REQUIRE(saveable.lastSeen("camera") == wasOnDisk);
+}
+
+TEST_CASE("Saveable has nothing to say about a name it has never seen", "[Saveable]")
 {
     Saveable saveable;
     Camera2DData data;
 
-    REQUIRE_FALSE(saveable.unsaved("camera", jsonOf(data)));
+    REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
+    REQUIRE(saveable.lastSeen("camera").empty());
 }

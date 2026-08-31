@@ -5,6 +5,7 @@
 #include <tuple>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "ui/save_controls.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/brush.hpp"
 #include "ui/editor_commands.hpp"
@@ -52,7 +53,8 @@ void LevelUi::drawLevel(Level &level, EditorCommands &commands)
 {
     std::string json;
     std::ignore = glz::write_json(level.toLevelData(), json);
-    bool reverted = saveable.drawControls(
+    bool reverted = drawSaveControls(
+        saveable,
         level.getPath(),
         json,
         [&level] { level.save(); },

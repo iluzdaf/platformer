@@ -584,8 +584,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
 
     constexpr float GapLeft = 5 * 16.0f;
     constexpr float GapRight = 8 * 16.0f;
-    glm::vec2 start =
-        level.getTileMap().tileToBottomCenterPosition(levelData.playerStartTilePosition);
+    glm::vec2 start = level.getTileMap().feetOnTile(levelData.playerStartTilePosition);
 
     auto runsAtItWith = [&](bool useDash)
     {

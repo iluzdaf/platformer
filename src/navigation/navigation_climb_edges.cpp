@@ -37,7 +37,7 @@ namespace
     glm::vec2 againstTheWall(const TileMap &tileMap, int climbX, int wallX, int footRow)
     {
         float tileSize = static_cast<float>(tileMap.getTileSize());
-        glm::vec2 corner = tileMap.tileToWorldPosition(glm::ivec2(climbX, footRow));
+        glm::vec2 corner = tileMap.topLeftOfTile(glm::ivec2(climbX, footRow));
         return corner + glm::vec2(wallX > climbX ? tileSize : 0.0f, 0.0f);
     }
 

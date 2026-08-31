@@ -45,8 +45,7 @@ namespace
 
             if (descending)
             {
-                glm::ivec2 underfoot =
-                    tileMap.worldToTilePosition(position + glm::vec2(0.0f, 1.0f));
+                glm::ivec2 underfoot = tileMap.tileContaining(position + glm::vec2(0.0f, 1.0f));
                 if (tileMap.validTilePosition(underfoot) &&
                     tileMap.getTileAtTilePosition(underfoot).isSolid())
                 {
@@ -145,7 +144,7 @@ namespace
         int headroom)
     {
         float tileSize = static_cast<float>(tileMap.getTileSize());
-        glm::ivec2 column = tileMap.worldToTilePosition(glm::vec2(x, below));
+        glm::ivec2 column = tileMap.tileContaining(glm::vec2(x, below));
 
         for (int y = column.y + 1; y < tileMap.getHeight(); ++y)
         {
@@ -298,7 +297,7 @@ namespace navigation
                     continue;
 
                 glm::ivec2 underfoot =
-                    tileMap.worldToTilePosition(attempt.path.back() + glm::vec2(0.0f, 1.0f));
+                    tileMap.tileContaining(attempt.path.back() + glm::vec2(0.0f, 1.0f));
                 if (!tileMap.validTilePosition(underfoot) ||
                     !tileMap.getTileAtTilePosition(underfoot).isSolid() ||
                     !canStandOn(tileMap, underfoot, headroom))

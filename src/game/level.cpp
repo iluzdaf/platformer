@@ -198,9 +198,7 @@ std::optional<std::pair<glm::vec2, glm::vec2>> Level::patrolFor(const NpcSpawnDa
     if (!spawn.patrol)
         return std::nullopt;
 
-    return std::pair(
-        tileMap.tileToBottomCenterPosition(spawn.patrol->from),
-        tileMap.tileToBottomCenterPosition(spawn.patrol->to));
+    return std::pair(tileMap.feetOnTile(spawn.patrol->from), tileMap.feetOnTile(spawn.patrol->to));
 }
 
 const std::vector<NamedNavigationGraph> &Level::getGraphs() const
@@ -238,11 +236,11 @@ glm::ivec2 Level::beatEndAt(const NpcSpawnData &spawn, glm::ivec2 tilePosition) 
         throw std::runtime_error("Tile coordinates out of bounds");
 
     const NavigationGraph &graph = graphForNpc(spawn);
-    glm::vec2 asked = tileMap.tileToBottomCenterPosition(tilePosition);
+    glm::vec2 asked = tileMap.feetOnTile(tilePosition);
     if (!nodeUnderfoot(graph, asked))
         return tilePosition;
 
-    return tileMap.bottomCenterToTilePosition(placeOnTheRun(graph, asked));
+    return tileMap.tileStoodOnAt(placeOnTheRun(graph, asked));
 }
 
 std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
@@ -252,8 +250,7 @@ std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
 
     const NpcSpawnData &spawn = npcs[index];
     const NavigationGraph &graph = graphForNpc(spawn);
-    std::optional<int> standing =
-        nearestNodeTo(graph, tileMap.tileToBottomCenterPosition(spawn.tilePosition));
+    std::optional<int> standing = nearestNodeTo(graph, tileMap.feetOnTile(spawn.tilePosition));
     if (!standing)
         return std::nullopt;
 
@@ -268,8 +265,8 @@ std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
     }
 
     return PatrolData{
-        tileMap.bottomCenterToTilePosition(graph.getNode(leftmost).position),
-        tileMap.bottomCenterToTilePosition(graph.getNode(rightmost).position)};
+        tileMap.tileStoodOnAt(graph.getNode(leftmost).position),
+        tileMap.tileStoodOnAt(graph.getNode(rightmost).position)};
 }
 
 glm::ivec2 Level::getPlayerStartTile() const

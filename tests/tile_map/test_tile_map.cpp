@@ -152,12 +152,12 @@ TEST_CASE("TileMap calculates world dimensions correctly", "[TileMap]")
     REQUIRE(tileMap.getWorldHeight() == 10 * 16);
 }
 
-TEST_CASE("TileMap worldToTilePositions returns correct tile coordinates", "[TileMap]")
+TEST_CASE("TileMap tilesOverlapping returns correct tile coordinates", "[TileMap]")
 {
     TileMap tileMap = setupTileMap();
     glm::vec2 worldPosition(15.0f, 15.0f);
     glm::vec2 size(16.0f, 16.0f);
-    auto positions = tileMap.worldToTilePositions(worldPosition, size);
+    auto positions = tileMap.tilesOverlapping(worldPosition, size);
     std::vector<glm::ivec2> expected = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
 
     REQUIRE(positions == expected);
@@ -180,10 +180,31 @@ TEST_CASE("TileMap names the spot an actor stands on inside a tile", "[TileMap]"
 {
     TileMap tileMap = setupTileMap();
 
-    glm::vec2 standingIn = tileMap.tileToBottomCenterPosition(glm::ivec2(3, 4));
+    glm::vec2 standingIn = tileMap.feetOnTile(glm::ivec2(3, 4));
 
     REQUIRE(standingIn.x == 3 * 16.0f + 8.0f);
     REQUIRE(standingIn.y == 5 * 16.0f);
+}
+
+TEST_CASE("The two corners of a tile say which corner they are", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+    glm::ivec2 tilePosition(3, 4);
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+
+    glm::vec2 corner = tileMap.topLeftOfTile(tilePosition);
+    glm::vec2 feet = tileMap.feetOnTile(tilePosition);
+
+    REQUIRE(feet - corner == glm::vec2(tileSize * 0.5f, tileSize));
+}
+
+TEST_CASE("The tile containing a point is not the tile stood on at it", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+    glm::vec2 feet = tileMap.feetOnTile(glm::ivec2(3, 4));
+
+    REQUIRE(tileMap.tileStoodOnAt(feet) == glm::ivec2(3, 4));
+    REQUIRE(tileMap.tileContaining(feet) == glm::ivec2(3, 5));
 }
 
 TEST_CASE("TileMap names the tile an actor standing somewhere is on", "[TileMap]")
@@ -191,9 +212,7 @@ TEST_CASE("TileMap names the tile an actor standing somewhere is on", "[TileMap]
     TileMap tileMap = setupTileMap();
     glm::ivec2 tilePosition(3, 4);
 
-    REQUIRE(
-        tileMap.bottomCenterToTilePosition(tileMap.tileToBottomCenterPosition(tilePosition)) ==
-        tilePosition);
+    REQUIRE(tileMap.tileStoodOnAt(tileMap.feetOnTile(tilePosition)) == tilePosition);
 }
 
 TEST_CASE("A spot on a tile's edge belongs to the tile it is the edge of", "[TileMap]")
@@ -202,7 +221,7 @@ TEST_CASE("A spot on a tile's edge belongs to the tile it is the edge of", "[Til
     float rightEdge = static_cast<float>(tileMap.getWidth() * tileMap.getTileSize());
     float floorSurface = static_cast<float>(tileMap.getHeight() * tileMap.getTileSize());
 
-    glm::ivec2 corner = tileMap.bottomCenterToTilePosition(glm::vec2(rightEdge, floorSurface));
+    glm::ivec2 corner = tileMap.tileStoodOnAt(glm::vec2(rightEdge, floorSurface));
 
     REQUIRE(tileMap.validTilePosition(corner));
     REQUIRE(corner == glm::ivec2(tileMap.getWidth() - 1, tileMap.getHeight() - 1));

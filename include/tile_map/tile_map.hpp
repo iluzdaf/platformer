@@ -17,8 +17,8 @@ public:
     void setTileIndex(glm::ivec2 tilePosition, int tileIndex);
     void setTileIndexAt(glm::vec2 worldPosition, int tileIndex);
     int tilePositionToTileIndex(glm::ivec2 tilePosition) const;
-    int worldPositionToTileIndex(glm::vec2 worldPosition) const;
-    glm::ivec2 worldToTilePosition(glm::vec2 worldPosition) const;
+    int tileIndexAt(glm::vec2 worldPosition) const;
+    glm::ivec2 tileContaining(glm::vec2 worldPosition) const;
     const Tile &getTile(int tileIndex) const;
     const Tile &getTileAtTilePosition(glm::ivec2 tilePosition) const;
     const Tile &getTileAtWorldPosition(glm::vec2 worldPosition) const;
@@ -28,10 +28,10 @@ public:
     int getWorldHeight() const;
     int getTileSize() const;
     void update(float deltaTime);
-    std::vector<glm::ivec2> worldToTilePositions(glm::vec2 worldPosition, glm::vec2 size) const;
-    glm::vec2 tileToWorldPosition(glm::ivec2 tilePosition) const;
-    glm::vec2 tileToBottomCenterPosition(glm::ivec2 tilePosition) const;
-    glm::ivec2 bottomCenterToTilePosition(glm::vec2 worldPosition) const;
+    std::vector<glm::ivec2> tilesOverlapping(glm::vec2 worldPosition, glm::vec2 size) const;
+    glm::vec2 topLeftOfTile(glm::ivec2 tilePosition) const;
+    glm::vec2 feetOnTile(glm::ivec2 tilePosition) const;
+    glm::ivec2 tileStoodOnAt(glm::vec2 worldPosition) const;
     bool standsOnGround(glm::ivec2 tilePosition) const;
     const std::unordered_map<int, Tile> &getTiles() const;
     TileMapData toTileMapData() const;

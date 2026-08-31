@@ -27,7 +27,7 @@ public:
         Level &level,
         const std::vector<std::unique_ptr<Npc>> &npcs,
         const ActorMotionState &playerMotionState,
-        const glm::vec2 &playerPosition,
+        const glm::vec2 &playerFeet,
         const ActorState &playerState,
         const Texture2D &tileSet,
         const GameData &gameData,

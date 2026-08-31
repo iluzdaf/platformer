@@ -116,7 +116,7 @@ void EditorUi::draw(
             subject.level,
             subject.npcs,
             subject.playerMotionState,
-            subject.playerPosition,
+            subject.playerFeet,
             subject.playerState,
             subject.tileSet,
             subject.gameData,

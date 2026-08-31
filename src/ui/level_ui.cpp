@@ -78,7 +78,7 @@ void LevelUi::draw(
     Level &level,
     const std::vector<std::unique_ptr<Npc>> &npcs,
     const ActorMotionState &playerMotionState,
-    const glm::vec2 &playerPosition,
+    const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const Texture2D &tileSet,
     const GameData &gameData,
@@ -113,7 +113,7 @@ void LevelUi::draw(
             level,
             npcs,
             playerMotionState,
-            playerPosition,
+            playerFeet,
             playerState,
             gameData.npcData,
             showingActor,
@@ -254,7 +254,7 @@ void LevelUi::update(
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = imGuiManager.screenToWorld(
         mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
-    glm::ivec2 tilePosition = level.getTileMap().worldToTilePosition(worldPosition);
+    glm::ivec2 tilePosition = level.getTileMap().tileContaining(worldPosition);
     if (!level.getTileMap().validTilePosition(tilePosition))
         return;
 

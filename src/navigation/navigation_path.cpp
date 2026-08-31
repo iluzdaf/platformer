@@ -193,6 +193,27 @@ std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::ve
     return standingOn ? standingOn : nearestNodeTo(navigationGraph, position);
 }
 
+glm::vec2 placeOnTheRun(const NavigationGraph &navigationGraph, glm::vec2 asked)
+{
+    std::optional<int> standing = nodeUnderfoot(navigationGraph, asked);
+    if (!standing)
+        return asked;
+
+    glm::vec2 anchor = navigationGraph.getNode(*standing).position;
+    float leftEnd = anchor.x, rightEnd = anchor.x;
+    for (int id : walkableFrom(navigationGraph, *standing))
+    {
+        glm::vec2 node = navigationGraph.getNode(id).position;
+        if (std::abs(node.y - anchor.y) > SurfaceTolerance)
+            continue;
+
+        leftEnd = std::min(leftEnd, node.x);
+        rightEnd = std::max(rightEnd, node.x);
+    }
+
+    return glm::vec2(std::clamp(asked.x, leftEnd, rightEnd), anchor.y);
+}
+
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)
 {
     std::optional<int> from = nodeUnderfoot(navigationGraph, here);

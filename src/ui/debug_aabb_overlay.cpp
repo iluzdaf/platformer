@@ -184,23 +184,30 @@ void drawSpawnOf(
         return;
 
     const NavigationGraph &graph = level.graphForNpc(spawn);
-    std::optional<int> fromId = nearestNodeTo(graph, beat->first);
-    std::optional<int> toId = nearestNodeTo(graph, beat->second);
+    glm::vec2 setsOffFrom = placeOnTheRun(graph, beat->first);
+    glm::vec2 turnsRoundAt = placeOnTheRun(graph, beat->second);
+    std::optional<int> fromId = nodeUnderfoot(graph, setsOffFrom);
+    std::optional<int> toId = nodeUnderfoot(graph, turnsRoundAt);
     if (!fromId || !toId)
         return;
 
-    auto onScreen = [&](int id)
-    {
-        return imGuiManager.worldToScreen(
-            graph.getNode(id).position, camera.getZoom(), camera.getTopLeftPosition());
-    };
+    auto onScreen = [&](glm::vec2 position)
+    { return imGuiManager.worldToScreen(position, camera.getZoom(), camera.getTopLeftPosition()); };
 
     std::vector<int> route = findPath(graph, *fromId, *toId);
-    for (std::size_t step = 1; step < route.size(); ++step)
-        drawList->AddLine(onScreen(route[step - 1]), onScreen(route[step]), SpawnColor);
+    if (*fromId == *toId || !route.empty())
+    {
+        std::vector<glm::vec2> corners{setsOffFrom};
+        for (std::size_t step = 1; step + 1 < route.size(); ++step)
+            corners.push_back(graph.getNode(route[step]).position);
+        corners.push_back(turnsRoundAt);
 
-    drawList->AddCircleFilled(onScreen(*fromId), BeatEndRadius, OriginColour);
-    drawList->AddCircleFilled(onScreen(*toId), BeatEndRadius, DestinationColour);
+        for (std::size_t step = 1; step < corners.size(); ++step)
+            drawList->AddLine(onScreen(corners[step - 1]), onScreen(corners[step]), SpawnColor);
+    }
+
+    drawList->AddCircleFilled(onScreen(setsOffFrom), BeatEndRadius, OriginColour);
+    drawList->AddCircleFilled(onScreen(turnsRoundAt), BeatEndRadius, DestinationColour);
 }
 
 void drawContactProbes(

@@ -188,3 +188,42 @@ TEST_CASE("A beat against a graph with no nodes cannot be walked", "[NavigationP
 
     REQUIRE_FALSE(canPatrolBetween(navigationGraph, {16.0f, 192.0f}, {112.0f, 192.0f}));
 }
+
+TEST_CASE("A place on a run keeps the spot asked for", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    REQUIRE(placeOnTheRun(navigationGraph, {88.0f, 96.0f}) == glm::vec2(88.0f, 96.0f));
+}
+
+TEST_CASE("A place past the end of a run is the end of it", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    REQUIRE(placeOnTheRun(navigationGraph, {400.0f, 96.0f}) == glm::vec2(112.0f, 96.0f));
+    REQUIRE(placeOnTheRun(navigationGraph, {-40.0f, 96.0f}) == glm::vec2(16.0f, 96.0f));
+}
+
+TEST_CASE("A place stays on the run it was asked about", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    navigationGraph.addNode(2, {64.0f, 128.0f});
+    navigationGraph.addNode(3, {160.0f, 128.0f});
+    navigationGraph.addEdge(2, 3, EdgeType::Walk);
+    navigationGraph.addEdge(3, 2, EdgeType::Walk);
+
+    REQUIRE(placeOnTheRun(navigationGraph, {72.0f, 96.0f}).y == 96.0f);
+    REQUIRE(placeOnTheRun(navigationGraph, {72.0f, 128.0f}).y == 128.0f);
+}

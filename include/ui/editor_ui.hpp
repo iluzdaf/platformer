@@ -11,7 +11,7 @@
 #include "ui/npc_types_ui.hpp"
 #include "ui/playback_ui.hpp"
 #include "ui/player_ui.hpp"
-#include "ui/brush.hpp"
+#include "ui/armed.hpp"
 #include "ui/level_ui.hpp"
 #include "ui/levels_ui.hpp"
 #include "ui/tile_palettes_ui.hpp"
@@ -75,5 +75,5 @@ private:
     LevelUi levelUi;
     TilePalettesUi tilePalettesUi;
     LevelsUi levelsUi;
-    std::optional<Brush> brush;
+    std::optional<Armed> armed;
 };

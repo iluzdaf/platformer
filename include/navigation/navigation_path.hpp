@@ -14,6 +14,8 @@ std::vector<int> walkableFrom(const NavigationGraph &navigationGraph, int fromId
 
 std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::vec2 position);
 
+std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::vec2 position);
+
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there);
 
 bool canPatrolBetween(const NavigationGraph &navigationGraph, glm::vec2 from, glm::vec2 to);

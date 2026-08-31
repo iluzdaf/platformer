@@ -1,3 +1,31 @@
+#include <algorithm>
+#include <vector>
+#include <catch2/catch_test_macros.hpp>
+#include "test_helpers/test_tile_map_utils.hpp"
+#include "tile_map/tile_map.hpp"
+#include "tile_map/tile_palette.hpp"
+#include "ui/tile_picker.hpp"
+
+TEST_CASE("The tile picker offers a level's tiles in tile set order", "[TilePicker]")
+{
+    TileMap tileMap = setupTileMap(10, 10, 16, shippedPalettes().at("default"));
+
+    std::vector<int> offered = tilesToPickFrom(tileMap);
+
+    REQUIRE_FALSE(offered.empty());
+    REQUIRE(std::is_sorted(offered.begin(), offered.end()));
+}
+
+TEST_CASE("The tile picker offers every tile the level knows about once", "[TilePicker]")
+{
+    TileMap tileMap = setupTileMap(10, 10, 16, shippedPalettes().at("default"));
+
+    std::vector<int> offered = tilesToPickFrom(tileMap);
+
+    REQUIRE(offered.size() == tileMap.getTiles().size());
+    REQUIRE(std::adjacent_find(offered.begin(), offered.end()) == offered.end());
+}
+
 #ifndef SKIP_OPENGL_TESTS
 #include <cstddef>
 #include <optional>
@@ -7,24 +35,16 @@
 #include "rendering/texture2d.hpp"
 #include "test_helpers/asset_path.hpp"
 #include "test_helpers/headless_imgui.hpp"
-#include "ui/brush.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/editor_ui.hpp"
 
 namespace
 {
-    float heightOfPicker(
-        HeadlessImGui &gui,
-        const Texture2D &tileSet,
-        float width,
-        int tileCount,
-        bool withPlayerStart = false)
+    float heightOfPicker(HeadlessImGui &gui, const Texture2D &tileSet, float width, int tileCount)
     {
-        std::vector<Brush> brushes;
+        std::vector<int> tileIndices;
         for (int tileIndex = 0; tileIndex < tileCount; ++tileIndex)
-            brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
-        if (withPlayerStart)
-            brushes.push_back(Brush{Brush::Kind::PlayerStart, 0});
+            tileIndices.push_back(tileIndex);
 
         float height = 0.0f;
         gui.frame(
@@ -32,7 +52,7 @@ namespace
             {
                 ImGui::BeginChild("picker", ImVec2(width, 600.0f));
                 float before = ImGui::GetCursorPosY();
-                drawTilePicker(tileSet, 16, brushes, std::nullopt);
+                drawTilePicker(tileSet, 16, tileIndices, std::nullopt);
                 height = ImGui::GetCursorPosY() - before;
                 ImGui::EndChild();
             });
@@ -40,21 +60,16 @@ namespace
         return height;
     }
 
-    int rowsOfPicker(
-        HeadlessImGui &gui,
-        const Texture2D &tileSet,
-        float width,
-        int tileCount,
-        bool withPlayerStart = false)
+    int rowsOfPicker(HeadlessImGui &gui, const Texture2D &tileSet, float width, int tileCount)
     {
         float oneRow = heightOfPicker(gui, tileSet, width, 1);
-        float height = heightOfPicker(gui, tileSet, width, tileCount, withPlayerStart);
+        float height = heightOfPicker(gui, tileSet, width, tileCount);
 
         return static_cast<int>(height / oneRow + 0.5f);
     }
 }
 
-TEST_CASE("The brush picker fills the width it is given", "[BrushPicker]")
+TEST_CASE("The tile picker fills the width it is given", "[TilePicker]")
 {
     HeadlessImGui gui;
     Texture2D tileSet(assetPath("textures/tile_set.png"));
@@ -65,7 +80,7 @@ TEST_CASE("The brush picker fills the width it is given", "[BrushPicker]")
     REQUIRE(narrow > wide);
 }
 
-TEST_CASE("The brush picker puts everything on one row when it fits", "[BrushPicker]")
+TEST_CASE("The tile picker puts everything on one row when it fits", "[TilePicker]")
 {
     HeadlessImGui gui;
     Texture2D tileSet(assetPath("textures/tile_set.png"));
@@ -73,7 +88,7 @@ TEST_CASE("The brush picker puts everything on one row when it fits", "[BrushPic
     REQUIRE(rowsOfPicker(gui, tileSet, 1000.0f, 12) == 1);
 }
 
-TEST_CASE("The brush picker wraps rather than overflowing a narrow panel", "[BrushPicker]")
+TEST_CASE("The tile picker wraps rather than overflowing a narrow panel", "[TilePicker]")
 {
     HeadlessImGui gui;
     Texture2D tileSet(assetPath("textures/tile_set.png"));
@@ -81,16 +96,7 @@ TEST_CASE("The brush picker wraps rather than overflowing a narrow panel", "[Bru
     REQUIRE(rowsOfPicker(gui, tileSet, 100.0f, 12) > 4);
 }
 
-TEST_CASE("The player start sits in the grid with the tiles", "[BrushPicker]")
-{
-    HeadlessImGui gui;
-    Texture2D tileSet(assetPath("textures/tile_set.png"));
-
-    REQUIRE(rowsOfPicker(gui, tileSet, 1000.0f, 12, true) == 1);
-    REQUIRE(rowsOfPicker(gui, tileSet, 200.0f, 12, true) >= rowsOfPicker(gui, tileSet, 200.0f, 12));
-}
-
-TEST_CASE("The brush picker does not reflow when the editor gains a scrollbar", "[BrushPicker]")
+TEST_CASE("The tile picker does not reflow when the editor gains a scrollbar", "[TilePicker]")
 {
     HeadlessImGui gui;
     Texture2D tileSet(assetPath("textures/tile_set.png"));

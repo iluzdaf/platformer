@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 #include <tuple>
+#include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
 #include "ui/debug_aabb_overlay.hpp"
@@ -11,7 +12,7 @@
 #include "ui/actors_in_level.hpp"
 #include "ui/save_controls.hpp"
 #include "ui/tile_picker.hpp"
-#include "ui/brush.hpp"
+#include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
 #include "rendering/texture2d.hpp"
 #include "ui/imgui_manager.hpp"
@@ -71,13 +72,6 @@ namespace
             ImGui::TextDisabled("nothing set");
     }
 
-    std::optional<int> tileOf(const std::optional<Brush> &brush)
-    {
-        if (!brush || brush->kind != Brush::Kind::Tile)
-            return std::nullopt;
-
-        return brush->tileIndex;
-    }
 }
 
 void LevelUi::draw(
@@ -88,7 +82,7 @@ void LevelUi::draw(
     const ActorState &playerState,
     const Texture2D &tileSet,
     const GameData &gameData,
-    std::optional<Brush> &brush,
+    std::optional<Armed> &armed,
     EditorCommands &commands)
 {
     if (ImGui::CollapsingHeader("State", ImGuiTreeNodeFlags_DefaultOpen))
@@ -109,11 +103,12 @@ void LevelUi::draw(
     drawLevel(level, commands);
 
     ImGui::Separator();
-    drawBrush(level, tileSet, gameData, brush);
+    drawTiles(level, tileSet, gameData, armed);
 
     ImGui::Separator();
     if (ImGui::CollapsingHeader("Actors", ImGuiTreeNodeFlags_DefaultOpen))
     {
+        ActorShown wasShowing = showingActor;
         ActorAsked asked = drawActorsInLevel(
             level,
             npcs,
@@ -121,21 +116,32 @@ void LevelUi::draw(
             playerPosition,
             playerState,
             gameData.npcData,
-            showingActor);
+            showingActor,
+            armed);
 
         if (asked.addNpcOfType)
         {
             level.addNpc(
                 NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt});
-            showingActor = ActorShown{ActorShown::What::Npc, level.getNpcs().size() - 1};
+
+            std::size_t placed = level.getNpcs().size() - 1;
+            if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
+                level.setNpcPatrol(placed, *run);
+
+            showingActor = ActorShown{ActorShown::What::Npc, placed};
         }
         else if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
         {
             level.removeNpc(showingActor.npcIndex);
             showingActor = ActorShown{};
         }
+        else if (asked.clearShownBeat && showingActor.what == ActorShown::What::Npc)
+            level.clearNpcPatrol(showingActor.npcIndex);
         else
             showingActor = asked.show;
+
+        if (showingActor != wasShowing)
+            armed.reset();
     }
 }
 
@@ -182,22 +188,22 @@ void LevelUi::drawOverlayToggles()
     navigationUi.drawOverlayToggles();
 }
 
-void LevelUi::drawBrush(
+void LevelUi::drawTiles(
     Level &level,
     const Texture2D &tileSet,
     const GameData &gameData,
-    std::optional<Brush> &brush)
+    std::optional<Armed> &armed)
 {
     if (!ImGui::CollapsingHeader("Tiles", ImGuiTreeNodeFlags_DefaultOpen))
         return;
 
-    std::vector<Brush> brushes;
-    for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())
-        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
-    brushes.push_back(Brush{Brush::Kind::PlayerStart, 0});
+    std::vector<int> tileIndices = tilesToPickFrom(level.getTileMap());
 
-    brush = drawTilePicker(tileSet, level.getTileMap().getTileSize(), brushes, brush);
-    std::optional<int> picked = tileOf(brush);
+    std::optional<int> showing = paintedTile(armed);
+    std::optional<int> picked =
+        drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, showing);
+    if (picked != showing)
+        armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
 
     const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
     if (picked && palette.contains(*picked))
@@ -240,8 +246,11 @@ void LevelUi::update(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     Level &level,
-    std::optional<Brush> &brush)
+    std::optional<Armed> &armed)
 {
+    if (!armed || imGuiManager.getIO().WantCaptureMouse)
+        return;
+
     ImVec2 mouseScreenPosition = ImGui::GetMousePos();
     glm::vec2 worldPosition = imGuiManager.screenToWorld(
         mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
@@ -249,25 +258,56 @@ void LevelUi::update(
     if (!level.getTileMap().validTilePosition(tilePosition))
         return;
 
-    if (!brush || !ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
-        imGuiManager.getIO().WantCaptureMouse)
-        return;
-
-    switch (brush->kind)
+    if (const PaintTile *painting = std::get_if<PaintTile>(&*armed))
     {
-    case Brush::Kind::PlayerStart:
-        level.setPlayerStartTile(tilePosition);
-        brush.reset();
-        break;
+        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            return;
 
-    case Brush::Kind::Tile:
-        if (level.getTileMap().tilePositionToTileIndex(tilePosition) != brush->tileIndex)
+        if (level.getTileMap().tilePositionToTileIndex(tilePosition) != painting->tileIndex)
         {
-            level.getTileMap().setTileIndex(tilePosition, brush->tileIndex);
+            level.getTileMap().setTileIndex(tilePosition, painting->tileIndex);
             level.rebuildGraphs();
         }
+
+        return;
+    }
+
+    if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        return;
+
+    PickTile picking = std::get<PickTile>(*armed);
+    if (picking.what != PickTile::For::PlayerStart && picking.npcIndex >= level.getNpcs().size())
+    {
+        armed.reset();
+        return;
+    }
+
+    switch (picking.what)
+    {
+    case PickTile::For::PlayerStart:
+        level.setPlayerStartTile(tilePosition);
+        break;
+
+    case PickTile::For::NpcSpawn:
+        level.setNpcSpawnTile(picking.npcIndex, tilePosition);
+        break;
+
+    case PickTile::For::PatrolFrom:
+    case PickTile::For::PatrolTo: {
+        const NpcSpawnData &spawn = level.getNpcs()[picking.npcIndex];
+        glm::ivec2 standing = level.beatEndAt(spawn, tilePosition);
+        PatrolData patrol = spawn.patrol.value_or(PatrolData{standing, standing});
+        if (picking.what == PickTile::For::PatrolFrom)
+            patrol.from = standing;
+        else
+            patrol.to = standing;
+
+        level.setNpcPatrol(picking.npcIndex, patrol);
         break;
     }
+    }
+
+    armed.reset();
 }
 
 void LevelUi::valuesReplaced()

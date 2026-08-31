@@ -5,10 +5,13 @@
 #include <exception>
 #include <string>
 #include <map>
+#include <optional>
 #include <utility>
 #include <vector>
 #include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_path.hpp"
+#include "tile_map/tile_map.hpp"
 #include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/level.hpp"
@@ -84,6 +87,47 @@ namespace
             corridorPlacing(npcs),
             palettesFrom(getDefaultTileDataMap()),
             playerData,
+            theUsualNpcs());
+    }
+
+    constexpr int LedgeMapTiles = 14;
+    constexpr int LedgeMapRows = 13;
+    constexpr int LedgeGroundRow = 11;
+    constexpr int LedgeRow = 5;
+    constexpr int LedgeFirstTile = 0;
+    constexpr int LedgeLastTile = 6;
+    constexpr int BelowRow = 7;
+    constexpr int BelowFirstTile = 4;
+    constexpr int BelowLastTile = 9;
+    constexpr glm::ivec2 OnTheLedge{3, LedgeRow - 1};
+
+    Level levelWithALedge(const std::vector<NpcSpawnData> &npcs)
+    {
+        LevelData levelData;
+        levelData.tileMapData.size = 16;
+        levelData.tileMapData.indices =
+            std::vector<std::vector<int>>(LedgeMapRows, std::vector<int>(LedgeMapTiles, 0));
+        std::vector<std::vector<int>> &indices = *levelData.tileMapData.indices;
+
+        for (int x = 0; x < LedgeMapTiles; ++x)
+        {
+            indices[LedgeGroundRow][x] = 1;
+            indices[LedgeGroundRow + 1][x] = 1;
+        }
+
+        for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
+            indices[LedgeRow][x] = 1;
+
+        for (int x = BelowFirstTile; x <= BelowLastTile; ++x)
+            indices[BelowRow][x] = 1;
+
+        levelData.playerStartTilePosition = glm::ivec2(1, LedgeGroundRow - 1);
+        levelData.npcs = npcs;
+
+        return Level(
+            levelData,
+            palettesFrom(getDefaultTileDataMap()),
+            playerOfHeight(13.0f),
             theUsualNpcs());
     }
 
@@ -290,4 +334,181 @@ TEST_CASE("An npc removed is gone from what the level would save", "[Level]")
     level.removeNpc(0);
 
     REQUIRE(level.toLevelData().npcs.empty());
+}
+
+TEST_CASE("An npc can be moved to another tile", "[Level]")
+{
+    glm::ivec2 elsewhere(4, FloorRow - 1);
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    level.setNpcSpawnTile(0, elsewhere);
+
+    REQUIRE(level.getNpcs().front().tilePosition == elsewhere);
+    REQUIRE(level.toLevelData().npcs.front().tilePosition == elsewhere);
+}
+
+TEST_CASE("A level refuses to move an npc it does not have", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    REQUIRE_THROWS_WITH(
+        level.setNpcSpawnTile(0, StandingTile), "Cannot move an npc the level does not have");
+}
+
+TEST_CASE("A level refuses to move an npc off the map", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    REQUIRE_THROWS(level.setNpcSpawnTile(0, glm::ivec2(-1, 0)));
+    REQUIRE(level.getNpcs().front().tilePosition == StandingTile);
+}
+
+TEST_CASE("An npc can be given a beat it did not have", "[Level]")
+{
+    glm::ivec2 other(4, FloorRow - 1);
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+    REQUIRE_FALSE(level.getNpcs().front().patrol);
+
+    level.setNpcPatrol(0, PatrolData{StandingTile, other});
+
+    REQUIRE(level.getNpcs().front().patrol == PatrolData{StandingTile, other});
+    REQUIRE(level.toLevelData().npcs.front().patrol == PatrolData{StandingTile, other});
+}
+
+TEST_CASE("A level refuses a beat that leaves the map", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    REQUIRE_THROWS(level.setNpcPatrol(0, PatrolData{StandingTile, glm::ivec2(-1, 0)}));
+    REQUIRE_FALSE(level.getNpcs().front().patrol);
+}
+
+TEST_CASE("A level refuses to give a beat to an npc it does not have", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    REQUIRE_THROWS_WITH(
+        level.setNpcPatrol(0, PatrolData{StandingTile, StandingTile}),
+        "Cannot give a beat to an npc the level does not have");
+}
+
+TEST_CASE("An npc can be left with no beat at all", "[Level]")
+{
+    glm::ivec2 other(4, FloorRow - 1);
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+    level.setNpcPatrol(0, PatrolData{StandingTile, other});
+
+    level.clearNpcPatrol(0);
+
+    REQUIRE_FALSE(level.getNpcs().front().patrol);
+    REQUIRE_FALSE(level.toLevelData().npcs.front().patrol);
+}
+
+TEST_CASE("A level refuses to clear the beat of an npc it does not have", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    REQUIRE_THROWS_WITH(
+        level.clearNpcPatrol(0), "Cannot clear the beat of an npc the level does not have");
+}
+
+TEST_CASE("An npc of a type the level had none of still gets a graph", "[Level]")
+{
+    Level level = levelPlacing({});
+    REQUIRE(level.getGraphs().size() == 1);
+
+    level.addNpc(spawnAt("tall", StandingTile));
+
+    REQUIRE_NOTHROW(level.graphForNpc(level.getNpcs().front()));
+    REQUIRE(level.getGraphs().size() == 2);
+}
+
+TEST_CASE("A level refuses an npc of a type it has never heard of", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    REQUIRE_THROWS(level.addNpc(spawnAt("dragon", StandingTile)));
+    REQUIRE(level.getNpcs().empty());
+}
+
+TEST_CASE("The run beneath an npc reaches both ends of the floor it stands on", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    std::optional<PatrolData> run = level.runBeneathNpc(0);
+
+    REQUIRE(run);
+    REQUIRE(run->from.y == FloorRow - 1);
+    REQUIRE(run->to.y == FloorRow - 1);
+    REQUIRE(run->from.x < StandingTile.x);
+    REQUIRE(run->to.x > StandingTile.x);
+}
+
+TEST_CASE("The run beneath an npc names tiles the beat can be saved as", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    std::optional<PatrolData> run = level.runBeneathNpc(0);
+
+    REQUIRE(run);
+    REQUIRE_NOTHROW(level.setNpcPatrol(0, *run));
+    REQUIRE(level.getNpcs().front().patrol == run);
+}
+
+TEST_CASE("A level refuses to look under an npc it does not have", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    REQUIRE_THROWS_WITH(level.runBeneathNpc(0), "Cannot look under an npc the level does not have");
+}
+
+TEST_CASE("A beat end picked on a ledge stays on that ledge", "[Level]")
+{
+    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
+    const NpcSpawnData &spawn = level.getNpcs().front();
+
+    for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
+        REQUIRE(level.beatEndAt(spawn, glm::ivec2(x, LedgeRow - 1)).y == LedgeRow - 1);
+}
+
+TEST_CASE("A beat end picked on a ledge names a tile of that ledge", "[Level]")
+{
+    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
+    const NpcSpawnData &spawn = level.getNpcs().front();
+
+    for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
+    {
+        glm::ivec2 landed = level.beatEndAt(spawn, glm::ivec2(x, LedgeRow - 1));
+        REQUIRE(landed.x >= LedgeFirstTile);
+        REQUIRE(landed.x <= LedgeLastTile);
+    }
+}
+
+TEST_CASE("What a beat end is saved as is what the npc walks to", "[Level]")
+{
+    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
+    const NpcSpawnData &spawn = level.getNpcs().front();
+    const NavigationGraph &graph = level.graphForNpc(spawn);
+    const TileMap &tileMap = level.getTileMap();
+
+    for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
+    {
+        glm::ivec2 clicked(x, LedgeRow - 1);
+        std::optional<int> shown =
+            nodeUnderfoot(graph, tileMap.tileToBottomCenterPosition(clicked));
+        REQUIRE(shown);
+
+        glm::ivec2 saved = level.beatEndAt(spawn, clicked);
+        std::optional<int> walkedTo =
+            nearestNodeTo(graph, tileMap.tileToBottomCenterPosition(saved));
+
+        REQUIRE(walkedTo == shown);
+    }
+}
+
+TEST_CASE("A level refuses a beat end off the map", "[Level]")
+{
+    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
+
+    REQUIRE_THROWS(level.beatEndAt(level.getNpcs().front(), glm::ivec2(-1, 0)));
 }

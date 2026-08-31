@@ -12,8 +12,6 @@
 namespace
 {
     constexpr unsigned int NodeColour = IM_COL32(0, 255, 0, 255);
-    constexpr unsigned int OriginColour = IM_COL32(0, 255, 0, 255);
-    constexpr unsigned int DestinationColour = IM_COL32(0, 200, 255, 255);
     constexpr unsigned int WallNodeColour = IM_COL32(0, 255, 255, 255);
 
     void drawNode(

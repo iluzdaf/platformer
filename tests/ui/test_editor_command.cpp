@@ -8,7 +8,7 @@ TEST_CASE("An editor command does nothing when it is asked", "[EditorCommand]")
 {
     EditorCommand<> command;
     int handled = 0;
-    auto connection = command.connect([&] { ++handled; });
+    command.connect([&] { ++handled; });
 
     command();
 
@@ -19,7 +19,7 @@ TEST_CASE("An editor command is delivered when the frame drains it", "[EditorCom
 {
     EditorCommand<const std::string &> command;
     std::vector<std::string> handled;
-    auto connection = command.connect([&](const std::string &path) { handled.push_back(path); });
+    command.connect([&](const std::string &path) { handled.push_back(path); });
 
     command("levels/level2.json");
     command.drain();
@@ -31,7 +31,7 @@ TEST_CASE("An editor command is delivered once", "[EditorCommand]")
 {
     EditorCommand<> command;
     int handled = 0;
-    auto connection = command.connect([&] { ++handled; });
+    command.connect([&] { ++handled; });
 
     command();
     command.drain();
@@ -44,7 +44,7 @@ TEST_CASE("An editor command keeps everything asked of it in a frame", "[EditorC
 {
     EditorCommand<const std::string &> command;
     std::vector<std::string> handled;
-    auto connection = command.connect([&](const std::string &path) { handled.push_back(path); });
+    command.connect([&](const std::string &path) { handled.push_back(path); });
 
     command("first");
     command("second");
@@ -59,7 +59,7 @@ TEST_CASE(
 {
     EditorCommand<> command;
     int handled = 0;
-    auto connection = command.connect(
+    command.connect(
         [&]
         {
             ++handled;
@@ -81,9 +81,8 @@ TEST_CASE("Draining the editor commands delivers all of them", "[EditorCommand]"
 {
     EditorCommands commands;
     std::vector<std::string> handled;
-    auto respawn = commands.onRespawn.connect([&] { handled.emplace_back("respawn"); });
-    auto load =
-        commands.onLoadLevel.connect([&](const std::string &path) { handled.push_back(path); });
+    commands.onRespawn.connect([&] { handled.emplace_back("respawn"); });
+    commands.onLoadLevel.connect([&](const std::string &path) { handled.push_back(path); });
 
     commands.onRespawn();
     commands.onLoadLevel("levels/level2.json");
@@ -93,4 +92,21 @@ TEST_CASE("Draining the editor commands delivers all of them", "[EditorCommand]"
     commands.drain();
 
     REQUIRE(handled == std::vector<std::string>{"respawn", "levels/level2.json"});
+}
+
+TEST_CASE("An editor command stays connected when the caller keeps nothing", "[EditorCommand]")
+{
+    EditorCommands commands;
+    int respawns = 0;
+    std::vector<std::string> loaded;
+
+    commands.onRespawn.connect([&respawns] { ++respawns; });
+    commands.onLoadLevel.connect([&loaded](const std::string &path) { loaded.push_back(path); });
+
+    commands.onRespawn();
+    commands.onLoadLevel("levels/level2.json");
+    commands.drain();
+
+    REQUIRE(respawns == 1);
+    REQUIRE(loaded == std::vector<std::string>{"levels/level2.json"});
 }

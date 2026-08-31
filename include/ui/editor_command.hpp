@@ -14,7 +14,7 @@ public:
         requested.emplace_back(args...);
     }
 
-    template <class Handler> fteng::connection connect(Handler &&handler)
+    template <class Handler> fteng::connection_raw connect(Handler &&handler)
     {
         return signal.connect(std::forward<Handler>(handler));
     }

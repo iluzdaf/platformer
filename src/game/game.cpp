@@ -87,6 +87,8 @@ Game::~Game() = default;
 
 void Game::frame(float deltaTime)
 {
+    gameUi.commands().drain();
+
     keyboardManager.poll(window.getHandle());
     if (keyboardManager.isPressed(GLFW_KEY_P))
         playback.isPaused() ? playback.play() : playback.pause();
@@ -117,8 +119,6 @@ void Game::frame(float deltaTime)
     camera.follow(world.getPlayer().getPosition());
 
     render();
-
-    gameUi.commands().drain();
 }
 
 void Game::render()

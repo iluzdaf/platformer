@@ -512,3 +512,31 @@ TEST_CASE("A level refuses a beat end off the map", "[Level]")
 
     REQUIRE_THROWS(level.beatEndAt(level.getNpcs().front(), glm::ivec2(-1, 0)));
 }
+
+TEST_CASE("A beat reaches the outer edges of the tiles it names", "[Level]")
+{
+    NpcSpawnData spawn = spawnAt("short", OnTheLedge);
+    spawn.patrol = PatrolData{glm::ivec2(1, LedgeRow - 1), glm::ivec2(4, LedgeRow - 1)};
+    Level level = levelWithALedge({spawn});
+    float tileSize = static_cast<float>(level.getTileMap().getTileSize());
+
+    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(level.getNpcs().front());
+
+    REQUIRE(beat);
+    REQUIRE(beat->first.x == 1 * tileSize);
+    REQUIRE(beat->second.x == 5 * tileSize);
+}
+
+TEST_CASE("A beat named right to left reaches the same two edges", "[Level]")
+{
+    NpcSpawnData spawn = spawnAt("short", OnTheLedge);
+    spawn.patrol = PatrolData{glm::ivec2(4, LedgeRow - 1), glm::ivec2(1, LedgeRow - 1)};
+    Level level = levelWithALedge({spawn});
+    float tileSize = static_cast<float>(level.getTileMap().getTileSize());
+
+    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(level.getNpcs().front());
+
+    REQUIRE(beat);
+    REQUIRE(beat->first.x == 5 * tileSize);
+    REQUIRE(beat->second.x == 1 * tileSize);
+}

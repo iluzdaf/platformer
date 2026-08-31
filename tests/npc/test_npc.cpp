@@ -747,3 +747,27 @@ TEST_CASE("The shipped explorer climbs the wall above the ledge", "[Npc][Level][
     REQUIRE(cameBackDown);
     REQUIRE(reachedTheTopAt < 270);
 }
+
+TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level]")
+{
+    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(shippedNpcData().at("villager"), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
+    for (int step = 0; step < 3000; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level);
+        leftMost = std::min(leftMost, footOf(npc).x);
+        rightMost = std::max(rightMost, footOf(npc).x);
+    }
+
+    float half = npc.getPhysicsBody().getAABB().size.x * 0.5f;
+    float ledgeLeft = static_cast<float>(LedgeLeftEnd.x * 16);
+    float ledgeRight = static_cast<float>((LedgeLastTile + 1) * 16);
+
+    REQUIRE(leftMost - half < ledgeLeft + 4.0f);
+    REQUIRE(rightMost + half > ledgeRight - 4.0f);
+}

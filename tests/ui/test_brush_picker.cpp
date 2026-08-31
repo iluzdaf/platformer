@@ -22,9 +22,9 @@ namespace
     {
         std::vector<Brush> brushes;
         for (int tileIndex = 0; tileIndex < tileCount; ++tileIndex)
-            brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
+            brushes.push_back(Brush{Brush::Kind::Tile, tileIndex, {}});
         if (withPlayerStart)
-            brushes.push_back(Brush{Brush::Kind::PlayerStart, 0});
+            brushes.push_back(Brush{Brush::Kind::PlayerStart, 0, {}});
 
         float height = 0.0f;
         gui.frame(
@@ -100,5 +100,41 @@ TEST_CASE("The brush picker does not reflow when the editor gains a scrollbar", 
     float scrolling = roomy - style.ScrollbarSize;
 
     REQUIRE(rowsOfPicker(gui, tileSet, roomy, 26) == rowsOfPicker(gui, tileSet, scrolling, 26));
+}
+
+TEST_CASE("Npc brushes take their place in the grid", "[BrushPicker]")
+{
+    HeadlessImGui gui;
+    Texture2D tileSet(assetPath("textures/tile_set.png"));
+
+    std::vector<Brush> tilesOnly;
+    for (int tileIndex = 0; tileIndex < 8; ++tileIndex)
+        tilesOnly.push_back(Brush{Brush::Kind::Tile, tileIndex, {}});
+
+    std::vector<Brush> withNpcs = tilesOnly;
+    withNpcs.push_back(Brush{Brush::Kind::Npc, 0, "explorer"});
+    withNpcs.push_back(Brush{Brush::Kind::Npc, 0, "villager"});
+
+    auto rowsOf = [&](const std::vector<Brush> &brushes)
+    {
+        float oneRow = 0.0f;
+        float height = 0.0f;
+        gui.frame(
+            [&]
+            {
+                ImGui::BeginChild("picker", ImVec2(120.0f, 600.0f));
+                float before = ImGui::GetCursorPosY();
+                drawBrushPicker(tileSet, 16, {brushes.front()}, std::nullopt);
+                oneRow = ImGui::GetCursorPosY() - before;
+                before = ImGui::GetCursorPosY();
+                drawBrushPicker(tileSet, 16, brushes, std::nullopt);
+                height = ImGui::GetCursorPosY() - before;
+                ImGui::EndChild();
+            });
+
+        return static_cast<int>(height / oneRow + 0.5f);
+    };
+
+    REQUIRE(rowsOf(withNpcs) > rowsOf(tilesOnly));
 }
 #endif // SKIP_OPENGL_TESTS

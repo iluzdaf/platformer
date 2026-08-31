@@ -41,6 +41,7 @@ public:
     glm::ivec2 getPlayerStartTile() const;
     const std::string &getNextLevel() const;
     const std::vector<NpcSpawnData> &getNpcs() const;
+    void addNpc(const NpcSpawnData &spawn);
     const std::string &getPath() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
     void setNextLevel(const std::string &levelPath);

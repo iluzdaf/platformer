@@ -225,3 +225,33 @@ TEST_CASE("A graph does not name the same actor twice", "[Level]")
     for (const NamedNavigationGraph &graph : level.getGraphs())
         REQUIRE(graph.name == "player, short");
 }
+
+TEST_CASE("A level takes an npc placed after it was built", "[Level]")
+{
+    Level level = levelPlacing({});
+    REQUIRE(level.getNpcs().empty());
+
+    level.addNpc(spawnAt("short", StandingTile));
+
+    REQUIRE(level.getNpcs().size() == 1);
+    REQUIRE(level.getNpcs().front().tilePosition == StandingTile);
+    REQUIRE(level.getNpcs().front().type == "short");
+}
+
+TEST_CASE("An npc placed after building is part of what the level would save", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    level.addNpc(spawnAt("short", StandingTile));
+
+    REQUIRE(level.toLevelData().npcs == level.getNpcs());
+}
+
+TEST_CASE("A level keeps the npcs it already had when another is placed", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    level.addNpc(spawnAt("short", glm::ivec2(4, FloorRow - 1)));
+
+    REQUIRE(level.getNpcs().size() == 2);
+}

@@ -7,6 +7,7 @@
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
 #include "ui/debug_aabb_overlay.hpp"
+#include "npc/npc_spawn_data.hpp"
 #include "ui/npcs_in_level.hpp"
 #include "ui/save_controls.hpp"
 #include "ui/brush_picker.hpp"
@@ -68,6 +69,15 @@ namespace
 
         if (flags.empty() && !tile.collider && !tile.pickup && !tile.animationData)
             ImGui::TextDisabled("nothing set");
+    }
+
+    bool spawnAt(const Level &level, glm::ivec2 tilePosition)
+    {
+        for (const NpcSpawnData &spawn : level.getNpcs())
+            if (spawn.tilePosition == tilePosition)
+                return true;
+
+        return false;
     }
 
     std::optional<int> tileOf(const std::optional<Brush> &brush)
@@ -158,8 +168,10 @@ void LevelUi::drawTileMap(
 
     std::vector<Brush> brushes;
     for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())
-        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
-    brushes.push_back(Brush{Brush::Kind::PlayerStart, 0});
+        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex, {}});
+    brushes.push_back(Brush{Brush::Kind::PlayerStart, 0, {}});
+    for (const auto &[type, npcData] : gameData.npcData)
+        brushes.push_back(Brush{Brush::Kind::Npc, 0, type});
 
     brush = drawBrushPicker(tileSet, level.getTileMap().getTileSize(), brushes, brush);
     std::optional<int> picked = tileOf(brush);
@@ -232,6 +244,11 @@ void LevelUi::update(
             level.getTileMap().setTileIndex(tilePosition, brush->tileIndex);
             level.rebuildGraphs();
         }
+        break;
+
+    case Brush::Kind::Npc:
+        if (!spawnAt(level, tilePosition))
+            level.addNpc(NpcSpawnData{brush->npcType, tilePosition, std::nullopt});
         break;
     }
 }

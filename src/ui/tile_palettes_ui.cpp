@@ -57,10 +57,10 @@ void TilePalettesUi::draw(
 
     std::vector<Brush> brushes;
     for (int tileIndex : tileIndices)
-        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
+        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex, {}});
 
     std::optional<Brush> armed =
-        showing ? std::optional<Brush>(Brush{Brush::Kind::Tile, *showing}) : std::nullopt;
+        showing ? std::optional<Brush>(Brush{Brush::Kind::Tile, *showing, {}}) : std::nullopt;
     brush = drawBrushPicker(tileSet, tileSize, brushes, armed);
     std::optional<int> picked = brush && brush->kind == Brush::Kind::Tile
                                     ? std::optional<int>(brush->tileIndex)

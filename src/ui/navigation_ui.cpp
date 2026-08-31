@@ -11,7 +11,6 @@
 #include "ui/navigation_overlay.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
-#include "navigation/navigation_node.hpp"
 #include "navigation/named_navigation_graph.hpp"
 #include "game/level.hpp"
 
@@ -33,87 +32,128 @@ namespace
 
         return "?";
     }
+
+    std::string labelOf(const NavigationEdge &edge)
+    {
+        return std::string(nameOf(edge.type)) + " " + std::to_string(edge.fromId) + " to " +
+               std::to_string(edge.toId);
+    }
+
+    std::vector<std::pair<NavigationEdge, bool>> edgesOf(const NavigationGraph &graph, int nodeId)
+    {
+        std::vector<std::pair<NavigationEdge, bool>> edges;
+        for (const NavigationEdge &edge : graph.getOutgoingEdges(nodeId))
+            edges.emplace_back(edge, true);
+
+        for (const NavigationEdge &edge : graph.getEdges())
+            if (edge.toId == nodeId)
+                edges.emplace_back(edge, false);
+
+        std::ranges::sort(
+            edges,
+            [](const auto &left, const auto &right)
+            {
+                const NavigationEdge &leftEdge = left.first;
+                const NavigationEdge &rightEdge = right.first;
+                return std::tie(leftEdge.type, left.second, leftEdge.fromId, leftEdge.toId) <
+                       std::tie(rightEdge.type, right.second, rightEdge.fromId, rightEdge.toId);
+            });
+
+        return edges;
+    }
+
 }
 
 void NavigationUi::drawOverlayToggles()
 {
-    ImGui::Checkbox("Graph", &showNavigation);
-    ImGui::SameLine();
     ImGui::Checkbox("Real Trajectory", &drawTheFlightItself);
 }
 
 void NavigationUi::draw(const Level &level)
 {
+    if (!ImGui::TreeNodeEx("Navigation", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
+
+    drawGraphs(level);
+
+    ImGui::TreePop();
+}
+
+void NavigationUi::drawGraphs(const Level &level)
+{
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
     if (graphs.empty())
     {
-        ImGui::TextDisabled("none");
+        ImGui::TextDisabled("no graphs");
         return;
     }
 
-    if (selectedGraphIndex >= graphs.size())
-        selectedGraphIndex = 0;
-
-    const NamedNavigationGraph &shown = graphs[selectedGraphIndex];
+    if (selectedGraphIndex && *selectedGraphIndex >= graphs.size())
+        forgetSelection();
 
     ImGui::TextUnformatted("graph");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(-FLT_MIN);
-    bool choosingGraph = false;
-    if (ImGui::BeginCombo("##graph", shown.name.c_str()))
+    if (ImGui::BeginCombo(
+            "##graph", selectedGraphIndex ? graphs[*selectedGraphIndex].name.c_str() : "none"))
     {
+        if (ImGui::Selectable("none", !selectedGraphIndex))
+            forgetSelection();
+
         for (size_t index = 0; index < graphs.size(); ++index)
-            if (ImGui::Selectable(graphs[index].name.c_str(), index == selectedGraphIndex))
+            if (ImGui::Selectable(graphs[index].name.c_str(), selectedGraphIndex == index))
             {
+                forgetSelection();
                 selectedGraphIndex = index;
-                choosingGraph = true;
             }
 
         ImGui::EndCombo();
     }
 
-    if (choosingGraph)
-    {
-        selectedNodeId.reset();
-        selectedEdge.reset();
-    }
+    const NavigationGraph *graph =
+        selectedGraphIndex ? &graphs[*selectedGraphIndex].graph : nullptr;
 
     std::vector<int> nodeIds;
-    for (const auto &[nodeId, node] : shown.graph.getNodes())
-        nodeIds.push_back(nodeId);
+    if (graph)
+        for (const auto &[nodeId, node] : graph->getNodes())
+            nodeIds.push_back(nodeId);
     std::sort(nodeIds.begin(), nodeIds.end());
 
-    for (int nodeId : nodeIds)
+    std::string shownNode = "all";
+    if (graph && selectedNodeId)
+        shownNode = std::to_string(*selectedNodeId);
+
+    ImGui::BeginDisabled(!graph);
+    ImGui::TextUnformatted("node");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(-FLT_MIN);
+    if (ImGui::BeginCombo("##node", shownNode.c_str()))
     {
-        ImGui::PushID(nodeId);
-        NavigationNode node = shown.graph.getNode(nodeId);
-        std::string nodeLabel = std::to_string(nodeId) + " at " +
-                                std::to_string(static_cast<int>(node.position.x)) + "," +
-                                std::to_string(static_cast<int>(node.position.y));
-
-        ImGuiTreeNodeFlags flags =
-            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-        if (selectedNodeId == nodeId)
-            flags |= ImGuiTreeNodeFlags_Selected;
-
-        bool open = ImGui::TreeNodeEx(nodeLabel.c_str(), flags);
-        if (!choosingGraph && ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        if (ImGui::Selectable("all", !selectedNodeId))
         {
-            bool wasSelected = selectedNodeId == nodeId;
             selectedNodeId.reset();
-            selectedEdge.reset();
-            if (!wasSelected)
+            shownEdge.reset();
+        }
+
+        for (int nodeId : nodeIds)
+            if (ImGui::Selectable(std::to_string(nodeId).c_str(), selectedNodeId == nodeId))
+            {
                 selectedNodeId = nodeId;
-        }
+                shownEdge.reset();
+            }
 
-        if (open)
-        {
-            drawEdgesOf(shown.graph, nodeId);
-            ImGui::TreePop();
-        }
-
-        ImGui::PopID();
+        ImGui::EndCombo();
     }
+    ImGui::EndDisabled();
+
+    drawEdgeChooser(graph, selectedNodeId);
+}
+
+void NavigationUi::forgetSelection()
+{
+    selectedGraphIndex.reset();
+    selectedNodeId.reset();
+    shownEdge.reset();
 }
 
 void NavigationUi::drawOverlay(
@@ -122,53 +162,46 @@ void NavigationUi::drawOverlay(
     const Level &level) const
 {
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
-    if (!showNavigation || graphs.empty() || selectedGraphIndex >= graphs.size())
+    if (!selectedGraphIndex || *selectedGraphIndex >= graphs.size())
         return;
 
     drawNavigationGraph(
         imGuiManager,
         camera,
-        graphs[selectedGraphIndex].graph,
+        graphs[*selectedGraphIndex].graph,
         selectedNodeId,
-        selectedEdge,
+        shownEdge,
         drawTheFlightItself ? JumpsDrawnAs::TheFlightItself : JumpsDrawnAs::SmoothArc);
 }
 
-void NavigationUi::drawEdgesOf(const NavigationGraph &graph, int nodeId)
+void NavigationUi::drawEdgeChooser(const NavigationGraph *graph, std::optional<int> nodeId)
 {
     std::vector<std::pair<NavigationEdge, bool>> edges;
-    for (const NavigationEdge &edge : graph.getOutgoingEdges(nodeId))
-        edges.emplace_back(edge, true);
+    if (graph && nodeId)
+        edges = edgesOf(*graph, *nodeId);
 
-    for (const NavigationEdge &edge : graph.getEdges())
-        if (edge.toId == nodeId)
-            edges.emplace_back(edge, false);
-
-    std::ranges::sort(
-        edges,
-        [](const auto &left, const auto &right)
-        {
-            const NavigationEdge &leftEdge = left.first;
-            const NavigationEdge &rightEdge = right.first;
-            return std::tie(leftEdge.type, left.second, leftEdge.fromId, leftEdge.toId) <
-                   std::tie(rightEdge.type, right.second, rightEdge.fromId, rightEdge.toId);
-        });
-
+    std::string chosen = "all";
     for (const auto &[edge, leaving] : edges)
-    {
-        ImGui::PushID(leaving ? edge.toId : -edge.fromId - 1);
-        std::pair<int, int> ends{edge.fromId, edge.toId};
-        std::string label = std::string(nameOf(edge.type)) + " " + std::to_string(edge.fromId) +
-                            " to " + std::to_string(edge.toId);
+        if (shownEdge == std::pair<int, int>{edge.fromId, edge.toId})
+            chosen = labelOf(edge);
 
-        if (ImGui::Selectable(label.c_str(), selectedEdge == ends))
+    ImGui::BeginDisabled(edges.empty());
+    ImGui::TextUnformatted("edge");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(-FLT_MIN);
+    if (ImGui::BeginCombo("##edge", chosen.c_str()))
+    {
+        if (ImGui::Selectable("all", !shownEdge))
+            shownEdge.reset();
+
+        for (const auto &[edge, leaving] : edges)
         {
-            bool wasSelected = selectedEdge == ends;
-            selectedEdge.reset();
-            selectedNodeId.reset();
-            if (!wasSelected)
-                selectedEdge = ends;
+            std::pair<int, int> ends{edge.fromId, edge.toId};
+            if (ImGui::Selectable(labelOf(edge).c_str(), shownEdge == ends))
+                shownEdge = ends;
         }
-        ImGui::PopID();
+
+        ImGui::EndCombo();
     }
+    ImGui::EndDisabled();
 }

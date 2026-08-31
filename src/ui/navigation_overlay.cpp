@@ -107,21 +107,19 @@ void drawNavigationGraph(
     const Camera2D &camera,
     const NavigationGraph &navigationGraph,
     std::optional<int> selectedNodeId,
-    std::optional<std::pair<int, int>> selectedEdge,
+    std::optional<std::pair<int, int>> shownEdge,
     JumpsDrawnAs jumpsDrawnAs)
 {
     auto edgeShown = [&](const NavigationEdge &edge)
     {
-        if (selectedEdge)
-            return std::pair<int, int>{edge.fromId, edge.toId} == *selectedEdge;
+        if (shownEdge)
+            return std::pair<int, int>{edge.fromId, edge.toId} == *shownEdge;
         if (selectedNodeId)
             return edge.fromId == *selectedNodeId || edge.toId == *selectedNodeId;
         return true;
     };
 
-    std::optional<int> origin = selectedNodeId;
-    if (selectedEdge)
-        origin = selectedEdge->first;
+    std::optional<int> origin = shownEdge ? std::optional(shownEdge->first) : selectedNodeId;
 
     std::set<int> otherEnds;
     if (origin)

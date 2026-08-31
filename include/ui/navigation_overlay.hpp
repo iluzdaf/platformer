@@ -18,5 +18,5 @@ void drawNavigationGraph(
     const Camera2D &camera,
     const NavigationGraph &navigationGraph,
     std::optional<int> selectedNodeId,
-    std::optional<std::pair<int, int>> selectedEdge,
+    std::optional<std::pair<int, int>> shownEdge,
     JumpsDrawnAs jumpsDrawnAs = JumpsDrawnAs::SmoothArc);

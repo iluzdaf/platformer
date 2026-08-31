@@ -1,5 +1,6 @@
 #include <cfloat>
 #include <cstddef>
+#include <map>
 #include <format>
 #include <memory>
 #include <optional>
@@ -16,6 +17,7 @@
 #include "game/level.hpp"
 #include "navigation/navigation_path.hpp"
 #include "npc/npc.hpp"
+#include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 
 namespace
@@ -54,24 +56,16 @@ namespace
     }
 
     void drawThePlayer(
-        const Level &level,
         const ActorMotionState &motion,
         const glm::vec2 &position,
         const ActorState &state)
     {
-        glm::ivec2 start = level.getPlayerStartTile();
-        ImGui::Text("spawns at %d,%d", start.x, start.y);
-
         if (!ImGui::BeginTable("Player", 2, ImGuiTableFlags_BordersInnerV))
             return;
 
         drawRow("Velocity", std::format("{:.2f}, {:.2f}", motion.velocity.x, motion.velocity.y));
         drawRow("Position", std::format("{:.2f}, {:.2f}", position.x, position.y));
-        drawRow("On Ground", motion.contacts.onGround ? "true" : "false");
         drawRow("Facing Left", state.facingLeft ? "true" : "false");
-        drawRow("Touching Left Wall", motion.contacts.touchingLeftWall ? "true" : "false");
-        drawRow("Touching Right Wall", motion.contacts.touchingRightWall ? "true" : "false");
-        drawRow("Hit Ceiling", motion.contacts.hitCeiling ? "true" : "false");
         drawRow("Wall Sliding", motion.wallSlide.active ? "true" : "false");
         drawRow("Wall Jumping", motion.wallJump.active ? "true" : "false");
         drawRow("Dashing", motion.dash.active ? "true" : "false");
@@ -81,27 +75,13 @@ namespace
         ImGui::EndTable();
     }
 
-    void drawTheNpc(const Level &level, const NpcSpawnData &spawn, const Npc *npc)
+    void drawNpcState(const Level &level, const NpcSpawnData &spawn, const Npc *npc)
     {
-        ImGui::Text("spawns at %d,%d", spawn.tilePosition.x, spawn.tilePosition.y);
-
-        if (spawn.patrol)
-        {
-            ImGui::Text(
-                "beat %d,%d to %d,%d",
-                spawn.patrol->from.x,
-                spawn.patrol->from.y,
-                spawn.patrol->to.x,
-                spawn.patrol->to.y);
-
-            std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
-            if (npc && beat &&
-                !canPatrolBetween(
-                    level.graphFor(npc->getNavigationProfile()), beat->first, beat->second))
-                ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "it cannot get back from there");
-        }
-        else
-            ImGui::TextDisabled("no beat");
+        std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
+        if (npc && beat &&
+            !canPatrolBetween(
+                level.graphFor(npc->getNavigationProfile()), beat->first, beat->second))
+            ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "it cannot get back from there");
 
         std::string_view state = npc ? npc->getStateName() : std::string_view{};
         if (!state.empty())
@@ -112,6 +92,21 @@ namespace
         else
             ImGui::TextDisabled("not spawned");
     }
+
+    void drawNpcEditing(const NpcSpawnData &spawn)
+    {
+        ImGui::Text("spawns at %d,%d", spawn.tilePosition.x, spawn.tilePosition.y);
+
+        if (spawn.patrol)
+            ImGui::Text(
+                "beat %d,%d to %d,%d",
+                spawn.patrol->from.x,
+                spawn.patrol->from.y,
+                spawn.patrol->to.x,
+                spawn.patrol->to.y);
+        else
+            ImGui::TextDisabled("no beat");
+    }
 }
 
 ActorAsked drawActorsInLevel(
@@ -120,14 +115,19 @@ ActorAsked drawActorsInLevel(
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
     const ActorState &playerState,
+    const std::map<std::string, NpcData> &npcTypes,
     ActorShown showing)
 {
-    ActorAsked asked{showing, false};
+    ActorAsked asked{showing, false, std::nullopt};
     const std::vector<NpcSpawnData> &spawns = level.getNpcs();
+    if (showing.what == ActorShown::What::Npc && showing.npcIndex >= spawns.size())
+        asked.show = ActorShown{};
 
-    ImGui::TextUnformatted("showing");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
+    const ImGuiStyle &style = ImGui::GetStyle();
+    float buttons = ImGui::CalcTextSize("add").x + ImGui::CalcTextSize("remove").x +
+                    style.FramePadding.x * 4.0f + style.ItemSpacing.x * 2.0f;
+
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - buttons);
     if (ImGui::BeginCombo("##actor", labelOf(showing, spawns).c_str()))
     {
         if (ImGui::Selectable("none", showing.what == ActorShown::What::None))
@@ -145,11 +145,32 @@ ActorAsked drawActorsInLevel(
         ImGui::EndCombo();
     }
 
+    ImGui::SameLine();
+    if (ImGui::Button("add"))
+        ImGui::OpenPopup("##addNpc");
+
+    if (ImGui::BeginPopup("##addNpc"))
+    {
+        for (const auto &[type, npcData] : npcTypes)
+            if (ImGui::Selectable(type.c_str()))
+                asked.addNpcOfType = type;
+
+        ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+    ImGui::BeginDisabled(
+        showing.what != ActorShown::What::Npc || showing.npcIndex >= spawns.size());
+    if (ImGui::Button("remove"))
+        asked.removeShownNpc = true;
+    ImGui::EndDisabled();
+
     switch (showing.what)
     {
     case ActorShown::What::Player:
         ImGui::Separator();
-        drawThePlayer(level, playerMotionState, playerPosition, playerState);
+        ImGui::Text("spawns at %d,%d", level.getPlayerStartTile().x, level.getPlayerStartTile().y);
+        drawThePlayer(playerMotionState, playerPosition, playerState);
         break;
 
     case ActorShown::What::Npc:
@@ -157,13 +178,11 @@ ActorAsked drawActorsInLevel(
             break;
 
         ImGui::Separator();
-        drawTheNpc(
+        drawNpcEditing(spawns[showing.npcIndex]);
+        drawNpcState(
             level,
             spawns[showing.npcIndex],
             showing.npcIndex < npcs.size() ? npcs[showing.npcIndex].get() : nullptr);
-
-        if (ImGui::Button("remove"))
-            asked.removeShownNpc = true;
         break;
 
     case ActorShown::What::None:

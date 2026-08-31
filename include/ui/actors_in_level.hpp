@@ -1,12 +1,16 @@
 #pragma once
 
 #include <cstddef>
+#include <map>
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 
 struct ActorMotionState;
 struct ActorState;
+struct NpcData;
 class Level;
 class Npc;
 
@@ -29,6 +33,7 @@ struct ActorAsked
 {
     ActorShown show;
     bool removeShownNpc = false;
+    std::optional<std::string> addNpcOfType;
 };
 
 ActorAsked drawActorsInLevel(
@@ -37,4 +42,5 @@ ActorAsked drawActorsInLevel(
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerPosition,
     const ActorState &playerState,
+    const std::map<std::string, NpcData> &npcTypes,
     ActorShown showing);

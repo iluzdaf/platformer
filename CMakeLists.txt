@@ -102,7 +102,7 @@ add_library(platformer_lib OBJECT
     src/ui/camera_ui.cpp
     src/ui/player_ui.cpp
     src/ui/levels_ui.cpp
-    src/ui/brush_picker.cpp
+    src/ui/tile_picker.cpp
     src/ui/tile_palettes_ui.cpp
     src/ui/score_ui.cpp
     src/ui/navigation_overlay.cpp
@@ -245,7 +245,7 @@ add_executable(tests
     tests/ui/test_saveable.cpp
     tests/ui/test_save_controls.cpp
     tests/ui/test_editor_command.cpp
-    tests/ui/test_brush_picker.cpp
+    tests/ui/test_tile_picker.cpp
     tests/ui/test_unsaved_sections.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp

@@ -7,7 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include "ui/brush.hpp"
-#include "ui/brush_picker.hpp"
+#include "ui/tile_picker.hpp"
 #include "rendering/texture2d.hpp"
 
 namespace
@@ -20,25 +20,12 @@ namespace
         bool clicked = ImGui::ImageButton(
             "##tile",
             (ImTextureID)(intptr_t)tileSet.getTextureID(),
-            ImVec2(BrushPickerCellSize, BrushPickerCellSize),
+            ImVec2(TilePickerCellSize, TilePickerCellSize),
             ImVec2(uvStart.x, uvStart.y),
             ImVec2(uvEnd.x, uvEnd.y));
 
         ImGui::GetWindowDrawList()->AddText(
             cellPosition, IM_COL32(255, 255, 255, 255), std::to_string(tileIndex).c_str());
-
-        return clicked;
-    }
-
-    bool drawNpcCell(const std::string &type)
-    {
-        ImVec2 padding = ImGui::GetStyle().FramePadding;
-        bool clicked = ImGui::Button(
-            type.c_str(),
-            ImVec2(BrushPickerCellSize + padding.x * 2.0f, BrushPickerCellSize + padding.y * 2.0f));
-
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", type.c_str());
 
         return clicked;
     }
@@ -49,11 +36,11 @@ namespace
 
         return ImGui::Button(
             "spawn",
-            ImVec2(BrushPickerCellSize + padding.x * 2.0f, BrushPickerCellSize + padding.y * 2.0f));
+            ImVec2(TilePickerCellSize + padding.x * 2.0f, TilePickerCellSize + padding.y * 2.0f));
     }
 }
 
-std::optional<Brush> drawBrushPicker(
+std::optional<Brush> drawTilePicker(
     const Texture2D &tileSet,
     int tileSize,
     const std::vector<Brush> &brushes,
@@ -72,9 +59,9 @@ std::optional<Brush> drawBrushPicker(
 
         if (isArmed)
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, BrushPickerArmedColour);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, BrushPickerArmedColour);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, BrushPickerArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_Button, TilePickerArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, TilePickerArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, TilePickerArmedColour);
         }
 
         bool clicked = false;
@@ -86,10 +73,6 @@ std::optional<Brush> drawBrushPicker(
 
         case Brush::Kind::PlayerStart:
             clicked = drawPlayerStartCell();
-            break;
-
-        case Brush::Kind::Npc:
-            clicked = drawNpcCell(brush.npcType);
             break;
         }
 

@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include "ui/levels_ui.hpp"
 #include "ui/save_controls.hpp"
+#include "ui/saveable.hpp"
 #include "game/levels.hpp"
 #include "game/level.hpp"
 #include "ui/editor_commands.hpp"
@@ -51,7 +52,7 @@ void LevelsUi::draw(
 
     if (askedToSwitchTo)
     {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, UnsavedColour);
         ImGui::TextWrapped(
             "switching to %s discards unsaved changes to %s",
             levelName(*askedToSwitchTo).c_str(),
@@ -81,6 +82,11 @@ void LevelsUi::draw(
 
     if (std::optional<std::string> chosen = levelChooser("first", levels.getFirst()))
         levels.setFirst(*chosen);
+}
+
+bool LevelsUi::hasUnsavedChanges(const Levels &levels) const
+{
+    return saveable.unsaved("levels", levels.getFirst());
 }
 
 void LevelsUi::valuesReplaced()

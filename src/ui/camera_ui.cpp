@@ -1,6 +1,7 @@
 #include <imgui.h>
 #include "ui/camera_ui.hpp"
 #include "ui/save_controls.hpp"
+#include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
 #include "cameras/camera2d.hpp"
@@ -15,6 +16,11 @@ void CameraUi::draw(GameData &gameData, const Camera2D &camera, EditorCommands &
     ImGui::Separator();
     if (inspector::drawFields(gameData.cameraData) || reverted)
         commands.onCameraChanged();
+}
+
+bool CameraUi::hasUnsavedChanges(const GameData &gameData) const
+{
+    return saveable.unsaved("camera", asJson(gameData.cameraData));
 }
 
 void CameraUi::valuesReplaced()

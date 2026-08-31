@@ -1,4 +1,7 @@
+#include <array>
 #include <cfloat>
+#include <cstddef>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <imgui.h>
@@ -10,6 +13,7 @@
 #include "ui/editor_section.hpp"
 #include "ui/imgui_manager.hpp"
 #include "ui/debug_aabb_overlay.hpp"
+#include "ui/save_controls.hpp"
 
 namespace
 {
@@ -43,14 +47,40 @@ void EditorUi::draw(
         return;
     }
 
+    std::array<bool, EditorSections.size()> unsaved{};
+    std::string unsavedNames;
+    for (std::size_t at = 0; at < EditorSections.size(); ++at)
+    {
+        const auto &[listed, name] = EditorSections[at];
+        unsaved[at] = unsavedIn(listed, subject);
+        if (unsaved[at])
+            unsavedNames += (unsavedNames.empty() ? "" : ", ") + std::string(name);
+    }
+
     ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::BeginCombo("##section", nameOf(section).data()))
     {
-        for (const auto &[listed, name] : EditorSections)
+        for (std::size_t at = 0; at < EditorSections.size(); ++at)
+        {
+            const auto &[listed, name] = EditorSections[at];
+            if (unsaved[at])
+                ImGui::PushStyleColor(ImGuiCol_Text, UnsavedColour);
+
             if (ImGui::Selectable(name.data(), listed == section))
                 section = listed;
 
+            if (unsaved[at])
+                ImGui::PopStyleColor();
+        }
+
         ImGui::EndCombo();
+    }
+
+    if (!unsavedNames.empty())
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, UnsavedColour);
+        ImGui::TextWrapped("unsaved in %s", unsavedNames.c_str());
+        ImGui::PopStyleColor();
     }
 
     ImGui::Separator();
@@ -142,6 +172,40 @@ void EditorUi::update(
 {
     fadingAABBs.update(deltaTime);
     levelUi.update(imGuiManager, camera, level, brush);
+}
+
+bool EditorUi::unsavedIn(EditorSection listed, const EditorSubject &subject) const
+{
+    switch (listed)
+    {
+    case EditorSection::Game:
+        return gameSettingsUi.hasUnsavedChanges(subject.gameData);
+
+    case EditorSection::Camera:
+        return cameraUi.hasUnsavedChanges(subject.gameData);
+
+    case EditorSection::Player:
+        return playerUi.hasUnsavedChanges(subject.gameData);
+
+    case EditorSection::Levels:
+        return levelsUi.hasUnsavedChanges(subject.levels);
+
+    case EditorSection::Level:
+        return levelUi.hasUnsavedChanges(subject.level);
+
+    case EditorSection::NpcTypes:
+        return npcTypesUi.hasUnsavedChanges(subject.gameData);
+
+    case EditorSection::TilePalettes:
+        return tilePalettesUi.hasUnsavedChanges(subject.gameData.tilePalettes);
+
+    case EditorSection::Playback:
+    case EditorSection::NpcsInLevel:
+    case EditorSection::Navigation:
+        break;
+    }
+
+    return false;
 }
 
 void EditorUi::valuesReplaced()

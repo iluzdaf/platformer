@@ -64,6 +64,9 @@ public:
     void valuesReplaced();
 
 private:
+    bool unsavedIn(EditorSection listed, const EditorSubject &subject) const;
+
+private:
     EditorSection section = EditorSection::Playback;
     FadingAABBs fadingAABBs;
     PlaybackUi playbackUi;

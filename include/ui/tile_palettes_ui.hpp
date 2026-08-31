@@ -17,6 +17,7 @@ public:
         int tileSize,
         std::optional<Brush> &brush);
 
+    bool hasUnsavedChanges(const TilePalettes &tilePalettes) const;
     void valuesReplaced();
 
 private:

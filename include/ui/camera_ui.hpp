@@ -10,6 +10,7 @@ class CameraUi
 {
 public:
     void draw(GameData &gameData, const Camera2D &camera, EditorCommands &commands);
+    bool hasUnsavedChanges(const GameData &gameData) const;
     void valuesReplaced();
 
 private:

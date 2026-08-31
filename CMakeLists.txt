@@ -246,6 +246,7 @@ add_executable(tests
     tests/ui/test_save_controls.cpp
     tests/ui/test_editor_command.cpp
     tests/ui/test_brush_picker.cpp
+    tests/ui/test_unsaved_sections.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp

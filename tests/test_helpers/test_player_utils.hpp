@@ -12,6 +12,8 @@
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "animations/sprite_animation_data.hpp"
 #include "input/intention_source.hpp"
+#include "input/input_intentions.hpp"
+#include "animations/frame_animation_data.hpp"
 
 class ScriptedIntentions : public IntentionSource
 {

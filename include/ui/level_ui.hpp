@@ -1,9 +1,6 @@
 #pragma once
 
 #include <optional>
-#include <memory>
-#include <string>
-#include <vector>
 #include "ui/editor_commands.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/brush.hpp"

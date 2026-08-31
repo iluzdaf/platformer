@@ -3,6 +3,7 @@
 #include "assets/asset_paths.hpp"
 #include <string>
 #include <sol/sol.hpp>
+#include <vector>
 
 class Playback;
 class Camera2D;

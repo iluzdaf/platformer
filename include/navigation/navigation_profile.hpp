@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <optional>
 #include "actor/actor_motion_data.hpp"
 #include "physics/physics_body_data.hpp"
 #include "navigation/jump_arc.hpp"

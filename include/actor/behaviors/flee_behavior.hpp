@@ -4,6 +4,8 @@
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/route_walker.hpp"
+#include "actor/actor_behavior_context.hpp"
+#include "input/input_intentions.hpp"
 
 class FleeBehavior : public ActorBehavior
 {

@@ -2,11 +2,15 @@
 
 #include <map>
 #include <glaze/glaze.hpp>
+#include <string>
+#include <stdexcept>
 #include "tile_map/tile_map.hpp"
 #include "game/level_data.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "game/game_data.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_data.hpp"
+#include "npc/npc_data.hpp"
 
 inline const TilePalette &getDefaultTileDataMap()
 {

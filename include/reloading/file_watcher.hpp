@@ -1,5 +1,6 @@
 #pragma once
 #include <efsw/efsw.hpp>
+#include <string>
 #include "reloading/file_watcher_listenener.hpp"
 
 class FileWatcher

@@ -1,8 +1,13 @@
-"""List the .cpp files clang-tidy needs to look at for a given change.
+"""List the files clang-tidy needs to look at for a given change.
 
 A header change is not confined to that header: every translation unit that
 pulls it in, however deeply, can break on it. So this walks the include graph
-backwards from whatever changed and prints the .cpp files that reach it.
+backwards from whatever changed and prints the files that reach it.
+
+Headers are listed as well as sources. clang-tidy only judges a file's own
+includes when that file is the one being compiled, so a header is only ever
+checked by naming it, and the self containment target puts every header in the
+compilation database so that naming one works.
 
     python3 tools/tidy_targets.py --since origin/master
     python3 tools/tidy_targets.py
@@ -120,13 +125,13 @@ def main():
 
     paths = sources()
     if not arguments.since:
-        print("\n".join(str(path) for path in paths if path.suffix == ".cpp"))
+        print("\n".join(str(path) for path in paths))
         return 0
 
     against = branchedFrom(arguments.since)
     changed = changedSince(against)
     if rulesChanged(changed, against):
-        print("\n".join(str(path) for path in paths if path.suffix == ".cpp"))
+        print("\n".join(str(path) for path in paths))
         return 0
 
     changed = [path for path in changed if path in set(paths)]
@@ -134,7 +139,7 @@ def main():
         return 0
 
     affected = reaching(changed, includedBy(paths))
-    print("\n".join(sorted(str(path) for path in affected if path.suffix == ".cpp")))
+    print("\n".join(sorted(str(path) for path in affected)))
     return 0
 
 

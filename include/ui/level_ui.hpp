@@ -51,7 +51,8 @@ private:
     bool drawGrid = false, drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
 
     void drawLevel(Level &level, EditorCommands &commands);
-    void drawTileMap(
+    void drawOverlayToggles();
+    void drawBrush(
         Level &level,
         const Texture2D &tileSet,
         const GameData &gameData,

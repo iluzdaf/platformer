@@ -112,10 +112,13 @@ void LevelUi::draw(
     }
 
     ImGui::Separator();
-    drawTileMap(level, tileSet, gameData, brush);
+    drawOverlayToggles();
 
     ImGui::Separator();
     drawLevel(level, commands);
+
+    ImGui::Separator();
+    drawBrush(level, tileSet, gameData, brush);
 
     ImGui::Separator();
     if (ImGui::CollapsingHeader("Actors", ImGuiTreeNodeFlags_DefaultOpen))
@@ -162,23 +165,28 @@ void LevelUi::drawLevel(Level &level, EditorCommands &commands)
     }
 }
 
-void LevelUi::drawTileMap(
+void LevelUi::drawOverlayToggles()
+{
+    if (!ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
+
+    ImGui::Checkbox("Info", &drawTileInfo);
+    ImGui::SameLine();
+    ImGui::Checkbox("Grid", &drawGrid);
+    ImGui::Checkbox("Colliders", &drawTileColliders);
+    ImGui::SameLine();
+    ImGui::Checkbox("Bounds", &drawLevelBounds);
+    navigationUi.drawOverlayToggles();
+}
+
+void LevelUi::drawBrush(
     Level &level,
     const Texture2D &tileSet,
     const GameData &gameData,
     std::optional<Brush> &brush)
 {
-    if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::Checkbox("Info", &drawTileInfo);
-        ImGui::SameLine();
-        ImGui::Checkbox("Grid", &drawGrid);
-        ImGui::Checkbox("Colliders", &drawTileColliders);
-        ImGui::SameLine();
-        ImGui::Checkbox("Bounds", &drawLevelBounds);
-        navigationUi.drawOverlayToggles();
-    }
-    ImGui::Separator();
+    if (!ImGui::CollapsingHeader("Brush", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
 
     std::vector<Brush> brushes;
     for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())

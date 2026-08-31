@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -14,13 +15,14 @@ std::optional<int> drawTilePicker(
     const std::vector<int> &tileIndices,
     std::optional<int> selected)
 {
-    constexpr int Columns = 4;
     ImTextureID imguiTextureID = (ImTextureID)(intptr_t)tileSet.getTextureID();
     std::optional<int> picked = selected;
-    int count = 0;
+    const ImGuiStyle &style = ImGui::GetStyle();
+    float rightEdge = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
 
-    for (int tileIndex : tileIndices)
+    for (std::size_t at = 0; at < tileIndices.size(); ++at)
     {
+        int tileIndex = tileIndices[at];
         ImGui::PushID(tileIndex);
         auto [uvStart, uvEnd] = tileSet.getUVRange(tileIndex, tileSize, false);
         bool isSelected = tileIndex == selected;
@@ -41,19 +43,20 @@ std::optional<int> drawTilePicker(
                 ImVec2(uvEnd.x, uvEnd.y)))
             picked = isSelected ? std::nullopt : std::optional<int>(tileIndex);
 
+        float nextRightEdge =
+            ImGui::GetItemRectMax().x + style.ItemSpacing.x + ImGui::GetItemRectSize().x;
+
         ImGui::GetWindowDrawList()->AddText(
             tilePosition, IM_COL32(255, 255, 255, 255), std::to_string(tileIndex).c_str());
 
         if (isSelected)
             ImGui::PopStyleColor(3);
 
-        if (++count % Columns != 0)
+        if (at + 1 < tileIndices.size() && nextRightEdge < rightEdge)
             ImGui::SameLine();
 
         ImGui::PopID();
     }
-
-    ImGui::NewLine();
 
     return picked;
 }

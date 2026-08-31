@@ -6,7 +6,7 @@
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
 #include "ui/save_controls.hpp"
-#include "ui/tile_picker.hpp"
+#include "ui/brush_picker.hpp"
 #include "ui/brush.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/editor_section.hpp"
@@ -103,33 +103,13 @@ void LevelUi::drawTileMap(
     }
     ImGui::Separator();
 
-    std::vector<int> tileIndices;
+    std::vector<Brush> brushes;
     for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())
-        tileIndices.push_back(tileIndex);
+        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
+    brushes.push_back(Brush{Brush::Kind::PlayerStart, 0});
 
-    std::optional<int> paintingTile = tileOf(brush);
-    std::optional<int> picked =
-        drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, paintingTile);
-    if (picked != paintingTile)
-        brush = picked ? std::optional<Brush>(Brush{Brush::Kind::Tile, *picked}) : std::nullopt;
-
-    bool placingPlayerStart = brush && brush->kind == Brush::Kind::PlayerStart;
-    if (placingPlayerStart)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, TilePickerArmedColour);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, TilePickerArmedColour);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, TilePickerArmedColour);
-    }
-
-    ImVec2 padding = ImGui::GetStyle().FramePadding;
-    if (ImGui::Button(
-            "spawn",
-            ImVec2(TilePickerCellSize + padding.x * 2.0f, TilePickerCellSize + padding.y * 2.0f)))
-        brush = placingPlayerStart ? std::nullopt
-                                   : std::optional<Brush>(Brush{Brush::Kind::PlayerStart, 0});
-
-    if (placingPlayerStart)
-        ImGui::PopStyleColor(3);
+    brush = drawBrushPicker(tileSet, level.getTileMap().getTileSize(), brushes, brush);
+    std::optional<int> picked = tileOf(brush);
 
     const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
     if (picked && palette.contains(*picked))

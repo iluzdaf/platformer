@@ -7,7 +7,7 @@
 #include "ui/save_controls.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/brush.hpp"
-#include "ui/tile_picker.hpp"
+#include "ui/brush_picker.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_palette.hpp"
 
@@ -54,9 +54,16 @@ void TilePalettesUi::draw(
     if (brush && brush->kind == Brush::Kind::Tile && palette.contains(brush->tileIndex))
         showing = brush->tileIndex;
 
-    std::optional<int> picked = drawTilePicker(tileSet, tileSize, tileIndices, showing);
-    if (picked != showing)
-        brush = picked ? std::optional<Brush>(Brush{Brush::Kind::Tile, *picked}) : std::nullopt;
+    std::vector<Brush> brushes;
+    for (int tileIndex : tileIndices)
+        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
+
+    std::optional<Brush> armed =
+        showing ? std::optional<Brush>(Brush{Brush::Kind::Tile, *showing}) : std::nullopt;
+    brush = drawBrushPicker(tileSet, tileSize, brushes, armed);
+    std::optional<int> picked = brush && brush->kind == Brush::Kind::Tile
+                                    ? std::optional<int>(brush->tileIndex)
+                                    : std::nullopt;
 
     ImGui::Separator();
     if (!picked)

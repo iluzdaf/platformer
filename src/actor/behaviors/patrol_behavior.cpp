@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cmath>
 #include <optional>
 #include <glm/geometric.hpp>
 #include <utility>
@@ -7,6 +9,12 @@
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_path.hpp"
+#include "navigation/navigation_node.hpp"
+
+namespace
+{
+    constexpr float SurfaceTolerance = 1.0f;
+}
 
 PatrolBehavior::PatrolBehavior(
     const PatrolBehaviorData &data,
@@ -15,15 +23,20 @@ PatrolBehavior::PatrolBehavior(
 {
 }
 
-std::optional<int> PatrolBehavior::endOfTheBeat(const ActorBehaviorContext &context, bool second)
-    const
+std::optional<PatrolBehavior::BeatEnd> PatrolBehavior::endOfTheBeat(
+    const ActorBehaviorContext &context,
+    bool second) const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
 
     if (patrolBetween)
     {
-        return nearestNodeTo(
-            navigationGraph, second ? patrolBetween->second : patrolBetween->first);
+        glm::vec2 asked = second ? patrolBetween->second : patrolBetween->first;
+        std::optional<int> onTheRun = nodeUnderfoot(navigationGraph, asked);
+        if (!onTheRun)
+            return std::nullopt;
+
+        return alongTheRunFrom(context, *onTheRun, asked.x);
     }
 
     std::optional<int> from = walker.getCurrentNodeId();
@@ -45,7 +58,64 @@ std::optional<int> PatrolBehavior::endOfTheBeat(const ActorBehaviorContext &cont
             end = id;
     }
 
-    return end;
+    if (!end)
+        return std::nullopt;
+
+    return BeatEnd{navigationGraph.getNode(*end).position, *end};
+}
+
+PatrolBehavior::BeatEnd PatrolBehavior::alongTheRunFrom(
+    const ActorBehaviorContext &context,
+    int onTheRun,
+    float askedX) const
+{
+    const NavigationGraph &navigationGraph = context.navigationGraph;
+    float surface = navigationGraph.getNode(onTheRun).position.y;
+
+    int leftmost = onTheRun, rightmost = onTheRun;
+    for (int id : walkableFrom(navigationGraph, onTheRun))
+    {
+        NavigationNode node = navigationGraph.getNode(id);
+        if (std::abs(node.position.y - surface) > SurfaceTolerance)
+            continue;
+
+        if (node.position.x < navigationGraph.getNode(leftmost).position.x)
+            leftmost = id;
+
+        if (node.position.x > navigationGraph.getNode(rightmost).position.x)
+            rightmost = id;
+    }
+
+    float stopAt = std::clamp(
+        askedX,
+        navigationGraph.getNode(leftmost).position.x,
+        navigationGraph.getNode(rightmost).position.x);
+
+    bool headingRight = context.worldPosition.x <= stopAt;
+    int routeVia = headingRight ? rightmost : leftmost;
+    for (int id : walkableFrom(navigationGraph, onTheRun))
+    {
+        NavigationNode node = navigationGraph.getNode(id);
+        if (std::abs(node.position.y - surface) > SurfaceTolerance)
+            continue;
+
+        float here = node.position.x;
+        float best = navigationGraph.getNode(routeVia).position.x;
+        if (headingRight ? (here >= stopAt && here < best) : (here <= stopAt && here > best))
+            routeVia = id;
+    }
+
+    return BeatEnd{glm::vec2(stopAt, surface), routeVia};
+}
+
+bool PatrolBehavior::standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const
+{
+    if (std::abs(context.worldPosition.y - end.position.y) > SurfaceTolerance)
+        return false;
+
+    float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
+
+    return std::abs(context.worldPosition.x - end.position.x) <= reach;
 }
 
 void PatrolBehavior::reset()
@@ -83,9 +153,9 @@ void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
     if (!from)
         return;
 
-    std::optional<int> destination = endOfTheBeat(context, headingForTheSecond);
+    std::optional<BeatEnd> destination = endOfTheBeat(context, headingForTheSecond);
 
-    if (destination && *destination == *from)
+    if (destination && standingAt(context, *destination))
     {
         headingForTheSecond = !headingForTheSecond;
         destination = endOfTheBeat(context, headingForTheSecond);
@@ -94,5 +164,5 @@ void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
     if (!destination)
         return;
 
-    walker.takeRouteTo(context, *destination);
+    walker.takeRouteTo(context, destination->routeVia, destination->position.x);
 }

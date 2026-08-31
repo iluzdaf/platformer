@@ -227,3 +227,15 @@ TEST_CASE("A place stays on the run it was asked about", "[NavigationPath]")
     REQUIRE(placeOnTheRun(navigationGraph, {72.0f, 96.0f}).y == 96.0f);
     REQUIRE(placeOnTheRun(navigationGraph, {72.0f, 128.0f}).y == 128.0f);
 }
+
+TEST_CASE("A place asked for off any run falls to the run nearest it", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    REQUIRE(placeOnTheRun(navigationGraph, {64.0f, 32.0f}) == glm::vec2(64.0f, 96.0f));
+    REQUIRE(placeOnTheRun(navigationGraph, {400.0f, 32.0f}) == glm::vec2(112.0f, 96.0f));
+}

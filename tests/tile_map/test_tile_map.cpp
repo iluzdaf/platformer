@@ -226,3 +226,22 @@ TEST_CASE("A spot on a tile's edge belongs to the tile it is the edge of", "[Til
     REQUIRE(tileMap.validTilePosition(corner));
     REQUIRE(corner == glm::ivec2(tileMap.getWidth() - 1, tileMap.getHeight() - 1));
 }
+
+TEST_CASE("Nothing stands on ground it is buried in", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+    tileMap.setTileIndex(glm::ivec2(3, 5), 1);
+
+    REQUIRE(tileMap.standsOnGround(glm::ivec2(3, 4)));
+
+    tileMap.setTileIndex(glm::ivec2(3, 4), 1);
+
+    REQUIRE_FALSE(tileMap.standsOnGround(glm::ivec2(3, 4)));
+}
+
+TEST_CASE("Nothing stands on thin air", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+
+    REQUIRE_FALSE(tileMap.standsOnGround(glm::ivec2(3, 4)));
+}

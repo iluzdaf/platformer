@@ -245,19 +245,6 @@ const NavigationGraph &Level::graphForNpc(const NpcSpawnData &spawn) const
     return graphFor(profile->second);
 }
 
-glm::ivec2 Level::beatEndAt(const NpcSpawnData &spawn, glm::ivec2 tilePosition) const
-{
-    if (!tileMap.validTilePosition(tilePosition))
-        throw std::runtime_error("Tile coordinates out of bounds");
-
-    const NavigationGraph &graph = graphForNpc(spawn);
-    glm::vec2 asked = tileMap.feetOnTile(tilePosition);
-    if (!nodeUnderfoot(graph, asked))
-        return tilePosition;
-
-    return tileMap.tileStoodOnAt(placeOnTheRun(graph, asked));
-}
-
 std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
 {
     if (index >= npcs.size())

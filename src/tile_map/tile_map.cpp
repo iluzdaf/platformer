@@ -88,7 +88,7 @@ void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
 
 void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)
 {
-    setTileIndex(worldToTilePosition(worldPosition), tileIndex);
+    setTileIndex(tileContaining(worldPosition), tileIndex);
 }
 
 bool TileMap::validTilePosition(glm::ivec2 tilePosition) const
@@ -106,15 +106,15 @@ int TileMap::tilePositionToTileIndex(glm::ivec2 tilePosition) const
     return tileIndices[tilePosition.x][tilePosition.y];
 }
 
-glm::ivec2 TileMap::worldToTilePosition(glm::vec2 worldPosition) const
+glm::ivec2 TileMap::tileContaining(glm::vec2 worldPosition) const
 {
     return glm::ivec2(
         static_cast<int>(worldPosition.x) / tileSize, static_cast<int>(worldPosition.y) / tileSize);
 }
 
-int TileMap::worldPositionToTileIndex(glm::vec2 worldPosition) const
+int TileMap::tileIndexAt(glm::vec2 worldPosition) const
 {
-    return tilePositionToTileIndex(worldToTilePosition(worldPosition));
+    return tilePositionToTileIndex(tileContaining(worldPosition));
 }
 
 int TileMap::getWidth() const
@@ -142,7 +142,7 @@ const Tile &TileMap::getTileAtTilePosition(glm::ivec2 tilePosition) const
 
 const Tile &TileMap::getTileAtWorldPosition(glm::vec2 worldPosition) const
 {
-    return getTile(worldPositionToTileIndex(worldPosition));
+    return getTile(tileIndexAt(worldPosition));
 }
 
 int TileMap::getTileSize() const
@@ -166,7 +166,7 @@ int TileMap::getWorldHeight() const
     return height * tileSize;
 }
 
-std::vector<glm::ivec2> TileMap::worldToTilePositions(glm::vec2 worldPosition, glm::vec2 size) const
+std::vector<glm::ivec2> TileMap::tilesOverlapping(glm::vec2 worldPosition, glm::vec2 size) const
 {
     std::vector<glm::ivec2> tileCoordinates;
     glm::vec2 worldPositionMax = worldPosition + size;
@@ -189,18 +189,18 @@ std::vector<glm::ivec2> TileMap::worldToTilePositions(glm::vec2 worldPosition, g
     return tileCoordinates;
 }
 
-glm::vec2 TileMap::tileToWorldPosition(glm::ivec2 tilePosition) const
+glm::vec2 TileMap::topLeftOfTile(glm::ivec2 tilePosition) const
 {
     return glm::vec2(tilePosition.x * tileSize, tilePosition.y * tileSize);
 }
 
-glm::vec2 TileMap::tileToBottomCenterPosition(glm::ivec2 tilePosition) const
+glm::vec2 TileMap::feetOnTile(glm::ivec2 tilePosition) const
 {
-    glm::vec2 surface = tileToWorldPosition(tilePosition + glm::ivec2(0, 1));
+    glm::vec2 surface = topLeftOfTile(tilePosition + glm::ivec2(0, 1));
     return surface + glm::vec2(tileSize * 0.5f, 0.0f);
 }
 
-glm::ivec2 TileMap::bottomCenterToTilePosition(glm::vec2 worldPosition) const
+glm::ivec2 TileMap::tileStoodOnAt(glm::vec2 worldPosition) const
 {
     float tileSizePixels = static_cast<float>(tileSize);
 
@@ -245,7 +245,7 @@ bool TileMap::probeSolidTiles(
     const AABB &probeAABB,
     const std::function<bool(const Tile &, const AABB &)> &callback) const
 {
-    auto tilePositions = worldToTilePositions(probeAABB.position, probeAABB.size);
+    auto tilePositions = tilesOverlapping(probeAABB.position, probeAABB.size);
     for (const auto &tilePosition : tilePositions)
     {
         if (!validTilePosition(tilePosition))
@@ -255,7 +255,7 @@ bool TileMap::probeSolidTiles(
         if (!tile.isSolid())
             continue;
 
-        auto tileWorldPosition = tileToWorldPosition(tilePosition);
+        auto tileWorldPosition = topLeftOfTile(tilePosition);
         std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);
         if (tileAABB && tileAABB->intersects(probeAABB) && callback(tile, *tileAABB))
             return true;

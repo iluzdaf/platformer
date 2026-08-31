@@ -112,7 +112,7 @@ void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera,
     const TileMap &tileMap = level.getTileMap();
 
     auto tilePositions =
-        tileMap.worldToTilePositions(camera.getTopLeftPosition(), camera.getWindowSize());
+        tileMap.tilesOverlapping(camera.getTopLeftPosition(), camera.getWindowSize());
     for (auto tilePosition : tilePositions)
     {
         auto tile = tileMap.getTileAtTilePosition(tilePosition);
@@ -121,7 +121,7 @@ void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera,
             continue;
         }
 
-        glm::vec2 tileWorldPosition = tileMap.tileToWorldPosition(tilePosition);
+        glm::vec2 tileWorldPosition = tileMap.topLeftOfTile(tilePosition);
         std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);
         if (!tileAABB)
             continue;
@@ -158,7 +158,7 @@ void drawSpawnOf(
 
     auto drawSpawn = [&](glm::ivec2 tilePosition, const std::string &label)
     {
-        glm::vec2 worldPosition = tileMap.tileToWorldPosition(tilePosition);
+        glm::vec2 worldPosition = tileMap.topLeftOfTile(tilePosition);
         drawAABB(
             drawList, imGuiManager, AABB(worldPosition, glm::vec2(tileSize)), camera, SpawnColor);
 

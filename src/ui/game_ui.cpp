@@ -1,4 +1,6 @@
 #include "ui/game_ui.hpp"
+#include "physics/aabb.hpp"
+#include "physics/physics_body.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/editor_ui.hpp"
 #include "game/level.hpp"
@@ -25,7 +27,7 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.tileSet,
             subject.levels,
             subject.player.getMotion().getState(),
-            subject.player.getPosition(),
+            subject.player.getPhysicsBody().getAABB().bottomCenter(),
             subject.player.getState(),
             subject.camera,
             subject.paused},

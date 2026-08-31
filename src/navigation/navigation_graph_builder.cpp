@@ -53,7 +53,7 @@ namespace
                 if (!isLeftCliff && !isRightCliff && canWalkAboveLeft && canWalkAboveRight)
                     continue;
 
-                glm::vec2 worldPosition = tileMap.tileToWorldPosition(tilePosition);
+                glm::vec2 worldPosition = tileMap.topLeftOfTile(tilePosition);
                 float tileSize = static_cast<float>(tileMap.getTileSize());
                 glm::vec2 nodeOffset(tileSize / 2.0f, 0.0f);
 
@@ -93,8 +93,8 @@ namespace navigation
 
         glm::vec2 underfoot(0.0f, 1.0f);
         glm::vec2 inwards = glm::normalize(end - start) * NodeTileNudge;
-        glm::ivec2 startTilePosition = tileMap.worldToTilePosition(start + inwards + underfoot);
-        glm::ivec2 endTilePosition = tileMap.worldToTilePosition(end - inwards + underfoot);
+        glm::ivec2 startTilePosition = tileMap.tileContaining(start + inwards + underfoot);
+        glm::ivec2 endTilePosition = tileMap.tileContaining(end - inwards + underfoot);
 
         if (startTilePosition.y != endTilePosition.y)
             return false;
@@ -123,8 +123,8 @@ namespace navigation
         glm::vec2 low(feetPosition.x - halfWidth, feetPosition.y - profile.colliderSize.y + Inset);
         glm::vec2 high(feetPosition.x + halfWidth, feetPosition.y - Inset);
 
-        glm::ivec2 lowTilePosition = tileMap.worldToTilePosition(low);
-        glm::ivec2 highTilePosition = tileMap.worldToTilePosition(high);
+        glm::ivec2 lowTilePosition = tileMap.tileContaining(low);
+        glm::ivec2 highTilePosition = tileMap.tileContaining(high);
 
         for (int y = lowTilePosition.y; y <= highTilePosition.y; ++y)
             for (int x = lowTilePosition.x; x <= highTilePosition.x; ++x)

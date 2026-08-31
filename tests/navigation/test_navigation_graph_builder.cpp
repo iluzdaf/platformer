@@ -872,8 +872,8 @@ TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Le
         INFO("node " << id << " at " << node.position.x << "," << node.position.y);
         REQUIRE(std::fmod(node.position.y, tileSize) == 0.0f);
 
-        glm::ivec2 under = tileMap.worldToTilePosition(node.position + glm::vec2(0.0f, 1.0f));
-        glm::ivec2 justBehind = tileMap.worldToTilePosition(node.position + glm::vec2(-1.0f, 1.0f));
+        glm::ivec2 under = tileMap.tileContaining(node.position + glm::vec2(0.0f, 1.0f));
+        glm::ivec2 justBehind = tileMap.tileContaining(node.position + glm::vec2(-1.0f, 1.0f));
         REQUIRE(
             (tileMap.getTileAtTilePosition(under).isSolid() ||
              tileMap.getTileAtTilePosition(justBehind).isSolid()));
@@ -1286,9 +1286,8 @@ namespace
 
                 glm::vec2 underfoot(0.0f, 1.0f);
                 int from =
-                    tileMap.worldToTilePosition(graph.getNode(edge.fromId).position + underfoot).y;
-                int to =
-                    tileMap.worldToTilePosition(graph.getNode(edge.toId).position + underfoot).y;
+                    tileMap.tileContaining(graph.getNode(edge.fromId).position + underfoot).y;
+                int to = tileMap.tileContaining(graph.getNode(edge.toId).position + underfoot).y;
                 joined.insert({from, to});
             }
         return joined;
@@ -1378,7 +1377,7 @@ TEST_CASE("A wall an actor can climb gets a node on it", "[NavigationGraphBuilde
     for (const NavigationNode &node : onWalls)
     {
         glm::vec2 underfoot(0.0f, 1.0f);
-        REQUIRE(tileMap.worldToTilePosition(node.position + underfoot).y == ClimbHangRow);
+        REQUIRE(tileMap.tileContaining(node.position + underfoot).y == ClimbHangRow);
     }
 }
 

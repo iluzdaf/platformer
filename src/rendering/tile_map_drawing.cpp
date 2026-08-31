@@ -23,7 +23,7 @@ void drawTileMap(
             const Tile &tile = tileMap.getTile(tileIndex);
             int frameIndex = tile.getCurrentFrame();
             auto [uvStart, uvEnd] = tileSet.getUVRange(frameIndex, tileSize);
-            glm::vec2 position = tileMap.tileToWorldPosition(glm::ivec2(tileX, tileY));
+            glm::vec2 position = tileMap.topLeftOfTile(glm::ivec2(tileX, tileY));
             glm::vec2 size = glm::vec2(static_cast<float>(tileSize));
 
             spriteRenderer.drawWithUV(

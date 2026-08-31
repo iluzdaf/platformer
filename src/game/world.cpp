@@ -53,7 +53,7 @@ void World::respawnPlayer()
         std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
     player->setPosition(
-        level->getTileMap().tileToBottomCenterPosition(level->getPlayerStartTile()) -
+        level->getTileMap().feetOnTile(level->getPlayerStartTile()) -
         player->getPhysicsBody().getBottomCenterOffset());
     player->onDeath.connect([this] { luaScriptSystem.triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect(
@@ -83,7 +83,7 @@ void World::rebuildNpcs()
 
         std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second, level->patrolFor(spawn));
         newNpc->setPosition(
-            level->getTileMap().tileToBottomCenterPosition(spawn.tilePosition) -
+            level->getTileMap().feetOnTile(spawn.tilePosition) -
             newNpc->getPhysicsBody().getBottomCenterOffset());
         npcs.push_back(std::move(newNpc));
     }

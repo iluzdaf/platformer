@@ -37,7 +37,7 @@ struct EditorSubject
     const Texture2D &tileSet;
     Levels &levels;
     const ActorMotionState &playerMotionState;
-    glm::vec2 playerPosition;
+    glm::vec2 playerFeet;
     const ActorState &playerState;
     const Camera2D &camera;
     bool paused = false;

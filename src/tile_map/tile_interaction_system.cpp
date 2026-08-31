@@ -9,7 +9,7 @@
 void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 {
     AABB playerAABB = player.getPhysicsBody().getAABB();
-    auto tilePositions = tileMap.worldToTilePositions(playerAABB.position, playerAABB.size);
+    auto tilePositions = tileMap.tilesOverlapping(playerAABB.position, playerAABB.size);
 
     for (const auto &tilePosition : tilePositions)
     {
@@ -17,7 +17,7 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
             continue;
 
         const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
-        glm::vec2 tileWorldPosition = tileMap.tileToWorldPosition(tilePosition);
+        glm::vec2 tileWorldPosition = tileMap.topLeftOfTile(tilePosition);
         std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);
         if (!tileAABB || !playerAABB.intersects(*tileAABB))
             continue;

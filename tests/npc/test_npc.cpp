@@ -190,8 +190,7 @@ namespace
     void standIn(Npc &npc, const TileMap &tileMap, glm::ivec2 tilePosition)
     {
         npc.setPosition(
-            tileMap.tileToBottomCenterPosition(tilePosition) -
-            npc.getPhysicsBody().getBottomCenterOffset());
+            tileMap.feetOnTile(tilePosition) - npc.getPhysicsBody().getBottomCenterOffset());
     }
 
     void stepNpc(Npc &npc, const Level &level, int steps)
@@ -248,7 +247,7 @@ TEST_CASE("Spawns where the level places it", "[Npc]")
 
     standIn(npc, tileMap, SpawnTile);
 
-    REQUIRE(footOf(npc) == tileMap.tileToBottomCenterPosition(SpawnTile));
+    REQUIRE(footOf(npc) == tileMap.feetOnTile(SpawnTile));
 }
 
 TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
@@ -461,7 +460,7 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
 
     stepNpc(npc, level, 400);
 
-    REQUIRE(footOf(npc).x == tileMap.tileToBottomCenterPosition(SpawnTile).x);
+    REQUIRE(footOf(npc).x == tileMap.feetOnTile(SpawnTile).x);
 }
 
 TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "[Npc][Level]")

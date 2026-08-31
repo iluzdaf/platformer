@@ -37,8 +37,7 @@ TEST_CASE("The player starts standing where the level says", "[World]")
     glm::vec2 feet = world.getPlayer().getPhysicsBody().getAABB().bottomCenter();
 
     REQUIRE(
-        feet == world.getLevel().getTileMap().tileToBottomCenterPosition(
-                    world.getLevel().getPlayerStartTile()));
+        feet == world.getLevel().getTileMap().feetOnTile(world.getLevel().getPlayerStartTile()));
 }
 
 TEST_CASE("Respawning the player leaves the rest of the cast alone", "[World]")

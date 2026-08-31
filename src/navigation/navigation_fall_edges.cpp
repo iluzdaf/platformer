@@ -30,7 +30,7 @@ namespace
         int headroom)
     {
         float tileSize = static_cast<float>(tileMap.getTileSize());
-        glm::ivec2 startTilePosition = tileMap.worldToTilePosition(from);
+        glm::ivec2 startTilePosition = tileMap.tileContaining(from);
 
         for (int y = startTilePosition.y; y < tileMap.getHeight(); ++y)
         {

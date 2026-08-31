@@ -18,6 +18,9 @@
 #include "game/level.hpp"
 #include "navigation/navigation_path.hpp"
 #include "npc/npc.hpp"
+#include "physics/aabb.hpp"
+#include "physics/physics_body.hpp"
+#include "tile_map/tile_map.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 
@@ -58,14 +61,14 @@ namespace
 
     void drawThePlayer(
         const ActorMotionState &motion,
-        const glm::vec2 &position,
+        const glm::vec2 &feet,
         const ActorState &state)
     {
         if (!ImGui::BeginTable("Player", 2, ImGuiTableFlags_BordersInnerV))
             return;
 
         drawRow("Velocity", std::format("{:.2f}, {:.2f}", motion.velocity.x, motion.velocity.y));
-        drawRow("Position", std::format("{:.2f}, {:.2f}", position.x, position.y));
+        drawRow("Feet", std::format("{:.2f}, {:.2f}", feet.x, feet.y));
         drawRow("Facing Left", state.facingLeft ? "true" : "false");
         drawRow("Wall Sliding", motion.wallSlide.active ? "true" : "false");
         drawRow("Wall Jumping", motion.wallJump.active ? "true" : "false");
@@ -89,7 +92,11 @@ namespace
             ImGui::Text("%.*s", static_cast<int>(state.size()), state.data());
 
         if (npc)
-            ImGui::Text("at %.0f,%.0f", npc->getPosition().x, npc->getPosition().y);
+        {
+            glm::ivec2 on =
+                level.getTileMap().tileStoodOnAt(npc->getPhysicsBody().getAABB().bottomCenter());
+            ImGui::Text("stands on %d,%d", on.x, on.y);
+        }
         else
             ImGui::TextDisabled("not spawned");
     }
@@ -154,7 +161,7 @@ ActorAsked drawActorsInLevel(
     const Level &level,
     const std::vector<std::unique_ptr<Npc>> &npcs,
     const ActorMotionState &playerMotionState,
-    const glm::vec2 &playerPosition,
+    const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcTypes,
     ActorShown showing,
@@ -212,7 +219,7 @@ ActorAsked drawActorsInLevel(
     case ActorShown::What::Player:
         ImGui::Separator();
         drawPlayerEditing(level.getPlayerStartTile(), armed);
-        drawThePlayer(playerMotionState, playerPosition, playerState);
+        drawThePlayer(playerMotionState, playerFeet, playerState);
         break;
 
     case ActorShown::What::Npc:

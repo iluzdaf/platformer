@@ -9,6 +9,7 @@
 #include "test_helpers/headless_imgui.hpp"
 #include "ui/brush.hpp"
 #include "ui/brush_picker.hpp"
+#include "ui/editor_ui.hpp"
 
 namespace
 {
@@ -47,10 +48,9 @@ namespace
         bool withPlayerStart = false)
     {
         float oneRow = heightOfPicker(gui, tileSet, width, 1);
-        float spacing = ImGui::GetStyle().ItemSpacing.y;
         float height = heightOfPicker(gui, tileSet, width, tileCount, withPlayerStart);
 
-        return static_cast<int>((height + spacing) / (oneRow + spacing) + 0.5f);
+        return static_cast<int>(height / oneRow + 0.5f);
     }
 }
 
@@ -88,5 +88,17 @@ TEST_CASE("The player start sits in the grid with the tiles", "[BrushPicker]")
 
     REQUIRE(rowsOfPicker(gui, tileSet, 1000.0f, 12, true) == 1);
     REQUIRE(rowsOfPicker(gui, tileSet, 200.0f, 12, true) >= rowsOfPicker(gui, tileSet, 200.0f, 12));
+}
+
+TEST_CASE("The brush picker does not reflow when the editor gains a scrollbar", "[BrushPicker]")
+{
+    HeadlessImGui gui;
+    Texture2D tileSet(assetPath("textures/tile_set.png"));
+    const ImGuiStyle &style = ImGui::GetStyle();
+
+    float roomy = InspectorWidth - style.WindowPadding.x * 2.0f;
+    float scrolling = roomy - style.ScrollbarSize;
+
+    REQUIRE(rowsOfPicker(gui, tileSet, roomy, 26) == rowsOfPicker(gui, tileSet, scrolling, 26));
 }
 #endif // SKIP_OPENGL_TESTS

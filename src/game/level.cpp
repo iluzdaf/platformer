@@ -1,4 +1,3 @@
-#include <cmath>
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
@@ -240,25 +239,10 @@ glm::ivec2 Level::beatEndAt(const NpcSpawnData &spawn, glm::ivec2 tilePosition) 
 
     const NavigationGraph &graph = graphForNpc(spawn);
     glm::vec2 asked = tileMap.tileToBottomCenterPosition(tilePosition);
-    std::optional<int> standing = nodeUnderfoot(graph, asked);
-    if (!standing)
+    if (!nodeUnderfoot(graph, asked))
         return tilePosition;
 
-    float surface = graph.getNode(*standing).position.y;
-    float leftEnd = graph.getNode(*standing).position.x;
-    float rightEnd = leftEnd;
-    for (int id : walkableFrom(graph, *standing))
-    {
-        glm::vec2 node = graph.getNode(id).position;
-        if (std::abs(node.y - surface) > 1.0f)
-            continue;
-
-        leftEnd = std::min(leftEnd, node.x);
-        rightEnd = std::max(rightEnd, node.x);
-    }
-
-    return tileMap.bottomCenterToTilePosition(
-        glm::vec2(std::clamp(asked.x, leftEnd, rightEnd), surface));
+    return tileMap.bottomCenterToTilePosition(placeOnTheRun(graph, asked));
 }
 
 std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const

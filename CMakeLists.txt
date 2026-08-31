@@ -107,7 +107,7 @@ add_library(platformer_lib OBJECT
     src/ui/score_ui.cpp
     src/ui/navigation_overlay.cpp
     src/ui/navigation_ui.cpp
-    src/ui/npcs_ui.cpp
+    src/ui/npcs_in_level.cpp
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/tile_interaction_system.cpp

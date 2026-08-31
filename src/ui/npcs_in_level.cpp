@@ -7,13 +7,13 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
-#include "ui/npcs_ui.hpp"
+#include "ui/npcs_in_level.hpp"
 #include "game/level.hpp"
 #include "navigation/navigation_path.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_spawn_data.hpp"
 
-void NpcsUi::draw(const Level &level, const std::vector<std::unique_ptr<Npc>> &npcs) const
+void drawNpcsInLevel(const Level &level, const std::vector<std::unique_ptr<Npc>> &npcs)
 {
     const std::vector<NpcSpawnData> &spawns = level.getNpcs();
     if (spawns.empty())

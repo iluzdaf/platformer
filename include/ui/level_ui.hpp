@@ -1,9 +1,11 @@
 #pragma once
 
+#include <memory>
 #include <optional>
+#include <vector>
 #include "ui/editor_commands.hpp"
-#include "ui/editor_section.hpp"
 #include "ui/brush.hpp"
+#include "ui/navigation_ui.hpp"
 #include "ui/saveable.hpp"
 
 class ImGuiManager;
@@ -18,8 +20,8 @@ class LevelUi
 {
 public:
     void draw(
-        EditorSection section,
         Level &level,
+        const std::vector<std::unique_ptr<Npc>> &npcs,
         const Texture2D &tileSet,
         const GameData &gameData,
         std::optional<Brush> &brush,
@@ -40,6 +42,7 @@ public:
 
 private:
     Saveable saveable;
+    NavigationUi navigationUi;
     bool drawGrid = false, drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false,
          drawPlayerStart = false;
 

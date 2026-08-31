@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
-#include <stdexcept>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cmath>
 #include <filesystem>
@@ -104,6 +103,90 @@ namespace
         return static_cast<float>((lastTile - firstTile + 1) * tileMap.getTileSize());
     }
 
+    constexpr int LedgeWidthTiles = 20;
+    constexpr int LedgeHeightTiles = 14;
+    constexpr int GroundRow = 12;
+    constexpr int LedgeRow = 6;
+    constexpr int LedgeLastTile = 6;
+    constexpr int StepRow = 8;
+    constexpr int StepFirstTile = 3;
+    constexpr int StepLastTile = 9;
+    constexpr int RiseRow = 10;
+    constexpr int RiseFirstTile = 12;
+    constexpr int RiseLastTile = 18;
+
+    constexpr int WallTile = 19;
+    constexpr int CornerTile = 14;
+    constexpr int GroundTile = 34;
+    constexpr int SurfaceTile = 40;
+    constexpr int SurfaceStartTile = 39;
+    constexpr int SurfaceEndTile = 41;
+
+    constexpr glm::ivec2 LedgeLeftEnd{1, LedgeRow - 1};
+    constexpr glm::ivec2 LedgeRightEnd{LedgeLastTile, LedgeRow - 1};
+    constexpr glm::ivec2 OnTheGround{2, GroundRow - 1};
+    constexpr glm::ivec2 TopOfTheWall{1, 0};
+
+    NpcSpawnData patrolling(
+        std::string type,
+        glm::ivec2 tilePosition,
+        glm::ivec2 from,
+        glm::ivec2 to)
+    {
+        NpcSpawnData spawn = spawnAt(std::move(type), tilePosition);
+        spawn.patrol = PatrolData{from, to};
+        return spawn;
+    }
+
+    Level levelWithALedgeAndAWall(const std::vector<NpcSpawnData> &npcs)
+    {
+        TileMapData tileMapData;
+        tileMapData.size = 16;
+        tileMapData.indices =
+            std::vector<std::vector<int>>(LedgeHeightTiles, std::vector<int>(LedgeWidthTiles, 0));
+        std::vector<std::vector<int>> &indices = *tileMapData.indices;
+
+        for (int y = 0; y < GroundRow; ++y)
+        {
+            indices[y][0] = WallTile;
+            indices[y][LedgeWidthTiles - 1] = WallTile;
+        }
+
+        for (int x = 0; x < LedgeWidthTiles; ++x)
+        {
+            indices[GroundRow][x] = GroundTile;
+            indices[GroundRow + 1][x] = CornerTile;
+        }
+        indices[GroundRow][0] = CornerTile;
+        indices[GroundRow][LedgeWidthTiles - 1] = CornerTile;
+
+        indices[LedgeRow][0] = CornerTile;
+        for (int x = 1; x < LedgeLastTile; ++x)
+            indices[LedgeRow][x] = SurfaceTile;
+        indices[LedgeRow][LedgeLastTile] = SurfaceEndTile;
+
+        indices[StepRow][StepFirstTile] = SurfaceStartTile;
+        for (int x = StepFirstTile + 1; x < StepLastTile; ++x)
+            indices[StepRow][x] = SurfaceTile;
+        indices[StepRow][StepLastTile] = SurfaceEndTile;
+
+        indices[RiseRow][RiseFirstTile] = SurfaceStartTile;
+        for (int x = RiseFirstTile + 1; x <= RiseLastTile; ++x)
+            indices[RiseRow][x] = SurfaceTile;
+
+        LevelData levelData;
+        levelData.tileMapData = tileMapData;
+        levelData.playerStartTilePosition = OnTheGround;
+        levelData.npcs = npcs;
+
+        return Level(levelData, shippedPalettes(), loadGameData().playerData, shippedNpcData());
+    }
+
+    float surfaceOf(int row)
+    {
+        return static_cast<float>(row * 16);
+    }
+
     void standIn(Npc &npc, const TileMap &tileMap, glm::ivec2 tilePosition)
     {
         npc.setPosition(
@@ -118,18 +201,6 @@ namespace
             npc.preFixedUpdate();
             npc.fixedUpdate(0.01f, level);
         }
-    }
-
-    const NpcSpawnData &spawnOf(
-        const Level &level,
-        const std::string &type,
-        glm::ivec2 tilePosition)
-    {
-        for (const NpcSpawnData &spawn : level.getNpcs())
-            if (spawn.type == type && spawn.tilePosition == tilePosition)
-                return spawn;
-
-        throw std::runtime_error("no " + type + " spawns there");
     }
 
     glm::vec2 footOf(const Npc &npc)
@@ -393,23 +464,16 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     REQUIRE(footOf(npc).x == tileMap.tileToBottomCenterPosition(SpawnTile).x);
 }
 
-TEST_CASE("The shipped explorer walks level6 from the floor to the top and back", "[Npc][Level]")
+TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "[Npc][Level]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData spawn = patrolling("explorer", OnTheGround, OnTheGround, LedgeLeftEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    const NpcSpawnData &spawn = spawnOf(level, "explorer", glm::ivec2(2, 11));
-    REQUIRE(spawn.type == "explorer");
-    REQUIRE(spawn.patrol);
-
-    Npc npc(gameData.npcData.at("explorer"), level.patrolFor(spawn));
+    Npc npc(shippedNpcData().at("explorer"), level.patrolFor(spawn));
     standIn(npc, level.getTileMap(), spawn.tilePosition);
 
-    constexpr float TopPlatform = 96.0f;
-    constexpr float Floor = 192.0f;
+    const float topOfTheLedge = surfaceOf(LedgeRow);
+    const float theGround = surfaceOf(GroundRow);
 
     bool startedOnTheFloor = false, reachedTheTop = false, cameBackDown = false;
     float previousX = npc.getPosition().x;
@@ -425,10 +489,10 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
 
         float foot = npc.getPosition().y + 16.0f;
         if (!reachedTheTop)
-            startedOnTheFloor = startedOnTheFloor || foot >= Floor;
-        if (startedOnTheFloor && std::abs(foot - TopPlatform) < 1.0f)
+            startedOnTheFloor = startedOnTheFloor || foot >= theGround;
+        if (startedOnTheFloor && std::abs(foot - topOfTheLedge) < 1.0f)
             reachedTheTop = true;
-        if (reachedTheTop && foot >= Floor)
+        if (reachedTheTop && foot >= theGround)
             cameBackDown = true;
 
         standingStill = std::abs(npc.getPosition().x - previousX) < 0.01f ? standingStill + 1 : 0;
@@ -444,16 +508,14 @@ TEST_CASE("The shipped explorer walks level6 from the floor to the top and back"
 
 TEST_CASE("The shipped villager runs from the player and settles once it is gone", "[Npc][Level]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData spawn = patrolling(
+        "villager",
+        glm::ivec2(6, GroundRow - 1),
+        glm::ivec2(2, GroundRow - 1),
+        glm::ivec2(17, GroundRow - 1));
+    Level level = levelWithALedgeAndAWall({spawn});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    const NpcSpawnData &spawn = level.getNpcs().at(0);
-    REQUIRE(spawn.type == "villager");
-
-    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    Npc npc(shippedNpcData().at("villager"), level.patrolFor(spawn));
     standIn(npc, level.getTileMap(), spawn.tilePosition);
 
     glm::vec2 crowding = footOf(npc) + glm::vec2(12.0f, 0.0f);
@@ -480,16 +542,10 @@ TEST_CASE("The shipped villager runs from the player and settles once it is gone
 
 TEST_CASE("The shipped villager never freezes out in the open on its platform", "[Npc][Level]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    const NpcSpawnData &spawn = level.getNpcs().at(1);
-    REQUIRE(spawn.type == "villager");
-
-    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    Npc npc(shippedNpcData().at("villager"), level.patrolFor(spawn));
     standIn(npc, level.getTileMap(), spawn.tilePosition);
 
     constexpr float LeftEnd = 16.0f, RightEnd = 112.0f;
@@ -520,16 +576,10 @@ TEST_CASE(
     "The shipped villager holds its ground while the player shares its platform",
     "[Npc][Level]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    const NpcSpawnData &spawn = level.getNpcs().at(1);
-    REQUIRE(spawn.type == "villager");
-
-    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    Npc npc(shippedNpcData().at("villager"), level.patrolFor(spawn));
     standIn(npc, level.getTileMap(), spawn.tilePosition);
 
     glm::vec2 cornering(112.0f, 96.0f);
@@ -563,16 +613,10 @@ TEST_CASE(
 
 TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered", "[Npc][Level]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    const NpcSpawnData &spawn = level.getNpcs().at(1);
-    REQUIRE(spawn.type == "villager");
-
-    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    Npc npc(shippedNpcData().at("villager"), level.patrolFor(spawn));
     standIn(npc, level.getTileMap(), spawn.tilePosition);
 
     glm::vec2 driving(8.0f, 96.0f);
@@ -595,16 +639,10 @@ TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered
 
 TEST_CASE("The shipped villager pays no mind to a player on the platform below", "[Npc][Level]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    const NpcSpawnData &spawn = level.getNpcs().at(1);
-    REQUIRE(spawn.type == "villager");
-
-    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    Npc npc(shippedNpcData().at("villager"), level.patrolFor(spawn));
     standIn(npc, level.getTileMap(), spawn.tilePosition);
 
     float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
@@ -622,16 +660,10 @@ TEST_CASE("The shipped villager pays no mind to a player on the platform below",
 
 TEST_CASE("An npc says which state it is in", "[Npc][Level]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    const NpcSpawnData &spawn = level.getNpcs().at(1);
-    REQUIRE(spawn.type == "villager");
-
-    Npc npc(gameData.npcData.at("villager"), level.patrolFor(spawn));
+    Npc npc(shippedNpcData().at("villager"), level.patrolFor(spawn));
     standIn(npc, level.getTileMap(), spawn.tilePosition);
 
     REQUIRE(npc.getStateName() == "patrol");
@@ -665,47 +697,37 @@ TEST_CASE("An npc with no behavior names no state", "[Npc]")
 
 TEST_CASE("A beat a villager cannot make a round trip of is not walkable", "[Npc][Level]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData onTheGround = patrolling(
+        "villager",
+        glm::ivec2(6, GroundRow - 1),
+        glm::ivec2(2, GroundRow - 1),
+        glm::ivec2(17, GroundRow - 1));
+    Level level = levelWithALedgeAndAWall({onTheGround});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    NpcSpawnData onTheFloor = level.getNpcs().at(0);
-    REQUIRE(onTheFloor.type == "villager");
-    REQUIRE(onTheFloor.patrol);
-
-    Npc villager(gameData.npcData.at("villager"), level.patrolFor(onTheFloor));
+    Npc villager(shippedNpcData().at("villager"), level.patrolFor(onTheGround));
     const NavigationGraph &graph = level.graphFor(villager.getNavigationProfile());
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> authored = level.patrolFor(onTheFloor);
+    std::optional<std::pair<glm::vec2, glm::vec2>> authored = level.patrolFor(onTheGround);
     REQUIRE(authored);
     REQUIRE(canPatrolBetween(graph, authored->first, authored->second));
 
-    NpcSpawnData reachingTooHigh = onTheFloor;
-    reachingTooHigh.patrol->to = glm::ivec2(1, 5);
+    NpcSpawnData reachingTooHigh = onTheGround;
+    reachingTooHigh.patrol->to = LedgeLeftEnd;
     std::optional<std::pair<glm::vec2, glm::vec2>> impossible = level.patrolFor(reachingTooHigh);
     REQUIRE(impossible);
     REQUIRE_FALSE(canPatrolBetween(graph, impossible->first, impossible->second));
 }
 
-TEST_CASE("The shipped explorer climbs the wall above level6's platform", "[Npc][Level][Climb]")
+TEST_CASE("The shipped explorer climbs the wall above the ledge", "[Npc][Level][Climb]")
 {
-    GameData gameData = loadGameData();
-    LevelData levelData;
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
+    NpcSpawnData spawn = patrolling("explorer", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
 
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
-
-    const NpcSpawnData &spawn = spawnOf(level, "explorer", glm::ivec2(6, 5));
-    REQUIRE(spawn.type == "explorer");
-    REQUIRE(spawn.patrol);
-
-    Npc npc(gameData.npcData.at("explorer"), level.patrolFor(spawn));
+    Npc npc(shippedNpcData().at("explorer"), level.patrolFor(spawn));
     standIn(npc, level.getTileMap(), spawn.tilePosition);
 
-    constexpr float Platform = 96.0f;
-    constexpr float TopOfTheFace = 16.0f;
+    const float theLedge = surfaceOf(LedgeRow);
+    const float topOfTheFace = surfaceOf(1);
 
     float highest = footOf(npc).y;
     int reachedTheTopAt = -1;
@@ -715,14 +737,14 @@ TEST_CASE("The shipped explorer climbs the wall above level6's platform", "[Npc]
         npc.preFixedUpdate();
         npc.fixedUpdate(0.01f, level);
         highest = std::min(highest, footOf(npc).y);
-        if (reachedTheTopAt < 0 && highest <= TopOfTheFace + 1.0f)
+        if (reachedTheTopAt < 0 && highest <= topOfTheFace + 1.0f)
             reachedTheTopAt = step;
-        if (reachedTheTopAt >= 0 && footOf(npc).y >= Platform - 1.0f)
+        if (reachedTheTopAt >= 0 && footOf(npc).y >= theLedge - 1.0f)
             cameBackDown = true;
     }
 
     INFO("highest foot reached " << highest << " at step " << reachedTheTopAt);
-    REQUIRE(highest <= TopOfTheFace + 1.0f);
+    REQUIRE(highest <= topOfTheFace + 1.0f);
     REQUIRE(cameBackDown);
     REQUIRE(reachedTheTopAt < 270);
 }

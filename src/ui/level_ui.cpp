@@ -8,7 +8,7 @@
 #include "ui/level_ui.hpp"
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
-#include "ui/npcs_in_level.hpp"
+#include "ui/actors_in_level.hpp"
 #include "ui/save_controls.hpp"
 #include "ui/brush_picker.hpp"
 #include "ui/brush.hpp"
@@ -92,6 +92,9 @@ namespace
 void LevelUi::draw(
     Level &level,
     const std::vector<std::unique_ptr<Npc>> &npcs,
+    const ActorMotionState &playerMotionState,
+    const glm::vec2 &playerPosition,
+    const ActorState &playerState,
     const Texture2D &tileSet,
     const GameData &gameData,
     std::optional<Brush> &brush,
@@ -107,9 +110,19 @@ void LevelUi::draw(
     drawLevel(level, commands);
 
     ImGui::Separator();
-    if (ImGui::CollapsingHeader("NPCs", ImGuiTreeNodeFlags_DefaultOpen))
-        if (std::optional<std::size_t> removing = drawNpcsInLevel(level, npcs))
-            level.removeNpc(*removing);
+    if (ImGui::CollapsingHeader("Actors", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ActorAsked asked = drawActorsInLevel(
+            level, npcs, playerMotionState, playerPosition, playerState, showingActor);
+
+        if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
+        {
+            level.removeNpc(showingActor.npcIndex);
+            showingActor = ActorShown{};
+        }
+        else
+            showingActor = asked.show;
+    }
 }
 
 void LevelUi::drawLevel(Level &level, EditorCommands &commands)
@@ -161,8 +174,6 @@ void LevelUi::drawTileMap(
         ImGui::Checkbox("Colliders", &drawTileColliders);
         ImGui::SameLine();
         ImGui::Checkbox("Bounds", &drawLevelBounds);
-        ImGui::SameLine();
-        ImGui::Checkbox("Spawns", &drawSpawns);
         navigationUi.drawOverlayToggles();
     }
     ImGui::Separator();
@@ -202,8 +213,7 @@ void LevelUi::drawOverlay(
     if (drawLevelBounds)
         ::drawLevelBounds(imGuiManager, camera, level);
 
-    if (drawSpawns)
-        ::drawSpawns(imGuiManager, camera, level);
+    drawSpawnOf(imGuiManager, camera, level, showingActor);
 
     navigationUi.drawOverlay(imGuiManager, camera, level);
 }

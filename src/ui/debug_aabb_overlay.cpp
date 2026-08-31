@@ -7,9 +7,13 @@
 #include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
+#include <cstddef>
 #include <string>
+#include <vector>
+#include <utility>
 #include "cameras/camera2d.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "ui/actors_in_level.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "physics/physics_body.hpp"
 #include "physics/aabb.hpp"
@@ -26,6 +30,7 @@ namespace
     constexpr ImU32 DeadlyTileColliderColor = IM_COL32(255, 0, 0, 255);
     constexpr ImU32 LevelBoundsColor = IM_COL32(255, 255, 0, 255);
     constexpr ImU32 SpawnColor = IM_COL32(255, 0, 255, 255);
+    constexpr float BeatEndRadius = 3.0f;
 
     AABB thickEnoughToSee(AABB probe, bool surfaceIsTopEdge)
     {
@@ -137,7 +142,11 @@ void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, c
         LevelBoundsColor);
 }
 
-void drawSpawns(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+void drawSpawnOf(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Level &level,
+    ActorShown showing)
 {
     const TileMap &tileMap = level.getTileMap();
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
@@ -154,10 +163,30 @@ void drawSpawns(const ImGuiManager &imGuiManager, const Camera2D &camera, const 
         drawList->AddText(ImVec2(topLeft.x + 2.0f, topLeft.y + 2.0f), SpawnColor, label.c_str());
     };
 
-    drawSpawn(level.getPlayerStartTile(), "player");
+    if (showing.what == ActorShown::What::Player)
+    {
+        drawSpawn(level.getPlayerStartTile(), "player");
+        return;
+    }
 
-    for (const NpcSpawnData &spawn : level.getNpcs())
-        drawSpawn(spawn.tilePosition, spawn.type);
+    if (showing.what != ActorShown::What::Npc || showing.npcIndex >= level.getNpcs().size())
+        return;
+
+    const NpcSpawnData &spawn = level.getNpcs()[showing.npcIndex];
+    drawSpawn(spawn.tilePosition, spawn.type);
+
+    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
+    if (!beat)
+        return;
+
+    ImVec2 from =
+        imGuiManager.worldToScreen(beat->first, camera.getZoom(), camera.getTopLeftPosition());
+    ImVec2 to =
+        imGuiManager.worldToScreen(beat->second, camera.getZoom(), camera.getTopLeftPosition());
+
+    drawList->AddLine(from, to, SpawnColor);
+    drawList->AddCircleFilled(from, BeatEndRadius, SpawnColor);
+    drawList->AddCircleFilled(to, BeatEndRadius, SpawnColor);
 }
 
 void drawContactProbes(

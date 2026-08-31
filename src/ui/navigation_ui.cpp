@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cfloat>
 #include <cstddef>
 #include <optional>
 #include <utility>
@@ -55,7 +56,9 @@ void NavigationUi::draw(const Level &level)
 
     const NamedNavigationGraph &shown = graphs[selectedGraphIndex];
 
-    ImGui::SetNextItemWidth(170.0f);
+    ImGui::TextUnformatted("graph");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(-FLT_MIN);
     bool choosingGraph = false;
     if (ImGui::BeginCombo("##graph", shown.name.c_str()))
     {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ui/actors_in_level.hpp"
+
 class ImGuiManager;
 class Camera2D;
 class Player;
@@ -20,7 +22,11 @@ void drawTileColliders(
 
 void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
 
-void drawSpawns(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
+void drawSpawnOf(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Level &level,
+    ActorShown showing);
 
 void drawContactProbes(
     const ImGuiManager &imGuiManager,

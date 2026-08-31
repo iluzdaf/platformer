@@ -99,12 +99,7 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Player:
-        playerUi.draw(
-            subject.gameData,
-            subject.playerMotionState,
-            subject.playerPosition,
-            subject.playerState,
-            commands);
+        playerUi.draw(subject.gameData, commands);
         break;
 
     case EditorSection::NpcTypes:
@@ -118,7 +113,15 @@ void EditorUi::draw(
 
     case EditorSection::Level:
         levelUi.draw(
-            subject.level, subject.npcs, subject.tileSet, subject.gameData, brush, commands);
+            subject.level,
+            subject.npcs,
+            subject.playerMotionState,
+            subject.playerPosition,
+            subject.playerState,
+            subject.tileSet,
+            subject.gameData,
+            brush,
+            commands);
         break;
 
     case EditorSection::TilePalettes:

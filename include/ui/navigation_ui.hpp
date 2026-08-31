@@ -18,10 +18,12 @@ public:
         const;
 
 private:
-    bool showNavigation = true, drawTheFlightItself = false;
-    size_t selectedGraphIndex = 0;
+    bool drawTheFlightItself = false;
+    std::optional<size_t> selectedGraphIndex;
     std::optional<int> selectedNodeId;
-    std::optional<std::pair<int, int>> selectedEdge;
+    std::optional<std::pair<int, int>> shownEdge;
 
-    void drawEdgesOf(const NavigationGraph &graph, int nodeId);
+    void drawGraphs(const Level &level);
+    void drawEdgeChooser(const NavigationGraph *graph, std::optional<int> nodeId);
+    void forgetSelection();
 };

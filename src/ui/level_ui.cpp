@@ -100,11 +100,19 @@ void LevelUi::draw(
     std::optional<Brush> &brush,
     EditorCommands &commands)
 {
-    drawTileMap(level, tileSet, gameData, brush);
+    if (ImGui::CollapsingHeader("State", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Text(
+            "w%dxh%dxs%d",
+            level.getTileMap().getWidth(),
+            level.getTileMap().getHeight(),
+            level.getTileMap().getTileSize());
+
+        navigationUi.draw(level);
+    }
 
     ImGui::Separator();
-    if (ImGui::CollapsingHeader("Navigation", ImGuiTreeNodeFlags_DefaultOpen))
-        navigationUi.draw(level);
+    drawTileMap(level, tileSet, gameData, brush);
 
     ImGui::Separator();
     drawLevel(level, commands);
@@ -160,12 +168,6 @@ void LevelUi::drawTileMap(
     const GameData &gameData,
     std::optional<Brush> &brush)
 {
-    ImGui::Text(
-        "w%dxh%dxs%d",
-        level.getTileMap().getWidth(),
-        level.getTileMap().getHeight(),
-        level.getTileMap().getTileSize());
-
     if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Checkbox("Info", &drawTileInfo);

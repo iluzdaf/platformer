@@ -41,7 +41,7 @@ private:
     Saveable saveable;
     NavigationUi navigationUi;
     bool drawGrid = false, drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false,
-         drawPlayerStart = false;
+         drawSpawns = false;
 
     void drawLevel(Level &level, EditorCommands &commands);
     void drawTileMap(

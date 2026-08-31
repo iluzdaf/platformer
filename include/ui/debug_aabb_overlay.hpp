@@ -20,7 +20,7 @@ void drawTileColliders(
 
 void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
 
-void drawPlayerStart(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
+void drawSpawns(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
 
 void drawContactProbes(
     const ImGuiManager &imGuiManager,

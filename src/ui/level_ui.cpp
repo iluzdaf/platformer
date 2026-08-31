@@ -151,7 +151,7 @@ void LevelUi::drawTileMap(
         ImGui::SameLine();
         ImGui::Checkbox("Bounds", &drawLevelBounds);
         ImGui::SameLine();
-        ImGui::Checkbox("Spawn", &drawPlayerStart);
+        ImGui::Checkbox("Spawns", &drawSpawns);
         navigationUi.drawOverlayToggles();
     }
     ImGui::Separator();
@@ -189,8 +189,8 @@ void LevelUi::drawOverlay(
     if (drawLevelBounds)
         ::drawLevelBounds(imGuiManager, camera, level);
 
-    if (drawPlayerStart)
-        ::drawPlayerStart(imGuiManager, camera, level);
+    if (drawSpawns)
+        ::drawSpawns(imGuiManager, camera, level);
 
     navigationUi.drawOverlay(imGuiManager, camera, level);
 }

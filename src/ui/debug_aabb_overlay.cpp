@@ -7,7 +7,9 @@
 #include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"
+#include <string>
 #include "cameras/camera2d.hpp"
+#include "npc/npc_spawn_data.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "physics/physics_body.hpp"
 #include "physics/aabb.hpp"
@@ -23,7 +25,7 @@ namespace
     constexpr ImU32 TileColliderColor = IM_COL32(230, 230, 230, 255);
     constexpr ImU32 DeadlyTileColliderColor = IM_COL32(255, 0, 0, 255);
     constexpr ImU32 LevelBoundsColor = IM_COL32(255, 255, 0, 255);
-    constexpr ImU32 PlayerStartColor = IM_COL32(255, 0, 255, 255);
+    constexpr ImU32 SpawnColor = IM_COL32(255, 0, 255, 255);
 
     AABB thickEnoughToSee(AABB probe, bool surfaceIsTopEdge)
     {
@@ -135,16 +137,27 @@ void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, c
         LevelBoundsColor);
 }
 
-void drawPlayerStart(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+void drawSpawns(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
 {
     const TileMap &tileMap = level.getTileMap();
-    glm::vec2 playerStartWorldPosition = tileMap.tileToWorldPosition(level.getPlayerStartTile());
-    drawAABB(
-        ImGui::GetBackgroundDrawList(),
-        imGuiManager,
-        AABB(playerStartWorldPosition, glm::vec2(static_cast<float>(tileMap.getTileSize()))),
-        camera,
-        PlayerStartColor);
+    ImDrawList *drawList = ImGui::GetBackgroundDrawList();
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+
+    auto drawSpawn = [&](glm::ivec2 tilePosition, const std::string &label)
+    {
+        glm::vec2 worldPosition = tileMap.tileToWorldPosition(tilePosition);
+        drawAABB(
+            drawList, imGuiManager, AABB(worldPosition, glm::vec2(tileSize)), camera, SpawnColor);
+
+        ImVec2 topLeft = imGuiManager.worldToScreen(
+            worldPosition, camera.getZoom(), camera.getTopLeftPosition());
+        drawList->AddText(ImVec2(topLeft.x + 2.0f, topLeft.y + 2.0f), SpawnColor, label.c_str());
+    };
+
+    drawSpawn(level.getPlayerStartTile(), "player");
+
+    for (const NpcSpawnData &spawn : level.getNpcs())
+        drawSpawn(spawn.tilePosition, spawn.type);
 }
 
 void drawContactProbes(

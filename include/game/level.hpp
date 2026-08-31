@@ -34,6 +34,7 @@ public:
     TileMap &getTileMap();
 
     const NavigationGraph &graphFor(const NavigationProfile &profile) const;
+    const NavigationGraph &graphForNpc(const NpcSpawnData &spawn) const;
     const std::vector<NamedNavigationGraph> &getGraphs() const;
 
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolFor(const NpcSpawnData &spawn) const;
@@ -44,6 +45,11 @@ public:
     const std::vector<NpcSpawnData> &getNpcs() const;
     void addNpc(const NpcSpawnData &spawn);
     void removeNpc(std::size_t index);
+    void setNpcSpawnTile(std::size_t index, glm::ivec2 tilePosition);
+    void setNpcPatrol(std::size_t index, PatrolData patrol);
+    void clearNpcPatrol(std::size_t index);
+    std::optional<PatrolData> runBeneathNpc(std::size_t index) const;
+    glm::ivec2 beatEndAt(const NpcSpawnData &spawn, glm::ivec2 tilePosition) const;
     const std::string &getPath() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
     void setNextLevel(const std::string &levelPath);
@@ -64,6 +70,7 @@ private:
     std::vector<NpcSpawnData> npcs;
     std::string path;
     std::vector<NamedNavigationGraph> graphs;
+    std::map<std::string, NavigationProfile> npcProfiles;
 
     void initFrom(
         const LevelData &levelData,

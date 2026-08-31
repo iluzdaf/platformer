@@ -31,6 +31,8 @@ public:
     std::vector<glm::ivec2> worldToTilePositions(glm::vec2 worldPosition, glm::vec2 size) const;
     glm::vec2 tileToWorldPosition(glm::ivec2 tilePosition) const;
     glm::vec2 tileToBottomCenterPosition(glm::ivec2 tilePosition) const;
+    glm::ivec2 bottomCenterToTilePosition(glm::vec2 worldPosition) const;
+    bool standsOnGround(glm::ivec2 tilePosition) const;
     const std::unordered_map<int, Tile> &getTiles() const;
     TileMapData toTileMapData() const;
     bool validTilePosition(glm::ivec2 tilePosition) const;

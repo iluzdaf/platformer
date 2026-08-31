@@ -185,3 +185,25 @@ TEST_CASE("TileMap names the spot an actor stands on inside a tile", "[TileMap]"
     REQUIRE(standingIn.x == 3 * 16.0f + 8.0f);
     REQUIRE(standingIn.y == 5 * 16.0f);
 }
+
+TEST_CASE("TileMap names the tile an actor standing somewhere is on", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+    glm::ivec2 tilePosition(3, 4);
+
+    REQUIRE(
+        tileMap.bottomCenterToTilePosition(tileMap.tileToBottomCenterPosition(tilePosition)) ==
+        tilePosition);
+}
+
+TEST_CASE("A spot on a tile's edge belongs to the tile it is the edge of", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+    float rightEdge = static_cast<float>(tileMap.getWidth() * tileMap.getTileSize());
+    float floorSurface = static_cast<float>(tileMap.getHeight() * tileMap.getTileSize());
+
+    glm::ivec2 corner = tileMap.bottomCenterToTilePosition(glm::vec2(rightEdge, floorSurface));
+
+    REQUIRE(tileMap.validTilePosition(corner));
+    REQUIRE(corner == glm::ivec2(tileMap.getWidth() - 1, tileMap.getHeight() - 1));
+}

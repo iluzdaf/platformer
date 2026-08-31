@@ -8,57 +8,62 @@
 
 namespace
 {
-    struct TileScreenSpace
-    {
-        ImVec2 offset;
-        float tileSize;
-        glm::ivec2 topLeftTilePosition;
-    };
-
-    TileScreenSpace screenSpaceOf(
+    TileGridOnScreen screenSpaceOf(
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
         const TileMap &tileMap)
     {
-        glm::vec2 cameraTopLeft = camera.getTopLeftPosition();
-        float tileSize = static_cast<float>(tileMap.getTileSize());
-        glm::vec2 snappedTopLeft = glm::floor(cameraTopLeft / tileSize) * tileSize;
-
-        return {
-            imGuiManager.worldToScreen(snappedTopLeft, camera.getZoom(), cameraTopLeft),
-            tileSize * camera.getZoom() / imGuiManager.getUiScale().x,
-            glm::floor(cameraTopLeft / tileSize)};
+        return tileGridOnScreen(
+            camera.getTopLeftPosition(),
+            camera.getZoom(),
+            imGuiManager.getUiScale(),
+            tileMap.getTileSize());
     }
+}
+
+TileGridOnScreen tileGridOnScreen(
+    glm::vec2 cameraTopLeft,
+    float zoom,
+    glm::vec2 uiScale,
+    int tileSize)
+{
+    float tileSizeInWorld = static_cast<float>(tileSize);
+    glm::vec2 snappedTopLeft = glm::floor(cameraTopLeft / tileSizeInWorld) * tileSizeInWorld;
+
+    return {
+        ((snappedTopLeft - cameraTopLeft) * zoom) / uiScale,
+        (glm::vec2(tileSizeInWorld) * zoom) / uiScale,
+        glm::floor(cameraTopLeft / tileSizeInWorld)};
 }
 
 void drawTileGrid(const ImGuiManager &imGuiManager, const Camera2D &camera, const TileMap &tileMap)
 {
-    TileScreenSpace space = screenSpaceOf(imGuiManager, camera, tileMap);
+    TileGridOnScreen grid = screenSpaceOf(imGuiManager, camera, tileMap);
     ImVec2 uiDimensions = imGuiManager.getUiDimensions();
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
 
-    for (float x = space.offset.x; x < uiDimensions.x; x += space.tileSize)
+    for (float x = grid.firstLine.x; x < uiDimensions.x; x += grid.spacing.x)
         drawList->AddLine(ImVec2(x, 0), ImVec2(x, uiDimensions.y), IM_COL32(100, 100, 100, 255));
 
-    for (float y = space.offset.y; y < uiDimensions.y; y += space.tileSize)
+    for (float y = grid.firstLine.y; y < uiDimensions.y; y += grid.spacing.y)
         drawList->AddLine(ImVec2(0, y), ImVec2(uiDimensions.x, y), IM_COL32(100, 100, 100, 255));
 }
 
 void drawTileInfo(const ImGuiManager &imGuiManager, const Camera2D &camera, const TileMap &tileMap)
 {
-    TileScreenSpace space = screenSpaceOf(imGuiManager, camera, tileMap);
+    TileGridOnScreen grid = screenSpaceOf(imGuiManager, camera, tileMap);
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
 
-    for (float y = space.offset.y, tileY = static_cast<float>(space.topLeftTilePosition.y);
+    for (float y = grid.firstLine.y, tileY = static_cast<float>(grid.topLeftTilePosition.y);
          tileY < tileMap.getHeight();
-         y += space.tileSize, ++tileY)
+         y += grid.spacing.y, ++tileY)
     {
         if (tileY < 0)
             continue;
 
-        for (float x = space.offset.x, tileX = static_cast<float>(space.topLeftTilePosition.x);
+        for (float x = grid.firstLine.x, tileX = static_cast<float>(grid.topLeftTilePosition.x);
              tileX < tileMap.getWidth();
-             x += space.tileSize, ++tileX)
+             x += grid.spacing.x, ++tileX)
         {
             if (tileX < 0)
                 continue;

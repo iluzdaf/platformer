@@ -7,7 +7,7 @@
 #include "ui/save_controls.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
-#include "ui/brush.hpp"
+#include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_palette.hpp"
@@ -16,7 +16,7 @@ void TilePalettesUi::draw(
     TilePalettes &tilePalettes,
     const Texture2D &tileSet,
     int tileSize,
-    std::optional<Brush> &brush)
+    std::optional<Armed> &armed)
 {
     drawSaveControls(saveable, "palettes", tilePalettes, saveTilePalettes);
     ImGui::Separator();
@@ -51,20 +51,13 @@ void TilePalettesUi::draw(
         return;
     }
 
-    std::optional<int> showing;
-    if (brush && brush->kind == Brush::Kind::Tile && palette.contains(brush->tileIndex))
-        showing = brush->tileIndex;
+    std::optional<int> showing = paintedTile(armed);
+    if (showing && !palette.contains(*showing))
+        showing.reset();
 
-    std::vector<Brush> brushes;
-    for (int tileIndex : tileIndices)
-        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
-
-    std::optional<Brush> armed =
-        showing ? std::optional<Brush>(Brush{Brush::Kind::Tile, *showing}) : std::nullopt;
-    brush = drawTilePicker(tileSet, tileSize, brushes, armed);
-    std::optional<int> picked = brush && brush->kind == Brush::Kind::Tile
-                                    ? std::optional<int>(brush->tileIndex)
-                                    : std::nullopt;
+    std::optional<int> picked = drawTilePicker(tileSet, tileSize, tileIndices, showing);
+    if (picked != showing)
+        armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
 
     ImGui::Separator();
     if (!picked)

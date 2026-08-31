@@ -17,6 +17,10 @@
 #include "actor/actor_contact_state.hpp"
 #include "physics/physics_body.hpp"
 #include "physics/aabb.hpp"
+#include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_node.hpp"
+#include "navigation/navigation_path.hpp"
+#include "ui/navigation_overlay.hpp"
 
 namespace
 {
@@ -179,14 +183,24 @@ void drawSpawnOf(
     if (!beat)
         return;
 
-    ImVec2 from =
-        imGuiManager.worldToScreen(beat->first, camera.getZoom(), camera.getTopLeftPosition());
-    ImVec2 to =
-        imGuiManager.worldToScreen(beat->second, camera.getZoom(), camera.getTopLeftPosition());
+    const NavigationGraph &graph = level.graphForNpc(spawn);
+    std::optional<int> fromId = nearestNodeTo(graph, beat->first);
+    std::optional<int> toId = nearestNodeTo(graph, beat->second);
+    if (!fromId || !toId)
+        return;
 
-    drawList->AddLine(from, to, SpawnColor);
-    drawList->AddCircleFilled(from, BeatEndRadius, SpawnColor);
-    drawList->AddCircleFilled(to, BeatEndRadius, SpawnColor);
+    auto onScreen = [&](int id)
+    {
+        return imGuiManager.worldToScreen(
+            graph.getNode(id).position, camera.getZoom(), camera.getTopLeftPosition());
+    };
+
+    std::vector<int> route = findPath(graph, *fromId, *toId);
+    for (std::size_t step = 1; step < route.size(); ++step)
+        drawList->AddLine(onScreen(route[step - 1]), onScreen(route[step]), SpawnColor);
+
+    drawList->AddCircleFilled(onScreen(*fromId), BeatEndRadius, OriginColour);
+    drawList->AddCircleFilled(onScreen(*toId), BeatEndRadius, DestinationColour);
 }
 
 void drawContactProbes(

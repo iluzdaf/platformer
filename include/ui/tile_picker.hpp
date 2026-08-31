@@ -2,15 +2,16 @@
 
 #include <optional>
 #include <vector>
-#include "ui/brush.hpp"
 
 class Texture2D;
+class TileMap;
 
 inline constexpr float TilePickerCellSize = 32.0f;
-inline constexpr unsigned int TilePickerArmedColour = 0xFF00FFFF;
 
-std::optional<Brush> drawTilePicker(
+std::vector<int> tilesToPickFrom(const TileMap &tileMap);
+
+std::optional<int> drawTilePicker(
     const Texture2D &tileSet,
     int tileSize,
-    const std::vector<Brush> &brushes,
-    std::optional<Brush> armed);
+    const std::vector<int> &tileIndices,
+    std::optional<int> armed);

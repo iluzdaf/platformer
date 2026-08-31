@@ -5,7 +5,7 @@
 #include <optional>
 #include <vector>
 #include "ui/editor_commands.hpp"
-#include "ui/brush.hpp"
+#include "ui/armed.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/navigation_ui.hpp"
 #include "ui/saveable.hpp"
@@ -31,7 +31,7 @@ public:
         const ActorState &playerState,
         const Texture2D &tileSet,
         const GameData &gameData,
-        std::optional<Brush> &brush,
+        std::optional<Armed> &armed,
         EditorCommands &commands);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
         const;
@@ -39,7 +39,7 @@ public:
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
         Level &level,
-        std::optional<Brush> &brush);
+        std::optional<Armed> &armed);
 
     bool hasUnsavedChanges(const Level &level) const;
     void valuesReplaced();
@@ -52,9 +52,9 @@ private:
 
     void drawLevel(Level &level, EditorCommands &commands);
     void drawOverlayToggles();
-    void drawBrush(
+    void drawTiles(
         Level &level,
         const Texture2D &tileSet,
         const GameData &gameData,
-        std::optional<Brush> &brush);
+        std::optional<Armed> &armed);
 };

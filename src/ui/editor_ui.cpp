@@ -120,7 +120,7 @@ void EditorUi::draw(
             subject.playerState,
             subject.tileSet,
             subject.gameData,
-            brush,
+            armed,
             commands);
         break;
 
@@ -129,7 +129,7 @@ void EditorUi::draw(
             subject.gameData.tilePalettes,
             subject.tileSet,
             subject.level.getTileMap().getTileSize(),
-            brush);
+            armed);
         break;
     }
 
@@ -153,7 +153,7 @@ void EditorUi::update(
     Level &level)
 {
     playerUi.update(deltaTime);
-    levelUi.update(imGuiManager, camera, level, brush);
+    levelUi.update(imGuiManager, camera, level, armed);
 }
 
 bool EditorUi::unsavedIn(EditorSection listed, const EditorSubject &subject) const

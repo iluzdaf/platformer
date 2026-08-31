@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
+#include "ui/armed.hpp"
 
 struct ActorMotionState;
 struct ActorState;
@@ -33,6 +34,7 @@ struct ActorAsked
 {
     ActorShown show;
     bool removeShownNpc = false;
+    bool clearShownBeat = false;
     std::optional<std::string> addNpcOfType;
 };
 
@@ -43,4 +45,5 @@ ActorAsked drawActorsInLevel(
     const glm::vec2 &playerPosition,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcTypes,
-    ActorShown showing);
+    ActorShown showing,
+    std::optional<Armed> &armed);

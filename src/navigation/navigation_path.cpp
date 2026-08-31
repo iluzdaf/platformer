@@ -173,27 +173,24 @@ std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::ve
     return nearest;
 }
 
-namespace
+std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::vec2 position)
 {
-    std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::vec2 position)
+    std::optional<int> standingOn;
+    float nearestAlong = 0.0f;
+    for (const auto &[id, node] : navigationGraph.getNodes())
     {
-        std::optional<int> standingOn;
-        float nearestAlong = 0.0f;
-        for (const auto &[id, node] : navigationGraph.getNodes())
-        {
-            if (std::abs(node.position.y - position.y) > SurfaceTolerance)
-                continue;
+        if (std::abs(node.position.y - position.y) > SurfaceTolerance)
+            continue;
 
-            float along = std::abs(node.position.x - position.x);
-            if (standingOn && along >= nearestAlong)
-                continue;
+        float along = std::abs(node.position.x - position.x);
+        if (standingOn && along >= nearestAlong)
+            continue;
 
-            standingOn = id;
-            nearestAlong = along;
-        }
-
-        return standingOn ? standingOn : nearestNodeTo(navigationGraph, position);
+        standingOn = id;
+        nearestAlong = along;
     }
+
+    return standingOn ? standingOn : nearestNodeTo(navigationGraph, position);
 }
 
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)

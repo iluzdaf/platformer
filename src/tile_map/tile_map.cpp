@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <optional>
 #include <cmath>
 #include <functional>
@@ -197,6 +198,30 @@ glm::vec2 TileMap::tileToBottomCenterPosition(glm::ivec2 tilePosition) const
 {
     glm::vec2 surface = tileToWorldPosition(tilePosition + glm::ivec2(0, 1));
     return surface + glm::vec2(tileSize * 0.5f, 0.0f);
+}
+
+glm::ivec2 TileMap::bottomCenterToTilePosition(glm::vec2 worldPosition) const
+{
+    float tileSizePixels = static_cast<float>(tileSize);
+
+    int column = static_cast<int>(std::floor(worldPosition.x / tileSizePixels));
+    int row = static_cast<int>(std::round(worldPosition.y / tileSizePixels)) - 1;
+
+    glm::ivec2 standingOn(std::clamp(column, 0, width - 1), std::clamp(row, 0, height - 1));
+    if (standsOnGround(standingOn))
+        return standingOn;
+
+    glm::ivec2 leftOfIt(standingOn.x - 1, standingOn.y);
+
+    return standsOnGround(leftOfIt) ? leftOfIt : standingOn;
+}
+
+bool TileMap::standsOnGround(glm::ivec2 tilePosition) const
+{
+    glm::ivec2 below(tilePosition.x, tilePosition.y + 1);
+
+    return validTilePosition(tilePosition) && validTilePosition(below) &&
+           getTileAtTilePosition(below).isSolid();
 }
 
 const std::unordered_map<int, Tile> &TileMap::getTiles() const

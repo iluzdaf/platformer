@@ -2,10 +2,14 @@
 
 #include <optional>
 #include <utility>
+#include <imgui.h>
 
 class ImGuiManager;
 class Camera2D;
 class NavigationGraph;
+
+inline constexpr unsigned int OriginColour = IM_COL32(0, 255, 0, 255);
+inline constexpr unsigned int DestinationColour = IM_COL32(0, 200, 255, 255);
 
 enum class JumpsDrawnAs
 {

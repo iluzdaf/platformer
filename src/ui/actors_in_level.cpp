@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include "ui/actors_in_level.hpp"
+#include "ui/armed.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
@@ -93,9 +94,38 @@ namespace
             ImGui::TextDisabled("not spawned");
     }
 
-    void drawNpcEditing(const NpcSpawnData &spawn)
+    void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)
+    {
+        bool isArmed = armed && *armed == Armed{pick};
+
+        if (isArmed)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ArmedColour);
+        }
+
+        bool clicked = ImGui::Button(label);
+
+        if (isArmed)
+            ImGui::PopStyleColor(3);
+
+        if (clicked)
+            armed = isArmed ? std::nullopt : std::optional<Armed>(pick);
+    }
+
+    void drawPlayerEditing(glm::ivec2 startTile, std::optional<Armed> &armed)
+    {
+        ImGui::Text("spawns at %d,%d", startTile.x, startTile.y);
+        ImGui::SameLine();
+        drawArmButton("move", PickTile{PickTile::For::PlayerStart, 0}, armed);
+    }
+
+    bool drawNpcEditing(const NpcSpawnData &spawn, size_t index, std::optional<Armed> &armed)
     {
         ImGui::Text("spawns at %d,%d", spawn.tilePosition.x, spawn.tilePosition.y);
+        ImGui::SameLine();
+        drawArmButton("move", PickTile{PickTile::For::NpcSpawn, index}, armed);
 
         if (spawn.patrol)
             ImGui::Text(
@@ -106,6 +136,17 @@ namespace
                 spawn.patrol->to.y);
         else
             ImGui::TextDisabled("no beat");
+
+        drawArmButton("from", PickTile{PickTile::For::PatrolFrom, index}, armed);
+        ImGui::SameLine();
+        drawArmButton("to", PickTile{PickTile::For::PatrolTo, index}, armed);
+        ImGui::SameLine();
+
+        ImGui::BeginDisabled(!spawn.patrol);
+        bool clearing = ImGui::Button("clear");
+        ImGui::EndDisabled();
+
+        return clearing;
     }
 }
 
@@ -116,9 +157,10 @@ ActorAsked drawActorsInLevel(
     const glm::vec2 &playerPosition,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcTypes,
-    ActorShown showing)
+    ActorShown showing,
+    std::optional<Armed> &armed)
 {
-    ActorAsked asked{showing, false, std::nullopt};
+    ActorAsked asked{showing, false, false, std::nullopt};
     const std::vector<NpcSpawnData> &spawns = level.getNpcs();
     if (showing.what == ActorShown::What::Npc && showing.npcIndex >= spawns.size())
         asked.show = ActorShown{};
@@ -169,7 +211,7 @@ ActorAsked drawActorsInLevel(
     {
     case ActorShown::What::Player:
         ImGui::Separator();
-        ImGui::Text("spawns at %d,%d", level.getPlayerStartTile().x, level.getPlayerStartTile().y);
+        drawPlayerEditing(level.getPlayerStartTile(), armed);
         drawThePlayer(playerMotionState, playerPosition, playerState);
         break;
 
@@ -178,7 +220,7 @@ ActorAsked drawActorsInLevel(
             break;
 
         ImGui::Separator();
-        drawNpcEditing(spawns[showing.npcIndex]);
+        asked.clearShownBeat = drawNpcEditing(spawns[showing.npcIndex], showing.npcIndex, armed);
         drawNpcState(
             level,
             spawns[showing.npcIndex],

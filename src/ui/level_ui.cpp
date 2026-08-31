@@ -10,7 +10,7 @@
 #include "npc/npc_spawn_data.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/save_controls.hpp"
-#include "ui/brush_picker.hpp"
+#include "ui/tile_picker.hpp"
 #include "ui/brush.hpp"
 #include "ui/editor_commands.hpp"
 #include "rendering/texture2d.hpp"
@@ -71,15 +71,6 @@ namespace
             ImGui::TextDisabled("nothing set");
     }
 
-    bool spawnAt(const Level &level, glm::ivec2 tilePosition)
-    {
-        for (const NpcSpawnData &spawn : level.getNpcs())
-            if (spawn.tilePosition == tilePosition)
-                return true;
-
-        return false;
-    }
-
     std::optional<int> tileOf(const std::optional<Brush> &brush)
     {
         if (!brush || brush->kind != Brush::Kind::Tile)
@@ -124,9 +115,21 @@ void LevelUi::draw(
     if (ImGui::CollapsingHeader("Actors", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ActorAsked asked = drawActorsInLevel(
-            level, npcs, playerMotionState, playerPosition, playerState, showingActor);
+            level,
+            npcs,
+            playerMotionState,
+            playerPosition,
+            playerState,
+            gameData.npcData,
+            showingActor);
 
-        if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
+        if (asked.addNpcOfType)
+        {
+            level.addNpc(
+                NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt});
+            showingActor = ActorShown{ActorShown::What::Npc, level.getNpcs().size() - 1};
+        }
+        else if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
         {
             level.removeNpc(showingActor.npcIndex);
             showingActor = ActorShown{};
@@ -185,17 +188,15 @@ void LevelUi::drawBrush(
     const GameData &gameData,
     std::optional<Brush> &brush)
 {
-    if (!ImGui::CollapsingHeader("Brush", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ImGui::CollapsingHeader("Tiles", ImGuiTreeNodeFlags_DefaultOpen))
         return;
 
     std::vector<Brush> brushes;
     for (const auto &[tileIndex, tile] : level.getTileMap().getTiles())
-        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex, {}});
-    brushes.push_back(Brush{Brush::Kind::PlayerStart, 0, {}});
-    for (const auto &[type, npcData] : gameData.npcData)
-        brushes.push_back(Brush{Brush::Kind::Npc, 0, type});
+        brushes.push_back(Brush{Brush::Kind::Tile, tileIndex});
+    brushes.push_back(Brush{Brush::Kind::PlayerStart, 0});
 
-    brush = drawBrushPicker(tileSet, level.getTileMap().getTileSize(), brushes, brush);
+    brush = drawTilePicker(tileSet, level.getTileMap().getTileSize(), brushes, brush);
     std::optional<int> picked = tileOf(brush);
 
     const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
@@ -265,11 +266,6 @@ void LevelUi::update(
             level.getTileMap().setTileIndex(tilePosition, brush->tileIndex);
             level.rebuildGraphs();
         }
-        break;
-
-    case Brush::Kind::Npc:
-        if (!spawnAt(level, tilePosition))
-            level.addNpc(NpcSpawnData{brush->npcType, tilePosition, std::nullopt});
         break;
     }
 }

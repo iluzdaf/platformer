@@ -13,13 +13,16 @@
 #include "npc/npc.hpp"
 #include "npc/npc_spawn_data.hpp"
 
-void drawNpcsInLevel(const Level &level, const std::vector<std::unique_ptr<Npc>> &npcs)
+std::optional<std::size_t> drawNpcsInLevel(
+    const Level &level,
+    const std::vector<std::unique_ptr<Npc>> &npcs)
 {
+    std::optional<std::size_t> removing;
     const std::vector<NpcSpawnData> &spawns = level.getNpcs();
     if (spawns.empty())
     {
         ImGui::TextDisabled("none");
-        return;
+        return removing;
     }
 
     for (size_t index = 0; index < spawns.size(); ++index)
@@ -61,9 +64,14 @@ void drawNpcsInLevel(const Level &level, const std::vector<std::unique_ptr<Npc>>
             else
                 ImGui::TextDisabled("not spawned");
 
+            if (ImGui::Button("remove"))
+                removing = index;
+
             ImGui::TreePop();
         }
 
         ImGui::PopID();
     }
+
+    return removing;
 }

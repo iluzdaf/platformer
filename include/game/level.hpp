@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstddef>
 #include <map>
 #include <vector>
 #include <optional>
@@ -42,6 +43,7 @@ public:
     const std::string &getNextLevel() const;
     const std::vector<NpcSpawnData> &getNpcs() const;
     void addNpc(const NpcSpawnData &spawn);
+    void removeNpc(std::size_t index);
     const std::string &getPath() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
     void setNextLevel(const std::string &levelPath);

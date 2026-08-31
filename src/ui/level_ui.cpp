@@ -108,7 +108,8 @@ void LevelUi::draw(
 
     ImGui::Separator();
     if (ImGui::CollapsingHeader("NPCs", ImGuiTreeNodeFlags_DefaultOpen))
-        drawNpcsInLevel(level, npcs);
+        if (std::optional<std::size_t> removing = drawNpcsInLevel(level, npcs))
+            level.removeNpc(*removing);
 }
 
 void LevelUi::drawLevel(Level &level, EditorCommands &commands)

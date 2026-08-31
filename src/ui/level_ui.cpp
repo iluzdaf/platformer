@@ -295,12 +295,11 @@ void LevelUi::update(
     case PickTile::For::PatrolFrom:
     case PickTile::For::PatrolTo: {
         const NpcSpawnData &spawn = level.getNpcs()[picking.npcIndex];
-        glm::ivec2 standing = level.beatEndAt(spawn, tilePosition);
-        PatrolData patrol = spawn.patrol.value_or(PatrolData{standing, standing});
+        PatrolData patrol = spawn.patrol.value_or(PatrolData{tilePosition, tilePosition});
         if (picking.what == PickTile::For::PatrolFrom)
-            patrol.from = standing;
+            patrol.from = tilePosition;
         else
-            patrol.to = standing;
+            patrol.to = tilePosition;
 
         level.setNpcPatrol(picking.npcIndex, patrol);
         break;

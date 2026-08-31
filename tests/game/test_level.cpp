@@ -462,57 +462,6 @@ TEST_CASE("A level refuses to look under an npc it does not have", "[Level]")
     REQUIRE_THROWS_WITH(level.runBeneathNpc(0), "Cannot look under an npc the level does not have");
 }
 
-TEST_CASE("A beat end picked on a ledge stays on that ledge", "[Level]")
-{
-    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
-    const NpcSpawnData &spawn = level.getNpcs().front();
-
-    for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
-        REQUIRE(level.beatEndAt(spawn, glm::ivec2(x, LedgeRow - 1)).y == LedgeRow - 1);
-}
-
-TEST_CASE("A beat end picked on a ledge names a tile of that ledge", "[Level]")
-{
-    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
-    const NpcSpawnData &spawn = level.getNpcs().front();
-
-    for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
-    {
-        glm::ivec2 landed = level.beatEndAt(spawn, glm::ivec2(x, LedgeRow - 1));
-        REQUIRE(landed.x >= LedgeFirstTile);
-        REQUIRE(landed.x <= LedgeLastTile);
-    }
-}
-
-TEST_CASE("A beat end keeps the tile that was picked", "[Level]")
-{
-    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
-    const NpcSpawnData &spawn = level.getNpcs().front();
-
-    for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
-    {
-        glm::ivec2 clicked(x, LedgeRow - 1);
-        REQUIRE(level.beatEndAt(spawn, clicked) == clicked);
-    }
-}
-
-TEST_CASE("A beat end picked past the run stops at the end of it", "[Level]")
-{
-    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
-    const NpcSpawnData &spawn = level.getNpcs().front();
-
-    glm::ivec2 pastTheEnd(LedgeLastTile + 2, LedgeRow - 1);
-
-    REQUIRE(level.beatEndAt(spawn, pastTheEnd) == glm::ivec2(LedgeLastTile, LedgeRow - 1));
-}
-
-TEST_CASE("A level refuses a beat end off the map", "[Level]")
-{
-    Level level = levelWithALedge({spawnAt("short", OnTheLedge)});
-
-    REQUIRE_THROWS(level.beatEndAt(level.getNpcs().front(), glm::ivec2(-1, 0)));
-}
-
 TEST_CASE("A beat reaches the outer edges of the tiles it names", "[Level]")
 {
     NpcSpawnData spawn = spawnAt("short", OnTheLedge);

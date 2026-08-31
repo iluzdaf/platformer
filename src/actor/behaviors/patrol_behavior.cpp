@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <optional>
 #include <glm/geometric.hpp>
@@ -85,7 +86,10 @@ PatrolBehavior::BeatEnd PatrolBehavior::alongTheRunFrom(
             rightmost = id;
     }
 
-    float stopAt = placeOnTheRun(navigationGraph, glm::vec2(askedX, surface)).x;
+    float stopAt = std::clamp(
+        askedX,
+        navigationGraph.getNode(leftmost).position.x,
+        navigationGraph.getNode(rightmost).position.x);
 
     bool headingRight = context.worldPosition.x <= stopAt;
     int routeVia = headingRight ? rightmost : leftmost;

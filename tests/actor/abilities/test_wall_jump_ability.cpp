@@ -18,6 +18,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
     {
         state.contacts.onGround = false;
         state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
         wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
@@ -31,6 +32,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
     {
         state.contacts.onGround = false;
         state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 0.0f;
         wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
@@ -50,6 +52,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         REQUIRE(state.wallJump.velocity.y == Approx(0.0f));
         REQUIRE(state.wallJump.velocity.x == Approx(0.0f));
         state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = true;
         inputIntentions = InputIntentions();
         wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
         REQUIRE(state.wallJump.active);
@@ -61,8 +64,10 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
     {
         state.contacts.onGround = false;
         state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = true;
         wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
         state.contacts.touchingLeftWall = false;
+        state.contacts.grippableLeftWall = false;
         state.contacts.wasLastWallLeft = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
@@ -76,6 +81,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
     {
         state.contacts.onGround = false;
         state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
         wallJumpAbility.applyMovement(
@@ -89,10 +95,12 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
     {
         state.contacts.onGround = false;
         state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
         wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
         state.contacts.touchingLeftWall = false;
+        state.contacts.grippableLeftWall = false;
         state.contacts.touchingRightWall = true;
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
@@ -101,5 +109,63 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         REQUIRE_FALSE(state.wallJump.active);
         REQUIRE(state.wallJump.velocity.y == Approx(0.0f));
         REQUIRE(state.wallJump.velocity.x == Approx(0.0f));
+    }
+
+    SECTION("Cannot wall jump from a wall it cannot grip")
+    {
+        state.contacts.onGround = false;
+        state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = false;
+        inputIntentions.jumpHeld = true;
+        inputIntentions.direction.x = 1.0f;
+        wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
+        REQUIRE_FALSE(state.wallJump.active);
+        REQUIRE(state.wallJump.velocity.y == Approx(0.0f));
+        REQUIRE(state.wallJump.velocity.x == Approx(0.0f));
+    }
+
+    SECTION("Coyote time does not arm on a wall it cannot grip")
+    {
+        state.contacts.onGround = false;
+        state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = false;
+        wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
+        state.contacts.touchingLeftWall = false;
+        state.contacts.wasLastWallLeft = true;
+        inputIntentions.jumpHeld = true;
+        inputIntentions.direction.x = 1.0f;
+        wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
+        REQUIRE_FALSE(state.wallJump.active);
+    }
+
+    SECTION("Cannot wall jump from a wall it cannot grip even facing away from it")
+    {
+        state.contacts.onGround = false;
+        state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = false;
+        state.contacts.wasLastWallLeft = true;
+        inputIntentions.jumpHeld = true;
+        inputIntentions.direction.x = 1.0f;
+        wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
+        REQUIRE_FALSE(state.wallJump.active);
+    }
+
+    SECTION("A coyote jump pushes away from the wall it remembers, not one it cannot grip")
+    {
+        state.contacts.onGround = false;
+        state.contacts.touchingLeftWall = true;
+        state.contacts.grippableLeftWall = true;
+        wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
+
+        state.contacts.touchingLeftWall = false;
+        state.contacts.grippableLeftWall = false;
+        state.contacts.touchingRightWall = true;
+        state.contacts.wasLastWallLeft = true;
+        inputIntentions.jumpHeld = true;
+        inputIntentions.direction.x = 1.0f;
+        wallJumpAbility.applyMovement(0.01f, inputIntentions, state);
+
+        REQUIRE(state.wallJump.emit);
+        REQUIRE(state.wallJump.direction == 1);
     }
 }

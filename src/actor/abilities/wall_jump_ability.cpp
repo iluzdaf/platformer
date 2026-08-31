@@ -23,7 +23,7 @@ void WallJumpAbility::applyMovement(
     state.wallJump.velocity = glm::vec2(0.0f);
 
     wallJumpBuffer.update(deltaTime);
-    wallJumpCoyote.update(state.contacts.touchingWall(), deltaTime);
+    wallJumpCoyote.update(state.contacts.grippableWall(), deltaTime);
 
     if (state.contacts.onGround)
     {
@@ -42,19 +42,19 @@ void WallJumpAbility::applyMovement(
         if (wallJumpBuffer.isBuffered())
         {
             int desiredDirection = 0;
-            if (state.contacts.touchingLeftWall)
+            if (state.contacts.grippableLeftWall)
                 desiredDirection = 1;
-            else if (state.contacts.touchingRightWall)
+            else if (state.contacts.grippableRightWall)
                 desiredDirection = -1;
             else
                 desiredDirection = state.contacts.wasLastWallLeft ? 1 : -1;
 
             float bufferedDirection = wallJumpDirectionBuffer.getBufferedDirectionX();
             bool jumpInputCorrect = desiredDirection * bufferedDirection > 0;
-            bool touchingWallNow = state.contacts.touchingWall();
-            if (touchingWallNow && jumpInputCorrect)
+            bool grippableWallNow = state.contacts.grippableWall();
+            if (grippableWallNow && jumpInputCorrect)
                 startWallJump(state, desiredDirection);
-            else if (!touchingWallNow && wallJumpCoyote.isCoyoteAvailable() && jumpInputCorrect)
+            else if (!grippableWallNow && wallJumpCoyote.isCoyoteAvailable() && jumpInputCorrect)
                 startWallJump(state, desiredDirection);
         }
     }

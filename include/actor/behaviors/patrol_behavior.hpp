@@ -35,6 +35,5 @@ private:
 
     void planRoute(const ActorBehaviorContext &context);
     std::optional<BeatEnd> endOfTheBeat(const ActorBehaviorContext &context, bool second) const;
-    BeatEnd alongTheRunFrom(const ActorBehaviorContext &context, int onTheRun, float askedX) const;
     bool standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const;
 };

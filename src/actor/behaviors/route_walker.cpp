@@ -135,7 +135,7 @@ void RouteWalker::advanceOnArrival(const ActorBehaviorContext &context)
 void RouteWalker::takeRouteTo(
     const ActorBehaviorContext &context,
     int destinationNodeId,
-    std::optional<float> stoppingShortAt)
+    std::optional<glm::vec2> stoppingShortAt)
 {
     targetNodeId.reset();
     legsLeft.clear();
@@ -162,17 +162,20 @@ void RouteWalker::takeRouteTo(
     targetNodeId = legsLeft.front();
 }
 
-float RouteWalker::targetX(const ActorBehaviorContext &context) const
+glm::vec2 RouteWalker::targetPosition(const ActorBehaviorContext &context) const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
-    float atTheNode = navigationGraph.getNode(*targetNodeId).position.x;
+    glm::vec2 atTheNode = navigationGraph.getNode(*targetNodeId).position;
 
     if (!stopShortAt)
         return atTheNode;
 
-    float setOffFrom = navigationGraph.getNode(*currentNodeId).position.x;
-    if (*stopShortAt < std::min(setOffFrom, atTheNode) ||
-        *stopShortAt > std::max(setOffFrom, atTheNode))
+    glm::vec2 setOffFrom = navigationGraph.getNode(*currentNodeId).position;
+    glm::vec2 nearCorner = glm::min(setOffFrom, atTheNode) - glm::vec2(SurfaceTolerance);
+    glm::vec2 farCorner = glm::max(setOffFrom, atTheNode) + glm::vec2(SurfaceTolerance);
+
+    if (stopShortAt->x < nearCorner.x || stopShortAt->x > farCorner.x ||
+        stopShortAt->y < nearCorner.y || stopShortAt->y > farCorner.y)
         return atTheNode;
 
     return *stopShortAt;
@@ -185,8 +188,8 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
     if (!currentNodeId || !targetNodeId)
         return inputIntentions;
 
-    NavigationNode targetNode = context.navigationGraph.getNode(*targetNodeId);
-    inputIntentions.direction.x = directionTowards(context.worldPosition.x, targetX(context));
+    glm::vec2 target = targetPosition(context);
+    inputIntentions.direction.x = directionTowards(context.worldPosition.x, target.x);
 
     const NavigationEdge *leg = edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
@@ -214,8 +217,7 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
         if (context.contacts.touchingWall())
         {
             inputIntentions.direction.x = leg->wallDirection;
-            inputIntentions.direction.y =
-                directionTowards(context.worldPosition.y, targetNode.position.y);
+            inputIntentions.direction.y = directionTowards(context.worldPosition.y, target.y);
         }
     }
 
@@ -246,20 +248,31 @@ bool RouteWalker::hasArrived(const ActorBehaviorContext &context) const
         return false;
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
-    NavigationNode targetNode = navigationGraph.getNode(*targetNodeId);
+    glm::vec2 target = targetPosition(context);
+    float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
 
-    if (std::abs(targetNode.position.y - context.worldPosition.y) > SurfaceTolerance)
+    const NavigationEdge *leg = edgeBetween(navigationGraph, *currentNodeId, *targetNodeId);
+    if (leg && leg->type == EdgeType::Climb)
+    {
+        if (std::abs(target.y - context.worldPosition.y) <= SurfaceTolerance)
+            return true;
+
+        float climbDirection =
+            directionTowards(navigationGraph.getNode(*currentNodeId).position.y, target.y);
+
+        return directionTowards(context.worldPosition.y, target.y) != climbDirection;
+    }
+
+    if (std::abs(target.y - context.worldPosition.y) > SurfaceTolerance)
         return false;
 
-    float stopAt = targetX(context);
-    float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
-    if (std::abs(stopAt - context.worldPosition.x) <= reach)
+    if (std::abs(target.x - context.worldPosition.x) <= reach)
         return true;
 
     float legDirection =
-        directionTowards(navigationGraph.getNode(*currentNodeId).position.x, stopAt);
+        directionTowards(navigationGraph.getNode(*currentNodeId).position.x, target.x);
 
-    return directionTowards(context.worldPosition.x, stopAt) != legDirection;
+    return directionTowards(context.worldPosition.x, target.x) != legDirection;
 }
 
 std::optional<int> RouteWalker::getCurrentNodeId() const

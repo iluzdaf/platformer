@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include "actor/actor_behavior_context.hpp"
 #include "input/input_intentions.hpp"
@@ -17,7 +18,7 @@ public:
     void takeRouteTo(
         const ActorBehaviorContext &context,
         int destinationNodeId,
-        std::optional<float> stopShortAt = std::nullopt);
+        std::optional<glm::vec2> stopShortAt = std::nullopt);
     InputIntentions follow(float deltaTime, const ActorBehaviorContext &context);
     std::optional<int> getCurrentNodeId() const;
     std::optional<int> getTargetNodeId() const;
@@ -26,12 +27,12 @@ private:
     float arrivalThreshold;
 
     std::optional<int> currentNodeId, targetNodeId;
-    std::optional<float> stopShortAt;
+    std::optional<glm::vec2> stopShortAt;
     std::vector<int> legsLeft;
     float jumpHeldFor = 0.0f;
 
     void anchor(const ActorBehaviorContext &context);
-    float targetX(const ActorBehaviorContext &context) const;
+    glm::vec2 targetPosition(const ActorBehaviorContext &context) const;
     bool hasArrived(const ActorBehaviorContext &context) const;
     bool withinReachOf(const ActorBehaviorContext &context, int nodeId) const;
     bool hasLostTheRoute(const ActorBehaviorContext &context) const;

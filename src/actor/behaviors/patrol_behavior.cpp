@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <cmath>
 #include <optional>
 #include <glm/geometric.hpp>
@@ -32,11 +31,16 @@ std::optional<PatrolBehavior::BeatEnd> PatrolBehavior::endOfTheBeat(
     if (patrolBetween)
     {
         glm::vec2 asked = second ? patrolBetween->second : patrolBetween->first;
-        std::optional<int> onTheRun = nodeUnderfoot(navigationGraph, asked);
-        if (!onTheRun)
+        std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, asked);
+        if (!place)
             return std::nullopt;
 
-        return alongTheRunFrom(context, *onTheRun, asked.x);
+        glm::vec2 oneEnd = navigationGraph.getNode(place->fromId).position;
+        glm::vec2 theOther = navigationGraph.getNode(place->toId).position;
+        bool setOffTowardsTheFirst = glm::distance(context.worldPosition, oneEnd) >
+                                     glm::distance(context.worldPosition, theOther);
+
+        return BeatEnd{place->position, setOffTowardsTheFirst ? place->fromId : place->toId};
     }
 
     std::optional<int> from = walker.getCurrentNodeId();
@@ -62,50 +66,6 @@ std::optional<PatrolBehavior::BeatEnd> PatrolBehavior::endOfTheBeat(
         return std::nullopt;
 
     return BeatEnd{navigationGraph.getNode(*end).position, *end};
-}
-
-PatrolBehavior::BeatEnd PatrolBehavior::alongTheRunFrom(
-    const ActorBehaviorContext &context,
-    int onTheRun,
-    float askedX) const
-{
-    const NavigationGraph &navigationGraph = context.navigationGraph;
-    float surface = navigationGraph.getNode(onTheRun).position.y;
-
-    int leftmost = onTheRun, rightmost = onTheRun;
-    for (int id : walkableFrom(navigationGraph, onTheRun))
-    {
-        NavigationNode node = navigationGraph.getNode(id);
-        if (std::abs(node.position.y - surface) > SurfaceTolerance)
-            continue;
-
-        if (node.position.x < navigationGraph.getNode(leftmost).position.x)
-            leftmost = id;
-
-        if (node.position.x > navigationGraph.getNode(rightmost).position.x)
-            rightmost = id;
-    }
-
-    float stopAt = std::clamp(
-        askedX,
-        navigationGraph.getNode(leftmost).position.x,
-        navigationGraph.getNode(rightmost).position.x);
-
-    bool headingRight = context.worldPosition.x <= stopAt;
-    int routeVia = headingRight ? rightmost : leftmost;
-    for (int id : walkableFrom(navigationGraph, onTheRun))
-    {
-        NavigationNode node = navigationGraph.getNode(id);
-        if (std::abs(node.position.y - surface) > SurfaceTolerance)
-            continue;
-
-        float here = node.position.x;
-        float best = navigationGraph.getNode(routeVia).position.x;
-        if (headingRight ? (here >= stopAt && here < best) : (here <= stopAt && here > best))
-            routeVia = id;
-    }
-
-    return BeatEnd{glm::vec2(stopAt, surface), routeVia};
 }
 
 bool PatrolBehavior::standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const
@@ -164,5 +124,5 @@ void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
     if (!destination)
         return;
 
-    walker.takeRouteTo(context, destination->routeVia, destination->position.x);
+    walker.takeRouteTo(context, destination->routeVia, destination->position);
 }

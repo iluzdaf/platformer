@@ -194,6 +194,9 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   cares subscribes.
 - Keep the connection when the signal outlives you. `fteng::connection` disconnects when
   destroyed, which is why `Game` holds the ones to `App`'s window and commands.
+- `connect` returns `connection_raw`, which owns nothing and is meant to be dropped. Name
+  `fteng::connection` only where a slot should die with the variable, since converting to
+  it is what takes ownership.
 
 **Nothing changes the world once a frame has started.**
 

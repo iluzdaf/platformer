@@ -243,6 +243,7 @@ add_executable(tests
     tests/test_main.cpp
     tests/ui/test_saveable.cpp
     tests/ui/test_save_controls.cpp
+    tests/ui/test_editor_command.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp

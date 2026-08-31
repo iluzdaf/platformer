@@ -1,10 +1,12 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <vector>
 #include "ui/editor_commands.hpp"
 #include "ui/brush.hpp"
+#include "ui/actors_in_level.hpp"
 #include "ui/navigation_ui.hpp"
 #include "ui/saveable.hpp"
 
@@ -14,6 +16,8 @@ class Level;
 class Texture2D;
 class Camera2D;
 struct GameData;
+struct ActorMotionState;
+struct ActorState;
 class Npc;
 
 class LevelUi
@@ -22,6 +26,9 @@ public:
     void draw(
         Level &level,
         const std::vector<std::unique_ptr<Npc>> &npcs,
+        const ActorMotionState &playerMotionState,
+        const glm::vec2 &playerPosition,
+        const ActorState &playerState,
         const Texture2D &tileSet,
         const GameData &gameData,
         std::optional<Brush> &brush,
@@ -40,8 +47,8 @@ public:
 private:
     Saveable saveable;
     NavigationUi navigationUi;
-    bool drawGrid = false, drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false,
-         drawSpawns = false;
+    ActorShown showingActor;
+    bool drawGrid = false, drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
 
     void drawLevel(Level &level, EditorCommands &commands);
     void drawTileMap(

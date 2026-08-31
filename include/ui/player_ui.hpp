@@ -15,12 +15,7 @@ class Player;
 class PlayerUi
 {
 public:
-    void draw(
-        GameData &gameData,
-        const ActorMotionState &playerMotionState,
-        const glm::vec2 &playerPosition,
-        const ActorState &actorState,
-        EditorCommands &commands);
+    void draw(GameData &gameData, EditorCommands &commands);
 
     void update(float deltaTime);
     void drawOverlay(

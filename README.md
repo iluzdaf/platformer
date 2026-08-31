@@ -195,6 +195,18 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - Keep the connection when the signal outlives you. `fteng::connection` disconnects when
   destroyed, which is why `Game` holds the ones to `App`'s window and commands.
 
+**Nothing changes the world once a frame has started.**
+
+- Immediate mode ui draws and handles input in one pass, so a button handler runs while
+  the thing it changes is being drawn.
+- `World` replaces the `Level` and the `Player` outright rather than reloading them in
+  place, and `GameUi::draw` holds a reference to each across the editor and then its
+  overlays. Firing a command in between left the overlays reading freed memory.
+- So editor commands record rather than fire, and `Game::frame` drains them before
+  anything reads the world. Hot reload is drained just before it for the same reason.
+- Anything new that changes the world from the ui belongs behind a command rather than
+  called where it is asked for.
+
 **No C++20 modules.**
 
 - The tooling is not ready. clangd, which this repo leans on for code intelligence,

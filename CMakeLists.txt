@@ -250,6 +250,7 @@ add_executable(tests
     tests/rendering/test_shader.cpp
     tests/tile_map/test_tile_map.cpp
     tests/tile_map/test_tile.cpp
+    tests/tile_map/test_level_tile_caps.cpp
     tests/tile_map/test_tile_interaction_system.cpp
     tests/player/test_player.cpp
     tests/timing/test_fixed_time_step.cpp

@@ -2,6 +2,7 @@
 #include <string>
 #include <imgui.h>
 #include "ui/player_ui.hpp"
+#include "ui/debug_aabb_overlay.hpp"
 #include "ui/save_controls.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
@@ -71,19 +72,26 @@ void PlayerUi::draw(
     inspector::drawFields(gameData.playerData);
 }
 
-bool PlayerUi::drawsPlayerCollider() const
+void PlayerUi::update(float deltaTime)
 {
-    return drawPlayerCollider;
+    fadingAABBs.update(deltaTime);
 }
 
-bool PlayerUi::drawsPlayerCollisions() const
+void PlayerUi::drawOverlay(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Player &player)
 {
-    return drawPlayerCollisions;
-}
+    if (drawPlayerCollider)
+        ::drawPlayerCollider(imGuiManager, camera, player);
 
-bool PlayerUi::drawsContactProbes() const
-{
-    return drawContactProbes;
+    if (drawPlayerCollisions)
+        ::drawPlayerCollisions(player, fadingAABBs);
+
+    if (drawContactProbes)
+        ::drawContactProbes(imGuiManager, camera, player, fadingAABBs);
+
+    drawFadingAABBs(imGuiManager, camera, fadingAABBs);
 }
 
 bool PlayerUi::hasUnsavedChanges(const GameData &gameData) const

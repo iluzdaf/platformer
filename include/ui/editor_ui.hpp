@@ -7,7 +7,6 @@
 #include "ui/editor_commands.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/camera_ui.hpp"
-#include "ui/fading_aabbs.hpp"
 #include "ui/game_settings_ui.hpp"
 #include "ui/npc_types_ui.hpp"
 #include "ui/playback_ui.hpp"
@@ -66,7 +65,6 @@ private:
 
 private:
     EditorSection section = EditorSection::Playback;
-    FadingAABBs fadingAABBs;
     PlaybackUi playbackUi;
     GameSettingsUi gameSettingsUi;
     CameraUi cameraUi;

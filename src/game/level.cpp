@@ -198,7 +198,22 @@ std::optional<std::pair<glm::vec2, glm::vec2>> Level::patrolFor(const NpcSpawnDa
     if (!spawn.patrol)
         return std::nullopt;
 
-    return std::pair(tileMap.feetOnTile(spawn.patrol->from), tileMap.feetOnTile(spawn.patrol->to));
+    glm::vec2 from = tileMap.feetOnTile(spawn.patrol->from);
+    glm::vec2 to = tileMap.feetOnTile(spawn.patrol->to);
+    float outwards = static_cast<float>(tileMap.getTileSize()) * 0.5f;
+
+    if (from.x <= to.x)
+    {
+        from.x -= outwards;
+        to.x += outwards;
+    }
+    else
+    {
+        from.x += outwards;
+        to.x -= outwards;
+    }
+
+    return std::pair(from, to);
 }
 
 const std::vector<NamedNavigationGraph> &Level::getGraphs() const

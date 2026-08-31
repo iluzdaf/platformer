@@ -21,6 +21,12 @@ public:
     std::optional<int> getTargetNodeId() const;
 
 private:
+    struct BeatEnd
+    {
+        glm::vec2 position = glm::vec2(0.0f);
+        int routeVia = 0;
+    };
+
     PatrolBehaviorData data;
     RouteWalker walker;
 
@@ -28,5 +34,7 @@ private:
     bool headingForTheSecond = false;
 
     void planRoute(const ActorBehaviorContext &context);
-    std::optional<int> endOfTheBeat(const ActorBehaviorContext &context, bool second) const;
+    std::optional<BeatEnd> endOfTheBeat(const ActorBehaviorContext &context, bool second) const;
+    BeatEnd alongTheRunFrom(const ActorBehaviorContext &context, int onTheRun, float askedX) const;
+    bool standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const;
 };

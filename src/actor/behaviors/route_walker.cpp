@@ -45,6 +45,7 @@ void RouteWalker::reset()
 {
     currentNodeId.reset();
     targetNodeId.reset();
+    stopShortAt.reset();
     legsLeft.clear();
     jumpHeldFor = 0.0f;
 }
@@ -131,10 +132,14 @@ void RouteWalker::advanceOnArrival(const ActorBehaviorContext &context)
     targetNodeId = legsLeft.empty() ? std::nullopt : std::optional(legsLeft.front());
 }
 
-void RouteWalker::takeRouteTo(const ActorBehaviorContext &context, int destinationNodeId)
+void RouteWalker::takeRouteTo(
+    const ActorBehaviorContext &context,
+    int destinationNodeId,
+    std::optional<float> stoppingShortAt)
 {
     targetNodeId.reset();
     legsLeft.clear();
+    stopShortAt = stoppingShortAt;
 
     if (!currentNodeId)
         return;
@@ -157,6 +162,22 @@ void RouteWalker::takeRouteTo(const ActorBehaviorContext &context, int destinati
     targetNodeId = legsLeft.front();
 }
 
+float RouteWalker::targetX(const ActorBehaviorContext &context) const
+{
+    const NavigationGraph &navigationGraph = context.navigationGraph;
+    float atTheNode = navigationGraph.getNode(*targetNodeId).position.x;
+
+    if (!stopShortAt)
+        return atTheNode;
+
+    float setOffFrom = navigationGraph.getNode(*currentNodeId).position.x;
+    if (*stopShortAt < std::min(setOffFrom, atTheNode) ||
+        *stopShortAt > std::max(setOffFrom, atTheNode))
+        return atTheNode;
+
+    return *stopShortAt;
+}
+
 InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext &context)
 {
     InputIntentions inputIntentions;
@@ -165,7 +186,7 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
         return inputIntentions;
 
     NavigationNode targetNode = context.navigationGraph.getNode(*targetNodeId);
-    inputIntentions.direction.x = directionTowards(context.worldPosition.x, targetNode.position.x);
+    inputIntentions.direction.x = directionTowards(context.worldPosition.x, targetX(context));
 
     const NavigationEdge *leg = edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
@@ -230,14 +251,15 @@ bool RouteWalker::hasArrived(const ActorBehaviorContext &context) const
     if (std::abs(targetNode.position.y - context.worldPosition.y) > SurfaceTolerance)
         return false;
 
+    float stopAt = targetX(context);
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
-    if (std::abs(targetNode.position.x - context.worldPosition.x) <= reach)
+    if (std::abs(stopAt - context.worldPosition.x) <= reach)
         return true;
 
     float legDirection =
-        directionTowards(navigationGraph.getNode(*currentNodeId).position.x, targetNode.position.x);
+        directionTowards(navigationGraph.getNode(*currentNodeId).position.x, stopAt);
 
-    return directionTowards(context.worldPosition.x, targetNode.position.x) != legDirection;
+    return directionTowards(context.worldPosition.x, stopAt) != legDirection;
 }
 
 std::optional<int> RouteWalker::getCurrentNodeId() const

@@ -6,6 +6,7 @@
 #include <tuple>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "ui/debug_aabb_overlay.hpp"
 #include "ui/npcs_in_level.hpp"
 #include "ui/save_controls.hpp"
 #include "ui/brush_picker.hpp"
@@ -141,6 +142,15 @@ void LevelUi::drawOverlay(
     if (drawTileInfo)
         ::drawTileInfo(imGuiManager, camera, level.getTileMap());
 
+    if (drawTileColliders)
+        ::drawTileColliders(imGuiManager, camera, level);
+
+    if (drawLevelBounds)
+        ::drawLevelBounds(imGuiManager, camera, level);
+
+    if (drawPlayerStart)
+        ::drawPlayerStart(imGuiManager, camera, level);
+
     navigationUi.drawOverlay(imGuiManager, camera, level);
 }
 
@@ -149,21 +159,6 @@ bool LevelUi::hasUnsavedChanges(const Level &level) const
     std::string json;
     std::ignore = glz::write_json(level.toLevelData(), json);
     return saveable.unsaved(level.getPath(), json);
-}
-
-bool LevelUi::drawsTileColliders() const
-{
-    return drawTileColliders;
-}
-
-bool LevelUi::drawsLevelBounds() const
-{
-    return drawLevelBounds;
-}
-
-bool LevelUi::drawsPlayerStart() const
-{
-    return drawPlayerStart;
 }
 
 void LevelUi::update(

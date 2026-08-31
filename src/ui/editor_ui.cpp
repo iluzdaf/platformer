@@ -141,19 +141,7 @@ void EditorUi::drawOverlays(
     const Player &player)
 {
     levelUi.drawOverlay(imGuiManager, camera, level);
-    if (playerUi.drawsPlayerCollider())
-        drawPlayerCollider(imGuiManager, camera, player);
-    if (playerUi.drawsPlayerCollisions())
-        drawPlayerCollisions(player, fadingAABBs);
-    if (levelUi.drawsTileColliders())
-        drawTileColliders(imGuiManager, camera, level);
-    if (levelUi.drawsLevelBounds())
-        drawLevelBounds(imGuiManager, camera, level);
-    if (levelUi.drawsPlayerStart())
-        drawPlayerStart(imGuiManager, camera, level);
-    if (playerUi.drawsContactProbes())
-        drawContactProbes(imGuiManager, camera, player, fadingAABBs);
-    drawFadingAABBs(imGuiManager, camera, fadingAABBs);
+    playerUi.drawOverlay(imGuiManager, camera, player);
 }
 
 void EditorUi::update(
@@ -162,7 +150,7 @@ void EditorUi::update(
     const Camera2D &camera,
     Level &level)
 {
-    fadingAABBs.update(deltaTime);
+    playerUi.update(deltaTime);
     levelUi.update(imGuiManager, camera, level, brush);
 }
 

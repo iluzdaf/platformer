@@ -239,6 +239,14 @@ void Level::addNpc(const NpcSpawnData &spawn)
     npcs.push_back(spawn);
 }
 
+void Level::removeNpc(std::size_t index)
+{
+    if (index >= npcs.size())
+        throw std::runtime_error("Cannot remove an npc the level does not have");
+
+    npcs.erase(npcs.begin() + static_cast<std::ptrdiff_t>(index));
+}
+
 const std::string &Level::getPath() const
 {
     return path;

@@ -255,3 +255,39 @@ TEST_CASE("A level keeps the npcs it already had when another is placed", "[Leve
 
     REQUIRE(level.getNpcs().size() == 2);
 }
+
+TEST_CASE("A level lets go of an npc it was placing", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    level.removeNpc(0);
+
+    REQUIRE(level.getNpcs().empty());
+}
+
+TEST_CASE("Removing an npc leaves the others where they were", "[Level]")
+{
+    glm::ivec2 secondTile(4, FloorRow - 1);
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("short", secondTile)});
+
+    level.removeNpc(0);
+
+    REQUIRE(level.getNpcs().size() == 1);
+    REQUIRE(level.getNpcs().front().tilePosition == secondTile);
+}
+
+TEST_CASE("A level refuses to remove an npc it does not have", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    REQUIRE_THROWS_WITH(level.removeNpc(0), "Cannot remove an npc the level does not have");
+}
+
+TEST_CASE("An npc removed is gone from what the level would save", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    level.removeNpc(0);
+
+    REQUIRE(level.toLevelData().npcs.empty());
+}

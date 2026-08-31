@@ -152,6 +152,7 @@ void LevelUi::drawTileMap(
         ImGui::Checkbox("Bounds", &drawLevelBounds);
         ImGui::SameLine();
         ImGui::Checkbox("Spawn", &drawPlayerStart);
+        navigationUi.drawOverlayToggles();
     }
     ImGui::Separator();
 

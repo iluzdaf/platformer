@@ -35,7 +35,6 @@ public:
     void triggerDeath();
     void bindLevel(Level *level);
     sol::state &getLua();
-    const std::vector<WaitingCoroutine> &getWaitingCoroutines() const;
     void triggerWallJump();
     void triggerDash();
     void triggerFallFromHeight();

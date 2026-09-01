@@ -71,13 +71,6 @@ void NavigationGraph::clearEdges()
     adjacency.clear();
 }
 
-void NavigationGraph::clear()
-{
-    nodes.clear();
-    edges.clear();
-    adjacency.clear();
-}
-
 bool NavigationGraph::hasNodeAtPosition(glm::vec2 position, float epsilon) const
 {
     for (const auto &[id, node] : nodes)

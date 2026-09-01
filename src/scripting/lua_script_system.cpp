@@ -110,11 +110,6 @@ sol::state &LuaScriptSystem::getLua()
     return lua;
 }
 
-const std::vector<LuaScriptSystem::WaitingCoroutine> &LuaScriptSystem::getWaitingCoroutines() const
-{
-    return waitingCoroutines;
-}
-
 void LuaScriptSystem::triggerWallJump()
 {
     if (onWallJump.valid())

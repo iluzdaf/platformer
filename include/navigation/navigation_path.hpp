@@ -14,8 +14,6 @@ std::vector<int> walkableFrom(const NavigationGraph &navigationGraph, int fromId
 
 std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::vec2 position);
 
-std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::vec2 position);
-
 struct PlaceOnThePath
 {
     glm::vec2 position = glm::vec2(0.0f);
@@ -26,6 +24,11 @@ struct PlaceOnThePath
 std::optional<PlaceOnThePath> placeOnThePath(
     const NavigationGraph &navigationGraph,
     glm::vec2 asked);
+
+int endOfThePathTowards(
+    const NavigationGraph &navigationGraph,
+    const PlaceOnThePath &place,
+    glm::vec2 towards);
 
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there);
 

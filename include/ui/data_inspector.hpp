@@ -176,7 +176,9 @@ namespace inspector
             if (value)
             {
                 ImGui::Indent();
+                ImGui::PushID("value");
                 edited |= draw(name, *value);
+                ImGui::PopID();
                 ImGui::Unindent();
             }
 

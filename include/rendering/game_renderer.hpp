@@ -8,6 +8,7 @@
 #include "rendering/shader.hpp"
 #include "rendering/sprite_renderer.hpp"
 #include "rendering/texture2d.hpp"
+#include "rendering/texture_cache.hpp"
 
 class Actor;
 class ScreenTransition;
@@ -30,7 +31,7 @@ public:
     const Texture2D &getTileSet() const;
 
 private:
-    std::unique_ptr<Texture2D> tileSet, playerTexture;
+    TextureCache textures;
     std::unique_ptr<Shader> tileSetShader, screenTransitionShader;
     SpriteRenderer spriteRenderer;
 

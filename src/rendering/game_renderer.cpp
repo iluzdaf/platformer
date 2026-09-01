@@ -17,8 +17,8 @@ GameRenderer::GameRenderer()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    reloadTexture(std::string(assets::TileSetTexture));
-    reloadTexture(std::string(assets::PlayerTexture));
+    textures.warm(std::string(assets::TileSetTexture));
+    textures.warm(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
 }
@@ -45,10 +45,7 @@ void GameRenderer::reloadShader(const std::string &shaderPath)
 
 void GameRenderer::reloadTexture(const std::string &texturePath)
 {
-    if (texturePath == assets::TileSetTexture)
-        tileSet = std::make_unique<Texture2D>(assets::pathTo(assets::TileSetTexture));
-    else if (texturePath == assets::PlayerTexture)
-        playerTexture = std::make_unique<Texture2D>(assets::pathTo(assets::PlayerTexture));
+    textures.reload(texturePath);
 }
 
 void GameRenderer::draw(
@@ -59,14 +56,14 @@ void GameRenderer::draw(
     glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    drawTileMap(spriteRenderer, tileMap, projection, *tileSetShader.get(), *tileSet.get());
+    drawTileMap(spriteRenderer, tileMap, projection, *tileSetShader.get(), getTileSet());
 
     for (const Actor *actor : actors)
     {
         const ActorState &actorState = actor->getState();
         spriteRenderer.drawWithUV(
             *tileSetShader.get(),
-            *playerTexture.get(),
+            textures.get(std::string(assets::PlayerTexture)),
             projection,
             actor->getPosition(),
             actorState.size,
@@ -83,5 +80,5 @@ void GameRenderer::draw(const ScreenTransition &screenTransition) const
 
 const Texture2D &GameRenderer::getTileSet() const
 {
-    return *tileSet.get();
+    return textures.get(std::string(assets::TileSetTexture));
 }

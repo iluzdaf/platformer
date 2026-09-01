@@ -22,9 +22,9 @@
     "playerStartTilePosition":[1,11],
     "nextLevel":"levels/level1.json",
     "npcs":[
-        {"type":"villager","tilePosition":[6,11],"patrol":{"from":[2,11],"to":[17,11]}},
-        {"type":"villager","tilePosition":[6,5],"patrol":{"from":[1,5],"to":[6,5]}},
-        {"type":"explorer","tilePosition":[2,11],"patrol":{"from":[2,11],"to":[1,5]}},
-        {"type":"explorer","tilePosition":[6,5],"patrol":{"from":[6,5],"to":[1,0]}}
+        {"type":"villager","tilePosition":[6,11],"patrol":{"from":[2,11],"to":[11,11]}},
+        {"type":"villager","tilePosition":[3,5],"patrol":{"from":[1,5],"to":[6,5]}},
+        {"type":"explorer","tilePosition":[10,11],"patrol":{"from":[1,5],"to":[12,9]}},
+        {"type":"explorer","tilePosition":[15,9],"patrol":{"from":[14,9],"to":[18,2]}}
     ]
 }

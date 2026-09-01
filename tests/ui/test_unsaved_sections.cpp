@@ -6,16 +6,7 @@
 #include "game/level.hpp"
 #include "game/levels.hpp"
 #include "test_helpers/asset_path.hpp"
-#include <memory>
-#include <optional>
-#include <vector>
-#include "actor/actor_motion_state.hpp"
-#include "actor/actor_state.hpp"
-#include "npc/npc.hpp"
-#include "rendering/texture2d.hpp"
-#include "ui/armed.hpp"
 #include "ui/camera_ui.hpp"
-#include "ui/level_ui.hpp"
 #include "ui/levels_ui.hpp"
 #include "ui/editor_commands.hpp"
 
@@ -92,6 +83,18 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
     REQUIRE(levelsUi.hasUnsavedChanges(levels));
 }
 
+#ifndef SKIP_OPENGL_TESTS
+#include <memory>
+#include <optional>
+#include <vector>
+#include <glm/gtc/matrix_transform.hpp>
+#include "actor/actor_motion_state.hpp"
+#include "actor/actor_state.hpp"
+#include "npc/npc.hpp"
+#include "rendering/texture2d.hpp"
+#include "ui/armed.hpp"
+#include "ui/level_ui.hpp"
+
 TEST_CASE("A level edited with the inspector shut still reports unsaved", "[UnsavedSections]")
 {
     HeadlessImGui gui;
@@ -136,3 +139,4 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
 
     REQUIRE(levelUi.hasUnsavedChanges(level));
 }
+#endif

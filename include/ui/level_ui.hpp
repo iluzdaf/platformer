@@ -6,6 +6,7 @@
 #include <optional>
 #include <vector>
 #include "ui/editor_commands.hpp"
+#include "ui/grid_shown.hpp"
 #include "ui/armed.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "ui/actors_in_level.hpp"
@@ -44,13 +45,15 @@ public:
         EditorCommands &commands);
 
     bool hasUnsavedChanges(const Level &level) const;
+    bool showingGrid() const;
     void valuesReplaced();
 
 private:
     Saveable saveable;
     NavigationUi navigationUi;
     ActorShown showingActor;
-    bool drawGrid = false, drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
+    GridShown grid;
+    bool drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
 
     std::string asItWouldBeSaved(const Level &level) const;
     void drawLevel(Level &level, EditorCommands &commands);

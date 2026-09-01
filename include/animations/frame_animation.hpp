@@ -10,7 +10,6 @@ public:
     void update(float deltaTime);
     int getCurrentFrame() const;
     void reset();
-    FrameAnimationData toFrameAnimationData() const;
 
 private:
     std::vector<int> frames;

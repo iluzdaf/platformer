@@ -33,11 +33,3 @@ void FrameAnimation::reset()
     currentFrame = 0;
     timer = 0.0f;
 }
-
-FrameAnimationData FrameAnimation::toFrameAnimationData() const
-{
-    FrameAnimationData data;
-    data.frames = frames;
-    data.frameDuration = frameDuration;
-    return data;
-}

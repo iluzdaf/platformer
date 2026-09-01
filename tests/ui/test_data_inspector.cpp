@@ -1,4 +1,5 @@
 #include <optional>
+#include <string_view>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
@@ -11,6 +12,9 @@
 #include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "ui/data_inspector.hpp"
+#include "ui/inspector_edited.hpp"
+#include "ui/inspector_fields.hpp"
+
 namespace
 {
     int itemsSharingTheIdOf(HeadlessImGui &gui, const char *fieldName, TileData &tileData)
@@ -45,6 +49,83 @@ TEST_CASE("An optional nobody engaged draws only its checkbox", "[DataInspector]
     TileData tileData;
 
     REQUIRE(itemsSharingTheIdOf(gui, "collider", tileData) == 1);
+}
+
+namespace inspector_test
+{
+    struct Wrapped
+    {
+        TileColliderData collider;
+    };
+
+    struct Drawn
+    {
+        int value = 0;
+    };
+
+    struct Holder
+    {
+        TileColliderData collider;
+    };
+
+    inline int drawnByItsOwnField = 0;
+    inline int holderDrawnByItsOwnField = 0;
+
+    inline inspector::Edited drawCustomField(std::string_view name, Drawn &value)
+    {
+        ++drawnByItsOwnField;
+        return inspector::drawNamed(name, value.value);
+    }
+
+    inline inspector::Edited drawCustomField(std::string_view name, Holder &value)
+    {
+        ++holderDrawnByItsOwnField;
+        return inspector::draw(name, value.collider.offset);
+    }
+}
+
+using namespace inspector_test;
+
+TEST_CASE("A type with a field of its own is drawn by it", "[DataInspector]")
+{
+    STATIC_REQUIRE(inspector::HasCustomField<Drawn>);
+
+    HeadlessImGui gui;
+    Drawn drawn;
+    drawnByItsOwnField = 0;
+
+    gui.frame([&] { inspector::draw("drawn", drawn); });
+
+    REQUIRE(drawnByItsOwnField == 1);
+}
+
+TEST_CASE("A type without one still reaches the reflection path", "[DataInspector]")
+{
+    STATIC_REQUIRE_FALSE(inspector::HasCustomField<TileColliderData>);
+    STATIC_REQUIRE_FALSE(inspector::HasCustomField<TileData>);
+    STATIC_REQUIRE_FALSE(inspector::HasCustomField<int>);
+
+    HeadlessImGui gui;
+    TileColliderData collider{glm::vec2(1.0f, 2.0f), glm::vec2(3.0f, 4.0f)};
+
+    gui.frame([&] { inspector::draw("collider", collider); });
+
+    REQUIRE(collider.offset == glm::vec2(1.0f, 2.0f));
+}
+
+TEST_CASE("A field of its own wins over being drawn through", "[DataInspector]")
+{
+    STATIC_REQUIRE(inspector::wrapsOneStruct<Wrapped>());
+    STATIC_REQUIRE(inspector::wrapsOneStruct<Holder>());
+    STATIC_REQUIRE(inspector::HasCustomField<Holder>);
+
+    HeadlessImGui gui;
+    Holder holder;
+    holderDrawnByItsOwnField = 0;
+
+    gui.frame([&] { inspector::draw("holder", holder); });
+
+    REQUIRE(holderDrawnByItsOwnField == 1);
 }
 
 TEST_CASE("Only a struct wrapping one struct is drawn through", "[DataInspector]")

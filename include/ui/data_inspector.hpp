@@ -15,33 +15,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <glaze/glaze.hpp>
+#include "ui/inspector_edited.hpp"
+#include "ui/inspector_fields.hpp"
 
 namespace inspector
 {
-    struct Edited
-    {
-        bool whileEditing = false;
-        bool onCommit = false;
-
-        Edited &operator|=(const Edited &other)
-        {
-            whileEditing = whileEditing || other.whileEditing;
-            onCommit = onCommit || other.onCommit;
-
-            return *this;
-        }
-
-        explicit operator bool() const
-        {
-            return whileEditing || onCommit;
-        }
-    };
-
-    inline Edited justEdited(bool changed)
-    {
-        return {changed, ImGui::IsItemDeactivatedAfterEdit()};
-    }
-
     template <class T> struct IsOptional : std::false_type
     {
     };
@@ -174,7 +152,9 @@ namespace inspector
 
     template <class T> Edited draw(std::string_view name, T &value)
     {
-        if constexpr (
+        if constexpr (HasCustomField<T>)
+            return drawCustomField(name, value);
+        else if constexpr (
             std::is_same_v<T, bool> || std::is_same_v<T, float> || std::is_same_v<T, int> ||
             std::is_same_v<T, std::string> || std::is_same_v<T, glm::vec2> ||
             std::is_same_v<T, glm::ivec2>)

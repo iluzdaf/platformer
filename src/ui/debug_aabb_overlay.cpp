@@ -198,10 +198,13 @@ void drawSpawnOf(
     auto onScreen = [&](glm::vec2 position)
     { return imGuiManager.worldToScreen(position, camera.getZoom(), camera.getTopLeftPosition()); };
 
-    std::vector<int> route = findPath(graph, fromId, toId);
-    if (fromId == toId || !route.empty())
+    auto drawTheWayFrom = [&](glm::vec2 leaving, int leavingId, int arrivingId, glm::vec2 arriving)
     {
-        std::vector<glm::vec2> corners{setsOffFrom};
+        std::vector<int> route = findPath(graph, leavingId, arrivingId);
+        if (leavingId != arrivingId && route.empty())
+            return;
+
+        std::vector<glm::vec2> corners{leaving};
         for (int id : route)
         {
             glm::vec2 corner = graph.getNode(id).position;
@@ -209,12 +212,15 @@ void drawSpawnOf(
                 corners.push_back(corner);
         }
 
-        if (turnsRoundAt != corners.back())
-            corners.push_back(turnsRoundAt);
+        if (arriving != corners.back())
+            corners.push_back(arriving);
 
         for (std::size_t step = 1; step < corners.size(); ++step)
             drawList->AddLine(onScreen(corners[step - 1]), onScreen(corners[step]), SpawnColor);
-    }
+    };
+
+    drawTheWayFrom(setsOffFrom, fromId, toId, turnsRoundAt);
+    drawTheWayFrom(turnsRoundAt, toId, fromId, setsOffFrom);
 
     drawList->AddCircleFilled(onScreen(setsOffFrom), BeatEndRadius, OriginColour);
     drawList->AddCircleFilled(onScreen(turnsRoundAt), BeatEndRadius, DestinationColour);

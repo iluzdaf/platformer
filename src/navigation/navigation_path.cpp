@@ -208,6 +208,11 @@ namespace
     }
 }
 
+bool travelledInContact(EdgeType type)
+{
+    return type == EdgeType::Walk || type == EdgeType::Climb;
+}
+
 std::optional<PlaceOnThePath> placeOnThePath(
     const NavigationGraph &navigationGraph,
     glm::vec2 asked)

@@ -11,11 +11,6 @@ enum class EdgeType
     Climb
 };
 
-inline bool travelledInContact(EdgeType type)
-{
-    return type == EdgeType::Walk || type == EdgeType::Climb;
-}
-
 struct NavigationEdge
 {
     int fromId, toId;

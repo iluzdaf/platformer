@@ -72,7 +72,7 @@ void NavigationUi::drawOverlayToggles()
 
 void NavigationUi::draw(const Level &level)
 {
-    if (!ImGui::TreeNodeEx("Navigation", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ImGui::TreeNodeEx("Navigation"))
         return;
 
     drawGraphs(level);

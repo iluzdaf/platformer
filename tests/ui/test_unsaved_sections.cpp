@@ -6,7 +6,16 @@
 #include "game/level.hpp"
 #include "game/levels.hpp"
 #include "test_helpers/asset_path.hpp"
+#include <memory>
+#include <optional>
+#include <vector>
+#include "actor/actor_motion_state.hpp"
+#include "actor/actor_state.hpp"
+#include "npc/npc.hpp"
+#include "rendering/texture2d.hpp"
+#include "ui/armed.hpp"
 #include "ui/camera_ui.hpp"
+#include "ui/level_ui.hpp"
 #include "ui/levels_ui.hpp"
 #include "ui/editor_commands.hpp"
 
@@ -81,4 +90,49 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
     levels.setFirst("levels/level3.json");
 
     REQUIRE(levelsUi.hasUnsavedChanges(levels));
+}
+
+TEST_CASE("A level edited with the inspector shut still reports unsaved", "[UnsavedSections]")
+{
+    HeadlessImGui gui;
+    LevelUi levelUi;
+    GameData gameData = loadGameData();
+    Level level(
+        assetPath("levels/level1.json"),
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData);
+    Texture2D tileSet(assetPath("textures/tile_set.png"));
+
+    std::vector<std::unique_ptr<Npc>> npcs;
+    ActorMotionState motion;
+    ActorState playerState;
+    std::optional<Armed> armed;
+    EditorCommands commands;
+
+    auto drawOnce = [&]
+    {
+        gui.frame(
+            [&]
+            {
+                levelUi.draw(
+                    level,
+                    npcs,
+                    motion,
+                    level.getTileMap().feetOnTile(glm::ivec2(1, 1)),
+                    playerState,
+                    tileSet,
+                    gameData,
+                    armed,
+                    commands);
+            });
+    };
+
+    drawOnce();
+    REQUIRE_FALSE(levelUi.hasUnsavedChanges(level));
+
+    level.setNextLevel("levels/level3.json");
+    drawOnce();
+
+    REQUIRE(levelUi.hasUnsavedChanges(level));
 }

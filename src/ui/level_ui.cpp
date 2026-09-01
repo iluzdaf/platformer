@@ -86,7 +86,9 @@ void LevelUi::draw(
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
-    if (ImGui::CollapsingHeader("State", ImGuiTreeNodeFlags_DefaultOpen))
+    saveable.seen(level.getPath(), asItWouldBeSaved(level));
+
+    if (ImGui::CollapsingHeader("State"))
     {
         ImGui::Text(
             "w%dxh%dxs%d",
@@ -101,64 +103,83 @@ void LevelUi::draw(
     drawOverlayToggles();
 
     ImGui::Separator();
+    if (!ImGui::CollapsingHeader("Inspector"))
+        return;
+
     drawLevel(level, commands);
-
-    ImGui::Separator();
     drawTiles(level, tileSet, gameData, armed);
+    drawActors(level, npcs, playerMotionState, playerFeet, playerState, gameData, armed, commands);
+}
 
-    ImGui::Separator();
-    if (ImGui::CollapsingHeader("Actors", ImGuiTreeNodeFlags_DefaultOpen))
+void LevelUi::drawActors(
+    Level &level,
+    const std::vector<std::unique_ptr<Npc>> &npcs,
+    const ActorMotionState &playerMotionState,
+    const glm::vec2 &playerFeet,
+    const ActorState &playerState,
+    const GameData &gameData,
+    std::optional<Armed> &armed,
+    EditorCommands &commands)
+{
+    if (!ImGui::TreeNode("Actors"))
+        return;
+
+    ActorShown wasShowing = showingActor;
+    ActorAsked asked = drawActorsInLevel(
+        level,
+        npcs,
+        playerMotionState,
+        playerFeet,
+        playerState,
+        gameData.npcData,
+        showingActor,
+        armed);
+
+    if (asked.addNpcOfType)
     {
-        ActorShown wasShowing = showingActor;
-        ActorAsked asked = drawActorsInLevel(
-            level,
-            npcs,
-            playerMotionState,
-            playerFeet,
-            playerState,
-            gameData.npcData,
-            showingActor,
-            armed);
+        level.addNpc(NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt});
 
-        if (asked.addNpcOfType)
-        {
-            level.addNpc(
-                NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt});
+        std::size_t placed = level.getNpcs().size() - 1;
+        if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
+            level.setNpcPatrol(placed, *run);
 
-            std::size_t placed = level.getNpcs().size() - 1;
-            if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
-                level.setNpcPatrol(placed, *run);
-
-            showingActor = ActorShown{ActorShown::What::Npc, placed};
-            commands.onNpcsChanged();
-        }
-        else if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
-        {
-            level.removeNpc(showingActor.npcIndex);
-            showingActor = ActorShown{};
-            commands.onNpcsChanged();
-        }
-        else if (asked.clearShownBeat && showingActor.what == ActorShown::What::Npc)
-        {
-            level.clearNpcPatrol(showingActor.npcIndex);
-            commands.onNpcsChanged();
-        }
-        else
-            showingActor = asked.show;
-
-        if (showingActor != wasShowing)
-            armed.reset();
+        showingActor = ActorShown{ActorShown::What::Npc, placed};
+        commands.onNpcsChanged();
     }
+    else if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
+    {
+        level.removeNpc(showingActor.npcIndex);
+        showingActor = ActorShown{};
+        commands.onNpcsChanged();
+    }
+    else if (asked.clearShownBeat && showingActor.what == ActorShown::What::Npc)
+    {
+        level.clearNpcPatrol(showingActor.npcIndex);
+        commands.onNpcsChanged();
+    }
+    else
+        showingActor = asked.show;
+
+    if (showingActor != wasShowing)
+        armed.reset();
+
+    ImGui::TreePop();
+}
+
+std::string LevelUi::asItWouldBeSaved(const Level &level) const
+{
+    std::string json;
+    std::ignore = glz::write_json(level.toLevelData(), json);
+
+    return json;
 }
 
 void LevelUi::drawLevel(Level &level, EditorCommands &commands)
 {
-    std::string json;
-    std::ignore = glz::write_json(level.toLevelData(), json);
     bool reverted = drawSaveControls(
         saveable,
         level.getPath(),
-        json,
+        asItWouldBeSaved(level),
         [&level] { level.save(); },
         [&](const std::string &) { commands.onLoadLevel(level.getPath()); },
         npcsThatCannotGetBack(level));
@@ -183,7 +204,7 @@ void LevelUi::drawLevel(Level &level, EditorCommands &commands)
 
 void LevelUi::drawOverlayToggles()
 {
-    if (!ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ImGui::CollapsingHeader("Overlays"))
         return;
 
     ImGui::Checkbox("Info", &drawTileInfo);
@@ -201,7 +222,7 @@ void LevelUi::drawTiles(
     const GameData &gameData,
     std::optional<Armed> &armed)
 {
-    if (!ImGui::CollapsingHeader("Tiles", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ImGui::TreeNode("Tiles"))
         return;
 
     std::vector<int> tileIndices = tilesToPickFrom(level.getTileMap());
@@ -218,6 +239,8 @@ void LevelUi::drawTiles(
         ImGui::Separator();
         drawTileSummary(palette.at(*picked));
     }
+
+    ImGui::TreePop();
 }
 
 void LevelUi::drawOverlay(
@@ -244,9 +267,7 @@ void LevelUi::drawOverlay(
 
 bool LevelUi::hasUnsavedChanges(const Level &level) const
 {
-    std::string json;
-    std::ignore = glz::write_json(level.toLevelData(), json);
-    return saveable.unsaved(level.getPath(), json);
+    return saveable.unsaved(level.getPath(), asItWouldBeSaved(level));
 }
 
 void LevelUi::update(

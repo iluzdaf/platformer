@@ -50,12 +50,17 @@ namespace
         return "none";
     }
 
-    void drawRow(const char *label, const std::string &value)
+    void beginRow(const char *label)
     {
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
         ImGui::TextUnformatted(label);
         ImGui::TableSetColumnIndex(1);
+    }
+
+    void drawRow(const char *label, const std::string &value)
+    {
+        beginRow(label);
         ImGui::TextUnformatted(value.c_str());
     }
 
@@ -64,9 +69,6 @@ namespace
         const glm::vec2 &feet,
         const ActorState &state)
     {
-        if (!ImGui::BeginTable("Player", 2, ImGuiTableFlags_BordersInnerV))
-            return;
-
         drawRow("Velocity", std::format("{:.2f}, {:.2f}", motion.velocity.x, motion.velocity.y));
         drawRow("Feet", std::format("{:.2f}, {:.2f}", feet.x, feet.y));
         drawRow("Facing Left", state.facingLeft ? "true" : "false");
@@ -75,30 +77,33 @@ namespace
         drawRow("Dashing", motion.dash.active ? "true" : "false");
         drawRow("Hanging", motion.wallHang.active ? "true" : "false");
         drawRow("Animation", toString(state.currentAnimationState));
-
-        ImGui::EndTable();
     }
 
-    void drawNpcState(const Level &level, const NpcSpawnData &spawn, const Npc *npc)
+    void drawCannotGetBack(const Level &level, const NpcSpawnData &spawn, const Npc *npc)
     {
         std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
         if (npc && beat &&
             !canPatrolBetween(
                 level.graphFor(npc->getNavigationProfile()), beat->first, beat->second))
             ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "it cannot get back from there");
+    }
 
-        std::string_view state = npc ? npc->getStateName() : std::string_view{};
-        if (!state.empty())
-            ImGui::Text("%.*s", static_cast<int>(state.size()), state.data());
-
-        if (npc)
+    void drawNpcState(const Level &level, const Npc *npc)
+    {
+        if (!npc)
         {
-            glm::ivec2 on =
-                level.getTileMap().tileStoodOnAt(npc->getPhysicsBody().getAABB().bottomCenter());
-            ImGui::Text("stands on %d,%d", on.x, on.y);
-        }
-        else
+            beginRow("State");
             ImGui::TextDisabled("not spawned");
+            return;
+        }
+
+        std::string_view state = npc->getStateName();
+        if (!state.empty())
+            drawRow("State", std::string(state));
+
+        glm::ivec2 on =
+            level.getTileMap().tileStoodOnAt(npc->getPhysicsBody().getAABB().bottomCenter());
+        drawRow("Stands On", std::format("{}, {}", on.x, on.y));
     }
 
     void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)
@@ -133,20 +138,17 @@ namespace
 
     void drawPlayerEditing(glm::ivec2 startTile, std::optional<Armed> &armed)
     {
-        ImGui::TextUnformatted("spawns at");
-        ImGui::SameLine();
+        beginRow("Spawns At");
         drawTileArmButton(asTile(startTile), PickTile{PickTile::For::PlayerStart, 0}, armed);
     }
 
     bool drawNpcEditing(const NpcSpawnData &spawn, size_t index, std::optional<Armed> &armed)
     {
-        ImGui::TextUnformatted("spawns at");
-        ImGui::SameLine();
+        beginRow("Spawns At");
         drawTileArmButton(
             asTile(spawn.tilePosition), PickTile{PickTile::For::NpcSpawn, index}, armed);
 
-        ImGui::TextUnformatted("beat");
-        ImGui::SameLine();
+        beginRow("Beat");
         drawTileArmButton(
             spawn.patrol ? asTile(spawn.patrol->from) : "from",
             PickTile{PickTile::For::PatrolFrom, index},
@@ -248,18 +250,29 @@ ActorAsked drawActorsInLevel(
     {
     case ActorShown::What::Player:
         ImGui::Separator();
-        drawPlayerEditing(level.getPlayerStartTile(), armed);
-        drawThePlayer(playerMotionState, playerFeet, playerState);
+        if (ImGui::BeginTable("Player", 2, ImGuiTableFlags_BordersInnerV))
+        {
+            drawPlayerEditing(level.getPlayerStartTile(), armed);
+            drawThePlayer(playerMotionState, playerFeet, playerState);
+            ImGui::EndTable();
+        }
         break;
 
-    case ActorShown::What::Npc:
+    case ActorShown::What::Npc: {
+        const NpcSpawnData &spawn = spawns[showing.npcIndex];
+        const Npc *npc = showing.npcIndex < npcs.size() ? npcs[showing.npcIndex].get() : nullptr;
+
         ImGui::Separator();
-        asked.clearShownBeat = drawNpcEditing(spawns[showing.npcIndex], showing.npcIndex, armed);
-        drawNpcState(
-            level,
-            spawns[showing.npcIndex],
-            showing.npcIndex < npcs.size() ? npcs[showing.npcIndex].get() : nullptr);
+        drawCannotGetBack(level, spawn, npc);
+
+        if (ImGui::BeginTable("Npc", 2, ImGuiTableFlags_BordersInnerV))
+        {
+            asked.clearShownBeat = drawNpcEditing(spawn, showing.npcIndex, armed);
+            drawNpcState(level, npc);
+            ImGui::EndTable();
+        }
         break;
+    }
 
     case ActorShown::What::None:
         break;

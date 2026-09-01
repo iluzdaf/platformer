@@ -121,12 +121,6 @@ void LuaScriptSystem::triggerWallJump()
         onWallJump();
 }
 
-void LuaScriptSystem::triggerDoubleJump()
-{
-    if (onDoubleJump.valid())
-        onDoubleJump();
-}
-
 void LuaScriptSystem::triggerDash()
 {
     if (onDash.valid())
@@ -165,7 +159,6 @@ void LuaScriptSystem::loadScripts()
     onDeath = lua["onDeath"];
     onLevelComplete = lua["onLevelComplete"];
     onWallJump = lua["onWallJump"];
-    onDoubleJump = lua["onDoubleJump"];
     onDash = lua["onDash"];
     onFallFromHeight = lua["onFallFromHeight"];
     onHitCeiling = lua["onHitCeiling"];

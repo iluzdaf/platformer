@@ -93,6 +93,24 @@ namespace
         return levelOf(tileMap, UnderThePlatform);
     }
 
+    Level twoTierLevelWith(const std::vector<NpcSpawnData> &npcs)
+    {
+        TileMap tileMap = setupTileMap(TwoTierWidthTiles, TwoTierHeightTiles);
+
+        for (int x = 0; x < TwoTierWidthTiles; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, FloorRow), 1);
+
+        for (int x = PlatformFirstTile; x <= PlatformLastTile; ++x)
+            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+
+        LevelData levelData;
+        levelData.tileMapData = tileMap.toTileMapData();
+        levelData.npcs = npcs;
+
+        return Level(
+            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue());
+    }
+
     float floorTopY(const TileMap &tileMap)
     {
         return static_cast<float>(FloorRow * tileMap.getTileSize());
@@ -792,4 +810,27 @@ TEST_CASE("A beat ending partway up a wall is climbed to and no further", "[Npc]
 
     REQUIRE(highest <= askedFor + 4.0f);
     REQUIRE(highest > surfaceOf(1));
+}
+TEST_CASE("An npc drops off a platform to a beat end below its edge", "[Npc]")
+{
+    constexpr glm::ivec2 UnderTheEdge{PlatformFirstTile, FloorRow - 1};
+    constexpr glm::ivec2 AlongTheFloor{PlatformLastTile, FloorRow - 1};
+
+    NpcSpawnData spawn = patrolling(
+        "villager", glm::ivec2(PlatformFirstTile, PlatformRow - 1), UnderTheEdge, AlongTheFloor);
+    Level level = twoTierLevelWith({spawn});
+
+    Npc npc(npcCatalogue().at(spawn.type), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), glm::ivec2(PlatformFirstTile, PlatformRow - 1));
+
+    const float theFloor = floorTopY(level.getTileMap());
+    bool cameDown = false;
+    for (int step = 0; step < 2000 && !cameDown; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level);
+        cameDown = std::abs(footOf(npc).y - theFloor) < 2.0f;
+    }
+
+    REQUIRE(cameDown);
 }

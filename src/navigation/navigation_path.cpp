@@ -206,11 +206,6 @@ namespace
 
         return standingOn ? standingOn : nearestNodeTo(navigationGraph, position);
     }
-
-    bool travelledInContact(EdgeType type)
-    {
-        return type == EdgeType::Walk || type == EdgeType::Climb;
-    }
 }
 
 std::optional<PlaceOnThePath> placeOnThePath(

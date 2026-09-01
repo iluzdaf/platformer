@@ -1,0 +1,73 @@
+name: CodeQL
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          submodules: recursive
+
+      - name: Set up CMake
+        uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+
+      # The same toolchain the build job uses. No compiler cache: CodeQL learns
+      # what the code is by watching the compiler run, and a cache hit runs nothing.
+      - name: Set up for Linux
+        run: |
+          LLVM=$(cat .llvm-version)
+          echo "LLVM=$LLVM" >> "$GITHUB_ENV"
+          sudo apt-get update
+          sudo apt-get install -y wget lsb-release gnupg
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh "$LLVM"
+          sudo apt-get install -y \
+            clang-$LLVM \
+            libc++-$LLVM-dev \
+            libc++abi-$LLVM-dev \
+            libgl1-mesa-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: c-cpp
+          build-mode: manual
+          queries: security-and-quality
+
+      - name: Build
+        run: |
+          cmake -G Ninja -B build/codeql \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DGLFW_BUILD_WAYLAND=OFF \
+            -DCMAKE_C_COMPILER=/usr/bin/clang-${LLVM} \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${LLVM} \
+            -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
+            -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
+          cmake --build build/codeql
+
+      - name: Analyse
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:c-cpp

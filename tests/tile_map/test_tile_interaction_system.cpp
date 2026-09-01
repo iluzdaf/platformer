@@ -14,8 +14,8 @@ TEST_CASE("Pickup", "[TileInteractionSystem]")
     TileData pickupTileData, pickupTileData2, emptyTileData;
     pickupTileData.pickup = TilePickupData{1, 100};
     pickupTileData2.pickup = TilePickupData{1, std::nullopt};
-    TileMap tileMap =
-        setupTileMap(10, 10, 16, {{2, pickupTileData}, {1, emptyTileData}, {3, pickupTileData2}});
+    TileMap tileMap = setupTileMap(
+        10, 10, 16, paletteOf({{2, pickupTileData}, {1, emptyTileData}, {3, pickupTileData2}}));
     tileMap.setTileIndex({1, 1}, 2);
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
@@ -44,7 +44,7 @@ TEST_CASE("Spikes", "[TileInteractionSystem]")
 {
     TileData spikeTileData;
     spikeTileData.deadly = true;
-    TileMap tileMap = setupTileMap(10, 10, 16, {{3, spikeTileData}});
+    TileMap tileMap = setupTileMap(10, 10, 16, paletteOf({{3, spikeTileData}}));
     tileMap.setTileIndex({1, 1}, 3);
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
@@ -68,7 +68,7 @@ TEST_CASE("Spikes", "[TileInteractionSystem]")
 TEST_CASE("Empty", "[TileInteractionSystem]")
 {
     TileData emptyTileData;
-    TileMap tileMap = setupTileMap(10, 10, 16, {{0, emptyTileData}});
+    TileMap tileMap = setupTileMap(10, 10, 16, paletteOf({{0, emptyTileData}}));
     tileMap.setTileIndex({1, 1}, 0);
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
@@ -85,7 +85,7 @@ TEST_CASE("Portal", "[TileInteractionSystem]")
 {
     TileData portalTileData;
     portalTileData.portal = true;
-    TileMap tileMap = setupTileMap(10, 10, 16, {{4, portalTileData}});
+    TileMap tileMap = setupTileMap(10, 10, 16, paletteOf({{4, portalTileData}}));
     tileMap.setTileIndex({1, 1}, 4);
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));

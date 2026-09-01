@@ -1,7 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include <filesystem>
+#include <string>
+#include <glaze/glaze.hpp>
 #include <optional>
 #include <vector>
+#include "test_helpers/asset_path.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
@@ -71,7 +75,7 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 3;
     tileMapData.height = 3;
-    TilePalette palette = {{1, solidTileData}, {0, emptyTileData}, {3, emptyTileData}};
+    TilePalette palette = paletteOf({{1, solidTileData}, {0, emptyTileData}, {3, emptyTileData}});
     TileMap tileMap(tileMapData, palettesFrom(palette));
 
     SECTION("Known indices")
@@ -95,11 +99,66 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     }
 }
 
+TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
+{
+    TilePalette palette = paletteOf({{0, TileData{}}});
+    palette.tileSet.texture = "textures/somewhere_else.png";
+    palette.tileSet.tileSize = 8;
+
+    TileMapData tileMapData;
+    tileMapData.size = 16;
+    tileMapData.width = 2;
+    tileMapData.height = 2;
+
+    TileMap tileMap(tileMapData, palettesFrom(palette));
+
+    REQUIRE(tileMap.getTileSet().texture == "textures/somewhere_else.png");
+    REQUIRE(tileMap.getTileSet().tileSize == 8);
+}
+
+TEST_CASE("A tile set cell is not the world size of a tile", "[TileMap]")
+{
+    TilePalette palette = paletteOf({{0, TileData{}}});
+    palette.tileSet.tileSize = 8;
+
+    TileMapData tileMapData;
+    tileMapData.size = 16;
+    tileMapData.width = 2;
+    tileMapData.height = 2;
+
+    TileMap tileMap(tileMapData, palettesFrom(palette));
+
+    REQUIRE(tileMap.getTileSize() == 16);
+    REQUIRE(tileMap.getTileSet().tileSize == 8);
+}
+
+TEST_CASE("Every shipped palette names a texture that is on disk", "[TileMap]")
+{
+    for (const auto &[name, palette] : shippedPalettes())
+        REQUIRE(std::filesystem::exists(assetPath(palette.tileSet.texture)));
+}
+
+TEST_CASE("A palette survives being written and read back", "[TilePalette]")
+{
+    std::string written;
+    REQUIRE_FALSE(glz::write_json(shippedPalettes(), written));
+
+    TilePalettes readBack;
+    REQUIRE_FALSE(glz::read_json(readBack, written));
+
+    std::string rewritten;
+    REQUIRE_FALSE(glz::write_json(readBack, rewritten));
+
+    REQUIRE(rewritten == written);
+    REQUIRE(readBack.at("default").tileSet == shippedPalettes().at("default").tileSet);
+    REQUIRE(readBack.at("default").tiles.size() == shippedPalettes().at("default").tiles.size());
+}
+
 TEST_CASE("A level painted with a tile its palette does not have fails to load", "[TileMap]")
 {
     TilePalette palette;
-    palette[0] = TileData{};
-    palette[1] = TileData{};
+    palette.tiles[0] = TileData{};
+    palette.tiles[1] = TileData{};
 
     TileMapData tileMapData;
     tileMapData.size = 16;
@@ -114,8 +173,8 @@ TEST_CASE("A level painted with a tile its palette does not have fails to load",
 TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
 {
     TilePalette palette;
-    palette[0] = TileData{};
-    palette[1] = TileData{};
+    palette.tiles[0] = TileData{};
+    palette.tiles[1] = TileData{};
 
     TileMapData tileMapData;
     tileMapData.size = 16;
@@ -127,7 +186,7 @@ TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
 TEST_CASE("The empty tile is paintable even when a palette omits it", "[TileMap]")
 {
     TilePalette palette;
-    palette[1] = TileData{};
+    palette.tiles[1] = TileData{};
 
     TileMapData tileMapData;
     tileMapData.size = 16;
@@ -144,7 +203,8 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    TilePalette palette = {{1, animatedTileData1}, {0, emptyTileData}, {3, animatedTileData2}};
+    TilePalette palette =
+        paletteOf({{1, animatedTileData1}, {0, emptyTileData}, {3, animatedTileData2}});
     TileMap tileMap(tileMapData, palettesFrom(palette));
     tileMap.setTileIndex(glm::ivec2(0, 0), 1);
     tileMap.setTileIndex(glm::ivec2(0, 1), 0);
@@ -178,7 +238,7 @@ TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
     TileMapData tileMapData;
     tileMapData.width = 2;
     tileMapData.height = 2;
-    TilePalette palette = {{0, emptyTileData}, {5, pickupTileData}};
+    TilePalette palette = paletteOf({{0, emptyTileData}, {5, pickupTileData}});
     TileMap tileMap(tileMapData, palettesFrom(palette));
     tileMap.setTileIndex(glm::ivec2(1, 1), 5);
     const Tile &tile = tileMap.getTile(5);

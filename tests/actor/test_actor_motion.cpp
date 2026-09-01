@@ -18,16 +18,16 @@ namespace
     TilePalette wallsOfBothKinds()
     {
         TilePalette palette;
-        palette[0] = TileData{};
+        palette.tiles[0] = TileData{};
 
         TileData grippable;
         grippable.solid = true;
         grippable.grippable = true;
-        palette[Grippable] = grippable;
+        palette.tiles[Grippable] = grippable;
 
         TileData slippery;
         slippery.solid = true;
-        palette[Slippery] = slippery;
+        palette.tiles[Slippery] = slippery;
 
         return palette;
     }

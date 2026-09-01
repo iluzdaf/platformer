@@ -383,8 +383,8 @@ namespace
     {
         constexpr int SolidTile = 14;
         constexpr int SpikeTile = 1;
-        REQUIRE(tilePalettes.at("default").at(SolidTile).solid);
-        REQUIRE(tilePalettes.at("default").at(SpikeTile).deadly);
+        REQUIRE(tilePalettes.at("default").tiles.at(SolidTile).solid);
+        REQUIRE(tilePalettes.at("default").tiles.at(SpikeTile).deadly);
 
         std::vector<std::vector<int>> rows(PitMapHeight, std::vector<int>(PitMapWidth, 0));
         for (int x = 0; x < PitMapWidth; ++x)
@@ -688,7 +688,7 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
     TileData ungrippable;
     ungrippable.solid = true;
     ungrippable.grippable = false;
-    palette[2] = ungrippable;
+    palette.tiles[2] = ungrippable;
 
     TileMap tileMap = setupTileMap(10, 10, 16, palette);
     for (int y = 0; y < 8; ++y)

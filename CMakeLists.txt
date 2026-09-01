@@ -261,6 +261,7 @@ add_executable(tests
     tests/ui/test_save_controls.cpp
     tests/ui/test_editor_command.cpp
     tests/ui/test_armed.cpp
+    tests/ui/test_grid_shown.cpp
     tests/ui/test_tile_picker.cpp
     tests/ui/test_level_ui_update.cpp
     tests/ui/test_actors_in_level.cpp

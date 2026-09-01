@@ -15,6 +15,7 @@
 #include "ui/tile_picker.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
+#include "ui/grid_shown.hpp"
 #include "rendering/texture2d.hpp"
 #include "ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
@@ -209,7 +210,7 @@ void LevelUi::drawOverlayToggles()
 
     ImGui::Checkbox("Info", &drawTileInfo);
     ImGui::SameLine();
-    ImGui::Checkbox("Grid", &drawGrid);
+    ImGui::Checkbox("Grid", &grid.showing);
     ImGui::Checkbox("Colliders", &drawTileColliders);
     ImGui::SameLine();
     ImGui::Checkbox("Bounds", &drawLevelBounds);
@@ -248,7 +249,7 @@ void LevelUi::drawOverlay(
     const Camera2D &camera,
     const Level &level) const
 {
-    if (drawGrid)
+    if (grid.showing)
         drawTileGrid(imGuiManager, camera, level.getTileMap());
 
     if (drawTileInfo)
@@ -265,6 +266,11 @@ void LevelUi::drawOverlay(
     navigationUi.drawOverlay(imGuiManager, camera, level);
 }
 
+bool LevelUi::showingGrid() const
+{
+    return grid.showing;
+}
+
 bool LevelUi::hasUnsavedChanges(const Level &level) const
 {
     return saveable.unsaved(level.getPath(), asItWouldBeSaved(level));
@@ -276,6 +282,8 @@ void LevelUi::update(
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
+    grid = whileArmed(grid, armed.has_value());
+
     if (!armed || mouse.overTheUi)
         return;
 

@@ -7,6 +7,7 @@
 #include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "ui/mouse_on_the_map.hpp"
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "ui/actors_in_level.hpp"
@@ -248,25 +249,21 @@ bool LevelUi::hasUnsavedChanges(const Level &level) const
 }
 
 void LevelUi::update(
-    const ImGuiManager &imGuiManager,
-    const Camera2D &camera,
+    const MouseOnTheMap &mouse,
     Level &level,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
-    if (!armed || imGuiManager.getIO().WantCaptureMouse)
+    if (!armed || mouse.overTheUi)
         return;
 
-    ImVec2 mouseScreenPosition = ImGui::GetMousePos();
-    glm::vec2 worldPosition = imGuiManager.screenToWorld(
-        mouseScreenPosition, camera.getZoom(), camera.getTopLeftPosition());
-    glm::ivec2 tilePosition = level.getTileMap().tileContaining(worldPosition);
+    glm::ivec2 tilePosition = level.getTileMap().tileContaining(mouse.worldPosition);
     if (!level.getTileMap().validTilePosition(tilePosition))
         return;
 
     if (const PaintTile *painting = std::get_if<PaintTile>(&*armed))
     {
-        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+        if (!mouse.heldDown)
             return;
 
         if (level.getTileMap().tilePositionToTileIndex(tilePosition) != painting->tileIndex)
@@ -278,7 +275,7 @@ void LevelUi::update(
         return;
     }
 
-    if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    if (!mouse.justClicked)
         return;
 
     PickTile picking = std::get<PickTile>(*armed);

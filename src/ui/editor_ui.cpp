@@ -5,6 +5,8 @@
 #include <imgui.h>
 #include <string_view>
 #include "ui/editor_ui.hpp"
+#include "ui/mouse_on_the_map.hpp"
+#include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "player/player.hpp"
@@ -154,7 +156,14 @@ void EditorUi::update(
     Level &level)
 {
     playerUi.update(deltaTime);
-    levelUi.update(imGuiManager, camera, level, armed, commands);
+    MouseOnTheMap mouse{
+        imGuiManager.getIO().WantCaptureMouse,
+        imGuiManager.screenToWorld(
+            ImGui::GetMousePos(), camera.getZoom(), camera.getTopLeftPosition()),
+        ImGui::IsMouseDown(ImGuiMouseButton_Left),
+        ImGui::IsMouseClicked(ImGuiMouseButton_Left)};
+
+    levelUi.update(mouse, level, armed, commands);
 }
 
 bool EditorUi::unsavedIn(EditorSection listed, const EditorSubject &subject) const

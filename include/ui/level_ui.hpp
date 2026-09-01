@@ -6,6 +6,7 @@
 #include <vector>
 #include "ui/editor_commands.hpp"
 #include "ui/armed.hpp"
+#include "ui/mouse_on_the_map.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/navigation_ui.hpp"
 #include "ui/saveable.hpp"
@@ -36,8 +37,7 @@ public:
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
         const;
     void update(
-        const ImGuiManager &imGuiManager,
-        const Camera2D &camera,
+        const MouseOnTheMap &mouse,
         Level &level,
         std::optional<Armed> &armed,
         EditorCommands &commands);

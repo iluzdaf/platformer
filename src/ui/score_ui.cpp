@@ -9,7 +9,8 @@
 void ScoreUi::draw(
     const ImGuiManager &,
     const ScoringSystem &scoringSystem,
-    const Texture2D &tileSet)
+    const Texture2D &tileSet,
+    int tileSize)
 {
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
     ImGui::Begin(
@@ -21,7 +22,7 @@ void ScoreUi::draw(
             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground);
     ImGui::SetWindowFontScale(2.0f);
     ImTextureID imguiTextureID = (ImTextureID)(intptr_t)tileSet.getTextureID();
-    auto [uvStart, uvEnd] = tileSet.getUVRange(42, 16, false);
+    auto [uvStart, uvEnd] = tileSet.getUVRange(42, tileSize, false);
     ImGui::Image(
         imguiTextureID, ImVec2(32, 32), ImVec2(uvStart.x, uvStart.y), ImVec2(uvEnd.x, uvEnd.y));
     std::string label = std::format("x{}", scoringSystem.getScore());

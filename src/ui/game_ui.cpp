@@ -1,4 +1,7 @@
 #include "ui/game_ui.hpp"
+#include "rendering/texture_cache.hpp"
+#include "tile_map/tile_map.hpp"
+#include "tile_map/tile_set.hpp"
 #include "physics/aabb.hpp"
 #include "physics/physics_body.hpp"
 #include "ui/editor_commands.hpp"
@@ -16,7 +19,12 @@ void GameUi::draw(const GameUiSubject &subject)
 {
     imGuiManager.newFrame();
 
-    scoreUi.draw(imGuiManager, subject.scoringSystem, subject.tileSet);
+    const TileSet &tileSet = subject.level.getTileMap().getTileSet();
+    scoreUi.draw(
+        imGuiManager,
+        subject.scoringSystem,
+        subject.textures.get(tileSet.texture),
+        tileSet.tileSize);
 
     editorUi.draw(
         imGuiManager,
@@ -24,7 +32,7 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.gameData,
             subject.level,
             subject.npcs,
-            subject.tileSet,
+            subject.textures,
             subject.levels,
             subject.player.getMotion().getState(),
             subject.player.getPhysicsBody().getAABB().bottomCenter(),

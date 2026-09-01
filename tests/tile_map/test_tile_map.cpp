@@ -156,9 +156,7 @@ TEST_CASE("A palette survives being written and read back", "[TilePalette]")
 
 TEST_CASE("A level painted with a tile its palette does not have fails to load", "[TileMap]")
 {
-    TilePalette palette;
-    palette.tiles[0] = TileData{};
-    palette.tiles[1] = TileData{};
+    TilePalette palette = paletteOf({{0, TileData{}}, {1, TileData{}}});
 
     TileMapData tileMapData;
     tileMapData.size = 16;
@@ -172,9 +170,7 @@ TEST_CASE("A level painted with a tile its palette does not have fails to load",
 
 TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
 {
-    TilePalette palette;
-    palette.tiles[0] = TileData{};
-    palette.tiles[1] = TileData{};
+    TilePalette palette = paletteOf({{0, TileData{}}, {1, TileData{}}});
 
     TileMapData tileMapData;
     tileMapData.size = 16;
@@ -185,8 +181,7 @@ TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
 
 TEST_CASE("The empty tile is paintable even when a palette omits it", "[TileMap]")
 {
-    TilePalette palette;
-    palette.tiles[1] = TileData{};
+    TilePalette palette = paletteOf({{1, TileData{}}});
 
     TileMapData tileMapData;
     tileMapData.size = 16;

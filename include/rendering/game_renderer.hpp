@@ -7,8 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "rendering/shader.hpp"
 #include "rendering/sprite_renderer.hpp"
-#include "rendering/texture2d.hpp"
 #include "rendering/texture_cache.hpp"
+#include "tile_map/tile_palette.hpp"
 
 class Actor;
 class ScreenTransition;
@@ -19,6 +19,8 @@ class GameRenderer
 public:
     GameRenderer();
 
+    void warm(const TilePalettes &tilePalettes);
+
     void reloadShader(const std::string &shaderPath);
     void reloadTexture(const std::string &texturePath);
 
@@ -28,7 +30,7 @@ public:
         const std::vector<Actor *> &actors) const;
     void draw(const ScreenTransition &screenTransition) const;
 
-    const Texture2D &getTileSet() const;
+    const TextureCache &getTextures() const;
 
 private:
     TextureCache textures;

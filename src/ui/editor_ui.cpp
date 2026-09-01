@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <string_view>
 #include "ui/editor_ui.hpp"
+#include "rendering/texture_cache.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
@@ -121,18 +122,14 @@ void EditorUi::draw(
             subject.playerMotionState,
             subject.playerFeet,
             subject.playerState,
-            subject.tileSet,
+            subject.textures.get(subject.level.getTileMap().getTileSet().texture),
             subject.gameData,
             armed,
             commands);
         break;
 
     case EditorSection::TilePalettes:
-        tilePalettesUi.draw(
-            subject.gameData.tilePalettes,
-            subject.tileSet,
-            subject.level.getTileMap().getTileSize(),
-            armed);
+        tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, armed);
         break;
     }
 

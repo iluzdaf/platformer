@@ -9,5 +9,6 @@ public:
     void draw(
         const ImGuiManager &imGuiManager,
         const ScoringSystem &scoringSystem,
-        const Texture2D &tileSet);
+        const Texture2D &tileSet,
+        int tileSize);
 };

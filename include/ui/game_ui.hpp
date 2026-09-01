@@ -14,7 +14,7 @@ class Levels;
 class Npc;
 class Player;
 class ScoringSystem;
-class Texture2D;
+class TextureCache;
 class Window;
 
 struct GameUiSubject
@@ -23,7 +23,7 @@ struct GameUiSubject
     Level &level;
     const std::vector<std::unique_ptr<Npc>> &npcs;
     const Player &player;
-    const Texture2D &tileSet;
+    const TextureCache &textures;
     Levels &levels;
     const Camera2D &camera;
     const ScoringSystem &scoringSystem;

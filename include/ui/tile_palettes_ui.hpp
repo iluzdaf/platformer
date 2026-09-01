@@ -6,15 +6,14 @@
 #include "ui/saveable.hpp"
 #include "tile_map/tile_palette.hpp"
 
-class Texture2D;
+class TextureCache;
 
 class TilePalettesUi
 {
 public:
     void draw(
         TilePalettes &tilePalettes,
-        const Texture2D &tileSet,
-        int tileSize,
+        const TextureCache &textures,
         std::optional<Armed> &armed);
 
     bool hasUnsavedChanges(const TilePalettes &tilePalettes) const;

@@ -12,10 +12,12 @@
 #include "tile_map/tile_palette.hpp"
 #include "tile_map/tile_data.hpp"
 #include "npc/npc_data.hpp"
+#include "assets/asset_paths.hpp"
 
 inline TilePalette paletteOf(std::map<int, TileData> tiles)
 {
     TilePalette palette;
+    palette.tileSet.texture = std::string(assets::TileSetTexture);
     palette.tiles = std::move(tiles);
     return palette;
 }

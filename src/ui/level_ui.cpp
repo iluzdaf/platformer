@@ -235,10 +235,10 @@ void LevelUi::drawTiles(
         armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
 
     const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
-    if (picked && palette.contains(*picked))
+    if (picked && palette.tiles.contains(*picked))
     {
         ImGui::Separator();
-        drawTileSummary(palette.at(*picked));
+        drawTileSummary(palette.tiles.at(*picked));
     }
 
     ImGui::TreePop();

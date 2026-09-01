@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <map>
 #include <glaze/glaze.hpp>
 #include <string>
@@ -12,16 +13,20 @@
 #include "tile_map/tile_data.hpp"
 #include "npc/npc_data.hpp"
 
+inline TilePalette paletteOf(std::map<int, TileData> tiles)
+{
+    TilePalette palette;
+    palette.tiles = std::move(tiles);
+    return palette;
+}
+
 inline const TilePalette &getDefaultTileDataMap()
 {
     static const TilePalette map = []
     {
-        TilePalette palette;
-        palette[0] = TileData{};
         TileData solid;
         solid.solid = solid.grippable = true;
-        palette[1] = solid;
-        return palette;
+        return paletteOf({{0, TileData{}}, {1, solid}});
     }();
     return map;
 }

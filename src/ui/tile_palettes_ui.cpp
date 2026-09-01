@@ -42,7 +42,8 @@ void TilePalettesUi::draw(
 
     TilePalette &palette = tilePalettes.at(selectedPalette);
     std::vector<int> tileIndices;
-    for (const auto &[tileIndex, tileData] : palette)
+    tileIndices.reserve(palette.tiles.size());
+    for (const auto &[tileIndex, tileData] : palette.tiles)
         tileIndices.push_back(tileIndex);
 
     if (tileIndices.empty())
@@ -52,7 +53,7 @@ void TilePalettesUi::draw(
     }
 
     std::optional<int> showing = paintedTile(armed);
-    if (showing && !palette.contains(*showing))
+    if (showing && !palette.tiles.contains(*showing))
         showing.reset();
 
     std::optional<int> picked = drawTilePicker(tileSet, tileSize, tileIndices, showing);
@@ -67,7 +68,7 @@ void TilePalettesUi::draw(
     }
 
     ImGui::Text("tile %d", *picked);
-    inspector::drawFields(palette.at(*picked));
+    inspector::drawFields(palette.tiles.at(*picked));
 }
 
 bool TilePalettesUi::hasUnsavedChanges(const TilePalettes &tilePalettes) const

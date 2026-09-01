@@ -1034,7 +1034,7 @@ namespace
         TilePalette palette = getDefaultTileDataMap();
         TileData spikes;
         spikes.deadly = true;
-        palette[SpikeTileIndex] = spikes;
+        palette.tiles[SpikeTileIndex] = spikes;
         return palette;
     }
 
@@ -1443,7 +1443,7 @@ TEST_CASE("A wall an actor cannot grip is not climbed", "[NavigationGraphBuilder
     TileData ungrippable;
     ungrippable.solid = true;
     ungrippable.grippable = false;
-    palette[2] = ungrippable;
+    palette.tiles[2] = ungrippable;
 
     TileMap ungrippableWall(tileMap.toTileMapData(), palettesFrom(palette));
     for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)

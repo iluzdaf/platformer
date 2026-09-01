@@ -70,8 +70,10 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
     if (palette == tilePalettes.end())
         throw std::runtime_error("Unknown tile palette \"" + tilePalette + "\"");
 
+    tileSet = palette->second.tileSet;
+
     tiles.insert_or_assign(0, Tile(0, TileData{}));
-    for (const auto &[tileIndex, tileData] : palette->second)
+    for (const auto &[tileIndex, tileData] : palette->second.tiles)
         tiles.insert_or_assign(tileIndex, Tile(tileIndex, tileData));
 
     for (int tileX = 0; tileX < width; ++tileX)
@@ -277,4 +279,9 @@ bool TileMap::probeSolidTiles(
 const std::string &TileMap::getTilePalette() const
 {
     return tilePalette;
+}
+
+const TileSet &TileMap::getTileSet() const
+{
+    return tileSet;
 }

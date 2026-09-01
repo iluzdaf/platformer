@@ -77,11 +77,6 @@ void ScreenTransition::draw(const Shader &shader) const
     glBindVertexArray(0);
 }
 
-bool ScreenTransition::isActive() const
-{
-    return active;
-}
-
 ScreenTransition::~ScreenTransition()
 {
     glDeleteVertexArrays(1, &vertexArrayObject);

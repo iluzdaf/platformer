@@ -17,7 +17,6 @@ public:
     void readMotion(const PhysicsBody &physicsBody);
     void beginFrame();
     const ActorMotionState &getState() const;
-    const AbilitySystem &getAbilitySystem() const;
 
 private:
     ActorMotionState state;

@@ -55,8 +55,3 @@ const ActorMotionState &ActorMotion::getState() const
 {
     return state;
 }
-
-const AbilitySystem &ActorMotion::getAbilitySystem() const
-{
-    return abilitySystem;
-}

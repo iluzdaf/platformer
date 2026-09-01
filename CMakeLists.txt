@@ -268,6 +268,7 @@ add_executable(tests
     tests/ui/test_navigation_shown.cpp
     tests/ui/test_tile_map_overlays.cpp
     tests/ui/test_unsaved_sections.cpp
+    tests/ui/test_data_inspector.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp

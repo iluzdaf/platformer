@@ -50,6 +50,12 @@ namespace
         return "none";
     }
 
+    void nameThenValue()
+    {
+        ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
+    }
+
     void beginRow(const char *label)
     {
         ImGui::TableNextRow();
@@ -252,6 +258,7 @@ ActorAsked drawActorsInLevel(
         ImGui::Separator();
         if (ImGui::BeginTable("Player", 2, ImGuiTableFlags_BordersInnerV))
         {
+            nameThenValue();
             drawPlayerEditing(level.getPlayerStartTile(), armed);
             drawThePlayer(playerMotionState, playerFeet, playerState);
             ImGui::EndTable();
@@ -267,6 +274,7 @@ ActorAsked drawActorsInLevel(
 
         if (ImGui::BeginTable("Npc", 2, ImGuiTableFlags_BordersInnerV))
         {
+            nameThenValue();
             asked.clearShownBeat = drawNpcEditing(spawn, showing.npcIndex, armed);
             drawNpcState(level, npc);
             ImGui::EndTable();

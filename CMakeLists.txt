@@ -187,6 +187,7 @@ else()
     target_compile_options(platformer_lib PUBLIC
         -Wall
         -Wextra
+        -Wshadow
         -Werror
         -Wno-missing-braces
     )

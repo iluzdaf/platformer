@@ -1,4 +1,3 @@
-#include <cassert>
 #include "rendering/tile_map_drawing.hpp"
 #include "rendering/sprite_renderer.hpp"
 #include "rendering/texture2d.hpp"
@@ -12,9 +11,8 @@ void drawTileMap(
     const Shader &tileSetShader,
     const Texture2D &tileSet)
 {
-    assert(tileSet.getWidth() == tileSet.getHeight() && "TileSet texture must be square");
-
     int tileSize = tileMap.getTileSize();
+    int cellSize = tileMap.getTileSet().tileSize;
     for (int tileY = 0; tileY < tileMap.getHeight(); ++tileY)
     {
         for (int tileX = 0; tileX < tileMap.getWidth(); ++tileX)
@@ -22,7 +20,7 @@ void drawTileMap(
             int tileIndex = tileMap.tilePositionToTileIndex(glm::ivec2(tileX, tileY));
             const Tile &tile = tileMap.getTile(tileIndex);
             int frameIndex = tile.getCurrentFrame();
-            auto [uvStart, uvEnd] = tileSet.getUVRange(frameIndex, tileSize);
+            auto [uvStart, uvEnd] = tileSet.getUVRange(frameIndex, cellSize);
             glm::vec2 position = tileMap.topLeftOfTile(glm::ivec2(tileX, tileY));
             glm::vec2 size = glm::vec2(static_cast<float>(tileSize));
 

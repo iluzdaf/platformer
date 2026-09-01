@@ -43,6 +43,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
             camera.setWorldBounds(
                 glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
         });
+    renderer.warm(gameData.tilePalettes);
     world.loadLevel(levels.getFirst());
 
     gameUi.commands().onPlay.connect([this] { playback.play(); });
@@ -72,6 +73,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
             gameUi.valuesReplaced();
             this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
             camera.setZoom(gameData.cameraData.zoom);
+            renderer.warm(gameData.tilePalettes);
 
             std::string current = world.getLevelPath();
             world.loadLevel(current.empty() ? levels.getFirst() : current);
@@ -132,7 +134,7 @@ void Game::render()
             world.getLevel(),
             world.getNpcs(),
             world.getPlayer(),
-            renderer.getTileSet(),
+            renderer.getTextures(),
             levels,
             camera,
             world.getScoringSystem(),

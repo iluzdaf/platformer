@@ -17,8 +17,7 @@ namespace
 
     TilePalette wallsOfBothKinds()
     {
-        TilePalette palette;
-        palette.tiles[0] = TileData{};
+        TilePalette palette = paletteOf({{0, TileData{}}});
 
         TileData grippable;
         grippable.solid = true;

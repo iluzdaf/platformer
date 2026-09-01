@@ -25,7 +25,7 @@ class Level;
 class Levels;
 class Npc;
 class Player;
-class Texture2D;
+class TextureCache;
 
 inline constexpr float InspectorWidth = 280.0f;
 
@@ -34,7 +34,7 @@ struct EditorSubject
     GameData &gameData;
     Level &level;
     const std::vector<std::unique_ptr<Npc>> &npcs;
-    const Texture2D &tileSet;
+    const TextureCache &textures;
     Levels &levels;
     const ActorMotionState &playerMotionState;
     glm::vec2 playerFeet;

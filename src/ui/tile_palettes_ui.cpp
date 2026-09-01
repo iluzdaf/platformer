@@ -11,11 +11,12 @@
 #include "ui/tile_picker.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_palette.hpp"
+#include "rendering/texture2d.hpp"
+#include "rendering/texture_cache.hpp"
 
 void TilePalettesUi::draw(
     TilePalettes &tilePalettes,
-    const Texture2D &tileSet,
-    int tileSize,
+    const TextureCache &textures,
     std::optional<Armed> &armed)
 {
     drawSaveControls(saveable, "palettes", tilePalettes, saveTilePalettes);
@@ -41,6 +42,18 @@ void TilePalettesUi::draw(
     }
 
     TilePalette &palette = tilePalettes.at(selectedPalette);
+
+    ImGui::Separator();
+    inspector::drawFields(palette.tileSet);
+    ImGui::Separator();
+
+    const Texture2D *tileSet = textures.find(palette.tileSet.texture);
+    if (!tileSet)
+    {
+        ImGui::TextDisabled("no texture at %s", palette.tileSet.texture.c_str());
+        return;
+    }
+
     std::vector<int> tileIndices;
     tileIndices.reserve(palette.tiles.size());
     for (const auto &[tileIndex, tileData] : palette.tiles)
@@ -56,7 +69,8 @@ void TilePalettesUi::draw(
     if (showing && !palette.tiles.contains(*showing))
         showing.reset();
 
-    std::optional<int> picked = drawTilePicker(tileSet, tileSize, tileIndices, showing);
+    std::optional<int> picked =
+        drawTilePicker(*tileSet, palette.tileSet.tileSize, tileIndices, showing);
     if (picked != showing)
         armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
 

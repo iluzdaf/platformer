@@ -8,6 +8,9 @@
 #include "rendering/screen_transition.hpp"
 #include "rendering/shader_data.hpp"
 #include "rendering/tile_map_drawing.hpp"
+#include "rendering/tile_set_textures.hpp"
+#include "tile_map/tile_map.hpp"
+#include "tile_map/tile_palette.hpp"
 #include "actor/actor.hpp"
 #include "actor/actor_state.hpp"
 #include "assets/asset_paths.hpp"
@@ -17,10 +20,14 @@ GameRenderer::GameRenderer()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    textures.warm(std::string(assets::TileSetTexture));
     textures.warm(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
+}
+
+void GameRenderer::warm(const TilePalettes &tilePalettes)
+{
+    warmTileSets(textures, tilePalettes);
 }
 
 std::unique_ptr<Shader> GameRenderer::loadShader(std::string_view vertex, std::string_view fragment)
@@ -56,7 +63,12 @@ void GameRenderer::draw(
     glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    drawTileMap(spriteRenderer, tileMap, projection, *tileSetShader.get(), getTileSet());
+    drawTileMap(
+        spriteRenderer,
+        tileMap,
+        projection,
+        *tileSetShader.get(),
+        textures.get(tileMap.getTileSet().texture));
 
     for (const Actor *actor : actors)
     {
@@ -78,7 +90,7 @@ void GameRenderer::draw(const ScreenTransition &screenTransition) const
     screenTransition.draw(*screenTransitionShader.get());
 }
 
-const Texture2D &GameRenderer::getTileSet() const
+const TextureCache &GameRenderer::getTextures() const
 {
-    return textures.get(std::string(assets::TileSetTexture));
+    return textures;
 }

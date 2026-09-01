@@ -167,10 +167,11 @@ ActorAsked drawActorsInLevel(
     ActorShown showing,
     std::optional<Armed> &armed)
 {
-    ActorAsked asked{showing, false, false, std::nullopt};
     const std::vector<NpcSpawnData> &spawns = level.getNpcs();
     if (showing.what == ActorShown::What::Npc && showing.npcIndex >= spawns.size())
-        asked.show = ActorShown{};
+        showing = ActorShown{};
+
+    ActorAsked asked{showing, false, false, std::nullopt};
 
     const ImGuiStyle &style = ImGui::GetStyle();
     float buttons = ImGui::CalcTextSize("add").x + ImGui::CalcTextSize("remove").x +
@@ -208,8 +209,7 @@ ActorAsked drawActorsInLevel(
     }
 
     ImGui::SameLine();
-    ImGui::BeginDisabled(
-        showing.what != ActorShown::What::Npc || showing.npcIndex >= spawns.size());
+    ImGui::BeginDisabled(showing.what != ActorShown::What::Npc);
     if (ImGui::Button("remove"))
         asked.removeShownNpc = true;
     ImGui::EndDisabled();
@@ -223,9 +223,6 @@ ActorAsked drawActorsInLevel(
         break;
 
     case ActorShown::What::Npc:
-        if (showing.npcIndex >= spawns.size())
-            break;
-
         ImGui::Separator();
         asked.clearShownBeat = drawNpcEditing(spawns[showing.npcIndex], showing.npcIndex, armed);
         drawNpcState(

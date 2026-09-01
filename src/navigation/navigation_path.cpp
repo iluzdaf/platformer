@@ -264,6 +264,17 @@ int endOfThePathTowards(
                                                                               : place.toId;
 }
 
+int endOfThePathBeyond(
+    const NavigationGraph &navigationGraph,
+    const PlaceOnThePath &place,
+    glm::vec2 comingFrom)
+{
+    glm::vec2 travelling = place.position - comingFrom;
+    glm::vec2 oneEnd = navigationGraph.getNode(place.fromId).position;
+
+    return glm::dot(oneEnd - place.position, travelling) >= 0.0f ? place.fromId : place.toId;
+}
+
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)
 {
     std::optional<int> from = nodeUnderfoot(navigationGraph, here);

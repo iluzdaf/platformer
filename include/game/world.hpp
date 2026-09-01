@@ -43,9 +43,10 @@ public:
     const std::vector<Actor *> &getActors() const;
     const ScoringSystem &getScoringSystem() const;
 
+    void rebuildNpcs();
+
 private:
     void rebuildLevel(const std::string &levelPath);
-    void rebuildNpcs();
     void refreshActors();
 
     GameData &gameData;

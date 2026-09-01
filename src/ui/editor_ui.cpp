@@ -153,7 +153,7 @@ void EditorUi::update(
     Level &level)
 {
     playerUi.update(deltaTime);
-    levelUi.update(imGuiManager, camera, level, armed);
+    levelUi.update(imGuiManager, camera, level, armed, commands);
 }
 
 bool EditorUi::unsavedIn(EditorSection listed, const EditorSubject &subject) const

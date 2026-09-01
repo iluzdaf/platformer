@@ -591,3 +591,29 @@ TEST_CASE("A beat end several nodes along is reached and left again", "[PatrolBe
 
     REQUIRE(goesThereAndComesBack(behavior, navigationGraph, {32.0f, 192.0f}, 160.0f, 2400));
 }
+
+TEST_CASE("A beat inside one half of a single edge is not overshot", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(2, 320.0f);
+    PatrolBehavior behavior(setupData(), between({32.0f, 192.0f}, {128.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {32.0f, 192.0f});
+
+    auto [leftMost, rightMost] = pacedBetween(behavior, navigationGraph, {32.0f, 192.0f}, 3000);
+
+    INFO("paced " << leftMost << " .. " << rightMost << " for a beat of 32 .. 128");
+    REQUIRE(rightMost < 128.0f + 16.0f);
+    REQUIRE(leftMost > 32.0f - 16.0f);
+}
+
+TEST_CASE("A beat in the far half of a single edge is not overshot either", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = setupPlatform(2, 320.0f);
+    PatrolBehavior behavior(setupData(), between({200.0f, 192.0f}, {250.0f, 192.0f}));
+    anchorAt(behavior, navigationGraph, {200.0f, 192.0f});
+
+    auto [leftMost, rightMost] = pacedBetween(behavior, navigationGraph, {200.0f, 192.0f}, 3000);
+
+    INFO("paced " << leftMost << " .. " << rightMost << " for a beat of 200 .. 250");
+    REQUIRE(rightMost < 250.0f + 16.0f);
+    REQUIRE(leftMost > 200.0f - 16.0f);
+}

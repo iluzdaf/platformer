@@ -1,12 +1,16 @@
 #include <optional>
+#include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include "animations/frame_animation_data.hpp"
+#include "animations/sprite_animation_data.hpp"
+#include "animations/tile_animation_data.hpp"
+#include "cameras/camera2d_data.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "ui/data_inspector.hpp"
-
 namespace
 {
     int itemsSharingTheIdOf(HeadlessImGui &gui, const char *fieldName, TileData &tileData)
@@ -41,6 +45,30 @@ TEST_CASE("An optional nobody engaged draws only its checkbox", "[DataInspector]
     TileData tileData;
 
     REQUIRE(itemsSharingTheIdOf(gui, "collider", tileData) == 1);
+}
+
+TEST_CASE("Only a struct wrapping one struct is drawn through", "[DataInspector]")
+{
+    STATIC_REQUIRE(inspector::wrapsOneStruct<TileAnimationData>());
+
+    STATIC_REQUIRE_FALSE(inspector::wrapsOneStruct<SpriteAnimationData>());
+    STATIC_REQUIRE_FALSE(inspector::wrapsOneStruct<Camera2DData>());
+    STATIC_REQUIRE_FALSE(inspector::wrapsOneStruct<TileColliderData>());
+    STATIC_REQUIRE_FALSE(inspector::wrapsOneStruct<FrameAnimationData>());
+    STATIC_REQUIRE_FALSE(inspector::wrapsOneStruct<int>());
+}
+
+TEST_CASE("What a wrapper held is still drawn", "[DataInspector]")
+{
+    HeadlessImGui gui;
+    TileData tileData;
+    tileData.animationData = TileAnimationData{{{4, 5, 6}, 0.25f}};
+
+    gui.frame([&] { inspector::drawFields(tileData); });
+    gui.frame([&] { inspector::drawFields(tileData); });
+
+    REQUIRE(tileData.animationData->frameAnimationData.frames == std::vector<int>{4, 5, 6});
+    REQUIRE(tileData.animationData->frameAnimationData.frameDuration == 0.25f);
 }
 
 TEST_CASE("An engaged optional still keeps the value it was given", "[DataInspector]")

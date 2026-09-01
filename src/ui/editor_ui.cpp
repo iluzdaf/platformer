@@ -129,7 +129,7 @@ void EditorUi::draw(
         break;
 
     case EditorSection::TilePalettes:
-        tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, armed);
+        tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
         break;
     }
 

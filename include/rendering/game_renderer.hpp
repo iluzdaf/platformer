@@ -20,6 +20,7 @@ public:
     GameRenderer();
 
     void warm(const TilePalettes &tilePalettes);
+    void warmTexture(const std::string &texturePath);
 
     void reloadShader(const std::string &shaderPath);
     void reloadTexture(const std::string &texturePath);

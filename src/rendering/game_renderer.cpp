@@ -1,3 +1,5 @@
+#include <exception>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -28,6 +30,18 @@ GameRenderer::GameRenderer()
 void GameRenderer::warm(const TilePalettes &tilePalettes)
 {
     warmTileSets(textures, tilePalettes);
+}
+
+void GameRenderer::warmTexture(const std::string &texturePath)
+{
+    try
+    {
+        textures.warm(texturePath);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
 
 std::unique_ptr<Shader> GameRenderer::loadShader(std::string_view vertex, std::string_view fragment)

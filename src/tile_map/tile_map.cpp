@@ -73,6 +73,17 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
     tiles.insert_or_assign(0, Tile(0, TileData{}));
     for (const auto &[tileIndex, tileData] : palette->second)
         tiles.insert_or_assign(tileIndex, Tile(tileIndex, tileData));
+
+    for (int tileX = 0; tileX < width; ++tileX)
+        for (int tileY = 0; tileY < height; ++tileY)
+        {
+            int tileIndex = tileIndices[tileX][tileY];
+            if (!tiles.contains(tileIndex))
+                throw std::runtime_error(
+                    "Tile " + std::to_string(tileIndex) + " is painted at " +
+                    std::to_string(tileX) + "," + std::to_string(tileY) + " but palette \"" +
+                    tilePalette + "\" does not have it");
+        }
 }
 
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)

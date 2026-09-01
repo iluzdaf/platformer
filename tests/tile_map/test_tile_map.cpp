@@ -95,6 +95,47 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     }
 }
 
+TEST_CASE("A level painted with a tile its palette does not have fails to load", "[TileMap]")
+{
+    TilePalette palette;
+    palette[0] = TileData{};
+    palette[1] = TileData{};
+
+    TileMapData tileMapData;
+    tileMapData.size = 16;
+    tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 7}};
+
+    REQUIRE_THROWS_WITH(
+        TileMap(tileMapData, palettesFrom(palette)),
+        Catch::Matchers::ContainsSubstring("Tile 7") && Catch::Matchers::ContainsSubstring("1,1") &&
+            Catch::Matchers::ContainsSubstring("default"));
+}
+
+TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
+{
+    TilePalette palette;
+    palette[0] = TileData{};
+    palette[1] = TileData{};
+
+    TileMapData tileMapData;
+    tileMapData.size = 16;
+    tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 0}};
+
+    REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));
+}
+
+TEST_CASE("The empty tile is paintable even when a palette omits it", "[TileMap]")
+{
+    TilePalette palette;
+    palette[1] = TileData{};
+
+    TileMapData tileMapData;
+    tileMapData.size = 16;
+    tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 0}};
+
+    REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));
+}
+
 TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 {
     TileData animatedTileData1, animatedTileData2, emptyTileData;

@@ -7,7 +7,7 @@ struct EditorCommands
 {
     EditorCommand<> onPlay, onPause, onStep, onRespawn, onNpcsChanged;
     EditorCommand<> onSettingsChanged, onCameraChanged;
-    EditorCommand<const std::string &> onLoadLevel;
+    EditorCommand<const std::string &> onLoadLevel, onWarmTexture;
 
     void drain()
     {
@@ -19,5 +19,6 @@ struct EditorCommands
         onSettingsChanged.drain();
         onCameraChanged.drain();
         onLoadLevel.drain();
+        onWarmTexture.drain();
     }
 };

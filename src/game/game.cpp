@@ -57,6 +57,8 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
         [this]
         { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });
     gameUi.commands().onCameraChanged.connect([this] { camera.setZoom(gameData.cameraData.zoom); });
+    gameUi.commands().onWarmTexture.connect([this](const std::string &texturePath)
+                                            { renderer.warmTexture(texturePath); });
 
     reloadCommands.isPlaying = [this](const std::string &levelPath)
     { return world.isPlaying(levelPath); };

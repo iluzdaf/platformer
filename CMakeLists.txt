@@ -98,6 +98,7 @@ add_subdirectory(external/efsw)
 
 add_library(platformer_lib OBJECT
     src/rendering/texture2d.cpp
+    src/rendering/texture_cache.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
     src/rendering/game_renderer.cpp
@@ -269,6 +270,7 @@ add_executable(tests
     tests/ui/test_tile_map_overlays.cpp
     tests/ui/test_unsaved_sections.cpp
     tests/ui/test_data_inspector.cpp
+    tests/rendering/test_texture_cache.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp

@@ -8,6 +8,7 @@
 #include <vector>
 #include <imgui.h>
 #include "ui/navigation_ui.hpp"
+#include "ui/navigation_shown.hpp"
 #include "ui/navigation_overlay.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -88,30 +89,25 @@ void NavigationUi::drawGraphs(const Level &level)
         return;
     }
 
-    if (selectedGraphIndex && *selectedGraphIndex >= graphs.size())
-        forgetSelection();
+    shown = stillAmong(shown, graphs.size());
 
     ImGui::TextUnformatted("graph");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::BeginCombo(
-            "##graph", selectedGraphIndex ? graphs[*selectedGraphIndex].name.c_str() : "none"))
+            "##graph", shown.graphIndex ? graphs[*shown.graphIndex].name.c_str() : "none"))
     {
-        if (ImGui::Selectable("none", !selectedGraphIndex))
-            forgetSelection();
+        if (ImGui::Selectable("none", !shown.graphIndex))
+            shown = showingGraph(std::nullopt);
 
         for (size_t index = 0; index < graphs.size(); ++index)
-            if (ImGui::Selectable(graphs[index].name.c_str(), selectedGraphIndex == index))
-            {
-                forgetSelection();
-                selectedGraphIndex = index;
-            }
+            if (ImGui::Selectable(graphs[index].name.c_str(), shown.graphIndex == index))
+                shown = showingGraph(index);
 
         ImGui::EndCombo();
     }
 
-    const NavigationGraph *graph =
-        selectedGraphIndex ? &graphs[*selectedGraphIndex].graph : nullptr;
+    const NavigationGraph *graph = shown.graphIndex ? &graphs[*shown.graphIndex].graph : nullptr;
 
     std::vector<int> nodeIds;
     if (graph)
@@ -120,8 +116,8 @@ void NavigationUi::drawGraphs(const Level &level)
     std::sort(nodeIds.begin(), nodeIds.end());
 
     std::string shownNode = "all";
-    if (graph && selectedNodeId)
-        shownNode = std::to_string(*selectedNodeId);
+    if (graph && shown.nodeId)
+        shownNode = std::to_string(*shown.nodeId);
 
     ImGui::BeginDisabled(!graph);
     ImGui::TextUnformatted("node");
@@ -129,31 +125,18 @@ void NavigationUi::drawGraphs(const Level &level)
     ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::BeginCombo("##node", shownNode.c_str()))
     {
-        if (ImGui::Selectable("all", !selectedNodeId))
-        {
-            selectedNodeId.reset();
-            shownEdge.reset();
-        }
+        if (ImGui::Selectable("all", !shown.nodeId))
+            shown = showingNode(shown, std::nullopt);
 
         for (int nodeId : nodeIds)
-            if (ImGui::Selectable(std::to_string(nodeId).c_str(), selectedNodeId == nodeId))
-            {
-                selectedNodeId = nodeId;
-                shownEdge.reset();
-            }
+            if (ImGui::Selectable(std::to_string(nodeId).c_str(), shown.nodeId == nodeId))
+                shown = showingNode(shown, nodeId);
 
         ImGui::EndCombo();
     }
     ImGui::EndDisabled();
 
-    drawEdgeChooser(graph, selectedNodeId);
-}
-
-void NavigationUi::forgetSelection()
-{
-    selectedGraphIndex.reset();
-    selectedNodeId.reset();
-    shownEdge.reset();
+    drawEdgeChooser(graph);
 }
 
 void NavigationUi::drawOverlay(
@@ -162,27 +145,27 @@ void NavigationUi::drawOverlay(
     const Level &level) const
 {
     const std::vector<NamedNavigationGraph> &graphs = level.getGraphs();
-    if (!selectedGraphIndex || *selectedGraphIndex >= graphs.size())
+    if (!shown.graphIndex || *shown.graphIndex >= graphs.size())
         return;
 
     drawNavigationGraph(
         imGuiManager,
         camera,
-        graphs[*selectedGraphIndex].graph,
-        selectedNodeId,
-        shownEdge,
+        graphs[*shown.graphIndex].graph,
+        shown.nodeId,
+        shown.edge,
         drawTheFlightItself ? JumpsDrawnAs::TheFlightItself : JumpsDrawnAs::SmoothArc);
 }
 
-void NavigationUi::drawEdgeChooser(const NavigationGraph *graph, std::optional<int> nodeId)
+void NavigationUi::drawEdgeChooser(const NavigationGraph *graph)
 {
     std::vector<std::pair<NavigationEdge, bool>> edges;
-    if (graph && nodeId)
-        edges = edgesOf(*graph, *nodeId);
+    if (graph && shown.nodeId)
+        edges = edgesOf(*graph, *shown.nodeId);
 
     std::string chosen = "all";
     for (const auto &[edge, leaving] : edges)
-        if (shownEdge == std::pair<int, int>{edge.fromId, edge.toId})
+        if (shown.edge == std::pair<int, int>{edge.fromId, edge.toId})
             chosen = labelOf(edge);
 
     ImGui::BeginDisabled(edges.empty());
@@ -191,14 +174,14 @@ void NavigationUi::drawEdgeChooser(const NavigationGraph *graph, std::optional<i
     ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::BeginCombo("##edge", chosen.c_str()))
     {
-        if (ImGui::Selectable("all", !shownEdge))
-            shownEdge.reset();
+        if (ImGui::Selectable("all", !shown.edge))
+            shown = showingEdge(shown, std::nullopt);
 
         for (const auto &[edge, leaving] : edges)
         {
             std::pair<int, int> ends{edge.fromId, edge.toId};
-            if (ImGui::Selectable(labelOf(edge).c_str(), shownEdge == ends))
-                shownEdge = ends;
+            if (ImGui::Selectable(labelOf(edge).c_str(), shown.edge == ends))
+                shown = showingEdge(shown, ends);
         }
 
         ImGui::EndCombo();

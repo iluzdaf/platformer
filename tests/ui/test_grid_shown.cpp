@@ -40,3 +40,20 @@ TEST_CASE("Staying disarmed leaves the grid alone", "[GridShown]")
     REQUIRE(whileArmed(GridShown{false, std::nullopt}, false) == GridShown{false, std::nullopt});
     REQUIRE(whileArmed(GridShown{true, std::nullopt}, false) == GridShown{true, std::nullopt});
 }
+
+TEST_CASE("A grid put away by hand stays away after arming ends", "[GridShown]")
+{
+    GridShown grid = whileArmed(GridShown{true, std::nullopt}, true);
+    grid.showing = false;
+
+    REQUIRE(whileArmed(grid, false) == GridShown{false, std::nullopt});
+}
+
+TEST_CASE("A grid put away and brought back by hand is left showing", "[GridShown]")
+{
+    GridShown grid = whileArmed(GridShown{true, std::nullopt}, true);
+    grid.showing = false;
+    grid.showing = true;
+
+    REQUIRE(whileArmed(grid, false) == GridShown{true, std::nullopt});
+}

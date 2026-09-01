@@ -16,7 +16,7 @@ inline GridShown whileArmed(GridShown grid, bool armed)
         return GridShown{true, grid.showing};
 
     if (!armed && grid.beforeArming)
-        return GridShown{*grid.beforeArming, std::nullopt};
+        return GridShown{grid.showing && *grid.beforeArming, std::nullopt};
 
     return grid;
 }

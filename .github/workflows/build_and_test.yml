@@ -240,6 +240,7 @@ jobs:
           cmake -G Ninja -B build/coverage \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCOVERAGE=ON \
+            -DDEAD_CODE=ON \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DGLFW_BUILD_WAYLAND=OFF \
@@ -249,8 +250,6 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
           cmake --build build/coverage
 
-      # Reports, never gates. A number that can fail a pull request invites
-      # tests written to move it, and the point is to see where the gaps are.
       - name: Say what the tests never run
         env:
           DISPLAY: ":99"
@@ -263,6 +262,17 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           python3 tools/coverage.py build/coverage
+
+      - name: Say what nothing calls
+        run: |
+          {
+            echo '### Functions no binary keeps'
+            echo
+            echo '```'
+            python3 tools/dead_code.py build/coverage
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/dead_code.py build/coverage
 
   checks:
     runs-on: ubuntu-latest

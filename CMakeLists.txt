@@ -34,11 +34,18 @@ if(SKIP_OPENGL_TESTS)
     add_compile_definitions(SKIP_OPENGL_TESTS)
 endif()
 
-# Coverage rides on the library every binary is built from, so instrumenting it
-# once covers the tests that run the code and the game that ships it.
 if(COVERAGE AND NOT MSVC)
     add_compile_options(-fprofile-instr-generate -fcoverage-mapping)
     add_link_options(-fprofile-instr-generate)
+endif()
+
+if(DEAD_CODE AND NOT MSVC)
+    add_compile_options(-ffunction-sections -fdata-sections)
+    if(APPLE)
+        add_link_options(-Wl,-dead_strip)
+    else()
+        add_link_options(-Wl,--gc-sections)
+    endif()
 endif()
 
 add_library(glad STATIC external/glad/src/glad.c)

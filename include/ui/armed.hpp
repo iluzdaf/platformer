@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <string>
 #include <variant>
 
 inline constexpr unsigned int ArmedColour = 0xFF00FFFF;
@@ -28,6 +29,11 @@ struct PickTile
 
     bool operator==(const PickTile &) const = default;
 };
+
+inline std::string pickId(PickTile pick)
+{
+    return std::to_string(static_cast<int>(pick.what)) + "-" + std::to_string(pick.npcIndex);
+}
 
 using Armed = std::variant<PaintTile, PickTile>;
 

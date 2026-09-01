@@ -121,32 +121,43 @@ namespace
             armed = isArmed ? std::nullopt : std::optional<Armed>(pick);
     }
 
+    std::string asTile(glm::ivec2 tile)
+    {
+        return std::to_string(tile.x) + "," + std::to_string(tile.y);
+    }
+
+    void drawTileArmButton(const std::string &shown, PickTile pick, std::optional<Armed> &armed)
+    {
+        drawArmButton((shown + "##" + pickId(pick)).c_str(), pick, armed);
+    }
+
     void drawPlayerEditing(glm::ivec2 startTile, std::optional<Armed> &armed)
     {
-        ImGui::Text("spawns at %d,%d", startTile.x, startTile.y);
+        ImGui::TextUnformatted("spawns at");
         ImGui::SameLine();
-        drawArmButton("move", PickTile{PickTile::For::PlayerStart, 0}, armed);
+        drawTileArmButton(asTile(startTile), PickTile{PickTile::For::PlayerStart, 0}, armed);
     }
 
     bool drawNpcEditing(const NpcSpawnData &spawn, size_t index, std::optional<Armed> &armed)
     {
-        ImGui::Text("spawns at %d,%d", spawn.tilePosition.x, spawn.tilePosition.y);
+        ImGui::TextUnformatted("spawns at");
         ImGui::SameLine();
-        drawArmButton("move", PickTile{PickTile::For::NpcSpawn, index}, armed);
+        drawTileArmButton(
+            asTile(spawn.tilePosition), PickTile{PickTile::For::NpcSpawn, index}, armed);
 
-        if (spawn.patrol)
-            ImGui::Text(
-                "beat %d,%d to %d,%d",
-                spawn.patrol->from.x,
-                spawn.patrol->from.y,
-                spawn.patrol->to.x,
-                spawn.patrol->to.y);
-        else
-            ImGui::TextDisabled("no beat");
-
-        drawArmButton("from", PickTile{PickTile::For::PatrolFrom, index}, armed);
+        ImGui::TextUnformatted("beat");
         ImGui::SameLine();
-        drawArmButton("to", PickTile{PickTile::For::PatrolTo, index}, armed);
+        drawTileArmButton(
+            spawn.patrol ? asTile(spawn.patrol->from) : "from",
+            PickTile{PickTile::For::PatrolFrom, index},
+            armed);
+        ImGui::SameLine();
+        ImGui::TextUnformatted("to");
+        ImGui::SameLine();
+        drawTileArmButton(
+            spawn.patrol ? asTile(spawn.patrol->to) : "to",
+            PickTile{PickTile::For::PatrolTo, index},
+            armed);
         ImGui::SameLine();
 
         ImGui::BeginDisabled(!spawn.patrol);

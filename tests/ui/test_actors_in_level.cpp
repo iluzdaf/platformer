@@ -250,3 +250,31 @@ TEST_CASE("Every npc that cannot get back is named", "[ActorsInLevel]")
     REQUIRE(fault);
     REQUIRE(*fault == "villager 2, villager 3 cannot get back from there");
 }
+
+TEST_CASE("A beat whose ends share a tile still draws both", "[ActorsInLevel]")
+{
+    HeadlessImGui gui;
+    NpcSpawnData bothAtOnce = villagerAt(glm::ivec2(2, Standing));
+    bothAtOnce.patrol = PatrolData{glm::ivec2(4, Standing), glm::ivec2(4, Standing)};
+
+    Level level = levelPlacing({bothAtOnce});
+    std::vector<std::unique_ptr<Npc>> npcs = liveNpcsFor(level);
+    std::optional<Armed> armed = PickTile{PickTile::For::PatrolTo, 0};
+
+    askedFor(gui, level, npcs, ActorShown{ActorShown::What::Npc, 0}, armed);
+
+    REQUIRE(armed == std::optional<Armed>(PickTile{PickTile::For::PatrolTo, 0}));
+}
+
+TEST_CASE("An npc with no beat still offers both ends to place", "[ActorsInLevel]")
+{
+    HeadlessImGui gui;
+    Level level = levelPlacing({villagerAt(glm::ivec2(2, Standing))});
+    std::vector<std::unique_ptr<Npc>> npcs = liveNpcsFor(level);
+    std::optional<Armed> armed = PickTile{PickTile::For::PatrolFrom, 0};
+
+    ActorAsked asked = askedFor(gui, level, npcs, ActorShown{ActorShown::What::Npc, 0}, armed);
+
+    REQUIRE(armed == std::optional<Armed>(PickTile{PickTile::For::PatrolFrom, 0}));
+    REQUIRE_FALSE(asked.clearShownBeat);
+}

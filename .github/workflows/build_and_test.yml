@@ -176,6 +176,94 @@ jobs:
           cd build/release
           ./tests
 
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          submodules: false
+
+      - name: Name the submodules by what they are pinned to
+        run: echo "EXTERNAL=$(git rev-parse HEAD:external)" >> "$GITHUB_ENV"
+
+      - name: Restore submodules
+        id: submodules
+        uses: actions/cache@v6
+        with:
+          path: |
+            external
+            .git/modules
+          key: submodules-${{ runner.os }}-${{ env.EXTERNAL }}
+
+      - name: Fetch submodules
+        if: steps.submodules.outputs.cache-hit != 'true'
+        run: git submodule update --init --recursive
+
+      - name: Set up CMake
+        uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+
+      - name: Restore compiler cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ccache-coverage-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-coverage-${{ runner.os }}-
+
+      - name: Set up for Linux
+        run: |
+          LLVM=$(cat .llvm-version)
+          echo "LLVM=$LLVM" >> "$GITHUB_ENV"
+          sudo apt-get update
+          sudo apt-get install -y wget lsb-release gnupg
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh "$LLVM"
+          sudo apt-get install -y \
+            clang-$LLVM \
+            libc++-$LLVM-dev \
+            libc++abi-$LLVM-dev \
+            libgl1-mesa-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev \
+            ccache
+          Xvfb :99 -screen 0 1024x768x24 &
+
+      - name: Build instrumented
+        run: |
+          cmake -G Ninja -B build/coverage \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCOVERAGE=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DGLFW_BUILD_WAYLAND=OFF \
+            -DCMAKE_C_COMPILER=/usr/bin/clang-${LLVM} \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${LLVM} \
+            -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
+            -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
+          cmake --build build/coverage
+
+      # Reports, never gates. A number that can fail a pull request invites
+      # tests written to move it, and the point is to see where the gaps are.
+      - name: Say what the tests never run
+        env:
+          DISPLAY: ":99"
+        run: |
+          {
+            echo '### Coverage'
+            echo
+            echo '```'
+            python3 tools/coverage.py build/coverage --files
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/coverage.py build/coverage
+
   checks:
     runs-on: ubuntu-latest
 

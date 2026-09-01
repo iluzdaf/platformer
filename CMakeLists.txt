@@ -34,6 +34,13 @@ if(SKIP_OPENGL_TESTS)
     add_compile_definitions(SKIP_OPENGL_TESTS)
 endif()
 
+# Coverage rides on the library every binary is built from, so instrumenting it
+# once covers the tests that run the code and the game that ships it.
+if(COVERAGE AND NOT MSVC)
+    add_compile_options(-fprofile-instr-generate -fcoverage-mapping)
+    add_link_options(-fprofile-instr-generate)
+endif()
+
 add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 

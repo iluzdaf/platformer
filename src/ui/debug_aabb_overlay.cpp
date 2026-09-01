@@ -6,6 +6,7 @@
 #include "game/level.hpp"
 #include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
+#include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
 #include <cstddef>
 #include <string>
@@ -115,7 +116,7 @@ void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera,
         tileMap.tilesOverlapping(camera.getTopLeftPosition(), camera.getWindowSize());
     for (auto tilePosition : tilePositions)
     {
-        auto tile = tileMap.getTileAtTilePosition(tilePosition);
+        const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
         if (tile.isSolid() || tile.isEmpty())
         {
             continue;

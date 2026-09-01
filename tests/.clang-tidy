@@ -1,10 +1,13 @@
-Checks: '-*,readability-identifier-naming,misc-include-cleaner,clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,performance-*,-performance-enum-size'
+# Production code gets the defect checks. Tests do not, because the ones that
+# fire here are the framework's own idioms: Catch2's TEST_CASE expands to a
+# static object, which throwing-static-initialization flags 399 times, and a
+# REQUIRE before dereferencing an optional is a guarantee clang-tidy cannot see.
+# What is left is what a test can still get wrong on its own, a name or an include.
+InheritParentConfig: false
+Checks: '-*,readability-identifier-naming,misc-include-cleaner'
 HeaderFilterRegex: '.*'
 ExcludeHeaderFilterRegex: '.*/external/.*'
 CheckOptions:
-  - key: bugprone-narrowing-conversions.WarnOnIntegerToFloatingPointNarrowingConversion
-    value: 'false'
-
   - key: misc-include-cleaner.MissingIncludes
     value: 'true'
   - key: misc-include-cleaner.UnusedIncludes

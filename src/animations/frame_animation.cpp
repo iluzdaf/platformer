@@ -1,10 +1,10 @@
 #include <cassert>
-#include <utility>
+#include <cstddef>
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
 
 FrameAnimation::FrameAnimation(const FrameAnimationData &frameAnimationData)
-    : frames(std::move(frameAnimationData.frames)), frameDuration(frameAnimationData.frameDuration)
+    : frames(frameAnimationData.frames), frameDuration(frameAnimationData.frameDuration)
 {
     assert(frameDuration > 0);
 }
@@ -18,7 +18,8 @@ void FrameAnimation::update(float deltaTime)
     while (timer >= frameDuration)
     {
         timer -= frameDuration;
-        currentFrame = (currentFrame + 1) % frames.size();
+        currentFrame =
+            static_cast<int>((static_cast<std::size_t>(currentFrame) + 1) % frames.size());
     }
 }
 

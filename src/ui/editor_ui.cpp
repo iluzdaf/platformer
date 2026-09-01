@@ -2,9 +2,8 @@
 #include <cfloat>
 #include <cstddef>
 #include <string>
-#include <string_view>
-#include <utility>
 #include <imgui.h>
+#include <string_view>
 #include "ui/editor_ui.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
@@ -57,6 +56,7 @@ void EditorUi::draw(
     }
 
     ImGui::SetNextItemWidth(-FLT_MIN);
+    // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage) the names are string literals
     if (ImGui::BeginCombo("##section", nameOf(section).data()))
     {
         for (std::size_t at = 0; at < EditorSections.size(); ++at)
@@ -65,6 +65,7 @@ void EditorUi::draw(
             if (unsaved[at])
                 ImGui::PushStyleColor(ImGuiCol_Text, UnsavedColour);
 
+            // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage) a string literal again
             if (ImGui::Selectable(name.data(), listed == section))
                 section = listed;
 

@@ -13,6 +13,16 @@ struct TileGridOnScreen
     glm::ivec2 topLeftTilePosition;
 };
 
+inline float lineAcross(const TileGridOnScreen &grid, int column)
+{
+    return grid.firstLine.x + static_cast<float>(column) * grid.spacing.x;
+}
+
+inline float lineDown(const TileGridOnScreen &grid, int row)
+{
+    return grid.firstLine.y + static_cast<float>(row) * grid.spacing.y;
+}
+
 TileGridOnScreen tileGridOnScreen(
     glm::vec2 cameraTopLeft,
     float zoom,

@@ -162,15 +162,18 @@ void RouteWalker::takeRouteTo(
     targetNodeId = legsLeft.front();
 }
 
-glm::vec2 RouteWalker::targetPosition(const ActorBehaviorContext &context) const
+glm::vec2 RouteWalker::targetPosition(
+    const ActorBehaviorContext &context,
+    int setOffAt,
+    int headingFor) const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
-    glm::vec2 atTheNode = navigationGraph.getNode(*targetNodeId).position;
+    glm::vec2 atTheNode = navigationGraph.getNode(headingFor).position;
 
     if (!stopShortAt)
         return atTheNode;
 
-    glm::vec2 setOffFrom = navigationGraph.getNode(*currentNodeId).position;
+    glm::vec2 setOffFrom = navigationGraph.getNode(setOffAt).position;
     glm::vec2 nearCorner = glm::min(setOffFrom, atTheNode) - glm::vec2(SurfaceTolerance);
     glm::vec2 farCorner = glm::max(setOffFrom, atTheNode) + glm::vec2(SurfaceTolerance);
 
@@ -188,7 +191,7 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
     if (!currentNodeId || !targetNodeId)
         return inputIntentions;
 
-    glm::vec2 target = targetPosition(context);
+    glm::vec2 target = targetPosition(context, *currentNodeId, *targetNodeId);
     inputIntentions.direction.x = directionTowards(context.worldPosition.x, target.x);
 
     const NavigationEdge *leg = edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
@@ -248,7 +251,7 @@ bool RouteWalker::hasArrived(const ActorBehaviorContext &context) const
         return false;
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
-    glm::vec2 target = targetPosition(context);
+    glm::vec2 target = targetPosition(context, *currentNodeId, *targetNodeId);
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
 
     const NavigationEdge *leg = edgeBetween(navigationGraph, *currentNodeId, *targetNodeId);

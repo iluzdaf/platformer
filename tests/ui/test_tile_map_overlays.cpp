@@ -8,11 +8,6 @@ namespace
 {
     constexpr int TileSize = 16;
 
-    float lineAt(const TileGridOnScreen &grid, int step)
-    {
-        return grid.firstLine.x + static_cast<float>(step) * grid.spacing.x;
-    }
-
     float whereTileBoundaryLands(float worldX, glm::vec2 cameraTopLeft, float zoom, float uiScale)
     {
         return ((worldX - cameraTopLeft.x) * zoom) / uiScale;
@@ -32,7 +27,7 @@ TEST_CASE("Every grid line lands on a tile boundary", "[TileMapOverlays]")
     {
         float boundary = firstBoundary + static_cast<float>(step * TileSize);
         REQUIRE_THAT(
-            lineAt(grid, step),
+            lineAcross(grid, step),
             Catch::Matchers::WithinAbs(
                 whereTileBoundaryLands(boundary, cameraTopLeft, zoom, uiScale.x), 0.001f));
     }
@@ -86,4 +81,24 @@ TEST_CASE("Each axis of the grid is scaled by its own axis", "[TileMapOverlays]"
 
     REQUIRE(grid.spacing.x == TileSize / 2.0f);
     REQUIRE(grid.spacing.y == TileSize / 4.0f);
+}
+
+TEST_CASE("A grid line does not drift the further across it is", "[TileMapOverlays]")
+{
+    glm::vec2 cameraTopLeft(37.0f, 91.0f);
+    float zoom = 3.0f;
+    glm::vec2 uiScale(2.0f);
+
+    TileGridOnScreen grid = tileGridOnScreen(cameraTopLeft, zoom, uiScale, TileSize);
+
+    float drifting = grid.firstLine.x;
+    for (int column = 0; column < 500; ++column)
+    {
+        REQUIRE_THAT(lineAcross(grid, column), Catch::Matchers::WithinAbs(drifting, 0.5f));
+        drifting += grid.spacing.x;
+    }
+
+    REQUIRE_THAT(
+        lineAcross(grid, 5000),
+        Catch::Matchers::WithinAbs(grid.firstLine.x + 5000.0f * grid.spacing.x, 0.01f));
 }

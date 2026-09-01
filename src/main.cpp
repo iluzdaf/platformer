@@ -12,17 +12,17 @@ int main()
     }
     catch (const sol::error &e)
     {
-        std::cerr << "Lua error: " << e.what() << std::endl;
+        std::cerr << "Lua error: " << e.what() << '\n';
         return -1;
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        std::cerr << e.what() << '\n';
         return -1;
     }
     catch (...)
     {
-        std::cerr << "Unknown exception caught" << std::endl;
+        std::cerr << "Unknown exception caught" << '\n';
         return -1;
     }
 

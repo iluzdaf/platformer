@@ -30,12 +30,11 @@ void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
 
         if (tile.isPickup())
         {
-            auto replaceIndexOptional = tile.getPickupReplaceIndex();
-            assert(replaceIndexOptional.has_value());
-            tileMap.setTileIndex(tilePosition, replaceIndexOptional.value());
-            auto pickupScoreDeltaOptional = tile.getPickupScoreDelta();
-            player.onPickup(
-                pickupScoreDeltaOptional.has_value() ? pickupScoreDeltaOptional.value() : 0);
+            std::optional<int> replaceIndex = tile.getPickupReplaceIndex();
+            if (replaceIndex)
+                tileMap.setTileIndex(tilePosition, *replaceIndex);
+
+            player.onPickup(tile.getPickupScoreDelta().value_or(0));
         }
 
         if (tile.isPortal())

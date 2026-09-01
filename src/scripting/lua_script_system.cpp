@@ -33,7 +33,7 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
 
     lua.set_function(
         "startCoroutine",
-        [this](sol::function func)
+        [this](const sol::function &func)
         {
             sol::thread thread = sol::thread::create(lua.lua_state());
             sol::state_view threadState = thread.state();

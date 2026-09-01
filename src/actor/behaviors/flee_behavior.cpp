@@ -16,17 +16,19 @@ void FleeBehavior::reset()
     walker.reset();
 }
 
-std::optional<int> FleeBehavior::furthestAlong(const ActorBehaviorContext &context, float away)
-    const
+std::optional<int> FleeBehavior::furthestAlong(
+    const ActorBehaviorContext &context,
+    int from,
+    glm::vec2 threat,
+    float away) const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
 
     std::optional<int> furthest;
     float furthestDistance = 0.0f;
-    for (int id : roundTripFrom(navigationGraph, *walker.getCurrentNodeId()))
+    for (int id : roundTripFrom(navigationGraph, from))
     {
-        float distance =
-            (navigationGraph.getNode(id).position.x - context.threatPosition->x) * away;
+        float distance = (navigationGraph.getNode(id).position.x - threat.x) * away;
         if (furthest && distance <= furthestDistance)
             continue;
 
@@ -44,12 +46,12 @@ std::optional<int> FleeBehavior::furthestFrom(const ActorBehaviorContext &contex
         return std::nullopt;
 
     float away = context.worldPosition.x < context.threatPosition->x ? -1.0f : 1.0f;
-    std::optional<int> refuge = furthestAlong(context, away);
+    std::optional<int> refuge = furthestAlong(context, *from, *context.threatPosition, away);
 
     bool cornered = refuge && *refuge == *from;
     if (cornered &&
         glm::distance(context.worldPosition, *context.threatPosition) <= data.breakPastWithin)
-        return furthestAlong(context, -away);
+        return furthestAlong(context, *from, *context.threatPosition, -away);
 
     return refuge;
 }

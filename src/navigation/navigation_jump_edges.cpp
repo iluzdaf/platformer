@@ -213,6 +213,7 @@ namespace navigation
                 }
 
         std::vector<ChosenJump> chosen;
+        chosen.reserve(easiest.size());
         for (const auto &[platform, candidate] : easiest)
             chosen.push_back({platform.first, candidate.path, candidate.holdDuration});
 
@@ -328,8 +329,10 @@ namespace navigation
             std::optional<glm::vec2> aimedAt;
             float overshoot = 0.0f;
 
-            for (float x = ledge.x - reach; x <= ledge.x + reach; x += step)
+            int steps = static_cast<int>(2.0f * reach / step);
+            for (int taken = 0; taken <= steps; ++taken)
             {
+                float x = ledge.x - reach + static_cast<float>(taken) * step;
                 std::optional<glm::vec2> takeOff =
                     standingBelow(tileMap, x, ledge.y, profile, headroom);
                 if (!takeOff)

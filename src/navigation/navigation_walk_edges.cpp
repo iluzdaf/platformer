@@ -21,6 +21,7 @@ namespace navigation
             nodesByRow[static_cast<int>(std::round(node.position.y))].push_back(node);
 
         std::vector<int> rows;
+        rows.reserve(nodesByRow.size());
         for (const auto &[y, nodesInRow] : nodesByRow)
             rows.push_back(y);
         std::sort(rows.begin(), rows.end());

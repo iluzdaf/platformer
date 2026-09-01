@@ -22,7 +22,7 @@ void NavigationGraph::addEdge(int fromId, int toId, EdgeType type)
     addEdge({fromId, toId, type, {}, 0.0f});
 }
 
-void NavigationGraph::addEdge(NavigationEdge edge)
+void NavigationGraph::addEdge(const NavigationEdge &edge)
 {
     if (!nodes.contains(edge.fromId) || !nodes.contains(edge.toId))
         throw std::runtime_error("Cannot add edge: missing node(s)");

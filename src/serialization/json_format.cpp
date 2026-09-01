@@ -115,7 +115,7 @@ std::string withStructureOnLines(const std::string &json)
             expanded.push_back(onLines);
 
             if (onLines)
-                out += "\n" + std::string(4 * depth, ' ');
+                out += "\n" + std::string(static_cast<std::size_t>(4 * depth), ' ');
         }
         else if (character == '}' || character == ']')
         {
@@ -125,7 +125,7 @@ std::string withStructureOnLines(const std::string &json)
 
             --depth;
             if (onLines)
-                out += "\n" + std::string(4 * depth, ' ');
+                out += "\n" + std::string(static_cast<std::size_t>(4 * depth), ' ');
 
             out += character;
         }
@@ -133,7 +133,7 @@ std::string withStructureOnLines(const std::string &json)
         {
             out += character;
             if (!expanded.empty() && expanded.back())
-                out += "\n" + std::string(4 * depth, ' ');
+                out += "\n" + std::string(static_cast<std::size_t>(4 * depth), ' ');
         }
         else
         {

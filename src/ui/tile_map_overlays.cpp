@@ -8,6 +8,8 @@
 
 namespace
 {
+    constexpr unsigned int GridColour = IM_COL32(100, 100, 100, 255);
+
     TileGridOnScreen screenSpaceOf(
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
@@ -42,11 +44,26 @@ void drawTileGrid(const ImGuiManager &imGuiManager, const Camera2D &camera, cons
     ImVec2 uiDimensions = imGuiManager.getUiDimensions();
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
 
-    for (float x = grid.firstLine.x; x < uiDimensions.x; x += grid.spacing.x)
-        drawList->AddLine(ImVec2(x, 0), ImVec2(x, uiDimensions.y), IM_COL32(100, 100, 100, 255));
+    if (grid.spacing.x <= 0.0f || grid.spacing.y <= 0.0f)
+        return;
 
-    for (float y = grid.firstLine.y; y < uiDimensions.y; y += grid.spacing.y)
-        drawList->AddLine(ImVec2(0, y), ImVec2(uiDimensions.x, y), IM_COL32(100, 100, 100, 255));
+    for (int column = 0;; ++column)
+    {
+        float x = lineAcross(grid, column);
+        if (x >= uiDimensions.x)
+            break;
+
+        drawList->AddLine(ImVec2(x, 0), ImVec2(x, uiDimensions.y), GridColour);
+    }
+
+    for (int row = 0;; ++row)
+    {
+        float y = lineDown(grid, row);
+        if (y >= uiDimensions.y)
+            break;
+
+        drawList->AddLine(ImVec2(0, y), ImVec2(uiDimensions.x, y), GridColour);
+    }
 }
 
 void drawTileInfo(const ImGuiManager &imGuiManager, const Camera2D &camera, const TileMap &tileMap)
@@ -54,20 +71,21 @@ void drawTileInfo(const ImGuiManager &imGuiManager, const Camera2D &camera, cons
     TileGridOnScreen grid = screenSpaceOf(imGuiManager, camera, tileMap);
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
 
-    for (float y = grid.firstLine.y, tileY = static_cast<float>(grid.topLeftTilePosition.y);
-         tileY < tileMap.getHeight();
-         y += grid.spacing.y, ++tileY)
+    for (int row = 0; grid.topLeftTilePosition.y + row < tileMap.getHeight(); ++row)
     {
+        int tileY = grid.topLeftTilePosition.y + row;
         if (tileY < 0)
             continue;
 
-        for (float x = grid.firstLine.x, tileX = static_cast<float>(grid.topLeftTilePosition.x);
-             tileX < tileMap.getWidth();
-             x += grid.spacing.x, ++tileX)
+        float y = lineDown(grid, row);
+
+        for (int column = 0; grid.topLeftTilePosition.x + column < tileMap.getWidth(); ++column)
         {
+            int tileX = grid.topLeftTilePosition.x + column;
             if (tileX < 0)
                 continue;
 
+            float x = lineAcross(grid, column);
             int tileIndex = tileMap.tilePositionToTileIndex({tileX, tileY});
             std::string label = std::format("{},{}\n{}", tileX, tileY, tileIndex);
             drawList->AddText(ImVec2(x + 2, y + 2), IM_COL32(255, 255, 255, 200), label.c_str());

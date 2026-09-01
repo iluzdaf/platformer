@@ -52,9 +52,7 @@ void WallJumpAbility::applyMovement(
             float bufferedDirection = wallJumpDirectionBuffer.getBufferedDirectionX();
             bool jumpInputCorrect = desiredDirection * bufferedDirection > 0;
             bool grippableWallNow = state.contacts.grippableWall();
-            if (grippableWallNow && jumpInputCorrect)
-                startWallJump(state, desiredDirection);
-            else if (!grippableWallNow && wallJumpCoyote.isCoyoteAvailable() && jumpInputCorrect)
+            if (jumpInputCorrect && (grippableWallNow || wallJumpCoyote.isCoyoteAvailable()))
                 startWallJump(state, desiredDirection);
         }
     }

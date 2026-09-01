@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 class NavigationGraph;
+enum class EdgeType;
 
 std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, int toId);
 
@@ -13,6 +14,8 @@ std::vector<int> roundTripFrom(const NavigationGraph &navigationGraph, int fromI
 std::vector<int> walkableFrom(const NavigationGraph &navigationGraph, int fromId);
 
 std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::vec2 position);
+
+bool travelledInContact(EdgeType type);
 
 struct PlaceOnThePath
 {

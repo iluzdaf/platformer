@@ -9,6 +9,7 @@ public:
     {
         context = ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
+        io.IniFilename = nullptr;
         io.DisplaySize = ImVec2(800.0f, 600.0f);
         io.DeltaTime = 1.0f / 60.0f;
 

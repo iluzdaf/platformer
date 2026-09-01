@@ -38,6 +38,28 @@ namespace
             levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), shippedNpcData());
     }
 
+    constexpr int IslandRow = 1;
+    constexpr int IslandFirstTile = 7;
+
+    Level levelWithAnIsland(const std::vector<NpcSpawnData> &npcs)
+    {
+        LevelData levelData;
+        levelData.tileMapData.size = 16;
+        levelData.tileMapData.indices =
+            std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
+        for (int x = 0; x < MapTiles; ++x)
+            (*levelData.tileMapData.indices)[FloorRow][x] = 1;
+
+        for (int x = IslandFirstTile; x < MapTiles; ++x)
+            (*levelData.tileMapData.indices)[IslandRow][x] = 1;
+
+        levelData.playerStartTilePosition = glm::ivec2(1, Standing);
+        levelData.npcs = npcs;
+
+        return Level(
+            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), shippedNpcData());
+    }
+
     NpcSpawnData villagerAt(glm::ivec2 tilePosition)
     {
         NpcSpawnData spawn;
@@ -181,4 +203,50 @@ TEST_CASE("A pick already armed survives being drawn", "[ActorsInLevel]")
     askedFor(gui, level, npcs, ActorShown{ActorShown::What::Npc, 0}, armed);
 
     REQUIRE(armed == std::optional<Armed>(PickTile{PickTile::For::PatrolFrom, 0}));
+}
+
+TEST_CASE("A level whose beats can all be walked stops no save", "[ActorsInLevel]")
+{
+    NpcSpawnData walkable = villagerAt(glm::ivec2(2, Standing));
+    walkable.patrol = PatrolData{glm::ivec2(1, Standing), glm::ivec2(8, Standing)};
+
+    REQUIRE_FALSE(npcsThatCannotGetBack(levelPlacing({walkable})));
+    REQUIRE_FALSE(npcsThatCannotGetBack(levelPlacing({})));
+}
+
+TEST_CASE("An npc with no beat at all stops no save", "[ActorsInLevel]")
+{
+    REQUIRE_FALSE(npcsThatCannotGetBack(levelPlacing({villagerAt(glm::ivec2(2, Standing))})));
+}
+
+TEST_CASE("A beat that cannot be walked names the npc it belongs to", "[ActorsInLevel]")
+{
+    NpcSpawnData strandedHalfway = villagerAt(glm::ivec2(2, Standing));
+    strandedHalfway.patrol =
+        PatrolData{glm::ivec2(1, Standing), glm::ivec2(IslandFirstTile + 1, IslandRow - 1)};
+
+    std::optional<std::string> fault = npcsThatCannotGetBack(levelWithAnIsland({strandedHalfway}));
+
+    REQUIRE(fault);
+    REQUIRE(*fault == "villager 1 cannot get back from there");
+}
+
+TEST_CASE("Every npc that cannot get back is named", "[ActorsInLevel]")
+{
+    constexpr glm::ivec2 OnTheIsland{IslandFirstTile + 1, IslandRow - 1};
+
+    NpcSpawnData walkable = villagerAt(glm::ivec2(2, Standing));
+    walkable.patrol = PatrolData{glm::ivec2(1, Standing), glm::ivec2(5, Standing)};
+
+    NpcSpawnData stranded = villagerAt(glm::ivec2(3, Standing));
+    stranded.patrol = PatrolData{glm::ivec2(1, Standing), OnTheIsland};
+
+    NpcSpawnData alsoStranded = villagerAt(glm::ivec2(4, Standing));
+    alsoStranded.patrol = PatrolData{glm::ivec2(2, Standing), OnTheIsland};
+
+    std::optional<std::string> fault =
+        npcsThatCannotGetBack(levelWithAnIsland({walkable, stranded, alsoStranded}));
+
+    REQUIRE(fault);
+    REQUIRE(*fault == "villager 2, villager 3 cannot get back from there");
 }

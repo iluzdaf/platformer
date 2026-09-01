@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <cstddef>
 #include <memory>
 #include <optional>
@@ -51,7 +52,17 @@ private:
     ActorShown showingActor;
     bool drawGrid = false, drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
 
+    std::string asItWouldBeSaved(const Level &level) const;
     void drawLevel(Level &level, EditorCommands &commands);
+    void drawActors(
+        Level &level,
+        const std::vector<std::unique_ptr<Npc>> &npcs,
+        const ActorMotionState &playerMotionState,
+        const glm::vec2 &playerFeet,
+        const ActorState &playerState,
+        const GameData &gameData,
+        std::optional<Armed> &armed,
+        EditorCommands &commands);
     void drawOverlayToggles();
     void drawTiles(
         Level &level,

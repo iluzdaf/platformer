@@ -35,12 +35,8 @@ std::optional<PatrolBehavior::BeatEnd> PatrolBehavior::endOfTheBeat(
         if (!place)
             return std::nullopt;
 
-        glm::vec2 oneEnd = navigationGraph.getNode(place->fromId).position;
-        glm::vec2 theOther = navigationGraph.getNode(place->toId).position;
-        bool setOffTowardsTheFirst = glm::distance(context.worldPosition, oneEnd) >
-                                     glm::distance(context.worldPosition, theOther);
-
-        return BeatEnd{place->position, setOffTowardsTheFirst ? place->fromId : place->toId};
+        return BeatEnd{
+            place->position, endOfThePathBeyond(navigationGraph, *place, context.worldPosition)};
     }
 
     std::optional<int> from = walker.getCurrentNodeId();

@@ -6,6 +6,11 @@
 #include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "player/player.hpp"
+#include "npc/npc.hpp"
+#include "npc/npc_spawn_data.hpp"
+#include "physics/physics_body.hpp"
+#include "physics/aabb.hpp"
+#include "tile_map/tile_map.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "test_helpers/test_player_utils.hpp"
 
@@ -108,4 +113,53 @@ TEST_CASE("The player acts on the intentions the world was given", "[World]")
     }
 
     REQUIRE(world.getPlayer().getPosition().x > startX);
+}
+
+TEST_CASE("An npc added to the level joins the world when it is rebuilt", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    world.loadLevel("levels/level6.json");
+
+    std::size_t before = world.getNpcs().size();
+    world.getLevel().addNpc(NpcSpawnData{"villager", world.getLevel().getPlayerStartTile(), {}});
+
+    REQUIRE(world.getNpcs().size() == before);
+
+    world.rebuildNpcs();
+
+    REQUIRE(world.getNpcs().size() == before + 1);
+    REQUIRE(world.getActors().size() == world.getNpcs().size() + 1);
+}
+
+TEST_CASE("An npc removed from the level leaves the world when it is rebuilt", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    world.loadLevel("levels/level6.json");
+
+    std::size_t before = world.getNpcs().size();
+    world.getLevel().removeNpc(0);
+    world.rebuildNpcs();
+
+    REQUIRE(world.getNpcs().size() == before - 1);
+}
+
+TEST_CASE("A beat edited in the level reaches the npc when it is rebuilt", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    world.loadLevel("levels/level6.json");
+
+    glm::ivec2 spawnTile = world.getLevel().getNpcs()[1].tilePosition;
+    world.getLevel().setNpcSpawnTile(1, glm::ivec2(spawnTile.x - 1, spawnTile.y));
+    world.rebuildNpcs();
+
+    glm::vec2 feet = world.getNpcs()[1]->getPhysicsBody().getAABB().bottomCenter();
+
+    REQUIRE(
+        feet == world.getLevel().getTileMap().feetOnTile(glm::ivec2(spawnTile.x - 1, spawnTile.y)));
 }

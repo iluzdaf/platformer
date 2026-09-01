@@ -49,7 +49,6 @@ public:
     void setNpcPatrol(std::size_t index, PatrolData patrol);
     void clearNpcPatrol(std::size_t index);
     std::optional<PatrolData> runBeneathNpc(std::size_t index) const;
-    std::optional<glm::ivec2> beatEndAt(const NpcSpawnData &spawn, glm::ivec2 tilePosition) const;
     const std::string &getPath() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
     void setNextLevel(const std::string &levelPath);

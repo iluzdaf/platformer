@@ -39,7 +39,8 @@ public:
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
         Level &level,
-        std::optional<Armed> &armed);
+        std::optional<Armed> &armed,
+        EditorCommands &commands);
 
     bool hasUnsavedChanges(const Level &level) const;
     void valuesReplaced();

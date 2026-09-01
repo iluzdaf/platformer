@@ -201,9 +201,15 @@ void drawSpawnOf(
     if (fromId == toId || !route.empty())
     {
         std::vector<glm::vec2> corners{setsOffFrom};
-        for (std::size_t step = 1; step + 1 < route.size(); ++step)
-            corners.push_back(graph.getNode(route[step]).position);
-        corners.push_back(turnsRoundAt);
+        for (int id : route)
+        {
+            glm::vec2 corner = graph.getNode(id).position;
+            if (corner != corners.back())
+                corners.push_back(corner);
+        }
+
+        if (turnsRoundAt != corners.back())
+            corners.push_back(turnsRoundAt);
 
         for (std::size_t step = 1; step < corners.size(); ++step)
             drawList->AddLine(onScreen(corners[step - 1]), onScreen(corners[step]), SpawnColor);

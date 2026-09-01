@@ -129,14 +129,19 @@ void LevelUi::draw(
                 level.setNpcPatrol(placed, *run);
 
             showingActor = ActorShown{ActorShown::What::Npc, placed};
+            commands.onNpcsChanged();
         }
         else if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
         {
             level.removeNpc(showingActor.npcIndex);
             showingActor = ActorShown{};
+            commands.onNpcsChanged();
         }
         else if (asked.clearShownBeat && showingActor.what == ActorShown::What::Npc)
+        {
             level.clearNpcPatrol(showingActor.npcIndex);
+            commands.onNpcsChanged();
+        }
         else
             showingActor = asked.show;
 
@@ -246,7 +251,8 @@ void LevelUi::update(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     Level &level,
-    std::optional<Armed> &armed)
+    std::optional<Armed> &armed,
+    EditorCommands &commands)
 {
     if (!armed || imGuiManager.getIO().WantCaptureMouse)
         return;
@@ -290,6 +296,7 @@ void LevelUi::update(
 
     case PickTile::For::NpcSpawn:
         level.setNpcSpawnTile(picking.npcIndex, tilePosition);
+        commands.onNpcsChanged();
         break;
 
     case PickTile::For::PatrolFrom:
@@ -302,6 +309,7 @@ void LevelUi::update(
             patrol.to = tilePosition;
 
         level.setNpcPatrol(picking.npcIndex, patrol);
+        commands.onNpcsChanged();
         break;
     }
     }

@@ -170,7 +170,8 @@ glm::vec2 RouteWalker::targetPosition(
     const NavigationGraph &navigationGraph = context.navigationGraph;
     glm::vec2 atTheNode = navigationGraph.getNode(headingFor).position;
 
-    if (!stopShortAt)
+    const NavigationEdge *leg = edgeBetween(navigationGraph, setOffAt, headingFor);
+    if (!stopShortAt || (leg && !travelledInContact(leg->type)))
         return atTheNode;
 
     glm::vec2 setOffFrom = navigationGraph.getNode(setOffAt).position;

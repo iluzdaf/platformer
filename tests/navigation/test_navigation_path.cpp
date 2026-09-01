@@ -286,3 +286,57 @@ TEST_CASE("A jump is not somewhere to stop partway", "[NavigationPath]")
     REQUIRE(
         (place->position == glm::vec2(0.0f, 192.0f) || place->position == glm::vec2(96.0f, 96.0f)));
 }
+
+TEST_CASE("A beat is judged by the path it lands on, not the node it is near", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, 192.0f});
+    navigationGraph.addNode(1, {96.0f, 192.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    navigationGraph.addNode(2, {0.0f, 100.0f});
+    navigationGraph.addNode(3, {96.0f, 100.0f});
+    navigationGraph.addEdge(2, 3, EdgeType::Walk);
+    navigationGraph.addEdge(3, 2, EdgeType::Walk);
+
+    navigationGraph.addNode(4, {48.0f, 110.0f});
+    navigationGraph.addEdge({0, 4, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({4, 0, EdgeType::Jump, {}, 0.2f});
+
+    REQUIRE(nearestNodeTo(navigationGraph, {48.0f, 100.0f}) == 4);
+    REQUIRE(placeOnThePath(navigationGraph, {48.0f, 100.0f})->position == glm::vec2(48.0f, 100.0f));
+
+    REQUIRE_FALSE(canPatrolBetween(navigationGraph, {10.0f, 192.0f}, {48.0f, 100.0f}));
+    REQUIRE(canPatrolBetween(navigationGraph, {10.0f, 192.0f}, {48.0f, 110.0f}));
+}
+
+TEST_CASE("The end of a path towards somewhere is the end nearer it", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, {64.0f, 96.0f});
+
+    REQUIRE(place);
+    REQUIRE(endOfThePathTowards(navigationGraph, *place, {300.0f, 96.0f}) == 1);
+    REQUIRE(endOfThePathTowards(navigationGraph, *place, {-300.0f, 96.0f}) == 0);
+}
+
+TEST_CASE("The end of a path that is one node is that node", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, {16.0f, 96.0f});
+
+    REQUIRE(place);
+    REQUIRE(place->fromId == place->toId);
+    REQUIRE(endOfThePathTowards(navigationGraph, *place, {300.0f, 96.0f}) == 0);
+}

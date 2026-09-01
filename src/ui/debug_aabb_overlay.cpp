@@ -191,16 +191,14 @@ void drawSpawnOf(
 
     glm::vec2 setsOffFrom = setsOff->position;
     glm::vec2 turnsRoundAt = turnsRound->position;
-    std::optional<int> fromId = nodeUnderfoot(graph, setsOffFrom);
-    std::optional<int> toId = nodeUnderfoot(graph, turnsRoundAt);
-    if (!fromId || !toId)
-        return;
+    int fromId = endOfThePathTowards(graph, *setsOff, turnsRoundAt);
+    int toId = endOfThePathTowards(graph, *turnsRound, setsOffFrom);
 
     auto onScreen = [&](glm::vec2 position)
     { return imGuiManager.worldToScreen(position, camera.getZoom(), camera.getTopLeftPosition()); };
 
-    std::vector<int> route = findPath(graph, *fromId, *toId);
-    if (*fromId == *toId || !route.empty())
+    std::vector<int> route = findPath(graph, fromId, toId);
+    if (fromId == toId || !route.empty())
     {
         std::vector<glm::vec2> corners{setsOffFrom};
         for (std::size_t step = 1; step + 1 < route.size(); ++step)

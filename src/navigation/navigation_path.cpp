@@ -173,26 +173,6 @@ std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::ve
     return nearest;
 }
 
-std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::vec2 position)
-{
-    std::optional<int> standingOn;
-    float nearestAlong = 0.0f;
-    for (const auto &[id, node] : navigationGraph.getNodes())
-    {
-        if (std::abs(node.position.y - position.y) > SurfaceTolerance)
-            continue;
-
-        float along = std::abs(node.position.x - position.x);
-        if (standingOn && along >= nearestAlong)
-            continue;
-
-        standingOn = id;
-        nearestAlong = along;
-    }
-
-    return standingOn ? standingOn : nearestNodeTo(navigationGraph, position);
-}
-
 namespace
 {
     glm::vec2 nearestPointOn(glm::vec2 from, glm::vec2 to, glm::vec2 asked)
@@ -205,6 +185,26 @@ namespace
         float howFar = std::clamp(glm::dot(asked - from, along) / lengthSquared, 0.0f, 1.0f);
 
         return from + along * howFar;
+    }
+
+    std::optional<int> nodeUnderfoot(const NavigationGraph &navigationGraph, glm::vec2 position)
+    {
+        std::optional<int> standingOn;
+        float nearestAlong = 0.0f;
+        for (const auto &[id, node] : navigationGraph.getNodes())
+        {
+            if (std::abs(node.position.y - position.y) > SurfaceTolerance)
+                continue;
+
+            float along = std::abs(node.position.x - position.x);
+            if (standingOn && along >= nearestAlong)
+                continue;
+
+            standingOn = id;
+            nearestAlong = along;
+        }
+
+        return standingOn ? standingOn : nearestNodeTo(navigationGraph, position);
     }
 
     bool travelledInContact(EdgeType type)
@@ -252,6 +252,18 @@ std::optional<PlaceOnThePath> placeOnThePath(
     return nearest;
 }
 
+int endOfThePathTowards(
+    const NavigationGraph &navigationGraph,
+    const PlaceOnThePath &place,
+    glm::vec2 towards)
+{
+    glm::vec2 oneEnd = navigationGraph.getNode(place.fromId).position;
+    glm::vec2 theOther = navigationGraph.getNode(place.toId).position;
+
+    return glm::distance(towards, oneEnd) <= glm::distance(towards, theOther) ? place.fromId
+                                                                              : place.toId;
+}
+
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)
 {
     std::optional<int> from = nodeUnderfoot(navigationGraph, here);
@@ -269,15 +281,15 @@ bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::v
 
 bool canPatrolBetween(const NavigationGraph &navigationGraph, glm::vec2 from, glm::vec2 to)
 {
-    std::optional<int> fromId = nearestNodeTo(navigationGraph, from);
-    std::optional<int> toId = nearestNodeTo(navigationGraph, to);
-    if (!fromId || !toId)
+    std::optional<PlaceOnThePath> setsOff = placeOnThePath(navigationGraph, from);
+    std::optional<PlaceOnThePath> turnsRound = placeOnThePath(navigationGraph, to);
+    if (!setsOff || !turnsRound)
         return false;
 
-    if (*fromId == *toId)
+    if (setsOff->fromId == turnsRound->fromId)
         return true;
 
-    std::vector<int> andBack = roundTripFrom(navigationGraph, *fromId);
+    std::vector<int> andBack = roundTripFrom(navigationGraph, setsOff->fromId);
 
-    return std::find(andBack.begin(), andBack.end(), *toId) != andBack.end();
+    return std::find(andBack.begin(), andBack.end(), turnsRound->fromId) != andBack.end();
 }

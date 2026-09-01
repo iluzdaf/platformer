@@ -29,10 +29,6 @@ function onWallJump()
     camera:startShake(0.1, 1)
 end
 
-function onDoubleJump()
-    camera:startShake(0.1, 1)
-end
-
 function onDash()
     camera:startShake(0.25, 2)
 end

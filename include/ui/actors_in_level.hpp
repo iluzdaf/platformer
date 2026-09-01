@@ -38,6 +38,8 @@ struct ActorAsked
     std::optional<std::string> addNpcOfType;
 };
 
+std::optional<std::string> npcsThatCannotGetBack(const Level &level);
+
 ActorAsked drawActorsInLevel(
     const Level &level,
     const std::vector<std::unique_ptr<Npc>> &npcs,

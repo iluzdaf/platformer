@@ -160,7 +160,8 @@ void LevelUi::drawLevel(Level &level, EditorCommands &commands)
         level.getPath(),
         json,
         [&level] { level.save(); },
-        [&](const std::string &) { commands.onLoadLevel(level.getPath()); });
+        [&](const std::string &) { commands.onLoadLevel(level.getPath()); },
+        npcsThatCannotGetBack(level));
     if (reverted)
         return;
 

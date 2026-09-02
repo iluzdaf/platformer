@@ -24,6 +24,10 @@ TypeShown addTypeTo(GameData &gameData, TypeShown::What what);
 
 void removeTypeFrom(GameData &gameData, const TypeShown &showing);
 
+struct Sheet;
+
+Sheet *sheetOf(GameData &gameData, const TypeShown &showing);
+
 std::optional<std::string> whyATypeCannotBeSaved(const GameData &gameData, const TypeShown &type);
 
 std::optional<std::string> typesNamingNoSheet(const GameData &gameData);

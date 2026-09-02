@@ -17,7 +17,7 @@
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
-#include "ui/tile_field_context.hpp"
+#include "ui/sheet_in_scope.hpp"
 
 namespace
 {
@@ -89,23 +89,23 @@ TEST_CASE("A type with a field of its own is drawn by it", "[DataInspector]")
 
 TEST_CASE("What is on offer is put back when the scope ends", "[DataInspector]")
 {
-    TileFieldContext offering;
-    offering.tileSet.cellSize = glm::ivec2(8);
+    SheetInScope offering;
+    offering.sheet.cellSize = glm::ivec2(8);
 
-    REQUIRE(tilesOnOffer() == nullptr);
+    REQUIRE(sheetInScope() == nullptr);
     {
-        ShowingTilesFrom showing(offering);
-        REQUIRE(tilesOnOffer() == &offering);
-        REQUIRE(tilesOnOffer()->tileSet.cellSize.x == 8);
+        ShowingSheet showing(offering);
+        REQUIRE(sheetInScope() == &offering);
+        REQUIRE(sheetInScope()->sheet.cellSize.x == 8);
 
-        TileFieldContext inner;
+        SheetInScope inner;
         {
-            ShowingTilesFrom nested(inner);
-            REQUIRE(tilesOnOffer() == &inner);
+            ShowingSheet nested(inner);
+            REQUIRE(sheetInScope() == &inner);
         }
-        REQUIRE(tilesOnOffer() == &offering);
+        REQUIRE(sheetInScope() == &offering);
     }
-    REQUIRE(tilesOnOffer() == nullptr);
+    REQUIRE(sheetInScope() == nullptr);
 }
 
 TEST_CASE("A type without one still reaches the reflection path", "[DataInspector]")

@@ -77,3 +77,17 @@ std::optional<std::string> typesNamingNoSheet(const GameData &gameData)
 
     return names + " name no sheet to draw from";
 }
+
+Sheet *sheetOf(GameData &gameData, const TypeShown &showing)
+{
+    if (showing.what == TypeShown::What::Npc)
+    {
+        auto known = gameData.npcData.find(showing.name);
+
+        return known == gameData.npcData.end() ? nullptr : &known->second.actorData.sheet;
+    }
+
+    auto known = gameData.pickupData.find(showing.name);
+
+    return known == gameData.pickupData.end() ? nullptr : &known->second.sheet;
+}

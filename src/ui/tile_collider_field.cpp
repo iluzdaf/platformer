@@ -7,7 +7,7 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/data_inspector.hpp"
-#include "ui/tile_field_context.hpp"
+#include "ui/sheet_in_scope.hpp"
 #include "ui/tile_picker.hpp"
 #include "tile_map/tile_collider_data.hpp"
 
@@ -25,17 +25,14 @@ inspector::Edited drawCustomField(std::string_view name, TileColliderData &value
 
     inspector::Edited edited = inspector::drawFields(value);
 
-    const TileFieldContext *offering = tilesOnOffer();
-    if (offering && offering->sheet && offering->tileSet.cellSize.x > 0)
+    const SheetInScope *offering = sheetInScope();
+    if (offering && offering->texture && offering->sheet.cellSize.x > 0)
     {
         ImVec2 tileAt = ImGui::GetCursorScreenPos();
         drawTileImage(
-            *offering->sheet,
-            offering->tileSet.cellSize.x,
-            offering->tileIndex,
-            ColliderPreviewSize);
+            *offering->texture, offering->sheet.cellSize.x, offering->frame, ColliderPreviewSize);
 
-        float scale = ColliderPreviewSize / static_cast<float>(offering->tileSet.cellSize.x);
+        float scale = ColliderPreviewSize / static_cast<float>(offering->sheet.cellSize.x);
         auto [low, high] = colliderRect(tileAt, scale, value.offset, value.size);
         ImGui::GetWindowDrawList()->AddRectFilled(low, high, IM_COL32(0, 255, 255, 40));
         ImGui::GetWindowDrawList()->AddRect(low, high, IM_COL32(0, 255, 255, 255));

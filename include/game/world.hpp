@@ -5,7 +5,6 @@
 #include <vector>
 #include <signals.hpp>
 #include "game/scoring_system.hpp"
-#include "tile_map/tile_interaction_system.hpp"
 #include "pickups/pickup.hpp"
 
 class Actor;
@@ -61,7 +60,6 @@ private:
     std::vector<std::unique_ptr<Npc>> npcs;
     std::vector<Pickup> pickups;
     std::vector<Actor *> actors;
-    TileInteractionSystem tileInteractionSystem;
     ScoringSystem scoringSystem;
     fteng::connection onLevelCompleteConnection;
 };

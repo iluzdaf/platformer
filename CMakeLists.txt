@@ -132,7 +132,7 @@ add_library(platformer_lib OBJECT
     src/ui/actors_in_level.cpp
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
-    src/tile_map/tile_interaction_system.cpp
+    src/tile_map/touching_tiles.cpp
     src/player/player.cpp
     src/actor/actor.cpp
     src/assets/asset_paths.cpp
@@ -292,7 +292,7 @@ add_executable(tests
     tests/tile_map/test_tile_map.cpp
     tests/tile_map/test_tile.cpp
     tests/tile_map/test_level_tile_caps.cpp
-    tests/tile_map/test_tile_interaction_system.cpp
+    tests/tile_map/test_touching_tiles.cpp
     tests/player/test_player.cpp
     tests/timing/test_fixed_time_step.cpp
     tests/physics/tests_aabb.cpp

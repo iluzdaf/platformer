@@ -93,9 +93,12 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
         REQUIRE_FALSE(tile3.isAnimated());
     }
 
-    SECTION("Unknown indices")
+    SECTION("A tile nothing was said about")
     {
-        REQUIRE_THROWS_WITH(tileMap.getTile(999), "Invalid tile index");
+        const Tile &unsaid = tileMap.getTile(999);
+        REQUIRE(unsaid.isEmpty());
+        REQUIRE_FALSE(unsaid.isSolid());
+        REQUIRE_FALSE(unsaid.animatingTo().has_value());
     }
 }
 
@@ -167,17 +170,22 @@ TEST_CASE("A painted tile the palette says nothing about is empty", "[TileMap]")
     const Tile &tile = tileMap.getTile(7);
     REQUIRE(tile.isEmpty());
     REQUIRE_FALSE(tile.isSolid());
-    REQUIRE(tile.getCurrentFrame() == 7);
+    REQUIRE_FALSE(tile.animatingTo().has_value());
 }
 
-TEST_CASE("A tile painted after loading is remembered", "[TileMap]")
+TEST_CASE("A palette naming a tile below zero fails to load", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap(3, 3);
+    TilePalette palette = paletteOf({{-1, TileData{}}});
 
-    tileMap.setTileIndex(glm::ivec2(1, 1), 24);
+    TileMapData tileMapData;
+    tileMapData.size = 16;
+    tileMapData.width = 2;
+    tileMapData.height = 2;
 
-    REQUIRE(tileMap.getTile(24).isEmpty());
-    REQUIRE(tileMap.getTile(24).getCurrentFrame() == 24);
+    REQUIRE_THROWS_WITH(
+        TileMap(tileMapData, palettesFrom(palette)),
+        Catch::Matchers::ContainsSubstring("below 0") &&
+            Catch::Matchers::ContainsSubstring("default"));
 }
 
 TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
@@ -221,19 +229,19 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     {
         const Tile &tile1 = tileMap.getTile(1);
         const Tile &tile2 = tileMap.getTile(3);
-        REQUIRE(tile1.getCurrentFrame() == 10);
-        REQUIRE(tile2.getCurrentFrame() == 5);
+        REQUIRE(tile1.animatingTo().value_or(1) == 10);
+        REQUIRE(tile2.animatingTo().value_or(3) == 5);
         tileMap.update(0.1f);
-        REQUIRE(tile1.getCurrentFrame() == 11);
-        REQUIRE(tile2.getCurrentFrame() == 6);
+        REQUIRE(tile1.animatingTo().value_or(1) == 11);
+        REQUIRE(tile2.animatingTo().value_or(3) == 6);
     }
 
     SECTION("Non-animated tiles")
     {
         const Tile &tile = tileMap.getTile(0);
-        REQUIRE(tile.getCurrentFrame() == 0);
+        REQUIRE(tile.animatingTo().value_or(0) == 0);
         tileMap.update(1.0f);
-        REQUIRE(tile.getCurrentFrame() == 0);
+        REQUIRE(tile.animatingTo().value_or(0) == 0);
     }
 }
 

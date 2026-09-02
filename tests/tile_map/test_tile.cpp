@@ -9,8 +9,8 @@ TEST_CASE("A tile says what it does", "[Tile]")
 {
     TileData solidTileData, emptyTileData;
     solidTileData.solid = true;
-    Tile solidTile(1, solidTileData);
-    Tile emptyTile(0, emptyTileData);
+    Tile solidTile(solidTileData);
+    Tile emptyTile(emptyTileData);
 
     REQUIRE(solidTile.isSolid());
     REQUIRE(emptyTile.isEmpty());
@@ -21,45 +21,45 @@ TEST_CASE("A tile says what it does", "[Tile]")
 TEST_CASE("Tile is not animated by default", "[Tile]")
 {
     TileData emptyTileData;
-    Tile tile(0, emptyTileData);
+    Tile tile(emptyTileData);
 
     REQUIRE_FALSE(tile.isAnimated());
-    REQUIRE(tile.getCurrentFrame() == 0);
+    REQUIRE_FALSE(tile.animatingTo().has_value());
 }
 
 TEST_CASE("Tile becomes animated when animation is set", "[Tile]")
 {
     TileData tileData;
     tileData.animationData = {{{1, 2, 3}, 0.5f}};
-    Tile tile(0, tileData);
+    Tile tile(tileData);
 
     REQUIRE(tile.isAnimated());
-    REQUIRE(tile.getCurrentFrame() == 1);
+    REQUIRE(tile.animatingTo().value_or(0) == 1);
 }
 
 TEST_CASE("Tile updates animation over time", "[Tile]")
 {
     TileData tileData;
     tileData.animationData = {{{10, 11, 12}, 0.25f}};
-    Tile tile(0, tileData);
+    Tile tile(tileData);
     tile.update(0.25f);
-    REQUIRE(tile.getCurrentFrame() == 11);
+    REQUIRE(tile.animatingTo().value_or(0) == 11);
 
     tile.update(0.5f);
-    REQUIRE(tile.getCurrentFrame() == 10);
+    REQUIRE(tile.animatingTo().value_or(0) == 10);
 }
 TEST_CASE("Only a tile that does something has a shape to collide with", "[Tile]")
 {
     TileData nothing;
-    REQUIRE_FALSE(Tile(0, nothing).getAABBAt(glm::vec2(0.0f)).has_value());
+    REQUIRE_FALSE(Tile(nothing).getAABBAt(glm::vec2(0.0f)).has_value());
 
     TileData solid;
     solid.solid = true;
-    REQUIRE(Tile(1, solid).getAABBAt(glm::vec2(0.0f)).has_value());
+    REQUIRE(Tile(solid).getAABBAt(glm::vec2(0.0f)).has_value());
 
     TileData deadly;
     deadly.deadly = true;
-    REQUIRE(Tile(2, deadly).getAABBAt(glm::vec2(0.0f)).has_value());
+    REQUIRE(Tile(deadly).getAABBAt(glm::vec2(0.0f)).has_value());
 }
 
 TEST_CASE("A tile that does not say its shape takes a whole tile", "[Tile]")
@@ -67,7 +67,7 @@ TEST_CASE("A tile that does not say its shape takes a whole tile", "[Tile]")
     TileData solid;
     solid.solid = true;
 
-    std::optional<AABB> aabb = Tile(1, solid).getAABBAt(glm::vec2(32.0f, 48.0f));
+    std::optional<AABB> aabb = Tile(solid).getAABBAt(glm::vec2(32.0f, 48.0f));
 
     REQUIRE(aabb);
     REQUIRE(aabb->position == glm::vec2(32.0f, 48.0f));
@@ -78,15 +78,15 @@ TEST_CASE("Only a solid tile that says so can be gripped", "[Tile]")
 {
     TileData grippable;
     grippable.solid = grippable.grippable = true;
-    REQUIRE(Tile(1, grippable).isGrippable());
+    REQUIRE(Tile(grippable).isGrippable());
 
     TileData solidButNotGrippable;
     solidButNotGrippable.solid = true;
-    REQUIRE_FALSE(Tile(2, solidButNotGrippable).isGrippable());
+    REQUIRE_FALSE(Tile(solidButNotGrippable).isGrippable());
 
     TileData deadly;
     deadly.deadly = deadly.grippable = true;
-    REQUIRE_FALSE(Tile(3, deadly).isGrippable());
+    REQUIRE_FALSE(Tile(deadly).isGrippable());
 }
 
 TEST_CASE("A tile cannot say two things that cancel each other out", "[Tile]")
@@ -95,16 +95,16 @@ TEST_CASE("A tile cannot say two things that cancel each other out", "[Tile]")
     {
         TileData solidAndDeadly;
         solidAndDeadly.solid = solidAndDeadly.deadly = true;
-        REQUIRE_THROWS(Tile(1, solidAndDeadly));
+        REQUIRE_THROWS(Tile(solidAndDeadly));
 
         TileData solidAndPickup;
         solidAndPickup.solid = true;
         solidAndPickup.pickup = TilePickupData{0, std::nullopt};
-        REQUIRE_THROWS(Tile(1, solidAndPickup));
+        REQUIRE_THROWS(Tile(solidAndPickup));
 
         TileData solidAndPortal;
         solidAndPortal.solid = solidAndPortal.portal = true;
-        REQUIRE_THROWS(Tile(1, solidAndPortal));
+        REQUIRE_THROWS(Tile(solidAndPortal));
     }
 
     SECTION("A deadly tile kills first, so nothing after it would happen")
@@ -112,11 +112,11 @@ TEST_CASE("A tile cannot say two things that cancel each other out", "[Tile]")
         TileData deadlyAndPickup;
         deadlyAndPickup.deadly = true;
         deadlyAndPickup.pickup = TilePickupData{0, std::nullopt};
-        REQUIRE_THROWS(Tile(1, deadlyAndPickup));
+        REQUIRE_THROWS(Tile(deadlyAndPickup));
 
         TileData deadlyAndPortal;
         deadlyAndPortal.deadly = deadlyAndPortal.portal = true;
-        REQUIRE_THROWS(Tile(1, deadlyAndPortal));
+        REQUIRE_THROWS(Tile(deadlyAndPortal));
     }
 
     SECTION("A pickup that is also the way out is allowed, because both happen")
@@ -124,7 +124,7 @@ TEST_CASE("A tile cannot say two things that cancel each other out", "[Tile]")
         TileData pickupAndPortal;
         pickupAndPortal.portal = true;
         pickupAndPortal.pickup = TilePickupData{0, std::nullopt};
-        REQUIRE_NOTHROW(Tile(1, pickupAndPortal));
+        REQUIRE_NOTHROW(Tile(pickupAndPortal));
     }
 
     SECTION("Saying a tile you cannot hold on to is grippable is allowed, it just is not")
@@ -132,7 +132,7 @@ TEST_CASE("A tile cannot say two things that cancel each other out", "[Tile]")
         TileData grippableSpikes;
         grippableSpikes.deadly = true;
         grippableSpikes.grippable = true;
-        REQUIRE_NOTHROW(Tile(1, grippableSpikes));
-        REQUIRE_FALSE(Tile(1, grippableSpikes).isGrippable());
+        REQUIRE_NOTHROW(Tile(grippableSpikes));
+        REQUIRE_FALSE(Tile(grippableSpikes).isGrippable());
     }
 }

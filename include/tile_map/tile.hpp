@@ -10,9 +10,9 @@
 class Tile
 {
 public:
-    Tile(int tileIndex, const TileData &tileData);
+    explicit Tile(const TileData &tileData);
     void update(float deltaTime);
-    int getCurrentFrame() const;
+    std::optional<int> animatingTo() const;
     bool isSolid() const;
     bool isGrippable() const;
     bool isDeadly() const;
@@ -29,5 +29,4 @@ private:
     std::optional<TileAnimation> animation;
     std::optional<TilePickupData> pickup;
     TileColliderData collider;
-    int tileIndex;
 };

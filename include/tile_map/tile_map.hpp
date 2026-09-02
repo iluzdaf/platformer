@@ -54,5 +54,4 @@ public:
 
 private:
     void initFrom(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
-    void rememberTile(int tileIndex);
 };

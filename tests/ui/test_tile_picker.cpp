@@ -17,6 +17,7 @@ TEST_CASE("A sheet too small for one tile holds none", "[TilePicker]")
 }
 
 #ifndef SKIP_OPENGL_TESTS
+#include <algorithm>
 #include <cstddef>
 #include <optional>
 #include <catch2/catch_test_macros.hpp>
@@ -49,7 +50,8 @@ namespace
 
     int rowsOfPicker(HeadlessImGui &gui, const Texture2D &sheet, float width, int cellSize)
     {
-        float oneRow = heightOfPicker(gui, sheet, 1000.0f, 112);
+        int oneCell = static_cast<int>(std::min(sheet.getWidth(), sheet.getHeight()));
+        float oneRow = heightOfPicker(gui, sheet, 1000.0f, oneCell);
         float height = heightOfPicker(gui, sheet, width, cellSize);
 
         return static_cast<int>(height / oneRow + 0.5f);
@@ -58,10 +60,16 @@ namespace
 
 TEST_CASE("The tile picker offers more cells than the palette configures", "[TilePicker]")
 {
-    REQUIRE(tilesInSheet(112, 112, 16) == 49);
-    REQUIRE(
-        tilesInSheet(112, 112, 16) >
-        static_cast<int>(shippedPalettes().at("default").tiles.size()));
+    HeadlessImGui gui;
+    Texture2D tileSet(assetPath("textures/tile_set.png"));
+    const TilePalette &palette = shippedPalettes().at("default");
+
+    int cells = tilesInSheet(
+        static_cast<int>(tileSet.getWidth()),
+        static_cast<int>(tileSet.getHeight()),
+        palette.tileSet.cellSize.x);
+
+    REQUIRE(cells > static_cast<int>(palette.tiles.size()));
 }
 
 TEST_CASE("A smaller cell means the picker draws more of them", "[TilePicker]")

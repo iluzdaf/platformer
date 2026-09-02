@@ -34,6 +34,7 @@ void GameRenderer::warm(const GameData &gameData)
     warmTileSets(textures, gameData.tilePalettes);
     warmActorTextures(textures, gameData.playerData, gameData.npcData);
     warmPickupTextures(textures, gameData.pickupData);
+    warmScoreIcon(textures, gameData.settings.scoreIcon);
 }
 
 void GameRenderer::warmTexture(const std::string &texturePath)

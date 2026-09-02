@@ -11,6 +11,8 @@
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
+#include "animations/frame_animation_data.hpp"
+#include "game/score_icon.hpp"
 #include "assets/sheet.hpp"
 
 namespace
@@ -48,7 +50,7 @@ void warmPickupTextures(TextureCache &textures, const std::map<std::string, Pick
 
         const Texture2D &texture = textures.get(data.sheet.texture);
         checkFramesFit(
-            data.animationData,
+            data.animationData.frames,
             data.sheet,
             quoted(name),
             static_cast<int>(texture.getWidth()),
@@ -69,4 +71,17 @@ void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes)
             static_cast<int>(texture.getWidth()),
             static_cast<int>(texture.getHeight()));
     }
+}
+
+void warmScoreIcon(TextureCache &textures, const ScoreIcon &scoreIcon)
+{
+    warmOne(textures, scoreIcon.sheet, "the score");
+
+    const Texture2D &texture = textures.get(scoreIcon.sheet.texture);
+    checkFramesFit(
+        {scoreIcon.frame},
+        scoreIcon.sheet,
+        "the score",
+        static_cast<int>(texture.getWidth()),
+        static_cast<int>(texture.getHeight()));
 }

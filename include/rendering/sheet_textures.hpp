@@ -8,6 +8,7 @@ class TextureCache;
 struct PlayerData;
 struct NpcData;
 struct PickupData;
+struct ScoreIcon;
 
 void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes);
 
@@ -19,3 +20,5 @@ void warmActorTextures(
 void warmPickupTextures(
     TextureCache &textures,
     const std::map<std::string, PickupData> &pickupData);
+
+void warmScoreIcon(TextureCache &textures, const ScoreIcon &scoreIcon);

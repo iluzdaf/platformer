@@ -1,11 +1,11 @@
 #include <stdexcept>
 #include <string>
 #include "rendering/frames_fit.hpp"
-#include "animations/frame_animation_data.hpp"
+#include <vector>
 #include "assets/sheet.hpp"
 
 void checkFramesFit(
-    const FrameAnimationData &animation,
+    const std::vector<int> &frames,
     const Sheet &sheet,
     const std::string &whose,
     int textureWidth,
@@ -15,7 +15,7 @@ void checkFramesFit(
         throw std::runtime_error(whose + " has cells no wider or taller than nothing");
 
     int cells = (textureWidth / sheet.cellSize.x) * (textureHeight / sheet.cellSize.y);
-    for (int frame : animation.frames)
+    for (int frame : frames)
         if (frame < 0 || frame >= cells)
             throw std::runtime_error(
                 whose + " animates on frame " + std::to_string(frame) + ", and \"" + sheet.texture +

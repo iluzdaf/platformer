@@ -1,12 +1,12 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
-struct FrameAnimationData;
 struct Sheet;
 
 void checkFramesFit(
-    const FrameAnimationData &animation,
+    const std::vector<int> &frames,
     const Sheet &sheet,
     const std::string &whose,
     int textureWidth,

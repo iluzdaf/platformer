@@ -5,12 +5,13 @@
 #include "rendering/texture2d.hpp"
 #include "ui/imgui_manager.hpp"
 #include "game/scoring_system.hpp"
+#include "game/score_icon.hpp"
 
-void ScoreUi::draw(
+void drawScore(
     const ImGuiManager &,
     const ScoringSystem &scoringSystem,
-    const Texture2D &tileSet,
-    int tileSize)
+    const Texture2D &icon,
+    const ScoreIcon &scoreIcon)
 {
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
     ImGui::Begin(
@@ -21,13 +22,23 @@ void ScoreUi::draw(
             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground);
     ImGui::SetWindowFontScale(2.0f);
-    ImTextureID imguiTextureID = (ImTextureID)(intptr_t)tileSet.getTextureID();
-    auto [uvStart, uvEnd] = tileSet.getUVRange(42, tileSize, false);
+
+    auto [uvStart, uvEnd] = frameUvRangeIn(
+        static_cast<int>(icon.getWidth()),
+        static_cast<int>(icon.getHeight()),
+        scoreIcon.frame,
+        scoreIcon.sheet.cellSize.x,
+        scoreIcon.sheet.cellSize.y,
+        false);
+
     ImGui::Image(
-        imguiTextureID, ImVec2(32, 32), ImVec2(uvStart.x, uvStart.y), ImVec2(uvEnd.x, uvEnd.y));
-    std::string label = std::format("x{}", scoringSystem.getScore());
+        (ImTextureID)(intptr_t)icon.getTextureID(),
+        ImVec2(32, 32),
+        ImVec2(uvStart.x, uvStart.y),
+        ImVec2(uvEnd.x, uvEnd.y));
+
     ImGui::SameLine();
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2);
-    ImGui::TextUnformatted(label.c_str());
+    ImGui::TextUnformatted(std::format("x{}", scoringSystem.getScore()).c_str());
     ImGui::End();
 }

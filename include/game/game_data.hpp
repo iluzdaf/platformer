@@ -7,12 +7,14 @@
 #include "pickups/pickup_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "cameras/camera2d_data.hpp"
+#include "game/score_icon.hpp"
 
 struct GameSettingsData
 {
     int windowWidth = 800;
     int windowHeight = 600;
     bool debug = false;
+    ScoreIcon scoreIcon;
 };
 
 struct GameData

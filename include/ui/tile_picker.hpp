@@ -7,6 +7,8 @@ struct TileSet;
 
 inline constexpr float TilePickerCellSize = 32.0f;
 
+bool drawTileCell(const Texture2D &sheet, int cellSize, int tileIndex);
+
 std::optional<int> drawTilePicker(
     const Texture2D &sheet,
     const TileSet &tileSet,

@@ -1,6 +1,7 @@
+#include <tuple>
+#include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/game_settings_ui.hpp"
-#include "ui/save_controls.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
@@ -8,20 +9,23 @@
 
 void GameSettingsUi::draw(GameData &gameData, EditorCommands &commands)
 {
-    bool reverted = drawSaveControls(saveable, "game", gameData.settings, saveGameSettings);
-    ImGui::Separator();
-    if (inspector::drawFields(gameData.settings).onCommit || reverted)
+    if (inspector::drawFields(gameData.settings).onCommit)
         commands.onSettingsChanged();
 }
+void GameSettingsUi::revert(GameData &gameData)
+{
+    std::ignore = glz::read_json(gameData.settings, saveable.lastSeen("game"));
+}
+
 void GameSettingsUi::save(GameData &gameData)
 {
     saveGameSettings(gameData.settings);
     saveable.saved("game", asJson(gameData.settings));
 }
 
-bool GameSettingsUi::hasUnsavedChanges(const GameData &gameData) const
+bool GameSettingsUi::hasUnsavedChanges(const GameData &gameData)
 {
-    return saveable.unsaved("game", asJson(gameData.settings));
+    return saveable.unsavedSince("game", asJson(gameData.settings));
 }
 
 void GameSettingsUi::valuesReplaced()

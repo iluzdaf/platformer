@@ -251,6 +251,7 @@ TEST_CASE(
     std::optional<Armed> armed;
     EditorCommands commands;
     gui.frame([&] { tilePalettesUi.draw(palettes, textures, commands, armed); });
+    REQUIRE_FALSE(tilePalettesUi.hasUnsavedChanges(palettes));
 
     TilePalette made;
     made.tileSet = TileSet{std::string(assets::TileSetTexture), 16};

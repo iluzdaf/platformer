@@ -11,7 +11,7 @@
 #include <imgui.h>
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/palette_renamed.hpp"
-#include "ui/save_controls.hpp"
+#include "ui/unsaved_colours.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/armed.hpp"
@@ -123,13 +123,6 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
     EditorCommands &commands,
     std::optional<Armed> &armed)
 {
-    drawSaveControls(
-        saveable,
-        "palettes",
-        tilePalettes,
-        [this](const TilePalettes &saving) { saveWithRenames(saving); });
-    ImGui::Separator();
-
     if (!tilePalettes.empty() && !tilePalettes.contains(selectedPalette))
         selectedPalette = tilePalettes.begin()->first;
 
@@ -204,15 +197,20 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
 
     return std::nullopt;
 }
+void TilePalettesUi::revert(TilePalettes &tilePalettes)
+{
+    std::ignore = glz::read_json(tilePalettes, saveable.lastSeen("palettes"));
+}
+
 void TilePalettesUi::save(TilePalettes &tilePalettes)
 {
     saveWithRenames(tilePalettes);
     saveable.saved("palettes", asJson(tilePalettes));
 }
 
-bool TilePalettesUi::hasUnsavedChanges(const TilePalettes &tilePalettes) const
+bool TilePalettesUi::hasUnsavedChanges(const TilePalettes &tilePalettes)
 {
-    return saveable.unsaved("palettes", asJson(tilePalettes));
+    return saveable.unsavedSince("palettes", asJson(tilePalettes));
 }
 
 void TilePalettesUi::valuesReplaced()

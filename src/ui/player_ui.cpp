@@ -1,7 +1,8 @@
+#include <tuple>
+#include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/player_ui.hpp"
 #include "ui/debug_aabb_overlay.hpp"
-#include "ui/save_controls.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
@@ -21,8 +22,6 @@ void PlayerUi::draw(GameData &gameData, EditorCommands &commands)
     if (ImGui::Button("Respawn"))
         commands.onRespawn();
 
-    ImGui::Separator();
-    drawSaveControls(saveable, "player", gameData.playerData, savePlayerData);
     ImGui::Separator();
     inspector::drawFields(gameData.playerData);
 }
@@ -48,15 +47,20 @@ void PlayerUi::drawOverlay(
 
     drawFadingAABBs(imGuiManager, camera, fadingAABBs);
 }
+void PlayerUi::revert(GameData &gameData)
+{
+    std::ignore = glz::read_json(gameData.playerData, saveable.lastSeen("player"));
+}
+
 void PlayerUi::save(GameData &gameData)
 {
     savePlayerData(gameData.playerData);
     saveable.saved("player", asJson(gameData.playerData));
 }
 
-bool PlayerUi::hasUnsavedChanges(const GameData &gameData) const
+bool PlayerUi::hasUnsavedChanges(const GameData &gameData)
 {
-    return saveable.unsaved("player", asJson(gameData.playerData));
+    return saveable.unsavedSince("player", asJson(gameData.playerData));
 }
 
 void PlayerUi::valuesReplaced()

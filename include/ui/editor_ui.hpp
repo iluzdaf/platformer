@@ -32,11 +32,14 @@ class TextureCache;
 
 inline constexpr float InspectorWidth = 280.0f;
 
+inline constexpr float SaveColumn = 120.0f;
+
 struct SectionSaving
 {
     bool unsaved = false;
     std::optional<std::string> cannotBecause;
     std::function<void()> save;
+    std::function<void()> revert;
 };
 
 struct EditorSubject

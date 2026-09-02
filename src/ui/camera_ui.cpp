@@ -1,6 +1,7 @@
+#include <tuple>
+#include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/camera_ui.hpp"
-#include "ui/save_controls.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
@@ -12,20 +13,23 @@ void CameraUi::draw(GameData &gameData, const Camera2D &camera, EditorCommands &
     ImGui::TextDisabled("%s", camera.shaking() ? "shaking" : "still");
 
     ImGui::Separator();
-    bool reverted = drawSaveControls(saveable, "camera", gameData.cameraData, saveCameraData);
-    ImGui::Separator();
-    if (inspector::drawFields(gameData.cameraData) || reverted)
+    if (inspector::drawFields(gameData.cameraData))
         commands.onCameraChanged();
 }
+void CameraUi::revert(GameData &gameData)
+{
+    std::ignore = glz::read_json(gameData.cameraData, saveable.lastSeen("camera"));
+}
+
 void CameraUi::save(GameData &gameData)
 {
     saveCameraData(gameData.cameraData);
     saveable.saved("camera", asJson(gameData.cameraData));
 }
 
-bool CameraUi::hasUnsavedChanges(const GameData &gameData) const
+bool CameraUi::hasUnsavedChanges(const GameData &gameData)
 {
-    return saveable.unsaved("camera", asJson(gameData.cameraData));
+    return saveable.unsavedSince("camera", asJson(gameData.cameraData));
 }
 
 void CameraUi::valuesReplaced()

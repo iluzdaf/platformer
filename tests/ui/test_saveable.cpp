@@ -81,3 +81,23 @@ TEST_CASE("Saveable has nothing to say about a name it has never seen", "[Saveab
     REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
     REQUIRE(saveable.lastSeen("camera").empty());
 }
+
+TEST_CASE("The first look is what everything after is compared against", "[Saveable]")
+{
+    Saveable saveable;
+
+    REQUIRE_FALSE(saveable.unsavedSince("camera", "one"));
+    REQUIRE(saveable.unsavedSince("camera", "two"));
+    REQUIRE(saveable.unsavedSince("camera", "three"));
+}
+
+TEST_CASE("Saving moves what everything after is compared against", "[Saveable]")
+{
+    Saveable saveable;
+
+    REQUIRE_FALSE(saveable.unsavedSince("camera", "one"));
+    saveable.saved("camera", "two");
+
+    REQUIRE_FALSE(saveable.unsavedSince("camera", "two"));
+    REQUIRE(saveable.unsavedSince("camera", "one"));
+}

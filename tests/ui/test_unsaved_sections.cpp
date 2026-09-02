@@ -33,17 +33,16 @@ TEST_CASE("A section has nothing unsaved before anything is edited", "[UnsavedSe
 
 TEST_CASE("A section reports unsaved once its data changes", "[UnsavedSections]")
 {
-    HeadlessImGui gui;
     CameraUi cameraUi;
     GameData gameData;
 
-    drawCameraOnce(gui, cameraUi, gameData);
+    REQUIRE_FALSE(cameraUi.hasUnsavedChanges(gameData));
     gameData.cameraData.zoom += 1.0f;
 
     REQUIRE(cameraUi.hasUnsavedChanges(gameData));
 }
 
-TEST_CASE("A section that has never been opened reports nothing", "[UnsavedSections]")
+TEST_CASE("The first look at a section is what it is compared against", "[UnsavedSections]")
 {
     CameraUi cameraUi;
     GameData gameData;
@@ -77,7 +76,7 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
         assetPath(levels.getFirst()), gameData.tilePalettes, gameData.playerData, gameData.npcData);
     EditorCommands commands;
 
-    gui.frame([&] { levelsUi.draw(levels, level, commands, false); });
+    REQUIRE_FALSE(levelsUi.hasUnsavedChanges(levels));
     levels.setFirst("levels/level3.json");
 
     REQUIRE(levelsUi.hasUnsavedChanges(levels));

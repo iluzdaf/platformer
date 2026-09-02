@@ -15,6 +15,7 @@
 #include "pickups/pickup_spawn_data.hpp"
 #include "pickups/pickup_data.hpp"
 #include "pickups/collecting.hpp"
+#include "tile_map/touching_tiles.hpp"
 #include "player/player.hpp"
 #include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
@@ -141,7 +142,7 @@ void World::fixedUpdate(float deltaTime)
         actor->fixedUpdate(
             deltaTime, *level.get(), actor == player.get() ? std::nullopt : playerPosition);
 
-    tileInteractionSystem.fixedUpdate(*player.get(), level->getTileMap());
+    touchTiles(*player.get(), level->getTileMap());
 
     for (const Pickup &taken : takeWhatTouches(pickups, player->getPhysicsBody().getAABB()))
         player->onPickup(taken.getScoreDelta());

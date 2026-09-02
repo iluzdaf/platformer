@@ -1,12 +1,11 @@
 #include <optional>
-#include "tile_map/tile_interaction_system.hpp"
+#include "tile_map/touching_tiles.hpp"
 #include "physics/aabb.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
-#include <cassert>
 
-void TileInteractionSystem::fixedUpdate(Player &player, TileMap &tileMap)
+void touchTiles(Player &player, const TileMap &tileMap)
 {
     AABB playerAABB = player.getPhysicsBody().getAABB();
     auto tilePositions = tileMap.tilesOverlapping(playerAABB.position, playerAABB.size);

@@ -17,6 +17,7 @@
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
+#include "ui/tile_field_context.hpp"
 
 namespace
 {
@@ -100,6 +101,40 @@ TEST_CASE("A type with a field of its own is drawn by it", "[DataInspector]")
     gui.frame([&] { inspector::draw("drawn", drawn); });
 
     REQUIRE(drawnByItsOwnField == 1);
+}
+
+TEST_CASE("A tile index falls back to a number when no sheet is offered", "[DataInspector]")
+{
+    REQUIRE(tilesOnOffer() == nullptr);
+
+    HeadlessImGui gui;
+    TilePickupData pickup;
+    pickup.replaceIndex = 5;
+
+    gui.frame([&] { inspector::drawFields(pickup); });
+
+    REQUIRE(pickup.replaceIndex.value == 5);
+}
+
+TEST_CASE("What is on offer is put back when the scope ends", "[DataInspector]")
+{
+    TileFieldContext offering;
+    offering.tileSet.tileSize = 8;
+
+    REQUIRE(tilesOnOffer() == nullptr);
+    {
+        ShowingTilesFrom showing(offering);
+        REQUIRE(tilesOnOffer() == &offering);
+        REQUIRE(tilesOnOffer()->tileSet.tileSize == 8);
+
+        TileFieldContext inner;
+        {
+            ShowingTilesFrom nested(inner);
+            REQUIRE(tilesOnOffer() == &inner);
+        }
+        REQUIRE(tilesOnOffer() == &offering);
+    }
+    REQUIRE(tilesOnOffer() == nullptr);
 }
 
 TEST_CASE("A tile index draws itself rather than falling through", "[DataInspector]")

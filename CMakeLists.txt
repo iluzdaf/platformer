@@ -120,6 +120,7 @@ add_library(platformer_lib OBJECT
     src/ui/levels_ui.cpp
     src/ui/tile_picker.cpp
     src/ui/tile_index_field.cpp
+    src/ui/tile_field_context.cpp
     src/ui/tile_palettes_ui.cpp
     src/ui/score_ui.cpp
     src/ui/navigation_overlay.cpp

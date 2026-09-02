@@ -11,25 +11,22 @@
 #include "rendering/tile_set_textures.hpp"
 #include "tile_map/tile_set.hpp"
 
-namespace
+bool drawTileCell(const Texture2D &tileSet, int tileSize, int tileIndex)
 {
-    bool drawTileCell(const Texture2D &tileSet, int tileSize, int tileIndex)
-    {
-        auto [uvStart, uvEnd] = tileSet.getUVRange(tileIndex, tileSize, false);
-        ImVec2 cellPosition = ImGui::GetCursorScreenPos();
+    auto [uvStart, uvEnd] = tileSet.getUVRange(tileIndex, tileSize, false);
+    ImVec2 cellPosition = ImGui::GetCursorScreenPos();
 
-        bool clicked = ImGui::ImageButton(
-            "##tile",
-            (ImTextureID)(intptr_t)tileSet.getTextureID(),
-            ImVec2(TilePickerCellSize, TilePickerCellSize),
-            ImVec2(uvStart.x, uvStart.y),
-            ImVec2(uvEnd.x, uvEnd.y));
+    bool clicked = ImGui::ImageButton(
+        "##tile",
+        (ImTextureID)(intptr_t)tileSet.getTextureID(),
+        ImVec2(TilePickerCellSize, TilePickerCellSize),
+        ImVec2(uvStart.x, uvStart.y),
+        ImVec2(uvEnd.x, uvEnd.y));
 
-        ImGui::GetWindowDrawList()->AddText(
-            cellPosition, IM_COL32(255, 255, 255, 255), std::to_string(tileIndex).c_str());
+    ImGui::GetWindowDrawList()->AddText(
+        cellPosition, IM_COL32(255, 255, 255, 255), std::to_string(tileIndex).c_str());
 
-        return clicked;
-    }
+    return clicked;
 }
 
 std::optional<int> drawTilePicker(

@@ -15,6 +15,7 @@
 #include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_index.hpp"
+#include "tile_map/tile_set.hpp"
 #include "tile_map/tile_pickup_data.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
@@ -156,16 +157,23 @@ TEST_CASE("A tile index draws itself rather than falling through", "[DataInspect
 
 TEST_CASE("A type without one still reaches the reflection path", "[DataInspector]")
 {
-    STATIC_REQUIRE_FALSE(inspector::HasCustomField<TileColliderData>);
-    STATIC_REQUIRE_FALSE(inspector::HasCustomField<TileData>);
+    STATIC_REQUIRE_FALSE(inspector::HasCustomField<TileSet>);
+    STATIC_REQUIRE_FALSE(inspector::HasCustomField<Camera2DData>);
     STATIC_REQUIRE_FALSE(inspector::HasCustomField<int>);
 
     HeadlessImGui gui;
-    TileColliderData collider{glm::vec2(1.0f, 2.0f), glm::vec2(3.0f, 4.0f)};
+    TileSet tileSet{"textures/tile_set.png", 16};
 
-    gui.frame([&] { inspector::draw("collider", collider); });
+    gui.frame([&] { inspector::draw("tileSet", tileSet); });
 
-    REQUIRE(collider.offset == glm::vec2(1.0f, 2.0f));
+    REQUIRE(tileSet.tileSize == 16);
+}
+
+TEST_CASE("The types that draw themselves say so", "[DataInspector]")
+{
+    STATIC_REQUIRE(inspector::HasCustomField<TileIndex>);
+    STATIC_REQUIRE(inspector::HasCustomField<TileColliderData>);
+    STATIC_REQUIRE(inspector::HasCustomField<TileAnimationData>);
 }
 
 TEST_CASE("A field of its own wins over being drawn through", "[DataInspector]")

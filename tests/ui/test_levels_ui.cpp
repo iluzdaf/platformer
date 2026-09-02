@@ -1,7 +1,7 @@
 #include <optional>
 #include <string>
 #include <catch2/catch_test_macros.hpp>
-#include "ui/levels_ui.hpp"
+#include "ui/switching_level.hpp"
 
 namespace
 {

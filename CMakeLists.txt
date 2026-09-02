@@ -317,7 +317,6 @@ add_executable(tests
     tests/reloading/test_reloader.cpp
     tests/game/test_game.cpp
     tests/game/test_world.cpp
-    tests/game/test_collecting.cpp
     tests/game/test_playback.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp

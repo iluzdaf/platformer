@@ -1,14 +1,12 @@
 #pragma once
+
 class ImGuiManager;
 class ScoringSystem;
 class Texture2D;
+struct ScoreIcon;
 
-class ScoreUi
-{
-public:
-    void draw(
-        const ImGuiManager &imGuiManager,
-        const ScoringSystem &scoringSystem,
-        const Texture2D &tileSet,
-        int tileSize);
-};
+void drawScore(
+    const ImGuiManager &imGuiManager,
+    const ScoringSystem &scoringSystem,
+    const Texture2D &icon,
+    const ScoreIcon &scoreIcon);

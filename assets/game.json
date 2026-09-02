@@ -1,1 +1,9 @@
-{"windowWidth":800,"windowHeight":600,"debug":true}
+{
+    "windowWidth":800,
+    "windowHeight":600,
+    "debug":true,
+    "scoreIcon":{
+        "sheet":{"texture":"textures/coin.png","cellSize":[16,16]},
+        "frame":0
+    }
+}

@@ -1,11 +1,13 @@
 #include "ui/game_ui.hpp"
 #include "rendering/texture_cache.hpp"
-#include "tile_map/tile_map.hpp"
 #include "assets/sheet.hpp"
 #include "physics/aabb.hpp"
 #include "physics/physics_body.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/editor_ui.hpp"
+#include "ui/score_ui.hpp"
+#include "game/score_icon.hpp"
+#include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "player/player.hpp"
 #include "window/window.hpp"
@@ -19,12 +21,12 @@ void GameUi::draw(const GameUiSubject &subject)
 {
     imGuiManager.newFrame();
 
-    const Sheet &tileSet = subject.level.getTileMap().getTileSet();
-    scoreUi.draw(
+    const ScoreIcon &scoreIcon = subject.gameData.settings.scoreIcon;
+    drawScore(
         imGuiManager,
         subject.scoringSystem,
-        subject.textures.get(tileSet.texture),
-        tileSet.cellSize.x);
+        subject.textures.get(scoreIcon.sheet.texture),
+        scoreIcon);
 
     editorUi.draw(
         imGuiManager,

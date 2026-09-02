@@ -4,7 +4,6 @@
 #include <vector>
 #include "ui/editor_ui.hpp"
 #include "ui/imgui_manager.hpp"
-#include "ui/score_ui.hpp"
 #include "ui/editor_commands.hpp"
 
 struct GameData;
@@ -46,5 +45,4 @@ public:
 private:
     ImGuiManager imGuiManager;
     EditorUi editorUi;
-    ScoreUi scoreUi;
 };

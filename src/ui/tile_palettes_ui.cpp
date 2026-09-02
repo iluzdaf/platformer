@@ -13,10 +13,8 @@
 #include "tile_map/tile_palette.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/texture_cache.hpp"
-#include "rendering/tile_set_textures.hpp"
 #include "ui/editor_commands.hpp"
 #include "tile_map/tile_set.hpp"
-#include <glaze/glaze.hpp>
 
 void TilePalettesUi::draw(
     TilePalettes &tilePalettes,
@@ -24,8 +22,7 @@ void TilePalettesUi::draw(
     EditorCommands &commands,
     std::optional<Armed> &armed)
 {
-    drawSaveControls(
-        saveable, "palettes", tilePalettes, saveTilePalettes, cannotSave(tilePalettes, textures));
+    drawSaveControls(saveable, "palettes", tilePalettes, saveTilePalettes);
     ImGui::Separator();
 
     if (tilePalettes.empty())
@@ -95,38 +92,6 @@ void TilePalettesUi::draw(
 
     ImGui::Text("tile %d", *picked);
     inspector::drawFields(palette.tiles.at(*picked));
-}
-
-std::optional<std::string> TilePalettesUi::cannotSave(
-    const TilePalettes &tilePalettes,
-    const TextureCache &textures) const
-{
-    TilePalettes saved;
-    if (glz::read_json(saved, saveable.lastSeen("palettes")))
-        return std::nullopt;
-
-    for (const auto &[paletteName, palette] : tilePalettes)
-    {
-        auto wasSaved = saved.find(paletteName);
-        if (wasSaved == saved.end() || wasSaved->second.tileSet == palette.tileSet)
-            continue;
-
-        const Texture2D *before = textures.find(wasSaved->second.tileSet.texture);
-        const Texture2D *after = textures.find(palette.tileSet.texture);
-        if (!before || !after)
-            return "no tile set loaded for \"" + paletteName + "\" to compare against";
-
-        std::optional<std::string> broken = whatMovingToWouldBreak(
-            wasSaved->second.tileSet,
-            static_cast<int>(before->getWidth()),
-            palette.tileSet,
-            static_cast<int>(after->getWidth()),
-            paletteName);
-        if (broken)
-            return broken;
-    }
-
-    return std::nullopt;
 }
 
 bool TilePalettesUi::hasUnsavedChanges(const TilePalettes &tilePalettes) const

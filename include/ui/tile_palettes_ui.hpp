@@ -18,10 +18,6 @@ public:
         EditorCommands &commands,
         std::optional<Armed> &armed);
 
-    std::optional<std::string> cannotSave(
-        const TilePalettes &tilePalettes,
-        const TextureCache &textures) const;
-
     bool hasUnsavedChanges(const TilePalettes &tilePalettes) const;
     void valuesReplaced();
 

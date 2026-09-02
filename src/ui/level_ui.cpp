@@ -12,71 +12,16 @@
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "ui/actors_in_level.hpp"
-#include "ui/tile_picker.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/grid_shown.hpp"
-#include "rendering/texture2d.hpp"
 #include "ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "npc/npc_data.hpp"
-#include "tile_map/tile_data.hpp"
-#include "tile_map/tile_palette.hpp"
 #include "ui/tile_map_overlays.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
-
-namespace
-{
-    void drawTileSummary(const TileData &tile)
-    {
-        std::string flags;
-        auto note = [&flags](bool set, const char *name)
-        {
-            if (!set)
-                return;
-
-            if (!flags.empty())
-                flags += "  ";
-            flags += name;
-        };
-
-        note(tile.solid, "solid");
-        note(tile.deadly, "deadly");
-        note(tile.portal, "portal");
-        note(tile.grippable, "grippable");
-
-        if (!flags.empty())
-            ImGui::TextUnformatted(flags.c_str());
-
-        if (tile.collider)
-            ImGui::Text(
-                "collider %.0f,%.0f %.0fx%.0f",
-                tile.collider->offset.x,
-                tile.collider->offset.y,
-                tile.collider->size.x,
-                tile.collider->size.y);
-
-        if (tile.pickup && tile.pickup->scoreDelta)
-            ImGui::Text(
-                "pickup leaves %d, scores %d",
-                tile.pickup->replaceIndex.value,
-                *tile.pickup->scoreDelta);
-        else if (tile.pickup)
-            ImGui::Text("pickup leaves %d", tile.pickup->replaceIndex.value);
-
-        if (tile.animationData)
-            ImGui::Text(
-                "animates %d frames at %.2fs",
-                static_cast<int>(tile.animationData->frameAnimationData.frames.size()),
-                tile.animationData->frameAnimationData.frameDuration);
-
-        if (flags.empty() && !tile.collider && !tile.pickup && !tile.animationData)
-            ImGui::TextDisabled("nothing set");
-    }
-
-}
 
 void LevelUi::draw(
     Level &level,
@@ -84,8 +29,6 @@ void LevelUi::draw(
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
-    const Texture2D &sheet,
-    const TilePalette &palette,
     const std::map<std::string, NpcData> &npcData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
@@ -109,7 +52,6 @@ void LevelUi::draw(
         return;
 
     drawLevel(level);
-    drawTiles(sheet, palette, armed);
     drawActors(level, npcs, playerMotionState, playerFeet, playerState, npcData, armed, commands);
 }
 
@@ -198,29 +140,6 @@ void LevelUi::drawOverlayToggles()
     ImGui::SameLine();
     ImGui::Checkbox("Bounds", &drawLevelBounds);
     navigationUi.drawOverlayToggles();
-}
-
-void LevelUi::drawTiles(
-    const Texture2D &sheet,
-    const TilePalette &palette,
-    std::optional<Armed> &armed)
-{
-    if (!ImGui::TreeNode("Tiles"))
-        return;
-
-    std::optional<int> showing = paintedTile(armed);
-    std::optional<int> picked = drawTilePicker(sheet, palette.tileSet, showing);
-    if (picked != showing)
-        armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
-
-    if (picked)
-    {
-        ImGui::Separator();
-        auto override = palette.tiles.find(*picked);
-        drawTileSummary(override == palette.tiles.end() ? TileData{} : override->second);
-    }
-
-    ImGui::TreePop();
 }
 
 void LevelUi::drawOverlay(

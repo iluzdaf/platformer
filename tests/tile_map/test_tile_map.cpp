@@ -154,7 +154,7 @@ TEST_CASE("A palette survives being written and read back", "[TilePalette]")
     REQUIRE(readBack.at("default").tiles.size() == shippedPalettes().at("default").tiles.size());
 }
 
-TEST_CASE("A level painted with a tile its palette does not have fails to load", "[TileMap]")
+TEST_CASE("A painted tile the palette says nothing about is empty", "[TileMap]")
 {
     TilePalette palette = paletteOf({{0, TileData{}}, {1, TileData{}}});
 
@@ -162,10 +162,22 @@ TEST_CASE("A level painted with a tile its palette does not have fails to load",
     tileMapData.size = 16;
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 7}};
 
-    REQUIRE_THROWS_WITH(
-        TileMap(tileMapData, palettesFrom(palette)),
-        Catch::Matchers::ContainsSubstring("Tile 7") && Catch::Matchers::ContainsSubstring("1,1") &&
-            Catch::Matchers::ContainsSubstring("default"));
+    TileMap tileMap(tileMapData, palettesFrom(palette));
+
+    const Tile &tile = tileMap.getTile(7);
+    REQUIRE(tile.isEmpty());
+    REQUIRE_FALSE(tile.isSolid());
+    REQUIRE(tile.getCurrentFrame() == 7);
+}
+
+TEST_CASE("A tile painted after loading is remembered", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap(3, 3);
+
+    tileMap.setTileIndex(glm::ivec2(1, 1), 24);
+
+    REQUIRE(tileMap.getTile(24).isEmpty());
+    REQUIRE(tileMap.getTile(24).getCurrentFrame() == 24);
 }
 
 TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")

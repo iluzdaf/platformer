@@ -23,6 +23,7 @@
 #include "game/game_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_set.hpp"
 #include "ui/tile_map_overlays.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
@@ -226,19 +227,20 @@ void LevelUi::drawTiles(
     if (!ImGui::TreeNode("Tiles"))
         return;
 
-    std::vector<int> tileIndices = tilesToPickFrom(level.getTileMap());
+    const TileSet &sheet = level.getTileMap().getTileSet();
+    std::vector<int> tileIndices = tilesToPickFrom(tileSet, sheet.tileSize);
 
     std::optional<int> showing = paintedTile(armed);
-    std::optional<int> picked =
-        drawTilePicker(tileSet, level.getTileMap().getTileSize(), tileIndices, showing);
+    std::optional<int> picked = drawTilePicker(tileSet, sheet.tileSize, tileIndices, showing);
     if (picked != showing)
         armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
 
     const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
-    if (picked && palette.tiles.contains(*picked))
+    if (picked)
     {
         ImGui::Separator();
-        drawTileSummary(palette.tiles.at(*picked));
+        auto override = palette.tiles.find(*picked);
+        drawTileSummary(override == palette.tiles.end() ? TileData{} : override->second);
     }
 
     ImGui::TreePop();

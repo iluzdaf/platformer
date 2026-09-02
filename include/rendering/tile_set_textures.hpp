@@ -5,6 +5,8 @@
 
 class TextureCache;
 
+int tilesInSheet(int textureWidth, int textureHeight, int tileSize);
+
 void checkTileSetFits(
     const TilePalette &palette,
     const std::string &paletteName,

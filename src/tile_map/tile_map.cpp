@@ -83,14 +83,7 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
 
     for (int tileX = 0; tileX < width; ++tileX)
         for (int tileY = 0; tileY < height; ++tileY)
-        {
-            int tileIndex = tileIndices[tileX][tileY];
-            if (!tiles.contains(tileIndex))
-                throw std::runtime_error(
-                    "Tile " + std::to_string(tileIndex) + " is painted at " +
-                    std::to_string(tileX) + "," + std::to_string(tileY) + " but palette \"" +
-                    tilePalette + "\" does not have it");
-        }
+            rememberTile(tileIndices[tileX][tileY]);
 }
 
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
@@ -102,6 +95,13 @@ void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
         throw std::runtime_error("Tile index must be greater or equals to 0");
 
     tileIndices[tilePosition.x][tilePosition.y] = tileIndex;
+    rememberTile(tileIndex);
+}
+
+void TileMap::rememberTile(int tileIndex)
+{
+    if (tileIndex >= 0 && !tiles.contains(tileIndex))
+        tiles.insert_or_assign(tileIndex, Tile(tileIndex, TileData{}));
 }
 
 void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)

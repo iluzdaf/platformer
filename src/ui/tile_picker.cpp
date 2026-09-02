@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -10,7 +9,7 @@
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
 #include "rendering/texture2d.hpp"
-#include "tile_map/tile_map.hpp"
+#include "rendering/tile_set_textures.hpp"
 
 namespace
 {
@@ -33,13 +32,15 @@ namespace
     }
 }
 
-std::vector<int> tilesToPickFrom(const TileMap &tileMap)
+std::vector<int> tilesToPickFrom(const Texture2D &tileSet, int tileSize)
 {
-    std::vector<int> tileIndices;
-    for (const auto &[tileIndex, tile] : tileMap.getTiles())
-        tileIndices.push_back(tileIndex);
+    int cells = tilesInSheet(
+        static_cast<int>(tileSet.getWidth()), static_cast<int>(tileSet.getHeight()), tileSize);
 
-    std::sort(tileIndices.begin(), tileIndices.end());
+    std::vector<int> tileIndices;
+    tileIndices.reserve(static_cast<std::size_t>(cells));
+    for (int tileIndex = 0; tileIndex < cells; ++tileIndex)
+        tileIndices.push_back(tileIndex);
 
     return tileIndices;
 }

@@ -15,6 +15,7 @@
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/tile_palettes_ui.hpp"
+#include "ui/tile_picker.hpp"
 
 namespace
 {
@@ -102,6 +103,45 @@ TEST_CASE("A tile set nobody loaded is asked for once", "[TilePalettesUi]")
     }
 
     REQUIRE(asked == 1);
+}
+
+TEST_CASE("The palette editor offers every cell of its sheet", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+
+    TextureCache textures;
+    textures.warm(palettes["default"].tileSet.texture);
+
+    std::optional<Armed> armed;
+    EditorCommands commands;
+
+    gui.frame([&] { tilePalettesUi.draw(palettes, textures, commands, armed); });
+
+    REQUIRE(tilesToPickFrom(textures.get(palettes["default"].tileSet.texture), 16).size() == 49);
+    REQUIRE(palettes["default"].tiles.size() == 1);
+}
+
+TEST_CASE("Looking at a cell does not give it settings", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+
+    TextureCache textures;
+    textures.warm(palettes["default"].tileSet.texture);
+
+    std::optional<Armed> armed = PaintTile{30};
+    EditorCommands commands;
+
+    for (int frame = 0; frame < 3; ++frame)
+        gui.frame([&] { tilePalettesUi.draw(palettes, textures, commands, armed); });
+
+    REQUIRE_FALSE(palettes["default"].tiles.contains(30));
+    REQUIRE(palettes["default"].tiles.size() == 1);
 }
 
 #endif // SKIP_OPENGL_TESTS

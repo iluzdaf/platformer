@@ -4,11 +4,10 @@
 #include <vector>
 
 class Texture2D;
-class TileMap;
 
 inline constexpr float TilePickerCellSize = 32.0f;
 
-std::vector<int> tilesToPickFrom(const TileMap &tileMap);
+std::vector<int> tilesToPickFrom(const Texture2D &tileSet, int tileSize);
 
 std::optional<int> drawTilePicker(
     const Texture2D &tileSet,

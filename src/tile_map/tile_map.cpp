@@ -21,11 +21,6 @@ TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalette
 
 void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
 {
-    tileSize = tileMapData.size;
-
-    if (tileSize <= 0)
-        throw std::runtime_error("tileSize must be greater than 0");
-
     const bool hasTileIndices = tileMapData.indices.has_value();
     const bool hasExplicitSize = tileMapData.width.has_value() && tileMapData.height.has_value();
     if (hasTileIndices && hasExplicitSize)
@@ -77,6 +72,8 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
 
     if (tileSet.tileSize <= 0)
         throw std::runtime_error("Palette \"" + tilePalette + "\" has a tile set tileSize of 0");
+
+    tileSize = tileSet.tileSize;
 
     for (const auto &[tileIndex, tileData] : palette->second.tiles)
     {
@@ -245,7 +242,6 @@ const std::unordered_map<int, Tile> &TileMap::getTiles() const
 TileMapData TileMap::toTileMapData() const
 {
     TileMapData data;
-    data.size = tileSize;
     data.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
     for (int y = 0; y < height; ++y)
         for (int x = 0; x < width; ++x)

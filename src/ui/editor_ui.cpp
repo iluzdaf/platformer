@@ -123,7 +123,8 @@ void EditorUi::draw(
             subject.playerFeet,
             subject.playerState,
             subject.textures.get(subject.level.getTileMap().getTileSet().texture),
-            subject.gameData,
+            subject.gameData.tilePalettes.at(subject.level.getTileMap().getTilePalette()),
+            subject.gameData.npcData,
             armed,
             commands);
         break;

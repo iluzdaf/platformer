@@ -3,6 +3,7 @@
 #include <string>
 #include <cstddef>
 #include <memory>
+#include <map>
 #include <optional>
 #include <vector>
 #include "ui/editor_commands.hpp"
@@ -18,7 +19,8 @@ class TileMap;
 class Level;
 class Texture2D;
 class Camera2D;
-struct GameData;
+struct NpcData;
+struct TilePalette;
 struct ActorMotionState;
 struct ActorState;
 class Npc;
@@ -32,8 +34,9 @@ public:
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
-        const Texture2D &tileSet,
-        const GameData &gameData,
+        const Texture2D &sheet,
+        const TilePalette &palette,
+        const std::map<std::string, NpcData> &npcData,
         std::optional<Armed> &armed,
         EditorCommands &commands);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
@@ -63,13 +66,9 @@ private:
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
-        const GameData &gameData,
+        const std::map<std::string, NpcData> &npcData,
         std::optional<Armed> &armed,
         EditorCommands &commands);
     void drawOverlayToggles();
-    void drawTiles(
-        Level &level,
-        const Texture2D &tileSet,
-        const GameData &gameData,
-        std::optional<Armed> &armed);
+    void drawTiles(const Texture2D &sheet, const TilePalette &palette, std::optional<Armed> &armed);
 };

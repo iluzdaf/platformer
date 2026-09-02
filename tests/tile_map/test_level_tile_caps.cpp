@@ -81,7 +81,6 @@ namespace
     TileMap mapOfRow(const std::vector<int> &row)
     {
         TileMapData tileMapData;
-        tileMapData.size = 16;
         tileMapData.indices = std::vector<std::vector<int>>{row};
 
         return TileMap(tileMapData, shippedPalettes());

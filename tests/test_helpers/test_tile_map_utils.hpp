@@ -56,11 +56,13 @@ inline TileMap setupTileMap(
     int tileSize = 16,
     const TilePalette &palette = getDefaultTileDataMap())
 {
+    TilePalette sized = palette;
+    sized.tileSet.tileSize = tileSize;
+
     TileMapData tileMapData;
-    tileMapData.size = tileSize;
     tileMapData.width = width;
     tileMapData.height = height;
-    return TileMap(tileMapData, palettesFrom(palette));
+    return TileMap(tileMapData, palettesFrom(sized));
 }
 
 inline TileMap tilesOfLevel(const std::string &jsonFilePath)

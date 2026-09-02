@@ -277,6 +277,8 @@ add_executable(tests
     tests/ui/test_data_inspector.cpp
     tests/ui/test_tile_animation_field.cpp
     tests/ui/test_tile_collider_field.cpp
+    tests/ui/test_levels_ui.cpp
+    tests/ui/test_levels_ui.cpp
     tests/ui/test_tile_palettes_ui.cpp
     tests/rendering/test_texture_cache.cpp
     tests/rendering/test_tile_set_textures.cpp

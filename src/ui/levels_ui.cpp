@@ -33,24 +33,41 @@ namespace
     }
 }
 
+SwitchingLevel switching(
+    const std::optional<std::string> &chosen,
+    bool levelHasUnsavedChanges,
+    const std::optional<std::string> &waitingOn,
+    bool switchPressed,
+    bool cancelPressed)
+{
+    std::optional<std::string> held = levelHasUnsavedChanges ? waitingOn : std::nullopt;
+
+    if (chosen && !levelHasUnsavedChanges)
+        return {chosen, std::nullopt};
+
+    if (chosen)
+        return {std::nullopt, chosen};
+
+    if (held && switchPressed)
+        return {held, std::nullopt};
+
+    if (held && cancelPressed)
+        return {std::nullopt, std::nullopt};
+
+    return {std::nullopt, held};
+}
+
 void LevelsUi::draw(
     Levels &levels,
     const Level &level,
     EditorCommands &commands,
     bool levelHasUnsavedChanges)
 {
-    if (!levelHasUnsavedChanges)
-        askedToSwitchTo.reset();
+    std::optional<std::string> chosen = levelChooser("playing", level.getPath());
 
-    if (std::optional<std::string> chosen = levelChooser("playing", level.getPath()))
-    {
-        if (levelHasUnsavedChanges)
-            askedToSwitchTo = *chosen;
-        else
-            commands.onLoadLevel(*chosen);
-    }
-
-    if (askedToSwitchTo)
+    bool switchPressed = false;
+    bool cancelPressed = false;
+    if (askedToSwitchTo && levelHasUnsavedChanges)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, UnsavedColour);
         ImGui::TextWrapped(
@@ -58,16 +75,16 @@ void LevelsUi::draw(
             levelName(*askedToSwitchTo).c_str(),
             levelName(level.getPath()).c_str());
         ImGui::PopStyleColor();
-        if (ImGui::Button("switch"))
-        {
-            std::string switchTo = *askedToSwitchTo;
-            askedToSwitchTo.reset();
-            commands.onLoadLevel(switchTo);
-        }
+        switchPressed = ImGui::Button("switch");
         ImGui::SameLine();
-        if (ImGui::Button("cancel"))
-            askedToSwitchTo.reset();
+        cancelPressed = ImGui::Button("cancel");
     }
+
+    SwitchingLevel decided =
+        switching(chosen, levelHasUnsavedChanges, askedToSwitchTo, switchPressed, cancelPressed);
+    askedToSwitchTo = decided.waitingOn;
+    if (decided.loadNow)
+        commands.onLoadLevel(*decided.loadNow);
 
     ImGui::Separator();
 
@@ -80,8 +97,8 @@ void LevelsUi::draw(
 
     ImGui::Separator();
 
-    if (std::optional<std::string> chosen = levelChooser("first", levels.getFirst()))
-        levels.setFirst(*chosen);
+    if (std::optional<std::string> first = levelChooser("first", levels.getFirst()))
+        levels.setFirst(*first);
 }
 
 bool LevelsUi::hasUnsavedChanges(const Levels &levels) const

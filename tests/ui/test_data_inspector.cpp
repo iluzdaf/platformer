@@ -1,7 +1,6 @@
 #include <optional>
 #include <string_view>
 #include <cstddef>
-#include <tuple>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
@@ -308,8 +307,14 @@ TEST_CASE("A list nobody clicks keeps what it had", "[DataInspector]")
     HeadlessImGui gui;
     std::vector<int> frames{7, 8};
 
-    Rows rows = rowsOf(gui, frames);
-    std::ignore = rows;
+    auto drawOpen = [&]
+    {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+        inspector::draw("frames", frames);
+    };
+
+    gui.frame(drawOpen);
+    gui.frame(drawOpen);
 
     REQUIRE(frames == std::vector<int>{7, 8});
 }

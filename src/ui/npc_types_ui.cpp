@@ -1,4 +1,3 @@
-#include <tuple>
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/npc_types_ui.hpp"
@@ -12,7 +11,7 @@ void NpcTypesUi::draw(GameData &gameData)
 }
 void NpcTypesUi::revert(GameData &gameData)
 {
-    std::ignore = glz::read_json(gameData.npcData, saveable.lastSeen("npcs"));
+    revertTo(saveable, "npcs", gameData.npcData);
 }
 
 void NpcTypesUi::save(GameData &gameData)
@@ -21,7 +20,7 @@ void NpcTypesUi::save(GameData &gameData)
     saveable.saved("npcs", asJson(gameData.npcData));
 }
 
-bool NpcTypesUi::hasUnsavedChanges(const GameData &gameData)
+bool NpcTypesUi::unsavedSince(const GameData &gameData)
 {
     return saveable.unsavedSince("npcs", asJson(gameData.npcData));
 }

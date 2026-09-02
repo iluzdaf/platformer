@@ -108,8 +108,7 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Levels:
-        levelsUi.draw(
-            subject.levels, subject.level, commands, levelUi.hasUnsavedChanges(subject.level));
+        levelsUi.draw(subject.levels, subject.level, commands, levelUi.unsavedSince(subject.level));
         break;
 
     case EditorSection::Level:
@@ -213,7 +212,7 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
     {
     case EditorSection::Game:
         return {
-            gameSettingsUi.hasUnsavedChanges(subject.gameData),
+            gameSettingsUi.unsavedSince(subject.gameData),
             std::nullopt,
             [this, &subject] { gameSettingsUi.save(subject.gameData); },
             [this, &subject]
@@ -224,7 +223,7 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
 
     case EditorSection::Camera:
         return {
-            cameraUi.hasUnsavedChanges(subject.gameData),
+            cameraUi.unsavedSince(subject.gameData),
             std::nullopt,
             [this, &subject] { cameraUi.save(subject.gameData); },
             [this, &subject]
@@ -235,35 +234,35 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
 
     case EditorSection::Player:
         return {
-            playerUi.hasUnsavedChanges(subject.gameData),
+            playerUi.unsavedSince(subject.gameData),
             std::nullopt,
             [this, &subject] { playerUi.save(subject.gameData); },
             [this, &subject] { playerUi.revert(subject.gameData); }};
 
     case EditorSection::Levels:
         return {
-            levelsUi.hasUnsavedChanges(subject.levels),
+            levelsUi.unsavedSince(subject.levels),
             std::nullopt,
             [this, &subject] { levelsUi.save(subject.levels); },
             [this, &subject] { levelsUi.revert(subject.levels); }};
 
     case EditorSection::Level:
         return {
-            levelUi.hasUnsavedChanges(subject.level),
+            levelUi.unsavedSince(subject.level),
             npcsThatCannotGetBack(subject.level),
             [this, &subject] { levelUi.save(subject.level); },
             [this, &subject] { commands.onLoadLevel(subject.level.getPath()); }};
 
     case EditorSection::NpcTypes:
         return {
-            npcTypesUi.hasUnsavedChanges(subject.gameData),
+            npcTypesUi.unsavedSince(subject.gameData),
             std::nullopt,
             [this, &subject] { npcTypesUi.save(subject.gameData); },
             [this, &subject] { npcTypesUi.revert(subject.gameData); }};
 
     case EditorSection::TilePalettes:
         return {
-            tilePalettesUi.hasUnsavedChanges(subject.gameData.tilePalettes),
+            tilePalettesUi.unsavedSince(subject.gameData.tilePalettes),
             std::nullopt,
             [this, &subject] { tilePalettesUi.save(subject.gameData.tilePalettes); },
             [this, &subject] { tilePalettesUi.revert(subject.gameData.tilePalettes); }};

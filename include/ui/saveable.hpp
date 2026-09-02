@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -49,6 +50,12 @@ public:
 private:
     std::map<std::string, std::string> asLastSeen;
 };
+
+template <class T> void revertTo(const Saveable &saveable, std::string_view name, T &value)
+{
+    if (glz::read_json(value, saveable.lastSeen(name)))
+        std::cerr << "could not put " << name << " back\n";
+}
 
 template <class T> std::string asJson(const T &value)
 {

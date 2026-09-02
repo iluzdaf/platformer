@@ -22,7 +22,7 @@ public:
 
     void save(TilePalettes &tilePalettes);
     void revert(TilePalettes &tilePalettes);
-    bool hasUnsavedChanges(const TilePalettes &tilePalettes);
+    bool unsavedSince(const TilePalettes &tilePalettes);
     void valuesReplaced();
 
 private:

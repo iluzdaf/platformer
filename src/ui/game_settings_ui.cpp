@@ -1,4 +1,3 @@
-#include <tuple>
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/game_settings_ui.hpp"
@@ -14,7 +13,7 @@ void GameSettingsUi::draw(GameData &gameData, EditorCommands &commands)
 }
 void GameSettingsUi::revert(GameData &gameData)
 {
-    std::ignore = glz::read_json(gameData.settings, saveable.lastSeen("game"));
+    revertTo(saveable, "game", gameData.settings);
 }
 
 void GameSettingsUi::save(GameData &gameData)
@@ -23,7 +22,7 @@ void GameSettingsUi::save(GameData &gameData)
     saveable.saved("game", asJson(gameData.settings));
 }
 
-bool GameSettingsUi::hasUnsavedChanges(const GameData &gameData)
+bool GameSettingsUi::unsavedSince(const GameData &gameData)
 {
     return saveable.unsavedSince("game", asJson(gameData.settings));
 }

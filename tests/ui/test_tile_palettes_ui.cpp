@@ -166,11 +166,11 @@ TEST_CASE("The palette editor reports unsaved once a tile set changes", "[TilePa
     EditorCommands commands;
     gui.frame([&] { tilePalettesUi.draw(palettes, textures, commands, armed); });
 
-    REQUIRE_FALSE(tilePalettesUi.hasUnsavedChanges(palettes));
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
     palettes["default"].tileSet.texture = std::string(assets::PlayerTexture);
 
-    REQUIRE(tilePalettesUi.hasUnsavedChanges(palettes));
+    REQUIRE(tilePalettesUi.unsavedSince(palettes));
 }
 
 TEST_CASE("A tile set nobody loaded is asked for once", "[TilePalettesUi]")
@@ -251,7 +251,7 @@ TEST_CASE(
     std::optional<Armed> armed;
     EditorCommands commands;
     gui.frame([&] { tilePalettesUi.draw(palettes, textures, commands, armed); });
-    REQUIRE_FALSE(tilePalettesUi.hasUnsavedChanges(palettes));
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
     TilePalette made;
     made.tileSet = TileSet{std::string(assets::TileSetTexture), 16};
@@ -259,7 +259,7 @@ TEST_CASE(
 
     REQUIRE(palettes["ice"].tiles.empty());
     REQUIRE(tilesInSheet(112, 112, palettes["ice"].tileSet.tileSize) == 49);
-    REQUIRE(tilePalettesUi.hasUnsavedChanges(palettes));
+    REQUIRE(tilePalettesUi.unsavedSince(palettes));
 }
 
 TEST_CASE("A rename is handed back so the level can be told", "[TilePalettesUi]")

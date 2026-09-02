@@ -11,7 +11,7 @@ public:
     void draw(GameData &gameData, EditorCommands &commands);
     void save(GameData &gameData);
     void revert(GameData &gameData);
-    bool hasUnsavedChanges(const GameData &gameData);
+    bool unsavedSince(const GameData &gameData);
     void valuesReplaced();
 
 private:

@@ -48,7 +48,7 @@ public:
         EditorCommands &commands);
 
     void save(Level &level);
-    bool hasUnsavedChanges(const Level &level);
+    bool unsavedSince(const Level &level);
     bool showingGrid() const;
     void valuesReplaced();
 

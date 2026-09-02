@@ -12,7 +12,7 @@ enum class EditorSection
     Player,
     Levels,
     Level,
-    NpcTypes,
+    Types,
     TilePalettes
 };
 
@@ -23,6 +23,6 @@ inline constexpr std::array<std::pair<EditorSection, std::string_view>, 8> Edito
     {EditorSection::Player, "Player"},
     {EditorSection::Levels, "Levels"},
     {EditorSection::Level, "Level"},
-    {EditorSection::NpcTypes, "NPC types"},
+    {EditorSection::Types, "Types"},
     {EditorSection::TilePalettes, "Tile palettes"},
 }};

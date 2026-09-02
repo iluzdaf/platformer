@@ -72,7 +72,7 @@ TEST_CASE("Every section that saves a file has a save to press", "[EditorSaving]
           EditorSection::Player,
           EditorSection::Levels,
           EditorSection::Level,
-          EditorSection::NpcTypes,
+          EditorSection::Types,
           EditorSection::TilePalettes})
         REQUIRE(editorUi.savingIn(listed, editing.subject()).save != nullptr);
 }

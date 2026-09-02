@@ -4,7 +4,9 @@
 #include <string>
 #include <imgui.h>
 #include <string_view>
+#include <optional>
 #include "ui/editor_ui.hpp"
+#include "ui/tile_palettes_ui.hpp"
 #include "rendering/texture_cache.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "cameras/camera2d.hpp"
@@ -129,9 +131,13 @@ void EditorUi::draw(
             commands);
         break;
 
-    case EditorSection::TilePalettes:
-        tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
-        break;
+    case EditorSection::TilePalettes: {
+        std::optional<PaletteRenamed> renamed =
+            tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
+        if (renamed && subject.level.getTileMap().getTilePalette() == renamed->from)
+            subject.level.getTileMap().setTilePalette(renamed->to);
+    }
+    break;
     }
 
     ImGui::End();

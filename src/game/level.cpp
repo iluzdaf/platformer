@@ -18,6 +18,7 @@
 #include "navigation/navigation_graph_builder.hpp"
 #include "navigation/navigation_path.hpp"
 #include "tile_map/tile_palette.hpp"
+#include "game/levels.hpp"
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
 #include "tile_map/tile.hpp"
@@ -364,15 +365,40 @@ LevelData Level::toLevelData() const
     return levelData;
 }
 
-void Level::save() const
+void writeLevelData(const LevelData &levelData, const std::string &levelPath)
 {
-    LevelData levelData = toLevelData();
     std::string json;
-    auto error = glz::write_json(levelData, json);
-    if (error)
+    if (glz::write_json(levelData, json))
         throw std::runtime_error("Failed to serialize LevelData to JSON");
 
-    std::ofstream outFile(assets::pathTo(path));
+    std::ofstream outFile(assets::pathTo(levelPath));
     outFile << withStructureOnLines(withPaddedGrid(json));
-    outFile.close();
+}
+
+int renamePaletteInLevels(
+    const std::string &directory,
+    const std::map<std::string, std::string> &renames)
+{
+    int rewritten = 0;
+    for (const std::string &levelPath : levelPathsIn(directory))
+    {
+        LevelData levelData;
+        if (glz::read_file_json(levelData, assets::pathTo(levelPath), std::string{}))
+            continue;
+
+        auto renamed = renames.find(levelData.tileMapData.tilePalette);
+        if (renamed == renames.end())
+            continue;
+
+        levelData.tileMapData.tilePalette = renamed->second;
+        writeLevelData(levelData, levelPath);
+        ++rewritten;
+    }
+
+    return rewritten;
+}
+
+void Level::save() const
+{
+    writeLevelData(toLevelData(), path);
 }

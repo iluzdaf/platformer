@@ -122,6 +122,7 @@ add_library(platformer_lib OBJECT
     src/ui/tile_index_field.cpp
     src/ui/tile_field_context.cpp
     src/ui/tile_animation_field.cpp
+    src/ui/tile_collider_field.cpp
     src/ui/tile_palettes_ui.cpp
     src/ui/score_ui.cpp
     src/ui/navigation_overlay.cpp
@@ -275,6 +276,7 @@ add_executable(tests
     tests/ui/test_unsaved_sections.cpp
     tests/ui/test_data_inspector.cpp
     tests/ui/test_tile_animation_field.cpp
+    tests/ui/test_tile_collider_field.cpp
     tests/ui/test_tile_palettes_ui.cpp
     tests/rendering/test_texture_cache.cpp
     tests/rendering/test_tile_set_textures.cpp

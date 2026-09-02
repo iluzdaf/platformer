@@ -6,9 +6,11 @@
 #include "tile_map/tile_index.hpp"
 
 struct TileAnimationData;
+struct TileColliderData;
 
 inspector::Edited drawCustomField(std::string_view name, TileIndex &value);
 inspector::Edited drawCustomField(std::string_view name, TileAnimationData &value);
+inspector::Edited drawCustomField(std::string_view name, TileColliderData &value);
 
 namespace inspector
 {

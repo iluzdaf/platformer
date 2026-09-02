@@ -115,7 +115,10 @@ add_library(platformer_lib OBJECT
     src/ui/level_ui.cpp
     src/ui/playback_ui.cpp
     src/ui/game_settings_ui.cpp
-    src/ui/npc_types_ui.cpp
+    src/ui/section_mark.cpp
+    src/ui/sheet_field.cpp
+    src/ui/type_shown.cpp
+    src/ui/types_ui.cpp
     src/ui/camera_ui.cpp
     src/ui/player_ui.cpp
     src/ui/levels_ui.cpp
@@ -276,6 +279,9 @@ add_executable(tests
     tests/ui/test_tile_map_overlays.cpp
     tests/ui/test_unsaved_sections.cpp
     tests/ui/test_editor_saving.cpp
+    tests/ui/test_types_ui.cpp
+    tests/ui/test_section_mark.cpp
+    tests/ui/test_sheet_field.cpp
     tests/ui/test_data_inspector.cpp
     tests/ui/test_frame_animation_field.cpp
     tests/ui/test_tile_collider_field.cpp

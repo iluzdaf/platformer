@@ -6,6 +6,7 @@
 #include <string_view>
 #include <optional>
 #include "ui/editor_ui.hpp"
+#include "ui/type_shown.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/palette_renamed.hpp"
 #include "ui/tile_palettes_ui.hpp"
@@ -19,6 +20,7 @@
 #include "ui/imgui_manager.hpp"
 #include "ui/debug_aabb_overlay.hpp"
 #include "ui/unsaved_colours.hpp"
+#include "ui/section_mark.hpp"
 
 namespace
 {
@@ -52,12 +54,8 @@ void EditorUi::draw(
     }
 
     std::array<SectionSaving, EditorSections.size()> saving;
-    std::array<bool, EditorSections.size()> unsaved{};
     for (std::size_t at = 0; at < EditorSections.size(); ++at)
-    {
         saving[at] = savingIn(EditorSections[at].first, subject);
-        unsaved[at] = saving[at].unsaved;
-    }
 
     ImGui::SetNextItemWidth(-FLT_MIN);
     // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage) the names are string literals
@@ -66,14 +64,16 @@ void EditorUi::draw(
         for (std::size_t at = 0; at < EditorSections.size(); ++at)
         {
             const auto &[listed, name] = EditorSections[at];
-            if (unsaved[at])
-                ImGui::PushStyleColor(ImGuiCol_Text, UnsavedColour);
+            std::optional<ImVec4> mark =
+                markFor(saving[at].unsaved, saving[at].cannotBecause.has_value());
+            if (mark)
+                ImGui::PushStyleColor(ImGuiCol_Text, *mark);
 
             // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage) a string literal again
             if (ImGui::Selectable(name.data(), listed == section))
                 section = listed;
 
-            if (unsaved[at])
+            if (mark)
                 ImGui::PopStyleColor();
         }
 
@@ -102,8 +102,8 @@ void EditorUi::draw(
         playerUi.draw(subject.gameData, commands);
         break;
 
-    case EditorSection::NpcTypes:
-        npcTypesUi.draw(subject.gameData);
+    case EditorSection::Types:
+        typesUi.draw(subject.gameData);
         break;
 
     case EditorSection::Levels:
@@ -182,8 +182,16 @@ void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()
 
         const auto &[listed, name] = EditorSections[at];
         ImGui::PushID(static_cast<int>(at));
+
+        std::optional<ImVec4> mark = markFor(thing.unsaved, thing.cannotBecause.has_value());
+        if (mark)
+            ImGui::PushStyleColor(ImGuiCol_Text, *mark);
+
         // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage) the names are string literals
         ImGui::TextUnformatted(name.data());
+
+        if (mark)
+            ImGui::PopStyleColor();
 
         ImGui::SameLine(SaveColumn);
         ImGui::BeginDisabled(thing.cannotBecause.has_value());
@@ -195,9 +203,6 @@ void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()
         ImGui::SameLine();
         if (ImGui::SmallButton("revert") && thing.revert)
             thing.revert();
-
-        if (const std::optional<std::string> &why = thing.cannotBecause)
-            ImGui::TextColored(CannotSaveColour, "%s", why->c_str());
 
         ImGui::PopID();
     }
@@ -250,12 +255,12 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
             [this, &subject] { levelUi.save(subject.level); },
             [this, &subject] { commands.onLoadLevel(subject.level.getPath()); }};
 
-    case EditorSection::NpcTypes:
+    case EditorSection::Types:
         return {
-            npcTypesUi.unsavedSince(subject.gameData),
-            std::nullopt,
-            [this, &subject] { npcTypesUi.save(subject.gameData); },
-            [this, &subject] { npcTypesUi.revert(subject.gameData); }};
+            typesUi.unsavedSince(subject.gameData),
+            typesNamingNoSheet(subject.gameData),
+            [this, &subject] { typesUi.save(subject.gameData); },
+            [this, &subject] { typesUi.revert(subject.gameData); }};
 
     case EditorSection::TilePalettes:
         return {
@@ -276,7 +281,7 @@ void EditorUi::valuesReplaced()
     gameSettingsUi.valuesReplaced();
     cameraUi.valuesReplaced();
     playerUi.valuesReplaced();
-    npcTypesUi.valuesReplaced();
+    typesUi.valuesReplaced();
     tilePalettesUi.valuesReplaced();
     levelUi.valuesReplaced();
     levelsUi.valuesReplaced();

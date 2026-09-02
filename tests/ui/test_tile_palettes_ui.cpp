@@ -2,6 +2,7 @@
 #include <optional>
 #include <string>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "assets/asset_paths.hpp"
@@ -94,6 +95,7 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include <tuple>
 #include <string>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "assets/asset_paths.hpp"
@@ -283,3 +285,21 @@ TEST_CASE("A rename is handed back so the level can be told", "[TilePalettesUi]"
 }
 
 #endif // SKIP_OPENGL_TESTS
+
+TEST_CASE("Reverting takes back a palette that was added", "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes = shippedPalettes();
+    std::size_t before = palettes.size();
+
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    TilePalette made;
+    made.tileSet = Sheet{std::string(assets::TileSetTexture), glm::ivec2(16)};
+    palettes.insert({"ice", made});
+
+    tilePalettesUi.revert(palettes);
+
+    REQUIRE(palettes.size() == before);
+    REQUIRE_FALSE(palettes.contains("ice"));
+}

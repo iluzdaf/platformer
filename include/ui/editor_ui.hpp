@@ -11,7 +11,7 @@
 #include "ui/editor_section.hpp"
 #include "ui/camera_ui.hpp"
 #include "ui/game_settings_ui.hpp"
-#include "ui/npc_types_ui.hpp"
+#include "ui/types_ui.hpp"
 #include "ui/playback_ui.hpp"
 #include "ui/player_ui.hpp"
 #include "ui/armed.hpp"
@@ -86,7 +86,7 @@ private:
     GameSettingsUi gameSettingsUi;
     CameraUi cameraUi;
     PlayerUi playerUi;
-    NpcTypesUi npcTypesUi;
+    TypesUi typesUi;
     LevelUi levelUi;
     TilePalettesUi tilePalettesUi;
     LevelsUi levelsUi;

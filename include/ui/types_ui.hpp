@@ -1,10 +1,11 @@
 #pragma once
 
 #include "ui/saveable.hpp"
+#include "ui/type_shown.hpp"
 
 struct GameData;
 
-class NpcTypesUi
+class TypesUi
 {
 public:
     void draw(GameData &gameData);
@@ -14,5 +15,8 @@ public:
     void valuesReplaced();
 
 private:
+    void drawChooser(GameData &gameData);
+
     Saveable saveable;
+    TypeShown showing;
 };

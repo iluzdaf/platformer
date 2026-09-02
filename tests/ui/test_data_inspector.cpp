@@ -110,22 +110,22 @@ TEST_CASE("What is on offer is put back when the scope ends", "[DataInspector]")
 
 TEST_CASE("A type without one still reaches the reflection path", "[DataInspector]")
 {
-    STATIC_REQUIRE_FALSE(inspector::HasCustomField<Sheet>);
     STATIC_REQUIRE_FALSE(inspector::HasCustomField<Camera2DData>);
     STATIC_REQUIRE_FALSE(inspector::HasCustomField<int>);
 
     HeadlessImGui gui;
-    Sheet tileSet{"textures/tile_set.png", glm::ivec2(16)};
+    Camera2DData cameraData{2.0f};
 
-    gui.frame([&] { inspector::draw("tileSet", tileSet); });
+    gui.frame([&] { inspector::draw("camera", cameraData); });
 
-    REQUIRE(tileSet.cellSize.x == 16);
+    REQUIRE(cameraData.zoom == 2.0f);
 }
 
 TEST_CASE("The types that draw themselves say so", "[DataInspector]")
 {
     STATIC_REQUIRE(inspector::HasCustomField<TileColliderData>);
     STATIC_REQUIRE(inspector::HasCustomField<FrameAnimationData>);
+    STATIC_REQUIRE(inspector::HasCustomField<Sheet>);
 }
 
 TEST_CASE("An animation keeps the frames it was given", "[DataInspector]")

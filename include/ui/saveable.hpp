@@ -53,8 +53,14 @@ private:
 
 template <class T> void revertTo(const Saveable &saveable, std::string_view name, T &value)
 {
-    if (glz::read_json(value, saveable.lastSeen(name)))
+    T asItWas;
+    if (glz::read_json(asItWas, saveable.lastSeen(name)))
+    {
         std::cerr << "could not put " << name << " back\n";
+        return;
+    }
+
+    value = std::move(asItWas);
 }
 
 template <class T> std::string asJson(const T &value)

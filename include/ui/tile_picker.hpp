@@ -1,16 +1,13 @@
 #pragma once
 
 #include <optional>
-#include <vector>
 
 class Texture2D;
+struct TileSet;
 
 inline constexpr float TilePickerCellSize = 32.0f;
 
-std::vector<int> tilesToPickFrom(const Texture2D &tileSet, int tileSize);
-
 std::optional<int> drawTilePicker(
-    const Texture2D &tileSet,
-    int tileSize,
-    const std::vector<int> &tileIndices,
+    const Texture2D &sheet,
+    const TileSet &tileSet,
     std::optional<int> armed);

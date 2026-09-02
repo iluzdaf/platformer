@@ -1,7 +1,6 @@
 #include <cfloat>
 #include <optional>
 #include <string>
-#include <vector>
 #include <imgui.h>
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/save_controls.hpp"
@@ -9,6 +8,7 @@
 #include "ui/data_inspector.hpp"
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
+#include "rendering/tile_set_textures.hpp"
 #include "tile_map/tile_data.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_palette.hpp"
@@ -64,19 +64,21 @@ void TilePalettesUi::draw(
         return;
     }
 
-    std::vector<int> tileIndices = tilesToPickFrom(*tileSet, palette.tileSet.tileSize);
-    if (tileIndices.empty())
+    int cells = tilesInSheet(
+        static_cast<int>(tileSet->getWidth()),
+        static_cast<int>(tileSet->getHeight()),
+        palette.tileSet.tileSize);
+    if (cells <= 0)
     {
         ImGui::TextDisabled("no whole tiles in this tile set");
         return;
     }
 
     std::optional<int> showing = paintedTile(armed);
-    if (showing && *showing >= static_cast<int>(tileIndices.size()))
+    if (showing && *showing >= cells)
         showing.reset();
 
-    std::optional<int> picked =
-        drawTilePicker(*tileSet, palette.tileSet.tileSize, tileIndices, showing);
+    std::optional<int> picked = drawTilePicker(*tileSet, palette.tileSet, showing);
     if (picked != showing)
         armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
 

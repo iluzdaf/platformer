@@ -15,7 +15,7 @@
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/tile_palettes_ui.hpp"
-#include "ui/tile_picker.hpp"
+#include "rendering/tile_set_textures.hpp"
 
 namespace
 {
@@ -120,7 +120,7 @@ TEST_CASE("The palette editor offers every cell of its sheet", "[TilePalettesUi]
 
     gui.frame([&] { tilePalettesUi.draw(palettes, textures, commands, armed); });
 
-    REQUIRE(tilesToPickFrom(textures.get(palettes["default"].tileSet.texture), 16).size() == 49);
+    REQUIRE(tilesInSheet(112, 112, 16) == 49);
     REQUIRE(palettes["default"].tiles.size() == 1);
 }
 

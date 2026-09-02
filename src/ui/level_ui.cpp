@@ -23,7 +23,6 @@
 #include "game/game_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
-#include "tile_map/tile_set.hpp"
 #include "ui/tile_map_overlays.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
@@ -227,11 +226,8 @@ void LevelUi::drawTiles(
     if (!ImGui::TreeNode("Tiles"))
         return;
 
-    const TileSet &sheet = level.getTileMap().getTileSet();
-    std::vector<int> tileIndices = tilesToPickFrom(tileSet, sheet.tileSize);
-
     std::optional<int> showing = paintedTile(armed);
-    std::optional<int> picked = drawTilePicker(tileSet, sheet.tileSize, tileIndices, showing);
+    std::optional<int> picked = drawTilePicker(tileSet, level.getTileMap().getTileSet(), showing);
     if (picked != showing)
         armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
 

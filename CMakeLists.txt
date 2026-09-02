@@ -100,6 +100,7 @@ add_library(platformer_lib OBJECT
     src/rendering/texture2d.cpp
     src/rendering/texture_cache.cpp
     src/rendering/tile_set_fit.cpp
+    src/rendering/frames_fit.cpp
     src/rendering/sheet_textures.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
@@ -291,6 +292,7 @@ add_executable(tests
     tests/rendering/test_texture_cache.cpp
     tests/rendering/test_tile_set_fit.cpp
     tests/rendering/test_frame_uv_range.cpp
+    tests/rendering/test_frames_fit.cpp
     tests/rendering/test_sheet_textures.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp

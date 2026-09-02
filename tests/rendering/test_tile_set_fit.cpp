@@ -62,12 +62,6 @@ TEST_CASE("A wider sheet holds more tiles", "[TileSet]")
     REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 128, 128));
 }
 
-TEST_CASE("Every shipped palette fits the tile set it names", "[TileSet]")
-{
-    for (const auto &[name, palette] : shippedPalettes())
-        REQUIRE_NOTHROW(checkTileSetFits(palette, name, 112, 112));
-}
-
 TEST_CASE("A tile keeps its cell when the sheet grows taller", "[TileSet]")
 {
     for (int index : {0, 6, 7, 13, 48})

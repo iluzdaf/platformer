@@ -27,6 +27,9 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 #include "tile_map/tile_palette.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "rendering/texture_cache.hpp"
+#include "game/game_data.hpp"
+#include "pickups/pickup_data.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "rendering/texture2d.hpp"
 
 TEST_CASE("Every actor's sheet is loaded before anything draws", "[SheetTextures]")
@@ -116,6 +119,33 @@ TEST_CASE("A palette naming no tile set is refused by name", "[SheetTextures]")
         warmTileSets(textures, palettes),
         Catch::Matchers::ContainsSubstring("No sheet is named") &&
             Catch::Matchers::ContainsSubstring("ice"));
+}
+
+TEST_CASE("Every shipped palette fits the tile set it names", "[SheetTextures]")
+{
+    TextureCache textures;
+
+    REQUIRE_NOTHROW(warmTileSets(textures, loadGameData().tilePalettes));
+}
+
+TEST_CASE("Every shipped pickup animates on frames its sheet holds", "[SheetTextures]")
+{
+    TextureCache textures;
+
+    REQUIRE_NOTHROW(warmPickupTextures(textures, loadGameData().pickupData));
+}
+
+TEST_CASE("A pickup animating past the end of its sheet says so", "[SheetTextures]")
+{
+    std::map<std::string, PickupData> pickupData = loadGameData().pickupData;
+    pickupData.at("coin").animationData.frames.push_back(99);
+
+    TextureCache textures;
+
+    REQUIRE_THROWS_WITH(
+        warmPickupTextures(textures, pickupData),
+        Catch::Matchers::ContainsSubstring("coin") &&
+            Catch::Matchers::ContainsSubstring("frame 99"));
 }
 
 #endif

@@ -5,6 +5,7 @@
 #include "rendering/texture_cache.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_set_fit.hpp"
+#include "rendering/frames_fit.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "actor/actor_data.hpp"
 #include "player/player_data.hpp"
@@ -42,7 +43,17 @@ void warmActorTextures(
 void warmPickupTextures(TextureCache &textures, const std::map<std::string, PickupData> &pickupData)
 {
     for (const auto &[name, data] : pickupData)
+    {
         warmOne(textures, data.sheet, quoted(name));
+
+        const Texture2D &texture = textures.get(data.sheet.texture);
+        checkFramesFit(
+            data.animationData,
+            data.sheet,
+            quoted(name),
+            static_cast<int>(texture.getWidth()),
+            static_cast<int>(texture.getHeight()));
+    }
 }
 
 void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes)

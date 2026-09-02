@@ -138,7 +138,6 @@ TEST_CASE("A level knows where it heads next", "[TileMap][Level]")
 TEST_CASE("A level naming a palette that does not exist fails to load", "[TileMap][Level]")
 {
     TileMapData tileMapData;
-    tileMapData.size = 16;
     tileMapData.width = 4;
     tileMapData.height = 4;
     tileMapData.tilePalette = "nope";

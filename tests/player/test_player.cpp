@@ -404,7 +404,6 @@ namespace
             }
 
         TileMapData tileMapData;
-        tileMapData.size = 16;
         tileMapData.indices = rows;
         tileMapData.tilePalette = "default";
         return tileMapData;

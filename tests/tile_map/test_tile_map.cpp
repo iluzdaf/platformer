@@ -109,7 +109,6 @@ TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
     palette.tileSet.tileSize = 8;
 
     TileMapData tileMapData;
-    tileMapData.size = 16;
     tileMapData.width = 2;
     tileMapData.height = 2;
 
@@ -119,20 +118,35 @@ TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
     REQUIRE(tileMap.getTileSet().tileSize == 8);
 }
 
-TEST_CASE("A tile set cell is not the world size of a tile", "[TileMap]")
+TEST_CASE("A tile is as big as the cell its palette draws it from", "[TileMap]")
 {
     TilePalette palette = paletteOf({{0, TileData{}}});
     palette.tileSet.tileSize = 8;
 
     TileMapData tileMapData;
-    tileMapData.size = 16;
     tileMapData.width = 2;
     tileMapData.height = 2;
 
     TileMap tileMap(tileMapData, palettesFrom(palette));
 
-    REQUIRE(tileMap.getTileSize() == 16);
-    REQUIRE(tileMap.getTileSet().tileSize == 8);
+    REQUIRE(tileMap.getTileSize() == 8);
+    REQUIRE(tileMap.getWorldWidth() == 16);
+    REQUIRE(tileMap.getWorldHeight() == 16);
+}
+
+TEST_CASE("A level takes the size of a tile from the palette it names", "[TileMap]")
+{
+    TilePalette small = paletteOf({{0, TileData{}}});
+    small.tileSet.tileSize = 8;
+    TilePalette large = paletteOf({{0, TileData{}}});
+    large.tileSet.tileSize = 32;
+
+    TileMapData tileMapData;
+    tileMapData.width = 4;
+    tileMapData.height = 4;
+
+    REQUIRE(TileMap(tileMapData, palettesFrom(small)).getWorldWidth() == 32);
+    REQUIRE(TileMap(tileMapData, palettesFrom(large)).getWorldWidth() == 128);
 }
 
 TEST_CASE("Every shipped palette names a texture that is on disk", "[TileMap]")
@@ -162,7 +176,6 @@ TEST_CASE("A painted tile the palette says nothing about is empty", "[TileMap]")
     TilePalette palette = paletteOf({{0, TileData{}}, {1, TileData{}}});
 
     TileMapData tileMapData;
-    tileMapData.size = 16;
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 7}};
 
     TileMap tileMap(tileMapData, palettesFrom(palette));
@@ -178,7 +191,6 @@ TEST_CASE("A palette naming a tile below zero fails to load", "[TileMap]")
     TilePalette palette = paletteOf({{-1, TileData{}}});
 
     TileMapData tileMapData;
-    tileMapData.size = 16;
     tileMapData.width = 2;
     tileMapData.height = 2;
 
@@ -193,7 +205,6 @@ TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
     TilePalette palette = paletteOf({{0, TileData{}}, {1, TileData{}}});
 
     TileMapData tileMapData;
-    tileMapData.size = 16;
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 0}};
 
     REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));
@@ -204,7 +215,6 @@ TEST_CASE("The empty tile is paintable even when a palette omits it", "[TileMap]
     TilePalette palette = paletteOf({{1, TileData{}}});
 
     TileMapData tileMapData;
-    tileMapData.size = 16;
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 0}};
 
     REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));

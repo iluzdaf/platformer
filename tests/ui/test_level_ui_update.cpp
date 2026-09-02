@@ -23,7 +23,6 @@ namespace
     Level levelPlacing(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
-        levelData.tileMapData.size = 16;
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)

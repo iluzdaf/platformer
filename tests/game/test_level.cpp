@@ -66,7 +66,6 @@ namespace
     LevelData corridorPlacing(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
-        levelData.tileMapData.size = 16;
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)
@@ -104,7 +103,6 @@ namespace
     Level levelWithALedge(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
-        levelData.tileMapData.size = 16;
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(LedgeMapRows, std::vector<int>(LedgeMapTiles, 0));
         std::vector<std::vector<int>> &indices = *levelData.tileMapData.indices;

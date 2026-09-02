@@ -84,15 +84,14 @@ TEST_CASE("An arc only ever moves further from where it left", "[JumpArc]")
         REQUIRE(arc[index].x >= arc[index - 1].x);
 }
 
-TEST_CASE("The default jump clears three tiles and crosses eight", "[JumpArc]")
+TEST_CASE("The default jump rises between 48 and 64 and crosses between 128 and 144", "[JumpArc]")
 {
     std::vector<glm::vec2> arc = simulateJumpArc(jumperMotionData()).offsets;
-    constexpr float TileSize = 16.0f;
 
-    REQUIRE(peakHeightOf(arc) / TileSize > 3.0f);
-    REQUIRE(peakHeightOf(arc) / TileSize < 4.0f);
-    REQUIRE(reachOf(arc) / TileSize > 8.0f);
-    REQUIRE(reachOf(arc) / TileSize < 9.0f);
+    REQUIRE(peakHeightOf(arc) > 48.0f);
+    REQUIRE(peakHeightOf(arc) < 64.0f);
+    REQUIRE(reachOf(arc) > 128.0f);
+    REQUIRE(reachOf(arc) < 144.0f);
 }
 
 TEST_CASE("A stronger jump reaches higher than a weaker one", "[JumpArc]")
@@ -164,7 +163,6 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
         rows[7][x] = 1;
 
     TileMapData tileMapData;
-    tileMapData.size = TileSize;
     tileMapData.indices = rows;
     tileMapData.tilePalette = "default";
     TileMap tileMap(tileMapData, palettesFrom(getDefaultTileDataMap()));

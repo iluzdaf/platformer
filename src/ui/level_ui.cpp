@@ -1,3 +1,4 @@
+#include <map>
 #include <string>
 #include <cstddef>
 #include <memory>
@@ -20,7 +21,7 @@
 #include "ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
-#include "game/game_data.hpp"
+#include "npc/npc_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "ui/tile_map_overlays.hpp"
@@ -82,8 +83,9 @@ void LevelUi::draw(
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
-    const Texture2D &tileSet,
-    const GameData &gameData,
+    const Texture2D &sheet,
+    const TilePalette &palette,
+    const std::map<std::string, NpcData> &npcData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
@@ -108,8 +110,8 @@ void LevelUi::draw(
         return;
 
     drawLevel(level, commands);
-    drawTiles(level, tileSet, gameData, armed);
-    drawActors(level, npcs, playerMotionState, playerFeet, playerState, gameData, armed, commands);
+    drawTiles(sheet, palette, armed);
+    drawActors(level, npcs, playerMotionState, playerFeet, playerState, npcData, armed, commands);
 }
 
 void LevelUi::drawActors(
@@ -118,7 +120,7 @@ void LevelUi::drawActors(
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
-    const GameData &gameData,
+    const std::map<std::string, NpcData> &npcData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
@@ -127,14 +129,7 @@ void LevelUi::drawActors(
 
     ActorShown wasShowing = showingActor;
     ActorAsked asked = drawActorsInLevel(
-        level,
-        npcs,
-        playerMotionState,
-        playerFeet,
-        playerState,
-        gameData.npcData,
-        showingActor,
-        armed);
+        level, npcs, playerMotionState, playerFeet, playerState, npcData, showingActor, armed);
 
     if (asked.addNpcOfType)
     {
@@ -218,20 +213,18 @@ void LevelUi::drawOverlayToggles()
 }
 
 void LevelUi::drawTiles(
-    Level &level,
-    const Texture2D &tileSet,
-    const GameData &gameData,
+    const Texture2D &sheet,
+    const TilePalette &palette,
     std::optional<Armed> &armed)
 {
     if (!ImGui::TreeNode("Tiles"))
         return;
 
     std::optional<int> showing = paintedTile(armed);
-    std::optional<int> picked = drawTilePicker(tileSet, level.getTileMap().getTileSet(), showing);
+    std::optional<int> picked = drawTilePicker(sheet, palette.tileSet, showing);
     if (picked != showing)
         armed = picked ? std::optional<Armed>(PaintTile{*picked}) : std::nullopt;
 
-    const TilePalette &palette = gameData.tilePalettes.at(level.getTileMap().getTilePalette());
     if (picked)
     {
         ImGui::Separator();

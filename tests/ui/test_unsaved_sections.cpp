@@ -125,7 +125,8 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
                     level.getTileMap().feetOnTile(glm::ivec2(1, 1)),
                     playerState,
                     tileSet,
-                    gameData,
+                    gameData.tilePalettes.at(level.getTileMap().getTilePalette()),
+                    gameData.npcData,
                     armed,
                     commands);
             });

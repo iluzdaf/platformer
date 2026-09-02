@@ -12,7 +12,6 @@
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "ui/actors_in_level.hpp"
-#include "ui/save_controls.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
@@ -109,7 +108,7 @@ void LevelUi::draw(
     if (!ImGui::CollapsingHeader("Inspector"))
         return;
 
-    drawLevel(level, commands);
+    drawLevel(level);
     drawTiles(sheet, palette, armed);
     drawActors(level, npcs, playerMotionState, playerFeet, playerState, npcData, armed, commands);
 }
@@ -170,20 +169,8 @@ std::string LevelUi::asItWouldBeSaved(const Level &level) const
     return json;
 }
 
-void LevelUi::drawLevel(Level &level, EditorCommands &commands)
+void LevelUi::drawLevel(Level &level)
 {
-    bool reverted = drawSaveControls(
-        saveable,
-        level.getPath(),
-        asItWouldBeSaved(level),
-        [&level] { level.save(); },
-        [&](const std::string &) { commands.onLoadLevel(level.getPath()); },
-        npcsThatCannotGetBack(level));
-    if (reverted)
-        return;
-
-    ImGui::Separator();
-
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(110.0f);
@@ -267,9 +254,9 @@ void LevelUi::save(Level &level)
     saveable.saved(level.getPath(), asItWouldBeSaved(level));
 }
 
-bool LevelUi::hasUnsavedChanges(const Level &level) const
+bool LevelUi::hasUnsavedChanges(const Level &level)
 {
-    return saveable.unsaved(level.getPath(), asItWouldBeSaved(level));
+    return saveable.unsavedSince(level.getPath(), asItWouldBeSaved(level));
 }
 
 void LevelUi::update(

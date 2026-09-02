@@ -48,7 +48,7 @@ public:
         EditorCommands &commands);
 
     void save(Level &level);
-    bool hasUnsavedChanges(const Level &level) const;
+    bool hasUnsavedChanges(const Level &level);
     bool showingGrid() const;
     void valuesReplaced();
 
@@ -60,7 +60,7 @@ private:
     bool drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
 
     std::string asItWouldBeSaved(const Level &level) const;
-    void drawLevel(Level &level, EditorCommands &commands);
+    void drawLevel(Level &level);
     void drawActors(
         Level &level,
         const std::vector<std::unique_ptr<Npc>> &npcs,

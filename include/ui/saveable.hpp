@@ -17,6 +17,13 @@ public:
             lastSeen = now;
     }
 
+    bool unsavedSince(std::string_view name, const std::string &now)
+    {
+        seen(name, now);
+
+        return unsaved(name, now);
+    }
+
     bool unsaved(std::string_view name, const std::string &now) const
     {
         auto it = asLastSeen.find(std::string(name));

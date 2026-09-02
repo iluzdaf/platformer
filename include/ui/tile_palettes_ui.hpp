@@ -21,7 +21,8 @@ public:
         std::optional<Armed> &armed);
 
     void save(TilePalettes &tilePalettes);
-    bool hasUnsavedChanges(const TilePalettes &tilePalettes) const;
+    void revert(TilePalettes &tilePalettes);
+    bool hasUnsavedChanges(const TilePalettes &tilePalettes);
     void valuesReplaced();
 
 private:

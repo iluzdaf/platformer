@@ -9,7 +9,8 @@ class NpcTypesUi
 public:
     void draw(GameData &gameData);
     void save(GameData &gameData);
-    bool hasUnsavedChanges(const GameData &gameData) const;
+    void revert(GameData &gameData);
+    bool hasUnsavedChanges(const GameData &gameData);
     void valuesReplaced();
 
 private:

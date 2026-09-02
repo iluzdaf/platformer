@@ -4,7 +4,7 @@
 #include <imgui.h>
 #include "ui/levels_ui.hpp"
 #include "ui/switching_level.hpp"
-#include "ui/save_controls.hpp"
+#include "ui/unsaved_colours.hpp"
 #include "ui/saveable.hpp"
 #include "game/levels.hpp"
 #include "game/level.hpp"
@@ -65,27 +65,23 @@ void LevelsUi::draw(
 
     ImGui::Separator();
 
-    drawSaveControls(
-        saveable,
-        "levels",
-        levels.getFirst(),
-        [&levels] { levels.save(); },
-        [&levels](const std::string &lastSeen) { levels.setFirst(lastSeen); });
-
-    ImGui::Separator();
-
     if (std::optional<std::string> first = levelChooser("first", levels.getFirst()))
         levels.setFirst(*first);
 }
+void LevelsUi::revert(Levels &levels)
+{
+    levels.setFirst(saveable.lastSeen("levels"));
+}
+
 void LevelsUi::save(Levels &levels)
 {
     levels.save();
     saveable.saved("levels", levels.getFirst());
 }
 
-bool LevelsUi::hasUnsavedChanges(const Levels &levels) const
+bool LevelsUi::hasUnsavedChanges(const Levels &levels)
 {
-    return saveable.unsaved("levels", levels.getFirst());
+    return saveable.unsavedSince("levels", levels.getFirst());
 }
 
 void LevelsUi::valuesReplaced()

@@ -23,7 +23,8 @@ public:
         const Camera2D &camera,
         const Player &player);
     void save(GameData &gameData);
-    bool hasUnsavedChanges(const GameData &gameData) const;
+    void revert(GameData &gameData);
+    bool hasUnsavedChanges(const GameData &gameData);
     void valuesReplaced();
 
 private:

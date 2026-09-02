@@ -7,6 +7,7 @@
 #include <utility>
 #include <map>
 #include <optional>
+#include <set>
 #include <vector>
 #include <glaze/glaze.hpp>
 #include "navigation/navigation_path.hpp"
@@ -830,4 +831,31 @@ TEST_CASE("An npc drops off a platform to a beat end below its edge", "[Npc]")
     }
 
     REQUIRE(cameDown);
+}
+
+TEST_CASE("A patrolling npc says which node it set off from and where it is headed", "[Npc]")
+{
+    NpcSpawnData spawn = patrolling("explorer", OnTheGround, OnTheGround, LedgeLeftEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
+
+    Npc npc(shippedNpcData().at(spawn.type), level.patrolFor(spawn));
+    standIn(npc, level.getTileMap(), spawn.tilePosition);
+
+    REQUIRE_FALSE(npc.getCurrentNodeId());
+
+    std::set<std::pair<int, int>> legsWalked;
+    for (int step = 0; step < 4000; ++step)
+    {
+        npc.preFixedUpdate();
+        npc.fixedUpdate(0.01f, level);
+
+        std::optional<int> setOffAt = npc.getCurrentNodeId();
+        std::optional<int> headingFor = npc.getTargetNodeId();
+        if (setOffAt && headingFor)
+            legsWalked.insert({*setOffAt, *headingFor});
+    }
+
+    REQUIRE(legsWalked.size() > 1);
+    for (const auto &[setOffAt, headingFor] : legsWalked)
+        REQUIRE(setOffAt != headingFor);
 }

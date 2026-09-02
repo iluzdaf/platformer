@@ -32,6 +32,8 @@ public:
     const glm::vec2 &getPosition() const;
     const NavigationProfile &getNavigationProfile() const;
     std::string_view getStateName() const;
+    std::optional<int> getCurrentNodeId() const;
+    std::optional<int> getTargetNodeId() const;
     void setPosition(const glm::vec2 &position);
 
 protected:

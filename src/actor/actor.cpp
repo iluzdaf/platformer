@@ -1,3 +1,4 @@
+#include <optional>
 #include <string_view>
 #include "actor/actor.hpp"
 #include "actor/actor_animation_data.hpp"
@@ -113,6 +114,16 @@ const glm::vec2 &Actor::getPosition() const
 std::string_view Actor::getStateName() const
 {
     return behavior ? behavior->getStateName() : std::string_view{};
+}
+
+std::optional<int> Actor::getCurrentNodeId() const
+{
+    return behavior ? behavior->getCurrentNodeId() : std::nullopt;
+}
+
+std::optional<int> Actor::getTargetNodeId() const
+{
+    return behavior ? behavior->getTargetNodeId() : std::nullopt;
 }
 
 void Actor::setPosition(const glm::vec2 &position)

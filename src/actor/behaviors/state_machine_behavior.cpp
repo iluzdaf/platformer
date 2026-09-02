@@ -142,3 +142,13 @@ std::string_view StateMachineBehavior::getStateName() const
 {
     return states.empty() ? std::string_view{} : data.states[activeState].name;
 }
+
+std::optional<int> StateMachineBehavior::getCurrentNodeId() const
+{
+    return states.empty() ? std::nullopt : states[activeState]->getCurrentNodeId();
+}
+
+std::optional<int> StateMachineBehavior::getTargetNodeId() const
+{
+    return states.empty() ? std::nullopt : states[activeState]->getTargetNodeId();
+}

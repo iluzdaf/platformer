@@ -234,11 +234,6 @@ bool TileMap::standsOnGround(glm::ivec2 tilePosition) const
            !getTileAtTilePosition(tilePosition).isSolid() && getTileAtTilePosition(below).isSolid();
 }
 
-const std::unordered_map<int, Tile> &TileMap::getTiles() const
-{
-    return tiles;
-}
-
 TileMapData TileMap::toTileMapData() const
 {
     TileMapData data;

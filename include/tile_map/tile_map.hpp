@@ -34,7 +34,6 @@ public:
     glm::vec2 feetOnTile(glm::ivec2 tilePosition) const;
     glm::ivec2 tileStoodOnAt(glm::vec2 worldPosition) const;
     bool standsOnGround(glm::ivec2 tilePosition) const;
-    const std::unordered_map<int, Tile> &getTiles() const;
     TileMapData toTileMapData() const;
     bool validTilePosition(glm::ivec2 tilePosition) const;
     bool probeSolidTiles(

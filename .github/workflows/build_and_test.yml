@@ -263,10 +263,10 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           python3 tools/coverage.py build/coverage
 
-      - name: Say what nothing calls
+      - name: Say what nothing calls, and what only the tests call
         run: |
           {
-            echo '### Functions no binary keeps'
+            echo '### Functions no binary keeps, and functions only the tests keep'
             echo
             echo '```'
             python3 tools/dead_code.py build/coverage

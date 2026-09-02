@@ -1,4 +1,5 @@
-"""Name the functions this project defines that neither binary keeps.
+"""Name the functions this project defines that neither binary keeps, and the
+ones only the tests keep.
 
 The compiler already refuses an unused function with internal linkage, which is
 how -Werror catches a helper nobody calls. It cannot say the same about anything
@@ -11,8 +12,16 @@ the tests is reached from nothing.
     cmake --build build/dead
     python3 tools/dead_code.py build/dead
 
-Alive in either binary counts. A function only the tests call is tested rather
-than dead, and one only the game calls is shipped rather than untested.
+Alive in either binary counts for that first question. A function only the game
+calls is shipped rather than untested, and coverage.py already says so in more
+detail, so it is not reported here.
+
+The other way round is worth a section of its own. A function the tests keep
+alive and the game does not is not dead, and it is not well tested either: the
+tests run every line of it, so coverage calls it covered, and nothing in the
+game ever asks for it. That is the one thing neither tool can see on its own.
+Some of these are honest seams a test needs to observe private state through.
+Some are an API the game stopped wanting. Only reading tells them apart.
 
 This reports and does not fail, because the linker cannot tell an unused function
 from an inlined one. Both leave no symbol behind. Actor::Actor is called by two
@@ -73,7 +82,7 @@ def symbols(nm, paths):
     return named
 
 
-def unreached(buildDirectory):
+def reachability(buildDirectory):
     nm = llvmTool("llvm-nm")
     build = Path(buildDirectory)
 
@@ -81,15 +90,19 @@ def unreached(buildDirectory):
     if not objects:
         raise SystemExit(f"no platformer_lib objects under {build}: build it first")
 
-    binaries = [build / name for name in ("platformer", "tests")]
-    missing = [str(b) for b in binaries if not b.exists()]
+    game, tests = build / "platformer", build / "tests"
+    missing = [str(b) for b in (game, tests) if not b.exists()]
     if missing:
         raise SystemExit(f"{', '.join(missing)} not found: build them first")
 
     defined = symbols(nm, objects)
-    alive = symbols(nm, binaries)
+    inGame = symbols(nm, [game])
+    inTests = symbols(nm, [tests])
 
-    return sorted(defined - alive)
+    nothingKeeps = readable(sorted(defined - inGame - inTests))
+    onlyTestsKeep = readable(sorted((defined & inTests) - inGame))
+
+    return nothingKeeps, onlyTestsKeep
 
 
 def readable(names):
@@ -103,15 +116,25 @@ def main():
     parser.add_argument("build", help="a build directory configured with -DDEAD_CODE=ON")
     arguments = parser.parse_args()
 
-    names = readable(unreached(arguments.build))
-    if not names:
-        print("every function this project defines is reached from the game or the tests")
-        return 0
+    nothingKeeps, onlyTestsKeep = reachability(arguments.build)
 
-    print(f"{len(names)} functions survive in neither binary, so nothing the linker")
-    print("can see calls them. An inlined function looks the same, so read before deleting.\n")
-    for name in names:
-        print(f"  {name}")
+    if nothingKeeps:
+        print(f"{len(nothingKeeps)} functions survive in neither binary, so nothing the linker")
+        print("can see calls them. An inlined function looks the same, so read before deleting.\n")
+        for name in nothingKeeps:
+            print(f"  {name}")
+    else:
+        print("every function this project defines is reached from the game or the tests")
+
+    print()
+
+    if onlyTestsKeep:
+        print(f"{len(onlyTestsKeep)} functions survive only in the tests. Coverage calls them")
+        print("covered because the tests run them, and the game never asks for any of them.\n")
+        for name in onlyTestsKeep:
+            print(f"  {name}")
+    else:
+        print("nothing the tests keep alive is a stranger to the game")
 
     return 0
 

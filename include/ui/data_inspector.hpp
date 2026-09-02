@@ -184,12 +184,27 @@ namespace inspector
                 return {};
 
             Edited edited;
+            std::optional<std::size_t> takeAway;
             for (std::size_t index = 0; index < value.size(); ++index)
             {
                 ImGui::PushID(static_cast<int>(index));
+                if (ImGui::SmallButton("-"))
+                    takeAway = index;
+
+                ImGui::SameLine();
                 edited |= draw(std::to_string(index), value[index]);
                 ImGui::PopID();
             }
+
+            bool addAsked = ImGui::SmallButton("+");
+
+            if (takeAway)
+                value.erase(value.begin() + static_cast<std::ptrdiff_t>(*takeAway));
+            else if (addAsked)
+                value.emplace_back();
+
+            if (takeAway || addAsked)
+                edited |= Edited{true, true};
 
             ImGui::TreePop();
             return edited;

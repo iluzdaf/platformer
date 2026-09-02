@@ -13,8 +13,8 @@ public:
     explicit FleeBehavior(const FleeBehaviorData &data);
     void reset() override;
     InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
-    std::optional<int> getCurrentNodeId() const;
-    std::optional<int> getTargetNodeId() const;
+    std::optional<int> getCurrentNodeId() const override;
+    std::optional<int> getTargetNodeId() const override;
 
 private:
     FleeBehaviorData data;

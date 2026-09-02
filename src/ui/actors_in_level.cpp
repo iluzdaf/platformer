@@ -110,6 +110,18 @@ namespace
         glm::ivec2 on =
             level.getTileMap().tileStoodOnAt(npc->getPhysicsBody().getAABB().bottomCenter());
         drawRow("Stands On", std::format("{}, {}", on.x, on.y));
+
+        std::optional<int> setOffAt = npc->getCurrentNodeId();
+        std::optional<int> headingFor = npc->getTargetNodeId();
+        if (!setOffAt)
+        {
+            beginRow("Route");
+            ImGui::TextDisabled("off the graph");
+        }
+        else if (!headingFor)
+            drawRow("Route", std::format("waiting at {}", *setOffAt));
+        else
+            drawRow("Route", std::format("{} heading for {}", *setOffAt, *headingFor));
     }
 
     void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)

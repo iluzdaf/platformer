@@ -17,8 +17,8 @@ public:
         std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween = std::nullopt);
     void reset() override;
     InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
-    std::optional<int> getCurrentNodeId() const;
-    std::optional<int> getTargetNodeId() const;
+    std::optional<int> getCurrentNodeId() const override;
+    std::optional<int> getTargetNodeId() const override;
 
 private:
     struct BeatEnd

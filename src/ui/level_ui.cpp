@@ -261,6 +261,11 @@ bool LevelUi::showingGrid() const
 {
     return grid.showing;
 }
+void LevelUi::save(Level &level)
+{
+    level.save();
+    saveable.saved(level.getPath(), asItWouldBeSaved(level));
+}
 
 bool LevelUi::hasUnsavedChanges(const Level &level) const
 {

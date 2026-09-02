@@ -11,6 +11,11 @@ void NpcTypesUi::draw(GameData &gameData)
     ImGui::Separator();
     inspector::draw("types", gameData.npcData);
 }
+void NpcTypesUi::save(GameData &gameData)
+{
+    saveNpcData(gameData.npcData);
+    saveable.saved("npcs", asJson(gameData.npcData));
+}
 
 bool NpcTypesUi::hasUnsavedChanges(const GameData &gameData) const
 {

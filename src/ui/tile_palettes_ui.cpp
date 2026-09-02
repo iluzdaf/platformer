@@ -204,6 +204,11 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
 
     return std::nullopt;
 }
+void TilePalettesUi::save(TilePalettes &tilePalettes)
+{
+    saveWithRenames(tilePalettes);
+    saveable.saved("palettes", asJson(tilePalettes));
+}
 
 bool TilePalettesUi::hasUnsavedChanges(const TilePalettes &tilePalettes) const
 {

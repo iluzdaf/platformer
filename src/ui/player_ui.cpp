@@ -48,6 +48,11 @@ void PlayerUi::drawOverlay(
 
     drawFadingAABBs(imGuiManager, camera, fadingAABBs);
 }
+void PlayerUi::save(GameData &gameData)
+{
+    savePlayerData(gameData.playerData);
+    saveable.saved("player", asJson(gameData.playerData));
+}
 
 bool PlayerUi::hasUnsavedChanges(const GameData &gameData) const
 {

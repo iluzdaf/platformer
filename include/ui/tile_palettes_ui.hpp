@@ -20,6 +20,7 @@ public:
         EditorCommands &commands,
         std::optional<Armed> &armed);
 
+    void save(TilePalettes &tilePalettes);
     bool hasUnsavedChanges(const TilePalettes &tilePalettes) const;
     void valuesReplaced();
 

@@ -22,6 +22,7 @@ public:
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
         const Player &player);
+    void save(GameData &gameData);
     bool hasUnsavedChanges(const GameData &gameData) const;
     void valuesReplaced();
 

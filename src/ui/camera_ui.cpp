@@ -17,6 +17,11 @@ void CameraUi::draw(GameData &gameData, const Camera2D &camera, EditorCommands &
     if (inspector::drawFields(gameData.cameraData) || reverted)
         commands.onCameraChanged();
 }
+void CameraUi::save(GameData &gameData)
+{
+    saveCameraData(gameData.cameraData);
+    saveable.saved("camera", asJson(gameData.cameraData));
+}
 
 bool CameraUi::hasUnsavedChanges(const GameData &gameData) const
 {

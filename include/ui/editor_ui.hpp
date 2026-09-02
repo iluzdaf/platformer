@@ -1,7 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <array>
+#include <functional>
 #include <optional>
+#include <string>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/editor_commands.hpp"
@@ -28,6 +31,13 @@ class Player;
 class TextureCache;
 
 inline constexpr float InspectorWidth = 280.0f;
+
+struct SectionSaving
+{
+    bool unsaved = false;
+    std::optional<std::string> cannotBecause;
+    std::function<void()> save;
+};
 
 struct EditorSubject
 {
@@ -62,8 +72,10 @@ public:
 
     void valuesReplaced();
 
+    SectionSaving savingIn(EditorSection listed, const EditorSubject &subject);
+
 private:
-    bool unsavedIn(EditorSection listed, const EditorSubject &subject) const;
+    void drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving);
 
 private:
     EditorSection section = EditorSection::Playback;

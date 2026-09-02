@@ -1,4 +1,3 @@
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include "rendering/tile_set_textures.hpp"
@@ -13,30 +12,6 @@ namespace
     {
         return " for palette \"" + paletteName + "\"";
     }
-}
-
-int tilesAcross(int textureWidth, int tileSize)
-{
-    return tileSize > 0 ? textureWidth / tileSize : 0;
-}
-
-std::optional<std::string> whatMovingToWouldBreak(
-    const TileSet &saved,
-    int savedTextureWidth,
-    const TileSet &edited,
-    int editedTextureWidth,
-    const std::string &paletteName)
-{
-    if (saved == edited)
-        return std::nullopt;
-
-    int was = tilesAcross(savedTextureWidth, saved.tileSize);
-    int now = tilesAcross(editedTextureWidth, edited.tileSize);
-    if (was == now)
-        return std::nullopt;
-
-    return "every tile in every level using \"" + paletteName +
-           "\" would move: " + std::to_string(was) + " across becomes " + std::to_string(now);
 }
 
 void checkTileSetFits(

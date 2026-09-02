@@ -70,52 +70,6 @@ TEST_CASE("Every shipped palette fits the tile set it names", "[TileSet]")
         REQUIRE_NOTHROW(checkTileSetFits(palette, name, 112, 112));
 }
 
-TEST_CASE("A tile set of the same grid is a reskin", "[TileSet]")
-{
-    TileSet saved{"textures/tile_set.png", 16};
-    TileSet edited{"textures/night.png", 16};
-
-    REQUIRE_FALSE(whatMovingToWouldBreak(saved, 112, edited, 112, "default").has_value());
-}
-
-TEST_CASE("A wider sheet moves every tile", "[TileSet]")
-{
-    TileSet saved{"textures/tile_set.png", 16};
-    TileSet edited{"textures/bigger.png", 16};
-
-    auto broken = whatMovingToWouldBreak(saved, 112, edited, 128, "default");
-
-    REQUIRE(broken.has_value());
-    REQUIRE_THAT(*broken, Catch::Matchers::ContainsSubstring("7 across becomes 8"));
-    REQUIRE_THAT(*broken, Catch::Matchers::ContainsSubstring("default"));
-}
-
-TEST_CASE("A smaller cell moves every tile too", "[TileSet]")
-{
-    TileSet saved{"textures/tile_set.png", 16};
-    TileSet edited{"textures/tile_set.png", 8};
-
-    auto broken = whatMovingToWouldBreak(saved, 112, edited, 112, "default");
-
-    REQUIRE(broken.has_value());
-    REQUIRE_THAT(*broken, Catch::Matchers::ContainsSubstring("7 across becomes 14"));
-}
-
-TEST_CASE("A tile set nobody changed breaks nothing", "[TileSet]")
-{
-    TileSet same{"textures/tile_set.png", 16};
-
-    REQUIRE_FALSE(whatMovingToWouldBreak(same, 112, same, 112, "default").has_value());
-}
-
-TEST_CASE("Tiles across is what the sheet divides into", "[TileSet]")
-{
-    REQUIRE(tilesAcross(112, 16) == 7);
-    REQUIRE(tilesAcross(128, 16) == 8);
-    REQUIRE(tilesAcross(112, 8) == 14);
-    REQUIRE(tilesAcross(112, 0) == 0);
-}
-
 #ifndef SKIP_OPENGL_TESTS
 
 #include "assets/asset_paths.hpp"

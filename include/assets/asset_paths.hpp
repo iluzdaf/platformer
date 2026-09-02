@@ -14,6 +14,7 @@ namespace assets
     inline constexpr std::string_view Camera = "camera.json";
     inline constexpr std::string_view Player = "player.json";
     inline constexpr std::string_view Npcs = "npcs.json";
+    inline constexpr std::string_view Pickups = "pickups.json";
     inline constexpr std::string_view TilePalettes = "tile_palettes.json";
     inline constexpr std::string_view LevelList = "levels.json";
     inline constexpr std::string_view FirstLevel = "levels/level1.json";

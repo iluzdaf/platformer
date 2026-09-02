@@ -5,6 +5,7 @@
 #include <string_view>
 #include <glaze/glaze.hpp>
 #include "game/game_data.hpp"
+#include "pickups/pickup_data.hpp"
 #include "cameras/camera2d_data.hpp"
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
@@ -57,6 +58,11 @@ void saveNpcData(const std::map<std::string, NpcData> &npcData)
     writeTo(npcData, assets::Npcs);
 }
 
+void savePickupData(const std::map<std::string, PickupData> &pickupData)
+{
+    writeTo(pickupData, assets::Pickups);
+}
+
 void saveTilePalettes(const TilePalettes &tilePalettes)
 {
     writeTo(tilePalettes, assets::TilePalettes);
@@ -69,6 +75,7 @@ GameData loadGameData()
     readInto(loaded.cameraData, assets::Camera);
     readInto(loaded.playerData, assets::Player);
     readInto(loaded.npcData, assets::Npcs);
+    readInto(loaded.pickupData, assets::Pickups);
     readInto(loaded.tilePalettes, assets::TilePalettes);
 
     return loaded;

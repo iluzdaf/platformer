@@ -12,6 +12,7 @@
 #include "assets/asset_paths.hpp"
 #include "serialization/json_format.hpp"
 #include "game/level_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_profile_builder.hpp"
@@ -146,6 +147,7 @@ void Level::initFrom(
         throw std::runtime_error("nextLevel must not be empty");
 
     npcs = levelData.npcs;
+    pickups = levelData.pickups;
     for (const auto &npc : npcs)
     {
         if (!tileMap.validTilePosition(npc.tilePosition))
@@ -282,6 +284,11 @@ const std::string &Level::getNextLevel() const
     return nextLevel;
 }
 
+const std::vector<PickupSpawnData> &Level::getPickups() const
+{
+    return pickups;
+}
+
 const std::vector<NpcSpawnData> &Level::getNpcs() const
 {
     return npcs;
@@ -362,6 +369,7 @@ LevelData Level::toLevelData() const
     levelData.playerStartTilePosition = playerStartTilePosition;
     levelData.nextLevel = nextLevel;
     levelData.npcs = npcs;
+    levelData.pickups = pickups;
     return levelData;
 }
 

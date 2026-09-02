@@ -16,5 +16,6 @@
     },
     "playerStartTilePosition":[0,7],
     "nextLevel":"levels/level2.json",
-    "npcs":[]
+    "npcs":[],
+    "pickups":[]
 }

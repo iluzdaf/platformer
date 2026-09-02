@@ -15,6 +15,7 @@
 #include "navigation/navigation_profile.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 
 void writeLevelData(const LevelData &levelData, const std::string &levelPath);
 
@@ -49,6 +50,7 @@ public:
     glm::ivec2 getPlayerStartTile() const;
     const std::string &getNextLevel() const;
     const std::vector<NpcSpawnData> &getNpcs() const;
+    const std::vector<PickupSpawnData> &getPickups() const;
     void addNpc(const NpcSpawnData &spawn);
     void removeNpc(std::size_t index);
     void setNpcSpawnTile(std::size_t index, glm::ivec2 tilePosition);
@@ -73,6 +75,7 @@ private:
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
     std::string nextLevel;
     std::vector<NpcSpawnData> npcs;
+    std::vector<PickupSpawnData> pickups;
     std::string path;
     std::vector<NamedNavigationGraph> graphs;
     std::map<std::string, NavigationProfile> npcProfiles;

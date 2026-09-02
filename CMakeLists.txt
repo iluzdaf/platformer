@@ -312,6 +312,7 @@ add_executable(tests
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/npc/test_npc.cpp
+    tests/pickups/test_pickup_data.cpp
     tests/assets/test_asset_paths.cpp
     tests/reloading/test_reloader.cpp
     tests/game/test_game.cpp

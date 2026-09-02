@@ -1,6 +1,7 @@
 {
     "default":{
         "tileSet":{"texture":"textures/tile_set.png","tileSize":16},
+        "scoreTile":42,
         "tiles":{
             "0":{},
             "1":{"deadly":true,"collider":{"offset":[0,12],"size":[16,4]}},

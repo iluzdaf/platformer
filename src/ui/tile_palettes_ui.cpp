@@ -162,6 +162,13 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
         return std::nullopt;
     }
 
+    {
+        ShowingTilesFrom offering(TileFieldContext{tileSet, palette.tileSet, 0});
+        inspector::draw("scoreTile", palette.scoreTile);
+    }
+
+    ImGui::Separator();
+
     std::optional<int> showing = paintedTile(armed);
     if (showing && *showing >= cells)
         showing.reset();

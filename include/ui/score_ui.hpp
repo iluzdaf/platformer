@@ -2,6 +2,7 @@
 class ImGuiManager;
 class ScoringSystem;
 class Texture2D;
+struct TilePalette;
 
 class ScoreUi
 {
@@ -10,5 +11,5 @@ public:
         const ImGuiManager &imGuiManager,
         const ScoringSystem &scoringSystem,
         const Texture2D &tileSet,
-        int tileSize);
+        const TilePalette &palette);
 };

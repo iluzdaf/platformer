@@ -1,7 +1,8 @@
 #include "ui/game_ui.hpp"
 #include "rendering/texture_cache.hpp"
 #include "tile_map/tile_map.hpp"
-#include "tile_map/tile_set.hpp"
+#include "tile_map/tile_palette.hpp"
+#include "game/game_data.hpp"
 #include "physics/aabb.hpp"
 #include "physics/physics_body.hpp"
 #include "ui/editor_commands.hpp"
@@ -19,12 +20,13 @@ void GameUi::draw(const GameUiSubject &subject)
 {
     imGuiManager.newFrame();
 
-    const TileSet &tileSet = subject.level.getTileMap().getTileSet();
+    const TilePalette &palette =
+        subject.gameData.tilePalettes.at(subject.level.getTileMap().getTilePalette());
     scoreUi.draw(
         imGuiManager,
         subject.scoringSystem,
-        subject.textures.get(tileSet.texture),
-        tileSet.tileSize);
+        subject.textures.get(palette.tileSet.texture),
+        palette);
 
     editorUi.draw(
         imGuiManager,

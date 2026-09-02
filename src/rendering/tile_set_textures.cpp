@@ -45,6 +45,12 @@ void checkTileSetFits(
             throw std::runtime_error(
                 "Tile " + std::to_string(tileIndex) + " is past the " + std::to_string(cells) +
                 " tiles of \"" + tileSet.texture + "\"" + named(paletteName));
+
+    if (palette.scoreTile && (palette.scoreTile->value < 0 || palette.scoreTile->value >= cells))
+        throw std::runtime_error(
+            "The score is counted on tile " + std::to_string(palette.scoreTile->value) +
+            ", which is not one of the " + std::to_string(cells) + " tiles of \"" +
+            tileSet.texture + "\"" + named(paletteName));
 }
 
 void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes)

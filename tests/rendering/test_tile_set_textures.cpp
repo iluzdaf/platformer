@@ -8,6 +8,8 @@
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_index.hpp"
+#include "tile_map/tile_set.hpp"
 
 TEST_CASE("A tile set covering every tile a palette declares fits", "[TileSet]")
 {
@@ -77,6 +79,34 @@ TEST_CASE("Every shipped palette fits the tile set it names", "[TileSet]")
 {
     for (const auto &[name, palette] : shippedPalettes())
         REQUIRE_NOTHROW(checkTileSetFits(palette, name, 112, 112));
+}
+
+TEST_CASE("A score counted on a tile the sheet does not have is refused", "[TileSet]")
+{
+    TilePalette palette;
+    palette.tileSet = TileSet{"textures/tile_set.png", 16};
+    palette.scoreTile = TileIndex{49};
+
+    REQUIRE_THROWS_WITH(
+        checkTileSetFits(palette, "default", 112, 112),
+        Catch::Matchers::ContainsSubstring("score is counted on tile 49"));
+}
+
+TEST_CASE("A score counted on a tile the sheet has is allowed", "[TileSet]")
+{
+    TilePalette palette;
+    palette.tileSet = TileSet{"textures/tile_set.png", 16};
+    palette.scoreTile = TileIndex{48};
+
+    REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 112, 112));
+}
+
+TEST_CASE("A palette that counts no score is allowed", "[TileSet]")
+{
+    TilePalette palette;
+    palette.tileSet = TileSet{"textures/tile_set.png", 16};
+
+    REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 112, 112));
 }
 
 TEST_CASE("A tile keeps its cell when the sheet grows taller", "[TileSet]")

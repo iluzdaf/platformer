@@ -10,6 +10,7 @@
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette.hpp"
+#include "tile_map/tile.hpp"
 #include "tile_map/tile_data.hpp"
 #include "physics/aabb.hpp"
 
@@ -77,13 +78,13 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
     if (tileSet.tileSize <= 0)
         throw std::runtime_error("Palette \"" + tilePalette + "\" has a tile set tileSize of 0");
 
-    tiles.insert_or_assign(0, Tile(0, TileData{}));
     for (const auto &[tileIndex, tileData] : palette->second.tiles)
-        tiles.insert_or_assign(tileIndex, Tile(tileIndex, tileData));
+    {
+        if (tileIndex < 0)
+            throw std::runtime_error("Palette \"" + tilePalette + "\" names a tile below 0");
 
-    for (int tileX = 0; tileX < width; ++tileX)
-        for (int tileY = 0; tileY < height; ++tileY)
-            rememberTile(tileIndices[tileX][tileY]);
+        tiles.insert_or_assign(tileIndex, Tile(tileData));
+    }
 }
 
 void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
@@ -95,13 +96,6 @@ void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
         throw std::runtime_error("Tile index must be greater or equals to 0");
 
     tileIndices[tilePosition.x][tilePosition.y] = tileIndex;
-    rememberTile(tileIndex);
-}
-
-void TileMap::rememberTile(int tileIndex)
-{
-    if (tileIndex >= 0 && !tiles.contains(tileIndex))
-        tiles.insert_or_assign(tileIndex, Tile(tileIndex, TileData{}));
 }
 
 void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)
@@ -147,10 +141,11 @@ int TileMap::getHeight() const
 
 const Tile &TileMap::getTile(int tileIndex) const
 {
-    auto it = tiles.find(tileIndex);
-    if (it == tiles.end())
-        throw std::runtime_error("Invalid tile index");
-    return it->second;
+    static const Tile nothingSaid{TileData{}};
+
+    auto said = tiles.find(tileIndex);
+
+    return said == tiles.end() ? nothingSaid : said->second;
 }
 
 const Tile &TileMap::getTileAtTilePosition(glm::ivec2 tilePosition) const

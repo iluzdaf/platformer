@@ -19,7 +19,7 @@ void drawTileMap(
         {
             int tileIndex = tileMap.tilePositionToTileIndex(glm::ivec2(tileX, tileY));
             const Tile &tile = tileMap.getTile(tileIndex);
-            int frameIndex = tile.getCurrentFrame();
+            int frameIndex = tile.animatingTo().value_or(tileIndex);
             auto [uvStart, uvEnd] = tileSet.getUVRange(frameIndex, cellSize);
             glm::vec2 position = tileMap.topLeftOfTile(glm::ivec2(tileX, tileY));
             glm::vec2 size = glm::vec2(static_cast<float>(tileSize));

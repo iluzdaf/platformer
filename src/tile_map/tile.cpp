@@ -6,14 +6,11 @@
 #include "animations/tile_animation.hpp"
 #include "physics/aabb.hpp"
 
-Tile::Tile(int tileIndex, const TileData &tileData)
+Tile::Tile(const TileData &tileData)
     : solid(tileData.solid), deadly(tileData.deadly), portal(tileData.portal),
       grippable(tileData.grippable), pickup(tileData.pickup),
-      collider(tileData.collider.value_or(TileColliderData{})), tileIndex(tileIndex)
+      collider(tileData.collider.value_or(TileColliderData{}))
 {
-    if (tileIndex < 0)
-        throw std::runtime_error("TileIndex must be 0 or more");
-
     if (solid && (deadly || pickup || portal))
         throw std::runtime_error(
             "A solid tile is never touched, so it cannot be deadly, a pickup or a portal");
@@ -32,12 +29,12 @@ void Tile::update(float deltaTime)
         animation->update(deltaTime);
 }
 
-int Tile::getCurrentFrame() const
+std::optional<int> Tile::animatingTo() const
 {
-    if (animation)
-        return animation->getCurrentFrame();
+    if (!animation)
+        return std::nullopt;
 
-    return tileIndex;
+    return animation->getCurrentFrame();
 }
 
 bool Tile::isSolid() const

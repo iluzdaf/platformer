@@ -28,7 +28,7 @@
             "40":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
             "41":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
             "42":{
-                "pickup":{"replaceIndex":0},
+                "pickup":{"replaceIndex":0,"scoreDelta":10},
                 "animationData":{
                     "frameAnimationData":{
                         "frames":[42,43,44,45,46,47,48,35,36,37],

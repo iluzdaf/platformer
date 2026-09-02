@@ -8,6 +8,7 @@ struct TileFieldContext
 {
     const Texture2D *sheet = nullptr;
     TileSet tileSet;
+    int tileIndex = 0;
 };
 
 const TileFieldContext *tilesOnOffer();

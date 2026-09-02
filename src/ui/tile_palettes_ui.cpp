@@ -231,7 +231,7 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
 
     ImGui::Text("tile %d", *picked);
 
-    ShowingTilesFrom offering(TileFieldContext{tileSet, palette.tileSet});
+    ShowingTilesFrom offering(TileFieldContext{tileSet, palette.tileSet, *picked});
 
     auto known = palette.tiles.find(*picked);
     if (known != palette.tiles.end())

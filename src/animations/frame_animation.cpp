@@ -1,4 +1,3 @@
-#include <cassert>
 #include <cstddef>
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
@@ -6,12 +5,11 @@
 FrameAnimation::FrameAnimation(const FrameAnimationData &frameAnimationData)
     : frames(frameAnimationData.frames), frameDuration(frameAnimationData.frameDuration)
 {
-    assert(frameDuration > 0);
 }
 
 void FrameAnimation::update(float deltaTime)
 {
-    if (frames.empty())
+    if (frames.empty() || frameDuration <= 0.0f)
         return;
 
     timer += deltaTime;

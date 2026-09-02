@@ -1,29 +1,21 @@
 #include <algorithm>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
-#include "test_helpers/test_tile_map_utils.hpp"
-#include "tile_map/tile_map.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "rendering/tile_set_textures.hpp"
 #include "ui/tile_picker.hpp"
 
-TEST_CASE("The tile picker offers a level's tiles in tile set order", "[TilePicker]")
+TEST_CASE("A sheet holds what both its axes divide into", "[TilePicker]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, shippedPalettes().at("default"));
-
-    std::vector<int> offered = tilesToPickFrom(tileMap);
-
-    REQUIRE_FALSE(offered.empty());
-    REQUIRE(std::is_sorted(offered.begin(), offered.end()));
+    REQUIRE(tilesInSheet(112, 112, 16) == 49);
+    REQUIRE(tilesInSheet(112, 128, 16) == 56);
+    REQUIRE(tilesInSheet(128, 128, 16) == 64);
+    REQUIRE(tilesInSheet(96, 96, 16) == 36);
 }
 
-TEST_CASE("The tile picker offers every tile the level knows about once", "[TilePicker]")
+TEST_CASE("A sheet too small for one tile holds none", "[TilePicker]")
 {
-    TileMap tileMap = setupTileMap(10, 10, 16, shippedPalettes().at("default"));
-
-    std::vector<int> offered = tilesToPickFrom(tileMap);
-
-    REQUIRE(offered.size() == tileMap.getTiles().size());
-    REQUIRE(std::adjacent_find(offered.begin(), offered.end()) == offered.end());
+    REQUIRE(tilesInSheet(8, 8, 16) == 0);
+    REQUIRE(tilesInSheet(112, 112, 0) == 0);
 }
 
 #ifndef SKIP_OPENGL_TESTS
@@ -37,6 +29,8 @@ TEST_CASE("The tile picker offers every tile the level knows about once", "[Tile
 #include "test_helpers/headless_imgui.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/editor_ui.hpp"
+#include "test_helpers/test_tile_map_utils.hpp"
+#include "tile_map/tile_palette.hpp"
 
 namespace
 {
@@ -66,6 +60,33 @@ namespace
         float height = heightOfPicker(gui, tileSet, width, tileCount);
 
         return static_cast<int>(height / oneRow + 0.5f);
+    }
+}
+
+TEST_CASE("The tile picker offers every cell of the sheet", "[TilePicker]")
+{
+    Texture2D tileSet(assetPath("textures/tile_set.png"));
+
+    std::vector<int> offered = tilesToPickFrom(tileSet, 16);
+
+    REQUIRE(offered.size() == 49);
+    REQUIRE(offered.front() == 0);
+    REQUIRE(offered.back() == 48);
+    REQUIRE(std::is_sorted(offered.begin(), offered.end()));
+}
+
+TEST_CASE("The tile picker offers cells the palette says nothing about", "[TilePicker]")
+{
+    Texture2D tileSet(assetPath("textures/tile_set.png"));
+
+    std::vector<int> offered = tilesToPickFrom(tileSet, 16);
+    const TilePalette &shipped = shippedPalettes().at("default");
+
+    REQUIRE(offered.size() > shipped.tiles.size());
+    for (int unconfigured : {6, 35, 48})
+    {
+        REQUIRE_FALSE(shipped.tiles.contains(unconfigured));
+        REQUIRE(std::find(offered.begin(), offered.end(), unconfigured) != offered.end());
     }
 }
 

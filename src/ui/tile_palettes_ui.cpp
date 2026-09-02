@@ -9,6 +9,7 @@
 #include "ui/data_inspector.hpp"
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
+#include "tile_map/tile_data.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "rendering/texture2d.hpp"
@@ -63,19 +64,15 @@ void TilePalettesUi::draw(
         return;
     }
 
-    std::vector<int> tileIndices;
-    tileIndices.reserve(palette.tiles.size());
-    for (const auto &[tileIndex, tileData] : palette.tiles)
-        tileIndices.push_back(tileIndex);
-
+    std::vector<int> tileIndices = tilesToPickFrom(*tileSet, palette.tileSet.tileSize);
     if (tileIndices.empty())
     {
-        ImGui::TextDisabled("no tiles in this palette");
+        ImGui::TextDisabled("no whole tiles in this tile set");
         return;
     }
 
     std::optional<int> showing = paintedTile(armed);
-    if (showing && !palette.tiles.contains(*showing))
+    if (showing && *showing >= static_cast<int>(tileIndices.size()))
         showing.reset();
 
     std::optional<int> picked =
@@ -91,7 +88,17 @@ void TilePalettesUi::draw(
     }
 
     ImGui::Text("tile %d", *picked);
-    inspector::drawFields(palette.tiles.at(*picked));
+
+    auto known = palette.tiles.find(*picked);
+    if (known != palette.tiles.end())
+    {
+        inspector::drawFields(known->second);
+        return;
+    }
+
+    TileData nothingSaid;
+    if (inspector::drawFields(nothingSaid))
+        palette.tiles.insert({*picked, nothingSaid});
 }
 
 bool TilePalettesUi::hasUnsavedChanges(const TilePalettes &tilePalettes) const

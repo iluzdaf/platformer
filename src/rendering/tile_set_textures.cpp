@@ -14,6 +14,14 @@ namespace
     }
 }
 
+int tilesInSheet(int textureWidth, int textureHeight, int tileSize)
+{
+    if (tileSize <= 0)
+        return 0;
+
+    return (textureWidth / tileSize) * (textureHeight / tileSize);
+}
+
 void checkTileSetFits(
     const TilePalette &palette,
     const std::string &paletteName,
@@ -27,7 +35,7 @@ void checkTileSetFits(
     if (tileSet.tileSize <= 0)
         throw std::runtime_error("A tile set cell must be wider than 0" + named(paletteName));
 
-    int cells = (textureWidth / tileSet.tileSize) * (textureHeight / tileSet.tileSize);
+    int cells = tilesInSheet(textureWidth, textureHeight, tileSet.tileSize);
     if (cells <= 0)
         throw std::runtime_error(
             "Tile set \"" + tileSet.texture + "\" holds no whole tiles at " +

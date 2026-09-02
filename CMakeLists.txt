@@ -118,6 +118,8 @@ add_library(platformer_lib OBJECT
     src/ui/camera_ui.cpp
     src/ui/player_ui.cpp
     src/ui/levels_ui.cpp
+    src/ui/switching_level.cpp
+    src/ui/palette_renamed.cpp
     src/ui/tile_picker.cpp
     src/ui/tile_index_field.cpp
     src/ui/tile_field_context.cpp

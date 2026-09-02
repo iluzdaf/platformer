@@ -9,6 +9,7 @@
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "game/level.hpp"
+#include "ui/palette_renamed.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 namespace
@@ -104,6 +105,7 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
 #include "game/level.hpp"
+#include "ui/palette_renamed.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "rendering/tile_set_textures.hpp"
 

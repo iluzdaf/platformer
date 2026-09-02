@@ -6,6 +6,7 @@
 #include <string_view>
 #include <optional>
 #include "ui/editor_ui.hpp"
+#include "ui/palette_renamed.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "rendering/texture_cache.hpp"
 #include "ui/mouse_on_the_map.hpp"

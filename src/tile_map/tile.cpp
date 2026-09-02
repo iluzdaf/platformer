@@ -3,7 +3,7 @@
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_collider_data.hpp"
-#include "animations/tile_animation.hpp"
+#include "animations/frame_animation.hpp"
 #include "physics/aabb.hpp"
 
 Tile::Tile(const TileData &tileData)
@@ -20,7 +20,7 @@ Tile::Tile(const TileData &tileData)
             "A deadly tile kills on touch, so it cannot also be a pickup or a portal");
 
     if (tileData.animationData.has_value())
-        animation = TileAnimation(tileData.animationData.value());
+        animation = FrameAnimation(tileData.animationData.value());
 }
 
 void Tile::update(float deltaTime)

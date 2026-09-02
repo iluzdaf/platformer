@@ -3,7 +3,7 @@
 #include <optional>
 
 class Texture2D;
-struct TileSet;
+struct Sheet;
 
 inline constexpr float TilePickerCellSize = 32.0f;
 
@@ -13,5 +13,5 @@ void drawTileImage(const Texture2D &sheet, int cellSize, int tileIndex, float si
 
 std::optional<int> drawTilePicker(
     const Texture2D &sheet,
-    const TileSet &tileSet,
+    const Sheet &tileSet,
     std::optional<int> armed);

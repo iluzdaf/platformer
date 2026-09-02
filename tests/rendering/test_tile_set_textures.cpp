@@ -58,7 +58,7 @@ TEST_CASE("A palette naming no tile set texture is refused", "[TileSet]")
 TEST_CASE("A tile set cell narrower than a pixel is refused", "[TileSet]")
 {
     TilePalette palette = paletteOf({{0, TileData{}}});
-    palette.tileSet.tileSize = 0;
+    palette.tileSet.cellSize = glm::ivec2(0);
 
     REQUIRE_THROWS_WITH(
         checkTileSetFits(palette, "default", 112, 112),

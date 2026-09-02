@@ -1,14 +1,14 @@
 #pragma once
 
 #include <optional>
-#include "animations/sprite_animation_data.hpp"
+#include "animations/frame_animation_data.hpp"
 
 struct ActorAnimationData
 {
-    SpriteAnimationData idleSpriteAnimationData;
-    std::optional<SpriteAnimationData> walkSpriteAnimationData;
-    std::optional<SpriteAnimationData> dashSpriteAnimationData;
-    std::optional<SpriteAnimationData> jumpSpriteAnimationData;
-    std::optional<SpriteAnimationData> fallSpriteAnimationData;
-    std::optional<SpriteAnimationData> wallSlideSpriteAnimationData;
+    FrameAnimationData idle;
+    std::optional<FrameAnimationData> walk;
+    std::optional<FrameAnimationData> dash;
+    std::optional<FrameAnimationData> jump;
+    std::optional<FrameAnimationData> fall;
+    std::optional<FrameAnimationData> wallSlide;
 };

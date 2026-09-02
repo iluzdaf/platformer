@@ -8,7 +8,7 @@
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette.hpp"
-#include "tile_map/tile_set.hpp"
+#include "assets/sheet.hpp"
 #include "physics/aabb.hpp"
 
 class TileMap
@@ -45,12 +45,12 @@ private:
     std::vector<std::vector<int>> tileIndices;
     std::unordered_map<int, Tile> tiles;
     std::string tilePalette;
-    TileSet tileSet;
+    Sheet tileSet;
 
 public:
     const std::string &getTilePalette() const;
     void setTilePalette(const std::string &name);
-    const TileSet &getTileSet() const;
+    const Sheet &getTileSet() const;
 
 private:
     void initFrom(const TileMapData &tileMapData, const TilePalettes &tilePalettes);

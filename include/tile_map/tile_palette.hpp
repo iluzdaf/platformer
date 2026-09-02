@@ -3,11 +3,11 @@
 #include <map>
 #include <string>
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_set.hpp"
+#include "assets/sheet.hpp"
 
 struct TilePalette
 {
-    TileSet tileSet;
+    Sheet tileSet;
     std::map<int, TileData> tiles;
 };
 

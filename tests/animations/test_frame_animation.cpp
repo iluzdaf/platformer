@@ -49,4 +49,19 @@ TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
         frameAnimation.reset();
         REQUIRE(frameAnimation.getCurrentFrame() == 1);
     }
+
+    SECTION("No time passing leaves the frame where it was")
+    {
+        frameAnimation.update(0.0f);
+        REQUIRE(frameAnimation.getCurrentFrame() == 1);
+    }
+}
+
+TEST_CASE("An animation with no duration stays on its first frame", "[FrameAnimation]")
+{
+    FrameAnimation frameAnimation(FrameAnimationData{{1, 2, 3}, 0.0f});
+
+    frameAnimation.update(0.5f);
+
+    REQUIRE(frameAnimation.getCurrentFrame() == 1);
 }

@@ -19,7 +19,7 @@ inspector::Edited drawCustomField(std::string_view name, TileIndex &value)
     ImGui::SameLine();
 
     std::string popup = std::string("##tiles") + std::string(name);
-    if (drawTileCell(*offering->sheet, offering->tileSet.tileSize, value.value))
+    if (drawTileCell(*offering->sheet, offering->tileSet.cellSize.x, value.value))
         ImGui::OpenPopup(popup.c_str());
 
     inspector::Edited edited;

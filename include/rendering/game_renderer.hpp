@@ -8,9 +8,9 @@
 #include "rendering/shader.hpp"
 #include "rendering/sprite_renderer.hpp"
 #include "rendering/texture_cache.hpp"
-#include "tile_map/tile_palette.hpp"
 
 class Actor;
+struct GameData;
 class ScreenTransition;
 class TileMap;
 
@@ -19,7 +19,7 @@ class GameRenderer
 public:
     GameRenderer();
 
-    void warm(const TilePalettes &tilePalettes);
+    void warm(const GameData &gameData);
     void warmTexture(const std::string &texturePath);
 
     void reloadShader(const std::string &shaderPath);

@@ -3,13 +3,13 @@
 #include <optional>
 #include <string>
 #include <utility>
-#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_set_textures.hpp"
+#include "tile_map/tile_set.hpp"
 
 namespace
 {
@@ -32,35 +32,23 @@ namespace
     }
 }
 
-std::vector<int> tilesToPickFrom(const Texture2D &tileSet, int tileSize)
-{
-    int cells = tilesInSheet(
-        static_cast<int>(tileSet.getWidth()), static_cast<int>(tileSet.getHeight()), tileSize);
-
-    std::vector<int> tileIndices;
-    tileIndices.reserve(static_cast<std::size_t>(cells));
-    for (int tileIndex = 0; tileIndex < cells; ++tileIndex)
-        tileIndices.push_back(tileIndex);
-
-    return tileIndices;
-}
-
 std::optional<int> drawTilePicker(
-    const Texture2D &tileSet,
-    int tileSize,
-    const std::vector<int> &tileIndices,
+    const Texture2D &sheet,
+    const TileSet &tileSet,
     std::optional<int> armed)
 {
+    int cells = tilesInSheet(
+        static_cast<int>(sheet.getWidth()), static_cast<int>(sheet.getHeight()), tileSet.tileSize);
+
     std::optional<int> picked = armed;
     const ImGuiStyle &style = ImGui::GetStyle();
     float rightEdge = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
 
-    for (std::size_t at = 0; at < tileIndices.size(); ++at)
+    for (int tileIndex = 0; tileIndex < cells; ++tileIndex)
     {
-        int tileIndex = tileIndices[at];
         bool isArmed = armed == tileIndex;
 
-        ImGui::PushID(static_cast<int>(at));
+        ImGui::PushID(tileIndex);
 
         if (isArmed)
         {
@@ -69,7 +57,7 @@ std::optional<int> drawTilePicker(
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ArmedColour);
         }
 
-        if (drawTileCell(tileSet, tileSize, tileIndex))
+        if (drawTileCell(sheet, tileSet.tileSize, tileIndex))
             picked = isArmed ? std::nullopt : std::optional<int>(tileIndex);
 
         float nextRightEdge =
@@ -78,7 +66,7 @@ std::optional<int> drawTilePicker(
         if (isArmed)
             ImGui::PopStyleColor(3);
 
-        if (at + 1 < tileIndices.size() && nextRightEdge < rightEdge)
+        if (tileIndex + 1 < cells && nextRightEdge < rightEdge)
             ImGui::SameLine();
 
         ImGui::PopID();

@@ -61,9 +61,11 @@ namespace
 
         if (tile.pickup && tile.pickup->scoreDelta)
             ImGui::Text(
-                "pickup leaves %d, scores %d", tile.pickup->replaceIndex, *tile.pickup->scoreDelta);
+                "pickup leaves %d, scores %d",
+                tile.pickup->replaceIndex.value,
+                *tile.pickup->scoreDelta);
         else if (tile.pickup)
-            ImGui::Text("pickup leaves %d", tile.pickup->replaceIndex);
+            ImGui::Text("pickup leaves %d", tile.pickup->replaceIndex.value);
 
         if (tile.animationData)
             ImGui::Text(

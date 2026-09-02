@@ -77,7 +77,7 @@ std::optional<int> Tile::getPickupReplaceIndex() const
     if (!pickup)
         return std::nullopt;
 
-    return pickup->replaceIndex;
+    return pickup->replaceIndex.value;
 }
 
 std::optional<int> Tile::getPickupScoreDelta() const

@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <glaze/glaze.hpp>
 #include "animations/frame_animation_data.hpp"
 #include "animations/sprite_animation_data.hpp"
 #include "animations/tile_animation_data.hpp"
@@ -11,6 +12,8 @@
 #include "test_helpers/headless_imgui.hpp"
 #include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_index.hpp"
+#include "tile_map/tile_pickup_data.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
@@ -97,6 +100,21 @@ TEST_CASE("A type with a field of its own is drawn by it", "[DataInspector]")
     gui.frame([&] { inspector::draw("drawn", drawn); });
 
     REQUIRE(drawnByItsOwnField == 1);
+}
+
+TEST_CASE("A tile index draws itself rather than falling through", "[DataInspector]")
+{
+    STATIC_REQUIRE(inspector::HasCustomField<TileIndex>);
+    STATIC_REQUIRE_FALSE(glz::reflectable<TileIndex>);
+    STATIC_REQUIRE_FALSE(inspector::wrapsOneStruct<TileIndex>());
+
+    HeadlessImGui gui;
+    TilePickupData pickup;
+    pickup.replaceIndex = 12;
+
+    gui.frame([&] { inspector::drawFields(pickup); });
+
+    REQUIRE(pickup.replaceIndex.value == 12);
 }
 
 TEST_CASE("A type without one still reaches the reflection path", "[DataInspector]")

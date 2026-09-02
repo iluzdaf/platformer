@@ -91,8 +91,6 @@ void LevelUi::draw(
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
-    saveable.seen(level.getPath(), asItWouldBeSaved(level));
-
     if (ImGui::CollapsingHeader("State"))
     {
         ImGui::Text(
@@ -275,6 +273,9 @@ void LevelUi::update(
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
+    if (saveable.lastSeen(level.getPath()).empty())
+        saveable.seen(level.getPath(), asItWouldBeSaved(level));
+
     grid = whileArmed(grid, armed.has_value());
 
     if (!armed || mouse.overTheUi)

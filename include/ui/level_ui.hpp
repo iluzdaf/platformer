@@ -45,7 +45,6 @@ public:
 
     void save(Level &level);
     bool unsavedSince(const Level &level);
-    bool showingGrid() const;
     void valuesReplaced();
 
 private:

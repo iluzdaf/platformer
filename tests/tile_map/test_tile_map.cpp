@@ -82,15 +82,15 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     {
         const Tile &tile1 = tileMap.getTile(1);
         REQUIRE(tile1.isSolid());
-        REQUIRE_FALSE(tile1.isAnimated());
+        REQUIRE_FALSE(tile1.animatingTo().has_value());
 
         const Tile &tile2 = tileMap.getTile(0);
         REQUIRE(tile2.isEmpty());
-        REQUIRE_FALSE(tile2.isAnimated());
+        REQUIRE_FALSE(tile2.animatingTo().has_value());
 
         const Tile &tile3 = tileMap.getTile(3);
         REQUIRE(tile3.isEmpty());
-        REQUIRE_FALSE(tile3.isAnimated());
+        REQUIRE_FALSE(tile3.animatingTo().has_value());
     }
 
     SECTION("A tile nothing was said about")

@@ -164,10 +164,6 @@ void LevelUi::drawOverlay(
     navigationUi.drawOverlay(imGuiManager, camera, level);
 }
 
-bool LevelUi::showingGrid() const
-{
-    return grid.showing;
-}
 void LevelUi::save(Level &level)
 {
     level.save();

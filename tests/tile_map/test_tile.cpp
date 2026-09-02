@@ -23,7 +23,6 @@ TEST_CASE("Tile is not animated by default", "[Tile]")
     TileData emptyTileData;
     Tile tile(emptyTileData);
 
-    REQUIRE_FALSE(tile.isAnimated());
     REQUIRE_FALSE(tile.animatingTo().has_value());
 }
 
@@ -33,7 +32,6 @@ TEST_CASE("Tile becomes animated when animation is set", "[Tile]")
     tileData.animationData = {{{1, 2, 3}, 0.5f}};
     Tile tile(tileData);
 
-    REQUIRE(tile.isAnimated());
     REQUIRE(tile.animatingTo().value_or(0) == 1);
 }
 

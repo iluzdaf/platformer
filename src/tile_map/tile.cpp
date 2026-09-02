@@ -67,11 +67,6 @@ bool Tile::isEmpty() const
     return !solid && !deadly && !portal && !pickup;
 }
 
-bool Tile::isAnimated() const
-{
-    return animation.has_value();
-}
-
 std::optional<int> Tile::getPickupReplaceIndex() const
 {
     if (!pickup)

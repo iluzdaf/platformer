@@ -19,7 +19,6 @@ public:
     bool isPortal() const;
     bool isPickup() const;
     bool isEmpty() const;
-    bool isAnimated() const;
     std::optional<int> getPickupReplaceIndex() const;
     std::optional<int> getPickupScoreDelta() const;
     std::optional<AABB> getAABBAt(glm::vec2 worldPosition) const;

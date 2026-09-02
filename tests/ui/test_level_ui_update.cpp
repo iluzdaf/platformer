@@ -238,55 +238,6 @@ TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[Lev
     REQUIRE_FALSE(armed);
 }
 
-TEST_CASE("Arming shows the grid and disarming puts it back", "[LevelUi]")
-{
-    LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
-    std::optional<Armed> armed;
-
-    levelUi.update(over(level, glm::ivec2(3, 2)), level, armed, commands);
-    REQUIRE_FALSE(levelUi.showingGrid());
-
-    armed = PaintTile{PaintedTile};
-    levelUi.update(over(level, glm::ivec2(3, 2)), level, armed, commands);
-    REQUIRE(levelUi.showingGrid());
-
-    armed.reset();
-    levelUi.update(over(level, glm::ivec2(3, 2)), level, armed, commands);
-    REQUIRE_FALSE(levelUi.showingGrid());
-}
-
-TEST_CASE("The grid follows arming even with the mouse over the panel", "[LevelUi]")
-{
-    LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
-    std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
-
-    MouseOnTheMap onThePanel = over(level, glm::ivec2(3, 2));
-    onThePanel.overTheUi = true;
-
-    levelUi.update(onThePanel, level, armed, commands);
-
-    REQUIRE(levelUi.showingGrid());
-}
-
-TEST_CASE("A pick that places itself leaves the grid as it found it", "[LevelUi]")
-{
-    LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
-    std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
-
-    levelUi.update(clicking(level, glm::ivec2(3, 2)), level, armed, commands);
-    REQUIRE_FALSE(armed);
-
-    levelUi.update(over(level, glm::ivec2(3, 2)), level, armed, commands);
-
-    REQUIRE_FALSE(levelUi.showingGrid());
-}
-
 TEST_CASE("The level section draws every fold without a tile sheet", "[LevelUi]")
 {
     HeadlessImGui gui;

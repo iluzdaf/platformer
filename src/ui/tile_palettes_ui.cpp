@@ -15,7 +15,7 @@
 #include "ui/data_inspector.hpp"
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
-#include "ui/tile_field_context.hpp"
+#include "ui/sheet_in_scope.hpp"
 #include "rendering/tile_set_fit.hpp"
 #include "tile_map/tile_data.hpp"
 #include "game/game_data.hpp"
@@ -179,7 +179,7 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
 
     ImGui::Text("tile %d", *picked);
 
-    ShowingTilesFrom offering(TileFieldContext{tileSet, palette.tileSet, *picked});
+    ShowingSheet offering(SheetInScope{tileSet, palette.tileSet, *picked});
 
     auto known = palette.tiles.find(*picked);
     if (known != palette.tiles.end())

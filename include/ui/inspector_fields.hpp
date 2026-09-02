@@ -6,11 +6,13 @@
 
 struct FrameAnimationData;
 struct Sheet;
+struct ScoreIcon;
 struct TileColliderData;
 
 inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &value);
 inspector::Edited drawCustomField(std::string_view name, TileColliderData &value);
 inspector::Edited drawCustomField(std::string_view name, Sheet &value);
+inspector::Edited drawCustomField(std::string_view name, ScoreIcon &value);
 
 namespace inspector
 {

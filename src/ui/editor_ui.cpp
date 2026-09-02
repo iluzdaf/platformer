@@ -91,7 +91,7 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Game:
-        gameSettingsUi.draw(subject.gameData, commands);
+        gameSettingsUi.draw(subject.gameData, subject.textures, commands);
         break;
 
     case EditorSection::Camera:
@@ -103,7 +103,7 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Types:
-        typesUi.draw(subject.gameData);
+        typesUi.draw(subject.gameData, subject.textures, commands);
         break;
 
     case EditorSection::Levels:

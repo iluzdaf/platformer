@@ -9,6 +9,10 @@
 #include "test_helpers/headless_imgui.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/types_ui.hpp"
+#include "ui/sheet_in_scope.hpp"
+#include "assets/sheet.hpp"
+#include "ui/editor_commands.hpp"
+#include "rendering/texture_cache.hpp"
 
 namespace
 {
@@ -39,7 +43,10 @@ TEST_CASE("The types section draws with nothing picked", "[TypesUi]")
     TypesUi typesUi;
     GameData gameData = twoOfEach();
 
-    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData); }));
+    TextureCache textures;
+    EditorCommands commands;
+
+    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands); }));
 }
 
 TEST_CASE("Nothing is unsaved before a type is touched", "[TypesUi]")
@@ -245,4 +252,60 @@ TEST_CASE("Reverting puts back a type that was removed", "[TypesUi]")
     typesUi.revert(gameData);
 
     REQUIRE(gameData.pickupData.contains("coin"));
+}
+
+TEST_CASE("A type hands back the sheet it draws from", "[TypesUi]")
+{
+    GameData gameData = twoOfEach();
+    gameData.pickupData["coin"].sheet.texture = "textures/coin.png";
+    gameData.npcData["villager"].actorData.sheet.texture = "textures/player.png";
+
+    REQUIRE(
+        sheetOf(gameData, TypeShown{TypeShown::What::Pickup, "coin"})->texture ==
+        "textures/coin.png");
+    REQUIRE(
+        sheetOf(gameData, TypeShown{TypeShown::What::Npc, "villager"})->texture ==
+        "textures/player.png");
+}
+
+TEST_CASE("A type nobody has hands back no sheet", "[TypesUi]")
+{
+    GameData gameData = twoOfEach();
+
+    REQUIRE(sheetOf(gameData, TypeShown{TypeShown::What::Npc, "nobody"}) == nullptr);
+    REQUIRE(sheetOf(gameData, TypeShown{}) == nullptr);
+}
+
+TEST_CASE("Editing a type asks for the sheet it draws from", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    TextureCache textures;
+    EditorCommands commands;
+
+    std::string asked;
+    commands.onWarmTexture.connect([&](const std::string &texture) { asked = texture; });
+    gameData.pickupData["coin"].sheet.texture = "textures/coin.png";
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+
+    gui.frame([&] { typesUi.draw(gameData, textures, commands); });
+    commands.drain();
+
+    REQUIRE(asked == "textures/coin.png");
+}
+
+TEST_CASE("A sheet is only in scope while a type is being drawn", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    TextureCache textures;
+    EditorCommands commands;
+
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+
+    REQUIRE(sheetInScope() == nullptr);
+    gui.frame([&] { typesUi.draw(gameData, textures, commands); });
+    REQUIRE(sheetInScope() == nullptr);
 }

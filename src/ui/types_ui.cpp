@@ -2,13 +2,17 @@
 #include <map>
 #include <optional>
 #include <string>
-#include <utility>
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/types_ui.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
+#include "ui/sheet_in_scope.hpp"
+#include "ui/editor_commands.hpp"
+#include "rendering/texture_cache.hpp"
+#include "rendering/texture2d.hpp"
+#include "assets/sheet.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "game/game_data.hpp"
 
@@ -83,33 +87,37 @@ void TypesUi::drawChooser(GameData &gameData)
     ImGui::EndPopup();
 }
 
-void TypesUi::draw(GameData &gameData)
+void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
 {
-    drawChooser(gameData);
-
-    ImGui::Separator();
-
-    if (showing.what == TypeShown::What::Npc)
-    {
-        auto known = gameData.npcData.find(showing.name);
-        if (known == gameData.npcData.end())
-        {
-            ImGui::TextDisabled("pick a type");
-            return;
-        }
-
-        inspector::drawFields(known->second);
-        return;
-    }
-
-    auto known = gameData.pickupData.find(showing.name);
-    if (known == gameData.pickupData.end())
+    Sheet *sheet = sheetOf(gameData, showing);
+    if (!sheet)
     {
         ImGui::TextDisabled("pick a type");
         return;
     }
 
-    inspector::drawFields(known->second);
+    const Texture2D *texture = textures.find(sheet->texture);
+    if (!texture && !sheet->texture.empty() && sheet->texture != askedToWarm)
+    {
+        askedToWarm = sheet->texture;
+        commands.onWarmTexture(sheet->texture);
+    }
+
+    ShowingSheet offering(SheetInScope{texture, *sheet, 0});
+
+    if (showing.what == TypeShown::What::Npc)
+        inspector::drawFields(gameData.npcData.at(showing.name));
+    else
+        inspector::drawFields(gameData.pickupData.at(showing.name));
+}
+
+void TypesUi::draw(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
+{
+    drawChooser(gameData);
+
+    ImGui::Separator();
+
+    drawShown(gameData, textures, commands);
 }
 
 void TypesUi::revert(GameData &gameData)
@@ -138,6 +146,11 @@ bool TypesUi::unsavedSince(const GameData &gameData)
     bool npcs = saveable.unsavedSince("npcs", asJson(gameData.npcData));
 
     return saveable.unsavedSince("pickups", asJson(gameData.pickupData)) || npcs;
+}
+
+void TypesUi::show(const TypeShown &type)
+{
+    showing = type;
 }
 
 void TypesUi::valuesReplaced()

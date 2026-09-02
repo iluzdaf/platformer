@@ -100,6 +100,7 @@ add_library(platformer_lib OBJECT
     src/rendering/texture2d.cpp
     src/rendering/texture_cache.cpp
     src/rendering/tile_set_textures.cpp
+    src/rendering/actor_textures.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
     src/rendering/game_renderer.cpp
@@ -123,7 +124,7 @@ add_library(platformer_lib OBJECT
     src/ui/tile_picker.cpp
     src/ui/tile_index_field.cpp
     src/ui/tile_field_context.cpp
-    src/ui/tile_animation_field.cpp
+    src/ui/frame_animation_field.cpp
     src/ui/tile_collider_field.cpp
     src/ui/tile_palettes_ui.cpp
     src/ui/score_ui.cpp
@@ -156,8 +157,6 @@ add_library(platformer_lib OBJECT
     src/input/keyboard_manager.cpp
     src/input/keyboard_intentions.cpp
     src/animations/frame_animation.cpp
-    src/animations/sprite_animation.cpp
-    src/animations/tile_animation.cpp
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
@@ -277,13 +276,15 @@ add_executable(tests
     tests/ui/test_unsaved_sections.cpp
     tests/ui/test_editor_saving.cpp
     tests/ui/test_data_inspector.cpp
-    tests/ui/test_tile_animation_field.cpp
+    tests/ui/test_frame_animation_field.cpp
     tests/ui/test_tile_collider_field.cpp
     tests/ui/test_levels_ui.cpp
     tests/ui/test_levels_ui.cpp
     tests/ui/test_tile_palettes_ui.cpp
     tests/rendering/test_texture_cache.cpp
     tests/rendering/test_tile_set_textures.cpp
+    tests/rendering/test_frame_uv_range.cpp
+    tests/rendering/test_actor_textures.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp
@@ -301,8 +302,6 @@ add_executable(tests
     tests/input/test_keyboard_manager.cpp
     tests/animations/test_animation_manager.cpp
     tests/animations/test_frame_animation.cpp
-    tests/animations/test_sprite_animation.cpp
-    tests/animations/test_tile_animation.cpp
     tests/navigation/test_navigation_graph.cpp
     tests/scripting/test_lua_script_system.cpp
     tests/navigation/test_navigation_graph_builder.cpp

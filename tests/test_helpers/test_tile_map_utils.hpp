@@ -57,7 +57,7 @@ inline TileMap setupTileMap(
     const TilePalette &palette = getDefaultTileDataMap())
 {
     TilePalette sized = palette;
-    sized.tileSet.tileSize = tileSize;
+    sized.tileSet.cellSize = glm::ivec2(tileSize);
 
     TileMapData tileMapData;
     tileMapData.width = width;

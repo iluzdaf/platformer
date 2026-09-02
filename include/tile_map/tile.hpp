@@ -4,7 +4,7 @@
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_pickup_data.hpp"
-#include "animations/tile_animation.hpp"
+#include "animations/frame_animation.hpp"
 #include "physics/aabb.hpp"
 
 class Tile
@@ -25,7 +25,7 @@ public:
 
 private:
     bool solid = false, deadly = false, portal = false, grippable = false;
-    std::optional<TileAnimation> animation;
+    std::optional<FrameAnimation> animation;
     std::optional<TilePickupData> pickup;
     TileColliderData collider;
 };

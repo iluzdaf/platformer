@@ -70,10 +70,15 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
     if (tileSet.texture.empty())
         throw std::runtime_error("Palette \"" + tilePalette + "\" names no tile set texture");
 
-    if (tileSet.tileSize <= 0)
-        throw std::runtime_error("Palette \"" + tilePalette + "\" has a tile set tileSize of 0");
+    if (tileSet.cellSize.x <= 0)
+        throw std::runtime_error("Palette \"" + tilePalette + "\" has a tile set cell size of 0");
 
-    tileSize = tileSet.tileSize;
+    if (tileSet.cellSize.x != tileSet.cellSize.y)
+        throw std::runtime_error(
+            "Palette \"" + tilePalette + "\" has cells " + std::to_string(tileSet.cellSize.x) +
+            " by " + std::to_string(tileSet.cellSize.y) + ", and a tile map lays out squares");
+
+    tileSize = tileSet.cellSize.x;
 
     for (const auto &[tileIndex, tileData] : palette->second.tiles)
     {
@@ -277,7 +282,7 @@ void TileMap::setTilePalette(const std::string &name)
     tilePalette = name;
 }
 
-const TileSet &TileMap::getTileSet() const
+const Sheet &TileMap::getTileSet() const
 {
     return tileSet;
 }

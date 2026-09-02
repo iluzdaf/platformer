@@ -4,7 +4,7 @@
 #include "rendering/texture2d.hpp"
 #include "rendering/texture_cache.hpp"
 #include "tile_map/tile_palette.hpp"
-#include "tile_map/tile_set.hpp"
+#include "assets/sheet.hpp"
 
 namespace
 {
@@ -28,18 +28,18 @@ void checkTileSetFits(
     int textureWidth,
     int textureHeight)
 {
-    const TileSet &tileSet = palette.tileSet;
+    const Sheet &tileSet = palette.tileSet;
     if (tileSet.texture.empty())
         throw std::runtime_error("No tile set texture is named" + named(paletteName));
 
-    if (tileSet.tileSize <= 0)
+    if (tileSet.cellSize.x <= 0)
         throw std::runtime_error("A tile set cell must be wider than 0" + named(paletteName));
 
-    int cells = tilesInSheet(textureWidth, textureHeight, tileSet.tileSize);
+    int cells = tilesInSheet(textureWidth, textureHeight, tileSet.cellSize.x);
     if (cells <= 0)
         throw std::runtime_error(
             "Tile set \"" + tileSet.texture + "\" holds no whole tiles at " +
-            std::to_string(tileSet.tileSize) + " across" + named(paletteName));
+            std::to_string(tileSet.cellSize.x) + " across" + named(paletteName));
     for (const auto &[tileIndex, tileData] : palette.tiles)
         if (tileIndex >= cells)
             throw std::runtime_error(

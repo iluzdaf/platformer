@@ -2,12 +2,14 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include "serialization/glm_vec2_meta.hpp" // IWYU pragma: keep
+#include "assets/sheet.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "physics/physics_body_data.hpp"
 
 struct ActorData
 {
+    Sheet sheet;
     glm::vec2 size = glm::vec2(16, 16);
     PhysicsBodyData physicsBodyData;
     ActorMotionData motionData;

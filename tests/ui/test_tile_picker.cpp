@@ -39,7 +39,7 @@ namespace
             {
                 ImGui::BeginChild("picker", ImVec2(width, 900.0f));
                 float before = ImGui::GetCursorPosY();
-                drawTilePicker(sheet, TileSet{"", cellSize}, std::nullopt);
+                drawTilePicker(sheet, Sheet{"", glm::ivec2(cellSize)}, std::nullopt);
                 height = ImGui::GetCursorPosY() - before;
                 ImGui::EndChild();
             });

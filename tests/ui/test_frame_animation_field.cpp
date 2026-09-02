@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
-#include "ui/tile_animation_field.hpp"
+#include "ui/frame_animation_field.hpp"
 
 TEST_CASE("A preview shows the frame the time has reached", "[AnimationPreview]")
 {

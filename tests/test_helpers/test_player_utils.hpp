@@ -10,7 +10,7 @@
 #include "actor/abilities/wall_climb_ability_data.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
-#include "animations/sprite_animation_data.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "input/intention_source.hpp"
 #include "input/input_intentions.hpp"
 #include "animations/frame_animation_data.hpp"
@@ -41,10 +41,8 @@ inline const IntentionSource &noIntentions()
 inline PlayerData setupPlayerData()
 {
     PlayerData playerData;
-    playerData.actorData.animationData.idleSpriteAnimationData =
-        SpriteAnimationData(FrameAnimationData({30}, 1.0f), 16, 16, 96);
-    playerData.actorData.animationData.walkSpriteAnimationData =
-        SpriteAnimationData(FrameAnimationData({34, 26, 35}, 0.1f), 16, 16, 96);
+    playerData.actorData.animationData.idle = FrameAnimationData({30}, 1.0f);
+    playerData.actorData.animationData.walk = FrameAnimationData({34, 26, 35}, 0.1f);
     playerData.actorData.motionData.moveAbilityData = MoveAbilityData();
     playerData.actorData.motionData.jumpAbilityData = JumpAbilityData();
     playerData.actorData.motionData.dashAbilityData = DashAbilityData();

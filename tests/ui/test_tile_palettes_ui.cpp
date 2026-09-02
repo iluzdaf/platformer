@@ -254,11 +254,11 @@ TEST_CASE(
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
     TilePalette made;
-    made.tileSet = TileSet{std::string(assets::TileSetTexture), 16};
+    made.tileSet = Sheet{std::string(assets::TileSetTexture), glm::ivec2(16)};
     palettes.insert({"ice", made});
 
     REQUIRE(palettes["ice"].tiles.empty());
-    REQUIRE(tilesInSheet(112, 112, palettes["ice"].tileSet.tileSize) == 49);
+    REQUIRE(tilesInSheet(112, 112, palettes["ice"].tileSet.cellSize.x) == 49);
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
 }
 

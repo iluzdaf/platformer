@@ -102,11 +102,25 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     }
 }
 
+TEST_CASE("A tile map refuses cells that are not square", "[TileMap]")
+{
+    TilePalette palette = paletteOf({{0, TileData{}}});
+    palette.tileSet.cellSize = glm::ivec2(16, 32);
+
+    TileMapData tileMapData;
+    tileMapData.width = 2;
+    tileMapData.height = 2;
+
+    REQUIRE_THROWS_WITH(
+        TileMap(tileMapData, palettesFrom(palette)),
+        Catch::Matchers::ContainsSubstring("lays out squares"));
+}
+
 TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
 {
     TilePalette palette = paletteOf({{0, TileData{}}});
     palette.tileSet.texture = "textures/somewhere_else.png";
-    palette.tileSet.tileSize = 8;
+    palette.tileSet.cellSize = glm::ivec2(8);
 
     TileMapData tileMapData;
     tileMapData.width = 2;
@@ -115,13 +129,13 @@ TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
     TileMap tileMap(tileMapData, palettesFrom(palette));
 
     REQUIRE(tileMap.getTileSet().texture == "textures/somewhere_else.png");
-    REQUIRE(tileMap.getTileSet().tileSize == 8);
+    REQUIRE(tileMap.getTileSet().cellSize.x == 8);
 }
 
 TEST_CASE("A tile is as big as the cell its palette draws it from", "[TileMap]")
 {
     TilePalette palette = paletteOf({{0, TileData{}}});
-    palette.tileSet.tileSize = 8;
+    palette.tileSet.cellSize = glm::ivec2(8);
 
     TileMapData tileMapData;
     tileMapData.width = 2;
@@ -137,9 +151,9 @@ TEST_CASE("A tile is as big as the cell its palette draws it from", "[TileMap]")
 TEST_CASE("A level takes the size of a tile from the palette it names", "[TileMap]")
 {
     TilePalette small = paletteOf({{0, TileData{}}});
-    small.tileSet.tileSize = 8;
+    small.tileSet.cellSize = glm::ivec2(8);
     TilePalette large = paletteOf({{0, TileData{}}});
-    large.tileSet.tileSize = 32;
+    large.tileSet.cellSize = glm::ivec2(32);
 
     TileMapData tileMapData;
     tileMapData.width = 4;

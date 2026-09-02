@@ -121,20 +121,6 @@ namespace inspector
         return justEdited(ImGui::DragInt2(labelled(name).c_str(), &value.x));
     }
 
-    template <class T> constexpr bool wrapsOneStruct()
-    {
-        if constexpr (glz::reflectable<T>)
-        {
-            if constexpr (glz::reflect<T>::size == 1)
-                return glz::reflectable<std::remove_reference_t<decltype(glz::get<0>(
-                    glz::to_tie(std::declval<T &>())))>>;
-            else
-                return false;
-        }
-        else
-            return false;
-    }
-
     template <class T> Edited drawUnder(std::string_view name, T &value)
     {
         if (!ImGui::TreeNode(std::string(name).c_str()))
@@ -226,8 +212,6 @@ namespace inspector
             ImGui::TreePop();
             return edited;
         }
-        else if constexpr (wrapsOneStruct<T>())
-            return draw(name, glz::get<0>(glz::to_tie(value)));
         else if constexpr (glz::reflectable<T>)
             return drawUnder(name, value);
         else

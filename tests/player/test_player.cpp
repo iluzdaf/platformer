@@ -126,10 +126,10 @@ TEST_CASE("Player uses correct animation state", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        glm::vec2 uvBefore = player.getState().currentAnimationUVStart;
+        int frameBefore = player.getState().currentFrame;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        glm::vec2 uvAfter = player.getState().currentAnimationUVStart;
-        REQUIRE(uvBefore.x != Approx(uvAfter.x));
+        int frameAfter = player.getState().currentFrame;
+        REQUIRE(frameBefore != frameAfter);
     }
 }
 

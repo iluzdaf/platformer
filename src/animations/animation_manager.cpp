@@ -2,7 +2,7 @@
 #include "actor/actor_animation_state.hpp"
 #include "actor/actor_motion_state.hpp"
 #include <cstdlib>
-#include "animations/sprite_animation.hpp"
+#include "animations/frame_animation.hpp"
 
 void AnimationManager::update(float deltaTime, const ActorMotionState &motionState)
 {
@@ -36,7 +36,7 @@ void AnimationManager::update(float deltaTime, const ActorMotionState &motionSta
     animations.at(currentState).update(deltaTime);
 }
 
-const SpriteAnimation &AnimationManager::getCurrentAnimation()
+const FrameAnimation &AnimationManager::getCurrentAnimation()
 {
     return animations.at(currentState);
 }
@@ -46,7 +46,7 @@ ActorAnimationState AnimationManager::getCurrentState() const
     return currentState;
 }
 
-void AnimationManager::addAnimation(ActorAnimationState state, const SpriteAnimation &animation)
+void AnimationManager::addAnimation(ActorAnimationState state, const FrameAnimation &animation)
 {
     animations.insert_or_assign(state, animation);
 }

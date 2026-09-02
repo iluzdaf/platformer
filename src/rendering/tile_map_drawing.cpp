@@ -12,7 +12,7 @@ void drawTileMap(
     const Texture2D &tileSet)
 {
     int tileSize = tileMap.getTileSize();
-    int cellSize = tileMap.getTileSet().tileSize;
+    int cellSize = tileMap.getTileSet().cellSize.x;
     for (int tileY = 0; tileY < tileMap.getHeight(); ++tileY)
     {
         for (int tileX = 0; tileX < tileMap.getWidth(); ++tileX)

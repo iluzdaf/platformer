@@ -1,13 +1,13 @@
 #pragma once
 
-#include "tile_map/tile_set.hpp"
+#include "assets/sheet.hpp"
 
 class Texture2D;
 
 struct TileFieldContext
 {
     const Texture2D *sheet = nullptr;
-    TileSet tileSet;
+    Sheet tileSet;
     int tileIndex = 0;
 };
 

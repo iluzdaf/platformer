@@ -3,7 +3,7 @@
 #include "actor/actor.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "actor/actor_animation_state.hpp"
-#include "animations/sprite_animation.hpp"
+#include "animations/frame_animation.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -19,32 +19,27 @@ Actor::Actor(const ActorData &data)
     : motion(data.motionData), physicsBody(data.physicsBodyData),
       navigationProfile(buildNavigationProfile(data))
 {
+    sheet = data.sheet;
     actorState.size = data.size;
 
     const ActorAnimationData &animationData = data.animationData;
 
-    animationManager.addAnimation(
-        ActorAnimationState::Idle, SpriteAnimation(animationData.idleSpriteAnimationData));
-    if (animationData.walkSpriteAnimationData)
+    animationManager.addAnimation(ActorAnimationState::Idle, FrameAnimation(animationData.idle));
+    if (animationData.walk)
         animationManager.addAnimation(
-            ActorAnimationState::Walk,
-            SpriteAnimation(animationData.walkSpriteAnimationData.value()));
-    if (animationData.dashSpriteAnimationData)
+            ActorAnimationState::Walk, FrameAnimation(animationData.walk.value()));
+    if (animationData.dash)
         animationManager.addAnimation(
-            ActorAnimationState::Dash,
-            SpriteAnimation(animationData.dashSpriteAnimationData.value()));
-    if (animationData.jumpSpriteAnimationData)
+            ActorAnimationState::Dash, FrameAnimation(animationData.dash.value()));
+    if (animationData.jump)
         animationManager.addAnimation(
-            ActorAnimationState::Jump,
-            SpriteAnimation(animationData.jumpSpriteAnimationData.value()));
-    if (animationData.fallSpriteAnimationData)
+            ActorAnimationState::Jump, FrameAnimation(animationData.jump.value()));
+    if (animationData.fall)
         animationManager.addAnimation(
-            ActorAnimationState::Fall,
-            SpriteAnimation(animationData.fallSpriteAnimationData.value()));
-    if (animationData.wallSlideSpriteAnimationData)
+            ActorAnimationState::Fall, FrameAnimation(animationData.fall.value()));
+    if (animationData.wallSlide)
         animationManager.addAnimation(
-            ActorAnimationState::WallSlide,
-            SpriteAnimation(animationData.wallSlideSpriteAnimationData.value()));
+            ActorAnimationState::WallSlide, FrameAnimation(animationData.wallSlide.value()));
 }
 
 void Actor::postFixedUpdate()
@@ -81,9 +76,13 @@ void Actor::fixedUpdate(
     actorState.facingLeft = motionState.velocity.x > 0
                                 ? false
                                 : (motionState.velocity.x < 0 ? true : actorState.facingLeft);
-    actorState.currentAnimationUVStart = animationManager.getCurrentAnimation().getUVStart();
-    actorState.currentAnimationUVEnd = animationManager.getCurrentAnimation().getUVEnd();
+    actorState.currentFrame = animationManager.getCurrentAnimation().getCurrentFrame();
     actorState.currentAnimationState = animationManager.getCurrentState();
+}
+
+const Sheet &Actor::getSheet() const
+{
+    return sheet;
 }
 
 const ActorState &Actor::getState() const

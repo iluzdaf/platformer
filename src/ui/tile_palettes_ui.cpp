@@ -25,7 +25,7 @@
 #include "rendering/texture2d.hpp"
 #include "rendering/texture_cache.hpp"
 #include "ui/editor_commands.hpp"
-#include "tile_map/tile_set.hpp"
+#include "assets/sheet.hpp"
 
 void TilePalettesUi::saveWithRenames(const TilePalettes &tilePalettes)
 {
@@ -155,7 +155,7 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
     int cells = tilesInSheet(
         static_cast<int>(tileSet->getWidth()),
         static_cast<int>(tileSet->getHeight()),
-        palette.tileSet.tileSize);
+        palette.tileSet.cellSize.x);
     if (cells <= 0)
     {
         ImGui::TextDisabled("no whole tiles in this tile set");

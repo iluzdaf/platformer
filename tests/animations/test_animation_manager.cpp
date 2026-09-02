@@ -2,15 +2,15 @@
 #include "actor/actor_animation_state.hpp"
 #include "animations/animation_manager.hpp"
 #include "animations/frame_animation_data.hpp"
-#include "animations/sprite_animation.hpp"
-#include "animations/sprite_animation_data.hpp"
+#include "animations/frame_animation.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "actor/actor_motion_state.hpp"
 
 namespace
 {
-    SpriteAnimation animationOfFrame(int frame)
+    FrameAnimation animationOfFrame(int frame)
     {
-        return SpriteAnimation(SpriteAnimationData(FrameAnimationData({frame}, 1.0f), 16, 16, 96));
+        return FrameAnimation(FrameAnimationData({frame}, 1.0f));
     }
 
     ActorMotionState walkingOnGround()

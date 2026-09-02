@@ -26,13 +26,16 @@ inspector::Edited drawCustomField(std::string_view name, TileColliderData &value
     inspector::Edited edited = inspector::drawFields(value);
 
     const TileFieldContext *offering = tilesOnOffer();
-    if (offering && offering->sheet && offering->tileSet.tileSize > 0)
+    if (offering && offering->sheet && offering->tileSet.cellSize.x > 0)
     {
         ImVec2 tileAt = ImGui::GetCursorScreenPos();
         drawTileImage(
-            *offering->sheet, offering->tileSet.tileSize, offering->tileIndex, ColliderPreviewSize);
+            *offering->sheet,
+            offering->tileSet.cellSize.x,
+            offering->tileIndex,
+            ColliderPreviewSize);
 
-        float scale = ColliderPreviewSize / static_cast<float>(offering->tileSet.tileSize);
+        float scale = ColliderPreviewSize / static_cast<float>(offering->tileSet.cellSize.x);
         auto [low, high] = colliderRect(tileAt, scale, value.offset, value.size);
         ImGui::GetWindowDrawList()->AddRectFilled(low, high, IM_COL32(0, 255, 255, 40));
         ImGui::GetWindowDrawList()->AddRect(low, high, IM_COL32(0, 255, 255, 255));

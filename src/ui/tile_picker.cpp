@@ -9,7 +9,7 @@
 #include "ui/tile_picker.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_set_textures.hpp"
-#include "tile_map/tile_set.hpp"
+#include "assets/sheet.hpp"
 
 bool drawTileCell(const Texture2D &tileSet, int tileSize, int tileIndex)
 {
@@ -41,11 +41,13 @@ void drawTileImage(const Texture2D &sheet, int cellSize, int tileIndex, float si
 
 std::optional<int> drawTilePicker(
     const Texture2D &sheet,
-    const TileSet &tileSet,
+    const Sheet &tileSet,
     std::optional<int> armed)
 {
     int cells = tilesInSheet(
-        static_cast<int>(sheet.getWidth()), static_cast<int>(sheet.getHeight()), tileSet.tileSize);
+        static_cast<int>(sheet.getWidth()),
+        static_cast<int>(sheet.getHeight()),
+        tileSet.cellSize.x);
 
     std::optional<int> picked = armed;
     const ImGuiStyle &style = ImGui::GetStyle();
@@ -64,7 +66,7 @@ std::optional<int> drawTilePicker(
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ArmedColour);
         }
 
-        if (drawTileCell(sheet, tileSet.tileSize, tileIndex))
+        if (drawTileCell(sheet, tileSet.cellSize.x, tileIndex))
             picked = isArmed ? std::nullopt : std::optional<int>(tileIndex);
 
         float nextRightEdge =

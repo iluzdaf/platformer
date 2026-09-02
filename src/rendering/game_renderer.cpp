@@ -11,10 +11,13 @@
 #include "rendering/shader_data.hpp"
 #include "rendering/tile_map_drawing.hpp"
 #include "rendering/tile_set_textures.hpp"
+#include "rendering/actor_textures.hpp"
+#include "rendering/texture2d.hpp"
 #include "tile_map/tile_map.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "game/game_data.hpp"
 #include "actor/actor.hpp"
 #include "actor/actor_state.hpp"
+#include "assets/sheet.hpp"
 #include "assets/asset_paths.hpp"
 
 GameRenderer::GameRenderer()
@@ -22,14 +25,14 @@ GameRenderer::GameRenderer()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    textures.warm(std::string(assets::PlayerTexture));
     reloadShader(std::string(assets::TileSetVertexShader));
     reloadShader(std::string(assets::TransitionVertexShader));
 }
 
-void GameRenderer::warm(const TilePalettes &tilePalettes)
+void GameRenderer::warm(const GameData &gameData)
 {
-    warmTileSets(textures, tilePalettes);
+    warmTileSets(textures, gameData.tilePalettes);
+    warmActorTextures(textures, gameData.playerData, gameData.npcData);
 }
 
 void GameRenderer::warmTexture(const std::string &texturePath)
@@ -87,14 +90,23 @@ void GameRenderer::draw(
     for (const Actor *actor : actors)
     {
         const ActorState &actorState = actor->getState();
+        const Sheet &sheet = actor->getSheet();
+        const Texture2D &texture = textures.get(sheet.texture);
+        auto [uvStart, uvEnd] = frameUvRangeIn(
+            static_cast<int>(texture.getWidth()),
+            static_cast<int>(texture.getHeight()),
+            actorState.currentFrame,
+            sheet.cellSize.x,
+            sheet.cellSize.y);
+
         spriteRenderer.drawWithUV(
             *tileSetShader.get(),
-            textures.get(std::string(assets::PlayerTexture)),
+            texture,
             projection,
             actor->getPosition(),
             actorState.size,
-            actorState.currentAnimationUVStart,
-            actorState.currentAnimationUVEnd,
+            uvStart,
+            uvEnd,
             actorState.facingLeft);
     }
 }

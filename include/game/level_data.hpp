@@ -4,6 +4,7 @@
 #include <vector>
 #include "tile_map/tile_map_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 #include "serialization/glm_ivec2_meta.hpp" // IWYU pragma: keep
 
 struct LevelData
@@ -12,4 +13,5 @@ struct LevelData
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
     std::string nextLevel = "../assets/levels/level1.json";
     std::vector<NpcSpawnData> npcs;
+    std::vector<PickupSpawnData> pickups;
 };

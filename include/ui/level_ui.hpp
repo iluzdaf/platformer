@@ -17,10 +17,8 @@
 class ImGuiManager;
 class TileMap;
 class Level;
-class Texture2D;
 class Camera2D;
 struct NpcData;
-struct TilePalette;
 struct ActorMotionState;
 struct ActorState;
 class Npc;
@@ -34,8 +32,6 @@ public:
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
-        const Texture2D &sheet,
-        const TilePalette &palette,
         const std::map<std::string, NpcData> &npcData,
         std::optional<Armed> &armed,
         EditorCommands &commands);
@@ -71,5 +67,4 @@ private:
         std::optional<Armed> &armed,
         EditorCommands &commands);
     void drawOverlayToggles();
-    void drawTiles(const Texture2D &sheet, const TilePalette &palette, std::optional<Armed> &armed);
 };

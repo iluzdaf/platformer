@@ -9,7 +9,6 @@
 #include "ui/actors_in_level.hpp"
 #include "ui/palette_renamed.hpp"
 #include "ui/tile_palettes_ui.hpp"
-#include "rendering/texture_cache.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
@@ -118,8 +117,6 @@ void EditorUi::draw(
             subject.playerMotionState,
             subject.playerFeet,
             subject.playerState,
-            subject.textures.get(subject.level.getTileMap().getTileSet().texture),
-            subject.gameData.tilePalettes.at(subject.level.getTileMap().getTilePalette()),
             subject.gameData.npcData,
             armed,
             commands);

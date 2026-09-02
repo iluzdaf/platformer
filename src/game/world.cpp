@@ -7,10 +7,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/world.hpp"
 #include "game/game_data.hpp"
+#include "game/catalogue.hpp"
 #include "game/level.hpp"
 #include "actor/actor.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
+#include "pickups/pickup_data.hpp"
 #include "player/player.hpp"
 #include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
@@ -32,6 +35,8 @@ void World::loadLevel(const std::string &levelPath)
     respawnPlayer();
 
     rebuildNpcs();
+
+    rebuildPickups();
 
     onLevelLoaded();
 }
@@ -79,9 +84,8 @@ void World::rebuildNpcs()
 
     for (const NpcSpawnData &spawn : level->getNpcs())
     {
-        auto it = gameData.npcData.find(spawn.type);
-
-        std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(it->second, level->patrolFor(spawn));
+        std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(
+            oneNamed(gameData.npcData, "npc", spawn.type), level->patrolFor(spawn));
         newNpc->setPosition(
             level->getTileMap().feetOnTile(spawn.tilePosition) -
             newNpc->getPhysicsBody().getBottomCenterOffset());
@@ -89,6 +93,24 @@ void World::rebuildNpcs()
     }
 
     refreshActors();
+}
+
+void World::rebuildPickups()
+{
+    pickups.clear();
+
+    for (const PickupSpawnData &spawn : level->getPickups())
+    {
+        const PickupData &kind = oneNamed(gameData.pickupData, "pickup", spawn.type);
+
+        pickups.push_back(
+            Pickup(kind, level->getTileMap().middleOfTile(spawn.tilePosition) - kind.size * 0.5f));
+    }
+}
+
+const std::vector<Pickup> &World::getPickups() const
+{
+    return pickups;
 }
 
 void World::refreshActors()
@@ -130,6 +152,9 @@ void World::postFixedUpdate()
 void World::update(float deltaTime)
 {
     level->getTileMap().update(deltaTime);
+
+    for (Pickup &pickup : pickups)
+        pickup.update(deltaTime);
 }
 
 bool World::isPlaying(const std::string &levelPath) const

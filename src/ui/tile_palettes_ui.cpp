@@ -16,7 +16,7 @@
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/tile_field_context.hpp"
-#include "rendering/tile_set_textures.hpp"
+#include "rendering/tile_set_fit.hpp"
 #include "tile_map/tile_data.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"

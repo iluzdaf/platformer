@@ -99,8 +99,8 @@ add_subdirectory(external/efsw)
 add_library(platformer_lib OBJECT
     src/rendering/texture2d.cpp
     src/rendering/texture_cache.cpp
-    src/rendering/tile_set_textures.cpp
-    src/rendering/actor_textures.cpp
+    src/rendering/tile_set_fit.cpp
+    src/rendering/sheet_textures.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
     src/rendering/game_renderer.cpp
@@ -175,6 +175,7 @@ add_library(platformer_lib OBJECT
     src/actor/behaviors/route_walker.cpp
     src/actor/behaviors/state_machine_behavior.cpp
     src/npc/npc.cpp
+    src/pickups/pickup.cpp
     src/actor/actor_motion.cpp
     src/actor/abilities/jump_ability.cpp
     src/actor/abilities/dash_ability.cpp
@@ -282,9 +283,9 @@ add_executable(tests
     tests/ui/test_levels_ui.cpp
     tests/ui/test_tile_palettes_ui.cpp
     tests/rendering/test_texture_cache.cpp
-    tests/rendering/test_tile_set_textures.cpp
+    tests/rendering/test_tile_set_fit.cpp
     tests/rendering/test_frame_uv_range.cpp
-    tests/rendering/test_actor_textures.cpp
+    tests/rendering/test_sheet_textures.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp
@@ -313,10 +314,12 @@ add_executable(tests
     tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/npc/test_npc.cpp
     tests/pickups/test_pickup_data.cpp
+    tests/pickups/test_pickup.cpp
     tests/assets/test_asset_paths.cpp
     tests/reloading/test_reloader.cpp
     tests/game/test_game.cpp
     tests/game/test_world.cpp
+    tests/game/test_catalogue.cpp
     tests/game/test_playback.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp

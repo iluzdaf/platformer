@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "rendering/tile_set_textures.hpp"
+#include "rendering/tile_set_fit.hpp"
 #include "ui/tile_picker.hpp"
 
 TEST_CASE("A sheet holds what both its axes divide into", "[TilePicker]")

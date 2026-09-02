@@ -55,20 +55,34 @@ GLuint Texture2D::getTextureID() const
     return textureID;
 }
 
-std::pair<glm::vec2, glm::vec2> Texture2D::getUVRange(int frameIndex, int tileSize, bool flipY)
-    const
+std::pair<glm::vec2, glm::vec2> uvRangeIn(
+    int textureWidth,
+    int textureHeight,
+    int frameIndex,
+    int tileSize,
+    bool flipY)
 {
-    int tilesPerRow = width / tileSize;
-    int tileX = frameIndex % tilesPerRow;
-    int tileY = frameIndex / tilesPerRow;
-    float uvSize = static_cast<float>(tileSize) / static_cast<float>(width);
+    int across = tileSize > 0 ? textureWidth / tileSize : 0;
+    if (across <= 0 || textureHeight <= 0)
+        return {glm::vec2(0.0f), glm::vec2(1.0f)};
+
+    int tileX = frameIndex % across;
+    int tileY = frameIndex / across;
+    float uvWidth = static_cast<float>(tileSize) / static_cast<float>(textureWidth);
+    float uvHeight = static_cast<float>(tileSize) / static_cast<float>(textureHeight);
 
     if (flipY)
         return {
-            glm::vec2(tileX * uvSize, tileY * uvSize),
-            glm::vec2((tileX + 1) * uvSize, (tileY + 1) * uvSize)};
-    else
-        return {
-            glm::vec2(tileX * uvSize, (tileY + 1) * uvSize),
-            glm::vec2((tileX + 1) * uvSize, tileY * uvSize)};
+            glm::vec2(tileX * uvWidth, tileY * uvHeight),
+            glm::vec2((tileX + 1) * uvWidth, (tileY + 1) * uvHeight)};
+
+    return {
+        glm::vec2(tileX * uvWidth, (tileY + 1) * uvHeight),
+        glm::vec2((tileX + 1) * uvWidth, tileY * uvHeight)};
+}
+
+std::pair<glm::vec2, glm::vec2> Texture2D::getUVRange(int frameIndex, int tileSize, bool flipY)
+    const
+{
+    return uvRangeIn(width, height, frameIndex, tileSize, flipY);
 }

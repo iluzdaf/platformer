@@ -27,14 +27,11 @@ void checkTileSetFits(
     if (tileSet.tileSize <= 0)
         throw std::runtime_error("A tile set cell must be wider than 0" + named(paletteName));
 
-    if (textureWidth != textureHeight)
+    int cells = (textureWidth / tileSet.tileSize) * (textureHeight / tileSet.tileSize);
+    if (cells <= 0)
         throw std::runtime_error(
-            "Tile set \"" + tileSet.texture + "\" must be square, and is " +
-            std::to_string(textureWidth) + " by " + std::to_string(textureHeight) +
-            named(paletteName));
-
-    int across = textureWidth / tileSet.tileSize;
-    int cells = across * across;
+            "Tile set \"" + tileSet.texture + "\" holds no whole tiles at " +
+            std::to_string(tileSet.tileSize) + " across" + named(paletteName));
     for (const auto &[tileIndex, tileData] : palette.tiles)
         if (tileIndex >= cells)
             throw std::runtime_error(

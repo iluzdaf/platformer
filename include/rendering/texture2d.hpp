@@ -4,6 +4,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <utility>
 
+std::pair<glm::vec2, glm::vec2> uvRangeIn(
+    int textureWidth,
+    int textureHeight,
+    int frameIndex,
+    int tileSize,
+    bool flipY = true);
+
 class Texture2D
 {
 public:

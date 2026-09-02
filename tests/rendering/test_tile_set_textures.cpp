@@ -1,7 +1,9 @@
+#include <cmath>
 #include <string>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
+#include "rendering/texture2d.hpp"
 #include "rendering/tile_set_textures.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
@@ -25,14 +27,21 @@ TEST_CASE("A tile past the end of its tile set is refused", "[TileSet]")
             Catch::Matchers::ContainsSubstring("default"));
 }
 
-TEST_CASE("A tile set that is not square is refused", "[TileSet]")
+TEST_CASE("A taller sheet keeps every tile where it was and holds more", "[TileSet]")
+{
+    TilePalette palette = paletteOf({{0, TileData{}}, {55, TileData{}}});
+
+    REQUIRE_THROWS(checkTileSetFits(palette, "default", 112, 112));
+    REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 112, 128));
+}
+
+TEST_CASE("A sheet holding no whole tile is refused", "[TileSet]")
 {
     TilePalette palette = paletteOf({{0, TileData{}}});
 
     REQUIRE_THROWS_WITH(
-        checkTileSetFits(palette, "default", 128, 112),
-        Catch::Matchers::ContainsSubstring("square") &&
-            Catch::Matchers::ContainsSubstring("128 by 112"));
+        checkTileSetFits(palette, "default", 8, 8),
+        Catch::Matchers::ContainsSubstring("no whole tiles"));
 }
 
 TEST_CASE("A palette naming no tile set texture is refused", "[TileSet]")
@@ -68,6 +77,43 @@ TEST_CASE("Every shipped palette fits the tile set it names", "[TileSet]")
 {
     for (const auto &[name, palette] : shippedPalettes())
         REQUIRE_NOTHROW(checkTileSetFits(palette, name, 112, 112));
+}
+
+TEST_CASE("A tile keeps its cell when the sheet grows taller", "[TileSet]")
+{
+    for (int index : {0, 6, 7, 13, 48})
+    {
+        auto [wasStart, wasEnd] = uvRangeIn(112, 112, index, 16);
+        auto [nowStart, nowEnd] = uvRangeIn(112, 128, index, 16);
+
+        REQUIRE(wasStart.x == nowStart.x);
+        REQUIRE(wasEnd.x == nowEnd.x);
+        REQUIRE(std::lround(nowStart.y * 128.0f) == std::lround(wasStart.y * 112.0f));
+    }
+}
+
+TEST_CASE("A square sheet reads exactly as it did", "[TileSet]")
+{
+    for (int index : {0, 1, 7, 42, 48})
+    {
+        auto [start, end] = uvRangeIn(112, 112, index, 16);
+        float cell = 16.0f / 112.0f;
+
+        REQUIRE(start.x == (index % 7) * cell);
+        REQUIRE(start.y == (index / 7) * cell);
+        REQUIRE(end.x == ((index % 7) + 1) * cell);
+        REQUIRE(end.y == ((index / 7) + 1) * cell);
+    }
+}
+
+TEST_CASE("A tall sheet divides each axis by its own size", "[TileSet]")
+{
+    auto [start, end] = uvRangeIn(112, 224, 7, 16);
+
+    REQUIRE(start.x == 0.0f);
+    REQUIRE(end.x == 16.0f / 112.0f);
+    REQUIRE(start.y == 16.0f / 224.0f);
+    REQUIRE(end.y == 32.0f / 224.0f);
 }
 
 #ifndef SKIP_OPENGL_TESTS

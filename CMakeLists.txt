@@ -119,6 +119,7 @@ add_library(platformer_lib OBJECT
     src/ui/player_ui.cpp
     src/ui/levels_ui.cpp
     src/ui/tile_picker.cpp
+    src/ui/tile_index_field.cpp
     src/ui/tile_palettes_ui.cpp
     src/ui/score_ui.cpp
     src/ui/navigation_overlay.cpp
@@ -278,6 +279,7 @@ add_executable(tests
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp
     tests/tile_map/test_tile_map.cpp
+    tests/tile_map/test_tile_index.cpp
     tests/tile_map/test_tile.cpp
     tests/tile_map/test_level_tile_caps.cpp
     tests/tile_map/test_tile_interaction_system.cpp

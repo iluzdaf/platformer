@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "animations/frame_animation.hpp"
 #include "assets/sheet.hpp"
+#include "physics/aabb.hpp"
 
 struct PickupData;
 
@@ -17,9 +18,12 @@ public:
     int getCurrentFrame() const;
     const glm::vec2 &getPosition() const;
     const glm::vec2 &getSize() const;
+    int getScoreDelta() const;
+    AABB getAABB() const;
 
 private:
     Sheet sheet;
     FrameAnimation animation;
     glm::vec2 position, size;
+    int scoreDelta = 0;
 };

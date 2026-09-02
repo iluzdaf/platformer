@@ -1,10 +1,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
+#include "physics/aabb.hpp"
 
 Pickup::Pickup(const PickupData &pickupData, glm::vec2 position)
     : sheet(pickupData.sheet), animation(pickupData.animationData), position(position),
-      size(pickupData.size)
+      size(pickupData.size), scoreDelta(pickupData.scoreDelta)
 {
 }
 
@@ -31,4 +32,14 @@ const glm::vec2 &Pickup::getPosition() const
 const glm::vec2 &Pickup::getSize() const
 {
     return size;
+}
+
+int Pickup::getScoreDelta() const
+{
+    return scoreDelta;
+}
+
+AABB Pickup::getAABB() const
+{
+    return AABB{position, size};
 }

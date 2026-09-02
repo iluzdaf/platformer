@@ -176,6 +176,7 @@ add_library(platformer_lib OBJECT
     src/actor/behaviors/state_machine_behavior.cpp
     src/npc/npc.cpp
     src/pickups/pickup.cpp
+    src/pickups/collecting.cpp
     src/actor/actor_motion.cpp
     src/actor/abilities/jump_ability.cpp
     src/actor/abilities/dash_ability.cpp
@@ -315,6 +316,7 @@ add_executable(tests
     tests/npc/test_npc.cpp
     tests/pickups/test_pickup_data.cpp
     tests/pickups/test_pickup.cpp
+    tests/pickups/test_collecting.cpp
     tests/assets/test_asset_paths.cpp
     tests/reloading/test_reloader.cpp
     tests/game/test_game.cpp

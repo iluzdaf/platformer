@@ -1,4 +1,3 @@
-#include <tuple>
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/camera_ui.hpp"
@@ -18,7 +17,7 @@ void CameraUi::draw(GameData &gameData, const Camera2D &camera, EditorCommands &
 }
 void CameraUi::revert(GameData &gameData)
 {
-    std::ignore = glz::read_json(gameData.cameraData, saveable.lastSeen("camera"));
+    revertTo(saveable, "camera", gameData.cameraData);
 }
 
 void CameraUi::save(GameData &gameData)
@@ -27,7 +26,7 @@ void CameraUi::save(GameData &gameData)
     saveable.saved("camera", asJson(gameData.cameraData));
 }
 
-bool CameraUi::hasUnsavedChanges(const GameData &gameData)
+bool CameraUi::unsavedSince(const GameData &gameData)
 {
     return saveable.unsavedSince("camera", asJson(gameData.cameraData));
 }

@@ -1,4 +1,3 @@
-#include <tuple>
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/player_ui.hpp"
@@ -49,7 +48,7 @@ void PlayerUi::drawOverlay(
 }
 void PlayerUi::revert(GameData &gameData)
 {
-    std::ignore = glz::read_json(gameData.playerData, saveable.lastSeen("player"));
+    revertTo(saveable, "player", gameData.playerData);
 }
 
 void PlayerUi::save(GameData &gameData)
@@ -58,7 +57,7 @@ void PlayerUi::save(GameData &gameData)
     saveable.saved("player", asJson(gameData.playerData));
 }
 
-bool PlayerUi::hasUnsavedChanges(const GameData &gameData)
+bool PlayerUi::unsavedSince(const GameData &gameData)
 {
     return saveable.unsavedSince("player", asJson(gameData.playerData));
 }

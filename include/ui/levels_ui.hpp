@@ -18,7 +18,7 @@ public:
         bool levelHasUnsavedChanges);
     void save(Levels &levels);
     void revert(Levels &levels);
-    bool hasUnsavedChanges(const Levels &levels);
+    bool unsavedSince(const Levels &levels);
     void valuesReplaced();
 
 private:

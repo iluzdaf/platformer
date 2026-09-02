@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <tuple>
 #include <map>
 #include <optional>
 #include <string>
@@ -43,7 +42,7 @@ namespace
 {
     constexpr float RenameWidth = 62.0f;
 
-    bool drawNameField(std::string &name)
+    void drawNameField(std::string &name)
     {
         std::array<char, 256> buffer{};
         name.copy(buffer.data(), std::min(name.size(), buffer.size() - 1));
@@ -53,8 +52,6 @@ namespace
         ImGui::SetNextItemWidth(-RenameWidth);
         if (ImGui::InputText("##name", buffer.data(), buffer.size()))
             name = buffer.data();
-
-        return true;
     }
 }
 
@@ -92,7 +89,7 @@ std::optional<PaletteRenamed> TilePalettesUi::drawRename(TilePalettes &tilePalet
     if (renamingTo.empty())
         renamingTo = selectedPalette;
 
-    std::ignore = drawNameField(renamingTo);
+    drawNameField(renamingTo);
 
     std::optional<std::string> why = whyNotARename(tilePalettes, selectedPalette, renamingTo);
     ImGui::SameLine();
@@ -199,7 +196,7 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
 }
 void TilePalettesUi::revert(TilePalettes &tilePalettes)
 {
-    std::ignore = glz::read_json(tilePalettes, saveable.lastSeen("palettes"));
+    revertTo(saveable, "palettes", tilePalettes);
 }
 
 void TilePalettesUi::save(TilePalettes &tilePalettes)
@@ -208,7 +205,7 @@ void TilePalettesUi::save(TilePalettes &tilePalettes)
     saveable.saved("palettes", asJson(tilePalettes));
 }
 
-bool TilePalettesUi::hasUnsavedChanges(const TilePalettes &tilePalettes)
+bool TilePalettesUi::unsavedSince(const TilePalettes &tilePalettes)
 {
     return saveable.unsavedSince("palettes", asJson(tilePalettes));
 }

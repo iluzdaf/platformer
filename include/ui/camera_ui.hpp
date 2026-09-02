@@ -12,7 +12,7 @@ public:
     void draw(GameData &gameData, const Camera2D &camera, EditorCommands &commands);
     void save(GameData &gameData);
     void revert(GameData &gameData);
-    bool hasUnsavedChanges(const GameData &gameData);
+    bool unsavedSince(const GameData &gameData);
     void valuesReplaced();
 
 private:

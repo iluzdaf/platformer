@@ -79,7 +79,7 @@ void LevelsUi::save(Levels &levels)
     saveable.saved("levels", levels.getFirst());
 }
 
-bool LevelsUi::hasUnsavedChanges(const Levels &levels)
+bool LevelsUi::unsavedSince(const Levels &levels)
 {
     return saveable.unsavedSince("levels", levels.getFirst());
 }

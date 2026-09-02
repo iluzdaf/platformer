@@ -28,7 +28,7 @@ TEST_CASE("A section has nothing unsaved before anything is edited", "[UnsavedSe
 
     drawCameraOnce(gui, cameraUi, gameData);
 
-    REQUIRE_FALSE(cameraUi.hasUnsavedChanges(gameData));
+    REQUIRE_FALSE(cameraUi.unsavedSince(gameData));
 }
 
 TEST_CASE("A section reports unsaved once its data changes", "[UnsavedSections]")
@@ -36,10 +36,10 @@ TEST_CASE("A section reports unsaved once its data changes", "[UnsavedSections]"
     CameraUi cameraUi;
     GameData gameData;
 
-    REQUIRE_FALSE(cameraUi.hasUnsavedChanges(gameData));
+    REQUIRE_FALSE(cameraUi.unsavedSince(gameData));
     gameData.cameraData.zoom += 1.0f;
 
-    REQUIRE(cameraUi.hasUnsavedChanges(gameData));
+    REQUIRE(cameraUi.unsavedSince(gameData));
 }
 
 TEST_CASE("The first look at a section is what it is compared against", "[UnsavedSections]")
@@ -48,7 +48,7 @@ TEST_CASE("The first look at a section is what it is compared against", "[Unsave
     GameData gameData;
     gameData.cameraData.zoom += 1.0f;
 
-    REQUIRE_FALSE(cameraUi.hasUnsavedChanges(gameData));
+    REQUIRE_FALSE(cameraUi.unsavedSince(gameData));
 }
 
 TEST_CASE("The levels section has nothing unsaved when it is first drawn", "[UnsavedSections]")
@@ -63,7 +63,7 @@ TEST_CASE("The levels section has nothing unsaved when it is first drawn", "[Uns
 
     gui.frame([&] { levelsUi.draw(levels, level, commands, false); });
 
-    REQUIRE_FALSE(levelsUi.hasUnsavedChanges(levels));
+    REQUIRE_FALSE(levelsUi.unsavedSince(levels));
 }
 
 TEST_CASE("The levels section reports unsaved once the first level changes", "[UnsavedSections]")
@@ -76,10 +76,10 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
         assetPath(levels.getFirst()), gameData.tilePalettes, gameData.playerData, gameData.npcData);
     EditorCommands commands;
 
-    REQUIRE_FALSE(levelsUi.hasUnsavedChanges(levels));
+    REQUIRE_FALSE(levelsUi.unsavedSince(levels));
     levels.setFirst("levels/level3.json");
 
-    REQUIRE(levelsUi.hasUnsavedChanges(levels));
+    REQUIRE(levelsUi.unsavedSince(levels));
 }
 
 #include <optional>
@@ -103,12 +103,12 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
     MouseOnTheMap still{true, glm::vec2(0.0f), false, false};
 
     levelUi.update(still, level, armed, commands);
-    REQUIRE_FALSE(levelUi.hasUnsavedChanges(level));
+    REQUIRE_FALSE(levelUi.unsavedSince(level));
 
     level.setNextLevel("levels/level3.json");
     levelUi.update(still, level, armed, commands);
 
-    REQUIRE(levelUi.hasUnsavedChanges(level));
+    REQUIRE(levelUi.unsavedSince(level));
 }
 
 TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSections]")
@@ -127,5 +127,5 @@ TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSecti
 
     levelUi.update(mouse, level, armed, commands);
 
-    REQUIRE(levelUi.hasUnsavedChanges(level));
+    REQUIRE(levelUi.unsavedSince(level));
 }

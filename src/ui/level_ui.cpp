@@ -1,10 +1,10 @@
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <cstddef>
 #include <memory>
 #include <optional>
 #include <vector>
-#include <tuple>
 #include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
@@ -164,7 +164,8 @@ void LevelUi::drawActors(
 std::string LevelUi::asItWouldBeSaved(const Level &level) const
 {
     std::string json;
-    std::ignore = glz::write_json(level.toLevelData(), json);
+    if (glz::write_json(level.toLevelData(), json))
+        throw std::runtime_error("Failed to serialise the level for comparison");
 
     return json;
 }
@@ -254,7 +255,7 @@ void LevelUi::save(Level &level)
     saveable.saved(level.getPath(), asItWouldBeSaved(level));
 }
 
-bool LevelUi::hasUnsavedChanges(const Level &level)
+bool LevelUi::unsavedSince(const Level &level)
 {
     return saveable.unsavedSince(level.getPath(), asItWouldBeSaved(level));
 }

@@ -47,6 +47,7 @@ public:
         std::optional<Armed> &armed,
         EditorCommands &commands);
 
+    void save(Level &level);
     bool hasUnsavedChanges(const Level &level) const;
     bool showingGrid() const;
     void valuesReplaced();

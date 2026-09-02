@@ -6,6 +6,7 @@
 #include <string_view>
 #include <optional>
 #include "ui/editor_ui.hpp"
+#include "ui/actors_in_level.hpp"
 #include "ui/palette_renamed.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "rendering/texture_cache.hpp"
@@ -51,14 +52,12 @@ void EditorUi::draw(
         return;
     }
 
+    std::array<SectionSaving, EditorSections.size()> saving;
     std::array<bool, EditorSections.size()> unsaved{};
-    std::string unsavedNames;
     for (std::size_t at = 0; at < EditorSections.size(); ++at)
     {
-        const auto &[listed, name] = EditorSections[at];
-        unsaved[at] = unsavedIn(listed, subject);
-        if (unsaved[at])
-            unsavedNames += (unsavedNames.empty() ? "" : ", ") + std::string(name);
+        saving[at] = savingIn(EditorSections[at].first, subject);
+        unsaved[at] = saving[at].unsaved;
     }
 
     ImGui::SetNextItemWidth(-FLT_MIN);
@@ -82,12 +81,7 @@ void EditorUi::draw(
         ImGui::EndCombo();
     }
 
-    if (!unsavedNames.empty())
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, UnsavedColour);
-        ImGui::TextWrapped("unsaved in %s", unsavedNames.c_str());
-        ImGui::PopStyleColor();
-    }
+    drawSaveRow(saving);
 
     ImGui::Separator();
 
@@ -171,36 +165,99 @@ void EditorUi::update(
     levelUi.update(mouse, level, armed, commands);
 }
 
-bool EditorUi::unsavedIn(EditorSection listed, const EditorSubject &subject) const
+void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving)
+{
+    std::optional<std::string> blocked;
+    bool anyUnsaved = false;
+    for (const SectionSaving &listed : saving)
+        anyUnsaved = anyUnsaved || listed.unsaved;
+
+    if (!anyUnsaved)
+        return;
+
+    ImGui::PushStyleColor(ImGuiCol_Text, UnsavedColour);
+    ImGui::TextUnformatted("unsaved");
+    ImGui::PopStyleColor();
+
+    float rightEdge = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+    bool first = true;
+    for (std::size_t at = 0; at < EditorSections.size(); ++at)
+    {
+        if (!saving[at].unsaved)
+            continue;
+
+        const auto &[listed, name] = EditorSections[at];
+        std::string label = "save " + std::string(name);
+        if (!first && ImGui::GetCursorScreenPos().x + ImGui::CalcTextSize(label.c_str()).x +
+                              ImGui::GetStyle().FramePadding.x * 2.0f <
+                          rightEdge)
+            ImGui::SameLine();
+
+        first = false;
+        ImGui::BeginDisabled(saving[at].cannotBecause.has_value());
+        if (ImGui::SmallButton(label.c_str()) && saving[at].save)
+            saving[at].save();
+
+        ImGui::EndDisabled();
+        if (saving[at].cannotBecause)
+            blocked = saving[at].cannotBecause;
+    }
+
+    if (blocked)
+        ImGui::TextColored(CannotSaveColour, "%s", blocked->c_str());
+}
+
+SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subject)
 {
     switch (listed)
     {
     case EditorSection::Game:
-        return gameSettingsUi.hasUnsavedChanges(subject.gameData);
+        return {
+            gameSettingsUi.hasUnsavedChanges(subject.gameData),
+            std::nullopt,
+            [this, &subject] { gameSettingsUi.save(subject.gameData); }};
 
     case EditorSection::Camera:
-        return cameraUi.hasUnsavedChanges(subject.gameData);
+        return {
+            cameraUi.hasUnsavedChanges(subject.gameData),
+            std::nullopt,
+            [this, &subject] { cameraUi.save(subject.gameData); }};
 
     case EditorSection::Player:
-        return playerUi.hasUnsavedChanges(subject.gameData);
+        return {
+            playerUi.hasUnsavedChanges(subject.gameData),
+            std::nullopt,
+            [this, &subject] { playerUi.save(subject.gameData); }};
 
     case EditorSection::Levels:
-        return levelsUi.hasUnsavedChanges(subject.levels);
+        return {
+            levelsUi.hasUnsavedChanges(subject.levels),
+            std::nullopt,
+            [this, &subject] { levelsUi.save(subject.levels); }};
 
     case EditorSection::Level:
-        return levelUi.hasUnsavedChanges(subject.level);
+        return {
+            levelUi.hasUnsavedChanges(subject.level),
+            npcsThatCannotGetBack(subject.level),
+            [this, &subject] { levelUi.save(subject.level); }};
 
     case EditorSection::NpcTypes:
-        return npcTypesUi.hasUnsavedChanges(subject.gameData);
+        return {
+            npcTypesUi.hasUnsavedChanges(subject.gameData),
+            std::nullopt,
+            [this, &subject] { npcTypesUi.save(subject.gameData); }};
 
     case EditorSection::TilePalettes:
-        return tilePalettesUi.hasUnsavedChanges(subject.gameData.tilePalettes);
+        return {
+            tilePalettesUi.hasUnsavedChanges(subject.gameData.tilePalettes),
+            std::nullopt,
+            [this, &subject] { tilePalettesUi.save(subject.gameData.tilePalettes); }};
 
     case EditorSection::Playback:
         break;
     }
 
-    return false;
+    return {};
 }
 
 void EditorUi::valuesReplaced()

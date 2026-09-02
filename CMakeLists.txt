@@ -276,6 +276,7 @@ add_executable(tests
     tests/ui/test_navigation_shown.cpp
     tests/ui/test_tile_map_overlays.cpp
     tests/ui/test_unsaved_sections.cpp
+    tests/ui/test_editor_saving.cpp
     tests/ui/test_data_inspector.cpp
     tests/ui/test_tile_animation_field.cpp
     tests/ui/test_tile_collider_field.cpp

@@ -13,6 +13,11 @@ void GameSettingsUi::draw(GameData &gameData, EditorCommands &commands)
     if (inspector::drawFields(gameData.settings).onCommit || reverted)
         commands.onSettingsChanged();
 }
+void GameSettingsUi::save(GameData &gameData)
+{
+    saveGameSettings(gameData.settings);
+    saveable.saved("game", asJson(gameData.settings));
+}
 
 bool GameSettingsUi::hasUnsavedChanges(const GameData &gameData) const
 {

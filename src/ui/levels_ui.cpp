@@ -77,6 +77,11 @@ void LevelsUi::draw(
     if (std::optional<std::string> first = levelChooser("first", levels.getFirst()))
         levels.setFirst(*first);
 }
+void LevelsUi::save(Levels &levels)
+{
+    levels.save();
+    saveable.saved("levels", levels.getFirst());
+}
 
 bool LevelsUi::hasUnsavedChanges(const Levels &levels) const
 {

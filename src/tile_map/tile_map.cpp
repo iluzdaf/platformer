@@ -215,6 +215,11 @@ glm::vec2 TileMap::feetOnTile(glm::ivec2 tilePosition) const
     return surface + glm::vec2(tileSize * 0.5f, 0.0f);
 }
 
+glm::vec2 TileMap::middleOfTile(glm::ivec2 tilePosition) const
+{
+    return topLeftOfTile(tilePosition) + glm::vec2(tileSize * 0.5f);
+}
+
 glm::ivec2 TileMap::tileStoodOnAt(glm::vec2 worldPosition) const
 {
     float tileSizePixels = static_cast<float>(tileSize);

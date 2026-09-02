@@ -10,12 +10,12 @@
 #include "rendering/screen_transition.hpp"
 #include "rendering/shader_data.hpp"
 #include "rendering/tile_map_drawing.hpp"
-#include "rendering/tile_set_textures.hpp"
-#include "rendering/actor_textures.hpp"
+#include "rendering/sheet_textures.hpp"
 #include "rendering/texture2d.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/game_data.hpp"
 #include "actor/actor.hpp"
+#include "pickups/pickup.hpp"
 #include "actor/actor_state.hpp"
 #include "assets/sheet.hpp"
 #include "assets/asset_paths.hpp"
@@ -33,6 +33,7 @@ void GameRenderer::warm(const GameData &gameData)
 {
     warmTileSets(textures, gameData.tilePalettes);
     warmActorTextures(textures, gameData.playerData, gameData.npcData);
+    warmPickupTextures(textures, gameData.pickupData);
 }
 
 void GameRenderer::warmTexture(const std::string &texturePath)
@@ -75,6 +76,7 @@ void GameRenderer::reloadTexture(const std::string &texturePath)
 void GameRenderer::draw(
     const glm::mat4 &projection,
     const TileMap &tileMap,
+    const std::vector<Pickup> &pickups,
     const std::vector<Actor *> &actors) const
 {
     glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
@@ -86,6 +88,27 @@ void GameRenderer::draw(
         projection,
         *tileSetShader.get(),
         textures.get(tileMap.getTileSet().texture));
+
+    for (const Pickup &pickup : pickups)
+    {
+        const Sheet &sheet = pickup.getSheet();
+        const Texture2D &texture = textures.get(sheet.texture);
+        auto [uvStart, uvEnd] = frameUvRangeIn(
+            static_cast<int>(texture.getWidth()),
+            static_cast<int>(texture.getHeight()),
+            pickup.getCurrentFrame(),
+            sheet.cellSize.x,
+            sheet.cellSize.y);
+
+        spriteRenderer.drawWithUV(
+            *tileSetShader.get(),
+            texture,
+            projection,
+            pickup.getPosition(),
+            pickup.getSize(),
+            uvStart,
+            uvEnd);
+    }
 
     for (const Actor *actor : actors)
     {

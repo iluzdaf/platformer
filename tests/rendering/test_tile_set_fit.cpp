@@ -4,7 +4,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include "rendering/texture2d.hpp"
-#include "rendering/tile_set_textures.hpp"
+#include "rendering/tile_set_fit.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
@@ -42,17 +42,6 @@ TEST_CASE("A sheet holding no whole tile is refused", "[TileSet]")
     REQUIRE_THROWS_WITH(
         checkTileSetFits(palette, "default", 8, 8),
         Catch::Matchers::ContainsSubstring("no whole tiles"));
-}
-
-TEST_CASE("A palette naming no tile set texture is refused", "[TileSet]")
-{
-    TilePalette palette = paletteOf({{0, TileData{}}});
-    palette.tileSet.texture.clear();
-
-    REQUIRE_THROWS_WITH(
-        checkTileSetFits(palette, "ice", 112, 112),
-        Catch::Matchers::ContainsSubstring("No tile set texture") &&
-            Catch::Matchers::ContainsSubstring("ice"));
 }
 
 TEST_CASE("A tile set cell narrower than a pixel is refused", "[TileSet]")
@@ -115,56 +104,3 @@ TEST_CASE("A tall sheet divides each axis by its own size", "[TileSet]")
     REQUIRE(start.y == 16.0f / 224.0f);
     REQUIRE(end.y == 32.0f / 224.0f);
 }
-
-#ifndef SKIP_OPENGL_TESTS
-
-#include "assets/asset_paths.hpp"
-#include "rendering/texture2d.hpp"
-#include "rendering/texture_cache.hpp"
-
-TEST_CASE("Two palettes naming two tile sets get two textures", "[TileSet]")
-{
-    TilePalettes palettes;
-    palettes["default"] = paletteOf({{0, TileData{}}});
-    palettes["other"] = paletteOf({{0, TileData{}}});
-    palettes["other"].tileSet.texture = std::string(assets::PlayerTexture);
-
-    TextureCache textures;
-    warmTileSets(textures, palettes);
-
-    const Texture2D &first = textures.get(palettes["default"].tileSet.texture);
-    const Texture2D &second = textures.get(palettes["other"].tileSet.texture);
-
-    REQUIRE(&first != &second);
-    REQUIRE(first.getWidth() == 112);
-    REQUIRE(second.getWidth() == 96);
-}
-
-TEST_CASE("Two palettes sharing a tile set load it once", "[TileSet]")
-{
-    TilePalettes palettes;
-    palettes["default"] = paletteOf({{0, TileData{}}});
-    palettes["same"] = paletteOf({{0, TileData{}}});
-
-    TextureCache textures;
-    warmTileSets(textures, palettes);
-
-    REQUIRE(
-        &textures.get(palettes["default"].tileSet.texture) ==
-        &textures.get(palettes["same"].tileSet.texture));
-}
-
-TEST_CASE("A palette whose tile set is not on disk says so", "[TileSet]")
-{
-    TilePalettes palettes;
-    palettes["ice"] = paletteOf({{0, TileData{}}});
-    palettes["ice"].tileSet.texture = "textures/nothing_here.png";
-
-    TextureCache textures;
-
-    REQUIRE_THROWS_WITH(
-        warmTileSets(textures, palettes),
-        Catch::Matchers::ContainsSubstring("textures/nothing_here.png"));
-}
-
-#endif // SKIP_OPENGL_TESTS

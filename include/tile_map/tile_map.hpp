@@ -32,6 +32,7 @@ public:
     std::vector<glm::ivec2> tilesOverlapping(glm::vec2 worldPosition, glm::vec2 size) const;
     glm::vec2 topLeftOfTile(glm::ivec2 tilePosition) const;
     glm::vec2 feetOnTile(glm::ivec2 tilePosition) const;
+    glm::vec2 middleOfTile(glm::ivec2 tilePosition) const;
     glm::ivec2 tileStoodOnAt(glm::vec2 worldPosition) const;
     bool standsOnGround(glm::ivec2 tilePosition) const;
     TileMapData toTileMapData() const;

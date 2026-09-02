@@ -1,8 +1,6 @@
 #include <stdexcept>
 #include <string>
-#include "rendering/tile_set_textures.hpp"
-#include "rendering/texture2d.hpp"
-#include "rendering/texture_cache.hpp"
+#include "rendering/tile_set_fit.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "assets/sheet.hpp"
 
@@ -29,9 +27,6 @@ void checkTileSetFits(
     int textureHeight)
 {
     const Sheet &tileSet = palette.tileSet;
-    if (tileSet.texture.empty())
-        throw std::runtime_error("No tile set texture is named" + named(paletteName));
-
     if (tileSet.cellSize.x <= 0)
         throw std::runtime_error("A tile set cell must be wider than 0" + named(paletteName));
 
@@ -45,22 +40,4 @@ void checkTileSetFits(
             throw std::runtime_error(
                 "Tile " + std::to_string(tileIndex) + " is past the " + std::to_string(cells) +
                 " tiles of \"" + tileSet.texture + "\"" + named(paletteName));
-}
-
-void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes)
-{
-    for (const auto &[paletteName, palette] : tilePalettes)
-    {
-        if (palette.tileSet.texture.empty())
-            throw std::runtime_error("No tile set texture is named" + named(paletteName));
-
-        textures.warm(palette.tileSet.texture);
-        const Texture2D &texture = textures.get(palette.tileSet.texture);
-
-        checkTileSetFits(
-            palette,
-            paletteName,
-            static_cast<int>(texture.getWidth()),
-            static_cast<int>(texture.getHeight()));
-    }
 }

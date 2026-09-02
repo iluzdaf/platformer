@@ -8,7 +8,7 @@
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
 #include "rendering/texture2d.hpp"
-#include "rendering/tile_set_textures.hpp"
+#include "rendering/tile_set_fit.hpp"
 #include "assets/sheet.hpp"
 
 bool drawTileCell(const Texture2D &tileSet, int tileSize, int tileIndex)

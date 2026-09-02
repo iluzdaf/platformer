@@ -107,7 +107,7 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "game/level.hpp"
 #include "ui/palette_renamed.hpp"
 #include "ui/tile_palettes_ui.hpp"
-#include "rendering/tile_set_textures.hpp"
+#include "rendering/tile_set_fit.hpp"
 
 namespace
 {

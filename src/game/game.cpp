@@ -128,7 +128,11 @@ void Game::frame(float deltaTime)
 
 void Game::render()
 {
-    renderer.draw(camera.getProjection(), world.getLevel().getTileMap(), world.getActors());
+    renderer.draw(
+        camera.getProjection(),
+        world.getLevel().getTileMap(),
+        world.getPickups(),
+        world.getActors());
 
     gameUi.draw(
         GameUiSubject{

@@ -6,6 +6,7 @@
 #include <signals.hpp>
 #include "game/scoring_system.hpp"
 #include "tile_map/tile_interaction_system.hpp"
+#include "pickups/pickup.hpp"
 
 class Actor;
 class IntentionSource;
@@ -40,10 +41,12 @@ public:
     Level &getLevel();
     const Player &getPlayer() const;
     const std::vector<std::unique_ptr<Npc>> &getNpcs() const;
+    const std::vector<Pickup> &getPickups() const;
     const std::vector<Actor *> &getActors() const;
     const ScoringSystem &getScoringSystem() const;
 
     void rebuildNpcs();
+    void rebuildPickups();
 
 private:
     void rebuildLevel(const std::string &levelPath);
@@ -56,6 +59,7 @@ private:
     std::unique_ptr<Level> level;
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Npc>> npcs;
+    std::vector<Pickup> pickups;
     std::vector<Actor *> actors;
     TileInteractionSystem tileInteractionSystem;
     ScoringSystem scoringSystem;

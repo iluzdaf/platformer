@@ -338,6 +338,30 @@ TEST_CASE("The two corners of a tile say which corner they are", "[TileMap]")
     REQUIRE(feet - corner == glm::vec2(tileSize * 0.5f, tileSize));
 }
 
+TEST_CASE("The middle of a tile is half a tile in from its corner", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+    glm::ivec2 tilePosition(3, 4);
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+
+    glm::vec2 corner = tileMap.topLeftOfTile(tilePosition);
+    glm::vec2 middle = tileMap.middleOfTile(tilePosition);
+
+    REQUIRE(middle - corner == glm::vec2(tileSize * 0.5f));
+}
+
+TEST_CASE("The middle of a tile is half a tile above where feet stand on it", "[TileMap]")
+{
+    TileMap tileMap = setupTileMap();
+    glm::ivec2 tilePosition(3, 4);
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+
+    glm::vec2 feet = tileMap.feetOnTile(tilePosition);
+    glm::vec2 middle = tileMap.middleOfTile(tilePosition);
+
+    REQUIRE(feet - middle == glm::vec2(0.0f, tileSize * 0.5f));
+}
+
 TEST_CASE("The tile containing a point is not the tile stood on at it", "[TileMap]")
 {
     TileMap tileMap = setupTileMap();

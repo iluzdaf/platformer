@@ -10,7 +10,6 @@
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_pickup_data.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "tile_map/tile.hpp"
@@ -267,22 +266,6 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
         tileMap.update(1.0f);
         REQUIRE(tile.animatingTo().value_or(0) == 0);
     }
-}
-
-TEST_CASE("Pickup tile is defined correctly", "[TileMap]")
-{
-    TileData emptyTileData, pickupTileData;
-    pickupTileData.pickup = TilePickupData{0, std::nullopt};
-    pickupTileData.animationData = std::nullopt;
-    TileMapData tileMapData;
-    tileMapData.width = 2;
-    tileMapData.height = 2;
-    TilePalette palette = paletteOf({{0, emptyTileData}, {5, pickupTileData}});
-    TileMap tileMap(tileMapData, palettesFrom(palette));
-    tileMap.setTileIndex(glm::ivec2(1, 1), 5);
-    const Tile &tile = tileMap.getTile(5);
-    REQUIRE(tile.isPickup());
-    REQUIRE(tile.getPickupReplaceIndex().value() == 0);
 }
 
 TEST_CASE("TileMap calculates world dimensions correctly", "[TileMap]")

@@ -8,16 +8,14 @@
 
 Tile::Tile(const TileData &tileData)
     : solid(tileData.solid), deadly(tileData.deadly), portal(tileData.portal),
-      grippable(tileData.grippable), pickup(tileData.pickup),
-      collider(tileData.collider.value_or(TileColliderData{}))
+      grippable(tileData.grippable), collider(tileData.collider.value_or(TileColliderData{}))
 {
-    if (solid && (deadly || pickup || portal))
+    if (solid && (deadly || portal))
         throw std::runtime_error(
-            "A solid tile is never touched, so it cannot be deadly, a pickup or a portal");
+            "A solid tile is never touched, so it cannot be deadly or a portal");
 
-    if (deadly && (pickup || portal))
-        throw std::runtime_error(
-            "A deadly tile kills on touch, so it cannot also be a pickup or a portal");
+    if (deadly && portal)
+        throw std::runtime_error("A deadly tile kills on touch, so it cannot also be a portal");
 
     if (tileData.animationData.has_value())
         animation = FrameAnimation(tileData.animationData.value());
@@ -57,30 +55,9 @@ bool Tile::isPortal() const
     return portal;
 }
 
-bool Tile::isPickup() const
-{
-    return pickup.has_value();
-}
-
 bool Tile::isEmpty() const
 {
-    return !solid && !deadly && !portal && !pickup;
-}
-
-std::optional<int> Tile::getPickupReplaceIndex() const
-{
-    if (!pickup)
-        return std::nullopt;
-
-    return pickup->replaceIndex.value;
-}
-
-std::optional<int> Tile::getPickupScoreDelta() const
-{
-    if (!pickup)
-        return std::nullopt;
-
-    return pickup->scoreDelta;
+    return !solid && !deadly && !portal;
 }
 
 std::optional<AABB> Tile::getAABBAt(glm::vec2 worldPosition) const

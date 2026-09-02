@@ -1,5 +1,7 @@
 #include <optional>
 #include <string_view>
+#include <cstddef>
+#include <tuple>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
@@ -216,4 +218,90 @@ TEST_CASE("An engaged optional still keeps the value it was given", "[DataInspec
     REQUIRE(tileData.collider.has_value());
     REQUIRE(tileData.collider->offset == glm::vec2(2.0f, 3.0f));
     REQUIRE(tileData.collider->size == glm::vec2(4.0f, 5.0f));
+}
+
+namespace
+{
+    ImVec2 centreOf(ImVec2 low, ImVec2 high)
+    {
+        return ImVec2((low.x + high.x) * 0.5f, (low.y + high.y) * 0.5f);
+    }
+
+    struct Rows
+    {
+        ImVec2 add;
+        float top = 0.0f, x = 0.0f;
+
+        ImVec2 takeAway(std::size_t row) const
+        {
+            return ImVec2(
+                x,
+                top + ImGui::GetTextLineHeightWithSpacing() +
+                    static_cast<float>(row) * ImGui::GetFrameHeightWithSpacing() +
+                    ImGui::GetFrameHeight() * 0.5f);
+        }
+    };
+
+    Rows rowsOf(HeadlessImGui &gui, std::vector<int> &frames)
+    {
+        Rows found;
+        auto drawOpen = [&]
+        {
+            found.top = ImGui::GetCursorScreenPos().y;
+            ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+            inspector::draw("frames", frames);
+            found.add = centreOf(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+            found.x = found.add.x;
+        };
+
+        gui.frame(drawOpen);
+        gui.frame(drawOpen);
+
+        return found;
+    }
+}
+
+TEST_CASE("A row can be added to a list", "[DataInspector]")
+{
+    HeadlessImGui gui;
+    std::vector<int> frames{1, 2, 3};
+
+    Rows rows = rowsOf(gui, frames);
+    gui.clickAt(
+        rows.add,
+        [&]
+        {
+            ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+            inspector::draw("frames", frames);
+        });
+
+    REQUIRE(frames == std::vector<int>{1, 2, 3, 0});
+}
+
+TEST_CASE("A row can be taken away and the rest keep their order", "[DataInspector]")
+{
+    HeadlessImGui gui;
+    std::vector<int> frames{4, 5, 6};
+
+    Rows rows = rowsOf(gui, frames);
+    gui.clickAt(
+        rows.takeAway(1),
+        [&]
+        {
+            ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+            inspector::draw("frames", frames);
+        });
+
+    REQUIRE(frames == std::vector<int>{4, 6});
+}
+
+TEST_CASE("A list nobody clicks keeps what it had", "[DataInspector]")
+{
+    HeadlessImGui gui;
+    std::vector<int> frames{7, 8};
+
+    Rows rows = rowsOf(gui, frames);
+    std::ignore = rows;
+
+    REQUIRE(frames == std::vector<int>{7, 8});
 }

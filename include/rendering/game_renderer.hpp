@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "rendering/shader.hpp"
 #include "rendering/sprite_renderer.hpp"
+#include "rendering/tile_map_batch.hpp"
 #include "rendering/texture_cache.hpp"
 #include "tile_map/tile_palette.hpp"
 
@@ -37,6 +38,7 @@ private:
     TextureCache textures;
     std::unique_ptr<Shader> tileSetShader, screenTransitionShader;
     SpriteRenderer spriteRenderer;
+    TileMapBatch tileMapBatch;
 
     static std::unique_ptr<Shader> loadShader(std::string_view vertex, std::string_view fragment);
 };

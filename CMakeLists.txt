@@ -103,7 +103,8 @@ add_library(platformer_lib OBJECT
     src/rendering/sprite_renderer.cpp
     src/rendering/shader.cpp
     src/rendering/game_renderer.cpp
-    src/rendering/tile_map_drawing.cpp
+    src/rendering/tile_map_vertices.cpp
+    src/rendering/tile_map_batch.cpp
     src/rendering/screen_transition.cpp
     src/ui/editor_ui.cpp
     src/ui/game_ui.cpp
@@ -284,6 +285,7 @@ add_executable(tests
     tests/ui/test_tile_palettes_ui.cpp
     tests/rendering/test_texture_cache.cpp
     tests/rendering/test_tile_set_textures.cpp
+    tests/rendering/test_tile_map_vertices.cpp
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp

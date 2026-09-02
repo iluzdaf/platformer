@@ -9,7 +9,6 @@
 #include "rendering/game_renderer.hpp"
 #include "rendering/screen_transition.hpp"
 #include "rendering/shader_data.hpp"
-#include "rendering/tile_map_drawing.hpp"
 #include "rendering/tile_set_textures.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette.hpp"
@@ -77,12 +76,8 @@ void GameRenderer::draw(
     glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    drawTileMap(
-        spriteRenderer,
-        tileMap,
-        projection,
-        *tileSetShader.get(),
-        textures.get(tileMap.getTileSet().texture));
+    tileMapBatch.draw(
+        *tileSetShader.get(), tileMap, projection, textures.get(tileMap.getTileSet().texture));
 
     for (const Actor *actor : actors)
     {

@@ -50,6 +50,7 @@ private:
 
 public:
     const std::string &getTilePalette() const;
+    void setTilePalette(const std::string &name);
     const TileSet &getTileSet() const;
 
 private:

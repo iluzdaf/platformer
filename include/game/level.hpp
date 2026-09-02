@@ -16,6 +16,12 @@
 #include "tile_map/tile_palette.hpp"
 #include "npc/npc_spawn_data.hpp"
 
+void writeLevelData(const LevelData &levelData, const std::string &levelPath);
+
+int renamePaletteInLevels(
+    const std::string &directory,
+    const std::map<std::string, std::string> &renames);
+
 class Level
 {
 public:

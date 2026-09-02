@@ -277,6 +277,11 @@ const std::string &TileMap::getTilePalette() const
     return tilePalette;
 }
 
+void TileMap::setTilePalette(const std::string &name)
+{
+    tilePalette = name;
+}
+
 const TileSet &TileMap::getTileSet() const
 {
     return tileSet;

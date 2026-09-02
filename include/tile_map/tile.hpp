@@ -3,7 +3,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_collider_data.hpp"
-#include "tile_map/tile_pickup_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "physics/aabb.hpp"
 
@@ -17,15 +16,11 @@ public:
     bool isGrippable() const;
     bool isDeadly() const;
     bool isPortal() const;
-    bool isPickup() const;
     bool isEmpty() const;
-    std::optional<int> getPickupReplaceIndex() const;
-    std::optional<int> getPickupScoreDelta() const;
     std::optional<AABB> getAABBAt(glm::vec2 worldPosition) const;
 
 private:
     bool solid = false, deadly = false, portal = false, grippable = false;
     std::optional<FrameAnimation> animation;
-    std::optional<TilePickupData> pickup;
     TileColliderData collider;
 };

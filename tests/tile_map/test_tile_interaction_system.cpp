@@ -3,42 +3,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_pickup_data.hpp"
-#include <optional>
 #include "tile_map/tile_interaction_system.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/test_player_utils.hpp"
-
-TEST_CASE("Pickup", "[TileInteractionSystem]")
-{
-    TileData pickupTileData, pickupTileData2, emptyTileData;
-    pickupTileData.pickup = TilePickupData{1, 100};
-    pickupTileData2.pickup = TilePickupData{1, std::nullopt};
-    TileMap tileMap = setupTileMap(
-        10, 10, 16, paletteOf({{2, pickupTileData}, {1, emptyTileData}, {3, pickupTileData2}}));
-    tileMap.setTileIndex({1, 1}, 2);
-    Player player = setupPlayer();
-    player.setPosition(glm::vec2(1 * 16, 1 * 16));
-    TileInteractionSystem system;
-
-    SECTION("Replaces pickup tile with replacement index")
-    {
-        system.fixedUpdate(player, tileMap);
-        REQUIRE(tileMap.tilePositionToTileIndex({1, 1}) == 1);
-    }
-
-    SECTION("Triggers onPickup")
-    {
-        int scoreDelta = 0;
-        player.onPickup.connect([&](int delta) { scoreDelta = delta; });
-        system.fixedUpdate(player, tileMap);
-        REQUIRE(scoreDelta == 100);
-        tileMap.setTileIndex({1, 1}, 3);
-        scoreDelta = -1;
-        system.fixedUpdate(player, tileMap);
-        REQUIRE(scoreDelta == 0);
-    }
-}
 
 TEST_CASE("Spikes", "[TileInteractionSystem]")
 {

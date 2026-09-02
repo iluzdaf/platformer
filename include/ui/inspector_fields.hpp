@@ -3,12 +3,10 @@
 #include <concepts>
 #include <string_view>
 #include "ui/inspector_edited.hpp"
-#include "tile_map/tile_index.hpp"
 
 struct FrameAnimationData;
 struct TileColliderData;
 
-inspector::Edited drawCustomField(std::string_view name, TileIndex &value);
 inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &value);
 inspector::Edited drawCustomField(std::string_view name, TileColliderData &value);
 

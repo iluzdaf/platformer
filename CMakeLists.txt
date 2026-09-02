@@ -122,7 +122,6 @@ add_library(platformer_lib OBJECT
     src/ui/switching_level.cpp
     src/ui/palette_renamed.cpp
     src/ui/tile_picker.cpp
-    src/ui/tile_index_field.cpp
     src/ui/tile_field_context.cpp
     src/ui/frame_animation_field.cpp
     src/ui/tile_collider_field.cpp
@@ -291,7 +290,6 @@ add_executable(tests
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp
     tests/tile_map/test_tile_map.cpp
-    tests/tile_map/test_tile_index.cpp
     tests/tile_map/test_tile.cpp
     tests/tile_map/test_level_tile_caps.cpp
     tests/tile_map/test_tile_interaction_system.cpp

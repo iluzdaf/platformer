@@ -13,9 +13,7 @@
 #include "test_helpers/headless_imgui.hpp"
 #include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_index.hpp"
 #include "assets/sheet.hpp"
-#include "tile_map/tile_pickup_data.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
@@ -89,19 +87,6 @@ TEST_CASE("A type with a field of its own is drawn by it", "[DataInspector]")
     REQUIRE(drawnByItsOwnField == 1);
 }
 
-TEST_CASE("A tile index falls back to a number when no sheet is offered", "[DataInspector]")
-{
-    REQUIRE(tilesOnOffer() == nullptr);
-
-    HeadlessImGui gui;
-    TilePickupData pickup;
-    pickup.replaceIndex = 5;
-
-    gui.frame([&] { inspector::drawFields(pickup); });
-
-    REQUIRE(pickup.replaceIndex.value == 5);
-}
-
 TEST_CASE("What is on offer is put back when the scope ends", "[DataInspector]")
 {
     TileFieldContext offering;
@@ -123,20 +108,6 @@ TEST_CASE("What is on offer is put back when the scope ends", "[DataInspector]")
     REQUIRE(tilesOnOffer() == nullptr);
 }
 
-TEST_CASE("A tile index draws itself rather than falling through", "[DataInspector]")
-{
-    STATIC_REQUIRE(inspector::HasCustomField<TileIndex>);
-    STATIC_REQUIRE_FALSE(glz::reflectable<TileIndex>);
-
-    HeadlessImGui gui;
-    TilePickupData pickup;
-    pickup.replaceIndex = 12;
-
-    gui.frame([&] { inspector::drawFields(pickup); });
-
-    REQUIRE(pickup.replaceIndex.value == 12);
-}
-
 TEST_CASE("A type without one still reaches the reflection path", "[DataInspector]")
 {
     STATIC_REQUIRE_FALSE(inspector::HasCustomField<Sheet>);
@@ -153,7 +124,6 @@ TEST_CASE("A type without one still reaches the reflection path", "[DataInspecto
 
 TEST_CASE("The types that draw themselves say so", "[DataInspector]")
 {
-    STATIC_REQUIRE(inspector::HasCustomField<TileIndex>);
     STATIC_REQUIRE(inspector::HasCustomField<TileColliderData>);
     STATIC_REQUIRE(inspector::HasCustomField<FrameAnimationData>);
 }

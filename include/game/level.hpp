@@ -74,9 +74,5 @@ private:
     std::vector<NamedNavigationGraph> graphs;
     std::map<std::string, NavigationProfile> npcProfiles;
 
-    void initFrom(
-        const LevelData &levelData,
-        const PlayerData &playerData,
-        const std::map<std::string, NpcData> &npcData);
     void addGraphFor(const std::string &name, const NavigationProfile &profile);
 };

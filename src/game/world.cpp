@@ -76,7 +76,7 @@ void World::respawnPlayer()
     player->onWallSliding.connect([this] { luaScriptSystem.triggerWallSliding(); });
     player->onFallFromHeight.connect([this] { luaScriptSystem.triggerFallFromHeight(); });
     player->onHitCeiling.connect([this] { luaScriptSystem.triggerHitCeiling(); });
-    player->onPickup.connect([this](int scoreDelta) { scoringSystem.addScore(scoreDelta); });
+    player->onPickup.connect([this](int scoreDelta) { score.add(scoreDelta); });
     luaScriptSystem.bindPlayer(player.get());
 
     refreshActors();
@@ -194,7 +194,7 @@ const std::vector<Actor *> &World::getActors() const
     return actors;
 }
 
-const ScoringSystem &World::getScoringSystem() const
+const Score &World::getScore() const
 {
-    return scoringSystem;
+    return score;
 }

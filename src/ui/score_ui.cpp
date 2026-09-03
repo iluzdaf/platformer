@@ -4,12 +4,12 @@
 #include "ui/score_ui.hpp"
 #include "rendering/texture2d.hpp"
 #include "ui/imgui_manager.hpp"
-#include "game/scoring_system.hpp"
+#include "game/score.hpp"
 #include "game/score_icon.hpp"
 
 void drawScore(
     const ImGuiManager &,
-    const ScoringSystem &scoringSystem,
+    const Score &score,
     const Texture2D &icon,
     const ScoreIcon &scoreIcon)
 {
@@ -39,6 +39,6 @@ void drawScore(
 
     ImGui::SameLine();
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2);
-    ImGui::TextUnformatted(std::format("x{}", scoringSystem.getScore()).c_str());
+    ImGui::TextUnformatted(std::format("x{}", score.total()).c_str());
     ImGui::End();
 }

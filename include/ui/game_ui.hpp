@@ -13,7 +13,7 @@ class Level;
 class Levels;
 class Npc;
 class Player;
-class ScoringSystem;
+class Score;
 class TextureCache;
 class Window;
 
@@ -27,7 +27,7 @@ struct GameUiSubject
     const TextureCache &textures;
     Levels &levels;
     const Camera2D &camera;
-    const ScoringSystem &scoringSystem;
+    const Score &score;
     bool paused = false;
     bool showEditors = false;
 };

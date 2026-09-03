@@ -1,12 +1,12 @@
 #pragma once
 
 class ImGuiManager;
-class ScoringSystem;
+class Score;
 class Texture2D;
 struct ScoreIcon;
 
 void drawScore(
     const ImGuiManager &imGuiManager,
-    const ScoringSystem &scoringSystem,
+    const Score &score,
     const Texture2D &icon,
     const ScoreIcon &scoreIcon);

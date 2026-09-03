@@ -163,7 +163,7 @@ TEST_CASE("A level has no graph for an actor it was not told about", "[Level]")
 {
     Level level = levelPlacing({});
 
-    REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(20.0f)), std::exception);
+    REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(99.0f)), std::exception);
 }
 
 TEST_CASE("A level builds a graph for the player as well", "[Level]")
@@ -217,16 +217,25 @@ TEST_CASE("Rebuilding keeps a graph for every profile it had", "[Level]")
     REQUIRE(nodesOnTheFloor(level.graphFor(profileOfHeight(20.0f))) == 0);
 }
 
-TEST_CASE("A graph is named for the actor that needed it", "[Level]")
+TEST_CASE("A graph is named for every actor that navigates by it", "[Level]")
 {
-    Level level = levelPlacing({spawnAt("tall", StandingTile)});
+    Level level = levelPlacing({});
 
     std::vector<std::string> names;
     for (const NamedNavigationGraph &graph : level.getGraphs())
         names.push_back(graph.name);
 
-    REQUIRE(std::find(names.begin(), names.end(), "player") != names.end());
+    REQUIRE(std::find(names.begin(), names.end(), "player, alsoShort, short") != names.end());
     REQUIRE(std::find(names.begin(), names.end(), "tall") != names.end());
+}
+
+TEST_CASE("Every type the level knows has a graph before anything is placed", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    REQUIRE(level.getNpcSpawns().empty());
+    REQUIRE_NOTHROW(level.graphFor("tall"));
+    REQUIRE_NOTHROW(level.graphFor("short"));
 }
 
 TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
@@ -234,12 +243,15 @@ TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
     Level level =
         levelPlacing({spawnAt("short", StandingTile), spawnAt("alsoShort", StandingTile)});
 
+    REQUIRE(&level.graphFor("short") == &level.graphFor("alsoShort"));
+    REQUIRE(&level.graphFor("short") != &level.graphFor("tall"));
+
     std::vector<std::string> names;
     for (const NamedNavigationGraph &graph : level.getGraphs())
         names.push_back(graph.name);
 
-    REQUIRE(names.size() == 1);
-    REQUIRE(names.front() == "player, short, alsoShort");
+    REQUIRE(names.size() == 2);
+    REQUIRE(std::find(names.begin(), names.end(), "player, alsoShort, short") != names.end());
 }
 
 TEST_CASE("A level can be pointed at a different level next", "[Level]")
@@ -266,7 +278,7 @@ TEST_CASE("A graph does not name the same actor twice", "[Level]")
         levelPlacing({spawnAt("short", StandingTile), spawnAt("short", {2, FloorRow - 1})});
 
     for (const NamedNavigationGraph &graph : level.getGraphs())
-        REQUIRE(graph.name == "player, short");
+        REQUIRE(graph.name.find("short", graph.name.find("short") + 1) == std::string::npos);
 }
 
 TEST_CASE("A level takes an npc placed after it was built", "[Level]")
@@ -411,15 +423,15 @@ TEST_CASE("A level refuses to clear the beat of an npc it does not have", "[Leve
         level.clearNpcPatrol(0), "Cannot clear the beat of an npc the level does not have");
 }
 
-TEST_CASE("An npc of a type the level had none of still gets a graph", "[Level]")
+TEST_CASE("Placing an npc adds no graph, because its type already had one", "[Level]")
 {
     Level level = levelPlacing({});
-    REQUIRE(level.getGraphs().size() == 1);
+    std::size_t before = level.getGraphs().size();
 
     level.addNpc(spawnAt("tall", StandingTile));
 
     REQUIRE_NOTHROW(level.graphFor(level.getNpcSpawns().front().type));
-    REQUIRE(level.getGraphs().size() == 2);
+    REQUIRE(level.getGraphs().size() == before);
 }
 
 TEST_CASE("A level refuses an npc of a type it has never heard of", "[Level]")

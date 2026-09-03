@@ -13,6 +13,8 @@
 #include "assets/sheet.hpp"
 #include "ui/editor_commands.hpp"
 #include "rendering/texture_cache.hpp"
+#include "game/level.hpp"
+#include "test_helpers/asset_path.hpp"
 
 namespace
 {
@@ -316,20 +318,33 @@ namespace
     {
         TextureCache textures;
         EditorCommands commands;
-        std::optional<TypeRenamed> renamed;
 
         auto drawing(TypesUi &typesUi, GameData &gameData)
         {
-            return [&]
-            {
-                if (std::optional<TypeRenamed> said = typesUi.draw(gameData, textures, commands))
-                    renamed = said;
-            };
+            return [&] { typesUi.draw(gameData, textures, commands); };
         }
     };
 }
 
-TEST_CASE("A name typed and entered renames the npc that is shown", "[TypesUi]")
+TEST_CASE("A name typed and entered leaves the types unsaved", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.type("##name", "farmer", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("A type keeps the name the levels know until it is saved", "[TypesUi]")
 {
     HeadlessImGui gui;
     TypesUi typesUi;
@@ -342,32 +357,8 @@ TEST_CASE("A name typed and entered renames the npc that is shown", "[TypesUi]")
     gui.type("##name", "farmer", drawing);
     gui.pressEnter(drawing);
 
-    REQUIRE(renaming.renamed.has_value());
-    REQUIRE(renaming.renamed->what == TypeShown::What::Npc);
-    REQUIRE(renaming.renamed->renamed.from == "villager");
-    REQUIRE(renaming.renamed->renamed.to == "farmer");
-    REQUIRE(gameData.npcData.contains("farmer"));
-    REQUIRE_FALSE(gameData.npcData.contains("villager"));
-    REQUIRE(gameData.npcData.contains("explorer"));
-}
-
-TEST_CASE("A renamed pickup keeps what it was carrying", "[TypesUi]")
-{
-    HeadlessImGui gui;
-    TypesUi typesUi;
-    GameData gameData = twoOfEach();
-    gameData.pickupData["coin"].scoreDelta = 25;
-    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
-
-    TypeRenaming renaming;
-    auto drawing = renaming.drawing(typesUi, gameData);
-
-    gui.type("##name", "penny", drawing);
-    gui.pressEnter(drawing);
-
-    REQUIRE(renaming.renamed->what == TypeShown::What::Pickup);
-    REQUIRE(gameData.pickupData.at("penny").scoreDelta == 25);
-    REQUIRE_FALSE(gameData.pickupData.contains("coin"));
+    REQUIRE(gameData.npcData.contains("villager"));
+    REQUIRE_FALSE(gameData.npcData.contains("farmer"));
 }
 
 TEST_CASE("A type cannot take the name of another of its kind", "[TypesUi]")
@@ -377,14 +368,15 @@ TEST_CASE("A type cannot take the name of another of its kind", "[TypesUi]")
     GameData gameData = twoOfEach();
     typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
 
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
     TypeRenaming renaming;
     auto drawing = renaming.drawing(typesUi, gameData);
 
     gui.type("##name", "explorer", drawing);
     gui.pressEnter(drawing);
 
-    REQUIRE_FALSE(renaming.renamed.has_value());
-    REQUIRE(gameData.npcData.contains("villager"));
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 }
 
 TEST_CASE("An npc may take a name a pickup has", "[TypesUi]")
@@ -394,13 +386,56 @@ TEST_CASE("An npc may take a name a pickup has", "[TypesUi]")
     GameData gameData = twoOfEach();
     typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
 
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
     TypeRenaming renaming;
     auto drawing = renaming.drawing(typesUi, gameData);
 
     gui.type("##name", "coin", drawing);
     gui.pressEnter(drawing);
 
-    REQUIRE(renaming.renamed.has_value());
-    REQUIRE(gameData.npcData.contains("coin"));
+    REQUIRE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("Reverting takes back a type rename that was never saved", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.type("##name", "penny", drawing);
+    gui.pressEnter(drawing);
+    REQUIRE(typesUi.unsavedSince(gameData));
+
+    typesUi.revert(gameData);
+
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
     REQUIRE(gameData.pickupData.contains("coin"));
+}
+
+TEST_CASE("A level still loads while a type rename waits to be saved", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = loadGameData();
+    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.type("##name", "farmer", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(typesUi.unsavedSince(gameData));
+    REQUIRE_NOTHROW(Level(
+        assetPath("levels/level6.json"),
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData));
 }

@@ -443,52 +443,6 @@ int renameInLevels(const std::string &directory, const std::function<bool(LevelD
     return rewritten;
 }
 
-std::string renamedLabel(const std::string &label, const Renames &renames)
-{
-    std::string relabelled;
-    for (std::size_t at = 0; at <= label.size();)
-    {
-        std::size_t comma = label.find(", ", at);
-        std::size_t end = comma == std::string::npos ? label.size() : comma;
-        std::string piece = label.substr(at, end - at);
-
-        auto renamed = renames.find(piece);
-        if (!relabelled.empty())
-            relabelled += ", ";
-
-        relabelled += renamed == renames.end() ? piece : renamed->second;
-
-        if (comma == std::string::npos)
-            break;
-
-        at = comma + 2;
-    }
-
-    return relabelled;
-}
-
-void Level::renameNpcTypes(const Renames &renames)
-{
-    renameTypeIn(npcs, renames);
-
-    std::map<std::string, NavigationProfile> renamedProfiles;
-    for (auto &[type, profile] : npcProfiles)
-    {
-        auto renamed = renames.find(type);
-        renamedProfiles.emplace(renamed == renames.end() ? type : renamed->second, profile);
-    }
-
-    npcProfiles = std::move(renamedProfiles);
-
-    for (NamedNavigationGraph &named : graphs)
-        named.name = renamedLabel(named.name, renames);
-}
-
-void Level::renamePickupTypes(const Renames &renames)
-{
-    renameTypeIn(pickups, renames);
-}
-
 void Level::save() const
 {
     writeLevelData(toLevelData(), path);

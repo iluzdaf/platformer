@@ -71,24 +71,24 @@ std::optional<Renamed> Renaming::draw(
     if (selected != lastSelected)
     {
         lastSelected = selected;
-        typing = selected;
+        typing = shownName(selected);
     }
 
     bool entered = drawNameField(typing);
 
-    std::optional<std::string> why = whyNotARename(what, selected, typing, taken(typing));
+    std::optional<std::string> why =
+        whyNotARename(what, shownName(selected), typing, taken(typing));
     if (why)
         ImGui::TextColored(CannotSaveColour, "%s", why->c_str());
     else if (rewritten)
         ImGui::TextDisabled("%d level%s re-pointed", *rewritten, *rewritten == 1 ? "" : "s");
 
-    if (!entered || why || typing == selected)
+    if (!entered || why || typing == shownName(selected))
         return std::nullopt;
 
-    Renamed renamed{selected, typing};
+    Renamed renamed{shownName(selected), typing};
     rememberRename(renames, renamed.from, renamed.to);
     rewritten.reset();
-    lastSelected = renamed.to;
 
     return renamed;
 }
@@ -96,6 +96,21 @@ std::optional<Renamed> Renaming::draw(
 const Renames &Renaming::sinceSaved() const
 {
     return renames;
+}
+
+std::string Renaming::shownName(const std::string &onDisk) const
+{
+    auto renamed = renames.find(onDisk);
+    return renamed == renames.end() ? onDisk : renamed->second;
+}
+
+bool Renaming::somethingIsBecoming(const std::string &name) const
+{
+    for (const auto &[was, is] : renames)
+        if (is == name)
+            return true;
+
+    return false;
 }
 
 void Renaming::applied(int levelsRewritten)

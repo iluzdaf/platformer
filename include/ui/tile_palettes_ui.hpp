@@ -13,7 +13,7 @@ struct EditorCommands;
 class TilePalettesUi
 {
 public:
-    std::optional<Renamed> draw(
+    void draw(
         TilePalettes &tilePalettes,
         const TextureCache &textures,
         EditorCommands &commands,
@@ -26,7 +26,7 @@ public:
 
 private:
     void drawChooser(TilePalettes &tilePalettes);
-    std::optional<Renamed> drawRename(TilePalettes &tilePalettes);
+    void drawRename(const TilePalettes &tilePalettes);
 
     Saveable saveable;
     Renaming renaming;

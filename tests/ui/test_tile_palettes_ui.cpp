@@ -9,7 +9,9 @@
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
-#include "ui/renaming.hpp"
+#include "game/level.hpp"
+#include "game/game_data.hpp"
+#include "test_helpers/asset_path.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 namespace
@@ -53,7 +55,9 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "tile_map/tile_palette.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
-#include "ui/renaming.hpp"
+#include "game/level.hpp"
+#include "game/game_data.hpp"
+#include "test_helpers/asset_path.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 namespace
@@ -207,26 +211,6 @@ TEST_CASE(
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
 }
 
-TEST_CASE("A rename is handed back so the level can be told", "[TilePalettesUi]")
-{
-    HeadlessImGui gui;
-    TilePalettesUi tilePalettesUi;
-    TilePalettes palettes;
-    palettes["default"] = paletteOf({{0, TileData{}}});
-
-    TextureCache textures;
-    textures.warm(palettes["default"].tileSet.texture);
-
-    std::optional<Armed> armed;
-    EditorCommands commands;
-
-    std::optional<Renamed> renamed;
-    gui.frame([&] { renamed = tilePalettesUi.draw(palettes, textures, commands, armed); });
-
-    REQUIRE_FALSE(renamed.has_value());
-    REQUIRE(palettes.contains("default"));
-}
-
 namespace
 {
     struct TypingAName
@@ -234,7 +218,6 @@ namespace
         TextureCache textures;
         std::optional<Armed> armed;
         EditorCommands commands;
-        std::optional<Renamed> renamed;
 
         explicit TypingAName(const TilePalettes &palettes)
         {
@@ -243,12 +226,7 @@ namespace
 
         auto drawing(TilePalettesUi &tilePalettesUi, TilePalettes &palettes)
         {
-            return [&]
-            {
-                if (std::optional<Renamed> said =
-                        tilePalettesUi.draw(palettes, textures, commands, armed))
-                    renamed = said;
-            };
+            return [&] { tilePalettesUi.draw(palettes, textures, commands, armed); };
         }
     };
 }
@@ -260,21 +238,35 @@ TEST_CASE("A name typed is not a rename until it is entered", "[TilePalettesUi]"
     TilePalettes palettes;
     palettes["default"] = paletteOf({{0, TileData{}}});
 
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
     TypingAName renaming(palettes);
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "base", drawing);
 
-    REQUIRE_FALSE(renaming.renamed.has_value());
-    REQUIRE(palettes.contains("default"));
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
     gui.pressEnter(drawing);
 
-    REQUIRE(renaming.renamed.has_value());
-    REQUIRE(renaming.renamed->from == "default");
-    REQUIRE(renaming.renamed->to == "base");
-    REQUIRE(palettes.contains("base"));
-    REQUIRE_FALSE(palettes.contains("default"));
+    REQUIRE(tilePalettesUi.unsavedSince(palettes));
+}
+
+TEST_CASE("A palette keeps the name the levels know until it is saved", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+
+    TypingAName renaming(palettes);
+    auto drawing = renaming.drawing(tilePalettesUi, palettes);
+
+    gui.type("##name", "base", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(palettes.contains("default"));
+    REQUIRE_FALSE(palettes.contains("base"));
 }
 
 TEST_CASE("A name already taken is not entered", "[TilePalettesUi]")
@@ -285,18 +277,18 @@ TEST_CASE("A name already taken is not entered", "[TilePalettesUi]")
     palettes["default"] = paletteOf({{0, TileData{}}});
     palettes["other"] = paletteOf({{0, TileData{}}});
 
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
     TypingAName renaming(palettes);
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "other", drawing);
     gui.pressEnter(drawing);
 
-    REQUIRE_FALSE(renaming.renamed.has_value());
-    REQUIRE(palettes.contains("default"));
-    REQUIRE(palettes.contains("other"));
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 }
 
-TEST_CASE("Reverting puts the name back in the field", "[TilePalettesUi]")
+TEST_CASE("Reverting takes back a rename that was never saved", "[TilePalettesUi]")
 {
     HeadlessImGui gui;
     TilePalettesUi tilePalettesUi;
@@ -310,17 +302,32 @@ TEST_CASE("Reverting puts the name back in the field", "[TilePalettesUi]")
 
     gui.type("##name", "base", drawing);
     gui.pressEnter(drawing);
-    REQUIRE(palettes.contains("base"));
+    REQUIRE(tilePalettesUi.unsavedSince(palettes));
 
     tilePalettesUi.revert(palettes);
-    REQUIRE(palettes.contains("default"));
 
-    renaming.renamed.reset();
-    gui.type("##name", "", drawing);
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+    REQUIRE(palettes.contains("default"));
+}
+
+TEST_CASE("A level still loads while a palette rename waits to be saved", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    GameData gameData = loadGameData();
+
+    TypingAName renaming(gameData.tilePalettes);
+    auto drawing = renaming.drawing(tilePalettesUi, gameData.tilePalettes);
+
+    gui.type("##name", "default1", drawing);
     gui.pressEnter(drawing);
 
-    REQUIRE_FALSE(renaming.renamed.has_value());
-    REQUIRE(palettes.contains("default"));
+    REQUIRE(tilePalettesUi.unsavedSince(gameData.tilePalettes));
+    REQUIRE_NOTHROW(Level(
+        assetPath("levels/level1.json"),
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData));
 }
 
 #endif // SKIP_OPENGL_TESTS

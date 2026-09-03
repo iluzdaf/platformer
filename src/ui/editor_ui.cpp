@@ -1,22 +1,18 @@
 #include <array>
 #include <cfloat>
 #include <cstddef>
-#include <string>
 #include <imgui.h>
 #include <string_view>
 #include <optional>
 #include "ui/editor_ui.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/actors_in_level.hpp"
-#include "ui/renaming.hpp"
-#include "game/renames.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "player/player.hpp"
-#include "tile_map/tile_map.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/imgui_manager.hpp"
 #include "ui/debug_aabb_overlay.hpp"
@@ -103,19 +99,9 @@ void EditorUi::draw(
         playerUi.draw(subject.gameData, commands);
         break;
 
-    case EditorSection::Types: {
-        std::optional<TypeRenamed> renamed =
-            typesUi.draw(subject.gameData, subject.textures, commands);
-        if (renamed)
-        {
-            Renames just{{renamed->renamed.from, renamed->renamed.to}};
-            if (renamed->what == TypeShown::What::Npc)
-                subject.level.renameNpcTypes(just);
-            else
-                subject.level.renamePickupTypes(just);
-        }
-    }
-    break;
+    case EditorSection::Types:
+        typesUi.draw(subject.gameData, subject.textures, commands);
+        break;
 
     case EditorSection::Levels:
         levelsUi.draw(subject.levels, subject.level, commands, levelUi.unsavedSince(subject.level));
@@ -133,13 +119,9 @@ void EditorUi::draw(
             commands);
         break;
 
-    case EditorSection::TilePalettes: {
-        std::optional<Renamed> renamed =
-            tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
-        if (renamed && subject.level.getTileMap().getTilePalette() == renamed->from)
-            subject.level.getTileMap().setTilePalette(renamed->to);
-    }
-    break;
+    case EditorSection::TilePalettes:
+        tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
+        break;
     }
 
     ImGui::End();

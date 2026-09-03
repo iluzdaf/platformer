@@ -76,7 +76,6 @@ void World::respawnPlayer()
     player->onWallSliding.connect([this] { luaScriptSystem.triggerWallSliding(); });
     player->onFallFromHeight.connect([this] { luaScriptSystem.triggerFallFromHeight(); });
     player->onHitCeiling.connect([this] { luaScriptSystem.triggerHitCeiling(); });
-    player->onPickup.connect([this](int scoreDelta) { score.add(scoreDelta); });
     luaScriptSystem.bindPlayer(player.get());
 }
 
@@ -94,7 +93,7 @@ void World::fixedUpdate(float deltaTime)
     touchTiles(*player.get(), level->getTileMap());
 
     for (const Pickup &taken : level->takePickupsTouching(player->getPhysicsBody().getAABB()))
-        player->onPickup(taken.getScoreDelta());
+        score.add(taken.getScoreDelta());
 }
 
 void World::postFixedUpdate()

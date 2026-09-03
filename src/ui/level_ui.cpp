@@ -12,6 +12,7 @@
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "npc/npc.hpp"
+#include "npc/walk_between.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
@@ -81,7 +82,7 @@ void LevelUi::drawActors(
 
         std::size_t placed = level.getNpcs().size() - 1;
         if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
-            level.getNpc(placed).setPatrol(*run, level.patrolBetween(*run));
+            level.getNpc(placed).setPatrol(*run, walkBetween(level.getTileMap(), *run));
 
         showingActor = ActorShown{ActorShown::What::Npc, placed};
         commands.onNpcsChanged();
@@ -228,7 +229,8 @@ void LevelUi::update(
         break;
 
     case PickTile::For::NpcSpawn:
-        level.getNpc(picking.npcIndex).setSpawnTile(tilePosition, level.feetOnTile(tilePosition));
+        level.getNpc(picking.npcIndex)
+            .setSpawnTile(tilePosition, level.getTileMap().feetOnTile(tilePosition));
         commands.onNpcsChanged();
         break;
 
@@ -241,7 +243,7 @@ void LevelUi::update(
         else
             patrol.to = tilePosition;
 
-        level.getNpc(picking.npcIndex).setPatrol(patrol, level.patrolBetween(patrol));
+        level.getNpc(picking.npcIndex).setPatrol(patrol, walkBetween(level.getTileMap(), patrol));
         commands.onNpcsChanged();
         break;
     }

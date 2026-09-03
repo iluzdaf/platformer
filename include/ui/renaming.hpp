@@ -4,6 +4,9 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <map>
+#include <utility>
+#include <vector>
 #include "game/renames.hpp"
 #include "ui/saveable.hpp"
 
@@ -22,6 +25,24 @@ std::optional<std::string> whyNotARename(
 
 void rememberRename(Renames &renames, const std::string &from, const std::string &to);
 
+std::string nameAfterRenames(const Renames &renames, const std::string &name);
+
+std::string levelsInAList(const std::vector<std::string> &levelPaths);
+
+template <class T>
+void renamesTakeEffect(const Renames &renames, std::map<std::string, T> &catalogue)
+{
+    for (const auto &[was, is] : renames)
+    {
+        auto node = catalogue.extract(was);
+        if (node.empty())
+            continue;
+
+        node.key() = is;
+        catalogue.insert(std::move(node));
+    }
+}
+
 class Renaming
 {
 public:
@@ -32,14 +53,15 @@ public:
 
     const Renames &sinceSaved() const;
     std::string shownName(const std::string &onDisk) const;
+    std::string rePointedLevels() const;
     bool somethingIsBecoming(const std::string &name) const;
-    void applied(int levelsRewritten);
+    void applied(const std::vector<std::string> &levels);
     void forget();
 
 private:
     std::string typing, lastSelected;
     Renames renames;
-    std::optional<int> rewritten;
+    std::vector<std::string> rePointed;
 };
 
 template <class T>
@@ -53,4 +75,5 @@ struct LevelData;
 
 void writeRenamesIntoLevels(
     Renaming &renaming,
+    const std::string &directory,
     const std::function<bool(LevelData &, const Renames &)> &rename);

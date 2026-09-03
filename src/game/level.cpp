@@ -424,9 +424,11 @@ bool renameTypeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames)
     return renameSpawnTypes(pickups, renames);
 }
 
-int renameInLevels(const std::string &directory, const std::function<bool(LevelData &)> &rewrite)
+std::vector<std::string> renameInLevels(
+    const std::string &directory,
+    const std::function<bool(LevelData &)> &rewrite)
 {
-    int rewritten = 0;
+    std::vector<std::string> rewritten;
     for (const std::string &levelPath : levelPathsIn(directory))
     {
         LevelData levelData;
@@ -437,7 +439,7 @@ int renameInLevels(const std::string &directory, const std::function<bool(LevelD
             continue;
 
         writeLevelData(levelData, levelPath);
-        ++rewritten;
+        rewritten.push_back(levelPath);
     }
 
     return rewritten;

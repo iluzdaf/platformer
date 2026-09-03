@@ -6,13 +6,14 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 #include <imgui.h>
 #include "ui/renaming.hpp"
 #include "game/renames.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "game/level.hpp"
+#include "game/levels.hpp"
 #include "game/level_data.hpp"
-#include "assets/asset_paths.hpp"
 
 namespace
 {
@@ -80,15 +81,15 @@ std::optional<Renamed> Renaming::draw(
         whyNotARename(what, shownName(selected), typing, taken(typing));
     if (why)
         ImGui::TextColored(CannotSaveColour, "%s", why->c_str());
-    else if (rewritten)
-        ImGui::TextDisabled("%d level%s re-pointed", *rewritten, *rewritten == 1 ? "" : "s");
+    else if (!rePointed.empty())
+        ImGui::TextDisabled("%s re-pointed", rePointedLevels().c_str());
 
     if (!entered || why || typing == shownName(selected))
         return std::nullopt;
 
     Renamed renamed{shownName(selected), typing};
     rememberRename(renames, renamed.from, renamed.to);
-    rewritten.reset();
+    rePointed.clear();
 
     return renamed;
 }
@@ -98,10 +99,34 @@ const Renames &Renaming::sinceSaved() const
     return renames;
 }
 
+std::string nameAfterRenames(const Renames &renames, const std::string &name)
+{
+    auto renamed = renames.find(name);
+    return renamed == renames.end() ? name : renamed->second;
+}
+
+std::string levelsInAList(const std::vector<std::string> &levelPaths)
+{
+    std::string listed;
+    for (std::size_t at = 0; at < levelPaths.size(); ++at)
+    {
+        if (at > 0)
+            listed += at + 1 == levelPaths.size() ? " and " : ", ";
+
+        listed += levelName(levelPaths[at]);
+    }
+
+    return listed;
+}
+
 std::string Renaming::shownName(const std::string &onDisk) const
 {
-    auto renamed = renames.find(onDisk);
-    return renamed == renames.end() ? onDisk : renamed->second;
+    return nameAfterRenames(renames, onDisk);
+}
+
+std::string Renaming::rePointedLevels() const
+{
+    return levelsInAList(rePointed);
 }
 
 bool Renaming::somethingIsBecoming(const std::string &name) const
@@ -113,10 +138,10 @@ bool Renaming::somethingIsBecoming(const std::string &name) const
     return false;
 }
 
-void Renaming::applied(int levelsRewritten)
+void Renaming::applied(const std::vector<std::string> &levels)
 {
     renames.clear();
-    rewritten = levelsRewritten > 0 ? std::optional<int>(levelsRewritten) : std::nullopt;
+    rePointed = levels;
 }
 
 void Renaming::forget()
@@ -124,20 +149,20 @@ void Renaming::forget()
     typing.clear();
     lastSelected.clear();
     renames.clear();
-    rewritten.reset();
+    rePointed.clear();
 }
 
 void writeRenamesIntoLevels(
     Renaming &renaming,
+    const std::string &directory,
     const std::function<bool(LevelData &, const Renames &)> &rename)
 {
     const Renames &renames = renaming.sinceSaved();
     if (renames.empty())
         return;
 
-    int rewritten = renameInLevels(
-        std::string(assets::Levels),
-        [&](LevelData &levelData) { return rename(levelData, renames); });
+    std::vector<std::string> rewritten =
+        renameInLevels(directory, [&](LevelData &levelData) { return rename(levelData, renames); });
 
     renaming.applied(rewritten);
 }

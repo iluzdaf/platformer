@@ -74,7 +74,6 @@ namespace
             {
                 ImGui::TreeNodeSetOpen(ImGui::GetID("animation"), true);
 
-                // "frames" is drawn inside the animation node, so its id is too
                 ImGui::PushOverrideID(ImGui::GetID("animation"));
                 ImGui::TreeNodeSetOpen(ImGui::GetID("frames"), true);
                 ImGui::PopID();
@@ -100,7 +99,6 @@ TEST_CASE("A frame costs more room as a picture than as a number", "[FrameAnimat
     FrameAnimationData one{{1}, 0.1f};
     FrameAnimationData five{{1, 2, 3, 4, 5}, 0.1f};
 
-    // the preview is the same size whatever the frames are, so it cancels out of a difference
     float asPictures = heightOfFrames(gui, five, true) - heightOfFrames(gui, one, true);
     float asNumbers = heightOfFrames(gui, five, false) - heightOfFrames(gui, one, false);
 

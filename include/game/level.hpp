@@ -49,6 +49,8 @@ public:
     const std::vector<PickupSpawnData> &getPickupSpawns() const;
 
     const std::vector<std::unique_ptr<Npc>> &getNpcs() const;
+    Npc &getNpc(std::size_t index);
+    const Npc &getNpc(std::size_t index) const;
     const std::vector<Pickup> &getPickups() const;
 
     void rebuildNpcs(const std::map<std::string, NpcData> &npcData);

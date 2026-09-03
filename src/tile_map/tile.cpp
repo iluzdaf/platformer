@@ -11,8 +11,17 @@ Tile::Tile(const TileData &tileData, glm::vec2 cellSize)
       grippable(tileData.grippable),
       collider(tileData.collider.value_or(TileColliderData{glm::vec2(0.0f), cellSize}))
 {
-    if (tileData.collider && (collider.size.x <= 0.0f || collider.size.y <= 0.0f))
-        throw std::runtime_error("A collider of no size is not one anything can touch");
+    if (tileData.collider)
+    {
+        if (collider.size.x <= 0.0f || collider.size.y <= 0.0f)
+            throw std::runtime_error("A collider of no size is not one anything can touch");
+
+        glm::vec2 far = collider.offset + collider.size;
+        if (collider.offset.x < 0.0f || collider.offset.y < 0.0f || far.x > cellSize.x ||
+            far.y > cellSize.y)
+            throw std::runtime_error(
+                "A collider reaching outside its cell is never looked for out there");
+    }
 
     if (solid && (deadly || portal))
         throw std::runtime_error(

@@ -182,3 +182,40 @@ TEST_CASE("A collider facing backwards is refused", "[Tile]")
 
     REQUIRE_THROWS(Tile(said, Cell));
 }
+
+TEST_CASE("A collider reaching past its cell is refused", "[Tile]")
+{
+    TileData wide;
+    wide.solid = true;
+    wide.collider = TileColliderData{glm::vec2(0.0f), glm::vec2(32.0f, 16.0f)};
+
+    REQUIRE_THROWS_WITH(Tile(wide, Cell), Catch::Matchers::ContainsSubstring("outside its cell"));
+}
+
+TEST_CASE("A collider starting before its cell is refused", "[Tile]")
+{
+    TileData shifted;
+    shifted.solid = true;
+    shifted.collider = TileColliderData{glm::vec2(-1.0f, 0.0f), glm::vec2(16.0f)};
+
+    REQUIRE_THROWS(Tile(shifted, Cell));
+}
+
+TEST_CASE("A collider filling its cell exactly is allowed", "[Tile]")
+{
+    TileData exact;
+    exact.solid = true;
+    exact.collider = TileColliderData{glm::vec2(0.0f), Cell};
+
+    REQUIRE_NOTHROW(Tile(exact, Cell));
+}
+
+TEST_CASE("A collider is measured against the cell it is drawn in", "[Tile]")
+{
+    TileData sixteen;
+    sixteen.solid = true;
+    sixteen.collider = TileColliderData{glm::vec2(0.0f), glm::vec2(16.0f)};
+
+    REQUIRE_NOTHROW(Tile(sixteen, glm::vec2(16.0f)));
+    REQUIRE_THROWS(Tile(sixteen, glm::vec2(8.0f)));
+}

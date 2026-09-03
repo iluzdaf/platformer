@@ -50,14 +50,6 @@ Level::Level(
     const std::string &levelPath)
     : tileMap(levelData.tileMapData, tilePalettes), path(levelPath)
 {
-    initFrom(levelData, playerData, npcData);
-}
-
-void Level::initFrom(
-    const LevelData &levelData,
-    const PlayerData &playerData,
-    const std::map<std::string, NpcData> &npcData)
-{
     playerStartTilePosition = levelData.playerStartTilePosition;
     if (!tileMap.validTilePosition(playerStartTilePosition))
         throw std::runtime_error("playerStartTilePosition is out of bounds");

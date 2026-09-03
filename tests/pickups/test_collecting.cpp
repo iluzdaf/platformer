@@ -13,7 +13,7 @@ namespace
     PickupData worth(int scoreDelta)
     {
         PickupData pickupData;
-        pickupData.sheet = Sheet{"textures/tile_set.png", glm::ivec2(16)};
+        pickupData.sheet = Sheet{"textures/somewhere.png", glm::ivec2(16)};
         pickupData.animationData = FrameAnimationData{{0}, 1.0f};
         pickupData.size = glm::vec2(16.0f);
         pickupData.scoreDelta = scoreDelta;

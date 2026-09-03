@@ -51,7 +51,7 @@ namespace
 TEST_CASE("The frame is a picture to pick when a sheet is in scope", "[ScoreIconField]")
 {
     HeadlessImGui gui;
-    ScoreIcon icon{Sheet{"textures/tile_set.png", glm::ivec2(16)}, 3};
+    ScoreIcon icon{Sheet{"textures/somewhere.png", glm::ivec2(16)}, 3};
 
     float asNumber = heightOfIcon(gui, icon, false);
     float asPicture = heightOfIcon(gui, icon, true);
@@ -62,12 +62,12 @@ TEST_CASE("The frame is a picture to pick when a sheet is in scope", "[ScoreIcon
 TEST_CASE("The frame keeps what it was when nothing is picked", "[ScoreIconField]")
 {
     HeadlessImGui gui;
-    ScoreIcon icon{Sheet{"textures/tile_set.png", glm::ivec2(16)}, 3};
+    ScoreIcon icon{Sheet{"textures/somewhere.png", glm::ivec2(16)}, 3};
 
     heightOfIcon(gui, icon, true);
 
     REQUIRE(icon.frame == 3);
-    REQUIRE(icon.sheet.texture == "textures/tile_set.png");
+    REQUIRE(icon.sheet.texture == "textures/somewhere.png");
 }
 
 #endif

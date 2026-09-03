@@ -381,24 +381,22 @@ namespace
 
     TileMapData pitOf(int tiles, Pit kind, const TilePalettes &tilePalettes)
     {
-        constexpr int SolidTile = 14;
-        constexpr int SpikeTile = 1;
-        REQUIRE(tilePalettes.at("default").tiles.at(SolidTile).solid);
-        REQUIRE(tilePalettes.at("default").tiles.at(SpikeTile).deadly);
+        int solidTile = aSolidTileIn(tilePalettes.at("default"));
+        int spikeTile = aDeadlyTileIn(tilePalettes.at("default"));
 
         std::vector<std::vector<int>> rows(PitMapHeight, std::vector<int>(PitMapWidth, 0));
         for (int x = 0; x < PitMapWidth; ++x)
-            rows[PitFloorRow][x] = SolidTile;
+            rows[PitFloorRow][x] = solidTile;
 
         if (kind == Pit::StepUp)
             for (int x = PitStart; x < PitMapWidth; ++x)
                 for (int y = std::max(0, PitFloorRow - tiles); y < PitMapHeight; ++y)
-                    rows[y][x] = SolidTile;
+                    rows[y][x] = solidTile;
         else
             for (int x = PitStart; x < PitStart + tiles; ++x)
             {
                 if (kind == Pit::Spikes)
-                    rows[PitHazardRow][x] = SpikeTile;
+                    rows[PitHazardRow][x] = spikeTile;
                 else
                     rows[PitFloorRow][x] = 0;
             }

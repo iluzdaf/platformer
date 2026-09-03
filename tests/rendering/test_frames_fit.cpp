@@ -12,7 +12,7 @@ namespace
 
     Sheet cells(int width, int height)
     {
-        return Sheet{"textures/coin.png", glm::ivec2(width, height)};
+        return Sheet{"textures/somewhere.png", glm::ivec2(width, height)};
     }
 }
 

@@ -195,6 +195,7 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
 void TilePalettesUi::revert(TilePalettes &tilePalettes)
 {
     revertTo(saveable, "palettes", tilePalettes);
+    forgetUnsavedRenaming();
 }
 
 void TilePalettesUi::save(TilePalettes &tilePalettes)
@@ -208,7 +209,14 @@ bool TilePalettesUi::unsavedSince(const TilePalettes &tilePalettes)
     return saveable.unsavedSince("palettes", asJson(tilePalettes));
 }
 
+void TilePalettesUi::forgetUnsavedRenaming()
+{
+    renamingTo.clear();
+    renames.clear();
+}
+
 void TilePalettesUi::valuesReplaced()
 {
     saveable.valuesReplaced();
+    forgetUnsavedRenaming();
 }

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include "npc/walk_between.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cstddef>
@@ -365,7 +366,7 @@ TEST_CASE("An npc can be moved to another tile", "[Level]")
     glm::ivec2 elsewhere(4, FloorRow - 1);
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    level.getNpc(0).setSpawnTile(elsewhere, level.feetOnTile(elsewhere));
+    level.getNpc(0).setSpawnTile(elsewhere, level.getTileMap().feetOnTile(elsewhere));
 
     REQUIRE(spawnsIn(level).front().tilePosition == elsewhere);
     REQUIRE(level.toLevelData().npcs.front().tilePosition == elsewhere);
@@ -384,7 +385,7 @@ TEST_CASE("A level refuses to move an npc off the map", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    REQUIRE_THROWS(level.feetOnTile(glm::ivec2(-1, 0)));
+    REQUIRE_THROWS(level.getTileMap().feetOnTile(glm::ivec2(-1, 0)));
     REQUIRE(spawnsIn(level).front().tilePosition == StandingTile);
 }
 
@@ -395,7 +396,7 @@ TEST_CASE("An npc can be given a beat it did not have", "[Level]")
     REQUIRE_FALSE(spawnsIn(level).front().patrol);
 
     PatrolData beat{StandingTile, other};
-    level.getNpc(0).setPatrol(beat, level.patrolBetween(beat));
+    level.getNpc(0).setPatrol(beat, walkBetween(level.getTileMap(), beat));
 
     REQUIRE(spawnsIn(level).front().patrol == PatrolData{StandingTile, other});
     REQUIRE(level.toLevelData().npcs.front().patrol == PatrolData{StandingTile, other});
@@ -405,7 +406,7 @@ TEST_CASE("A level refuses a beat that leaves the map", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    REQUIRE_THROWS(level.patrolBetween(PatrolData{StandingTile, glm::ivec2(-1, 0)}));
+    REQUIRE_THROWS(walkBetween(level.getTileMap(), PatrolData{StandingTile, glm::ivec2(-1, 0)}));
     REQUIRE_FALSE(spawnsIn(level).front().patrol);
 }
 
@@ -424,7 +425,7 @@ TEST_CASE("An npc can be left with no beat at all", "[Level]")
     glm::ivec2 other(4, FloorRow - 1);
     Level level = levelPlacing({spawnAt("short", StandingTile)});
     PatrolData beat{StandingTile, other};
-    level.getNpc(0).setPatrol(beat, level.patrolBetween(beat));
+    level.getNpc(0).setPatrol(beat, walkBetween(level.getTileMap(), beat));
 
     level.getNpc(0).clearPatrol();
 
@@ -478,7 +479,7 @@ TEST_CASE("The run beneath an npc names tiles the beat can be saved as", "[Level
     std::optional<PatrolData> run = level.runBeneathNpc(0);
 
     REQUIRE(run);
-    REQUIRE_NOTHROW(level.getNpc(0).setPatrol(*run, level.patrolBetween(*run)));
+    REQUIRE_NOTHROW(level.getNpc(0).setPatrol(*run, walkBetween(level.getTileMap(), *run)));
     REQUIRE(spawnsIn(level).front().patrol == run);
 }
 
@@ -504,7 +505,7 @@ TEST_CASE("A beat reaches the outer edges of the tiles it names", "[Level]")
     Level level = levelWithALedge({spawn});
     float tileSize = static_cast<float>(level.getTileMap().getTileSize());
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawnsIn(level).front());
+    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.getNpc(0).getWalk();
 
     REQUIRE(beat);
     REQUIRE(beat->first.x == 1 * tileSize);
@@ -518,7 +519,7 @@ TEST_CASE("A beat named right to left reaches the same two edges", "[Level]")
     Level level = levelWithALedge({spawn});
     float tileSize = static_cast<float>(level.getTileMap().getTileSize());
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawnsIn(level).front());
+    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.getNpc(0).getWalk();
 
     REQUIRE(beat);
     REQUIRE(beat->first.x == 5 * tileSize);

@@ -211,6 +211,9 @@ glm::vec2 TileMap::topLeftOfTile(glm::ivec2 tilePosition) const
 
 glm::vec2 TileMap::feetOnTile(glm::ivec2 tilePosition) const
 {
+    if (!validTilePosition(tilePosition))
+        throw std::runtime_error("Tile coordinates out of bounds");
+
     glm::vec2 surface = topLeftOfTile(tilePosition + glm::ivec2(0, 1));
     return surface + glm::vec2(tileSize * 0.5f, 0.0f);
 }

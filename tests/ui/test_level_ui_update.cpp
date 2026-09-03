@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "npc/walk_between.hpp"
 #include <string>
 #include <optional>
 #include <tuple>
@@ -207,7 +208,8 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
     Level level = levelPlacing({villagerAt(glm::ivec2(2, Standing))});
     level.getNpc(0).setPatrol(
         PatrolData{glm::ivec2(1, Standing), glm::ivec2(8, Standing)},
-        level.patrolBetween(PatrolData{glm::ivec2(1, Standing), glm::ivec2(8, Standing)}));
+        walkBetween(
+            level.getTileMap(), PatrolData{glm::ivec2(1, Standing), glm::ivec2(8, Standing)}));
 
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolTo, 0};
     glm::ivec2 target(5, Standing);

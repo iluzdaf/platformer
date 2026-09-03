@@ -182,6 +182,7 @@ add_library(platformer_lib OBJECT
     src/actor/behaviors/route_walker.cpp
     src/actor/behaviors/state_machine_behavior.cpp
     src/npc/npc.cpp
+    src/npc/walk_between.cpp
     src/pickups/pickup.cpp
     src/pickups/collecting.cpp
     src/actor/actor_motion.cpp

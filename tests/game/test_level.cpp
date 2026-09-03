@@ -418,7 +418,7 @@ TEST_CASE("An npc of a type the level had none of still gets a graph", "[Level]"
 
     level.addNpc(spawnAt("tall", StandingTile));
 
-    REQUIRE_NOTHROW(level.graphForNpc(level.getNpcSpawns().front()));
+    REQUIRE_NOTHROW(level.graphFor(level.getNpcSpawns().front().type));
     REQUIRE(level.getGraphs().size() == 2);
 }
 

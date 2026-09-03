@@ -184,7 +184,7 @@ void drawSpawnOf(
     if (!beat)
         return;
 
-    const NavigationGraph &graph = level.graphForNpc(spawn);
+    const NavigationGraph &graph = level.graphFor(spawn.type);
     std::optional<PlaceOnThePath> setsOff = placeOnThePath(graph, beat->first);
     std::optional<PlaceOnThePath> turnsRound = placeOnThePath(graph, beat->second);
     if (!setsOff || !turnsRound)

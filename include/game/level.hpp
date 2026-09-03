@@ -38,7 +38,7 @@ public:
     TileMap &getTileMap();
 
     const NavigationGraph &graphFor(const NavigationProfile &profile) const;
-    const NavigationGraph &graphForNpc(const NpcSpawnData &spawn) const;
+    const NavigationGraph &graphFor(const std::string &npcType) const;
     const std::vector<NamedNavigationGraph> &getGraphs() const;
 
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolFor(const NpcSpawnData &spawn) const;

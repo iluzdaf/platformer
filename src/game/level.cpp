@@ -150,11 +150,11 @@ const NavigationGraph &Level::graphFor(const NavigationProfile &profile) const
     throw std::runtime_error("This level has no navigation graph for that actor");
 }
 
-const NavigationGraph &Level::graphForNpc(const NpcSpawnData &spawn) const
+const NavigationGraph &Level::graphFor(const std::string &npcType) const
 {
-    auto profile = npcProfiles.find(spawn.type);
+    auto profile = npcProfiles.find(npcType);
     if (profile == npcProfiles.end())
-        throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
+        throw std::runtime_error("Unknown npc \"" + npcType + "\"");
 
     return graphFor(profile->second);
 }
@@ -165,7 +165,7 @@ std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
         throw std::runtime_error("Cannot look under an npc the level does not have");
 
     const NpcSpawnData &spawn = npcSpawns[index];
-    const NavigationGraph &graph = graphForNpc(spawn);
+    const NavigationGraph &graph = graphFor(spawn.type);
     std::optional<int> standing = nearestNodeTo(graph, tileMap.feetOnTile(spawn.tilePosition));
     if (!standing)
         return std::nullopt;

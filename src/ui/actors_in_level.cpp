@@ -195,7 +195,8 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
     for (std::size_t index = 0; index < spawns.size(); ++index)
     {
         std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawns[index]);
-        if (!beat || canPatrolBetween(level.graphForNpc(spawns[index]), beat->first, beat->second))
+        if (!beat ||
+            canPatrolBetween(level.graphFor(spawns[index].type), beat->first, beat->second))
             continue;
 
         names += (names.empty() ? "" : ", ") + labelOf(spawns[index], index);

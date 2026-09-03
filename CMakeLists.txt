@@ -295,6 +295,7 @@ add_executable(tests
     tests/rendering/test_texture_cache.cpp
     tests/rendering/test_tile_set_fit.cpp
     tests/rendering/test_frame_uv_range.cpp
+    tests/test_helpers/test_made_sheet.cpp
     tests/rendering/test_frames_fit.cpp
     tests/rendering/test_sheet_textures.cpp
     tests/rendering/test_texture2d.cpp

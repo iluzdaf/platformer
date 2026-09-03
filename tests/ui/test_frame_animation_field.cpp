@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
-#include <string>
 #include <vector>
 #include <imgui_internal.h>
 #include "ui/frame_animation_field.hpp"
@@ -55,9 +54,8 @@ TEST_CASE("An animation with no duration does not spin", "[AnimationPreview]")
 #ifndef SKIP_OPENGL_TESTS
 
 #include <glm/gtc/matrix_transform.hpp>
-#include "assets/asset_paths.hpp"
 #include "rendering/texture2d.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "test_helpers/made_sheet.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "assets/sheet.hpp"
 
@@ -65,7 +63,7 @@ namespace
 {
     float heightOfFrames(HeadlessImGui &gui, FrameAnimationData &animation, bool withSheet)
     {
-        Texture2D coin(assetPath(std::string(assets::TileSetTexture)));
+        Texture2D coin = aSheetOf(7, 6);
         SheetInScope offering{&coin, Sheet{"textures/tile_set.png", glm::ivec2(16)}, 0};
 
         float reached = 0.0f;

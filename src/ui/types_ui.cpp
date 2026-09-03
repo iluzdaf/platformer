@@ -218,6 +218,4 @@ void TypesUi::show(const TypeShown &type)
 void TypesUi::valuesReplaced()
 {
     saveable.valuesReplaced();
-    npcRenaming.forget();
-    pickupRenaming.forget();
 }

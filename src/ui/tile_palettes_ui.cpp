@@ -189,5 +189,4 @@ bool TilePalettesUi::unsavedSince(const TilePalettes &tilePalettes)
 void TilePalettesUi::valuesReplaced()
 {
     saveable.valuesReplaced();
-    renaming.forget();
 }

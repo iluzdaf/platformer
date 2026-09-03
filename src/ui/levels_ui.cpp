@@ -7,7 +7,6 @@
 #include "ui/unsaved_colours.hpp"
 #include "ui/saveable.hpp"
 #include "game/levels.hpp"
-#include "game/level.hpp"
 #include "ui/editor_commands.hpp"
 
 namespace
@@ -36,11 +35,11 @@ namespace
 
 void LevelsUi::draw(
     Levels &levels,
-    const Level &level,
+    const std::string &levelPath,
     EditorCommands &commands,
     bool levelHasUnsavedChanges)
 {
-    std::optional<std::string> chosen = levelChooser("playing", level.getPath());
+    std::optional<std::string> chosen = levelChooser("playing", levelPath);
 
     bool switchPressed = false;
     bool cancelPressed = false;
@@ -50,7 +49,7 @@ void LevelsUi::draw(
         ImGui::TextWrapped(
             "switching to %s discards unsaved changes to %s",
             levelName(*askedToSwitchTo).c_str(),
-            levelName(level.getPath()).c_str());
+            levelName(levelPath).c_str());
         ImGui::PopStyleColor();
         switchPressed = ImGui::Button("switch");
         ImGui::SameLine();

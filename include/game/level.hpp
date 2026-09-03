@@ -21,11 +21,6 @@ class Level
 {
 public:
     Level(
-        const std::string &levelPath,
-        const TilePalettes &tilePalettes,
-        const PlayerData &playerData,
-        const std::map<std::string, NpcData> &npcData);
-    Level(
         const LevelData &levelData,
         const TilePalettes &tilePalettes,
         const PlayerData &playerData,
@@ -51,26 +46,16 @@ public:
     void setNpcPatrol(std::size_t index, PatrolData patrol);
     void clearNpcPatrol(std::size_t index);
     std::optional<PatrolData> runBeneathNpc(std::size_t index) const;
-    const std::string &getPath() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
     void setNextLevel(const std::string &levelPath);
     LevelData toLevelData() const;
-    void save() const;
 
 private:
-    Level(
-        const LevelData &levelData,
-        const TilePalettes &tilePalettes,
-        const PlayerData &playerData,
-        const std::map<std::string, NpcData> &npcData,
-        const std::string &levelPath);
-
     TileMap tileMap;
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
     std::string nextLevel;
     std::vector<NpcSpawnData> npcs;
     std::vector<PickupSpawnData> pickups;
-    std::string path;
     std::vector<NamedNavigationGraph> graphs;
     std::map<std::string, NavigationProfile> npcProfiles;
 

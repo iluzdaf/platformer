@@ -6,6 +6,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/world.hpp"
+#include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
 #include "game/catalogue.hpp"
 #include "game/level.hpp"
@@ -46,8 +47,9 @@ void World::loadLevel(const std::string &levelPath)
 void World::rebuildLevel(const std::string &levelPath)
 {
     std::unique_ptr<Level> newLevel = std::make_unique<Level>(
-        levelPath, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
     level = std::move(newLevel);
+    path = levelPath;
     luaScriptSystem.bindLevel(level.get());
 }
 
@@ -164,12 +166,12 @@ void World::update(float deltaTime)
 
 bool World::isPlaying(const std::string &levelPath) const
 {
-    return level && level->getPath() == levelPath;
+    return level && path == levelPath;
 }
 
-std::string World::getLevelPath() const
+const std::string &World::getLevelPath() const
 {
-    return level ? level->getPath() : std::string();
+    return path;
 }
 
 Level &World::getLevel()

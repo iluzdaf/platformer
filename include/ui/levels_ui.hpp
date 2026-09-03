@@ -13,7 +13,7 @@ class LevelsUi
 public:
     void draw(
         Levels &levels,
-        const Level &level,
+        const std::string &levelPath,
         EditorCommands &commands,
         bool levelHasUnsavedChanges);
     void save(Levels &levels);

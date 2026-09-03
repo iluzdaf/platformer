@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include <memory>
 #include <vector>
@@ -20,6 +21,7 @@ struct GameUiSubject
 {
     GameData &gameData;
     Level &level;
+    const std::string &levelPath;
     const std::vector<std::unique_ptr<Npc>> &npcs;
     const Player &player;
     const TextureCache &textures;
@@ -36,7 +38,11 @@ public:
     GameUi(Window &window, int width, int height);
 
     void draw(const GameUiSubject &subject);
-    void update(float deltaTime, Level &level, const Camera2D &camera);
+    void update(
+        float deltaTime,
+        Level &level,
+        const std::string &levelPath,
+        const Camera2D &camera);
     void resize(int width, int height);
     void valuesReplaced();
 

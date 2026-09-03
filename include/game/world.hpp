@@ -35,7 +35,7 @@ public:
     void update(float deltaTime);
 
     bool isPlaying(const std::string &levelPath) const;
-    std::string getLevelPath() const;
+    const std::string &getLevelPath() const;
 
     Level &getLevel();
     const Player &getPlayer() const;
@@ -49,6 +49,8 @@ public:
 
 private:
     void rebuildLevel(const std::string &levelPath);
+
+    std::string path;
     void refreshActors();
 
     GameData &gameData;

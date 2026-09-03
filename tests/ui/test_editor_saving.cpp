@@ -11,6 +11,7 @@
 #include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
+#include "game/level_data_file.hpp"
 #include "game/levels.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -25,8 +26,9 @@ namespace
     {
         GameData gameData = loadGameData();
         Levels levels{assetPath("levels.json")};
+        std::string levelPath = assetPath("levels/level6.json");
         Level level{
-            assetPath("levels/level6.json"),
+            readLevelData(levelPath),
             gameData.tilePalettes,
             gameData.playerData,
             gameData.npcData};
@@ -41,6 +43,7 @@ namespace
             return EditorSubject{
                 gameData,
                 level,
+                levelPath,
                 npcs,
                 textures,
                 levels,

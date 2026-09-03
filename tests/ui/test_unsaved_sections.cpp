@@ -4,6 +4,7 @@
 #include "game/game_data.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "game/level.hpp"
+#include "game/level_data_file.hpp"
 #include "game/levels.hpp"
 #include "test_helpers/asset_path.hpp"
 #include "ui/camera_ui.hpp"
@@ -57,11 +58,12 @@ TEST_CASE("The levels section has nothing unsaved when it is first drawn", "[Uns
     LevelsUi levelsUi;
     Levels levels(assetPath("levels.json"));
     GameData gameData = loadGameData();
+    std::string levelPath = assetPath(levels.getFirst());
     Level level(
-        assetPath(levels.getFirst()), gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
     EditorCommands commands;
 
-    gui.frame([&] { levelsUi.draw(levels, level, commands, false); });
+    gui.frame([&] { levelsUi.draw(levels, levelPath, commands, false); });
 
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
 }
@@ -72,8 +74,9 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
     LevelsUi levelsUi;
     Levels levels(assetPath("levels.json"));
     GameData gameData = loadGameData();
+    std::string levelPath = assetPath(levels.getFirst());
     Level level(
-        assetPath(levels.getFirst()), gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
     EditorCommands commands;
 
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
@@ -92,40 +95,36 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
 {
     LevelUi levelUi;
     GameData gameData = loadGameData();
+    std::string levelPath = assetPath("levels/level1.json");
     Level level(
-        assetPath("levels/level1.json"),
-        gameData.tilePalettes,
-        gameData.playerData,
-        gameData.npcData);
+        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
     std::optional<Armed> armed;
     EditorCommands commands;
     MouseOnTheMap still{true, glm::vec2(0.0f), false, false};
 
-    levelUi.update(still, level, armed, commands);
-    REQUIRE_FALSE(levelUi.unsavedSince(level));
+    levelUi.update(still, level, levelPath, armed, commands);
+    REQUIRE_FALSE(levelUi.unsavedSince(level, levelPath));
 
     level.setNextLevel("levels/level3.json");
-    levelUi.update(still, level, armed, commands);
+    levelUi.update(still, level, levelPath, armed, commands);
 
-    REQUIRE(levelUi.unsavedSince(level));
+    REQUIRE(levelUi.unsavedSince(level, levelPath));
 }
 
 TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSections]")
 {
     LevelUi levelUi;
     GameData gameData = loadGameData();
+    std::string levelPath = assetPath("levels/level1.json");
     Level level(
-        assetPath("levels/level1.json"),
-        gameData.tilePalettes,
-        gameData.playerData,
-        gameData.npcData);
+        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
 
     std::optional<Armed> armed = PaintTile{5};
     EditorCommands commands;
     MouseOnTheMap mouse{false, level.getTileMap().feetOnTile(glm::ivec2(2, 2)), true, false};
 
-    levelUi.update(mouse, level, armed, commands);
+    levelUi.update(mouse, level, levelPath, armed, commands);
 
-    REQUIRE(levelUi.unsavedSince(level));
+    REQUIRE(levelUi.unsavedSince(level, levelPath));
 }

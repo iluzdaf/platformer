@@ -7,7 +7,6 @@
 #include <utility>
 #include <map>
 #include "game/level.hpp"
-#include "game/level_data_file.hpp"
 #include "game/level_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -25,30 +24,11 @@ namespace
 }
 
 Level::Level(
-    const std::string &levelPath,
-    const TilePalettes &tilePalettes,
-    const PlayerData &playerData,
-    const std::map<std::string, NpcData> &npcData)
-    : Level(readLevelData(levelPath), tilePalettes, playerData, npcData, levelPath)
-{
-}
-
-Level::Level(
     const LevelData &levelData,
     const TilePalettes &tilePalettes,
     const PlayerData &playerData,
     const std::map<std::string, NpcData> &npcData)
-    : Level(levelData, tilePalettes, playerData, npcData, "levels/new_level.json")
-{
-}
-
-Level::Level(
-    const LevelData &levelData,
-    const TilePalettes &tilePalettes,
-    const PlayerData &playerData,
-    const std::map<std::string, NpcData> &npcData,
-    const std::string &levelPath)
-    : tileMap(levelData.tileMapData, tilePalettes), path(levelPath)
+    : tileMap(levelData.tileMapData, tilePalettes)
 {
     playerStartTilePosition = levelData.playerStartTilePosition;
     if (!tileMap.validTilePosition(playerStartTilePosition))
@@ -85,7 +65,7 @@ Level::Level(
     for (const NpcSpawnData &spawn : npcs)
     {
         if (!npcProfiles.contains(spawn.type))
-            throw std::runtime_error("Unknown npc \"" + spawn.type + "\" in " + path);
+            throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
         addGraphFor(spawn.type, npcProfiles.at(spawn.type));
     }
@@ -261,11 +241,6 @@ void Level::clearNpcPatrol(std::size_t index)
     npcs[index].patrol.reset();
 }
 
-const std::string &Level::getPath() const
-{
-    return path;
-}
-
 void Level::setPlayerStartTile(glm::ivec2 tilePosition)
 {
     if (!tileMap.validTilePosition(tilePosition))
@@ -291,9 +266,4 @@ LevelData Level::toLevelData() const
     levelData.npcs = npcs;
     levelData.pickups = pickups;
     return levelData;
-}
-
-void Level::save() const
-{
-    writeLevelData(toLevelData(), path);
 }

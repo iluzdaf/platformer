@@ -92,10 +92,6 @@ void TypesUi::drawChooser(GameData &gameData)
     ImGui::EndPopup();
 }
 
-namespace
-{
-}
-
 void TypesUi::drawRename(const GameData &gameData)
 {
     bool npc = showing.what == TypeShown::What::Npc;

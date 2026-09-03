@@ -23,6 +23,8 @@
 #include "tile_map/tile_map.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "game/beat_between.hpp"
+#include "tile_map/tile_map.hpp"
 
 namespace
 {
@@ -87,11 +89,9 @@ namespace
 
     void drawCannotGetBack(const Level &level, const Npc *npc)
     {
-        if (npc && npc->getWalk() &&
-            !canPatrolBetween(
-                level.graphFor(npc->getNavigationProfile()),
-                npc->getWalk()->first,
-                npc->getWalk()->second))
+        const std::optional<PatrolData> &beat = npc ? npc->getSpawn().patrol : std::nullopt;
+        if (npc && beat &&
+            !canPatrolBetween(level.graphFor(npc->getNavigationProfile()), beat->from, beat->to))
             ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "it cannot get back from there");
     }
 
@@ -161,22 +161,32 @@ namespace
         drawTileArmButton(asTile(startTile), PickTile{PickTile::For::PlayerStart, 0}, armed);
     }
 
-    bool drawNpcEditing(const NpcSpawnData &spawn, size_t index, std::optional<Armed> &armed)
+    bool drawNpcEditing(
+        const TileMap &tileMap,
+        const NpcSpawnData &spawn,
+        size_t index,
+        std::optional<Armed> &armed)
     {
         beginRow("Spawns At");
         drawTileArmButton(
-            asTile(spawn.tilePosition), PickTile{PickTile::For::NpcSpawn, index}, armed);
+            asTile(tileMap.tileUnderFeet(spawn.position)),
+            PickTile{PickTile::For::NpcSpawn, index},
+            armed);
+
+        std::pair<glm::ivec2, glm::ivec2> beat;
+        if (spawn.patrol)
+            beat = tilesOfBeat(tileMap, *spawn.patrol);
 
         beginRow("Beat");
         drawTileArmButton(
-            spawn.patrol ? asTile(spawn.patrol->from) : "from",
+            spawn.patrol ? asTile(beat.first) : "from",
             PickTile{PickTile::For::PatrolFrom, index},
             armed);
         ImGui::SameLine();
         ImGui::TextUnformatted("to");
         ImGui::SameLine();
         drawTileArmButton(
-            spawn.patrol ? asTile(spawn.patrol->to) : "to",
+            spawn.patrol ? asTile(beat.second) : "to",
             PickTile{PickTile::For::PatrolTo, index},
             armed);
         ImGui::SameLine();
@@ -195,10 +205,10 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
     const std::vector<std::unique_ptr<Npc>> &placed = level.getNpcs();
     for (std::size_t index = 0; index < placed.size(); ++index)
     {
-        const std::optional<std::pair<glm::vec2, glm::vec2>> &beat = placed[index]->getWalk();
+        const std::optional<PatrolData> &beat = placed[index]->getSpawn().patrol;
         if (!beat ||
             canPatrolBetween(
-                level.graphFor(placed[index]->getNavigationProfile()), beat->first, beat->second))
+                level.graphFor(placed[index]->getNavigationProfile()), beat->from, beat->to))
             continue;
 
         names += (names.empty() ? "" : ", ") + labelOf(placed[index]->getSpawn(), index);
@@ -273,7 +283,7 @@ ActorAsked drawActorsInLevel(
         if (ImGui::BeginTable("Player", 2, ImGuiTableFlags_BordersInnerV))
         {
             nameThenValue();
-            drawPlayerEditing(level.getPlayerStartTile(), armed);
+            drawPlayerEditing(level.getTileMap().tileUnderFeet(level.getPlayerStart()), armed);
             drawThePlayer(playerMotionState, playerFeet, playerState);
             ImGui::EndTable();
         }
@@ -289,7 +299,8 @@ ActorAsked drawActorsInLevel(
         if (ImGui::BeginTable("Npc", 2, ImGuiTableFlags_BordersInnerV))
         {
             nameThenValue();
-            asked.clearShownBeat = drawNpcEditing(spawn, showing.npcIndex, armed);
+            asked.clearShownBeat =
+                drawNpcEditing(level.getTileMap(), spawn, showing.npcIndex, armed);
             drawNpcState(level, npc);
             ImGui::EndTable();
         }

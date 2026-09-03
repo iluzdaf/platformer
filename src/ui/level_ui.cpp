@@ -1,4 +1,5 @@
 #include <map>
+#include <utility>
 #include <stdexcept>
 #include <string>
 #include <cstddef>
@@ -12,7 +13,7 @@
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "npc/npc.hpp"
-#include "npc/walk_between.hpp"
+#include "game/beat_between.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
@@ -77,12 +78,12 @@ void LevelUi::drawActors(
     if (asked.addNpcOfType)
     {
         level.addNpc(
-            NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt},
+            NpcSpawnData{*asked.addNpcOfType, level.getPlayerStart(), std::nullopt},
             oneNamed(npcData, "npc", *asked.addNpcOfType));
 
         std::size_t placed = level.getNpcs().size() - 1;
         if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
-            level.getNpc(placed).setPatrol(*run, walkBetween(level.getTileMap(), *run));
+            level.getNpc(placed).setPatrol(*run);
 
         showingActor = ActorShown{ActorShown::What::Npc, placed};
         commands.onNpcsChanged();
@@ -225,25 +226,28 @@ void LevelUi::update(
     switch (picking.what)
     {
     case PickTile::For::PlayerStart:
-        level.setPlayerStartTile(tilePosition);
+        level.setPlayerStart(level.getTileMap().feetOnTile(tilePosition));
         break;
 
     case PickTile::For::NpcSpawn:
-        level.getNpc(picking.npcIndex)
-            .setSpawnTile(tilePosition, level.getTileMap().feetOnTile(tilePosition));
+        level.getNpc(picking.npcIndex).moveTo(level.getTileMap().feetOnTile(tilePosition));
         commands.onNpcsChanged();
         break;
 
     case PickTile::For::PatrolFrom:
     case PickTile::For::PatrolTo: {
         const NpcSpawnData &spawn = level.getNpc(picking.npcIndex).getSpawn();
-        PatrolData patrol = spawn.patrol.value_or(PatrolData{tilePosition, tilePosition});
-        if (picking.what == PickTile::For::PatrolFrom)
-            patrol.from = tilePosition;
-        else
-            patrol.to = tilePosition;
+        std::pair<glm::ivec2, glm::ivec2> beat{tilePosition, tilePosition};
+        if (spawn.patrol)
+            beat = tilesOfBeat(level.getTileMap(), *spawn.patrol);
 
-        level.getNpc(picking.npcIndex).setPatrol(patrol, walkBetween(level.getTileMap(), patrol));
+        if (picking.what == PickTile::For::PatrolFrom)
+            beat.first = tilePosition;
+        else
+            beat.second = tilePosition;
+
+        level.getNpc(picking.npcIndex)
+            .setPatrol(beatBetween(level.getTileMap(), beat.first, beat.second));
         commands.onNpcsChanged();
         break;
     }

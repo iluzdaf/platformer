@@ -1,5 +1,4 @@
 #include <catch2/catch_test_macros.hpp>
-#include "npc/walk_between.hpp"
 #include <string>
 #include <optional>
 #include <tuple>
@@ -38,12 +37,13 @@ namespace
     Level levelPlacing(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
+        levelData.playerStart = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)
             (*levelData.tileMapData.indices)[FloorRow][x] = PaintedTile;
 
-        levelData.playerStartTilePosition = glm::ivec2(1, Standing);
+        levelData.playerStart = feetOf(glm::ivec2(1, Standing));
         levelData.npcs = npcs;
 
         return Level(
@@ -58,7 +58,7 @@ namespace
     {
         NpcSpawnData spawn;
         spawn.type = "villager";
-        spawn.tilePosition = tilePosition;
+        spawn.position = feetOf(tilePosition);
         return spawn;
     }
 
@@ -164,7 +164,7 @@ TEST_CASE("Picking the player start moves it and puts the pick down", "[LevelUi]
 
     levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
 
-    REQUIRE(level.getPlayerStartTile() == target);
+    REQUIRE(level.getTileMap().tileUnderFeet(level.getPlayerStart()) == target);
     REQUIRE_FALSE(armed);
 }
 
@@ -173,12 +173,12 @@ TEST_CASE("A pick waits for the click rather than the hold", "[LevelUi]")
     LevelUi levelUi;
     EditorCommands commands;
     Level level = levelPlacing({});
-    glm::ivec2 before = level.getPlayerStartTile();
+    glm::ivec2 before = level.getTileMap().tileUnderFeet(level.getPlayerStart());
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
 
     levelUi.update(holding(level, glm::ivec2(4, Standing)), level, LevelPath, armed, commands);
 
-    REQUIRE(level.getPlayerStartTile() == before);
+    REQUIRE(level.getTileMap().tileUnderFeet(level.getPlayerStart()) == before);
     REQUIRE(armed);
 }
 
@@ -196,7 +196,7 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
     levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
     commands.drain();
 
-    REQUIRE(spawnsIn(level).front().tilePosition == target);
+    REQUIRE(spawnsIn(level).front().position == feetOf(target));
     REQUIRE(asked);
     REQUIRE_FALSE(armed);
 }
@@ -206,18 +206,15 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
     LevelUi levelUi;
     EditorCommands commands;
     Level level = levelPlacing({villagerAt(glm::ivec2(2, Standing))});
-    level.getNpc(0).setPatrol(
-        PatrolData{glm::ivec2(1, Standing), glm::ivec2(8, Standing)},
-        walkBetween(
-            level.getTileMap(), PatrolData{glm::ivec2(1, Standing), glm::ivec2(8, Standing)}));
+    level.getNpc(0).setPatrol(beatOf(glm::ivec2(1, Standing), glm::ivec2(8, Standing)));
 
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolTo, 0};
     glm::ivec2 target(5, Standing);
 
     levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
 
-    REQUIRE(spawnsIn(level).front().patrol->to == target);
-    REQUIRE(spawnsIn(level).front().patrol->from == glm::ivec2(1, Standing));
+    REQUIRE(spawnsIn(level).front().patrol->to == beatOf(target, target).to);
+    REQUIRE(spawnsIn(level).front().patrol->from == beatOf(glm::ivec2(1, Standing), target).from);
 }
 
 TEST_CASE("The first end picked of an absent beat becomes both of them", "[LevelUi]")
@@ -232,7 +229,7 @@ TEST_CASE("The first end picked of an absent beat becomes both of them", "[Level
 
     levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
 
-    REQUIRE(spawnsIn(level).front().patrol == PatrolData{target, target});
+    REQUIRE(spawnsIn(level).front().patrol == beatOf(target, target));
 }
 
 TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[LevelUi]")
@@ -245,7 +242,7 @@ TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[Lev
     REQUIRE_NOTHROW(levelUi.update(
         clicking(level, glm::ivec2(5, Standing)), level, LevelPath, armed, commands));
 
-    REQUIRE(spawnsIn(level).front().tilePosition == glm::ivec2(2, Standing));
+    REQUIRE(spawnsIn(level).front().position == feetOf(glm::ivec2(2, Standing)));
     REQUIRE_FALSE(armed);
 }
 

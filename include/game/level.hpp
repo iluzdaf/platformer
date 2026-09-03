@@ -42,7 +42,7 @@ public:
 
     void rebuildGraphs();
 
-    glm::ivec2 getPlayerStartTile() const;
+    glm::vec2 getPlayerStart() const;
     const std::string &getNextLevel() const;
     const std::vector<PickupSpawnData> &getPickupSpawns() const;
 
@@ -62,13 +62,13 @@ public:
     void addNpc(const NpcSpawnData &spawn, const NpcData &npcData);
     void removeNpc(std::size_t index);
     std::optional<PatrolData> runBeneathNpc(std::size_t index) const;
-    void setPlayerStartTile(glm::ivec2 tilePosition);
+    void setPlayerStart(glm::vec2 position);
     void setNextLevel(const std::string &levelPath);
     LevelData toLevelData() const;
 
 private:
     TileMap tileMap;
-    glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
+    glm::vec2 playerStart = glm::vec2(0.0f);
     std::string nextLevel;
     std::vector<PickupSpawnData> pickupSpawns;
     std::vector<std::unique_ptr<Npc>> npcs;

@@ -18,13 +18,13 @@
         ],
         "tilePalette":"default"
     },
-    "playerStartTilePosition":[1,11],
+    "playerStart":[24,192],
     "nextLevel":"levels/level1.json",
     "npcs":[
-        {"type":"villager","tilePosition":[6,11],"patrol":{"from":[2,11],"to":[11,11]}},
-        {"type":"villager","tilePosition":[3,5],"patrol":{"from":[1,5],"to":[6,5]}},
-        {"type":"explorer","tilePosition":[10,11],"patrol":{"from":[1,5],"to":[12,9]}},
-        {"type":"explorer","tilePosition":[15,9],"patrol":{"from":[14,9],"to":[18,2]}}
+        {"type":"villager","position":[104,192],"patrol":{"from":[32,192],"to":[192,192]}},
+        {"type":"villager","position":[56,96],"patrol":{"from":[16,96],"to":[112,96]}},
+        {"type":"explorer","position":[168,192],"patrol":{"from":[16,96],"to":[208,160]}},
+        {"type":"explorer","position":[248,160],"patrol":{"from":[224,160],"to":[304,48]}}
     ],
     "pickups":[]
 }

@@ -51,6 +51,38 @@ inline const std::map<std::string, NpcData> &shippedNpcData()
     return npcData;
 }
 
+constexpr float TestTileSize = 16.0f;
+
+inline glm::vec2 feetOf(glm::ivec2 tile, float tileSize = TestTileSize)
+{
+    return glm::vec2(tile.x * tileSize + tileSize * 0.5f, (tile.y + 1) * tileSize);
+}
+
+inline glm::vec2 middleOf(glm::ivec2 tile, float tileSize = TestTileSize)
+{
+    return glm::vec2(tile.x * tileSize + tileSize * 0.5f, tile.y * tileSize + tileSize * 0.5f);
+}
+
+inline PatrolData beatOf(glm::ivec2 fromTile, glm::ivec2 toTile, float tileSize = TestTileSize)
+{
+    glm::vec2 from = feetOf(fromTile, tileSize);
+    glm::vec2 to = feetOf(toTile, tileSize);
+    float outwards = tileSize * 0.5f;
+
+    if (from.x <= to.x)
+    {
+        from.x -= outwards;
+        to.x += outwards;
+    }
+    else
+    {
+        from.x += outwards;
+        to.x -= outwards;
+    }
+
+    return PatrolData{from, to};
+}
+
 inline std::vector<NpcSpawnData> spawnsIn(const Level &level)
 {
     std::vector<NpcSpawnData> spawns;
@@ -109,6 +141,7 @@ inline TileMap setupTileMap(
 inline TileMap tilesOfLevel(const std::string &jsonFilePath)
 {
     LevelData levelData;
+    levelData.playerStart = feetOf(glm::ivec2(0, 0));
     auto error = glz::read_file_json(levelData, jsonFilePath, std::string{});
     if (error)
         throw std::runtime_error("Failed to read " + jsonFilePath);

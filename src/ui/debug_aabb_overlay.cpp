@@ -171,7 +171,7 @@ void drawSpawnOf(
 
     if (showing.what == ActorShown::What::Player)
     {
-        drawSpawn(level.getPlayerStartTile(), "player");
+        drawSpawn(tileMap.tileUnderFeet(level.getPlayerStart()), "player");
         return;
     }
 
@@ -180,15 +180,15 @@ void drawSpawnOf(
 
     const Npc &npc = *level.getNpcs()[showing.npcIndex];
     const NpcSpawnData &spawn = npc.getSpawn();
-    drawSpawn(spawn.tilePosition, spawn.type);
+    drawSpawn(tileMap.tileUnderFeet(spawn.position), spawn.type);
 
-    const std::optional<std::pair<glm::vec2, glm::vec2>> &beat = npc.getWalk();
+    const std::optional<PatrolData> &beat = npc.getSpawn().patrol;
     if (!beat)
         return;
 
     const NavigationGraph &graph = level.graphFor(npc.getNavigationProfile());
-    std::optional<PlaceOnThePath> setsOff = placeOnThePath(graph, beat->first);
-    std::optional<PlaceOnThePath> turnsRound = placeOnThePath(graph, beat->second);
+    std::optional<PlaceOnThePath> setsOff = placeOnThePath(graph, beat->from);
+    std::optional<PlaceOnThePath> turnsRound = placeOnThePath(graph, beat->to);
     if (!setsOff || !turnsRound)
         return;
 

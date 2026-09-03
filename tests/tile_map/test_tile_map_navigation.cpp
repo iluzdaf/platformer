@@ -80,8 +80,8 @@ TEST_CASE(
     REQUIRE(savedJson.find("\"tilePalette\":\"default\"") != std::string::npos);
     REQUIRE(savedJson.find("\"tileData\"") == std::string::npos);
 
-    REQUIRE(savedJson.find("\"playerStartTilePosition\":[") != std::string::npos);
-    REQUIRE(savedJson.find("\"playerStartTilePosition\":[\n") == std::string::npos);
+    REQUIRE(savedJson.find("\"playerStart\":[") != std::string::npos);
+    REQUIRE(savedJson.find("\"playerStart\":[\n") == std::string::npos);
 
     Level reloaded = loadLevel(savePath.string());
     writeLevelData(reloaded.toLevelData(), savePath.string());
@@ -92,7 +92,7 @@ TEST_CASE(
     REQUIRE(reloaded.getTileMap().getTileSize() == loaded.getTileMap().getTileSize());
     REQUIRE(reloaded.getNextLevel() == loaded.getNextLevel());
     REQUIRE(spawnsIn(reloaded) == spawnsIn(loaded));
-    REQUIRE(reloaded.getPlayerStartTile() == loaded.getPlayerStartTile());
+    REQUIRE(reloaded.getPlayerStart() == loaded.getPlayerStart());
 
     for (int y = 0; y < loaded.getTileMap().getHeight(); ++y)
         for (int x = 0; x < loaded.getTileMap().getWidth(); ++x)

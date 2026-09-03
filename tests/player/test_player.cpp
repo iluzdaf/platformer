@@ -34,6 +34,7 @@ namespace
         const TilePalette &palette = getDefaultTileDataMap())
     {
         LevelData levelData;
+        levelData.playerStart = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData = tileMap.toTileMapData();
 
         Level level(levelData, palettesFrom(palette), setupPlayerData(), {}, {});
@@ -331,6 +332,8 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
         tileMap.setTileIndex(glm::ivec2(x, 12), 1);
 
     LevelData levelData;
+
+    levelData.playerStart = feetOf(glm::ivec2(0, 0));
     levelData.tileMapData = tileMap.toTileMapData();
     Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {}, {});
 
@@ -410,6 +413,7 @@ namespace
     bool getsAcross(const GameData &gameData, int tiles, Pit kind, bool jump, bool dash)
     {
         LevelData levelData;
+        levelData.playerStart = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData = pitOf(tiles, kind, gameData.tilePalettes);
         Level level(
             levelData,
@@ -528,6 +532,7 @@ TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]
 {
     GameData gameData = shippedGameData();
     LevelData levelData;
+    levelData.playerStart = feetOf(glm::ivec2(0, 0));
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
     Level level(
         levelData,
@@ -586,6 +591,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
 {
     GameData gameData = shippedGameData();
     LevelData levelData;
+    levelData.playerStart = feetOf(glm::ivec2(0, 0));
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level4.json"), std::string{}));
     Level level(
         levelData,
@@ -596,7 +602,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
 
     constexpr float GapLeft = 5 * 16.0f;
     constexpr float GapRight = 8 * 16.0f;
-    glm::vec2 start = level.getTileMap().feetOnTile(levelData.playerStartTilePosition);
+    glm::vec2 start = levelData.playerStart;
 
     auto runsAtItWith = [&](bool useDash)
     {
@@ -652,6 +658,7 @@ TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[L
 {
     GameData gameData = shippedGameData();
     LevelData levelData;
+    levelData.playerStart = feetOf(glm::ivec2(0, 0));
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level1.json"), std::string{}));
     Level level(
         levelData,
@@ -737,6 +744,8 @@ TEST_CASE("A ceiling bump is over before the frame it happened in ends", "[Playe
     }
 
     LevelData levelData;
+
+    levelData.playerStart = feetOf(glm::ivec2(0, 0));
     levelData.tileMapData = tileMap.toTileMapData();
     Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {}, {});
 

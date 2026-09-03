@@ -7,6 +7,7 @@
 #include <utility>
 #include <map>
 #include "game/level.hpp"
+#include "game/beat_between.hpp"
 #include "game/level_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -19,7 +20,6 @@
 #include "npc/npc_data.hpp"
 #include "tile_map/tile.hpp"
 #include "npc/npc.hpp"
-#include "npc/walk_between.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
@@ -40,11 +40,12 @@ Level::Level(
     const std::map<std::string, PickupData> &pickupData)
     : tileMap(levelData.tileMapData, tilePalettes)
 {
-    playerStartTilePosition = levelData.playerStartTilePosition;
-    if (!tileMap.validTilePosition(playerStartTilePosition))
-        throw std::runtime_error("playerStartTilePosition is out of bounds");
+    playerStart = levelData.playerStart;
+    glm::ivec2 startsOn = tileMap.tileUnderFeet(playerStart);
+    if (!tileMap.validTilePosition(startsOn))
+        throw std::runtime_error("playerStart is out of bounds");
 
-    const Tile &startTile = tileMap.getTileAtTilePosition(playerStartTilePosition);
+    const Tile &startTile = tileMap.getTileAtTilePosition(startsOn);
     if (startTile.isSolid())
         throw std::runtime_error("Player start position is on a solid tile");
     if (startTile.isDeadly())
@@ -59,9 +60,10 @@ Level::Level(
     pickupSpawns = levelData.pickups;
     for (const auto &npc : levelData.npcs)
     {
-        if (!tileMap.validTilePosition(npc.tilePosition))
+        glm::ivec2 standsOn = tileMap.tileUnderFeet(npc.position);
+        if (!tileMap.validTilePosition(standsOn))
             throw std::runtime_error("Npc start position is out of bounds");
-        if (tileMap.getTileAtTilePosition(npc.tilePosition).isSolid())
+        if (tileMap.getTileAtTilePosition(standsOn).isSolid())
             throw std::runtime_error("Npc start position is on a solid tile");
     }
 
@@ -79,12 +81,7 @@ Level::Level(
             throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
     for (const NpcSpawnData &spawn : levelData.npcs)
-        npcs.push_back(
-            std::make_unique<Npc>(
-                spawn,
-                oneNamed(npcData, "npc", spawn.type),
-                tileMap.feetOnTile(spawn.tilePosition),
-                spawn.patrol ? std::optional(walkBetween(tileMap, *spawn.patrol)) : std::nullopt));
+        npcs.push_back(std::make_unique<Npc>(spawn, oneNamed(npcData, "npc", spawn.type)));
 
     rebuildPickups(pickupData);
 }
@@ -139,7 +136,7 @@ std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
     const Npc &npc = getNpc(index);
     const NpcSpawnData &spawn = npc.getSpawn();
     const NavigationGraph &graph = graphFor(npc.getNavigationProfile());
-    std::optional<int> standing = nearestNodeTo(graph, tileMap.feetOnTile(spawn.tilePosition));
+    std::optional<int> standing = nearestNodeTo(graph, spawn.position);
     if (!standing)
         return std::nullopt;
 
@@ -153,14 +150,15 @@ std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
             rightmost = id;
     }
 
-    return PatrolData{
+    return beatBetween(
+        tileMap,
         tileMap.tileStoodOnAt(graph.getNode(leftmost).position),
-        tileMap.tileStoodOnAt(graph.getNode(rightmost).position)};
+        tileMap.tileStoodOnAt(graph.getNode(rightmost).position));
 }
 
-glm::ivec2 Level::getPlayerStartTile() const
+glm::vec2 Level::getPlayerStart() const
 {
-    return playerStartTilePosition;
+    return playerStart;
 }
 
 const std::string &Level::getNextLevel() const
@@ -179,12 +177,7 @@ void Level::rebuildNpcs(const std::map<std::string, NpcData> &npcData)
 
     npcs.clear();
     for (const NpcSpawnData &spawn : placed)
-        npcs.push_back(
-            std::make_unique<Npc>(
-                spawn,
-                oneNamed(npcData, "npc", spawn.type),
-                tileMap.feetOnTile(spawn.tilePosition),
-                spawn.patrol ? std::optional(walkBetween(tileMap, *spawn.patrol)) : std::nullopt));
+        npcs.push_back(std::make_unique<Npc>(spawn, oneNamed(npcData, "npc", spawn.type)));
 }
 
 void Level::rebuildPickups(const std::map<std::string, PickupData> &pickupData)
@@ -194,8 +187,7 @@ void Level::rebuildPickups(const std::map<std::string, PickupData> &pickupData)
     for (const PickupSpawnData &spawn : pickupSpawns)
     {
         const PickupData &kind = oneNamed(pickupData, "pickup", spawn.type);
-        pickups.push_back(
-            Pickup(kind, tileMap.middleOfTile(spawn.tilePosition) - kind.size * 0.5f));
+        pickups.push_back(Pickup(kind, spawn.position - kind.size * 0.5f));
     }
 }
 
@@ -265,12 +257,7 @@ void Level::addNpc(const NpcSpawnData &spawn, const NpcData &npcData)
     if (!npcTypes.contains(spawn.type))
         throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
-    npcs.push_back(
-        std::make_unique<Npc>(
-            spawn,
-            npcData,
-            tileMap.feetOnTile(spawn.tilePosition),
-            spawn.patrol ? std::optional(walkBetween(tileMap, *spawn.patrol)) : std::nullopt));
+    npcs.push_back(std::make_unique<Npc>(spawn, npcData));
 }
 
 void Level::removeNpc(std::size_t index)
@@ -279,12 +266,12 @@ void Level::removeNpc(std::size_t index)
     std::erase_if(npcs, [&going](const std::unique_ptr<Npc> &npc) { return npc.get() == &going; });
 }
 
-void Level::setPlayerStartTile(glm::ivec2 tilePosition)
+void Level::setPlayerStart(glm::vec2 position)
 {
-    if (!tileMap.validTilePosition(tilePosition))
+    if (!tileMap.validTilePosition(tileMap.tileUnderFeet(position)))
         throw std::runtime_error("Tile coordinates out of bounds");
 
-    playerStartTilePosition = tilePosition;
+    playerStart = position;
 }
 
 void Level::setNextLevel(const std::string &levelPath)
@@ -299,7 +286,7 @@ LevelData Level::toLevelData() const
 {
     LevelData levelData;
     levelData.tileMapData = tileMap.toTileMapData();
-    levelData.playerStartTilePosition = playerStartTilePosition;
+    levelData.playerStart = playerStart;
     levelData.nextLevel = nextLevel;
     for (const std::unique_ptr<Npc> &npc : npcs)
         levelData.npcs.push_back(npc->getSpawn());

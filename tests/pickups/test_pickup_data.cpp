@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "pickups/pickup.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <map>
@@ -21,6 +22,7 @@ namespace
     LevelData levelPlacing(const std::vector<PickupSpawnData> &pickups)
     {
         LevelData levelData;
+        levelData.playerStart = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData.width = 4;
         levelData.tileMapData.height = 4;
         levelData.pickups = pickups;
@@ -47,30 +49,34 @@ namespace
 
 TEST_CASE("A level remembers the pickups it places", "[Pickups]")
 {
-    Level level = levelFrom(levelPlacing({{"coin", glm::ivec2(2, 3)}, {"gem", glm::ivec2(1, 1)}}));
+    Level level = levelFrom(
+        levelPlacing({{"coin", middleOf(glm::ivec2(2, 3))}, {"gem", middleOf(glm::ivec2(1, 1))}}));
 
     REQUIRE(level.getPickupSpawns().size() == 2);
     REQUIRE(level.getPickupSpawns()[0].type == "coin");
-    REQUIRE(level.getPickupSpawns()[0].tilePosition == glm::ivec2(2, 3));
+    REQUIRE(level.getPickupSpawns()[0].position == middleOf(glm::ivec2(2, 3)));
     REQUIRE(level.getPickupSpawns()[1].type == "gem");
 }
 
 TEST_CASE("A level saves the pickups it was given", "[Pickups]")
 {
-    Level level = levelFrom(levelPlacing({{"coin", glm::ivec2(2, 3)}}));
+    Level level = levelFrom(levelPlacing({{"coin", middleOf(glm::ivec2(2, 3))}}));
 
     REQUIRE(
-        level.toLevelData().pickups == std::vector<PickupSpawnData>{{"coin", glm::ivec2(2, 3)}});
+        level.toLevelData().pickups ==
+        std::vector<PickupSpawnData>{{"coin", middleOf(glm::ivec2(2, 3))}});
 }
 
 TEST_CASE("A placed pickup survives being written and read back", "[Pickups]")
 {
-    LevelData written = levelPlacing({{"coin", glm::ivec2(5, 6)}});
+    LevelData written = levelPlacing({{"coin", middleOf(glm::ivec2(5, 6))}});
 
     std::string json;
     REQUIRE_FALSE(glz::write_json(written, json));
 
     LevelData read;
+
+    read.playerStart = feetOf(glm::ivec2(0, 0));
     REQUIRE_FALSE(glz::read_json(read, json));
 
     REQUIRE(read.pickups == written.pickups);
@@ -110,7 +116,7 @@ TEST_CASE("The shipped catalogue offers pickups to place", "[Pickups]")
 TEST_CASE("A level naming a pickup that does not exist fails to load", "[Pickups]")
 {
     REQUIRE_THROWS_WITH(
-        levelFrom(levelPlacing({{"nobody", glm::ivec2(1, 1)}})),
+        levelFrom(levelPlacing({{"nobody", middleOf(glm::ivec2(1, 1))}})),
         Catch::Matchers::ContainsSubstring("nobody"));
 }
 
@@ -121,7 +127,7 @@ TEST_CASE("A level advances the pickups it holds", "[Pickups]")
     spinning["coin"].animationData.frameDuration = 0.1f;
 
     Level level(
-        levelPlacing({{"coin", glm::ivec2(1, 1)}}),
+        levelPlacing({{"coin", middleOf(glm::ivec2(1, 1))}}),
         palettesFrom(getDefaultTileDataMap()),
         PlayerData(),
         shippedNpcData(),
@@ -133,4 +139,15 @@ TEST_CASE("A level advances the pickups it holds", "[Pickups]")
     level.update(0.15f);
 
     REQUIRE(level.getPickups().front().getCurrentFrame() == 1);
+}
+
+TEST_CASE("A pickup sits centred on where it was placed", "[Pickups]")
+{
+    glm::vec2 placedAt = middleOf(glm::ivec2(2, 3));
+    Level level = levelFrom(levelPlacing({{"coin", placedAt}}));
+
+    REQUIRE(level.getPickups().size() == 1);
+    const Pickup &coin = level.getPickups().front();
+
+    REQUIRE(coin.getPosition() + coin.getSize() * 0.5f == placedAt);
 }

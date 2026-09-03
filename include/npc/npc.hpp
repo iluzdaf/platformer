@@ -12,16 +12,16 @@ class Npc : public Actor
 public:
     Npc(const NpcSpawnData &spawn,
         const NpcData &npcData,
-        std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween = std::nullopt);
+        glm::vec2 feet,
+        std::optional<std::pair<glm::vec2, glm::vec2>> walkBetween = std::nullopt);
 
     const NpcSpawnData &getSpawn() const;
-    void setSpawnTile(glm::ivec2 tilePosition);
-    void setPatrol(
-        std::optional<PatrolData> patrol,
-        std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween);
+    void setSpawnTile(glm::ivec2 tilePosition, glm::vec2 feet);
+    void setPatrol(PatrolData patrol, std::pair<glm::vec2, glm::vec2> walkBetween);
+    void clearPatrol();
 
 private:
-    void takeBehaviorFrom(std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween);
+    void takeBehaviorFrom(std::optional<std::pair<glm::vec2, glm::vec2>> walkBetween);
 
     NpcSpawnData spawn;
     NpcData npcData;

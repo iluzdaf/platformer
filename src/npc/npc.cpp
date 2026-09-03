@@ -10,20 +10,22 @@
 Npc::Npc(
     const NpcSpawnData &spawn,
     const NpcData &npcData,
-    std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
+    glm::vec2 feet,
+    std::optional<std::pair<glm::vec2, glm::vec2>> walkBetween)
     : Actor(npcData.actorData), spawn(spawn), npcData(npcData)
 {
-    takeBehaviorFrom(patrolBetween);
+    takeBehaviorFrom(walkBetween);
+    setPosition(feet - getPhysicsBody().getBottomCenterOffset());
 }
 
-void Npc::takeBehaviorFrom(std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
+void Npc::takeBehaviorFrom(std::optional<std::pair<glm::vec2, glm::vec2>> walkBetween)
 {
     if (!npcData.stateMachineBehaviorData)
         return;
 
     setBehavior(
         std::make_unique<StateMachineBehavior>(
-            npcData.stateMachineBehaviorData.value(), patrolBetween));
+            npcData.stateMachineBehaviorData.value(), walkBetween));
 }
 
 const NpcSpawnData &Npc::getSpawn() const
@@ -31,15 +33,20 @@ const NpcSpawnData &Npc::getSpawn() const
     return spawn;
 }
 
-void Npc::setSpawnTile(glm::ivec2 tilePosition)
+void Npc::setSpawnTile(glm::ivec2 tilePosition, glm::vec2 feet)
 {
     spawn.tilePosition = tilePosition;
+    setPosition(feet - getPhysicsBody().getBottomCenterOffset());
 }
 
-void Npc::setPatrol(
-    std::optional<PatrolData> patrol,
-    std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
+void Npc::setPatrol(PatrolData patrol, std::pair<glm::vec2, glm::vec2> walkBetween)
 {
     spawn.patrol = patrol;
-    takeBehaviorFrom(patrolBetween);
+    takeBehaviorFrom(walkBetween);
+}
+
+void Npc::clearPatrol()
+{
+    spawn.patrol.reset();
+    takeBehaviorFrom(std::nullopt);
 }

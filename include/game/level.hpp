@@ -42,6 +42,8 @@ public:
     const std::vector<NamedNavigationGraph> &getGraphs() const;
 
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolFor(const NpcSpawnData &spawn) const;
+    std::pair<glm::vec2, glm::vec2> patrolBetween(const PatrolData &patrol) const;
+    glm::vec2 feetOnTile(glm::ivec2 tilePosition) const;
     void rebuildGraphs();
 
     glm::ivec2 getPlayerStartTile() const;
@@ -63,9 +65,6 @@ public:
     std::vector<Pickup> takePickupsTouching(const AABB &reach);
     void addNpc(const NpcSpawnData &spawn, const NpcData &npcData);
     void removeNpc(std::size_t index);
-    void setNpcSpawnTile(std::size_t index, glm::ivec2 tilePosition);
-    void setNpcPatrol(std::size_t index, PatrolData patrol);
-    void clearNpcPatrol(std::size_t index);
     std::optional<PatrolData> runBeneathNpc(std::size_t index) const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
     void setNextLevel(const std::string &levelPath);
@@ -82,6 +81,4 @@ private:
     std::map<std::string, NavigationProfile> npcProfiles;
 
     void addGraphFor(const std::string &name, const NavigationProfile &profile);
-    std::unique_ptr<Npc> madeFrom(const NpcSpawnData &spawn, const NpcData &npcData) const;
-    void givePatrol(std::size_t index, std::optional<PatrolData> patrol);
 };

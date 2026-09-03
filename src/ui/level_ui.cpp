@@ -81,7 +81,7 @@ void LevelUi::drawActors(
 
         std::size_t placed = level.getNpcs().size() - 1;
         if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
-            level.setNpcPatrol(placed, *run);
+            level.getNpc(placed).setPatrol(*run, level.patrolBetween(*run));
 
         showingActor = ActorShown{ActorShown::What::Npc, placed};
         commands.onNpcsChanged();
@@ -94,7 +94,7 @@ void LevelUi::drawActors(
     }
     else if (asked.clearShownBeat && showingActor.what == ActorShown::What::Npc)
     {
-        level.clearNpcPatrol(showingActor.npcIndex);
+        level.getNpc(showingActor.npcIndex).clearPatrol();
         commands.onNpcsChanged();
     }
     else
@@ -228,20 +228,20 @@ void LevelUi::update(
         break;
 
     case PickTile::For::NpcSpawn:
-        level.setNpcSpawnTile(picking.npcIndex, tilePosition);
+        level.getNpc(picking.npcIndex).setSpawnTile(tilePosition, level.feetOnTile(tilePosition));
         commands.onNpcsChanged();
         break;
 
     case PickTile::For::PatrolFrom:
     case PickTile::For::PatrolTo: {
-        const NpcSpawnData &spawn = level.getNpcs()[picking.npcIndex]->getSpawn();
+        const NpcSpawnData &spawn = level.getNpc(picking.npcIndex).getSpawn();
         PatrolData patrol = spawn.patrol.value_or(PatrolData{tilePosition, tilePosition});
         if (picking.what == PickTile::For::PatrolFrom)
             patrol.from = tilePosition;
         else
             patrol.to = tilePosition;
 
-        level.setNpcPatrol(picking.npcIndex, patrol);
+        level.getNpc(picking.npcIndex).setPatrol(patrol, level.patrolBetween(patrol));
         commands.onNpcsChanged();
         break;
     }

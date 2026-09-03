@@ -18,9 +18,9 @@
                 "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
             },
             "animationData":{
-                "idle":{"frames":[30],"frameDuration":1},
-                "walk":{"frames":[35,26],"frameDuration":0.15},
-                "fall":{"frames":[19],"frameDuration":1}
+                "idle":{"frames":[5],"frameDuration":1},
+                "walk":{"frames":[6,3],"frameDuration":0.15},
+                "fall":{"frames":[2],"frameDuration":1}
             }
         },
         "stateMachineBehaviorData":{
@@ -38,9 +38,9 @@
                 "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
             },
             "animationData":{
-                "idle":{"frames":[30],"frameDuration":1},
-                "walk":{"frames":[35,26],"frameDuration":0.15},
-                "fall":{"frames":[19],"frameDuration":1}
+                "idle":{"frames":[5],"frameDuration":1},
+                "walk":{"frames":[6,3],"frameDuration":0.15},
+                "fall":{"frames":[2],"frameDuration":1}
             }
         },
         "stateMachineBehaviorData":{

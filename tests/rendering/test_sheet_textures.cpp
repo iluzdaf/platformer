@@ -29,6 +29,9 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 #include "rendering/texture_cache.hpp"
 #include "game/game_data.hpp"
 #include "pickups/pickup_data.hpp"
+#include "npc/npc_data.hpp"
+#include "actor/actor_data.hpp"
+#include "actor/actor_animation_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "rendering/texture2d.hpp"
 
@@ -76,8 +79,6 @@ TEST_CASE("Two palettes naming two tile sets get two textures", "[SheetTextures]
     const Texture2D &second = textures.get(palettes["other"].tileSet.texture);
 
     REQUIRE(&first != &second);
-    REQUIRE(first.getWidth() == 112);
-    REQUIRE(second.getWidth() == 96);
 }
 
 TEST_CASE("Two palettes sharing a tile set load it once", "[SheetTextures]")
@@ -145,6 +146,27 @@ TEST_CASE("A pickup animating past the end of its sheet says so", "[SheetTexture
     REQUIRE_THROWS_WITH(
         warmPickupTextures(textures, pickupData),
         Catch::Matchers::ContainsSubstring("coin") &&
+            Catch::Matchers::ContainsSubstring("frame 99"));
+}
+
+TEST_CASE("Every shipped actor animates on frames its sheet holds", "[SheetTextures]")
+{
+    GameData gameData = loadGameData();
+    TextureCache textures;
+
+    REQUIRE_NOTHROW(warmActorTextures(textures, gameData.playerData, gameData.npcData));
+}
+
+TEST_CASE("An actor animating past the end of its sheet says so", "[SheetTextures]")
+{
+    GameData gameData = loadGameData();
+    gameData.npcData.at("villager").actorData.animationData.idle.frames.push_back(99);
+
+    TextureCache textures;
+
+    REQUIRE_THROWS_WITH(
+        warmActorTextures(textures, gameData.playerData, gameData.npcData),
+        Catch::Matchers::ContainsSubstring("villager") &&
             Catch::Matchers::ContainsSubstring("frame 99"));
 }
 

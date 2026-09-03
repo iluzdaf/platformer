@@ -13,6 +13,10 @@
 #include "pickups/pickup_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/score_icon.hpp"
+#include "actor/actor_data.hpp"
+#include "actor/actor_animation_data.hpp"
+#include <optional>
+#include <vector>
 #include "assets/sheet.hpp"
 
 namespace
@@ -20,6 +24,39 @@ namespace
     std::string quoted(const std::string &name)
     {
         return "\"" + name + "\"";
+    }
+
+    void framesFitting(
+        TextureCache &textures,
+        const Sheet &sheet,
+        const std::vector<int> &frames,
+        const std::string &whose)
+    {
+        const Texture2D &texture = textures.get(sheet.texture);
+        checkFramesFit(
+            frames,
+            sheet,
+            whose,
+            static_cast<int>(texture.getWidth()),
+            static_cast<int>(texture.getHeight()));
+    }
+
+    void everyAnimationOf(
+        TextureCache &textures,
+        const ActorData &actorData,
+        const std::string &whose)
+    {
+        const ActorAnimationData &animations = actorData.animationData;
+        framesFitting(textures, actorData.sheet, animations.idle.frames, whose);
+
+        for (const std::optional<FrameAnimationData> &animation :
+             {animations.walk,
+              animations.dash,
+              animations.jump,
+              animations.fall,
+              animations.wallSlide})
+            if (animation)
+                framesFitting(textures, actorData.sheet, animation->frames, whose);
     }
 
     void warmOne(TextureCache &textures, const Sheet &sheet, const std::string &whose)
@@ -37,9 +74,13 @@ void warmActorTextures(
     const std::map<std::string, NpcData> &npcData)
 {
     warmOne(textures, playerData.actorData.sheet, "the player");
+    everyAnimationOf(textures, playerData.actorData, "the player");
 
     for (const auto &[name, data] : npcData)
+    {
         warmOne(textures, data.actorData.sheet, quoted(name));
+        everyAnimationOf(textures, data.actorData, quoted(name));
+    }
 }
 
 void warmPickupTextures(TextureCache &textures, const std::map<std::string, PickupData> &pickupData)
@@ -48,13 +89,7 @@ void warmPickupTextures(TextureCache &textures, const std::map<std::string, Pick
     {
         warmOne(textures, data.sheet, quoted(name));
 
-        const Texture2D &texture = textures.get(data.sheet.texture);
-        checkFramesFit(
-            data.animationData.frames,
-            data.sheet,
-            quoted(name),
-            static_cast<int>(texture.getWidth()),
-            static_cast<int>(texture.getHeight()));
+        framesFitting(textures, data.sheet, data.animationData.frames, quoted(name));
     }
 }
 
@@ -77,11 +112,5 @@ void warmScoreIcon(TextureCache &textures, const ScoreIcon &scoreIcon)
 {
     warmOne(textures, scoreIcon.sheet, "the score");
 
-    const Texture2D &texture = textures.get(scoreIcon.sheet.texture);
-    checkFramesFit(
-        {scoreIcon.frame},
-        scoreIcon.sheet,
-        "the score",
-        static_cast<int>(texture.getWidth()),
-        static_cast<int>(texture.getHeight()));
+    framesFitting(textures, scoreIcon.sheet, {scoreIcon.frame}, "the score");
 }

@@ -26,12 +26,12 @@
             "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
         },
         "animationData":{
-            "idle":{"frames":[30],"frameDuration":1},
-            "walk":{"frames":[35,26],"frameDuration":0.15},
-            "dash":{"frames":[18],"frameDuration":1},
-            "jump":{"frames":[29],"frameDuration":1},
-            "fall":{"frames":[19],"frameDuration":1},
-            "wallSlide":{"frames":[10],"frameDuration":1}
+            "idle":{"frames":[5],"frameDuration":1},
+            "walk":{"frames":[6,3],"frameDuration":0.15},
+            "dash":{"frames":[1],"frameDuration":1},
+            "jump":{"frames":[4],"frameDuration":1},
+            "fall":{"frames":[2],"frameDuration":1},
+            "wallSlide":{"frames":[0],"frameDuration":1}
         }
     },
     "fallFromHeightThreshold":599

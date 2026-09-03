@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "game/level_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include <cstddef>
 #include <string>
@@ -116,7 +117,7 @@ TEST_CASE("The player acts on the intentions the world was given", "[World]")
     REQUIRE(world.getPlayer().getPosition().x > startX);
 }
 
-TEST_CASE("An npc added to the level is standing in it straight away", "[World]")
+TEST_CASE("An npc added to the level data is standing in the world it rebuilds", "[World]")
 {
     GameData gameData = loadGameData();
     LuaScriptSystem luaScriptSystem;
@@ -124,21 +125,15 @@ TEST_CASE("An npc added to the level is standing in it straight away", "[World]"
     world.loadLevel("levels/level6.json");
 
     std::size_t before = world.getLevel().getNpcs().size();
-    world.getLevel().addNpc(
-        NpcSpawnData{
-            "villager",
-            world.getLevel().getTileMap().tileUnderFeet(world.getLevel().getPlayerStart()),
-            {}},
-        gameData.npcData.at("villager"));
 
-    REQUIRE(world.getLevel().getNpcs().size() == before + 1);
-
-    world.rebuildNpcs();
+    LevelData edited = world.getLevelData();
+    edited.npcs.push_back(NpcSpawnData{"villager", edited.playerStart, {}});
+    world.rebuildFrom(edited);
 
     REQUIRE(world.getLevel().getNpcs().size() == before + 1);
 }
 
-TEST_CASE("An npc removed from the level leaves the world when it is rebuilt", "[World]")
+TEST_CASE("An npc removed from the level data is gone from the world it rebuilds", "[World]")
 {
     GameData gameData = loadGameData();
     LuaScriptSystem luaScriptSystem;
@@ -146,13 +141,15 @@ TEST_CASE("An npc removed from the level leaves the world when it is rebuilt", "
     world.loadLevel("levels/level6.json");
 
     std::size_t before = world.getLevel().getNpcs().size();
-    world.getLevel().removeNpc(0);
-    world.rebuildNpcs();
+
+    LevelData edited = world.getLevelData();
+    edited.npcs.erase(edited.npcs.begin());
+    world.rebuildFrom(edited);
 
     REQUIRE(world.getLevel().getNpcs().size() == before - 1);
 }
 
-TEST_CASE("A beat edited in the level reaches the npc when it is rebuilt", "[World]")
+TEST_CASE("A spawn moved in the level data is where the npc stands", "[World]")
 {
     GameData gameData = loadGameData();
     LuaScriptSystem luaScriptSystem;
@@ -161,8 +158,10 @@ TEST_CASE("A beat edited in the level reaches the npc when it is rebuilt", "[Wor
 
     glm::vec2 spawnAt = spawnsIn(world.getLevel())[1].position;
     glm::vec2 movedTo{spawnAt.x - TestTileSize, spawnAt.y};
-    world.getLevel().getNpc(1).moveTo(movedTo);
-    world.rebuildNpcs();
+
+    LevelData edited = world.getLevelData();
+    edited.npcs[1].position = movedTo;
+    world.rebuildFrom(edited);
 
     glm::vec2 feet = world.getLevel().getNpcs()[1]->getPhysicsBody().getAABB().bottomCenter();
 

@@ -10,42 +10,20 @@
 Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
     : Actor(npcData.actorData), spawn(spawn), npcData(npcData)
 {
-    takeBehaviorFromPatrol();
-    moveTo(this->spawn.position);
-}
+    if (npcData.stateMachineBehaviorData)
+    {
+        std::optional<std::pair<glm::vec2, glm::vec2>> walk;
+        if (this->spawn.patrol)
+            walk = std::pair(this->spawn.patrol->from, this->spawn.patrol->to);
 
-void Npc::takeBehaviorFromPatrol()
-{
-    if (!npcData.stateMachineBehaviorData)
-        return;
+        setBehavior(
+            std::make_unique<StateMachineBehavior>(npcData.stateMachineBehaviorData.value(), walk));
+    }
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> walk;
-    if (spawn.patrol)
-        walk = std::pair(spawn.patrol->from, spawn.patrol->to);
-
-    setBehavior(
-        std::make_unique<StateMachineBehavior>(npcData.stateMachineBehaviorData.value(), walk));
+    setPosition(this->spawn.position - getPhysicsBody().getBottomCenterOffset());
 }
 
 const NpcSpawnData &Npc::getSpawn() const
 {
     return spawn;
-}
-
-void Npc::moveTo(glm::vec2 position)
-{
-    spawn.position = position;
-    setPosition(position - getPhysicsBody().getBottomCenterOffset());
-}
-
-void Npc::setPatrol(PatrolData patrol)
-{
-    spawn.patrol = patrol;
-    takeBehaviorFromPatrol();
-}
-
-void Npc::clearPatrol()
-{
-    spawn.patrol.reset();
-    takeBehaviorFromPatrol();
 }

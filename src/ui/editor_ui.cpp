@@ -1,4 +1,5 @@
 #include <array>
+#include "game/level_data.hpp"
 #include <string>
 #include <cfloat>
 #include <cstddef>
@@ -109,12 +110,13 @@ void EditorUi::draw(
             subject.levels,
             subject.levelPath,
             commands,
-            levelUi.unsavedSince(subject.level, subject.levelPath));
+            levelUi.unsavedSince(subject.levelData, subject.levelPath));
         break;
 
     case EditorSection::Level:
         levelUi.draw(
             subject.level,
+            subject.levelData,
             subject.levelPath,
             subject.playerMotionState,
             subject.playerFeet,
@@ -146,7 +148,8 @@ void EditorUi::update(
     float deltaTime,
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    Level &level,
+    const Level &level,
+    const LevelData &levelData,
     const std::string &levelPath)
 {
     playerUi.update(deltaTime);
@@ -157,7 +160,7 @@ void EditorUi::update(
         ImGui::IsMouseDown(ImGuiMouseButton_Left),
         ImGui::IsMouseClicked(ImGuiMouseButton_Left)};
 
-    levelUi.update(mouse, level, levelPath, armed, commands);
+    levelUi.update(mouse, level, levelData, levelPath, armed, commands);
 }
 
 void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving)
@@ -249,9 +252,9 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
 
     case EditorSection::Level:
         return {
-            levelUi.unsavedSince(subject.level, subject.levelPath),
+            levelUi.unsavedSince(subject.levelData, subject.levelPath),
             npcsThatCannotGetBack(subject.level),
-            [this, &subject] { levelUi.save(subject.level, subject.levelPath); },
+            [this, &subject] { levelUi.save(subject.levelData, subject.levelPath); },
             [this, &subject] { commands.onLoadLevel(subject.levelPath); }};
 
     case EditorSection::Types:

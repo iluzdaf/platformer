@@ -138,6 +138,24 @@ inline TileMap setupTileMap(
     return TileMap(tileMapData, palettesFrom(sized));
 }
 
+inline TileMap setupTileMapWith(
+    const std::vector<std::pair<glm::ivec2, int>> &placed,
+    int width = 10,
+    int height = 10,
+    int tileSize = 16,
+    const TilePalette &palette = getDefaultTileDataMap())
+{
+    TilePalette sized = palette;
+    sized.tileSet.cellSize = glm::ivec2(tileSize);
+
+    TileMapData tileMapData;
+    tileMapData.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
+    for (const auto &[tile, tileIndex] : placed)
+        (*tileMapData.indices)[tile.y][tile.x] = tileIndex;
+
+    return TileMap(tileMapData, palettesFrom(sized));
+}
+
 inline TileMap tilesOfLevel(const std::string &jsonFilePath)
 {
     LevelData levelData;

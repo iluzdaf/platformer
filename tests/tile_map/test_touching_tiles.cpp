@@ -11,8 +11,7 @@ TEST_CASE("Spikes", "[TouchingTiles]")
 {
     TileData spikeTileData;
     spikeTileData.deadly = true;
-    TileMap tileMap = setupTileMap(10, 10, 16, paletteOf({{3, spikeTileData}}));
-    tileMap.setTileIndex({1, 1}, 3);
+    TileMap tileMap = setupTileMapWith({{{1, 1}, 3}}, 10, 10, 16, paletteOf({{3, spikeTileData}}));
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
 
@@ -34,8 +33,7 @@ TEST_CASE("Spikes", "[TouchingTiles]")
 TEST_CASE("Empty", "[TouchingTiles]")
 {
     TileData emptyTileData;
-    TileMap tileMap = setupTileMap(10, 10, 16, paletteOf({{0, emptyTileData}}));
-    tileMap.setTileIndex({1, 1}, 0);
+    TileMap tileMap = setupTileMapWith({{{1, 1}, 0}}, 10, 10, 16, paletteOf({{0, emptyTileData}}));
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
 
@@ -50,8 +48,7 @@ TEST_CASE("Portal", "[TouchingTiles]")
 {
     TileData portalTileData;
     portalTileData.portal = true;
-    TileMap tileMap = setupTileMap(10, 10, 16, paletteOf({{4, portalTileData}}));
-    tileMap.setTileIndex({1, 1}, 4);
+    TileMap tileMap = setupTileMapWith({{{1, 1}, 4}}, 10, 10, 16, paletteOf({{4, portalTileData}}));
     Player player = setupPlayer();
     player.setPosition(glm::vec2(1 * 16, 1 * 16));
 

@@ -1,4 +1,5 @@
 #include <map>
+#include "game/level_data.hpp"
 #include <utility>
 #include <stdexcept>
 #include <string>
@@ -12,7 +13,6 @@
 #include "ui/mouse_on_the_map.hpp"
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
-#include "npc/npc.hpp"
 #include "game/beat_between.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
@@ -21,6 +21,7 @@
 #include "ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "navigation/navigation_profile_builder.hpp"
 #include "game/catalogue.hpp"
 #include "npc/npc_data.hpp"
 #include "ui/tile_map_overlays.hpp"
@@ -28,7 +29,8 @@
 #include "cameras/camera2d.hpp"
 
 void LevelUi::draw(
-    Level &level,
+    const Level &level,
+    const LevelData &levelData,
     const std::string &levelPath,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
@@ -55,12 +57,14 @@ void LevelUi::draw(
     if (!ImGui::CollapsingHeader("Inspector"))
         return;
 
-    drawLevel(level, levelPath);
-    drawActors(level, playerMotionState, playerFeet, playerState, npcData, armed, commands);
+    drawLevel(levelData, levelPath, commands);
+    drawActors(
+        level, levelData, playerMotionState, playerFeet, playerState, npcData, armed, commands);
 }
 
 void LevelUi::drawActors(
-    Level &level,
+    const Level &level,
+    const LevelData &levelData,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -77,27 +81,29 @@ void LevelUi::drawActors(
 
     if (asked.addNpcOfType)
     {
-        level.addNpc(
-            NpcSpawnData{*asked.addNpcOfType, level.getPlayerStart(), std::nullopt},
-            oneNamed(npcData, "npc", *asked.addNpcOfType));
+        const NpcData &kind = oneNamed(npcData, "npc", *asked.addNpcOfType);
+        NpcSpawnData placing{*asked.addNpcOfType, levelData.playerStart, std::nullopt};
+        placing.patrol = level.runBeneath(buildNavigationProfile(kind.actorData), placing.position);
 
-        std::size_t placed = level.getNpcs().size() - 1;
-        if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
-            level.getNpc(placed).setPatrol(*run);
+        LevelData edited = levelData;
+        edited.npcs.push_back(placing);
 
-        showingActor = ActorShown{ActorShown::What::Npc, placed};
-        commands.onNpcsChanged();
+        showingActor = ActorShown{ActorShown::What::Npc, edited.npcs.size() - 1};
+        commands.onLevelEdited(edited);
     }
     else if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
     {
-        level.removeNpc(showingActor.npcIndex);
+        LevelData edited = levelData;
+        edited.npcs.erase(edited.npcs.begin() + static_cast<std::ptrdiff_t>(showingActor.npcIndex));
+
         showingActor = ActorShown{};
-        commands.onNpcsChanged();
+        commands.onLevelEdited(edited);
     }
     else if (asked.clearShownBeat && showingActor.what == ActorShown::What::Npc)
     {
-        level.getNpc(showingActor.npcIndex).clearPatrol();
-        commands.onNpcsChanged();
+        LevelData edited = levelData;
+        edited.npcs[showingActor.npcIndex].patrol.reset();
+        commands.onLevelEdited(edited);
     }
     else
         showingActor = asked.show;
@@ -108,26 +114,33 @@ void LevelUi::drawActors(
     ImGui::TreePop();
 }
 
-std::string LevelUi::asItWouldBeSaved(const Level &level) const
+std::string LevelUi::asItWouldBeSaved(const LevelData &levelData) const
 {
     std::string json;
-    if (glz::write_json(level.toLevelData(), json))
+    if (glz::write_json(levelData, json))
         throw std::runtime_error("Failed to serialise the level for comparison");
 
     return json;
 }
 
-void LevelUi::drawLevel(Level &level, const std::string &levelPath)
+void LevelUi::drawLevel(
+    const LevelData &levelData,
+    const std::string &levelPath,
+    EditorCommands &commands)
 {
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(110.0f);
-    if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
+    if (ImGui::BeginCombo("##next", levelName(levelData.nextLevel).c_str()))
     {
         std::string directory = directoryOf(levelPath);
         for (const std::string &path : levelPathsIn(directory))
-            if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
-                level.setNextLevel(path);
+            if (ImGui::Selectable(levelName(path).c_str(), path == levelData.nextLevel))
+            {
+                LevelData edited = levelData;
+                edited.nextLevel = path;
+                commands.onLevelEdited(edited);
+            }
 
         ImGui::EndCombo();
     }
@@ -169,46 +182,50 @@ void LevelUi::drawOverlay(
     navigationUi.drawOverlay(imGuiManager, camera, level);
 }
 
-void LevelUi::save(const Level &level, const std::string &levelPath)
+void LevelUi::save(const LevelData &levelData, const std::string &levelPath)
 {
-    writeLevelData(level.toLevelData(), levelPath);
-    saveable.saved(levelPath, asItWouldBeSaved(level));
+    writeLevelData(levelData, levelPath);
+    saveable.saved(levelPath, asItWouldBeSaved(levelData));
 }
 
-bool LevelUi::unsavedSince(const Level &level, const std::string &levelPath)
+bool LevelUi::unsavedSince(const LevelData &levelData, const std::string &levelPath)
 {
-    return saveable.unsavedSince(levelPath, asItWouldBeSaved(level));
+    return saveable.unsavedSince(levelPath, asItWouldBeSaved(levelData));
 }
 
 void LevelUi::update(
     const MouseOnTheMap &mouse,
-    Level &level,
+    const Level &level,
+    const LevelData &levelData,
     const std::string &levelPath,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
     if (saveable.lastSeen(levelPath).empty())
-        saveable.seen(levelPath, asItWouldBeSaved(level));
+        saveable.seen(levelPath, asItWouldBeSaved(levelData));
 
     grid = whileArmed(grid, armed.has_value());
 
     if (!armed || mouse.overTheUi)
         return;
 
-    glm::ivec2 tilePosition = level.getTileMap().tileContaining(mouse.worldPosition);
-    if (!level.getTileMap().validTilePosition(tilePosition))
+    const TileMap &tileMap = level.getTileMap();
+    glm::ivec2 tilePosition = tileMap.tileContaining(mouse.worldPosition);
+    if (!tileMap.validTilePosition(tilePosition))
         return;
 
     if (const PaintTile *painting = std::get_if<PaintTile>(&*armed))
     {
-        if (!mouse.heldDown)
+        if (!mouse.heldDown || tileMap.tilePositionToTileIndex(tilePosition) == painting->tileIndex)
             return;
 
-        if (level.getTileMap().tilePositionToTileIndex(tilePosition) != painting->tileIndex)
-        {
-            level.getTileMap().setTileIndex(tilePosition, painting->tileIndex);
-            level.rebuildGraphs();
-        }
+        LevelData edited = levelData;
+        edited.tileMapData = tileMap.toTileMapData();
+        if (!edited.tileMapData.indices)
+            return;
+
+        edited.tileMapData.indices.value()[tilePosition.y][tilePosition.x] = painting->tileIndex;
+        commands.onLevelEdited(edited);
 
         return;
     }
@@ -217,42 +234,41 @@ void LevelUi::update(
         return;
 
     PickTile picking = std::get<PickTile>(*armed);
-    if (picking.what != PickTile::For::PlayerStart && picking.npcIndex >= level.getNpcs().size())
+    if (picking.what != PickTile::For::PlayerStart && picking.npcIndex >= levelData.npcs.size())
     {
         armed.reset();
         return;
     }
 
+    LevelData edited = levelData;
     switch (picking.what)
     {
     case PickTile::For::PlayerStart:
-        level.setPlayerStart(level.getTileMap().feetOnTile(tilePosition));
+        edited.playerStart = tileMap.feetOnTile(tilePosition);
         break;
 
     case PickTile::For::NpcSpawn:
-        level.getNpc(picking.npcIndex).moveTo(level.getTileMap().feetOnTile(tilePosition));
-        commands.onNpcsChanged();
+        edited.npcs[picking.npcIndex].position = tileMap.feetOnTile(tilePosition);
         break;
 
     case PickTile::For::PatrolFrom:
     case PickTile::For::PatrolTo: {
-        const NpcSpawnData &spawn = level.getNpc(picking.npcIndex).getSpawn();
+        const std::optional<PatrolData> &walked = levelData.npcs[picking.npcIndex].patrol;
         std::pair<glm::ivec2, glm::ivec2> beat{tilePosition, tilePosition};
-        if (spawn.patrol)
-            beat = tilesOfBeat(level.getTileMap(), *spawn.patrol);
+        if (walked)
+            beat = tilesOfBeat(tileMap, *walked);
 
         if (picking.what == PickTile::For::PatrolFrom)
             beat.first = tilePosition;
         else
             beat.second = tilePosition;
 
-        level.getNpc(picking.npcIndex)
-            .setPatrol(beatBetween(level.getTileMap(), beat.first, beat.second));
-        commands.onNpcsChanged();
+        edited.npcs[picking.npcIndex].patrol = beatBetween(tileMap, beat.first, beat.second);
         break;
     }
     }
 
+    commands.onLevelEdited(edited);
     armed.reset();
 }
 

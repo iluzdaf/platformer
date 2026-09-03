@@ -4,6 +4,7 @@
 #include <string>
 #include <signals.hpp>
 #include "game/score.hpp"
+#include "game/level_data.hpp"
 
 class IntentionSource;
 class Level;
@@ -21,6 +22,7 @@ public:
     ~World();
 
     void loadLevel(const std::string &levelPath);
+    void rebuildFrom(const LevelData &fromData);
 
     fteng::signal<void()> onLevelLoaded;
     void respawnPlayer();
@@ -32,17 +34,15 @@ public:
 
     bool isPlaying(const std::string &levelPath) const;
     const std::string &getLevelPath() const;
+    const LevelData &getLevelData() const;
 
-    Level &getLevel();
+    const Level &getLevel() const;
     const Player &getPlayer() const;
     const Score &getScore() const;
 
-    void rebuildNpcs();
-
 private:
-    void rebuildLevel(const std::string &levelPath);
-
     std::string path;
+    LevelData levelData;
 
     GameData &gameData;
     const IntentionSource &intentionSource;

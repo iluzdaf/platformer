@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/level_data.hpp"
+
 #include <array>
 #include <functional>
 #include <optional>
@@ -43,7 +45,8 @@ struct SectionSaving
 struct EditorSubject
 {
     GameData &gameData;
-    Level &level;
+    const Level &level;
+    const LevelData &levelData;
     const std::string &levelPath;
     const TextureCache &textures;
     Levels &levels;
@@ -67,7 +70,8 @@ public:
         float deltaTime,
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
-        Level &level,
+        const Level &level,
+        const LevelData &levelData,
         const std::string &levelPath);
 
     EditorCommands commands;

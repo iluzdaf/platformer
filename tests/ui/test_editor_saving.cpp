@@ -1,4 +1,5 @@
 #include "test_helpers/test_tile_map_utils.hpp"
+#include "game/level_data.hpp"
 #include <cstddef>
 #include <optional>
 #include <vector>
@@ -21,13 +22,35 @@
 
 namespace
 {
+    LevelData level6Placing(const std::vector<NpcSpawnData> &extra)
+    {
+        LevelData levelData = readLevelData(assetPath("levels/level6.json"));
+        for (const NpcSpawnData &spawn : extra)
+            levelData.npcs.push_back(spawn);
+
+        return levelData;
+    }
+
+    NpcSpawnData strandedVillager()
+    {
+        NpcSpawnData stranded{"villager", feetOf(glm::ivec2(2, 8)), std::nullopt};
+        stranded.patrol = beatOf(glm::ivec2(2, 8), glm::ivec2(2, 1));
+        return stranded;
+    }
+
     struct Editing
     {
+        explicit Editing(const std::vector<NpcSpawnData> &extra = {})
+            : levelData(level6Placing(extra))
+        {
+        }
+
         GameData gameData = loadGameData();
         Levels levels{assetPath("levels.json")};
         std::string levelPath = assetPath("levels/level6.json");
+        LevelData levelData;
         Level level{
-            readLevelData(levelPath),
+            levelData,
             gameData.tilePalettes,
             gameData.playerData,
             gameData.npcData,
@@ -42,6 +65,7 @@ namespace
             return EditorSubject{
                 gameData,
                 level,
+                levelData,
                 levelPath,
                 textures,
                 levels,
@@ -92,13 +116,7 @@ TEST_CASE("Playing back is not a thing that saves", "[EditorSaving]")
 TEST_CASE("A level that strands an npc says so where its save would be", "[EditorSaving]")
 {
     EditorUi editorUi;
-    Editing editing;
-
-    editing.level.addNpc(
-        NpcSpawnData{"villager", glm::ivec2(2, 8), std::nullopt},
-        editing.gameData.npcData.at("villager"));
-    std::size_t placed = spawnsIn(editing.level).size() - 1;
-    editing.level.getNpc(placed).setPatrol(beatOf(glm::ivec2(2, 8), glm::ivec2(2, 1)));
+    Editing editing({strandedVillager()});
 
     SectionSaving saving = editorUi.savingIn(EditorSection::Level, editing.subject());
 

@@ -11,13 +11,8 @@ public:
     Npc(const NpcSpawnData &spawn, const NpcData &npcData);
 
     const NpcSpawnData &getSpawn() const;
-    void moveTo(glm::vec2 position);
-    void setPatrol(PatrolData patrol);
-    void clearPatrol();
 
 private:
-    void takeBehaviorFromPatrol();
-
     NpcSpawnData spawn;
     NpcData npcData;
 };

@@ -1,4 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
+#include "game/level_data.hpp"
+#include <utility>
+#include <vector>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cstddef>
 #include <filesystem>
@@ -25,10 +28,22 @@ namespace
             shippedPickupData());
     }
 
-    void layFloor(TileMap &tileMap, int groundY, int fromX, int toX)
+    TileMap floorAt(int groundY, int fromX, int toX)
     {
+        std::vector<std::pair<glm::ivec2, int>> laid;
         for (int x = fromX; x <= toX; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, groundY), 1);
+            laid.push_back({glm::ivec2(x, groundY), 1});
+
+        return setupTileMapWith(laid);
+    }
+
+    LevelData asTheEditorWouldHoldIt(const std::string &path)
+    {
+        LevelData data = readLevelData(path);
+        Level level(data, shippedPalettes(), PlayerData(), shippedNpcData(), shippedPickupData());
+        data.tileMapData = level.getTileMap().toTileMapData();
+
+        return data;
     }
 
     std::string readFile(const std::filesystem::path &path)
@@ -42,8 +57,7 @@ namespace
 
 TEST_CASE("A saved level carries no navigation data", "[TileMap][Navigation]")
 {
-    TileMap tileMap = setupTileMap();
-    layFloor(tileMap, 5, 0, 9);
+    TileMap tileMap = floorAt(5, 0, 9);
 
     std::string json;
     REQUIRE_FALSE(glz::write_json(tileMap.toTileMapData(), json));
@@ -62,7 +76,7 @@ TEST_CASE(
         std::filesystem::copy_options::overwrite_existing);
 
     Level loaded = loadLevel(savePath.string());
-    writeLevelData(loaded.toLevelData(), savePath.string());
+    writeLevelData(asTheEditorWouldHoldIt(savePath.string()), savePath.string());
 
     std::string savedJson = readFile(savePath);
 
@@ -84,7 +98,7 @@ TEST_CASE(
     REQUIRE(savedJson.find("\"playerStart\":[\n") == std::string::npos);
 
     Level reloaded = loadLevel(savePath.string());
-    writeLevelData(reloaded.toLevelData(), savePath.string());
+    writeLevelData(asTheEditorWouldHoldIt(savePath.string()), savePath.string());
     REQUIRE(readFile(savePath) == savedJson);
 
     REQUIRE(reloaded.getTileMap().getWidth() == loaded.getTileMap().getWidth());
@@ -117,7 +131,7 @@ TEST_CASE("Every shipped level is already in the format the editor saves", "[Til
         std::filesystem::copy_file(
             entry.path(), savePath, std::filesystem::copy_options::overwrite_existing);
 
-        writeLevelData(loadLevel(savePath.string()).toLevelData(), savePath.string());
+        writeLevelData(asTheEditorWouldHoldIt(savePath.string()), savePath.string());
 
         INFO(
             "level " << entry.path().filename().string() << " is not saved in the editor's format");

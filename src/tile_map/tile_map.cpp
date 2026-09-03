@@ -45,6 +45,9 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
         {
             for (int tileX = 0; tileX < width; ++tileX)
             {
+                if (indices[tileY][tileX] < 0)
+                    throw std::runtime_error("Tile index must be greater or equals to 0");
+
                 tileIndices[tileX][tileY] = indices[tileY][tileX];
             }
         }
@@ -87,22 +90,6 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
 
         tiles.insert_or_assign(tileIndex, Tile(tileData, glm::vec2(tileSet.cellSize)));
     }
-}
-
-void TileMap::setTileIndex(glm::ivec2 tilePosition, int tileIndex)
-{
-    if (!validTilePosition(tilePosition))
-        throw std::runtime_error("Tile coordinates out of bounds");
-
-    if (tileIndex < 0)
-        throw std::runtime_error("Tile index must be greater or equals to 0");
-
-    tileIndices[tilePosition.x][tilePosition.y] = tileIndex;
-}
-
-void TileMap::setTileIndexAt(glm::vec2 worldPosition, int tileIndex)
-{
-    setTileIndex(tileContaining(worldPosition), tileIndex);
 }
 
 bool TileMap::validTilePosition(glm::ivec2 tilePosition) const

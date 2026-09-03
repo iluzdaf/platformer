@@ -2,10 +2,12 @@
 
 #include <string>
 #include "ui/editor_command.hpp"
+#include "game/level_data.hpp"
 
 struct EditorCommands
 {
-    EditorCommand<> onPlay, onPause, onStep, onRespawn, onNpcsChanged;
+    EditorCommand<> onPlay, onPause, onStep, onRespawn;
+    EditorCommand<const LevelData &> onLevelEdited;
     EditorCommand<> onSettingsChanged, onCameraChanged;
     EditorCommand<const std::string &> onLoadLevel, onWarmTexture;
 
@@ -15,7 +17,7 @@ struct EditorCommands
         onPause.drain();
         onStep.drain();
         onRespawn.drain();
-        onNpcsChanged.drain();
+        onLevelEdited.drain();
         onSettingsChanged.drain();
         onCameraChanged.drain();
         onLoadLevel.drain();

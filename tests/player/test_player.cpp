@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <utility>
 #include <catch2/catch_test_macros.hpp>
 #include <cstdlib>
 #include <glaze/glaze.hpp>
@@ -65,13 +66,12 @@ TEST_CASE("Player falls under normal gravity", "[Player]")
 
 TEST_CASE("Player sets onGround correctly", "[Player]")
 {
-    TileMap tileMap = setupTileMap();
     ScriptedIntentions input;
     Player player = setupPlayer(input);
 
     SECTION("Player lands on solid tile")
     {
-        tileMap.setTileIndex(glm::ivec2(0, 5), 1);
+        TileMap tileMap = setupTileMapWith({{{0, 5}, 1}});
         simulatePlayer(player, input, tileMap, 1.0f);
         float expectedY = static_cast<float>(4 * tileMap.getTileSize());
         const ActorMotionState &state = player.getMotion().getState();
@@ -82,8 +82,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
 
     SECTION("Player walks off a ledge and is no longer onGround")
     {
-        tileMap.setTileIndex(glm::ivec2(1, 5), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 5), 1);
+        TileMap tileMap = setupTileMapWith({{{1, 5}, 1}, {{2, 5}, 1}});
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, input, tileMap, 0.1f);
         const ActorMotionState &state = player.getMotion().getState();
@@ -208,17 +207,17 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
 
 TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 {
-    TileMap tileMap = setupTileMap();
     ScriptedIntentions input;
     Player player = setupPlayer(input);
     const ActorMotionState &state = player.getMotion().getState();
 
     SECTION("Touching right wall")
     {
+        std::vector<std::pair<glm::ivec2, int>> wall;
         for (int y = 0; y < 10; ++y)
-        {
-            tileMap.setTileIndex(glm::ivec2(6, y), 1);
-        }
+            wall.push_back({glm::ivec2(6, y), 1});
+
+        TileMap tileMap = setupTileMapWith(wall);
         player.setPosition(glm::vec2(5 * 16.0f, 16.0f));
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
@@ -229,10 +228,11 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 
     SECTION("Touching left wall")
     {
+        std::vector<std::pair<glm::ivec2, int>> wall;
         for (int y = 0; y < 10; ++y)
-        {
-            tileMap.setTileIndex(glm::ivec2(3, y), 1);
-        }
+            wall.push_back({glm::ivec2(3, y), 1});
+
+        TileMap tileMap = setupTileMapWith(wall);
         player.setPosition(glm::vec2(4 * 16.0f, 16.0f));
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
@@ -244,11 +244,11 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 
 TEST_CASE("Player event callbacks are triggered", "[Player]")
 {
-    TileMap tileMap = setupTileMap(10, 20);
+    std::vector<std::pair<glm::ivec2, int>> laid;
     for (int x = 0; x < 10; ++x)
-    {
-        tileMap.setTileIndex(glm::ivec2(x, 19), 1);
-    }
+        laid.push_back({glm::ivec2(x, 19), 1});
+
+    TileMap tileMap = setupTileMapWith(laid, 10, 20);
     ScriptedIntentions input;
     Player player = setupPlayer(input);
 
@@ -263,32 +263,27 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
 
     SECTION("onHitCeiling")
     {
-        tileMap.setTileIndex(glm::ivec2(2, 2), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 5), 1);
+        TileMap ceiling = setupTileMapWith({{{2, 2}, 1}, {{2, 5}, 1}});
         player.setPosition({2 * 16, 4 * 16});
-        simulatePlayer(player, input, tileMap, 0.01f);
+        simulatePlayer(player, input, ceiling, 0.01f);
         bool hitCeilingTriggered = false;
         player.onHitCeiling.connect([&] { hitCeilingTriggered = true; });
         InputIntentions inputIntentions;
         inputIntentions.jumpRequested = true;
-        simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
+        simulatePlayer(player, input, ceiling, 0.1f, inputIntentions);
         REQUIRE(hitCeilingTriggered);
     }
 }
 
 TEST_CASE("Player movement ability integration", "[Player]")
 {
-    TileMap tileMap = setupTileMap(20, 10);
     ScriptedIntentions input;
     Player player = setupPlayer(input);
     InputIntentions inputIntentions;
 
     SECTION("Player cannot move into solid tile")
     {
-        tileMap.setTileIndex(glm::ivec2(3, 5), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 4), 1);
-        tileMap.setTileIndex(glm::ivec2(1, 4), 1);
-        tileMap.setTileIndex(glm::ivec2(1, 5), 1);
+        TileMap tileMap = setupTileMapWith({{{3, 5}, 1}, {{2, 4}, 1}, {{1, 4}, 1}, {{1, 5}, 1}});
         player.setPosition(glm::vec2(2 * tileMap.getTileSize(), 5 * tileMap.getTileSize()));
 
         SECTION("Moving right into solid tile")
@@ -310,8 +305,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
     {
         int ceilingTileX = 2;
         int ceilingTileY = 2;
-        tileMap.setTileIndex(glm::ivec2(ceilingTileX, ceilingTileY), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 5), 1);
+        TileMap tileMap = setupTileMapWith({{{ceilingTileX, ceilingTileY}, 1}, {{2, 5}, 1}});
         player.setPosition({2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()});
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
@@ -323,13 +317,15 @@ TEST_CASE("Player movement ability integration", "[Player]")
 
 TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", "[Player]")
 {
-    TileMap tileMap = setupTileMap(20, 20);
     constexpr int LedgeRow = 5;
     constexpr int LedgeLastTile = 6;
+    std::vector<std::pair<glm::ivec2, int>> laid;
     for (int x = 0; x <= LedgeLastTile; ++x)
-        tileMap.setTileIndex(glm::ivec2(x, LedgeRow), 1);
+        laid.push_back({glm::ivec2(x, LedgeRow), 1});
     for (int x = 0; x < 20; ++x)
-        tileMap.setTileIndex(glm::ivec2(x, 12), 1);
+        laid.push_back({glm::ivec2(x, 12), 1});
+
+    TileMap tileMap = setupTileMapWith(laid, 20, 20);
 
     LevelData levelData;
 
@@ -683,12 +679,14 @@ TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[L
 
 TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]")
 {
-    TileMap tileMap = setupTileMap(12, 10);
+    std::vector<std::pair<glm::ivec2, int>> laid;
     for (int x = 0; x < 12; ++x)
-        tileMap.setTileIndex(glm::ivec2(x, 8), 1);
+        laid.push_back({glm::ivec2(x, 8), 1});
     for (int x = 5; x < 8; ++x)
         for (int y = 5; y < 8; ++y)
-            tileMap.setTileIndex(glm::ivec2(x, y), 1);
+            laid.push_back({glm::ivec2(x, y), 1});
+
+    TileMap tileMap = setupTileMapWith(laid, 12, 10);
 
     ScriptedIntentions input;
     Player player = setupPlayer(input);
@@ -714,9 +712,11 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
     ungrippable.grippable = false;
     palette.tiles[2] = ungrippable;
 
-    TileMap tileMap = setupTileMap(10, 10, 16, palette);
+    std::vector<std::pair<glm::ivec2, int>> laid;
     for (int y = 0; y < 8; ++y)
-        tileMap.setTileIndex(glm::ivec2(5, y), 2);
+        laid.push_back({glm::ivec2(5, y), 2});
+
+    TileMap tileMap = setupTileMapWith(laid, 10, 10, 16, palette);
 
     ScriptedIntentions input;
     Player player = setupPlayer(input);
@@ -736,12 +736,14 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
 
 TEST_CASE("A ceiling bump is over before the frame it happened in ends", "[Player]")
 {
-    TileMap tileMap = setupTileMap(20, 20);
+    std::vector<std::pair<glm::ivec2, int>> laid;
     for (int x = 0; x < 20; ++x)
     {
-        tileMap.setTileIndex(glm::ivec2(x, 10), 1);
-        tileMap.setTileIndex(glm::ivec2(x, 6), 1);
+        laid.push_back({glm::ivec2(x, 10), 1});
+        laid.push_back({glm::ivec2(x, 6), 1});
     }
+
+    TileMap tileMap = setupTileMapWith(laid, 20, 20);
 
     LevelData levelData;
 

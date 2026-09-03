@@ -15,8 +15,6 @@ class TileMap
 {
 public:
     TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
-    void setTileIndex(glm::ivec2 tilePosition, int tileIndex);
-    void setTileIndexAt(glm::vec2 worldPosition, int tileIndex);
     int tilePositionToTileIndex(glm::ivec2 tilePosition) const;
     int tileIndexAt(glm::vec2 worldPosition) const;
     glm::ivec2 tileContaining(glm::vec2 worldPosition) const;

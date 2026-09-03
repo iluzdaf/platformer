@@ -1,4 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
+#include <tuple>
+#include "game/level_data.hpp"
 #include "cameras/camera2d.hpp"
 #include "cameras/camera2d_data.hpp"
 #include "game/game_data.hpp"
@@ -104,8 +106,9 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
     LevelUi levelUi;
     GameData gameData = loadGameData();
     std::string levelPath = assetPath("levels/level1.json");
+    LevelData levelData = readLevelData(levelPath);
     Level level(
-        readLevelData(levelPath),
+        levelData,
         gameData.tilePalettes,
         gameData.playerData,
         gameData.npcData,
@@ -115,13 +118,13 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
     EditorCommands commands;
     MouseOnTheMap still{true, glm::vec2(0.0f), false, false};
 
-    levelUi.update(still, level, levelPath, armed, commands);
-    REQUIRE_FALSE(levelUi.unsavedSince(level, levelPath));
+    levelUi.update(still, level, levelData, levelPath, armed, commands);
+    REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
-    level.setNextLevel("levels/level3.json");
-    levelUi.update(still, level, levelPath, armed, commands);
+    LevelData edited = levelData;
+    edited.nextLevel = "levels/level3.json";
 
-    REQUIRE(levelUi.unsavedSince(level, levelPath));
+    REQUIRE(levelUi.unsavedSince(edited, levelPath));
 }
 
 TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSections]")
@@ -129,18 +132,26 @@ TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSecti
     LevelUi levelUi;
     GameData gameData = loadGameData();
     std::string levelPath = assetPath("levels/level1.json");
+    LevelData levelData = readLevelData(levelPath);
     Level level(
-        readLevelData(levelPath),
+        levelData,
         gameData.tilePalettes,
         gameData.playerData,
         gameData.npcData,
         gameData.pickupData);
+    levelData.tileMapData = level.getTileMap().toTileMapData();
 
     std::optional<Armed> armed = PaintTile{5};
     EditorCommands commands;
+    std::optional<LevelData> painted;
+    std::ignore =
+        commands.onLevelEdited.connect([&painted](const LevelData &now) { painted = now; });
     MouseOnTheMap mouse{false, level.getTileMap().feetOnTile(glm::ivec2(2, 2)), true, false};
 
-    levelUi.update(mouse, level, levelPath, armed, commands);
+    levelUi.update(mouse, level, levelData, levelPath, armed, commands);
+    REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
-    REQUIRE(levelUi.unsavedSince(level, levelPath));
+    commands.drain();
+    REQUIRE(painted);
+    REQUIRE(levelUi.unsavedSince(*painted, levelPath));
 }

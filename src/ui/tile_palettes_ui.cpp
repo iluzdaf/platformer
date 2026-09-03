@@ -68,11 +68,18 @@ void TilePalettesUi::drawChooser(TilePalettes &tilePalettes)
 
 void TilePalettesUi::drawRename(const TilePalettes &tilePalettes)
 {
-    renaming.draw(
-        "a palette",
-        selectedPalette,
-        [this, &tilePalettes](const std::string &name)
-        { return tilePalettes.contains(name) || renaming.somethingIsBecoming(name); });
+    if (!renaming.draw(
+            "a palette",
+            selectedPalette,
+            [this, &tilePalettes](const std::string &name)
+            { return tilePalettes.contains(name) || renaming.somethingIsBecoming(name); }))
+        return;
+
+    lookAheadAtLevels(
+        renaming,
+        std::string(assets::Levels),
+        [](LevelData &levelData, const Renames &renames)
+        { return renamePaletteIn(levelData.tileMapData, renames); });
 }
 
 void TilePalettesUi::draw(

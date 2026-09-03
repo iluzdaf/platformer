@@ -81,8 +81,8 @@ std::optional<Renamed> Renaming::draw(
         whyNotARename(what, shownName(selected), typing, taken(typing));
     if (why)
         ImGui::TextColored(CannotSaveColour, "%s", why->c_str());
-    else if (!rePointed.empty())
-        ImGui::TextDisabled("%s re-pointed", rePointedLevels().c_str());
+    else if (std::string levels = whatTheLevelsNeed(); !levels.empty())
+        ImGui::TextDisabled("%s", levels.c_str());
 
     if (!entered || why || typing == shownName(selected))
         return std::nullopt;
@@ -124,9 +124,15 @@ std::string Renaming::shownName(const std::string &onDisk) const
     return nameAfterRenames(renames, onDisk);
 }
 
-std::string Renaming::rePointedLevels() const
+std::string Renaming::whatTheLevelsNeed() const
 {
-    return levelsInAList(rePointed);
+    if (!willRePoint.empty())
+        return levelsInAList(willRePoint) + " will be re-pointed.";
+
+    if (!rePointed.empty())
+        return levelsInAList(rePointed) + " re-pointed.";
+
+    return {};
 }
 
 bool Renaming::somethingIsBecoming(const std::string &name) const
@@ -141,7 +147,13 @@ bool Renaming::somethingIsBecoming(const std::string &name) const
 void Renaming::applied(const std::vector<std::string> &levels)
 {
     renames.clear();
+    willRePoint.clear();
     rePointed = levels;
+}
+
+void Renaming::willReach(const std::vector<std::string> &levels)
+{
+    willRePoint = levels;
 }
 
 void Renaming::forget()
@@ -150,6 +162,17 @@ void Renaming::forget()
     lastSelected.clear();
     renames.clear();
     rePointed.clear();
+    willRePoint.clear();
+}
+
+void lookAheadAtLevels(
+    Renaming &renaming,
+    const std::string &directory,
+    const std::function<bool(LevelData &, const Renames &)> &rename)
+{
+    const Renames &renames = renaming.sinceSaved();
+    renaming.willReach(levelsRenameWouldReach(
+        directory, [&](LevelData &levelData) { return rename(levelData, renames); }));
 }
 
 void writeRenamesIntoLevels(

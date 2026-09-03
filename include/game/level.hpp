@@ -3,6 +3,7 @@
 #include <string>
 #include <cstddef>
 #include <map>
+#include <set>
 #include <vector>
 #include <optional>
 #include <utility>
@@ -38,7 +39,6 @@ public:
     TileMap &getTileMap();
 
     const NavigationGraph &graphFor(const NavigationProfile &profile) const;
-    const NavigationGraph &graphFor(const std::string &npcType) const;
     const std::vector<NamedNavigationGraph> &getGraphs() const;
 
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolFor(const NpcSpawnData &spawn) const;
@@ -78,7 +78,7 @@ private:
     std::vector<std::unique_ptr<Npc>> npcs;
     std::vector<Pickup> pickups;
     std::vector<NamedNavigationGraph> graphs;
-    std::map<std::string, NavigationProfile> npcProfiles;
+    std::set<std::string> npcTypes;
 
     void addGraphFor(const std::string &name, const NavigationProfile &profile);
 };

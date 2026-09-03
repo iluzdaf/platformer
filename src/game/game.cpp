@@ -140,7 +140,6 @@ void Game::render()
             gameData,
             world.getLevel(),
             world.getLevelPath(),
-            world.getLevel().getNpcs(),
             world.getPlayer(),
             renderer.getTextures(),
             levels,

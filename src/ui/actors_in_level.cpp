@@ -31,7 +31,7 @@ namespace
         return spawn.type + " " + std::to_string(index + 1);
     }
 
-    std::string labelOf(ActorShown shown, const std::vector<NpcSpawnData> &spawns)
+    std::string labelOf(ActorShown shown, const std::vector<std::unique_ptr<Npc>> &npcs)
     {
         switch (shown.what)
         {
@@ -39,8 +39,8 @@ namespace
             return "player";
 
         case ActorShown::What::Npc:
-            if (shown.npcIndex < spawns.size())
-                return labelOf(spawns[shown.npcIndex], shown.npcIndex);
+            if (shown.npcIndex < npcs.size())
+                return labelOf(npcs[shown.npcIndex]->getSpawn(), shown.npcIndex);
             break;
 
         case ActorShown::What::None:
@@ -191,15 +191,17 @@ namespace
 std::optional<std::string> npcsThatCannotGetBack(const Level &level)
 {
     std::string names;
-    const std::vector<NpcSpawnData> &spawns = level.getNpcSpawns();
-    for (std::size_t index = 0; index < spawns.size(); ++index)
+    const std::vector<std::unique_ptr<Npc>> &placed = level.getNpcs();
+    for (std::size_t index = 0; index < placed.size(); ++index)
     {
-        std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawns[index]);
+        const NpcSpawnData &spawn = placed[index]->getSpawn();
+        std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
         if (!beat ||
-            canPatrolBetween(level.graphFor(spawns[index].type), beat->first, beat->second))
+            canPatrolBetween(
+                level.graphFor(placed[index]->getNavigationProfile()), beat->first, beat->second))
             continue;
 
-        names += (names.empty() ? "" : ", ") + labelOf(spawns[index], index);
+        names += (names.empty() ? "" : ", ") + labelOf(spawn, index);
     }
 
     if (names.empty())
@@ -210,7 +212,6 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
 
 ActorAsked drawActorsInLevel(
     const Level &level,
-    const std::vector<std::unique_ptr<Npc>> &npcs,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -218,8 +219,8 @@ ActorAsked drawActorsInLevel(
     ActorShown showing,
     std::optional<Armed> &armed)
 {
-    const std::vector<NpcSpawnData> &spawns = level.getNpcSpawns();
-    if (showing.what == ActorShown::What::Npc && showing.npcIndex >= spawns.size())
+    const std::vector<std::unique_ptr<Npc>> &npcs = level.getNpcs();
+    if (showing.what == ActorShown::What::Npc && showing.npcIndex >= npcs.size())
         showing = ActorShown{};
 
     ActorAsked asked{showing, false, false, std::nullopt};
@@ -229,7 +230,7 @@ ActorAsked drawActorsInLevel(
                     style.FramePadding.x * 4.0f + style.ItemSpacing.x * 2.0f;
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - buttons);
-    if (ImGui::BeginCombo("##actor", labelOf(showing, spawns).c_str()))
+    if (ImGui::BeginCombo("##actor", labelOf(showing, npcs).c_str()))
     {
         if (ImGui::Selectable("none", showing.what == ActorShown::What::None))
             asked.show = ActorShown{ActorShown::What::None, 0};
@@ -237,9 +238,9 @@ ActorAsked drawActorsInLevel(
         if (ImGui::Selectable("player", showing.what == ActorShown::What::Player))
             asked.show = ActorShown{ActorShown::What::Player, 0};
 
-        for (size_t index = 0; index < spawns.size(); ++index)
+        for (size_t index = 0; index < npcs.size(); ++index)
             if (ImGui::Selectable(
-                    labelOf(spawns[index], index).c_str(),
+                    labelOf(npcs[index]->getSpawn(), index).c_str(),
                     showing == ActorShown{ActorShown::What::Npc, index}))
                 asked.show = ActorShown{ActorShown::What::Npc, index};
 
@@ -279,8 +280,8 @@ ActorAsked drawActorsInLevel(
         break;
 
     case ActorShown::What::Npc: {
-        const NpcSpawnData &spawn = spawns[showing.npcIndex];
-        const Npc *npc = showing.npcIndex < npcs.size() ? npcs[showing.npcIndex].get() : nullptr;
+        const Npc *npc = npcs[showing.npcIndex].get();
+        const NpcSpawnData &spawn = npc->getSpawn();
 
         ImGui::Separator();
         drawCannotGetBack(level, spawn, npc);

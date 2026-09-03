@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "test_helpers/test_tile_map_utils.hpp"
 #include <cstddef>
 #include <string>
 #include "game/world.hpp"
@@ -27,7 +28,7 @@ TEST_CASE("Loading a level fills the world with the level and its cast", "[World
     REQUIRE_FALSE(world.isPlaying("levels/level1.json"));
 
     const Level &level = world.getLevel();
-    REQUIRE(world.getLevel().getNpcs().size() == level.getNpcSpawns().size());
+    REQUIRE(world.getLevel().getNpcs().size() == spawnsIn(level).size());
 }
 
 TEST_CASE("The player starts standing where the level says", "[World]")
@@ -113,7 +114,7 @@ TEST_CASE("The player acts on the intentions the world was given", "[World]")
     REQUIRE(world.getPlayer().getPosition().x > startX);
 }
 
-TEST_CASE("An npc added to the level joins the world when it is rebuilt", "[World]")
+TEST_CASE("An npc added to the level is standing in it straight away", "[World]")
 {
     GameData gameData = loadGameData();
     LuaScriptSystem luaScriptSystem;
@@ -121,9 +122,10 @@ TEST_CASE("An npc added to the level joins the world when it is rebuilt", "[Worl
     world.loadLevel("levels/level6.json");
 
     std::size_t before = world.getLevel().getNpcs().size();
-    world.getLevel().addNpc(NpcSpawnData{"villager", world.getLevel().getPlayerStartTile(), {}});
+    world.getLevel().addNpc(
+        NpcSpawnData{"villager", world.getLevel().getPlayerStartTile(), {}}, gameData.npcData);
 
-    REQUIRE(world.getLevel().getNpcs().size() == before);
+    REQUIRE(world.getLevel().getNpcs().size() == before + 1);
 
     world.rebuildNpcs();
 
@@ -151,7 +153,7 @@ TEST_CASE("A beat edited in the level reaches the npc when it is rebuilt", "[Wor
     World world(gameData, noIntentions(), luaScriptSystem);
     world.loadLevel("levels/level6.json");
 
-    glm::ivec2 spawnTile = world.getLevel().getNpcSpawns()[1].tilePosition;
+    glm::ivec2 spawnTile = spawnsIn(world.getLevel())[1].tilePosition;
     world.getLevel().setNpcSpawnTile(1, glm::ivec2(spawnTile.x - 1, spawnTile.y));
     world.rebuildNpcs();
 

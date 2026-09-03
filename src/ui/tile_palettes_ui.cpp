@@ -79,7 +79,7 @@ void TilePalettesUi::drawRename(const TilePalettes &tilePalettes)
         renaming,
         std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
-        { return renamePaletteIn(levelData.tileMapData, renames); });
+        { return rewriting::paletteIn(levelData.tileMapData, renames); });
 }
 
 void TilePalettesUi::draw(
@@ -173,7 +173,7 @@ void TilePalettesUi::save(TilePalettes &tilePalettes)
         renaming,
         std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
-        { return renamePaletteIn(levelData.tileMapData, renames); });
+        { return rewriting::paletteIn(levelData.tileMapData, renames); });
 
     saveTilePalettes(tilePalettes);
     saveable.saved("palettes", asJson(tilePalettes));

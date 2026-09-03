@@ -11,7 +11,6 @@
 #include <map>
 #include "game/level.hpp"
 #include "game/renames.hpp"
-#include <functional>
 #include "assets/asset_paths.hpp"
 #include "serialization/json_format.hpp"
 #include "game/level_data.hpp"
@@ -110,6 +109,16 @@ namespace
         }
 
         return rewritten;
+    }
+
+    void writeLevelData(const LevelData &levelData, const std::string &levelPath)
+    {
+        std::string json;
+        if (glz::write_json(levelData, json))
+            throw std::runtime_error("Failed to serialize LevelData to JSON");
+
+        std::ofstream outFile(assets::pathTo(levelPath));
+        outFile << withStructureOnLines(withPaddedGrid(json));
     }
 
     std::vector<std::string> levelFilesIn(const std::string &directory)
@@ -401,17 +410,7 @@ LevelData Level::toLevelData() const
     return levelData;
 }
 
-void writeLevelData(const LevelData &levelData, const std::string &levelPath)
-{
-    std::string json;
-    if (glz::write_json(levelData, json))
-        throw std::runtime_error("Failed to serialize LevelData to JSON");
-
-    std::ofstream outFile(assets::pathTo(levelPath));
-    outFile << withStructureOnLines(withPaddedGrid(json));
-}
-
-bool renamePaletteIn(TileMapData &tileMapData, const Renames &renames)
+bool rewriting::paletteIn(TileMapData &tileMapData, const Renames &renames)
 {
     auto renamed = renames.find(tileMapData.tilePalette);
     if (renamed == renames.end())
@@ -421,19 +420,17 @@ bool renamePaletteIn(TileMapData &tileMapData, const Renames &renames)
     return true;
 }
 
-bool renameTypeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames)
+bool rewriting::typeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames)
 {
     return renameSpawnTypes(npcs, renames);
 }
 
-bool renameTypeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames)
+bool rewriting::typeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames)
 {
     return renameSpawnTypes(pickups, renames);
 }
 
-std::vector<std::string> renameInLevels(
-    const std::string &directory,
-    const std::function<bool(LevelData &)> &rewrite)
+std::vector<std::string> rewriting::theLevels(const std::string &directory, const Rewrite &rewrite)
 {
     std::vector<std::string> rewritten;
     for (const std::string &levelPath : levelFilesIn(directory))
@@ -452,9 +449,9 @@ std::vector<std::string> renameInLevels(
     return rewritten;
 }
 
-std::vector<std::string> levelsRenameWouldReach(
+std::vector<std::string> rewriting::whatItWouldReach(
     const std::string &directory,
-    const std::function<bool(LevelData &)> &rewrite)
+    const Rewrite &rewrite)
 {
     std::vector<std::string> reached;
     for (const std::string &levelPath : levelFilesIn(directory))

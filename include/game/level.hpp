@@ -20,19 +20,17 @@
 #include "game/renames.hpp"
 #include "tile_map/tile_map_data.hpp"
 
-void writeLevelData(const LevelData &levelData, const std::string &levelPath);
+namespace rewriting
+{
+    using Rewrite = std::function<bool(LevelData &)>;
 
-bool renamePaletteIn(TileMapData &tileMapData, const Renames &renames);
-bool renameTypeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames);
-bool renameTypeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames);
+    bool paletteIn(TileMapData &tileMapData, const Renames &renames);
+    bool typeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames);
+    bool typeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames);
 
-std::vector<std::string> renameInLevels(
-    const std::string &directory,
-    const std::function<bool(LevelData &)> &rewrite);
-
-std::vector<std::string> levelsRenameWouldReach(
-    const std::string &directory,
-    const std::function<bool(LevelData &)> &rewrite);
+    std::vector<std::string> theLevels(const std::string &directory, const Rewrite &rewrite);
+    std::vector<std::string> whatItWouldReach(const std::string &directory, const Rewrite &rewrite);
+}
 
 class Level
 {

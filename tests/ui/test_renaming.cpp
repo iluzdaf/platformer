@@ -169,7 +169,7 @@ TEST_CASE("A palette a level names is re-pointed", "[Renaming]")
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
 
-    REQUIRE(renamePaletteIn(tileMapData, {{"default", "base"}}));
+    REQUIRE(rewriting::paletteIn(tileMapData, {{"default", "base"}}));
     REQUIRE(tileMapData.tilePalette == "base");
 }
 
@@ -178,7 +178,7 @@ TEST_CASE("A palette no level names is left alone", "[Renaming]")
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
 
-    REQUIRE_FALSE(renamePaletteIn(tileMapData, {{"ice", "snow"}}));
+    REQUIRE_FALSE(rewriting::paletteIn(tileMapData, {{"ice", "snow"}}));
     REQUIRE(tileMapData.tilePalette == "default");
 }
 
@@ -189,7 +189,7 @@ TEST_CASE("Every spawn of a renamed npc type is re-pointed", "[Renaming]")
         NpcSpawnData{"explorer", glm::ivec2(2, 2), std::nullopt},
         NpcSpawnData{"villager", glm::ivec2(3, 3), std::nullopt}};
 
-    REQUIRE(renameTypeIn(npcs, {{"villager", "farmer"}}));
+    REQUIRE(rewriting::typeIn(npcs, {{"villager", "farmer"}}));
 
     REQUIRE(npcs[0].type == "farmer");
     REQUIRE(npcs[1].type == "explorer");
@@ -200,7 +200,7 @@ TEST_CASE("Spawns of a type nobody renamed are left alone", "[Renaming]")
 {
     std::vector<NpcSpawnData> npcs{NpcSpawnData{"villager", glm::ivec2(1, 1), std::nullopt}};
 
-    REQUIRE_FALSE(renameTypeIn(npcs, {{"explorer", "scout"}}));
+    REQUIRE_FALSE(rewriting::typeIn(npcs, {{"explorer", "scout"}}));
     REQUIRE(npcs[0].type == "villager");
 }
 
@@ -209,7 +209,7 @@ TEST_CASE("Every spawn of a renamed pickup type is re-pointed", "[Renaming]")
     std::vector<PickupSpawnData> pickups{
         PickupSpawnData{"coin", glm::ivec2(1, 1)}, PickupSpawnData{"gem", glm::ivec2(2, 2)}};
 
-    REQUIRE(renameTypeIn(pickups, {{"coin", "penny"}}));
+    REQUIRE(rewriting::typeIn(pickups, {{"coin", "penny"}}));
 
     REQUIRE(pickups[0].type == "penny");
     REQUIRE(pickups[1].type == "gem");
@@ -217,10 +217,10 @@ TEST_CASE("Every spawn of a renamed pickup type is re-pointed", "[Renaming]")
 
 TEST_CASE("A rename nobody's level uses rewrites nothing", "[Renaming]")
 {
-    std::vector<std::string> rewritten = renameInLevels(
+    std::vector<std::string> rewritten = rewriting::theLevels(
         std::string(assets::Levels),
         [](LevelData &levelData)
-        { return renamePaletteIn(levelData.tileMapData, {{"nobody", "somebody"}}); });
+        { return rewriting::paletteIn(levelData.tileMapData, {{"nobody", "somebody"}}); });
 
     REQUIRE(rewritten.empty());
 }
@@ -236,7 +236,7 @@ TEST_CASE("Renames written into the levels stop waiting", "[Renaming]")
         renaming,
         std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
-        { return renamePaletteIn(levelData.tileMapData, renames); });
+        { return rewriting::paletteIn(levelData.tileMapData, renames); });
 
     REQUIRE(renaming.sinceSaved().empty());
 }
@@ -304,10 +304,10 @@ TEST_CASE("The levels a rename reaches are handed back", "[Renaming]")
 {
     std::filesystem::path directory = someLevelsToRewrite();
 
-    std::vector<std::string> rewritten = renameInLevels(
+    std::vector<std::string> rewritten = rewriting::theLevels(
         directory.string(),
         [](LevelData &levelData)
-        { return renamePaletteIn(levelData.tileMapData, {{"default", "base"}}); });
+        { return rewriting::paletteIn(levelData.tileMapData, {{"default", "base"}}); });
 
     REQUIRE(levelsInAList(rewritten) == "level1 and level2");
 
@@ -324,7 +324,7 @@ TEST_CASE("The levels a rename reaches are named back", "[Renaming]")
         renaming,
         directory.string(),
         [](LevelData &levelData, const Renames &renames)
-        { return renamePaletteIn(levelData.tileMapData, renames); });
+        { return rewriting::paletteIn(levelData.tileMapData, renames); });
 
     REQUIRE(renaming.sinceSaved().empty());
     REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
@@ -371,7 +371,7 @@ TEST_CASE("The levels a rename will reach are named before it is saved", "[Renam
         renaming,
         directory.string(),
         [](LevelData &levelData, const Renames &renames)
-        { return renamePaletteIn(levelData.tileMapData, renames); });
+        { return rewriting::paletteIn(levelData.tileMapData, renames); });
 
     REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 will be re-pointed.");
     REQUIRE_FALSE(renaming.sinceSaved().empty());
@@ -394,7 +394,7 @@ TEST_CASE("A rename the levels never named says nothing", "[Renaming]")
         renaming,
         directory.string(),
         [](LevelData &levelData, const Renames &renames)
-        { return renamePaletteIn(levelData.tileMapData, renames); });
+        { return rewriting::paletteIn(levelData.tileMapData, renames); });
 
     REQUIRE(renaming.whatTheLevelsNeed().empty());
 
@@ -411,7 +411,7 @@ TEST_CASE("What the levels need is forgotten with the rename", "[Renaming]")
         renaming,
         directory.string(),
         [](LevelData &levelData, const Renames &renames)
-        { return renamePaletteIn(levelData.tileMapData, renames); });
+        { return rewriting::paletteIn(levelData.tileMapData, renames); });
 
     renaming.forget();
 
@@ -427,7 +427,7 @@ TEST_CASE("What will happen stops being said once it has", "[Renaming]")
     std::filesystem::path directory = someLevelsToRewrite();
 
     auto rename = [](LevelData &levelData, const Renames &renames)
-    { return renamePaletteIn(levelData.tileMapData, renames); };
+    { return rewriting::paletteIn(levelData.tileMapData, renames); };
 
     lookAheadAtLevels(renaming, directory.string(), rename);
     REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 will be re-pointed.");

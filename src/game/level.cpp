@@ -161,10 +161,7 @@ const NavigationGraph &Level::graphFor(const std::string &npcType) const
 
 std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
 {
-    if (index >= npcs.size())
-        throw std::runtime_error("Cannot look under an npc the level does not have");
-
-    const NpcSpawnData &spawn = npcs[index]->getSpawn();
+    const NpcSpawnData &spawn = getNpc(index).getSpawn();
     const NavigationGraph &graph = graphFor(spawn.type);
     std::optional<int> standing = nearestNodeTo(graph, tileMap.feetOnTile(spawn.tilePosition));
     if (!standing)
@@ -235,6 +232,21 @@ const std::vector<std::unique_ptr<Npc>> &Level::getNpcs() const
     return npcs;
 }
 
+Npc &Level::getNpc(std::size_t index)
+{
+    return const_cast<Npc &>(std::as_const(*this).getNpc(index));
+}
+
+const Npc &Level::getNpc(std::size_t index) const
+{
+    if (index >= npcs.size())
+        throw std::runtime_error(
+            "This level has no npc " + std::to_string(index) + ", it has " +
+            std::to_string(npcs.size()));
+
+    return *npcs[index];
+}
+
 const std::vector<Pickup> &Level::getPickups() const
 {
     return pickups;
@@ -286,30 +298,23 @@ void Level::addNpc(const NpcSpawnData &spawn, const NpcData &npcData)
 
 void Level::removeNpc(std::size_t index)
 {
-    if (index >= npcs.size())
-        throw std::runtime_error("Cannot remove an npc the level does not have");
-
-    npcs.erase(npcs.begin() + static_cast<std::ptrdiff_t>(index));
+    const Npc &going = getNpc(index);
+    std::erase_if(npcs, [&going](const std::unique_ptr<Npc> &npc) { return npc.get() == &going; });
 }
 
 void Level::setNpcSpawnTile(std::size_t index, glm::ivec2 tilePosition)
 {
-    if (index >= npcs.size())
-        throw std::runtime_error("Cannot move an npc the level does not have");
-
+    Npc &npc = getNpc(index);
     if (!tileMap.validTilePosition(tilePosition))
         throw std::runtime_error("Tile coordinates out of bounds");
 
-    npcs[index]->setSpawnTile(tilePosition);
-    npcs[index]->setPosition(
-        tileMap.feetOnTile(tilePosition) - npcs[index]->getPhysicsBody().getBottomCenterOffset());
+    npc.setSpawnTile(tilePosition);
+    npc.setPosition(
+        tileMap.feetOnTile(tilePosition) - npc.getPhysicsBody().getBottomCenterOffset());
 }
 
 void Level::setNpcPatrol(std::size_t index, PatrolData patrol)
 {
-    if (index >= npcs.size())
-        throw std::runtime_error("Cannot give a beat to an npc the level does not have");
-
     if (!tileMap.validTilePosition(patrol.from) || !tileMap.validTilePosition(patrol.to))
         throw std::runtime_error("Tile coordinates out of bounds");
 
@@ -318,18 +323,16 @@ void Level::setNpcPatrol(std::size_t index, PatrolData patrol)
 
 void Level::clearNpcPatrol(std::size_t index)
 {
-    if (index >= npcs.size())
-        throw std::runtime_error("Cannot clear the beat of an npc the level does not have");
-
     givePatrol(index, std::nullopt);
 }
 
 void Level::givePatrol(std::size_t index, std::optional<PatrolData> patrol)
 {
-    NpcSpawnData asItWillBe = npcs[index]->getSpawn();
+    Npc &npc = getNpc(index);
+    NpcSpawnData asItWillBe = npc.getSpawn();
     asItWillBe.patrol = patrol;
 
-    npcs[index]->setPatrol(patrol, patrolFor(asItWillBe));
+    npc.setPatrol(patrol, patrolFor(asItWillBe));
 }
 
 void Level::setPlayerStartTile(glm::ivec2 tilePosition)

@@ -344,7 +344,7 @@ TEST_CASE("A level refuses to remove an npc it does not have", "[Level]")
 {
     Level level = levelPlacing({});
 
-    REQUIRE_THROWS_WITH(level.removeNpc(0), "Cannot remove an npc the level does not have");
+    REQUIRE_THROWS_WITH(level.removeNpc(0), "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("An npc removed is gone from what the level would save", "[Level]")
@@ -372,7 +372,7 @@ TEST_CASE("A level refuses to move an npc it does not have", "[Level]")
     Level level = levelPlacing({});
 
     REQUIRE_THROWS_WITH(
-        level.setNpcSpawnTile(0, StandingTile), "Cannot move an npc the level does not have");
+        level.setNpcSpawnTile(0, StandingTile), "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("A level refuses to move an npc off the map", "[Level]")
@@ -409,7 +409,7 @@ TEST_CASE("A level refuses to give a beat to an npc it does not have", "[Level]"
 
     REQUIRE_THROWS_WITH(
         level.setNpcPatrol(0, PatrolData{StandingTile, StandingTile}),
-        "Cannot give a beat to an npc the level does not have");
+        "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("An npc can be left with no beat at all", "[Level]")
@@ -428,8 +428,7 @@ TEST_CASE("A level refuses to clear the beat of an npc it does not have", "[Leve
 {
     Level level = levelPlacing({});
 
-    REQUIRE_THROWS_WITH(
-        level.clearNpcPatrol(0), "Cannot clear the beat of an npc the level does not have");
+    REQUIRE_THROWS_WITH(level.clearNpcPatrol(0), "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("Placing an npc adds no graph, because its type already had one", "[Level]")
@@ -479,7 +478,7 @@ TEST_CASE("A level refuses to look under an npc it does not have", "[Level]")
 {
     Level level = levelPlacing({});
 
-    REQUIRE_THROWS_WITH(level.runBeneathNpc(0), "Cannot look under an npc the level does not have");
+    REQUIRE_THROWS_WITH(level.runBeneathNpc(0), "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("A beat reaches the outer edges of the tiles it names", "[Level]")
@@ -508,4 +507,20 @@ TEST_CASE("A beat named right to left reaches the same two edges", "[Level]")
     REQUIRE(beat);
     REQUIRE(beat->first.x == 5 * tileSize);
     REQUIRE(beat->second.x == 1 * tileSize);
+}
+
+TEST_CASE("A level hands back the npc standing at an index", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
+
+    REQUIRE(level.getNpc(0).getSpawn().type == "short");
+    REQUIRE(level.getNpc(1).getSpawn().type == "tall");
+    REQUIRE(&level.getNpc(1) == level.getNpcs()[1].get());
+}
+
+TEST_CASE("A level says how many npcs it has when asked for one it lacks", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+
+    REQUIRE_THROWS_WITH(level.getNpc(1), "This level has no npc 1, it has 1");
 }

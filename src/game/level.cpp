@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <optional>
 #include <stdexcept>
@@ -21,7 +22,6 @@
 #include "navigation/navigation_graph_builder.hpp"
 #include "navigation/navigation_path.hpp"
 #include "tile_map/tile_palette.hpp"
-#include "game/levels.hpp"
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
 #include "tile_map/tile.hpp"
@@ -424,15 +424,30 @@ bool renameTypeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames)
     return renameSpawnTypes(pickups, renames);
 }
 
+namespace
+{
+    std::vector<std::string> levelFilesIn(const std::string &directory)
+    {
+        std::vector<std::string> paths;
+        for (const auto &entry : std::filesystem::directory_iterator(assets::pathTo(directory)))
+            if (entry.path().extension() == ".json")
+                paths.push_back(entry.path().string());
+
+        std::sort(paths.begin(), paths.end());
+        return paths;
+    }
+
+}
+
 std::vector<std::string> renameInLevels(
     const std::string &directory,
     const std::function<bool(LevelData &)> &rewrite)
 {
     std::vector<std::string> rewritten;
-    for (const std::string &levelPath : levelPathsIn(directory))
+    for (const std::string &levelPath : levelFilesIn(directory))
     {
         LevelData levelData;
-        if (glz::read_file_json(levelData, assets::pathTo(levelPath), std::string{}))
+        if (glz::read_file_json(levelData, levelPath, std::string{}))
             continue;
 
         if (!rewrite(levelData))
@@ -443,6 +458,24 @@ std::vector<std::string> renameInLevels(
     }
 
     return rewritten;
+}
+
+std::vector<std::string> levelsRenameWouldReach(
+    const std::string &directory,
+    const std::function<bool(LevelData &)> &rewrite)
+{
+    std::vector<std::string> reached;
+    for (const std::string &levelPath : levelFilesIn(directory))
+    {
+        LevelData levelData;
+        if (glz::read_file_json(levelData, levelPath, std::string{}))
+            continue;
+
+        if (rewrite(levelData))
+            reached.push_back(levelPath);
+    }
+
+    return reached;
 }
 
 void Level::save() const

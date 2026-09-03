@@ -53,15 +53,16 @@ public:
 
     const Renames &sinceSaved() const;
     std::string shownName(const std::string &onDisk) const;
-    std::string rePointedLevels() const;
+    std::string whatTheLevelsNeed() const;
     bool somethingIsBecoming(const std::string &name) const;
     void applied(const std::vector<std::string> &levels);
+    void willReach(const std::vector<std::string> &levels);
     void forget();
 
 private:
     std::string typing, lastSelected;
     Renames renames;
-    std::vector<std::string> rePointed;
+    std::vector<std::string> rePointed, willRePoint;
 };
 
 template <class T>
@@ -74,6 +75,11 @@ void revertTo(const Saveable &saveable, std::string_view name, T &value, Renamin
 struct LevelData;
 
 void writeRenamesIntoLevels(
+    Renaming &renaming,
+    const std::string &directory,
+    const std::function<bool(LevelData &, const Renames &)> &rename);
+
+void lookAheadAtLevels(
     Renaming &renaming,
     const std::string &directory,
     const std::function<bool(LevelData &, const Renames &)> &rename);

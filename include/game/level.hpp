@@ -30,6 +30,10 @@ std::vector<std::string> renameInLevels(
     const std::string &directory,
     const std::function<bool(LevelData &)> &rewrite);
 
+std::vector<std::string> levelsRenameWouldReach(
+    const std::string &directory,
+    const std::function<bool(LevelData &)> &rewrite);
+
 class Level
 {
 public:

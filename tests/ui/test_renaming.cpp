@@ -111,7 +111,7 @@ TEST_CASE("A rename already written is not written again", "[Renaming]")
     renaming.applied({"levels/level1.json", "levels/level2.json"});
 
     REQUIRE(renaming.sinceSaved().empty());
-    REQUIRE(renaming.rePointedLevels() == "level1 and level2");
+    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
 }
 
 TEST_CASE("Forgetting puts the field back to what is selected", "[Renaming]")
@@ -316,7 +316,7 @@ TEST_CASE("The levels a rename reaches are named back", "[Renaming]")
         { return renamePaletteIn(levelData.tileMapData, renames); });
 
     REQUIRE(renaming.sinceSaved().empty());
-    REQUIRE(renaming.rePointedLevels() == "level1 and level2");
+    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
 
     LevelData rewritten;
     REQUIRE_FALSE(
@@ -348,4 +348,82 @@ TEST_CASE("A name is what the renames make of it", "[Renaming]")
 {
     REQUIRE(nameAfterRenames({{"villager", "farmer"}}, "villager") == "farmer");
     REQUIRE(nameAfterRenames({{"villager", "farmer"}}, "explorer") == "explorer");
+}
+
+TEST_CASE("The levels a rename will reach are named before it is saved", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "default", "base");
+    std::filesystem::path directory = someLevelsToRewrite();
+
+    lookAheadAtLevels(
+        renaming,
+        directory.string(),
+        [](LevelData &levelData, const Renames &renames)
+        { return renamePaletteIn(levelData.tileMapData, renames); });
+
+    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 will be re-pointed.");
+    REQUIRE_FALSE(renaming.sinceSaved().empty());
+
+    LevelData untouched;
+    REQUIRE_FALSE(
+        glz::read_file_json(untouched, (directory / "level1.json").string(), std::string{}));
+    REQUIRE(untouched.tileMapData.tilePalette == "default");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("A rename the levels never named says nothing", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "nobody", "somebody");
+    std::filesystem::path directory = someLevelsToRewrite();
+
+    lookAheadAtLevels(
+        renaming,
+        directory.string(),
+        [](LevelData &levelData, const Renames &renames)
+        { return renamePaletteIn(levelData.tileMapData, renames); });
+
+    REQUIRE(renaming.whatTheLevelsNeed().empty());
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("What the levels need is forgotten with the rename", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "default", "base");
+    std::filesystem::path directory = someLevelsToRewrite();
+
+    lookAheadAtLevels(
+        renaming,
+        directory.string(),
+        [](LevelData &levelData, const Renames &renames)
+        { return renamePaletteIn(levelData.tileMapData, renames); });
+
+    renaming.forget();
+
+    REQUIRE(renaming.whatTheLevelsNeed().empty());
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("What will happen stops being said once it has", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "default", "base");
+    std::filesystem::path directory = someLevelsToRewrite();
+
+    auto rename = [](LevelData &levelData, const Renames &renames)
+    { return renamePaletteIn(levelData.tileMapData, renames); };
+
+    lookAheadAtLevels(renaming, directory.string(), rename);
+    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 will be re-pointed.");
+
+    writeRenamesIntoLevels(renaming, directory.string(), rename);
+
+    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
+
+    std::filesystem::remove_all(directory);
 }

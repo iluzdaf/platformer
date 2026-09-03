@@ -101,13 +101,24 @@ void TypesUi::drawRename(const GameData &gameData)
     bool npc = showing.what == TypeShown::What::Npc;
     Renaming &renaming = npc ? npcRenaming : pickupRenaming;
 
-    renaming.draw(
-        npc ? "an npc" : "a pickup",
-        showing.name,
-        [npc, &renaming, &gameData](const std::string &name)
+    if (!renaming.draw(
+            npc ? "an npc" : "a pickup",
+            showing.name,
+            [npc, &renaming, &gameData](const std::string &name)
+            {
+                bool has =
+                    npc ? gameData.npcData.contains(name) : gameData.pickupData.contains(name);
+                return has || renaming.somethingIsBecoming(name);
+            }))
+        return;
+
+    lookAheadAtLevels(
+        renaming,
+        std::string(assets::Levels),
+        [npc](LevelData &levelData, const Renames &renames)
         {
-            bool has = npc ? gameData.npcData.contains(name) : gameData.pickupData.contains(name);
-            return has || renaming.somethingIsBecoming(name);
+            return npc ? renameTypeIn(levelData.npcs, renames)
+                       : renameTypeIn(levelData.pickups, renames);
         });
 }
 

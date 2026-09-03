@@ -6,10 +6,14 @@
 #include "animations/frame_animation.hpp"
 #include "physics/aabb.hpp"
 
-Tile::Tile(const TileData &tileData)
+Tile::Tile(const TileData &tileData, glm::vec2 cellSize)
     : solid(tileData.solid), deadly(tileData.deadly), portal(tileData.portal),
-      grippable(tileData.grippable), collider(tileData.collider.value_or(TileColliderData{}))
+      grippable(tileData.grippable),
+      collider(tileData.collider.value_or(TileColliderData{glm::vec2(0.0f), cellSize}))
 {
+    if (tileData.collider && (collider.size.x <= 0.0f || collider.size.y <= 0.0f))
+        throw std::runtime_error("A collider of no size is not one anything can touch");
+
     if (solid && (deadly || portal))
         throw std::runtime_error(
             "A solid tile is never touched, so it cannot be deadly or a portal");

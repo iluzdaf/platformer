@@ -85,7 +85,7 @@ void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tileP
         if (tileIndex < 0)
             throw std::runtime_error("Palette \"" + tilePalette + "\" names a tile below 0");
 
-        tiles.insert_or_assign(tileIndex, Tile(tileData));
+        tiles.insert_or_assign(tileIndex, Tile(tileData, glm::vec2(tileSet.cellSize)));
     }
 }
 
@@ -143,7 +143,7 @@ int TileMap::getHeight() const
 
 const Tile &TileMap::getTile(int tileIndex) const
 {
-    static const Tile nothingSaid{TileData{}};
+    static const Tile nothingSaid{TileData{}, glm::vec2(0.0f)};
 
     auto said = tiles.find(tileIndex);
 

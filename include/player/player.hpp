@@ -13,7 +13,6 @@ public:
 
     fteng::signal<void()> onLevelComplete, onDeath, onFallFromHeight, onHitCeiling, onWallJump,
         onDash, onWallSliding;
-    fteng::signal<void(int)> onPickup;
 
 private:
     PlayerData data;

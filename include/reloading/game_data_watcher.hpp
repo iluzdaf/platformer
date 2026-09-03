@@ -10,21 +10,28 @@ class GameDataWatcher : public FileWatcher
 public:
     fteng::signal<void()> onGameDataChanged;
 
+    static bool reloadsOn(std::string_view path)
+    {
+        for (std::string_view named :
+             {assets::GameSettings,
+              assets::Camera,
+              assets::Player,
+              assets::Npcs,
+              assets::Pickups,
+              assets::TilePalettes,
+              assets::LevelList})
+            if (path == named)
+                return true;
+
+        return false;
+    }
+
     GameDataWatcher()
     {
         listener.onFileModified = [&](const std::string &path)
         {
-            for (std::string_view named :
-                 {assets::GameSettings,
-                  assets::Camera,
-                  assets::Player,
-                  assets::Npcs,
-                  assets::TilePalettes})
-                if (path == named)
-                {
-                    onGameDataChanged();
-                    return;
-                }
+            if (reloadsOn(path))
+                onGameDataChanged();
         };
 
         fileWatcher.addWatch(assets::root(), &listener, false);

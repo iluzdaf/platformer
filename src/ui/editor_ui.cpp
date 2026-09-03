@@ -116,7 +116,6 @@ void EditorUi::draw(
         levelUi.draw(
             subject.level,
             subject.levelPath,
-            subject.npcs,
             subject.playerMotionState,
             subject.playerFeet,
             subject.playerState,

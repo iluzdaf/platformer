@@ -1,8 +1,6 @@
 #pragma once
 #include <string>
 
-#include <memory>
-#include <vector>
 #include "ui/editor_ui.hpp"
 #include "ui/imgui_manager.hpp"
 #include "ui/editor_commands.hpp"
@@ -22,7 +20,6 @@ struct GameUiSubject
     GameData &gameData;
     Level &level;
     const std::string &levelPath;
-    const std::vector<std::unique_ptr<Npc>> &npcs;
     const Player &player;
     const TextureCache &textures;
     Levels &levels;

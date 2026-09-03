@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <string>
 #include <cstddef>
-#include <memory>
 #include <optional>
 #include <vector>
 #include <variant>
@@ -12,6 +11,7 @@
 #include "ui/mouse_on_the_map.hpp"
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "npc/npc.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
@@ -27,7 +27,6 @@
 void LevelUi::draw(
     Level &level,
     const std::string &levelPath,
-    const std::vector<std::unique_ptr<Npc>> &npcs,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -54,12 +53,11 @@ void LevelUi::draw(
         return;
 
     drawLevel(level, levelPath);
-    drawActors(level, npcs, playerMotionState, playerFeet, playerState, npcData, armed, commands);
+    drawActors(level, playerMotionState, playerFeet, playerState, npcData, armed, commands);
 }
 
 void LevelUi::drawActors(
     Level &level,
-    const std::vector<std::unique_ptr<Npc>> &npcs,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -72,13 +70,14 @@ void LevelUi::drawActors(
 
     ActorShown wasShowing = showingActor;
     ActorAsked asked = drawActorsInLevel(
-        level, npcs, playerMotionState, playerFeet, playerState, npcData, showingActor, armed);
+        level, playerMotionState, playerFeet, playerState, npcData, showingActor, armed);
 
     if (asked.addNpcOfType)
     {
-        level.addNpc(NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt});
+        level.addNpc(
+            NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt}, npcData);
 
-        std::size_t placed = level.getNpcSpawns().size() - 1;
+        std::size_t placed = level.getNpcs().size() - 1;
         if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
             level.setNpcPatrol(placed, *run);
 
@@ -214,8 +213,7 @@ void LevelUi::update(
         return;
 
     PickTile picking = std::get<PickTile>(*armed);
-    if (picking.what != PickTile::For::PlayerStart &&
-        picking.npcIndex >= level.getNpcSpawns().size())
+    if (picking.what != PickTile::For::PlayerStart && picking.npcIndex >= level.getNpcs().size())
     {
         armed.reset();
         return;
@@ -234,7 +232,7 @@ void LevelUi::update(
 
     case PickTile::For::PatrolFrom:
     case PickTile::For::PatrolTo: {
-        const NpcSpawnData &spawn = level.getNpcSpawns()[picking.npcIndex];
+        const NpcSpawnData &spawn = level.getNpcs()[picking.npcIndex]->getSpawn();
         PatrolData patrol = spawn.patrol.value_or(PatrolData{tilePosition, tilePosition});
         if (picking.what == PickTile::For::PatrolFrom)
             patrol.from = tilePosition;

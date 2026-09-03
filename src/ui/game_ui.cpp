@@ -32,7 +32,6 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.gameData,
             subject.level,
             subject.levelPath,
-            subject.npcs,
             subject.textures,
             subject.levels,
             subject.player.getMotion().getState(),

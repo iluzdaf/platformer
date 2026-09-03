@@ -12,6 +12,11 @@
 #include "tile_map/tile_palette.hpp"
 #include "tile_map/tile_data.hpp"
 #include "npc/npc_data.hpp"
+#include <vector>
+#include <memory>
+#include "npc/npc_spawn_data.hpp"
+#include "npc/npc.hpp"
+#include "game/level.hpp"
 #include "pickups/pickup_data.hpp"
 #include "assets/asset_paths.hpp"
 
@@ -44,6 +49,15 @@ inline const std::map<std::string, NpcData> &shippedNpcData()
 {
     static const std::map<std::string, NpcData> npcData = [] { return loadGameData().npcData; }();
     return npcData;
+}
+
+inline std::vector<NpcSpawnData> spawnsIn(const Level &level)
+{
+    std::vector<NpcSpawnData> spawns;
+    for (const std::unique_ptr<Npc> &npc : level.getNpcs())
+        spawns.push_back(npc->getSpawn());
+
+    return spawns;
 }
 
 inline const std::map<std::string, PickupData> &shippedPickupData()

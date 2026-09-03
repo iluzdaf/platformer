@@ -1,11 +1,9 @@
 #pragma once
 
-#include <memory>
 #include <array>
 #include <functional>
 #include <optional>
 #include <string>
-#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/editor_commands.hpp"
 #include "ui/editor_section.hpp"
@@ -47,7 +45,6 @@ struct EditorSubject
     GameData &gameData;
     Level &level;
     const std::string &levelPath;
-    const std::vector<std::unique_ptr<Npc>> &npcs;
     const TextureCache &textures;
     Levels &levels;
     const ActorMotionState &playerMotionState;

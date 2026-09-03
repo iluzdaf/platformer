@@ -14,6 +14,7 @@
 #include <utility>
 #include "cameras/camera2d.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "npc/npc.hpp"
 #include "ui/actors_in_level.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "physics/physics_body.hpp"
@@ -174,10 +175,10 @@ void drawSpawnOf(
         return;
     }
 
-    if (showing.what != ActorShown::What::Npc || showing.npcIndex >= level.getNpcSpawns().size())
+    if (showing.what != ActorShown::What::Npc || showing.npcIndex >= level.getNpcs().size())
         return;
 
-    const NpcSpawnData &spawn = level.getNpcSpawns()[showing.npcIndex];
+    const NpcSpawnData &spawn = level.getNpcs()[showing.npcIndex]->getSpawn();
     drawSpawn(spawn.tilePosition, spawn.type);
 
     std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);

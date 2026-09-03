@@ -2,10 +2,8 @@
 
 #include <string>
 #include <cstddef>
-#include <memory>
 #include <map>
 #include <optional>
-#include <vector>
 #include "ui/editor_commands.hpp"
 #include "ui/grid_shown.hpp"
 #include "ui/armed.hpp"
@@ -29,7 +27,6 @@ public:
     void draw(
         Level &level,
         const std::string &levelPath,
-        const std::vector<std::unique_ptr<Npc>> &npcs,
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
@@ -60,7 +57,6 @@ private:
     void drawLevel(Level &level, const std::string &levelPath);
     void drawActors(
         Level &level,
-        const std::vector<std::unique_ptr<Npc>> &npcs,
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,

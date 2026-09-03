@@ -1,4 +1,4 @@
-#include <memory>
+#include "test_helpers/test_tile_map_utils.hpp"
 #include <cstddef>
 #include <optional>
 #include <vector>
@@ -13,7 +13,6 @@
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
 #include "game/levels.hpp"
-#include "npc/npc.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "rendering/texture_cache.hpp"
 #include "test_helpers/asset_path.hpp"
@@ -33,7 +32,6 @@ namespace
             gameData.playerData,
             gameData.npcData,
             gameData.pickupData};
-        std::vector<std::unique_ptr<Npc>> npcs;
         TextureCache textures;
         ActorMotionState motion;
         ActorState playerState;
@@ -45,7 +43,6 @@ namespace
                 gameData,
                 level,
                 levelPath,
-                npcs,
                 textures,
                 levels,
                 motion,
@@ -97,8 +94,9 @@ TEST_CASE("A level that strands an npc says so where its save would be", "[Edito
     EditorUi editorUi;
     Editing editing;
 
-    editing.level.addNpc(NpcSpawnData{"villager", glm::ivec2(2, 8), std::nullopt});
-    std::size_t placed = editing.level.getNpcSpawns().size() - 1;
+    editing.level.addNpc(
+        NpcSpawnData{"villager", glm::ivec2(2, 8), std::nullopt}, editing.gameData.npcData);
+    std::size_t placed = spawnsIn(editing.level).size() - 1;
     editing.level.setNpcPatrol(placed, PatrolData{glm::ivec2(2, 8), glm::ivec2(2, 1)});
 
     SectionSaving saving = editorUi.savingIn(EditorSection::Level, editing.subject());

@@ -2,10 +2,8 @@
 
 #include <cstddef>
 #include <map>
-#include <memory>
 #include <optional>
 #include <string>
-#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/armed.hpp"
 
@@ -42,7 +40,6 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level);
 
 ActorAsked drawActorsInLevel(
     const Level &level,
-    const std::vector<std::unique_ptr<Npc>> &npcs,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,

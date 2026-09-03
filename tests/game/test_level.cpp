@@ -234,8 +234,8 @@ TEST_CASE("Every type the level knows has a graph before anything is placed", "[
     Level level = levelPlacing({});
 
     REQUIRE(spawnsIn(level).empty());
-    REQUIRE_NOTHROW(level.graphFor("tall"));
-    REQUIRE_NOTHROW(level.graphFor("short"));
+    REQUIRE_NOTHROW(level.graphFor(profileOfHeight(20.0f)));
+    REQUIRE_NOTHROW(level.graphFor(profileOfHeight(13.0f)));
 }
 
 TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
@@ -243,8 +243,12 @@ TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
     Level level =
         levelPlacing({spawnAt("short", StandingTile), spawnAt("alsoShort", StandingTile)});
 
-    REQUIRE(&level.graphFor("short") == &level.graphFor("alsoShort"));
-    REQUIRE(&level.graphFor("short") != &level.graphFor("tall"));
+    REQUIRE(
+        &level.graphFor(level.getNpc(0).getNavigationProfile()) ==
+        &level.graphFor(level.getNpc(1).getNavigationProfile()));
+    REQUIRE(
+        &level.graphFor(level.getNpc(0).getNavigationProfile()) !=
+        &level.graphFor(profileOfHeight(20.0f)));
 
     std::vector<std::string> names;
     for (const NamedNavigationGraph &graph : level.getGraphs())
@@ -442,7 +446,7 @@ TEST_CASE("Placing an npc adds no graph, because its type already had one", "[Le
 
     level.addNpc(spawnAt("tall", StandingTile), theUsualNpcs().at("tall"));
 
-    REQUIRE_NOTHROW(level.graphFor(spawnsIn(level).front().type));
+    REQUIRE_NOTHROW(level.graphFor(level.getNpc(0).getNavigationProfile()));
     REQUIRE(level.getGraphs().size() == before);
 }
 
@@ -476,6 +480,14 @@ TEST_CASE("The run beneath an npc names tiles the beat can be saved as", "[Level
     REQUIRE(run);
     REQUIRE_NOTHROW(level.getNpc(0).setPatrol(*run, level.patrolBetween(*run)));
     REQUIRE(spawnsIn(level).front().patrol == run);
+}
+
+TEST_CASE("Looking under an npc reads the graph that npc walks", "[Level]")
+{
+    Level tallOne = levelPlacing({spawnAt("tall", StandingTile)});
+    Level shortOne = levelPlacing({spawnAt("short", StandingTile)});
+
+    REQUIRE(tallOne.runBeneathNpc(0) != shortOne.runBeneathNpc(0));
 }
 
 TEST_CASE("A level refuses to look under an npc it does not have", "[Level]")

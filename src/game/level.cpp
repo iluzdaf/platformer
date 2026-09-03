@@ -66,15 +66,15 @@ Level::Level(
 
     addGraphFor("player", buildNavigationProfile(playerData.actorData));
 
-    npcProfiles.clear();
+    npcTypes.clear();
     for (const auto &[type, data] : npcData)
     {
-        npcProfiles.emplace(type, buildNavigationProfile(data.actorData));
-        addGraphFor(type, npcProfiles.at(type));
+        npcTypes.insert(type);
+        addGraphFor(type, buildNavigationProfile(data.actorData));
     }
 
     for (const NpcSpawnData &spawn : levelData.npcs)
-        if (!npcProfiles.contains(spawn.type))
+        if (!npcTypes.contains(spawn.type))
             throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
     for (const NpcSpawnData &spawn : levelData.npcs)
@@ -169,19 +169,11 @@ const NavigationGraph &Level::graphFor(const NavigationProfile &profile) const
     throw std::runtime_error("This level has no navigation graph for that actor");
 }
 
-const NavigationGraph &Level::graphFor(const std::string &npcType) const
-{
-    auto profile = npcProfiles.find(npcType);
-    if (profile == npcProfiles.end())
-        throw std::runtime_error("Unknown npc \"" + npcType + "\"");
-
-    return graphFor(profile->second);
-}
-
 std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
 {
-    const NpcSpawnData &spawn = getNpc(index).getSpawn();
-    const NavigationGraph &graph = graphFor(spawn.type);
+    const Npc &npc = getNpc(index);
+    const NpcSpawnData &spawn = npc.getSpawn();
+    const NavigationGraph &graph = graphFor(npc.getNavigationProfile());
     std::optional<int> standing = nearestNodeTo(graph, tileMap.feetOnTile(spawn.tilePosition));
     if (!standing)
         return std::nullopt;
@@ -305,7 +297,7 @@ const std::vector<PickupSpawnData> &Level::getPickupSpawns() const
 
 void Level::addNpc(const NpcSpawnData &spawn, const NpcData &npcData)
 {
-    if (!npcProfiles.contains(spawn.type))
+    if (!npcTypes.contains(spawn.type))
         throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
     npcs.push_back(

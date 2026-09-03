@@ -178,14 +178,15 @@ void drawSpawnOf(
     if (showing.what != ActorShown::What::Npc || showing.npcIndex >= level.getNpcs().size())
         return;
 
-    const NpcSpawnData &spawn = level.getNpcs()[showing.npcIndex]->getSpawn();
+    const Npc &npc = *level.getNpcs()[showing.npcIndex];
+    const NpcSpawnData &spawn = npc.getSpawn();
     drawSpawn(spawn.tilePosition, spawn.type);
 
     std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
     if (!beat)
         return;
 
-    const NavigationGraph &graph = level.graphFor(spawn.type);
+    const NavigationGraph &graph = level.graphFor(npc.getNavigationProfile());
     std::optional<PlaceOnThePath> setsOff = placeOnThePath(graph, beat->first);
     std::optional<PlaceOnThePath> turnsRound = placeOnThePath(graph, beat->second);
     if (!setsOff || !turnsRound)

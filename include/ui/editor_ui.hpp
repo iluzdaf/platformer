@@ -46,6 +46,7 @@ struct EditorSubject
 {
     GameData &gameData;
     Level &level;
+    const std::string &levelPath;
     const std::vector<std::unique_ptr<Npc>> &npcs;
     const TextureCache &textures;
     Levels &levels;
@@ -69,7 +70,8 @@ public:
         float deltaTime,
         const ImGuiManager &imGuiManager,
         const Camera2D &camera,
-        Level &level);
+        Level &level,
+        const std::string &levelPath);
 
     EditorCommands commands;
 

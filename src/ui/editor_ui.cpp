@@ -1,4 +1,5 @@
 #include <array>
+#include <string>
 #include <cfloat>
 #include <cstddef>
 #include <imgui.h>
@@ -104,12 +105,17 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Levels:
-        levelsUi.draw(subject.levels, subject.level, commands, levelUi.unsavedSince(subject.level));
+        levelsUi.draw(
+            subject.levels,
+            subject.levelPath,
+            commands,
+            levelUi.unsavedSince(subject.level, subject.levelPath));
         break;
 
     case EditorSection::Level:
         levelUi.draw(
             subject.level,
+            subject.levelPath,
             subject.npcs,
             subject.playerMotionState,
             subject.playerFeet,
@@ -141,7 +147,8 @@ void EditorUi::update(
     float deltaTime,
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
-    Level &level)
+    Level &level,
+    const std::string &levelPath)
 {
     playerUi.update(deltaTime);
     MouseOnTheMap mouse{
@@ -151,7 +158,7 @@ void EditorUi::update(
         ImGui::IsMouseDown(ImGuiMouseButton_Left),
         ImGui::IsMouseClicked(ImGuiMouseButton_Left)};
 
-    levelUi.update(mouse, level, armed, commands);
+    levelUi.update(mouse, level, levelPath, armed, commands);
 }
 
 void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving)
@@ -243,10 +250,10 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
 
     case EditorSection::Level:
         return {
-            levelUi.unsavedSince(subject.level),
+            levelUi.unsavedSince(subject.level, subject.levelPath),
             npcsThatCannotGetBack(subject.level),
-            [this, &subject] { levelUi.save(subject.level); },
-            [this, &subject] { commands.onLoadLevel(subject.level.getPath()); }};
+            [this, &subject] { levelUi.save(subject.level, subject.levelPath); },
+            [this, &subject] { commands.onLoadLevel(subject.levelPath); }};
 
     case EditorSection::Types:
         return {

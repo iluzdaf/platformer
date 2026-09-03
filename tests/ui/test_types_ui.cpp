@@ -14,6 +14,7 @@
 #include "ui/editor_commands.hpp"
 #include "rendering/texture_cache.hpp"
 #include "game/level.hpp"
+#include "game/level_data_file.hpp"
 #include "test_helpers/asset_path.hpp"
 
 namespace
@@ -431,7 +432,7 @@ TEST_CASE("A level still loads while a type rename waits to be saved", "[TypesUi
 
     REQUIRE(typesUi.unsavedSince(gameData));
     REQUIRE_NOTHROW(Level(
-        assetPath("levels/level6.json"),
+        readLevelData(assetPath("levels/level6.json")),
         gameData.tilePalettes,
         gameData.playerData,
         gameData.npcData));

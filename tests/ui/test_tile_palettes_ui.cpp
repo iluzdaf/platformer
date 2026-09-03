@@ -10,6 +10,7 @@
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "game/level.hpp"
+#include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
 #include "test_helpers/asset_path.hpp"
 #include "ui/tile_palettes_ui.hpp"
@@ -321,7 +322,7 @@ TEST_CASE("A level still loads while a palette rename waits to be saved", "[Tile
 
     REQUIRE(tilePalettesUi.unsavedSince(gameData.tilePalettes));
     REQUIRE_NOTHROW(Level(
-        assetPath("levels/level1.json"),
+        readLevelData(assetPath("levels/level1.json")),
         gameData.tilePalettes,
         gameData.playerData,
         gameData.npcData));

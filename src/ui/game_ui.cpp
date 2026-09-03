@@ -1,4 +1,5 @@
 #include "ui/game_ui.hpp"
+#include <string>
 #include "rendering/texture_cache.hpp"
 #include "assets/sheet.hpp"
 #include "physics/aabb.hpp"
@@ -33,6 +34,7 @@ void GameUi::draw(const GameUiSubject &subject)
         EditorSubject{
             subject.gameData,
             subject.level,
+            subject.levelPath,
             subject.npcs,
             subject.textures,
             subject.levels,
@@ -49,9 +51,13 @@ void GameUi::draw(const GameUiSubject &subject)
     imGuiManager.render();
 }
 
-void GameUi::update(float deltaTime, Level &level, const Camera2D &camera)
+void GameUi::update(
+    float deltaTime,
+    Level &level,
+    const std::string &levelPath,
+    const Camera2D &camera)
 {
-    editorUi.update(deltaTime, imGuiManager, camera, level);
+    editorUi.update(deltaTime, imGuiManager, camera, level, levelPath);
 }
 
 void GameUi::resize(int width, int height)

@@ -19,6 +19,7 @@
 #include "npc/npc_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/level_data_file.hpp"
 #include "game/level_data.hpp"
 #include "game/game_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
@@ -365,7 +366,11 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
         if (entry.path().extension() != ".json")
             continue;
 
-        Level level(entry.path().string(), shippedPalettes(), PlayerData(), shippedNpcData());
+        Level level(
+            readLevelData(entry.path().string()),
+            shippedPalettes(),
+            PlayerData(),
+            shippedNpcData());
         const TileMap &tileMap = level.getTileMap();
         for (const NpcSpawnData &spawn : level.getNpcs())
         {

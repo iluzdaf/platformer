@@ -8,6 +8,7 @@
 #include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "game/level_data_file.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "ui/debug_aabb_overlay.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -25,6 +26,7 @@
 
 void LevelUi::draw(
     Level &level,
+    const std::string &levelPath,
     const std::vector<std::unique_ptr<Npc>> &npcs,
     const ActorMotionState &playerMotionState,
     const glm::vec2 &playerFeet,
@@ -51,7 +53,7 @@ void LevelUi::draw(
     if (!ImGui::CollapsingHeader("Inspector"))
         return;
 
-    drawLevel(level);
+    drawLevel(level, levelPath);
     drawActors(level, npcs, playerMotionState, playerFeet, playerState, npcData, armed, commands);
 }
 
@@ -112,14 +114,14 @@ std::string LevelUi::asItWouldBeSaved(const Level &level) const
     return json;
 }
 
-void LevelUi::drawLevel(Level &level)
+void LevelUi::drawLevel(Level &level, const std::string &levelPath)
 {
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(110.0f);
     if (ImGui::BeginCombo("##next", levelName(level.getNextLevel()).c_str()))
     {
-        std::string directory = directoryOf(level.getPath());
+        std::string directory = directoryOf(levelPath);
         for (const std::string &path : levelPathsIn(directory))
             if (ImGui::Selectable(levelName(path).c_str(), path == level.getNextLevel()))
                 level.setNextLevel(path);
@@ -164,25 +166,26 @@ void LevelUi::drawOverlay(
     navigationUi.drawOverlay(imGuiManager, camera, level);
 }
 
-void LevelUi::save(Level &level)
+void LevelUi::save(const Level &level, const std::string &levelPath)
 {
-    level.save();
-    saveable.saved(level.getPath(), asItWouldBeSaved(level));
+    writeLevelData(level.toLevelData(), levelPath);
+    saveable.saved(levelPath, asItWouldBeSaved(level));
 }
 
-bool LevelUi::unsavedSince(const Level &level)
+bool LevelUi::unsavedSince(const Level &level, const std::string &levelPath)
 {
-    return saveable.unsavedSince(level.getPath(), asItWouldBeSaved(level));
+    return saveable.unsavedSince(levelPath, asItWouldBeSaved(level));
 }
 
 void LevelUi::update(
     const MouseOnTheMap &mouse,
     Level &level,
+    const std::string &levelPath,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
-    if (saveable.lastSeen(level.getPath()).empty())
-        saveable.seen(level.getPath(), asItWouldBeSaved(level));
+    if (saveable.lastSeen(levelPath).empty())
+        saveable.seen(levelPath, asItWouldBeSaved(level));
 
     grid = whileArmed(grid, armed.has_value());
 

@@ -28,6 +28,7 @@ class LevelUi
 public:
     void draw(
         Level &level,
+        const std::string &levelPath,
         const std::vector<std::unique_ptr<Npc>> &npcs,
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerFeet,
@@ -40,11 +41,12 @@ public:
     void update(
         const MouseOnTheMap &mouse,
         Level &level,
+        const std::string &levelPath,
         std::optional<Armed> &armed,
         EditorCommands &commands);
 
-    void save(Level &level);
-    bool unsavedSince(const Level &level);
+    void save(const Level &level, const std::string &levelPath);
+    bool unsavedSince(const Level &level, const std::string &levelPath);
     void valuesReplaced();
 
 private:
@@ -55,7 +57,7 @@ private:
     bool drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
 
     std::string asItWouldBeSaved(const Level &level) const;
-    void drawLevel(Level &level);
+    void drawLevel(Level &level, const std::string &levelPath);
     void drawActors(
         Level &level,
         const std::vector<std::unique_ptr<Npc>> &npcs,

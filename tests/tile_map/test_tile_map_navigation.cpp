@@ -8,6 +8,7 @@
 #include "npc/npc_spawn_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/level_data_file.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
 #include "tile_map/tile_map_data.hpp"
@@ -16,7 +17,7 @@ namespace
 {
     Level loadLevel(const std::string &path)
     {
-        return Level(path, shippedPalettes(), PlayerData(), shippedNpcData());
+        return Level(readLevelData(path), shippedPalettes(), PlayerData(), shippedNpcData());
     }
 
     void layFloor(TileMap &tileMap, int groundY, int fromX, int toX)
@@ -56,7 +57,7 @@ TEST_CASE(
         std::filesystem::copy_options::overwrite_existing);
 
     Level loaded = loadLevel(savePath.string());
-    loaded.save();
+    writeLevelData(loaded.toLevelData(), savePath.string());
 
     std::string savedJson = readFile(savePath);
 
@@ -78,7 +79,7 @@ TEST_CASE(
     REQUIRE(savedJson.find("\"playerStartTilePosition\":[\n") == std::string::npos);
 
     Level reloaded = loadLevel(savePath.string());
-    reloaded.save();
+    writeLevelData(reloaded.toLevelData(), savePath.string());
     REQUIRE(readFile(savePath) == savedJson);
 
     REQUIRE(reloaded.getTileMap().getWidth() == loaded.getTileMap().getWidth());
@@ -111,7 +112,7 @@ TEST_CASE("Every shipped level is already in the format the editor saves", "[Til
         std::filesystem::copy_file(
             entry.path(), savePath, std::filesystem::copy_options::overwrite_existing);
 
-        loadLevel(savePath.string()).save();
+        writeLevelData(loadLevel(savePath.string()).toLevelData(), savePath.string());
 
         INFO(
             "level " << entry.path().filename().string() << " is not saved in the editor's format");

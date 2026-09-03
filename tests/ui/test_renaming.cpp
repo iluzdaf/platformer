@@ -330,6 +330,7 @@ TEST_CASE("The levels a rename reaches are named back", "[Renaming]")
     REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
 
     LevelData rewritten;
+
     REQUIRE_FALSE(
         glz::read_file_json(rewritten, (directory / "level1.json").string(), std::string{}));
     REQUIRE(rewritten.tileMapData.tilePalette == "base");
@@ -377,6 +378,7 @@ TEST_CASE("The levels a rename will reach are named before it is saved", "[Renam
     REQUIRE_FALSE(renaming.sinceSaved().empty());
 
     LevelData untouched;
+
     REQUIRE_FALSE(
         glz::read_file_json(untouched, (directory / "level1.json").string(), std::string{}));
     REQUIRE(untouched.tileMapData.tilePalette == "default");

@@ -1,5 +1,4 @@
 #include "test_helpers/test_tile_map_utils.hpp"
-#include "npc/walk_between.hpp"
 #include <cstddef>
 #include <optional>
 #include <vector>
@@ -99,9 +98,7 @@ TEST_CASE("A level that strands an npc says so where its save would be", "[Edito
         NpcSpawnData{"villager", glm::ivec2(2, 8), std::nullopt},
         editing.gameData.npcData.at("villager"));
     std::size_t placed = spawnsIn(editing.level).size() - 1;
-    editing.level.getNpc(placed).setPatrol(
-        PatrolData{glm::ivec2(2, 8), glm::ivec2(2, 1)},
-        walkBetween(editing.level.getTileMap(), PatrolData{glm::ivec2(2, 8), glm::ivec2(2, 1)}));
+    editing.level.getNpc(placed).setPatrol(beatOf(glm::ivec2(2, 8), glm::ivec2(2, 1)));
 
     SectionSaving saving = editorUi.savingIn(EditorSection::Level, editing.subject());
 

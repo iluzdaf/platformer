@@ -55,9 +55,7 @@ void World::respawnPlayer()
     std::unique_ptr<Player> newPlayer =
         std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
-    player->setPosition(
-        level->getTileMap().feetOnTile(level->getPlayerStartTile()) -
-        player->getPhysicsBody().getBottomCenterOffset());
+    player->setPosition(level->getPlayerStart() - player->getPhysicsBody().getBottomCenterOffset());
     player->onDeath.connect([this] { luaScriptSystem.triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect(
         [this]()

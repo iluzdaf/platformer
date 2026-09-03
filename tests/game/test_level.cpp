@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "npc/walk_between.hpp"
+#include "game/beat_between.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cstddef>
@@ -28,7 +28,7 @@ namespace
     {
         NpcSpawnData spawn;
         spawn.type = std::move(type);
-        spawn.tilePosition = tilePosition;
+        spawn.position = feetOf(tilePosition);
         return spawn;
     }
 
@@ -67,6 +67,7 @@ namespace
     LevelData corridorPlacing(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
+        levelData.playerStart = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)
@@ -74,7 +75,7 @@ namespace
             (*levelData.tileMapData.indices)[FloorRow][x] = 1;
             (*levelData.tileMapData.indices)[CeilingRow][x] = 1;
         }
-        levelData.playerStartTilePosition = glm::ivec2(1, FloorRow - 1);
+        levelData.playerStart = feetOf(glm::ivec2(1, FloorRow - 1));
         levelData.npcs = npcs;
         return levelData;
     }
@@ -105,6 +106,7 @@ namespace
     Level levelWithALedge(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
+        levelData.playerStart = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(LedgeMapRows, std::vector<int>(LedgeMapTiles, 0));
         std::vector<std::vector<int>> &indices = *levelData.tileMapData.indices;
@@ -121,7 +123,7 @@ namespace
         for (int x = BelowFirstTile; x <= BelowLastTile; ++x)
             indices[BelowRow][x] = 1;
 
-        levelData.playerStartTilePosition = glm::ivec2(1, LedgeGroundRow - 1);
+        levelData.playerStart = feetOf(glm::ivec2(1, LedgeGroundRow - 1));
         levelData.npcs = npcs;
 
         return Level(
@@ -294,7 +296,7 @@ TEST_CASE("A level takes an npc placed after it was built", "[Level]")
     level.addNpc(spawnAt("short", StandingTile), theUsualNpcs().at("short"));
 
     REQUIRE(spawnsIn(level).size() == 1);
-    REQUIRE(spawnsIn(level).front().tilePosition == StandingTile);
+    REQUIRE(spawnsIn(level).front().position == feetOf(StandingTile));
     REQUIRE(spawnsIn(level).front().type == "short");
 }
 
@@ -342,7 +344,7 @@ TEST_CASE("Removing an npc leaves the others where they were", "[Level]")
     level.removeNpc(0);
 
     REQUIRE(spawnsIn(level).size() == 1);
-    REQUIRE(spawnsIn(level).front().tilePosition == secondTile);
+    REQUIRE(spawnsIn(level).front().position == feetOf(secondTile));
 }
 
 TEST_CASE("A level refuses to remove an npc it does not have", "[Level]")
@@ -366,10 +368,10 @@ TEST_CASE("An npc can be moved to another tile", "[Level]")
     glm::ivec2 elsewhere(4, FloorRow - 1);
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    level.getNpc(0).setSpawnTile(elsewhere, level.getTileMap().feetOnTile(elsewhere));
+    level.getNpc(0).moveTo(feetOf(elsewhere));
 
-    REQUIRE(spawnsIn(level).front().tilePosition == elsewhere);
-    REQUIRE(level.toLevelData().npcs.front().tilePosition == elsewhere);
+    REQUIRE(spawnsIn(level).front().position == feetOf(elsewhere));
+    REQUIRE(level.toLevelData().npcs.front().position == feetOf(elsewhere));
 }
 
 TEST_CASE("A level refuses to move an npc it does not have", "[Level]")
@@ -377,8 +379,7 @@ TEST_CASE("A level refuses to move an npc it does not have", "[Level]")
     Level level = levelPlacing({});
 
     REQUIRE_THROWS_WITH(
-        level.getNpc(0).setSpawnTile(StandingTile, glm::vec2(0.0f)),
-        "This level has no npc 0, it has 0");
+        level.getNpc(0).moveTo(glm::vec2(0.0f)), "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("A level refuses to move an npc off the map", "[Level]")
@@ -386,7 +387,7 @@ TEST_CASE("A level refuses to move an npc off the map", "[Level]")
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
     REQUIRE_THROWS(level.getTileMap().feetOnTile(glm::ivec2(-1, 0)));
-    REQUIRE(spawnsIn(level).front().tilePosition == StandingTile);
+    REQUIRE(spawnsIn(level).front().position == feetOf(StandingTile));
 }
 
 TEST_CASE("An npc can be given a beat it did not have", "[Level]")
@@ -395,18 +396,18 @@ TEST_CASE("An npc can be given a beat it did not have", "[Level]")
     Level level = levelPlacing({spawnAt("short", StandingTile)});
     REQUIRE_FALSE(spawnsIn(level).front().patrol);
 
-    PatrolData beat{StandingTile, other};
-    level.getNpc(0).setPatrol(beat, walkBetween(level.getTileMap(), beat));
+    PatrolData beat = beatOf(StandingTile, other);
+    level.getNpc(0).setPatrol(beat);
 
-    REQUIRE(spawnsIn(level).front().patrol == PatrolData{StandingTile, other});
-    REQUIRE(level.toLevelData().npcs.front().patrol == PatrolData{StandingTile, other});
+    REQUIRE(spawnsIn(level).front().patrol == beat);
+    REQUIRE(level.toLevelData().npcs.front().patrol == beat);
 }
 
-TEST_CASE("A level refuses a beat that leaves the map", "[Level]")
+TEST_CASE("A beat cannot be built from a tile off the map", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    REQUIRE_THROWS(walkBetween(level.getTileMap(), PatrolData{StandingTile, glm::ivec2(-1, 0)}));
+    REQUIRE_THROWS(beatBetween(level.getTileMap(), StandingTile, glm::ivec2(-1, 0)));
     REQUIRE_FALSE(spawnsIn(level).front().patrol);
 }
 
@@ -415,17 +416,14 @@ TEST_CASE("A level refuses to give a beat to an npc it does not have", "[Level]"
     Level level = levelPlacing({});
 
     REQUIRE_THROWS_WITH(
-        level.getNpc(0).setPatrol(
-            PatrolData{StandingTile, StandingTile}, std::pair(glm::vec2(0.0f), glm::vec2(0.0f))),
-        "This level has no npc 0, it has 0");
+        level.getNpc(0).setPatrol(PatrolData{}), "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("An npc can be left with no beat at all", "[Level]")
 {
     glm::ivec2 other(4, FloorRow - 1);
     Level level = levelPlacing({spawnAt("short", StandingTile)});
-    PatrolData beat{StandingTile, other};
-    level.getNpc(0).setPatrol(beat, walkBetween(level.getTileMap(), beat));
+    level.getNpc(0).setPatrol(beatOf(StandingTile, other));
 
     level.getNpc(0).clearPatrol();
 
@@ -466,10 +464,10 @@ TEST_CASE("The run beneath an npc reaches both ends of the floor it stands on", 
     std::optional<PatrolData> run = level.runBeneathNpc(0);
 
     REQUIRE(run);
-    REQUIRE(run->from.y == FloorRow - 1);
-    REQUIRE(run->to.y == FloorRow - 1);
-    REQUIRE(run->from.x < StandingTile.x);
-    REQUIRE(run->to.x > StandingTile.x);
+    REQUIRE(run->from.y == feetOf(StandingTile).y);
+    REQUIRE(run->to.y == feetOf(StandingTile).y);
+    REQUIRE(run->from.x < feetOf(StandingTile).x);
+    REQUIRE(run->to.x > feetOf(StandingTile).x);
 }
 
 TEST_CASE("The run beneath an npc names tiles the beat can be saved as", "[Level]")
@@ -479,7 +477,7 @@ TEST_CASE("The run beneath an npc names tiles the beat can be saved as", "[Level
     std::optional<PatrolData> run = level.runBeneathNpc(0);
 
     REQUIRE(run);
-    REQUIRE_NOTHROW(level.getNpc(0).setPatrol(*run, walkBetween(level.getTileMap(), *run)));
+    REQUIRE_NOTHROW(level.getNpc(0).setPatrol(*run));
     REQUIRE(spawnsIn(level).front().patrol == run);
 }
 
@@ -501,29 +499,29 @@ TEST_CASE("A level refuses to look under an npc it does not have", "[Level]")
 TEST_CASE("A beat reaches the outer edges of the tiles it names", "[Level]")
 {
     NpcSpawnData spawn = spawnAt("short", OnTheLedge);
-    spawn.patrol = PatrolData{glm::ivec2(1, LedgeRow - 1), glm::ivec2(4, LedgeRow - 1)};
+    spawn.patrol = beatOf(glm::ivec2(1, LedgeRow - 1), glm::ivec2(4, LedgeRow - 1));
     Level level = levelWithALedge({spawn});
     float tileSize = static_cast<float>(level.getTileMap().getTileSize());
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.getNpc(0).getWalk();
+    const std::optional<PatrolData> &beat = level.getNpc(0).getSpawn().patrol;
 
     REQUIRE(beat);
-    REQUIRE(beat->first.x == 1 * tileSize);
-    REQUIRE(beat->second.x == 5 * tileSize);
+    REQUIRE(beat->from.x == 1 * tileSize);
+    REQUIRE(beat->to.x == 5 * tileSize);
 }
 
 TEST_CASE("A beat named right to left reaches the same two edges", "[Level]")
 {
     NpcSpawnData spawn = spawnAt("short", OnTheLedge);
-    spawn.patrol = PatrolData{glm::ivec2(4, LedgeRow - 1), glm::ivec2(1, LedgeRow - 1)};
+    spawn.patrol = beatOf(glm::ivec2(4, LedgeRow - 1), glm::ivec2(1, LedgeRow - 1));
     Level level = levelWithALedge({spawn});
     float tileSize = static_cast<float>(level.getTileMap().getTileSize());
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.getNpc(0).getWalk();
+    const std::optional<PatrolData> &beat = level.getNpc(0).getSpawn().patrol;
 
     REQUIRE(beat);
-    REQUIRE(beat->first.x == 5 * tileSize);
-    REQUIRE(beat->second.x == 1 * tileSize);
+    REQUIRE(beat->from.x == 5 * tileSize);
+    REQUIRE(beat->to.x == 1 * tileSize);
 }
 
 TEST_CASE("A level hands back the npc standing at an index", "[Level]")
@@ -540,4 +538,28 @@ TEST_CASE("A level says how many npcs it has when asked for one it lacks", "[Lev
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
     REQUIRE_THROWS_WITH(level.getNpc(1), "This level has no npc 1, it has 1");
+}
+
+TEST_CASE("A tile picked in the editor survives the trip through world space", "[Level]")
+{
+    Level level = levelPlacing({});
+    const TileMap &tileMap = level.getTileMap();
+
+    for (int x = 0; x < tileMap.getWidth(); ++x)
+        for (int y = 0; y < tileMap.getHeight(); ++y)
+        {
+            glm::ivec2 tile(x, y);
+            REQUIRE(tileMap.tileUnderFeet(tileMap.feetOnTile(tile)) == tile);
+        }
+}
+
+TEST_CASE("A beat picked in the editor survives the trip through world space", "[Level]")
+{
+    Level level = levelPlacing({});
+    const TileMap &tileMap = level.getTileMap();
+
+    glm::ivec2 left(1, FloorRow - 1), right(6, FloorRow - 1);
+
+    REQUIRE(tilesOfBeat(tileMap, beatBetween(tileMap, left, right)) == std::pair(left, right));
+    REQUIRE(tilesOfBeat(tileMap, beatBetween(tileMap, right, left)) == std::pair(right, left));
 }

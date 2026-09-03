@@ -14,7 +14,7 @@
         ],
         "tilePalette":"default"
     },
-    "playerStartTilePosition":[0,7],
+    "playerStart":[8,128],
     "nextLevel":"levels/level4.json",
     "npcs":[],
     "pickups":[]

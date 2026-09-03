@@ -223,6 +223,15 @@ glm::vec2 TileMap::middleOfTile(glm::ivec2 tilePosition) const
     return topLeftOfTile(tilePosition) + glm::vec2(tileSize * 0.5f);
 }
 
+glm::ivec2 TileMap::tileUnderFeet(glm::vec2 feet) const
+{
+    float tileSizePixels = static_cast<float>(tileSize);
+
+    return glm::ivec2(
+        static_cast<int>(std::floor(feet.x / tileSizePixels)),
+        static_cast<int>(std::round(feet.y / tileSizePixels)) - 1);
+}
+
 glm::ivec2 TileMap::tileStoodOnAt(glm::vec2 worldPosition) const
 {
     float tileSizePixels = static_cast<float>(tileSize);

@@ -153,6 +153,7 @@ add_library(platformer_lib OBJECT
     src/game/playback.cpp
     src/serialization/json_format.cpp
     src/game/level.cpp
+    src/game/beat_between.cpp
     src/game/level_data_file.cpp
     src/game/levels.cpp
     src/game/score.cpp
@@ -182,7 +183,6 @@ add_library(platformer_lib OBJECT
     src/actor/behaviors/route_walker.cpp
     src/actor/behaviors/state_machine_behavior.cpp
     src/npc/npc.cpp
-    src/npc/walk_between.cpp
     src/pickups/pickup.cpp
     src/pickups/collecting.cpp
     src/actor/actor_motion.cpp

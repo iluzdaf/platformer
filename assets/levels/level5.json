@@ -24,10 +24,10 @@
         ],
         "tilePalette":"default"
     },
-    "playerStartTilePosition":[0,17],
+    "playerStart":[8,288],
     "nextLevel":"levels/level6.json",
     "npcs":[],
     "pickups":[
-        {"type":"coin","tilePosition":[6,4]}
+        {"type":"coin","position":[104,72]}
     ]
 }

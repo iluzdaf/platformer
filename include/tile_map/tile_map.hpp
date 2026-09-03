@@ -34,6 +34,7 @@ public:
     glm::vec2 feetOnTile(glm::ivec2 tilePosition) const;
     glm::vec2 middleOfTile(glm::ivec2 tilePosition) const;
     glm::ivec2 tileStoodOnAt(glm::vec2 worldPosition) const;
+    glm::ivec2 tileUnderFeet(glm::vec2 feet) const;
     bool standsOnGround(glm::ivec2 tilePosition) const;
     TileMapData toTileMapData() const;
     bool validTilePosition(glm::ivec2 tilePosition) const;

@@ -3,12 +3,12 @@
 #include <optional>
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
-#include "serialization/glm_ivec2_meta.hpp" // IWYU pragma: keep
+#include "serialization/glm_vec2_meta.hpp" // IWYU pragma: keep
 
 struct PatrolData
 {
-    glm::ivec2 from = glm::ivec2(0, 0);
-    glm::ivec2 to = glm::ivec2(0, 0);
+    glm::vec2 from = glm::vec2(0.0f);
+    glm::vec2 to = glm::vec2(0.0f);
 
     bool operator==(const PatrolData &) const = default;
 };
@@ -16,7 +16,7 @@ struct PatrolData
 struct NpcSpawnData
 {
     std::string type;
-    glm::ivec2 tilePosition = glm::ivec2(0, 0);
+    glm::vec2 position = glm::vec2(0.0f);
 
     std::optional<PatrolData> patrol;
 

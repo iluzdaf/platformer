@@ -7,26 +7,24 @@
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 
-Npc::Npc(
-    const NpcSpawnData &spawn,
-    const NpcData &npcData,
-    glm::vec2 feet,
-    std::optional<std::pair<glm::vec2, glm::vec2>> walkBetween)
+Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
     : Actor(npcData.actorData), spawn(spawn), npcData(npcData)
 {
-    takeBehaviorFrom(walkBetween);
-    setPosition(feet - getPhysicsBody().getBottomCenterOffset());
+    takeBehaviorFromPatrol();
+    moveTo(this->spawn.position);
 }
 
-void Npc::takeBehaviorFrom(std::optional<std::pair<glm::vec2, glm::vec2>> walkBetween)
+void Npc::takeBehaviorFromPatrol()
 {
-    walk = walkBetween;
     if (!npcData.stateMachineBehaviorData)
         return;
 
+    std::optional<std::pair<glm::vec2, glm::vec2>> walk;
+    if (spawn.patrol)
+        walk = std::pair(spawn.patrol->from, spawn.patrol->to);
+
     setBehavior(
-        std::make_unique<StateMachineBehavior>(
-            npcData.stateMachineBehaviorData.value(), walkBetween));
+        std::make_unique<StateMachineBehavior>(npcData.stateMachineBehaviorData.value(), walk));
 }
 
 const NpcSpawnData &Npc::getSpawn() const
@@ -34,25 +32,20 @@ const NpcSpawnData &Npc::getSpawn() const
     return spawn;
 }
 
-const std::optional<std::pair<glm::vec2, glm::vec2>> &Npc::getWalk() const
+void Npc::moveTo(glm::vec2 position)
 {
-    return walk;
+    spawn.position = position;
+    setPosition(position - getPhysicsBody().getBottomCenterOffset());
 }
 
-void Npc::setSpawnTile(glm::ivec2 tilePosition, glm::vec2 feet)
-{
-    spawn.tilePosition = tilePosition;
-    setPosition(feet - getPhysicsBody().getBottomCenterOffset());
-}
-
-void Npc::setPatrol(PatrolData patrol, std::pair<glm::vec2, glm::vec2> walkBetween)
+void Npc::setPatrol(PatrolData patrol)
 {
     spawn.patrol = patrol;
-    takeBehaviorFrom(walkBetween);
+    takeBehaviorFromPatrol();
 }
 
 void Npc::clearPatrol()
 {
     spawn.patrol.reset();
-    takeBehaviorFrom(std::nullopt);
+    takeBehaviorFromPatrol();
 }

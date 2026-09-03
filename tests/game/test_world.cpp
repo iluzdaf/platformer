@@ -42,7 +42,9 @@ TEST_CASE("The player starts standing where the level says", "[World]")
     glm::vec2 feet = world.getPlayer().getPhysicsBody().getAABB().bottomCenter();
 
     REQUIRE(
-        feet == world.getLevel().getTileMap().feetOnTile(world.getLevel().getPlayerStartTile()));
+        feet ==
+        world.getLevel().getTileMap().feetOnTile(
+            world.getLevel().getTileMap().tileUnderFeet(world.getLevel().getPlayerStart())));
 }
 
 TEST_CASE("Respawning the player leaves the rest of the cast alone", "[World]")
@@ -123,7 +125,10 @@ TEST_CASE("An npc added to the level is standing in it straight away", "[World]"
 
     std::size_t before = world.getLevel().getNpcs().size();
     world.getLevel().addNpc(
-        NpcSpawnData{"villager", world.getLevel().getPlayerStartTile(), {}},
+        NpcSpawnData{
+            "villager",
+            world.getLevel().getTileMap().tileUnderFeet(world.getLevel().getPlayerStart()),
+            {}},
         gameData.npcData.at("villager"));
 
     REQUIRE(world.getLevel().getNpcs().size() == before + 1);
@@ -154,14 +159,12 @@ TEST_CASE("A beat edited in the level reaches the npc when it is rebuilt", "[Wor
     World world(gameData, noIntentions(), luaScriptSystem);
     world.loadLevel("levels/level6.json");
 
-    glm::ivec2 spawnTile = spawnsIn(world.getLevel())[1].tilePosition;
-    glm::ivec2 movedTo{spawnTile.x - 1, spawnTile.y};
-    world.getLevel().getNpc(1).setSpawnTile(
-        movedTo, world.getLevel().getTileMap().feetOnTile(movedTo));
+    glm::vec2 spawnAt = spawnsIn(world.getLevel())[1].position;
+    glm::vec2 movedTo{spawnAt.x - TestTileSize, spawnAt.y};
+    world.getLevel().getNpc(1).moveTo(movedTo);
     world.rebuildNpcs();
 
     glm::vec2 feet = world.getLevel().getNpcs()[1]->getPhysicsBody().getAABB().bottomCenter();
 
-    REQUIRE(
-        feet == world.getLevel().getTileMap().feetOnTile(glm::ivec2(spawnTile.x - 1, spawnTile.y)));
+    REQUIRE(feet == movedTo);
 }

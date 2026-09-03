@@ -29,6 +29,7 @@ private:
     void drawChooser(TilePalettes &tilePalettes);
     std::optional<PaletteRenamed> drawRename(TilePalettes &tilePalettes);
     void saveWithRenames(const TilePalettes &tilePalettes);
+    void forgetUnsavedRenaming();
 
     Saveable saveable;
     std::string selectedPalette, askedToWarm, renamingTo;

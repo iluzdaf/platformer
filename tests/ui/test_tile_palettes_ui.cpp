@@ -350,6 +350,33 @@ TEST_CASE("A name already taken is not entered", "[TilePalettesUi]")
     REQUIRE(palettes.contains("other"));
 }
 
+TEST_CASE("Reverting puts the name back in the field", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    Renaming renaming(palettes);
+    auto drawing = renaming.drawing(tilePalettesUi, palettes);
+
+    gui.type("##name", "base", drawing);
+    gui.pressEnter(drawing);
+    REQUIRE(palettes.contains("base"));
+
+    tilePalettesUi.revert(palettes);
+    REQUIRE(palettes.contains("default"));
+
+    renaming.renamed.reset();
+    gui.type("##name", "", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE_FALSE(renaming.renamed.has_value());
+    REQUIRE(palettes.contains("default"));
+}
+
 #endif // SKIP_OPENGL_TESTS
 
 TEST_CASE("Reverting takes back a palette that was added", "[TilePalettesUi]")

@@ -45,6 +45,25 @@ inline const std::map<std::string, NpcData> &shippedNpcData()
     return npcData;
 }
 
+inline int aTileIn(const TilePalette &palette, bool TileData::*what)
+{
+    for (const auto &[tileIndex, tileData] : palette.tiles)
+        if (tileData.*what)
+            return tileIndex;
+
+    throw std::runtime_error("no tile in this palette is what the test needs");
+}
+
+inline int aSolidTileIn(const TilePalette &palette)
+{
+    return aTileIn(palette, &TileData::solid);
+}
+
+inline int aDeadlyTileIn(const TilePalette &palette)
+{
+    return aTileIn(palette, &TileData::deadly);
+}
+
 inline TilePalettes palettesFrom(const TilePalette &palette)
 {
     return {{"default", palette}};

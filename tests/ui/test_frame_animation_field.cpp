@@ -64,7 +64,7 @@ namespace
     float heightOfFrames(HeadlessImGui &gui, FrameAnimationData &animation, bool withSheet)
     {
         Texture2D coin = aSheetOf(7, 6);
-        SheetInScope offering{&coin, Sheet{"textures/tile_set.png", glm::ivec2(16)}, 0};
+        SheetInScope offering{&coin, Sheet{"textures/somewhere.png", glm::ivec2(16)}, 0};
 
         float reached = 0.0f;
         gui.frame(

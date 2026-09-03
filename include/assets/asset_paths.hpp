@@ -20,7 +20,7 @@ namespace assets
     inline constexpr std::string_view FirstLevel = "levels/level1.json";
     inline constexpr std::string_view GameLogicScript = "scripts/game_logic.lua";
 
-    inline constexpr std::string_view TileSetTexture = "textures/tile_set.png";
+    inline constexpr std::string_view TileSetTexture = "textures/cavern.png";
     inline constexpr std::string_view PlayerTexture = "textures/player.png";
 
     inline constexpr std::string_view TileSetVertexShader = "shaders/tile_set.vs";

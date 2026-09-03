@@ -1,6 +1,6 @@
 {
     "default":{
-        "tileSet":{"texture":"textures/tile_set.png","cellSize":[16,16]},
+        "tileSet":{"texture":"textures/cavern.png","cellSize":[16,16]},
         "tiles":{
             "0":{},
             "1":{"deadly":true,"collider":{"offset":[0,12],"size":[16,4]}},
@@ -8,25 +8,25 @@
             "3":{"deadly":true,"collider":{"offset":[12,0],"size":[4,16]}},
             "4":{"deadly":true,"collider":{"offset":[0,0],"size":[16,4]}},
             "5":{"portal":true,"collider":{"offset":[4,4],"size":[8,8]}},
+            "6":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
             "7":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
             "8":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "9":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "14":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "16":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[14,16]}},
-            "19":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[14,16]}},
-            "21":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "22":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "25":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "26":{"solid":true,"collider":{"offset":[2,0],"size":[12,16]}},
-            "28":{"solid":true,"grippable":true,"collider":{"offset":[2,1],"size":[14,15]}},
-            "29":{"solid":true,"collider":{"offset":[0,1],"size":[16,15]}},
-            "31":{"solid":true,"grippable":true,"collider":{"offset":[0,1],"size":[14,15]}},
-            "32":{"solid":true,"collider":{"offset":[2,1],"size":[12,15]}},
-            "33":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "34":{"solid":true,"collider":{"offset":[0,1],"size":[16,15]}},
-            "39":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "40":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "41":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}}
+            "13":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "15":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[14,16]}},
+            "18":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[14,16]}},
+            "20":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "21":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "24":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "25":{"solid":true,"collider":{"offset":[2,0],"size":[12,16]}},
+            "27":{"solid":true,"grippable":true,"collider":{"offset":[2,1],"size":[14,15]}},
+            "28":{"solid":true,"collider":{"offset":[0,1],"size":[16,15]}},
+            "30":{"solid":true,"grippable":true,"collider":{"offset":[0,1],"size":[14,15]}},
+            "31":{"solid":true,"collider":{"offset":[2,1],"size":[12,15]}},
+            "32":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "33":{"solid":true,"collider":{"offset":[0,1],"size":[16,15]}},
+            "35":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "36":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "37":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}}
         }
     }
 }

@@ -12,9 +12,9 @@
 
 namespace
 {
-    constexpr int LeftCap = 39;
-    constexpr int Middle = 40;
-    constexpr int RightCap = 41;
+    constexpr int LeftCap = 35;
+    constexpr int Middle = 36;
+    constexpr int RightCap = 37;
 
     bool isPlatform(int tileIndex)
     {
@@ -96,7 +96,7 @@ TEST_CASE("A platform in open air is capped at both ends", "[Levels]")
 
 TEST_CASE("A platform running into a wall is not capped against it", "[Levels]")
 {
-    constexpr int Wall = 14;
+    constexpr int Wall = 13;
 
     REQUIRE(capsWrongIn(mapOfRow({Wall, Middle, Middle, RightCap, 0}), "row").empty());
     REQUIRE(capsWrongIn(mapOfRow({0, LeftCap, Middle, Middle, Wall}), "row").empty());

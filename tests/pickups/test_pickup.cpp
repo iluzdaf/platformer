@@ -12,7 +12,7 @@ namespace
     PickupData spinning()
     {
         PickupData pickupData;
-        pickupData.sheet = Sheet{"textures/tile_set.png", glm::ivec2(Cell)};
+        pickupData.sheet = Sheet{"textures/somewhere.png", glm::ivec2(Cell)};
         pickupData.animationData = FrameAnimationData{{3, 8, 11}, 0.2f};
         return pickupData;
     }

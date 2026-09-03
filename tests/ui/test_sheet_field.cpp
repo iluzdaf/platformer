@@ -33,7 +33,7 @@ TEST_CASE("A sheet naming no texture says so where the texture is", "[SheetField
 {
     HeadlessImGui gui;
 
-    Sheet named{"textures/tile_set.png", glm::ivec2(16)};
+    Sheet named{"textures/somewhere.png", glm::ivec2(16)};
     Sheet unnamed{"", glm::ivec2(16)};
 
     float withTexture = drawnHeightOf(gui, named);
@@ -45,10 +45,10 @@ TEST_CASE("A sheet naming no texture says so where the texture is", "[SheetField
 TEST_CASE("A sheet keeps what it was given after being drawn", "[SheetField]")
 {
     HeadlessImGui gui;
-    Sheet sheet{"textures/tile_set.png", glm::ivec2(24, 32)};
+    Sheet sheet{"textures/somewhere.png", glm::ivec2(24, 32)};
 
     drawnHeightOf(gui, sheet);
 
-    REQUIRE(sheet.texture == "textures/tile_set.png");
+    REQUIRE(sheet.texture == "textures/somewhere.png");
     REQUIRE(sheet.cellSize == glm::ivec2(24, 32));
 }

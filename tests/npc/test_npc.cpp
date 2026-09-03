@@ -134,12 +134,12 @@ namespace
     constexpr int RiseFirstTile = 12;
     constexpr int RiseLastTile = 18;
 
-    constexpr int WallTile = 19;
-    constexpr int CornerTile = 14;
-    constexpr int GroundTile = 34;
-    constexpr int SurfaceTile = 40;
-    constexpr int SurfaceStartTile = 39;
-    constexpr int SurfaceEndTile = 41;
+    constexpr int WallTile = 18;
+    constexpr int CornerTile = 13;
+    constexpr int GroundTile = 33;
+    constexpr int SurfaceTile = 36;
+    constexpr int SurfaceStartTile = 35;
+    constexpr int SurfaceEndTile = 37;
 
     constexpr glm::ivec2 LedgeLeftEnd{1, LedgeRow - 1};
     constexpr glm::ivec2 LedgeRightEnd{LedgeLastTile, LedgeRow - 1};

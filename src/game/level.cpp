@@ -1,7 +1,4 @@
-#include <algorithm>
 #include <cstddef>
-#include <filesystem>
-#include <fstream>
 #include <optional>
 #include <stdexcept>
 #include <glaze/glaze.hpp>
@@ -10,9 +7,7 @@
 #include <utility>
 #include <map>
 #include "game/level.hpp"
-#include "game/renames.hpp"
-#include "assets/asset_paths.hpp"
-#include "serialization/json_format.hpp"
+#include "game/level_data_file.hpp"
 #include "game/level_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -27,110 +22,6 @@
 
 namespace
 {
-    std::string withPaddedGrid(const std::string &json)
-    {
-        const std::string key = "\"indices\":[";
-        size_t start = json.find(key);
-        if (start == std::string::npos)
-            return json;
-
-        size_t cursor = start + key.size();
-        std::vector<std::vector<std::string>> rows;
-
-        while (cursor < json.size() && json[cursor] == '[')
-        {
-            size_t end = json.find(']', cursor);
-            if (end == std::string::npos)
-                return json;
-
-            std::vector<std::string> cells;
-            for (size_t cell = cursor + 1; cell < end;)
-            {
-                size_t comma = json.find(',', cell);
-                if (comma == std::string::npos || comma > end)
-                    comma = end;
-
-                cells.push_back(json.substr(cell, comma - cell));
-                cell = comma + 1;
-            }
-            rows.push_back(std::move(cells));
-
-            cursor = end + 1;
-            if (cursor < json.size() && json[cursor] == ',')
-                ++cursor;
-        }
-
-        size_t width = 0;
-        for (const auto &row : rows)
-            for (const auto &cell : row)
-                width = std::max(width, cell.size());
-
-        std::string out = json.substr(0, start + key.size());
-        for (size_t row = 0; row < rows.size(); ++row)
-        {
-            out += "[";
-            for (size_t cell = 0; cell < rows[row].size(); ++cell)
-            {
-                if (cell > 0)
-                    out += ",";
-
-                out += std::string(width - rows[row][cell].size(), ' ') + rows[row][cell];
-            }
-            out += "]";
-
-            if (row + 1 < rows.size())
-                out += ",";
-        }
-
-        return out + json.substr(cursor);
-    }
-
-    LevelData readLevelData(const std::string &jsonFilePath)
-    {
-        LevelData levelData;
-        auto error = glz::read_file_json(levelData, jsonFilePath, std::string{});
-        if (error)
-            throw std::runtime_error("Failed to read level json file " + jsonFilePath);
-
-        return levelData;
-    }
-
-    template <class Spawn> bool renameSpawnTypes(std::vector<Spawn> &spawns, const Renames &renames)
-    {
-        bool rewritten = false;
-        for (Spawn &spawn : spawns)
-        {
-            auto renamed = renames.find(spawn.type);
-            if (renamed == renames.end())
-                continue;
-
-            spawn.type = renamed->second;
-            rewritten = true;
-        }
-
-        return rewritten;
-    }
-
-    void writeLevelData(const LevelData &levelData, const std::string &levelPath)
-    {
-        std::string json;
-        if (glz::write_json(levelData, json))
-            throw std::runtime_error("Failed to serialize LevelData to JSON");
-
-        std::ofstream outFile(assets::pathTo(levelPath));
-        outFile << withStructureOnLines(withPaddedGrid(json));
-    }
-
-    std::vector<std::string> levelFilesIn(const std::string &directory)
-    {
-        std::vector<std::string> paths;
-        for (const auto &entry : std::filesystem::directory_iterator(assets::pathTo(directory)))
-            if (entry.path().extension() == ".json")
-                paths.push_back(entry.path().string());
-
-        std::sort(paths.begin(), paths.end());
-        return paths;
-    }
 }
 
 Level::Level(
@@ -138,7 +29,7 @@ Level::Level(
     const TilePalettes &tilePalettes,
     const PlayerData &playerData,
     const std::map<std::string, NpcData> &npcData)
-    : Level(readLevelData(assets::pathTo(levelPath)), tilePalettes, playerData, npcData, levelPath)
+    : Level(readLevelData(levelPath), tilePalettes, playerData, npcData, levelPath)
 {
 }
 
@@ -408,63 +299,6 @@ LevelData Level::toLevelData() const
     levelData.npcs = npcs;
     levelData.pickups = pickups;
     return levelData;
-}
-
-bool rewriting::paletteIn(TileMapData &tileMapData, const Renames &renames)
-{
-    auto renamed = renames.find(tileMapData.tilePalette);
-    if (renamed == renames.end())
-        return false;
-
-    tileMapData.tilePalette = renamed->second;
-    return true;
-}
-
-bool rewriting::typeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames)
-{
-    return renameSpawnTypes(npcs, renames);
-}
-
-bool rewriting::typeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames)
-{
-    return renameSpawnTypes(pickups, renames);
-}
-
-std::vector<std::string> rewriting::theLevels(const std::string &directory, const Rewrite &rewrite)
-{
-    std::vector<std::string> rewritten;
-    for (const std::string &levelPath : levelFilesIn(directory))
-    {
-        LevelData levelData;
-        if (glz::read_file_json(levelData, levelPath, std::string{}))
-            continue;
-
-        if (!rewrite(levelData))
-            continue;
-
-        writeLevelData(levelData, levelPath);
-        rewritten.push_back(levelPath);
-    }
-
-    return rewritten;
-}
-
-std::vector<std::string> rewriting::whatItWouldReach(
-    const std::string &directory,
-    const Rewrite &rewrite)
-{
-    std::vector<std::string> reached;
-    for (const std::string &levelPath : levelFilesIn(directory))
-    {
-        LevelData levelData;
-        if (glz::read_file_json(levelData, levelPath, std::string{}))
-            continue;
-
-        if (rewrite(levelData))
-            reached.push_back(levelPath);
-    }
-
-    return reached;
 }
 
 void Level::save() const

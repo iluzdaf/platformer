@@ -16,10 +16,10 @@
 #include "ui/unsaved_colours.hpp"
 #include "game/game_data.hpp"
 #include "assets/asset_paths.hpp"
-#include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "ui/renaming.hpp"
-#include "game/renames.hpp"
+#include "ui/level_rewriting.hpp"
+#include "ui/renames.hpp"
 
 namespace
 {

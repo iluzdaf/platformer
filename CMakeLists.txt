@@ -125,6 +125,7 @@ add_library(platformer_lib OBJECT
     src/ui/levels_ui.cpp
     src/ui/switching_level.cpp
     src/ui/renaming.cpp
+    src/ui/level_rewriting.cpp
     src/ui/tile_picker.cpp
     src/ui/sheet_in_scope.cpp
     src/ui/frame_animation_field.cpp
@@ -152,6 +153,7 @@ add_library(platformer_lib OBJECT
     src/game/playback.cpp
     src/serialization/json_format.cpp
     src/game/level.cpp
+    src/game/level_data_file.cpp
     src/game/levels.cpp
     src/game/scoring_system.cpp
     src/physics/aabb.cpp

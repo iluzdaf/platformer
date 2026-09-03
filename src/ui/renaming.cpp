@@ -9,9 +9,9 @@
 #include <vector>
 #include <imgui.h>
 #include "ui/renaming.hpp"
-#include "game/renames.hpp"
+#include "ui/level_rewriting.hpp"
+#include "ui/renames.hpp"
 #include "ui/unsaved_colours.hpp"
-#include "game/level.hpp"
 #include "game/levels.hpp"
 #include "game/level_data.hpp"
 

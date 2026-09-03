@@ -59,7 +59,7 @@ public:
     void postFixedUpdate();
     void update(float deltaTime);
     std::vector<Pickup> takePickupsTouching(const AABB &reach);
-    void addNpc(const NpcSpawnData &spawn, const std::map<std::string, NpcData> &npcData);
+    void addNpc(const NpcSpawnData &spawn, const NpcData &npcData);
     void removeNpc(std::size_t index);
     void setNpcSpawnTile(std::size_t index, glm::ivec2 tilePosition);
     void setNpcPatrol(std::size_t index, PatrolData patrol);

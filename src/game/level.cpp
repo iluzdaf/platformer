@@ -276,12 +276,12 @@ const std::vector<PickupSpawnData> &Level::getPickupSpawns() const
     return pickupSpawns;
 }
 
-void Level::addNpc(const NpcSpawnData &spawn, const std::map<std::string, NpcData> &npcData)
+void Level::addNpc(const NpcSpawnData &spawn, const NpcData &npcData)
 {
     if (!npcProfiles.contains(spawn.type))
         throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
-    npcs.push_back(madeFrom(spawn, oneNamed(npcData, "npc", spawn.type)));
+    npcs.push_back(madeFrom(spawn, npcData));
 }
 
 void Level::removeNpc(std::size_t index)

@@ -178,8 +178,9 @@ void lookAheadAtLevels(
     const std::function<bool(LevelData &, const Renames &)> &rename)
 {
     const Renames &renames = renaming.sinceSaved();
-    renaming.willReach(levelsRenameWouldReach(
-        directory, [&](LevelData &levelData) { return rename(levelData, renames); }));
+    renaming.willReach(
+        rewriting::whatItWouldReach(
+            directory, [&](LevelData &levelData) { return rename(levelData, renames); }));
 }
 
 void writeRenamesIntoLevels(
@@ -191,8 +192,8 @@ void writeRenamesIntoLevels(
     if (renames.empty())
         return;
 
-    std::vector<std::string> rewritten =
-        renameInLevels(directory, [&](LevelData &levelData) { return rename(levelData, renames); });
+    std::vector<std::string> rewritten = rewriting::theLevels(
+        directory, [&](LevelData &levelData) { return rename(levelData, renames); });
 
     renaming.applied(rewritten);
 }

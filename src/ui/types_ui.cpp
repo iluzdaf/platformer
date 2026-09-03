@@ -113,8 +113,8 @@ void TypesUi::drawRename(const GameData &gameData)
         std::string(assets::Levels),
         [npc](LevelData &levelData, const Renames &renames)
         {
-            return npc ? renameTypeIn(levelData.npcs, renames)
-                       : renameTypeIn(levelData.pickups, renames);
+            return npc ? rewriting::typeIn(levelData.npcs, renames)
+                       : rewriting::typeIn(levelData.pickups, renames);
         });
 }
 
@@ -188,13 +188,13 @@ void TypesUi::save(GameData &gameData)
         npcRenaming,
         std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
-        { return renameTypeIn(levelData.npcs, renames); });
+        { return rewriting::typeIn(levelData.npcs, renames); });
 
     writeRenamesIntoLevels(
         pickupRenaming,
         std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
-        { return renameTypeIn(levelData.pickups, renames); });
+        { return rewriting::typeIn(levelData.pickups, renames); });
 }
 
 bool TypesUi::unsavedSince(const GameData &gameData)

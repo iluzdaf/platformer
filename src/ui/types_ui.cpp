@@ -94,36 +94,38 @@ void TypesUi::drawChooser(GameData &gameData)
 namespace
 {
     template <class T>
-    void moveKey(std::map<std::string, T> &types, const std::string &from, const std::string &to)
+    void moveKey(
+        std::map<std::string, T> &types,
+        const std::string &from,
+        const std::string &to,
+        TypeShown &showing,
+        TypeShown::What what)
     {
         auto node = types.extract(from);
+        if (node.empty())
+            return;
+
         node.key() = to;
         types.insert(std::move(node));
+
+        if (showing.what == what && showing.name == from)
+            showing.name = to;
     }
 }
 
-std::optional<TypeRenamed> TypesUi::drawRename(GameData &gameData)
+void TypesUi::drawRename(const GameData &gameData)
 {
     bool npc = showing.what == TypeShown::What::Npc;
     Renaming &renaming = npc ? npcRenaming : pickupRenaming;
 
-    std::optional<Renamed> renamed = renaming.draw(
+    renaming.draw(
         npc ? "an npc" : "a pickup",
         showing.name,
-        [npc, &gameData](const std::string &name)
-        { return npc ? gameData.npcData.contains(name) : gameData.pickupData.contains(name); });
-
-    if (!renamed)
-        return std::nullopt;
-
-    if (npc)
-        moveKey(gameData.npcData, renamed->from, renamed->to);
-    else
-        moveKey(gameData.pickupData, renamed->from, renamed->to);
-
-    showing.name = renamed->to;
-
-    return TypeRenamed{showing.what, *renamed};
+        [npc, &renaming, &gameData](const std::string &name)
+        {
+            bool has = npc ? gameData.npcData.contains(name) : gameData.pickupData.contains(name);
+            return has || renaming.somethingIsBecoming(name);
+        });
 }
 
 void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
@@ -150,25 +152,19 @@ void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, Editor
         inspector::drawFields(gameData.pickupData.at(showing.name));
 }
 
-std::optional<TypeRenamed> TypesUi::draw(
-    GameData &gameData,
-    const TextureCache &textures,
-    EditorCommands &commands)
+void TypesUi::draw(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
 {
     drawChooser(gameData);
 
     ImGui::Separator();
 
-    std::optional<TypeRenamed> renamed;
     if (!showing.name.empty())
     {
-        renamed = drawRename(gameData);
+        drawRename(gameData);
         ImGui::Separator();
     }
 
     drawShown(gameData, textures, commands);
-
-    return renamed;
 }
 
 void TypesUi::revert(GameData &gameData)
@@ -191,6 +187,12 @@ void TypesUi::save(GameData &gameData)
         saveable.saved("pickups", asJson(gameData.pickupData));
     }
 
+    for (const auto &[was, is] : npcRenaming.sinceSaved())
+        moveKey(gameData.npcData, was, is, showing, TypeShown::What::Npc);
+
+    for (const auto &[was, is] : pickupRenaming.sinceSaved())
+        moveKey(gameData.pickupData, was, is, showing, TypeShown::What::Pickup);
+
     writeRenamesIntoLevels(
         npcRenaming,
         [](LevelData &levelData, const Renames &renames)
@@ -205,8 +207,10 @@ void TypesUi::save(GameData &gameData)
 bool TypesUi::unsavedSince(const GameData &gameData)
 {
     bool npcs = saveable.unsavedSince("npcs", asJson(gameData.npcData));
+    bool pickups = saveable.unsavedSince("pickups", asJson(gameData.pickupData));
 
-    return saveable.unsavedSince("pickups", asJson(gameData.pickupData)) || npcs;
+    return npcs || pickups || !npcRenaming.sinceSaved().empty() ||
+           !pickupRenaming.sinceSaved().empty();
 }
 
 void TypesUi::show(const TypeShown &type)

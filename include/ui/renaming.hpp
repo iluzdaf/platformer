@@ -31,6 +31,8 @@ public:
         const NameTaken &taken);
 
     const Renames &sinceSaved() const;
+    std::string shownName(const std::string &onDisk) const;
+    bool somethingIsBecoming(const std::string &name) const;
     void applied(int levelsRewritten);
     void forget();
 

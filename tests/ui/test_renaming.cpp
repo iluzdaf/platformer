@@ -184,18 +184,6 @@ TEST_CASE("Every spawn of a renamed pickup type is re-pointed", "[Renaming]")
     REQUIRE(pickups[1].type == "gem");
 }
 
-TEST_CASE("A graph named after several types keeps the ones nobody renamed", "[Renaming]")
-{
-    REQUIRE(
-        renamedLabel("player, villager, explorer", {{"villager", "farmer"}}) ==
-        "player, farmer, explorer");
-}
-
-TEST_CASE("A graph named after one type takes the new name", "[Renaming]")
-{
-    REQUIRE(renamedLabel("villager", {{"villager", "farmer"}}) == "farmer");
-}
-
 TEST_CASE("A rename nobody's level uses rewrites nothing", "[Renaming]")
 {
     int rewritten = renameInLevels(

@@ -49,8 +49,6 @@ private:
     Sheet tileSet;
 
 public:
-    const std::string &getTilePalette() const;
-    void setTilePalette(const std::string &name);
     const Sheet &getTileSet() const;
 
 private:

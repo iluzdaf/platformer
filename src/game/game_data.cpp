@@ -23,10 +23,7 @@ namespace
         if (error)
             throw std::runtime_error("Failed to read " + path);
     }
-}
 
-namespace
-{
     template <typename T> void writeTo(const T &value, std::string_view asset)
     {
         std::string path = assets::pathTo(asset);

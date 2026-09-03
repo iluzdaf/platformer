@@ -309,3 +309,98 @@ TEST_CASE("A sheet is only in scope while a type is being drawn", "[TypesUi]")
     gui.frame([&] { typesUi.draw(gameData, textures, commands); });
     REQUIRE(sheetInScope() == nullptr);
 }
+
+namespace
+{
+    struct TypeRenaming
+    {
+        TextureCache textures;
+        EditorCommands commands;
+        std::optional<TypeRenamed> renamed;
+
+        auto drawing(TypesUi &typesUi, GameData &gameData)
+        {
+            return [&]
+            {
+                if (std::optional<TypeRenamed> said = typesUi.draw(gameData, textures, commands))
+                    renamed = said;
+            };
+        }
+    };
+}
+
+TEST_CASE("A name typed and entered renames the npc that is shown", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.type("##name", "farmer", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(renaming.renamed.has_value());
+    REQUIRE(renaming.renamed->what == TypeShown::What::Npc);
+    REQUIRE(renaming.renamed->renamed.from == "villager");
+    REQUIRE(renaming.renamed->renamed.to == "farmer");
+    REQUIRE(gameData.npcData.contains("farmer"));
+    REQUIRE_FALSE(gameData.npcData.contains("villager"));
+    REQUIRE(gameData.npcData.contains("explorer"));
+}
+
+TEST_CASE("A renamed pickup keeps what it was carrying", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    gameData.pickupData["coin"].scoreDelta = 25;
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.type("##name", "penny", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(renaming.renamed->what == TypeShown::What::Pickup);
+    REQUIRE(gameData.pickupData.at("penny").scoreDelta == 25);
+    REQUIRE_FALSE(gameData.pickupData.contains("coin"));
+}
+
+TEST_CASE("A type cannot take the name of another of its kind", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.type("##name", "explorer", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE_FALSE(renaming.renamed.has_value());
+    REQUIRE(gameData.npcData.contains("villager"));
+}
+
+TEST_CASE("An npc may take a name a pickup has", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.type("##name", "coin", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(renaming.renamed.has_value());
+    REQUIRE(gameData.npcData.contains("coin"));
+    REQUIRE(gameData.pickupData.contains("coin"));
+}

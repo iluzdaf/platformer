@@ -8,7 +8,8 @@
 #include "ui/editor_ui.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/actors_in_level.hpp"
-#include "ui/palette_renamed.hpp"
+#include "ui/renaming.hpp"
+#include "game/renames.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "cameras/camera2d.hpp"
@@ -102,9 +103,19 @@ void EditorUi::draw(
         playerUi.draw(subject.gameData, commands);
         break;
 
-    case EditorSection::Types:
-        typesUi.draw(subject.gameData, subject.textures, commands);
-        break;
+    case EditorSection::Types: {
+        std::optional<TypeRenamed> renamed =
+            typesUi.draw(subject.gameData, subject.textures, commands);
+        if (renamed)
+        {
+            Renames just{{renamed->renamed.from, renamed->renamed.to}};
+            if (renamed->what == TypeShown::What::Npc)
+                subject.level.renameNpcTypes(just);
+            else
+                subject.level.renamePickupTypes(just);
+        }
+    }
+    break;
 
     case EditorSection::Levels:
         levelsUi.draw(subject.levels, subject.level, commands, levelUi.unsavedSince(subject.level));
@@ -123,7 +134,7 @@ void EditorUi::draw(
         break;
 
     case EditorSection::TilePalettes: {
-        std::optional<PaletteRenamed> renamed =
+        std::optional<Renamed> renamed =
             tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
         if (renamed && subject.level.getTileMap().getTilePalette() == renamed->from)
             subject.level.getTileMap().setTilePalette(renamed->to);

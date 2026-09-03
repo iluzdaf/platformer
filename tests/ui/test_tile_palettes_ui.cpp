@@ -9,8 +9,7 @@
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette.hpp"
-#include "game/level.hpp"
-#include "ui/palette_renamed.hpp"
+#include "ui/renaming.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 namespace
@@ -22,58 +21,6 @@ namespace
         palettes["other"] = paletteOf({{0, TileData{}}});
         return palettes;
     }
-}
-
-TEST_CASE("A rename needs a name nobody has taken", "[TilePalettesUi]")
-{
-    TilePalettes palettes = namedPalettes();
-
-    REQUIRE(whyNotARename(palettes, "default", "").has_value());
-    REQUIRE_FALSE(whyNotARename(palettes, "default", "base").has_value());
-}
-
-TEST_CASE("A rename to the name it already has is allowed and does nothing", "[TilePalettesUi]")
-{
-    TilePalettes palettes = namedPalettes();
-
-    REQUIRE_FALSE(whyNotARename(palettes, "default", "default").has_value());
-}
-
-TEST_CASE("A rename cannot take a name already taken", "[TilePalettesUi]")
-{
-    TilePalettes palettes = namedPalettes();
-
-    std::optional<std::string> why = whyNotARename(palettes, "default", "other");
-
-    REQUIRE(why.has_value());
-    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("already a palette"));
-    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("other"));
-}
-
-TEST_CASE("A rename nobody's level uses rewrites nothing", "[TilePalettesUi]")
-{
-    REQUIRE(renamePaletteInLevels(std::string(assets::Levels), {{"nobody", "somebody"}}) == 0);
-}
-
-TEST_CASE("Renaming twice remembers the name that is on disk", "[TilePalettesUi]")
-{
-    std::map<std::string, std::string> renames;
-
-    rememberRename(renames, "default", "base");
-    REQUIRE(renames == std::map<std::string, std::string>{{"default", "base"}});
-
-    rememberRename(renames, "base", "ground");
-    REQUIRE(renames == std::map<std::string, std::string>{{"default", "ground"}});
-}
-
-TEST_CASE("Renaming back to the name on disk remembers nothing", "[TilePalettesUi]")
-{
-    std::map<std::string, std::string> renames;
-
-    rememberRename(renames, "default", "base");
-    rememberRename(renames, "base", "default");
-
-    REQUIRE(renames.empty());
 }
 
 TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
@@ -106,8 +53,7 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "tile_map/tile_palette.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
-#include "game/level.hpp"
-#include "ui/palette_renamed.hpp"
+#include "ui/renaming.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 namespace
@@ -274,7 +220,7 @@ TEST_CASE("A rename is handed back so the level can be told", "[TilePalettesUi]"
     std::optional<Armed> armed;
     EditorCommands commands;
 
-    std::optional<PaletteRenamed> renamed;
+    std::optional<Renamed> renamed;
     gui.frame([&] { renamed = tilePalettesUi.draw(palettes, textures, commands, armed); });
 
     REQUIRE_FALSE(renamed.has_value());
@@ -283,14 +229,14 @@ TEST_CASE("A rename is handed back so the level can be told", "[TilePalettesUi]"
 
 namespace
 {
-    struct Renaming
+    struct TypingAName
     {
         TextureCache textures;
         std::optional<Armed> armed;
         EditorCommands commands;
-        std::optional<PaletteRenamed> renamed;
+        std::optional<Renamed> renamed;
 
-        explicit Renaming(const TilePalettes &palettes)
+        explicit TypingAName(const TilePalettes &palettes)
         {
             textures.warm(palettes.begin()->second.tileSet.texture);
         }
@@ -299,7 +245,7 @@ namespace
         {
             return [&]
             {
-                if (std::optional<PaletteRenamed> said =
+                if (std::optional<Renamed> said =
                         tilePalettesUi.draw(palettes, textures, commands, armed))
                     renamed = said;
             };
@@ -314,7 +260,7 @@ TEST_CASE("A name typed is not a rename until it is entered", "[TilePalettesUi]"
     TilePalettes palettes;
     palettes["default"] = paletteOf({{0, TileData{}}});
 
-    Renaming renaming(palettes);
+    TypingAName renaming(palettes);
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "base", drawing);
@@ -339,7 +285,7 @@ TEST_CASE("A name already taken is not entered", "[TilePalettesUi]")
     palettes["default"] = paletteOf({{0, TileData{}}});
     palettes["other"] = paletteOf({{0, TileData{}}});
 
-    Renaming renaming(palettes);
+    TypingAName renaming(palettes);
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "other", drawing);
@@ -359,7 +305,7 @@ TEST_CASE("Reverting puts the name back in the field", "[TilePalettesUi]")
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
-    Renaming renaming(palettes);
+    TypingAName renaming(palettes);
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "base", drawing);

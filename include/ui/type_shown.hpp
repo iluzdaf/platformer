@@ -3,6 +3,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include "ui/renaming.hpp"
 
 struct TypeShown
 {
@@ -16,6 +17,12 @@ struct TypeShown
     std::string name;
 
     bool operator==(const TypeShown &) const = default;
+};
+
+struct TypeRenamed
+{
+    TypeShown::What what = TypeShown::What::Npc;
+    Renamed renamed;
 };
 
 struct GameData;

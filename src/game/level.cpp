@@ -9,6 +9,8 @@
 #include <utility>
 #include <map>
 #include "game/level.hpp"
+#include "game/renames.hpp"
+#include <functional>
 #include "assets/asset_paths.hpp"
 #include "serialization/json_format.hpp"
 #include "game/level_data.hpp"
@@ -383,9 +385,46 @@ void writeLevelData(const LevelData &levelData, const std::string &levelPath)
     outFile << withStructureOnLines(withPaddedGrid(json));
 }
 
-int renamePaletteInLevels(
-    const std::string &directory,
-    const std::map<std::string, std::string> &renames)
+bool renamePaletteIn(TileMapData &tileMapData, const Renames &renames)
+{
+    auto renamed = renames.find(tileMapData.tilePalette);
+    if (renamed == renames.end())
+        return false;
+
+    tileMapData.tilePalette = renamed->second;
+    return true;
+}
+
+namespace
+{
+    template <class Spawn> bool renameSpawnTypes(std::vector<Spawn> &spawns, const Renames &renames)
+    {
+        bool rewritten = false;
+        for (Spawn &spawn : spawns)
+        {
+            auto renamed = renames.find(spawn.type);
+            if (renamed == renames.end())
+                continue;
+
+            spawn.type = renamed->second;
+            rewritten = true;
+        }
+
+        return rewritten;
+    }
+}
+
+bool renameTypeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames)
+{
+    return renameSpawnTypes(npcs, renames);
+}
+
+bool renameTypeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames)
+{
+    return renameSpawnTypes(pickups, renames);
+}
+
+int renameInLevels(const std::string &directory, const std::function<bool(LevelData &)> &rewrite)
 {
     int rewritten = 0;
     for (const std::string &levelPath : levelPathsIn(directory))
@@ -394,16 +433,60 @@ int renamePaletteInLevels(
         if (glz::read_file_json(levelData, assets::pathTo(levelPath), std::string{}))
             continue;
 
-        auto renamed = renames.find(levelData.tileMapData.tilePalette);
-        if (renamed == renames.end())
+        if (!rewrite(levelData))
             continue;
 
-        levelData.tileMapData.tilePalette = renamed->second;
         writeLevelData(levelData, levelPath);
         ++rewritten;
     }
 
     return rewritten;
+}
+
+std::string renamedLabel(const std::string &label, const Renames &renames)
+{
+    std::string relabelled;
+    for (std::size_t at = 0; at <= label.size();)
+    {
+        std::size_t comma = label.find(", ", at);
+        std::size_t end = comma == std::string::npos ? label.size() : comma;
+        std::string piece = label.substr(at, end - at);
+
+        auto renamed = renames.find(piece);
+        if (!relabelled.empty())
+            relabelled += ", ";
+
+        relabelled += renamed == renames.end() ? piece : renamed->second;
+
+        if (comma == std::string::npos)
+            break;
+
+        at = comma + 2;
+    }
+
+    return relabelled;
+}
+
+void Level::renameNpcTypes(const Renames &renames)
+{
+    renameTypeIn(npcs, renames);
+
+    std::map<std::string, NavigationProfile> renamedProfiles;
+    for (auto &[type, profile] : npcProfiles)
+    {
+        auto renamed = renames.find(type);
+        renamedProfiles.emplace(renamed == renames.end() ? type : renamed->second, profile);
+    }
+
+    npcProfiles = std::move(renamedProfiles);
+
+    for (NamedNavigationGraph &named : graphs)
+        named.name = renamedLabel(named.name, renames);
+}
+
+void Level::renamePickupTypes(const Renames &renames)
+{
+    renameTypeIn(pickups, renames);
 }
 
 void Level::save() const

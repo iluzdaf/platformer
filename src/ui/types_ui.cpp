@@ -15,6 +15,10 @@
 #include "assets/sheet.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "game/game_data.hpp"
+#include "game/level.hpp"
+#include "game/level_data.hpp"
+#include "ui/renaming.hpp"
+#include "game/renames.hpp"
 
 namespace
 {
@@ -87,6 +91,41 @@ void TypesUi::drawChooser(GameData &gameData)
     ImGui::EndPopup();
 }
 
+namespace
+{
+    template <class T>
+    void moveKey(std::map<std::string, T> &types, const std::string &from, const std::string &to)
+    {
+        auto node = types.extract(from);
+        node.key() = to;
+        types.insert(std::move(node));
+    }
+}
+
+std::optional<TypeRenamed> TypesUi::drawRename(GameData &gameData)
+{
+    bool npc = showing.what == TypeShown::What::Npc;
+    Renaming &renaming = npc ? npcRenaming : pickupRenaming;
+
+    std::optional<Renamed> renamed = renaming.draw(
+        npc ? "an npc" : "a pickup",
+        showing.name,
+        [npc, &gameData](const std::string &name)
+        { return npc ? gameData.npcData.contains(name) : gameData.pickupData.contains(name); });
+
+    if (!renamed)
+        return std::nullopt;
+
+    if (npc)
+        moveKey(gameData.npcData, renamed->from, renamed->to);
+    else
+        moveKey(gameData.pickupData, renamed->from, renamed->to);
+
+    showing.name = renamed->to;
+
+    return TypeRenamed{showing.what, *renamed};
+}
+
 void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
 {
     Sheet *sheet = sheetOf(gameData, showing);
@@ -111,19 +150,31 @@ void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, Editor
         inspector::drawFields(gameData.pickupData.at(showing.name));
 }
 
-void TypesUi::draw(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
+std::optional<TypeRenamed> TypesUi::draw(
+    GameData &gameData,
+    const TextureCache &textures,
+    EditorCommands &commands)
 {
     drawChooser(gameData);
 
     ImGui::Separator();
 
+    std::optional<TypeRenamed> renamed;
+    if (!showing.name.empty())
+    {
+        renamed = drawRename(gameData);
+        ImGui::Separator();
+    }
+
     drawShown(gameData, textures, commands);
+
+    return renamed;
 }
 
 void TypesUi::revert(GameData &gameData)
 {
-    revertTo(saveable, "npcs", gameData.npcData);
-    revertTo(saveable, "pickups", gameData.pickupData);
+    revertTo(saveable, "npcs", gameData.npcData, npcRenaming);
+    revertTo(saveable, "pickups", gameData.pickupData, pickupRenaming);
 }
 
 void TypesUi::save(GameData &gameData)
@@ -139,6 +190,16 @@ void TypesUi::save(GameData &gameData)
         savePickupData(gameData.pickupData);
         saveable.saved("pickups", asJson(gameData.pickupData));
     }
+
+    writeRenamesIntoLevels(
+        npcRenaming,
+        [](LevelData &levelData, const Renames &renames)
+        { return renameTypeIn(levelData.npcs, renames); });
+
+    writeRenamesIntoLevels(
+        pickupRenaming,
+        [](LevelData &levelData, const Renames &renames)
+        { return renameTypeIn(levelData.pickups, renames); });
 }
 
 bool TypesUi::unsavedSince(const GameData &gameData)
@@ -156,4 +217,6 @@ void TypesUi::show(const TypeShown &type)
 void TypesUi::valuesReplaced()
 {
     saveable.valuesReplaced();
+    npcRenaming.forget();
+    pickupRenaming.forget();
 }

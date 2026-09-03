@@ -70,6 +70,16 @@ public:
         frame(draw);
     }
 
+    template <class Draw> void stopTyping(Draw &&draw)
+    {
+        frame(
+            [&]
+            {
+                ImGui::ClearActiveID();
+                draw();
+            });
+    }
+
     template <class Draw> void pressEnter(Draw &&draw)
     {
         ImGuiIO &io = ImGui::GetIO();

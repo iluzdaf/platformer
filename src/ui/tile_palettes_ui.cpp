@@ -1,5 +1,4 @@
 #include <cfloat>
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <map>
@@ -9,8 +8,8 @@
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/tile_palettes_ui.hpp"
-#include "ui/palette_renamed.hpp"
-#include "ui/unsaved_colours.hpp"
+#include "ui/renaming.hpp"
+#include "game/renames.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/armed.hpp"
@@ -20,41 +19,25 @@
 #include "tile_map/tile_data.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
-#include "assets/asset_paths.hpp"
+#include "game/level_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/texture_cache.hpp"
 #include "ui/editor_commands.hpp"
 #include "assets/sheet.hpp"
 
-void TilePalettesUi::saveWithRenames(const TilePalettes &tilePalettes)
-{
-    saveTilePalettes(tilePalettes);
-
-    if (renames.empty())
-        return;
-
-    renamePaletteInLevels(std::string(assets::Levels), renames);
-    renames.clear();
-}
-
 namespace
 {
     constexpr float AddWidth = 62.0f;
+}
 
-    bool drawNameField(std::string &name)
+std::string aNameNobodyHasTaken(const TilePalettes &tilePalettes)
+{
+    for (std::size_t suffix = tilePalettes.size() + 1;; ++suffix)
     {
-        std::array<char, 256> buffer{};
-        name.copy(buffer.data(), std::min(name.size(), buffer.size() - 1));
-
-        ImGui::TextUnformatted("name");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(-FLT_MIN);
-        bool entered = ImGui::InputText(
-            "##name", buffer.data(), buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
-        name = buffer.data();
-
-        return entered;
+        std::string name = "palette " + std::to_string(suffix);
+        if (!tilePalettes.contains(name))
+            return name;
     }
 }
 
@@ -65,10 +48,7 @@ void TilePalettesUi::drawChooser(TilePalettes &tilePalettes)
     {
         for (const auto &[name, palette] : tilePalettes)
             if (ImGui::Selectable(name.c_str(), name == selectedPalette))
-            {
                 selectedPalette = name;
-                renamingTo.clear();
-            }
 
         ImGui::EndCombo();
     }
@@ -84,35 +64,27 @@ void TilePalettesUi::drawChooser(TilePalettes &tilePalettes)
 
     tilePalettes.insert({name, made});
     selectedPalette = name;
-    renamingTo.clear();
 }
 
-std::optional<PaletteRenamed> TilePalettesUi::drawRename(TilePalettes &tilePalettes)
+std::optional<Renamed> TilePalettesUi::drawRename(TilePalettes &tilePalettes)
 {
-    if (renamingTo.empty())
-        renamingTo = selectedPalette;
+    std::optional<Renamed> renamed = renaming.draw(
+        "a palette",
+        selectedPalette,
+        [&tilePalettes](const std::string &name) { return tilePalettes.contains(name); });
 
-    bool entered = drawNameField(renamingTo);
-
-    std::optional<std::string> why = whyNotARename(tilePalettes, selectedPalette, renamingTo);
-    if (why)
-        ImGui::TextColored(CannotSaveColour, "%s", why->c_str());
-
-    if (!entered || why || renamingTo == selectedPalette)
+    if (!renamed)
         return std::nullopt;
 
-    PaletteRenamed renamed{selectedPalette, renamingTo};
-    auto node = tilePalettes.extract(selectedPalette);
-    node.key() = renamingTo;
+    auto node = tilePalettes.extract(renamed->from);
+    node.key() = renamed->to;
     tilePalettes.insert(std::move(node));
-
-    rememberRename(renames, renamed.from, renamed.to);
-    selectedPalette = renamed.to;
+    selectedPalette = renamed->to;
 
     return renamed;
 }
 
-std::optional<PaletteRenamed> TilePalettesUi::draw(
+std::optional<Renamed> TilePalettesUi::draw(
     TilePalettes &tilePalettes,
     const TextureCache &textures,
     EditorCommands &commands,
@@ -130,7 +102,7 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
     }
 
     ImGui::Separator();
-    if (std::optional<PaletteRenamed> renamed = drawRename(tilePalettes))
+    if (std::optional<Renamed> renamed = drawRename(tilePalettes))
         return renamed;
 
     TilePalette &palette = tilePalettes.at(selectedPalette);
@@ -194,13 +166,17 @@ std::optional<PaletteRenamed> TilePalettesUi::draw(
 }
 void TilePalettesUi::revert(TilePalettes &tilePalettes)
 {
-    revertTo(saveable, "palettes", tilePalettes);
-    forgetUnsavedRenaming();
+    revertTo(saveable, "palettes", tilePalettes, renaming);
 }
 
 void TilePalettesUi::save(TilePalettes &tilePalettes)
 {
-    saveWithRenames(tilePalettes);
+    saveTilePalettes(tilePalettes);
+    writeRenamesIntoLevels(
+        renaming,
+        [](LevelData &levelData, const Renames &renames)
+        { return renamePaletteIn(levelData.tileMapData, renames); });
+
     saveable.saved("palettes", asJson(tilePalettes));
 }
 
@@ -209,14 +185,8 @@ bool TilePalettesUi::unsavedSince(const TilePalettes &tilePalettes)
     return saveable.unsavedSince("palettes", asJson(tilePalettes));
 }
 
-void TilePalettesUi::forgetUnsavedRenaming()
-{
-    renamingTo.clear();
-    renames.clear();
-}
-
 void TilePalettesUi::valuesReplaced()
 {
     saveable.valuesReplaced();
-    forgetUnsavedRenaming();
+    renaming.forget();
 }

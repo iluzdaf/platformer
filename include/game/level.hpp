@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <vector>
 #include <optional>
@@ -16,12 +17,18 @@
 #include "tile_map/tile_palette.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
+#include "game/renames.hpp"
+#include "tile_map/tile_map_data.hpp"
 
 void writeLevelData(const LevelData &levelData, const std::string &levelPath);
 
-int renamePaletteInLevels(
-    const std::string &directory,
-    const std::map<std::string, std::string> &renames);
+bool renamePaletteIn(TileMapData &tileMapData, const Renames &renames);
+bool renameTypeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames);
+bool renameTypeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames);
+
+std::string renamedLabel(const std::string &label, const Renames &renames);
+
+int renameInLevels(const std::string &directory, const std::function<bool(LevelData &)> &rewrite);
 
 class Level
 {
@@ -60,6 +67,8 @@ public:
     const std::string &getPath() const;
     void setPlayerStartTile(glm::ivec2 tilePosition);
     void setNextLevel(const std::string &levelPath);
+    void renameNpcTypes(const Renames &renames);
+    void renamePickupTypes(const Renames &renames);
     LevelData toLevelData() const;
     void save() const;
 

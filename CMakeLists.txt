@@ -124,7 +124,7 @@ add_library(platformer_lib OBJECT
     src/ui/player_ui.cpp
     src/ui/levels_ui.cpp
     src/ui/switching_level.cpp
-    src/ui/palette_renamed.cpp
+    src/ui/renaming.cpp
     src/ui/tile_picker.cpp
     src/ui/sheet_in_scope.cpp
     src/ui/frame_animation_field.cpp
@@ -283,6 +283,7 @@ add_executable(tests
     tests/ui/test_unsaved_sections.cpp
     tests/ui/test_editor_saving.cpp
     tests/ui/test_types_ui.cpp
+    tests/ui/test_renaming.cpp
     tests/ui/test_section_mark.cpp
     tests/ui/test_sheet_field.cpp
     tests/ui/test_score_icon_field.cpp

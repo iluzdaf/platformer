@@ -1,11 +1,10 @@
 #pragma once
 
-#include <map>
 #include <optional>
 #include <string>
 #include "ui/armed.hpp"
 #include "ui/saveable.hpp"
-#include "ui/palette_renamed.hpp"
+#include "ui/renaming.hpp"
 #include "tile_map/tile_palette.hpp"
 
 class TextureCache;
@@ -14,7 +13,7 @@ struct EditorCommands;
 class TilePalettesUi
 {
 public:
-    std::optional<PaletteRenamed> draw(
+    std::optional<Renamed> draw(
         TilePalettes &tilePalettes,
         const TextureCache &textures,
         EditorCommands &commands,
@@ -27,11 +26,11 @@ public:
 
 private:
     void drawChooser(TilePalettes &tilePalettes);
-    std::optional<PaletteRenamed> drawRename(TilePalettes &tilePalettes);
-    void saveWithRenames(const TilePalettes &tilePalettes);
-    void forgetUnsavedRenaming();
+    std::optional<Renamed> drawRename(TilePalettes &tilePalettes);
 
     Saveable saveable;
-    std::string selectedPalette, askedToWarm, renamingTo;
-    std::map<std::string, std::string> renames;
+    Renaming renaming;
+    std::string selectedPalette, askedToWarm;
 };
+
+std::string aNameNobodyHasTaken(const TilePalettes &tilePalettes);

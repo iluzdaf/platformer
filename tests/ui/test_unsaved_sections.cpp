@@ -1,4 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
+#include <string>
+#include "game/levels_data.hpp"
 #include <tuple>
 #include "game/level_data.hpp"
 #include "cameras/camera2d.hpp"
@@ -7,7 +9,6 @@
 #include "test_helpers/headless_imgui.hpp"
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
-#include "game/levels.hpp"
 #include "test_helpers/asset_path.hpp"
 #include "ui/camera_ui.hpp"
 #include "ui/levels_ui.hpp"
@@ -58,9 +59,9 @@ TEST_CASE("The levels section has nothing unsaved when it is first drawn", "[Uns
 {
     HeadlessImGui gui;
     LevelsUi levelsUi;
-    Levels levels(assetPath("levels.json"));
     GameData gameData = loadGameData();
-    std::string levelPath = assetPath(levels.getFirst());
+    LevelsData levels = gameData.levels;
+    std::string levelPath = assetPath(levels.first);
     Level level(
         readLevelData(levelPath),
         gameData.tilePalettes,
@@ -78,9 +79,9 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
 {
     HeadlessImGui gui;
     LevelsUi levelsUi;
-    Levels levels(assetPath("levels.json"));
     GameData gameData = loadGameData();
-    std::string levelPath = assetPath(levels.getFirst());
+    LevelsData levels = gameData.levels;
+    std::string levelPath = assetPath(levels.first);
     Level level(
         readLevelData(levelPath),
         gameData.tilePalettes,
@@ -90,7 +91,7 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
     EditorCommands commands;
 
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
-    levels.setFirst("levels/level3.json");
+    levels.first = "levels/level3.json";
 
     REQUIRE(levelsUi.unsavedSince(levels));
 }
@@ -154,4 +155,21 @@ TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSecti
     commands.drain();
     REQUIRE(painted);
     REQUIRE(levelUi.unsavedSince(*painted, levelPath));
+}
+
+TEST_CASE("Reverting the levels section puts the first level back", "[UnsavedSections]")
+{
+    LevelsUi levelsUi;
+    LevelsData levels = loadGameData().levels;
+    std::string was = levels.first;
+
+    REQUIRE_FALSE(levelsUi.unsavedSince(levels));
+
+    levels.first = "levels/level3.json";
+    REQUIRE(levelsUi.unsavedSince(levels));
+
+    levelsUi.revert(levels);
+
+    REQUIRE(levels.first == was);
+    REQUIRE_FALSE(levelsUi.unsavedSince(levels));
 }

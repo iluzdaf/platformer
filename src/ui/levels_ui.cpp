@@ -7,6 +7,8 @@
 #include "ui/unsaved_colours.hpp"
 #include "ui/saveable.hpp"
 #include "game/levels.hpp"
+#include "game/levels_data.hpp"
+#include "game/game_data.hpp"
 #include "ui/editor_commands.hpp"
 
 namespace
@@ -34,7 +36,7 @@ namespace
 }
 
 void LevelsUi::draw(
-    Levels &levels,
+    LevelsData &levels,
     const std::string &levelPath,
     EditorCommands &commands,
     bool levelHasUnsavedChanges)
@@ -64,23 +66,23 @@ void LevelsUi::draw(
 
     ImGui::Separator();
 
-    if (std::optional<std::string> first = levelChooser("first", levels.getFirst()))
-        levels.setFirst(*first);
+    if (std::optional<std::string> first = levelChooser("first", levels.first))
+        levels.first = *first;
 }
-void LevelsUi::revert(Levels &levels)
+void LevelsUi::revert(LevelsData &levels)
 {
-    levels.setFirst(saveable.lastSeen("levels"));
-}
-
-void LevelsUi::save(Levels &levels)
-{
-    levels.save();
-    saveable.saved("levels", levels.getFirst());
+    revertTo(saveable, "levels", levels);
 }
 
-bool LevelsUi::unsavedSince(const Levels &levels)
+void LevelsUi::save(const LevelsData &levels)
 {
-    return saveable.unsavedSince("levels", levels.getFirst());
+    saveLevels(levels);
+    saveable.saved("levels", asJson(levels));
+}
+
+bool LevelsUi::unsavedSince(const LevelsData &levels)
+{
+    return saveable.unsavedSince("levels", asJson(levels));
 }
 
 void LevelsUi::valuesReplaced()

@@ -5,6 +5,7 @@
 #include <string_view>
 #include <glaze/glaze.hpp>
 #include "game/game_data.hpp"
+#include "game/levels_data.hpp"
 #include "pickups/pickup_data.hpp"
 #include "cameras/camera2d_data.hpp"
 #include "player/player_data.hpp"
@@ -63,6 +64,11 @@ void savePickupData(const std::map<std::string, PickupData> &pickupData)
     writeTo(pickupData, assets::Pickups);
 }
 
+void saveLevels(const LevelsData &levels)
+{
+    writeTo(levels, assets::LevelList);
+}
+
 void saveTilePalettes(const TilePalettes &tilePalettes)
 {
     writeTo(tilePalettes, assets::TilePalettes);
@@ -77,6 +83,10 @@ GameData loadGameData()
     readInto(loaded.npcData, assets::Npcs);
     readInto(loaded.pickupData, assets::Pickups);
     readInto(loaded.tilePalettes, assets::TilePalettes);
+    readInto(loaded.levels, assets::LevelList);
+
+    if (loaded.levels.first.empty())
+        throw std::runtime_error("first must not be empty");
 
     return loaded;
 }

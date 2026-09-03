@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/levels_data.hpp"
+
 #include "game/level_data.hpp"
 #include <string>
 
@@ -10,7 +12,6 @@
 struct GameData;
 class Camera2D;
 class Level;
-class Levels;
 class Npc;
 class Player;
 class Score;
@@ -25,7 +26,7 @@ struct GameUiSubject
     const std::string &levelPath;
     const Player &player;
     const TextureCache &textures;
-    Levels &levels;
+    LevelsData &levels;
     const Camera2D &camera;
     const Score &score;
     bool paused = false;

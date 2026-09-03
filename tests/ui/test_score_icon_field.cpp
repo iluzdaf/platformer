@@ -16,16 +16,15 @@ TEST_CASE("A score icon draws itself rather than falling through", "[ScoreIconFi
 
 #ifndef SKIP_OPENGL_TESTS
 
-#include "assets/asset_paths.hpp"
 #include "rendering/texture2d.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "test_helpers/made_sheet.hpp"
 #include "ui/sheet_in_scope.hpp"
 
 namespace
 {
     float heightOfIcon(HeadlessImGui &gui, ScoreIcon &icon, bool withSheet)
     {
-        Texture2D sheet(assetPath(std::string(assets::TileSetTexture)));
+        Texture2D sheet = aSheetOf(7, 6);
         SheetInScope offering{&sheet, icon.sheet, icon.frame};
 
         float reached = 0.0f;

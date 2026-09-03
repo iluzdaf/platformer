@@ -23,7 +23,7 @@ TEST_CASE("A sheet too small for one tile holds none", "[TilePicker]")
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
 #include "rendering/texture2d.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "test_helpers/made_sheet.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/editor_ui.hpp"
@@ -61,7 +61,7 @@ namespace
 TEST_CASE("The tile picker offers more cells than the palette configures", "[TilePicker]")
 {
     HeadlessImGui gui;
-    Texture2D tileSet(assetPath("textures/tile_set.png"));
+    Texture2D tileSet = aSheetOf(7, 6);
     const TilePalette &palette = shippedPalettes().at("default");
 
     int cells = tilesInSheet(
@@ -75,7 +75,7 @@ TEST_CASE("The tile picker offers more cells than the palette configures", "[Til
 TEST_CASE("A smaller cell means the picker draws more of them", "[TilePicker]")
 {
     HeadlessImGui gui;
-    Texture2D tileSet(assetPath("textures/tile_set.png"));
+    Texture2D tileSet = aSheetOf(7, 6);
 
     float few = heightOfPicker(gui, tileSet, 200.0f, 32);
     float many = heightOfPicker(gui, tileSet, 200.0f, 8);
@@ -86,7 +86,7 @@ TEST_CASE("A smaller cell means the picker draws more of them", "[TilePicker]")
 TEST_CASE("The tile picker fills the width it is given", "[TilePicker]")
 {
     HeadlessImGui gui;
-    Texture2D tileSet(assetPath("textures/tile_set.png"));
+    Texture2D tileSet = aSheetOf(7, 6);
 
     int narrow = rowsOfPicker(gui, tileSet, 200.0f, 16);
     int wide = rowsOfPicker(gui, tileSet, 400.0f, 16);
@@ -97,7 +97,7 @@ TEST_CASE("The tile picker fills the width it is given", "[TilePicker]")
 TEST_CASE("The tile picker puts everything on one row when it fits", "[TilePicker]")
 {
     HeadlessImGui gui;
-    Texture2D tileSet(assetPath("textures/tile_set.png"));
+    Texture2D tileSet = aSheetOf(7, 6);
 
     REQUIRE(rowsOfPicker(gui, tileSet, 1000.0f, 32) == 1);
 }
@@ -105,7 +105,7 @@ TEST_CASE("The tile picker puts everything on one row when it fits", "[TilePicke
 TEST_CASE("The tile picker wraps rather than overflowing a narrow panel", "[TilePicker]")
 {
     HeadlessImGui gui;
-    Texture2D tileSet(assetPath("textures/tile_set.png"));
+    Texture2D tileSet = aSheetOf(7, 6);
 
     REQUIRE(rowsOfPicker(gui, tileSet, 100.0f, 16) > 4);
 }
@@ -113,7 +113,7 @@ TEST_CASE("The tile picker wraps rather than overflowing a narrow panel", "[Tile
 TEST_CASE("The tile picker does not reflow when the editor gains a scrollbar", "[TilePicker]")
 {
     HeadlessImGui gui;
-    Texture2D tileSet(assetPath("textures/tile_set.png"));
+    Texture2D tileSet = aSheetOf(7, 6);
     const ImGuiStyle &style = ImGui::GetStyle();
 
     float roomy = InspectorWidth - style.WindowPadding.x * 2.0f;

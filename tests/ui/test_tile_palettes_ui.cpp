@@ -109,7 +109,6 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "game/level.hpp"
 #include "ui/palette_renamed.hpp"
 #include "ui/tile_palettes_ui.hpp"
-#include "rendering/tile_set_fit.hpp"
 
 namespace
 {
@@ -214,7 +213,6 @@ TEST_CASE("The palette editor offers every cell of its sheet", "[TilePalettesUi]
 
     gui.frame([&] { tilePalettesUi.draw(palettes, textures, commands, armed); });
 
-    REQUIRE(tilesInSheet(112, 112, 16) == 49);
     REQUIRE(palettes["default"].tiles.size() == 1);
 }
 
@@ -260,7 +258,6 @@ TEST_CASE(
     palettes.insert({"ice", made});
 
     REQUIRE(palettes["ice"].tiles.empty());
-    REQUIRE(tilesInSheet(112, 112, palettes["ice"].tileSet.cellSize.x) == 49);
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
 }
 

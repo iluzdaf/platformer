@@ -27,6 +27,7 @@
 #include "game/catalogue.hpp"
 #include "actor/actor.hpp"
 #include <memory>
+#include <set>
 
 Level::Level(
     const LevelData &levelData,
@@ -53,7 +54,6 @@ Level::Level(
     if (nextLevel.empty())
         throw std::runtime_error("nextLevel must not be empty");
 
-    pickupSpawns = levelData.pickups;
     for (const auto &npc : levelData.npcs)
     {
         glm::ivec2 standsOn = tileMap.tileUnderFeet(npc.position);
@@ -65,7 +65,7 @@ Level::Level(
 
     addGraphFor("player", buildNavigationProfile(playerData.actorData));
 
-    npcTypes.clear();
+    std::set<std::string> npcTypes;
     for (const auto &[type, data] : npcData)
     {
         npcTypes.insert(type);
@@ -79,7 +79,11 @@ Level::Level(
     for (const NpcSpawnData &spawn : levelData.npcs)
         npcs.push_back(std::make_unique<Npc>(spawn, oneNamed(npcData, "npc", spawn.type)));
 
-    rebuildPickups(pickupData);
+    for (const PickupSpawnData &spawn : levelData.pickups)
+    {
+        const PickupData &kind = oneNamed(pickupData, "pickup", spawn.type);
+        pickups.push_back(Pickup(kind, spawn.position - kind.size * 0.5f));
+    }
 }
 
 void Level::addGraphFor(const std::string &name, const NavigationProfile &profile)
@@ -152,17 +156,6 @@ const std::string &Level::getNextLevel() const
 
 Level::~Level() = default;
 
-void Level::rebuildPickups(const std::map<std::string, PickupData> &pickupData)
-{
-    pickups.clear();
-
-    for (const PickupSpawnData &spawn : pickupSpawns)
-    {
-        const PickupData &kind = oneNamed(pickupData, "pickup", spawn.type);
-        pickups.push_back(Pickup(kind, spawn.position - kind.size * 0.5f));
-    }
-}
-
 const std::vector<std::unique_ptr<Npc>> &Level::getNpcs() const
 {
     return npcs;
@@ -202,9 +195,4 @@ void Level::update(float deltaTime)
 std::vector<Pickup> Level::takePickupsTouching(const AABB &reach)
 {
     return takeWhatTouches(pickups, reach);
-}
-
-const std::vector<PickupSpawnData> &Level::getPickupSpawns() const
-{
-    return pickupSpawns;
 }

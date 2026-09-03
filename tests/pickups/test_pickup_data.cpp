@@ -47,26 +47,6 @@ namespace
     }
 }
 
-TEST_CASE("A level remembers the pickups it places", "[Pickups]")
-{
-    Level level = levelFrom(
-        levelPlacing({{"coin", middleOf(glm::ivec2(2, 3))}, {"gem", middleOf(glm::ivec2(1, 1))}}));
-
-    REQUIRE(level.getPickupSpawns().size() == 2);
-    REQUIRE(level.getPickupSpawns()[0].type == "coin");
-    REQUIRE(level.getPickupSpawns()[0].position == middleOf(glm::ivec2(2, 3)));
-    REQUIRE(level.getPickupSpawns()[1].type == "gem");
-}
-
-TEST_CASE("A level saves the pickups it was given", "[Pickups]")
-{
-    Level level = levelFrom(levelPlacing({{"coin", middleOf(glm::ivec2(2, 3))}}));
-
-    REQUIRE(
-        level.getPickupSpawns() ==
-        std::vector<PickupSpawnData>{{"coin", middleOf(glm::ivec2(2, 3))}});
-}
-
 TEST_CASE("A placed pickup survives being written and read back", "[Pickups]")
 {
     LevelData written = levelPlacing({{"coin", middleOf(glm::ivec2(5, 6))}});

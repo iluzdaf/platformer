@@ -3,7 +3,6 @@
 #include <string>
 #include <cstddef>
 #include <map>
-#include <set>
 #include <vector>
 #include <optional>
 #include "game/level_data.hpp"
@@ -15,7 +14,6 @@
 #include "navigation/navigation_profile.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "npc/npc_spawn_data.hpp"
-#include "pickups/pickup_spawn_data.hpp"
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
 #include <memory>
@@ -41,7 +39,6 @@ public:
 
     glm::vec2 getPlayerStart() const;
     const std::string &getNextLevel() const;
-    const std::vector<PickupSpawnData> &getPickupSpawns() const;
 
     const std::vector<std::unique_ptr<Npc>> &getNpcs() const;
     const std::vector<Pickup> &getPickups() const;
@@ -58,12 +55,9 @@ private:
     TileMap tileMap;
     glm::vec2 playerStart = glm::vec2(0.0f);
     std::string nextLevel;
-    std::vector<PickupSpawnData> pickupSpawns;
     std::vector<std::unique_ptr<Npc>> npcs;
     std::vector<Pickup> pickups;
     std::vector<NamedNavigationGraph> graphs;
-    std::set<std::string> npcTypes;
 
     void addGraphFor(const std::string &name, const NavigationProfile &profile);
-    void rebuildPickups(const std::map<std::string, PickupData> &pickupData);
 };

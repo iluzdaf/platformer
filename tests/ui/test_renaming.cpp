@@ -427,3 +427,37 @@ TEST_CASE("What will happen stops being said once it has", "[Renaming]")
 
     std::filesystem::remove_all(directory);
 }
+
+namespace
+{
+    float heightDrawing(HeadlessImGui &gui, Renaming &renaming)
+    {
+        float grew = 0.0f;
+        gui.frame(
+            [&]
+            {
+                float before = ImGui::GetCursorPosY();
+                renaming.draw("a palette", "default", nobodyHasIt);
+                grew = ImGui::GetCursorPosY() - before;
+            });
+
+        return grew;
+    }
+}
+
+TEST_CASE("Levels too many for one line wrap inside the inspector", "[Renaming]")
+{
+    HeadlessImGui gui;
+
+    Renaming one;
+    one.applied({"levels/level1.json"});
+
+    Renaming many;
+    std::vector<std::string> lots;
+    for (int at = 1; at <= 20; ++at)
+        lots.push_back("levels/level" + std::to_string(at) + ".json");
+
+    many.applied(lots);
+
+    REQUIRE(heightDrawing(gui, many) > heightDrawing(gui, one));
+}

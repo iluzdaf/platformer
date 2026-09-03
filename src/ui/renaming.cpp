@@ -17,6 +17,13 @@
 
 namespace
 {
+    void drawWrapped(const ImVec4 &colour, const std::string &line)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, colour);
+        ImGui::TextWrapped("%s", line.c_str());
+        ImGui::PopStyleColor();
+    }
+
     bool drawNameField(std::string &name)
     {
         std::array<char, 256> buffer{};
@@ -80,9 +87,9 @@ std::optional<Renamed> Renaming::draw(
     std::optional<std::string> why =
         whyNotARename(what, shownName(selected), typing, taken(typing));
     if (why)
-        ImGui::TextColored(CannotSaveColour, "%s", why->c_str());
+        drawWrapped(CannotSaveColour, *why);
     else if (std::string levels = whatTheLevelsNeed(); !levels.empty())
-        ImGui::TextDisabled("%s", levels.c_str());
+        drawWrapped(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled), levels);
 
     if (!entered || why || typing == shownName(selected))
         return std::nullopt;

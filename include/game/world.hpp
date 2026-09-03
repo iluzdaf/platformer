@@ -32,7 +32,6 @@ public:
     void postFixedUpdate();
     void update(float deltaTime);
 
-    bool isPlaying(const std::string &levelPath) const;
     const std::string &getLevelPath() const;
     const LevelData &getLevelData() const;
 

@@ -107,11 +107,6 @@ void World::update(float deltaTime)
     level->update(deltaTime);
 }
 
-bool World::isPlaying(const std::string &levelPath) const
-{
-    return level && path == levelPath;
-}
-
 const std::string &World::getLevelPath() const
 {
     return path;

@@ -25,8 +25,6 @@ TEST_CASE("Loading a level fills the world with the level and its cast", "[World
     world.loadLevel("levels/level6.json");
 
     REQUIRE(world.getLevelPath() == "levels/level6.json");
-    REQUIRE(world.isPlaying("levels/level6.json"));
-    REQUIRE_FALSE(world.isPlaying("levels/level1.json"));
 
     const Level &level = world.getLevel();
     REQUIRE(world.getLevel().getNpcs().size() == spawnsIn(level).size());
@@ -71,7 +69,6 @@ TEST_CASE("The player cannot be spawned before there is a level to stand on", "[
     World world(gameData, noIntentions(), luaScriptSystem);
 
     REQUIRE(world.getLevelPath().empty());
-    REQUIRE_FALSE(world.isPlaying("levels/level1.json"));
     REQUIRE_THROWS(world.respawnPlayer());
 }
 

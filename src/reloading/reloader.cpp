@@ -19,9 +19,14 @@ namespace
     }
 }
 
+void Reloader::levelLoaded(const std::string &levelPath)
+{
+    playing = levelPath;
+}
+
 void Reloader::levelChanged(const std::string &levelPath)
 {
-    if (commands.isPlaying && !commands.isPlaying(levelPath))
+    if (levelPath != playing)
         return;
 
     reporting([&] { commands.onLoadLevel(levelPath); });

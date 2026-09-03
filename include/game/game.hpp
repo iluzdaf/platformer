@@ -14,12 +14,12 @@
 #include "scripting/lua_script_system.hpp"
 #include "window/window.hpp"
 
-struct ReloadCommands;
+class Reloader;
 
 class Game
 {
 public:
-    Game(Window &window, ReloadCommands &reloadCommands);
+    Game(Window &window, Reloader &reloader);
     ~Game();
     void frame(float deltaTime);
 

@@ -3,7 +3,6 @@
 #include "reloading/asset_watcher.hpp"
 #include "reloading/game_data_watcher.hpp"
 #include "reloading/level_watcher.hpp"
-#include "reloading/reload_commands.hpp"
 #include "reloading/reloader.hpp"
 #include "reloading/script_watcher.hpp"
 
@@ -13,7 +12,7 @@ public:
     HotReload();
     void process();
 
-    ReloadCommands &commands();
+    Reloader &getReloader();
 
 private:
     Reloader reloader;

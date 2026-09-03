@@ -25,6 +25,17 @@ namespace
         gameData.pickupData = {{"coin", PickupData{}}, {"gem", PickupData{}}};
         return gameData;
     }
+
+    struct TypeRenaming
+    {
+        TextureCache textures;
+        EditorCommands commands;
+
+        auto drawing(TypesUi &typesUi, GameData &gameData)
+        {
+            return [&] { typesUi.draw(gameData, textures, commands); };
+        }
+    };
 }
 
 TEST_CASE("A name nobody has taken is not one that is", "[TypesUi]")
@@ -310,20 +321,6 @@ TEST_CASE("A sheet is only in scope while a type is being drawn", "[TypesUi]")
     REQUIRE(sheetInScope() == nullptr);
     gui.frame([&] { typesUi.draw(gameData, textures, commands); });
     REQUIRE(sheetInScope() == nullptr);
-}
-
-namespace
-{
-    struct TypeRenaming
-    {
-        TextureCache textures;
-        EditorCommands commands;
-
-        auto drawing(TypesUi &typesUi, GameData &gameData)
-        {
-            return [&] { typesUi.draw(gameData, textures, commands); };
-        }
-    };
 }
 
 TEST_CASE("A name typed and entered leaves the types unsaved", "[TypesUi]")

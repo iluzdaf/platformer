@@ -36,6 +36,33 @@ namespace
 
         return renaming;
     }
+
+    std::filesystem::path someLevelsToRewrite()
+    {
+        std::filesystem::path directory =
+            std::filesystem::temp_directory_path() / "platformer_renaming_levels";
+        std::filesystem::remove_all(directory);
+        std::filesystem::create_directories(directory);
+
+        for (const char *name : {"level1.json", "level2.json"})
+            std::filesystem::copy_file(assetPath(std::string("levels/") + name), directory / name);
+
+        return directory;
+    }
+
+    float heightDrawing(HeadlessImGui &gui, Renaming &renaming)
+    {
+        float grew = 0.0f;
+        gui.frame(
+            [&]
+            {
+                float before = ImGui::GetCursorPosY();
+                renaming.draw("a palette", "default", nobodyHasIt);
+                grew = ImGui::GetCursorPosY() - before;
+            });
+
+        return grew;
+    }
 }
 
 TEST_CASE("A rename needs a name nobody has taken", "[Renaming]")
@@ -251,22 +278,6 @@ TEST_CASE("The field follows what is selected", "[Renaming]")
     REQUIRE_FALSE(renamed.has_value());
 }
 
-namespace
-{
-    std::filesystem::path someLevelsToRewrite()
-    {
-        std::filesystem::path directory =
-            std::filesystem::temp_directory_path() / "platformer_renaming_levels";
-        std::filesystem::remove_all(directory);
-        std::filesystem::create_directories(directory);
-
-        for (const char *name : {"level1.json", "level2.json"})
-            std::filesystem::copy_file(assetPath(std::string("levels/") + name), directory / name);
-
-        return directory;
-    }
-}
-
 TEST_CASE("One level re-pointed is named on its own", "[Renaming]")
 {
     REQUIRE(levelsInAList({"levels/level1.json"}) == "level1");
@@ -426,23 +437,6 @@ TEST_CASE("What will happen stops being said once it has", "[Renaming]")
     REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
 
     std::filesystem::remove_all(directory);
-}
-
-namespace
-{
-    float heightDrawing(HeadlessImGui &gui, Renaming &renaming)
-    {
-        float grew = 0.0f;
-        gui.frame(
-            [&]
-            {
-                float before = ImGui::GetCursorPosY();
-                renaming.draw("a palette", "default", nobodyHasIt);
-                grew = ImGui::GetCursorPosY() - before;
-            });
-
-        return grew;
-    }
 }
 
 TEST_CASE("Levels too many for one line wrap inside the inspector", "[Renaming]")

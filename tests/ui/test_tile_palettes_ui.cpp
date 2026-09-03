@@ -70,6 +70,23 @@ namespace
         palettes["other"].tileSet.texture = std::string(assets::PlayerTexture);
         return palettes;
     }
+
+    struct TypingAName
+    {
+        TextureCache textures;
+        std::optional<Armed> armed;
+        EditorCommands commands;
+
+        explicit TypingAName(const TilePalettes &palettes)
+        {
+            textures.warm(palettes.begin()->second.tileSet.texture);
+        }
+
+        auto drawing(TilePalettesUi &tilePalettesUi, TilePalettes &palettes)
+        {
+            return [&] { tilePalettesUi.draw(palettes, textures, commands, armed); };
+        }
+    };
 }
 
 TEST_CASE("The palette editor draws a palette no level is using", "[TilePalettesUi]")
@@ -209,26 +226,6 @@ TEST_CASE(
 
     REQUIRE(palettes["ice"].tiles.empty());
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
-}
-
-namespace
-{
-    struct TypingAName
-    {
-        TextureCache textures;
-        std::optional<Armed> armed;
-        EditorCommands commands;
-
-        explicit TypingAName(const TilePalettes &palettes)
-        {
-            textures.warm(palettes.begin()->second.tileSet.texture);
-        }
-
-        auto drawing(TilePalettesUi &tilePalettesUi, TilePalettes &palettes)
-        {
-            return [&] { tilePalettesUi.draw(palettes, textures, commands, armed); };
-        }
-    };
 }
 
 TEST_CASE("A name typed is not a rename until it is entered", "[TilePalettesUi]")

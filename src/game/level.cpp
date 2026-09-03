@@ -28,7 +28,6 @@
 
 namespace
 {
-
     std::string withPaddedGrid(const std::string &json)
     {
         const std::string key = "\"indices\":[";
@@ -95,6 +94,33 @@ namespace
             throw std::runtime_error("Failed to read level json file " + jsonFilePath);
 
         return levelData;
+    }
+
+    template <class Spawn> bool renameSpawnTypes(std::vector<Spawn> &spawns, const Renames &renames)
+    {
+        bool rewritten = false;
+        for (Spawn &spawn : spawns)
+        {
+            auto renamed = renames.find(spawn.type);
+            if (renamed == renames.end())
+                continue;
+
+            spawn.type = renamed->second;
+            rewritten = true;
+        }
+
+        return rewritten;
+    }
+
+    std::vector<std::string> levelFilesIn(const std::string &directory)
+    {
+        std::vector<std::string> paths;
+        for (const auto &entry : std::filesystem::directory_iterator(assets::pathTo(directory)))
+            if (entry.path().extension() == ".json")
+                paths.push_back(entry.path().string());
+
+        std::sort(paths.begin(), paths.end());
+        return paths;
     }
 }
 
@@ -395,25 +421,6 @@ bool renamePaletteIn(TileMapData &tileMapData, const Renames &renames)
     return true;
 }
 
-namespace
-{
-    template <class Spawn> bool renameSpawnTypes(std::vector<Spawn> &spawns, const Renames &renames)
-    {
-        bool rewritten = false;
-        for (Spawn &spawn : spawns)
-        {
-            auto renamed = renames.find(spawn.type);
-            if (renamed == renames.end())
-                continue;
-
-            spawn.type = renamed->second;
-            rewritten = true;
-        }
-
-        return rewritten;
-    }
-}
-
 bool renameTypeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames)
 {
     return renameSpawnTypes(npcs, renames);
@@ -422,21 +429,6 @@ bool renameTypeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames)
 bool renameTypeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames)
 {
     return renameSpawnTypes(pickups, renames);
-}
-
-namespace
-{
-    std::vector<std::string> levelFilesIn(const std::string &directory)
-    {
-        std::vector<std::string> paths;
-        for (const auto &entry : std::filesystem::directory_iterator(assets::pathTo(directory)))
-            if (entry.path().extension() == ".json")
-                paths.push_back(entry.path().string());
-
-        std::sort(paths.begin(), paths.end());
-        return paths;
-    }
-
 }
 
 std::vector<std::string> renameInLevels(

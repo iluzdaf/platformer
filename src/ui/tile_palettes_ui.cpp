@@ -8,7 +8,8 @@
 #include <imgui.h>
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/renaming.hpp"
-#include "game/renames.hpp"
+#include "ui/level_rewriting.hpp"
+#include "ui/renames.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/armed.hpp"
@@ -18,7 +19,6 @@
 #include "tile_map/tile_data.hpp"
 #include "game/game_data.hpp"
 #include "assets/asset_paths.hpp"
-#include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "tile_map/tile_palette.hpp"
 #include "rendering/texture2d.hpp"

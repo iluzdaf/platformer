@@ -7,7 +7,7 @@
 #include <map>
 #include <utility>
 #include <vector>
-#include "game/renames.hpp"
+#include "ui/renames.hpp"
 #include "ui/saveable.hpp"
 
 struct Renamed

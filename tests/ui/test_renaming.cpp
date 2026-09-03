@@ -8,14 +8,14 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "assets/asset_paths.hpp"
-#include "game/level.hpp"
 #include "game/level_data.hpp"
-#include "game/renames.hpp"
+#include "ui/renames.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "ui/renaming.hpp"
+#include "ui/level_rewriting.hpp"
 #include "ui/saveable.hpp"
 #include "test_helpers/asset_path.hpp"
 

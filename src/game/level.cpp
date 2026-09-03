@@ -19,6 +19,7 @@
 #include "npc/npc_data.hpp"
 #include "tile_map/tile.hpp"
 #include "npc/npc.hpp"
+#include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
 #include "pickups/collecting.hpp"
@@ -77,7 +78,12 @@ Level::Level(
             throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
     for (const NpcSpawnData &spawn : levelData.npcs)
-        npcs.push_back(madeFrom(spawn, oneNamed(npcData, "npc", spawn.type)));
+        npcs.push_back(
+            std::make_unique<Npc>(
+                spawn,
+                oneNamed(npcData, "npc", spawn.type),
+                feetOnTile(spawn.tilePosition),
+                patrolFor(spawn)));
 
     rebuildPickups(pickupData);
 }
@@ -112,8 +118,13 @@ std::optional<std::pair<glm::vec2, glm::vec2>> Level::patrolFor(const NpcSpawnDa
     if (!spawn.patrol)
         return std::nullopt;
 
-    glm::vec2 from = tileMap.feetOnTile(spawn.patrol->from);
-    glm::vec2 to = tileMap.feetOnTile(spawn.patrol->to);
+    return patrolBetween(*spawn.patrol);
+}
+
+std::pair<glm::vec2, glm::vec2> Level::patrolBetween(const PatrolData &patrol) const
+{
+    glm::vec2 from = feetOnTile(patrol.from);
+    glm::vec2 to = feetOnTile(patrol.to);
     float outwards = static_cast<float>(tileMap.getTileSize()) * 0.5f;
 
     if (from.x <= to.x)
@@ -128,6 +139,14 @@ std::optional<std::pair<glm::vec2, glm::vec2>> Level::patrolFor(const NpcSpawnDa
     }
 
     return std::pair(from, to);
+}
+
+glm::vec2 Level::feetOnTile(glm::ivec2 tilePosition) const
+{
+    if (!tileMap.validTilePosition(tilePosition))
+        throw std::runtime_error("Tile coordinates out of bounds");
+
+    return tileMap.feetOnTile(tilePosition);
 }
 
 const std::vector<NamedNavigationGraph> &Level::getGraphs() const
@@ -194,15 +213,6 @@ const std::string &Level::getNextLevel() const
 
 Level::~Level() = default;
 
-std::unique_ptr<Npc> Level::madeFrom(const NpcSpawnData &spawn, const NpcData &npcData) const
-{
-    std::unique_ptr<Npc> made = std::make_unique<Npc>(spawn, npcData, patrolFor(spawn));
-    made->setPosition(
-        tileMap.feetOnTile(spawn.tilePosition) - made->getPhysicsBody().getBottomCenterOffset());
-
-    return made;
-}
-
 void Level::rebuildNpcs(const std::map<std::string, NpcData> &npcData)
 {
     std::vector<NpcSpawnData> placed;
@@ -212,7 +222,12 @@ void Level::rebuildNpcs(const std::map<std::string, NpcData> &npcData)
 
     npcs.clear();
     for (const NpcSpawnData &spawn : placed)
-        npcs.push_back(madeFrom(spawn, oneNamed(npcData, "npc", spawn.type)));
+        npcs.push_back(
+            std::make_unique<Npc>(
+                spawn,
+                oneNamed(npcData, "npc", spawn.type),
+                feetOnTile(spawn.tilePosition),
+                patrolFor(spawn)));
 }
 
 void Level::rebuildPickups(const std::map<std::string, PickupData> &pickupData)
@@ -293,46 +308,14 @@ void Level::addNpc(const NpcSpawnData &spawn, const NpcData &npcData)
     if (!npcProfiles.contains(spawn.type))
         throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
-    npcs.push_back(madeFrom(spawn, npcData));
+    npcs.push_back(
+        std::make_unique<Npc>(spawn, npcData, feetOnTile(spawn.tilePosition), patrolFor(spawn)));
 }
 
 void Level::removeNpc(std::size_t index)
 {
     const Npc &going = getNpc(index);
     std::erase_if(npcs, [&going](const std::unique_ptr<Npc> &npc) { return npc.get() == &going; });
-}
-
-void Level::setNpcSpawnTile(std::size_t index, glm::ivec2 tilePosition)
-{
-    Npc &npc = getNpc(index);
-    if (!tileMap.validTilePosition(tilePosition))
-        throw std::runtime_error("Tile coordinates out of bounds");
-
-    npc.setSpawnTile(tilePosition);
-    npc.setPosition(
-        tileMap.feetOnTile(tilePosition) - npc.getPhysicsBody().getBottomCenterOffset());
-}
-
-void Level::setNpcPatrol(std::size_t index, PatrolData patrol)
-{
-    if (!tileMap.validTilePosition(patrol.from) || !tileMap.validTilePosition(patrol.to))
-        throw std::runtime_error("Tile coordinates out of bounds");
-
-    givePatrol(index, patrol);
-}
-
-void Level::clearNpcPatrol(std::size_t index)
-{
-    givePatrol(index, std::nullopt);
-}
-
-void Level::givePatrol(std::size_t index, std::optional<PatrolData> patrol)
-{
-    Npc &npc = getNpc(index);
-    NpcSpawnData asItWillBe = npc.getSpawn();
-    asItWillBe.patrol = patrol;
-
-    npc.setPatrol(patrol, patrolFor(asItWillBe));
 }
 
 void Level::setPlayerStartTile(glm::ivec2 tilePosition)

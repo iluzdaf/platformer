@@ -361,7 +361,7 @@ TEST_CASE("An npc can be moved to another tile", "[Level]")
     glm::ivec2 elsewhere(4, FloorRow - 1);
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    level.setNpcSpawnTile(0, elsewhere);
+    level.getNpc(0).setSpawnTile(elsewhere, level.feetOnTile(elsewhere));
 
     REQUIRE(spawnsIn(level).front().tilePosition == elsewhere);
     REQUIRE(level.toLevelData().npcs.front().tilePosition == elsewhere);
@@ -372,14 +372,15 @@ TEST_CASE("A level refuses to move an npc it does not have", "[Level]")
     Level level = levelPlacing({});
 
     REQUIRE_THROWS_WITH(
-        level.setNpcSpawnTile(0, StandingTile), "This level has no npc 0, it has 0");
+        level.getNpc(0).setSpawnTile(StandingTile, glm::vec2(0.0f)),
+        "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("A level refuses to move an npc off the map", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    REQUIRE_THROWS(level.setNpcSpawnTile(0, glm::ivec2(-1, 0)));
+    REQUIRE_THROWS(level.feetOnTile(glm::ivec2(-1, 0)));
     REQUIRE(spawnsIn(level).front().tilePosition == StandingTile);
 }
 
@@ -389,7 +390,8 @@ TEST_CASE("An npc can be given a beat it did not have", "[Level]")
     Level level = levelPlacing({spawnAt("short", StandingTile)});
     REQUIRE_FALSE(spawnsIn(level).front().patrol);
 
-    level.setNpcPatrol(0, PatrolData{StandingTile, other});
+    PatrolData beat{StandingTile, other};
+    level.getNpc(0).setPatrol(beat, level.patrolBetween(beat));
 
     REQUIRE(spawnsIn(level).front().patrol == PatrolData{StandingTile, other});
     REQUIRE(level.toLevelData().npcs.front().patrol == PatrolData{StandingTile, other});
@@ -399,7 +401,7 @@ TEST_CASE("A level refuses a beat that leaves the map", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    REQUIRE_THROWS(level.setNpcPatrol(0, PatrolData{StandingTile, glm::ivec2(-1, 0)}));
+    REQUIRE_THROWS(level.patrolBetween(PatrolData{StandingTile, glm::ivec2(-1, 0)}));
     REQUIRE_FALSE(spawnsIn(level).front().patrol);
 }
 
@@ -408,7 +410,8 @@ TEST_CASE("A level refuses to give a beat to an npc it does not have", "[Level]"
     Level level = levelPlacing({});
 
     REQUIRE_THROWS_WITH(
-        level.setNpcPatrol(0, PatrolData{StandingTile, StandingTile}),
+        level.getNpc(0).setPatrol(
+            PatrolData{StandingTile, StandingTile}, std::pair(glm::vec2(0.0f), glm::vec2(0.0f))),
         "This level has no npc 0, it has 0");
 }
 
@@ -416,9 +419,10 @@ TEST_CASE("An npc can be left with no beat at all", "[Level]")
 {
     glm::ivec2 other(4, FloorRow - 1);
     Level level = levelPlacing({spawnAt("short", StandingTile)});
-    level.setNpcPatrol(0, PatrolData{StandingTile, other});
+    PatrolData beat{StandingTile, other};
+    level.getNpc(0).setPatrol(beat, level.patrolBetween(beat));
 
-    level.clearNpcPatrol(0);
+    level.getNpc(0).clearPatrol();
 
     REQUIRE_FALSE(spawnsIn(level).front().patrol);
     REQUIRE_FALSE(level.toLevelData().npcs.front().patrol);
@@ -428,7 +432,7 @@ TEST_CASE("A level refuses to clear the beat of an npc it does not have", "[Leve
 {
     Level level = levelPlacing({});
 
-    REQUIRE_THROWS_WITH(level.clearNpcPatrol(0), "This level has no npc 0, it has 0");
+    REQUIRE_THROWS_WITH(level.getNpc(0).clearPatrol(), "This level has no npc 0, it has 0");
 }
 
 TEST_CASE("Placing an npc adds no graph, because its type already had one", "[Level]")
@@ -470,7 +474,7 @@ TEST_CASE("The run beneath an npc names tiles the beat can be saved as", "[Level
     std::optional<PatrolData> run = level.runBeneathNpc(0);
 
     REQUIRE(run);
-    REQUIRE_NOTHROW(level.setNpcPatrol(0, *run));
+    REQUIRE_NOTHROW(level.getNpc(0).setPatrol(*run, level.patrolBetween(*run)));
     REQUIRE(spawnsIn(level).front().patrol == run);
 }
 

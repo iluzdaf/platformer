@@ -155,7 +155,8 @@ TEST_CASE("A beat edited in the level reaches the npc when it is rebuilt", "[Wor
     world.loadLevel("levels/level6.json");
 
     glm::ivec2 spawnTile = spawnsIn(world.getLevel())[1].tilePosition;
-    world.getLevel().setNpcSpawnTile(1, glm::ivec2(spawnTile.x - 1, spawnTile.y));
+    glm::ivec2 movedTo{spawnTile.x - 1, spawnTile.y};
+    world.getLevel().getNpc(1).setSpawnTile(movedTo, world.getLevel().feetOnTile(movedTo));
     world.rebuildNpcs();
 
     glm::vec2 feet = world.getLevel().getNpcs()[1]->getPhysicsBody().getAABB().bottomCenter();

@@ -439,3 +439,24 @@ TEST_CASE("A level still loads while a type rename waits to be saved", "[TypesUi
         gameData.playerData,
         gameData.npcData));
 }
+
+TEST_CASE("A type rename outlives a reload of the values it waits on", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.type("##name", "penny", drawing);
+    gui.pressEnter(drawing);
+    REQUIRE(typesUi.unsavedSince(gameData));
+
+    typesUi.valuesReplaced();
+
+    REQUIRE(typesUi.unsavedSince(gameData));
+}

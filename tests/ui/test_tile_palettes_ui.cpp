@@ -330,6 +330,27 @@ TEST_CASE("A level still loads while a palette rename waits to be saved", "[Tile
         gameData.npcData));
 }
 
+TEST_CASE("A palette rename outlives a reload of the values it waits on", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    TypingAName renaming(palettes);
+    auto drawing = renaming.drawing(tilePalettesUi, palettes);
+
+    gui.type("##name", "base", drawing);
+    gui.pressEnter(drawing);
+    REQUIRE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.valuesReplaced();
+
+    REQUIRE(tilePalettesUi.unsavedSince(palettes));
+}
+
 #endif // SKIP_OPENGL_TESTS
 
 TEST_CASE("Reverting takes back a palette that was added", "[TilePalettesUi]")

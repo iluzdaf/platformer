@@ -4,7 +4,6 @@
 #include <signals.hpp>
 #include "ui/game_ui.hpp"
 #include "game/game_data.hpp"
-#include "game/levels.hpp"
 #include "game/world.hpp"
 #include "rendering/game_renderer.hpp"
 #include "rendering/screen_transition.hpp"
@@ -38,7 +37,6 @@ private:
     GameRenderer renderer;
     ScreenTransition screenTransition;
     GameUi gameUi;
-    Levels levels;
     fteng::connection onResizeConnection;
     std::vector<fteng::connection> reloadConnections;
     bool showEditors = false;

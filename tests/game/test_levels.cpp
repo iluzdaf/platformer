@@ -1,34 +1,25 @@
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
-#include <filesystem>
 #include <vector>
+#include <glaze/glaze.hpp>
 #include "game/levels.hpp"
+#include "game/levels_data.hpp"
+#include "game/game_data.hpp"
+#include "ui/saveable.hpp"
 #include "test_helpers/asset_path.hpp"
 
-TEST_CASE("Levels names the level the game starts on", "[Levels]")
+TEST_CASE("The game data names the level the game starts on", "[Levels]")
 {
-    Levels levels(assetPath("levels.json"));
-
-    REQUIRE_FALSE(levels.getFirst().empty());
+    REQUIRE_FALSE(loadGameData().levels.first.empty());
 }
 
-TEST_CASE("Setting the first level and saving keeps it", "[Levels]")
+TEST_CASE("The level the game starts on survives being written and read", "[Levels]")
 {
-    std::filesystem::path copy = std::filesystem::temp_directory_path() / "platformer_levels.json";
-    std::filesystem::copy_file(
-        assetPath("levels.json"), copy, std::filesystem::copy_options::overwrite_existing);
+    LevelsData levels{"levels/level4.json"};
 
-    Levels levels(copy.string());
-    levels.setFirst("levels/level4.json");
-    levels.save();
-
-    REQUIRE(Levels(copy.string()).getFirst() == "levels/level4.json");
-    std::filesystem::remove(copy);
-}
-
-TEST_CASE("Reading a levels file that is not there fails", "[Levels]")
-{
-    REQUIRE_THROWS(Levels("does_not_exist.json"));
+    LevelsData back;
+    REQUIRE_FALSE(glz::read_json(back, asJson(levels)));
+    REQUIRE(back.first == "levels/level4.json");
 }
 
 TEST_CASE("The levels folder lists every level it holds", "[Levels]")

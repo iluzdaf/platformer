@@ -5,14 +5,12 @@
 #include "game/game.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
-#include "game/levels.hpp"
 #include "game/world.hpp"
 #include "game/level_data.hpp"
 #include "player/player.hpp"
 #include "ui/game_ui.hpp"
 #include "rendering/screen_transition.hpp"
 #include "cameras/camera2d.hpp"
-#include "assets/asset_paths.hpp"
 #include "window/window.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "reloading/reload_commands.hpp"
@@ -21,8 +19,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
     : window(window), gameData(loadGameData()),
       camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
       world(gameData, keyboardIntentions, luaScriptSystem),
-      gameUi(window, window.getFramebufferSize().x, window.getFramebufferSize().y),
-      levels(assets::pathTo(assets::LevelList))
+      gameUi(window, window.getFramebufferSize().x, window.getFramebufferSize().y)
 {
     window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
     onResizeConnection = window.onResize.connect(
@@ -45,7 +42,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
                 glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
         });
     renderer.warm(gameData);
-    world.loadLevel(levels.getFirst());
+    world.loadLevel(gameData.levels.first);
 
     gameUi.commands().onPlay.connect([this] { playback.play(); });
     gameUi.commands().onPause.connect([this] { playback.pause(); });
@@ -80,7 +77,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
             renderer.warm(gameData);
 
             std::string current = world.getLevelPath();
-            world.loadLevel(current.empty() ? levels.getFirst() : current);
+            world.loadLevel(current.empty() ? gameData.levels.first : current);
         }));
     reloadConnections.push_back(
         reloadCommands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));
@@ -145,7 +142,7 @@ void Game::render()
             world.getLevelPath(),
             world.getPlayer(),
             renderer.getTextures(),
-            levels,
+            gameData.levels,
             camera,
             world.getScore(),
             playback.isPaused(),

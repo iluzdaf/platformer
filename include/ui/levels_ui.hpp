@@ -3,22 +3,22 @@
 #include <optional>
 #include <string>
 #include "ui/saveable.hpp"
+#include "game/levels_data.hpp"
 
 class Level;
-class Levels;
 struct EditorCommands;
 
 class LevelsUi
 {
 public:
     void draw(
-        Levels &levels,
+        LevelsData &levels,
         const std::string &levelPath,
         EditorCommands &commands,
         bool levelHasUnsavedChanges);
-    void save(Levels &levels);
-    void revert(Levels &levels);
-    bool unsavedSince(const Levels &levels);
+    void save(const LevelsData &levels);
+    void revert(LevelsData &levels);
+    bool unsavedSince(const LevelsData &levels);
     void valuesReplaced();
 
 private:

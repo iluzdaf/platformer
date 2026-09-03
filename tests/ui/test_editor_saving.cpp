@@ -1,4 +1,5 @@
 #include "test_helpers/test_tile_map_utils.hpp"
+#include "game/levels_data.hpp"
 #include "game/level_data.hpp"
 #include <cstddef>
 #include <optional>
@@ -13,7 +14,6 @@
 #include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
-#include "game/levels.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "rendering/texture_cache.hpp"
 #include "test_helpers/asset_path.hpp"
@@ -46,7 +46,7 @@ namespace
         }
 
         GameData gameData = loadGameData();
-        Levels levels{assetPath("levels.json")};
+        LevelsData levels = gameData.levels;
         std::string levelPath = assetPath("levels/level6.json");
         LevelData levelData;
         Level level{

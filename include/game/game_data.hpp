@@ -8,6 +8,7 @@
 #include "tile_map/tile_palette.hpp"
 #include "cameras/camera2d_data.hpp"
 #include "game/score_icon.hpp"
+#include "game/levels_data.hpp"
 
 struct GameSettingsData
 {
@@ -25,6 +26,7 @@ struct GameData
     std::map<std::string, NpcData> npcData;
     std::map<std::string, PickupData> pickupData;
     TilePalettes tilePalettes;
+    LevelsData levels;
 };
 
 GameData loadGameData();
@@ -35,3 +37,4 @@ void savePlayerData(const PlayerData &playerData);
 void saveNpcData(const std::map<std::string, NpcData> &npcData);
 void savePickupData(const std::map<std::string, PickupData> &pickupData);
 void saveTilePalettes(const TilePalettes &tilePalettes);
+void saveLevels(const LevelsData &levels);

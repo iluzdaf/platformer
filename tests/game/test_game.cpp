@@ -1,11 +1,10 @@
 #ifndef SKIP_OPENGL_TESTS
+#include "game/game_data.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <string>
 #include "game/game.hpp"
-#include "game/levels.hpp"
 #include "reloading/reload_commands.hpp"
 #include "window/window.hpp"
-#include "test_helpers/asset_path.hpp"
 
 TEST_CASE("Game answers the reload commands it was given", "[Game]")
 {
@@ -14,7 +13,7 @@ TEST_CASE("Game answers the reload commands it was given", "[Game]")
     ReloadCommands commands;
     Game game(window, commands);
 
-    std::string firstLevel = Levels(assetPath("levels.json")).getFirst();
+    std::string firstLevel = loadGameData().levels.first;
 
     SECTION("The level it started on is the level it is playing")
     {

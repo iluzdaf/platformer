@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/levels_data.hpp"
+
 #include "game/level_data.hpp"
 
 #include <array>
@@ -25,7 +27,6 @@ struct GameData;
 class Camera2D;
 class ImGuiManager;
 class Level;
-class Levels;
 class Npc;
 class Player;
 class TextureCache;
@@ -49,7 +50,7 @@ struct EditorSubject
     const LevelData &levelData;
     const std::string &levelPath;
     const TextureCache &textures;
-    Levels &levels;
+    LevelsData &levels;
     const ActorMotionState &playerMotionState;
     glm::vec2 playerFeet;
     const ActorState &playerState;

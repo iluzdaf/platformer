@@ -28,10 +28,6 @@
 #include "actor/actor.hpp"
 #include <memory>
 
-namespace
-{
-}
-
 Level::Level(
     const LevelData &levelData,
     const TilePalettes &tilePalettes,

@@ -24,7 +24,7 @@ public:
     void loadLevel(const std::string &levelPath);
     void rebuildFrom(const LevelData &fromData);
 
-    fteng::signal<void()> onLevelLoaded;
+    fteng::signal<void()> onLevelBuilt;
     void respawnPlayer();
 
     void preFixedUpdate();

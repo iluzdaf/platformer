@@ -31,6 +31,7 @@ void World::loadLevel(const std::string &levelPath)
 {
     path = levelPath;
     rebuildFrom(readLevelData(levelPath));
+    respawnPlayer();
 }
 
 void World::rebuildFrom(const LevelData &fromData)
@@ -45,9 +46,7 @@ void World::rebuildFrom(const LevelData &fromData)
     luaScriptSystem.bindLevel(level.get());
     levelData.tileMapData = level->getTileMap().toTileMapData();
 
-    respawnPlayer();
-
-    onLevelLoaded();
+    onLevelBuilt();
 }
 
 const LevelData &World::getLevelData() const

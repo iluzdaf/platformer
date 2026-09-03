@@ -34,14 +34,14 @@ Game::Game(Window &window, Reloader &reloader)
     keyboardManager.registerKey(GLFW_KEY_F1);
     showEditors = gameData.settings.debug;
 
-    world.onLevelLoaded.connect(
+    world.onLevelBuilt.connect(
         [this]
         {
             const TileMap &tileMap = world.getLevel().getTileMap();
             camera.setWorldBounds(
                 glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
         });
-    world.onLevelLoaded.connect([this, &reloader] { reloader.levelLoaded(world.getLevelPath()); });
+    world.onLevelBuilt.connect([this, &reloader] { reloader.levelLoaded(world.getLevelPath()); });
     renderer.warm(gameData);
     world.loadLevel(gameData.levels.first);
 

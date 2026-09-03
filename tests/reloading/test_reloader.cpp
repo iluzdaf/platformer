@@ -4,18 +4,6 @@
 #include <vector>
 #include "reloading/reloader.hpp"
 
-namespace
-{
-    Reloader playing(const std::string &levelPath)
-    {
-        Reloader reloader;
-        reloader.commands.isPlaying = [levelPath](const std::string &asked)
-        { return asked == levelPath; };
-
-        return reloader;
-    }
-}
-
 TEST_CASE("A shader that changed is the shader rebuilt", "[Reloader]")
 {
     Reloader reloader;
@@ -66,10 +54,11 @@ TEST_CASE("A script changing asks only for scripts", "[Reloader]")
 
 TEST_CASE("The level being played is loaded again when it changes", "[Reloader]")
 {
-    Reloader reloader = playing("levels/level6.json");
+    Reloader reloader;
     std::vector<std::string> loaded;
     reloader.commands.onLoadLevel.connect([&loaded](const std::string &path)
                                           { loaded.push_back(path); });
+    reloader.levelLoaded("levels/level6.json");
 
     reloader.levelChanged("levels/level6.json");
 
@@ -78,7 +67,20 @@ TEST_CASE("The level being played is loaded again when it changes", "[Reloader]"
 
 TEST_CASE("A level nobody is playing is left alone", "[Reloader]")
 {
-    Reloader reloader = playing("levels/level6.json");
+    Reloader reloader;
+    std::vector<std::string> loaded;
+    reloader.commands.onLoadLevel.connect([&loaded](const std::string &path)
+                                          { loaded.push_back(path); });
+    reloader.levelLoaded("levels/level6.json");
+
+    reloader.levelChanged("levels/level1.json");
+
+    REQUIRE(loaded.empty());
+}
+
+TEST_CASE("A level changing before any is played is left alone", "[Reloader]")
+{
+    Reloader reloader;
     std::vector<std::string> loaded;
     reloader.commands.onLoadLevel.connect([&loaded](const std::string &path)
                                           { loaded.push_back(path); });
@@ -86,6 +88,21 @@ TEST_CASE("A level nobody is playing is left alone", "[Reloader]")
     reloader.levelChanged("levels/level1.json");
 
     REQUIRE(loaded.empty());
+}
+
+TEST_CASE("The reloader follows the level most recently played", "[Reloader]")
+{
+    Reloader reloader;
+    std::vector<std::string> loaded;
+    reloader.commands.onLoadLevel.connect([&loaded](const std::string &path)
+                                          { loaded.push_back(path); });
+    reloader.levelLoaded("levels/level6.json");
+    reloader.levelLoaded("levels/level2.json");
+
+    reloader.levelChanged("levels/level6.json");
+    reloader.levelChanged("levels/level2.json");
+
+    REQUIRE(loaded == std::vector<std::string>{"levels/level2.json"});
 }
 
 TEST_CASE("A rebuild that throws is reported rather than escaping", "[Reloader]")

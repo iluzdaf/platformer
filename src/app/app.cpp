@@ -4,7 +4,7 @@
 
 App::App()
     : window(GameSettingsData().windowWidth, GameSettingsData().windowHeight, "platformer"),
-      game(window, hotReload.commands())
+      game(window, hotReload.getReloader())
 {
 }
 

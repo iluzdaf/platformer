@@ -13,9 +13,9 @@
 #include "cameras/camera2d.hpp"
 #include "window/window.hpp"
 #include "scripting/lua_script_system.hpp"
-#include "reloading/reload_commands.hpp"
+#include "reloading/reloader.hpp"
 
-Game::Game(Window &window, ReloadCommands &reloadCommands)
+Game::Game(Window &window, Reloader &reloader)
     : window(window), gameData(loadGameData()),
       camera(gameData.cameraData, window.getFramebufferSize().x, window.getFramebufferSize().y),
       world(gameData, keyboardIntentions, luaScriptSystem),
@@ -41,6 +41,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
             camera.setWorldBounds(
                 glm::vec2(0), glm::vec2(tileMap.getWorldWidth(), tileMap.getWorldHeight()));
         });
+    world.onLevelLoaded.connect([this, &reloader] { reloader.levelLoaded(world.getLevelPath()); });
     renderer.warm(gameData);
     world.loadLevel(gameData.levels.first);
 
@@ -59,15 +60,13 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
     gameUi.commands().onWarmTexture.connect([this](const std::string &texturePath)
                                             { renderer.warmTexture(texturePath); });
 
-    reloadCommands.isPlaying = [this](const std::string &levelPath)
-    { return world.isPlaying(levelPath); };
-    reloadConnections.push_back(reloadCommands.onLoadLevel.connect(
+    reloadConnections.push_back(reloader.commands.onLoadLevel.connect(
         [this](const std::string &levelPath) { world.loadLevel(levelPath); }));
-    reloadConnections.push_back(reloadCommands.onReloadShader.connect(
+    reloadConnections.push_back(reloader.commands.onReloadShader.connect(
         [this](const std::string &shaderPath) { renderer.reloadShader(shaderPath); }));
-    reloadConnections.push_back(reloadCommands.onReloadTexture.connect(
+    reloadConnections.push_back(reloader.commands.onReloadTexture.connect(
         [this](const std::string &texturePath) { renderer.reloadTexture(texturePath); }));
-    reloadConnections.push_back(reloadCommands.onReload.connect(
+    reloadConnections.push_back(reloader.commands.onReload.connect(
         [this]
         {
             gameData = loadGameData();
@@ -80,7 +79,7 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
             world.loadLevel(current.empty() ? gameData.levels.first : current);
         }));
     reloadConnections.push_back(
-        reloadCommands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));
+        reloader.commands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));
 
     luaScriptSystem.bindGameObjects(&playback, &camera, &screenTransition, &world);
 

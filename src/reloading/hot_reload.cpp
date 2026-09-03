@@ -1,6 +1,5 @@
 #include <string>
 #include "reloading/hot_reload.hpp"
-#include "reloading/reload_commands.hpp"
 
 HotReload::HotReload()
 {
@@ -26,7 +25,7 @@ void HotReload::process()
     scriptWatcher.process();
 }
 
-ReloadCommands &HotReload::commands()
+Reloader &HotReload::getReloader()
 {
-    return reloader.commands;
+    return reloader;
 }

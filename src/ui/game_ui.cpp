@@ -24,10 +24,7 @@ void GameUi::draw(const GameUiSubject &subject)
 
     const ScoreIcon &scoreIcon = subject.gameData.settings.scoreIcon;
     drawScore(
-        imGuiManager,
-        subject.scoringSystem,
-        subject.textures.get(scoreIcon.sheet.texture),
-        scoreIcon);
+        imGuiManager, subject.score, subject.textures.get(scoreIcon.sheet.texture), scoreIcon);
 
     editorUi.draw(
         imGuiManager,

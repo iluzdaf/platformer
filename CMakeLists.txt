@@ -155,7 +155,7 @@ add_library(platformer_lib OBJECT
     src/game/level.cpp
     src/game/level_data_file.cpp
     src/game/levels.cpp
-    src/game/scoring_system.cpp
+    src/game/score.cpp
     src/physics/aabb.cpp
     src/timing/fixed_time_step.cpp
     src/physics/physics_body.cpp

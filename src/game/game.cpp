@@ -144,7 +144,7 @@ void Game::render()
             renderer.getTextures(),
             levels,
             camera,
-            world.getScoringSystem(),
+            world.getScore(),
             playback.isPaused(),
             showEditors});
 

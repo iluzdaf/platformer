@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <signals.hpp>
-#include "game/scoring_system.hpp"
+#include "game/score.hpp"
 #include "pickups/pickup.hpp"
 
 class Actor;
@@ -42,7 +42,7 @@ public:
     const std::vector<std::unique_ptr<Npc>> &getNpcs() const;
     const std::vector<Pickup> &getPickups() const;
     const std::vector<Actor *> &getActors() const;
-    const ScoringSystem &getScoringSystem() const;
+    const Score &getScore() const;
 
     void rebuildNpcs();
     void rebuildPickups();
@@ -62,6 +62,6 @@ private:
     std::vector<std::unique_ptr<Npc>> npcs;
     std::vector<Pickup> pickups;
     std::vector<Actor *> actors;
-    ScoringSystem scoringSystem;
+    Score score;
     fteng::connection onLevelCompleteConnection;
 };

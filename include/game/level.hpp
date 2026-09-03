@@ -26,7 +26,9 @@ bool renamePaletteIn(TileMapData &tileMapData, const Renames &renames);
 bool renameTypeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames);
 bool renameTypeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames);
 
-int renameInLevels(const std::string &directory, const std::function<bool(LevelData &)> &rewrite);
+std::vector<std::string> renameInLevels(
+    const std::string &directory,
+    const std::function<bool(LevelData &)> &rewrite);
 
 class Level
 {

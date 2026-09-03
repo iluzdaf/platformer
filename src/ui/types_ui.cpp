@@ -15,6 +15,7 @@
 #include "assets/sheet.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "game/game_data.hpp"
+#include "assets/asset_paths.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "ui/renaming.hpp"
@@ -93,24 +94,6 @@ void TypesUi::drawChooser(GameData &gameData)
 
 namespace
 {
-    template <class T>
-    void moveKey(
-        std::map<std::string, T> &types,
-        const std::string &from,
-        const std::string &to,
-        TypeShown &showing,
-        TypeShown::What what)
-    {
-        auto node = types.extract(from);
-        if (node.empty())
-            return;
-
-        node.key() = to;
-        types.insert(std::move(node));
-
-        if (showing.what == what && showing.name == from)
-            showing.name = to;
-    }
 }
 
 void TypesUi::drawRename(const GameData &gameData)
@@ -175,6 +158,13 @@ void TypesUi::revert(GameData &gameData)
 
 void TypesUi::save(GameData &gameData)
 {
+    renamesTakeEffect(npcRenaming.sinceSaved(), gameData.npcData);
+    renamesTakeEffect(pickupRenaming.sinceSaved(), gameData.pickupData);
+    showing.name = nameAfterRenames(
+        showing.what == TypeShown::What::Npc ? npcRenaming.sinceSaved()
+                                             : pickupRenaming.sinceSaved(),
+        showing.name);
+
     if (saveable.unsaved("npcs", asJson(gameData.npcData)))
     {
         saveNpcData(gameData.npcData);
@@ -187,19 +177,15 @@ void TypesUi::save(GameData &gameData)
         saveable.saved("pickups", asJson(gameData.pickupData));
     }
 
-    for (const auto &[was, is] : npcRenaming.sinceSaved())
-        moveKey(gameData.npcData, was, is, showing, TypeShown::What::Npc);
-
-    for (const auto &[was, is] : pickupRenaming.sinceSaved())
-        moveKey(gameData.pickupData, was, is, showing, TypeShown::What::Pickup);
-
     writeRenamesIntoLevels(
         npcRenaming,
+        std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
         { return renameTypeIn(levelData.npcs, renames); });
 
     writeRenamesIntoLevels(
         pickupRenaming,
+        std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
         { return renameTypeIn(levelData.pickups, renames); });
 }

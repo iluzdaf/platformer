@@ -2,6 +2,8 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <filesystem>
+#include <glaze/glaze.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
@@ -15,6 +17,7 @@
 #include "tile_map/tile_map_data.hpp"
 #include "ui/renaming.hpp"
 #include "ui/saveable.hpp"
+#include "test_helpers/asset_path.hpp"
 
 namespace
 {
@@ -105,9 +108,10 @@ TEST_CASE("A rename already written is not written again", "[Renaming]")
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, "default", "base");
 
-    renaming.applied(2);
+    renaming.applied({"levels/level1.json", "levels/level2.json"});
 
     REQUIRE(renaming.sinceSaved().empty());
+    REQUIRE(renaming.rePointedLevels() == "level1 and level2");
 }
 
 TEST_CASE("Forgetting puts the field back to what is selected", "[Renaming]")
@@ -186,12 +190,12 @@ TEST_CASE("Every spawn of a renamed pickup type is re-pointed", "[Renaming]")
 
 TEST_CASE("A rename nobody's level uses rewrites nothing", "[Renaming]")
 {
-    int rewritten = renameInLevels(
+    std::vector<std::string> rewritten = renameInLevels(
         std::string(assets::Levels),
         [](LevelData &levelData)
         { return renamePaletteIn(levelData.tileMapData, {{"nobody", "somebody"}}); });
 
-    REQUIRE(rewritten == 0);
+    REQUIRE(rewritten.empty());
 }
 
 TEST_CASE("Renames written into the levels stop waiting", "[Renaming]")
@@ -203,6 +207,7 @@ TEST_CASE("Renames written into the levels stop waiting", "[Renaming]")
 
     writeRenamesIntoLevels(
         renaming,
+        std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
         { return renamePaletteIn(levelData.tileMapData, renames); });
 
@@ -244,4 +249,103 @@ TEST_CASE("The field follows what is selected", "[Renaming]")
     gui.pressEnter(drawing);
 
     REQUIRE_FALSE(renamed.has_value());
+}
+
+namespace
+{
+    std::filesystem::path someLevelsToRewrite()
+    {
+        std::filesystem::path directory =
+            std::filesystem::temp_directory_path() / "platformer_renaming_levels";
+        std::filesystem::remove_all(directory);
+        std::filesystem::create_directories(directory);
+
+        for (const char *name : {"level1.json", "level2.json"})
+            std::filesystem::copy_file(assetPath(std::string("levels/") + name), directory / name);
+
+        return directory;
+    }
+}
+
+TEST_CASE("One level re-pointed is named on its own", "[Renaming]")
+{
+    REQUIRE(levelsInAList({"levels/level1.json"}) == "level1");
+}
+
+TEST_CASE("Two levels re-pointed are joined by and", "[Renaming]")
+{
+    REQUIRE(levelsInAList({"levels/level1.json", "levels/level2.json"}) == "level1 and level2");
+}
+
+TEST_CASE("More levels re-pointed take commas up to the last", "[Renaming]")
+{
+    REQUIRE(
+        levelsInAList({"levels/level1.json", "levels/level2.json", "levels/level5.json"}) ==
+        "level1, level2 and level5");
+}
+
+TEST_CASE("No levels re-pointed says nothing", "[Renaming]")
+{
+    REQUIRE(levelsInAList({}).empty());
+}
+
+TEST_CASE("The levels a rename reaches are handed back", "[Renaming]")
+{
+    std::filesystem::path directory = someLevelsToRewrite();
+
+    std::vector<std::string> rewritten = renameInLevels(
+        directory.string(),
+        [](LevelData &levelData)
+        { return renamePaletteIn(levelData.tileMapData, {{"default", "base"}}); });
+
+    REQUIRE(levelsInAList(rewritten) == "level1 and level2");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("The levels a rename reaches are named back", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "default", "base");
+    std::filesystem::path directory = someLevelsToRewrite();
+
+    writeRenamesIntoLevels(
+        renaming,
+        directory.string(),
+        [](LevelData &levelData, const Renames &renames)
+        { return renamePaletteIn(levelData.tileMapData, renames); });
+
+    REQUIRE(renaming.sinceSaved().empty());
+    REQUIRE(renaming.rePointedLevels() == "level1 and level2");
+
+    LevelData rewritten;
+    REQUIRE_FALSE(
+        glz::read_file_json(rewritten, (directory / "level1.json").string(), std::string{}));
+    REQUIRE(rewritten.tileMapData.tilePalette == "base");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("Renames that take effect move the keys they name", "[Renaming]")
+{
+    std::map<std::string, int> catalogue{{"villager", 1}, {"explorer", 2}};
+
+    renamesTakeEffect({{"villager", "farmer"}}, catalogue);
+
+    REQUIRE(catalogue == std::map<std::string, int>{{"farmer", 1}, {"explorer", 2}});
+}
+
+TEST_CASE("A rename naming nothing in the catalogue moves nothing", "[Renaming]")
+{
+    std::map<std::string, int> catalogue{{"villager", 1}};
+
+    renamesTakeEffect({{"nobody", "somebody"}}, catalogue);
+
+    REQUIRE(catalogue == std::map<std::string, int>{{"villager", 1}});
+}
+
+TEST_CASE("A name is what the renames make of it", "[Renaming]")
+{
+    REQUIRE(nameAfterRenames({{"villager", "farmer"}}, "villager") == "farmer");
+    REQUIRE(nameAfterRenames({{"villager", "farmer"}}, "explorer") == "explorer");
 }

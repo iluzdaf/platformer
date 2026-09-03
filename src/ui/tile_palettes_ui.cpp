@@ -17,6 +17,7 @@
 #include "rendering/tile_set_fit.hpp"
 #include "tile_map/tile_data.hpp"
 #include "game/game_data.hpp"
+#include "assets/asset_paths.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "tile_map/tile_palette.hpp"
@@ -158,20 +159,12 @@ void TilePalettesUi::revert(TilePalettes &tilePalettes)
 
 void TilePalettesUi::save(TilePalettes &tilePalettes)
 {
-    for (const auto &[was, is] : renaming.sinceSaved())
-    {
-        auto node = tilePalettes.extract(was);
-        if (node.empty())
-            continue;
-
-        node.key() = is;
-        tilePalettes.insert(std::move(node));
-        if (selectedPalette == was)
-            selectedPalette = is;
-    }
+    renamesTakeEffect(renaming.sinceSaved(), tilePalettes);
+    selectedPalette = nameAfterRenames(renaming.sinceSaved(), selectedPalette);
 
     writeRenamesIntoLevels(
         renaming,
+        std::string(assets::Levels),
         [](LevelData &levelData, const Renames &renames)
         { return renamePaletteIn(levelData.tileMapData, renames); });
 

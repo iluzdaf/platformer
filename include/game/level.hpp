@@ -6,7 +6,6 @@
 #include <set>
 #include <vector>
 #include <optional>
-#include <utility>
 #include "game/level_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "npc/npc_data.hpp"
@@ -41,9 +40,6 @@ public:
     const NavigationGraph &graphFor(const NavigationProfile &profile) const;
     const std::vector<NamedNavigationGraph> &getGraphs() const;
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> patrolFor(const NpcSpawnData &spawn) const;
-    std::pair<glm::vec2, glm::vec2> patrolBetween(const PatrolData &patrol) const;
-    glm::vec2 feetOnTile(glm::ivec2 tilePosition) const;
     void rebuildGraphs();
 
     glm::ivec2 getPlayerStartTile() const;

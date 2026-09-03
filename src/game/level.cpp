@@ -19,6 +19,7 @@
 #include "npc/npc_data.hpp"
 #include "tile_map/tile.hpp"
 #include "npc/npc.hpp"
+#include "npc/walk_between.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
@@ -82,8 +83,8 @@ Level::Level(
             std::make_unique<Npc>(
                 spawn,
                 oneNamed(npcData, "npc", spawn.type),
-                feetOnTile(spawn.tilePosition),
-                patrolFor(spawn)));
+                tileMap.feetOnTile(spawn.tilePosition),
+                spawn.patrol ? std::optional(walkBetween(tileMap, *spawn.patrol)) : std::nullopt));
 
     rebuildPickups(pickupData);
 }
@@ -111,42 +112,6 @@ const TileMap &Level::getTileMap() const
 TileMap &Level::getTileMap()
 {
     return tileMap;
-}
-
-std::optional<std::pair<glm::vec2, glm::vec2>> Level::patrolFor(const NpcSpawnData &spawn) const
-{
-    if (!spawn.patrol)
-        return std::nullopt;
-
-    return patrolBetween(*spawn.patrol);
-}
-
-std::pair<glm::vec2, glm::vec2> Level::patrolBetween(const PatrolData &patrol) const
-{
-    glm::vec2 from = feetOnTile(patrol.from);
-    glm::vec2 to = feetOnTile(patrol.to);
-    float outwards = static_cast<float>(tileMap.getTileSize()) * 0.5f;
-
-    if (from.x <= to.x)
-    {
-        from.x -= outwards;
-        to.x += outwards;
-    }
-    else
-    {
-        from.x += outwards;
-        to.x -= outwards;
-    }
-
-    return std::pair(from, to);
-}
-
-glm::vec2 Level::feetOnTile(glm::ivec2 tilePosition) const
-{
-    if (!tileMap.validTilePosition(tilePosition))
-        throw std::runtime_error("Tile coordinates out of bounds");
-
-    return tileMap.feetOnTile(tilePosition);
 }
 
 const std::vector<NamedNavigationGraph> &Level::getGraphs() const
@@ -218,8 +183,8 @@ void Level::rebuildNpcs(const std::map<std::string, NpcData> &npcData)
             std::make_unique<Npc>(
                 spawn,
                 oneNamed(npcData, "npc", spawn.type),
-                feetOnTile(spawn.tilePosition),
-                patrolFor(spawn)));
+                tileMap.feetOnTile(spawn.tilePosition),
+                spawn.patrol ? std::optional(walkBetween(tileMap, *spawn.patrol)) : std::nullopt));
 }
 
 void Level::rebuildPickups(const std::map<std::string, PickupData> &pickupData)
@@ -301,7 +266,11 @@ void Level::addNpc(const NpcSpawnData &spawn, const NpcData &npcData)
         throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
     npcs.push_back(
-        std::make_unique<Npc>(spawn, npcData, feetOnTile(spawn.tilePosition), patrolFor(spawn)));
+        std::make_unique<Npc>(
+            spawn,
+            npcData,
+            tileMap.feetOnTile(spawn.tilePosition),
+            spawn.patrol ? std::optional(walkBetween(tileMap, *spawn.patrol)) : std::nullopt));
 }
 
 void Level::removeNpc(std::size_t index)

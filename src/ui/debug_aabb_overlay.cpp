@@ -182,7 +182,7 @@ void drawSpawnOf(
     const NpcSpawnData &spawn = npc.getSpawn();
     drawSpawn(spawn.tilePosition, spawn.type);
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
+    const std::optional<std::pair<glm::vec2, glm::vec2>> &beat = npc.getWalk();
     if (!beat)
         return;
 

@@ -85,12 +85,13 @@ namespace
         drawRow("Animation", toString(state.currentAnimationState));
     }
 
-    void drawCannotGetBack(const Level &level, const NpcSpawnData &spawn, const Npc *npc)
+    void drawCannotGetBack(const Level &level, const Npc *npc)
     {
-        std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
-        if (npc && beat &&
+        if (npc && npc->getWalk() &&
             !canPatrolBetween(
-                level.graphFor(npc->getNavigationProfile()), beat->first, beat->second))
+                level.graphFor(npc->getNavigationProfile()),
+                npc->getWalk()->first,
+                npc->getWalk()->second))
             ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "it cannot get back from there");
     }
 
@@ -194,14 +195,13 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
     const std::vector<std::unique_ptr<Npc>> &placed = level.getNpcs();
     for (std::size_t index = 0; index < placed.size(); ++index)
     {
-        const NpcSpawnData &spawn = placed[index]->getSpawn();
-        std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);
+        const std::optional<std::pair<glm::vec2, glm::vec2>> &beat = placed[index]->getWalk();
         if (!beat ||
             canPatrolBetween(
                 level.graphFor(placed[index]->getNavigationProfile()), beat->first, beat->second))
             continue;
 
-        names += (names.empty() ? "" : ", ") + labelOf(spawn, index);
+        names += (names.empty() ? "" : ", ") + labelOf(placed[index]->getSpawn(), index);
     }
 
     if (names.empty())
@@ -284,7 +284,7 @@ ActorAsked drawActorsInLevel(
         const NpcSpawnData &spawn = npc->getSpawn();
 
         ImGui::Separator();
-        drawCannotGetBack(level, spawn, npc);
+        drawCannotGetBack(level, npc);
 
         if (ImGui::BeginTable("Npc", 2, ImGuiTableFlags_BordersInnerV))
         {

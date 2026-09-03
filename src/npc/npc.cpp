@@ -20,6 +20,7 @@ Npc::Npc(
 
 void Npc::takeBehaviorFrom(std::optional<std::pair<glm::vec2, glm::vec2>> walkBetween)
 {
+    walk = walkBetween;
     if (!npcData.stateMachineBehaviorData)
         return;
 
@@ -31,6 +32,11 @@ void Npc::takeBehaviorFrom(std::optional<std::pair<glm::vec2, glm::vec2>> walkBe
 const NpcSpawnData &Npc::getSpawn() const
 {
     return spawn;
+}
+
+const std::optional<std::pair<glm::vec2, glm::vec2>> &Npc::getWalk() const
+{
+    return walk;
 }
 
 void Npc::setSpawnTile(glm::ivec2 tilePosition, glm::vec2 feet)

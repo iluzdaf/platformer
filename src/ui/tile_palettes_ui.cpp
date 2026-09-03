@@ -40,24 +40,27 @@ void TilePalettesUi::saveWithRenames(const TilePalettes &tilePalettes)
 
 namespace
 {
-    constexpr float RenameWidth = 62.0f;
+    constexpr float AddWidth = 62.0f;
 
-    void drawNameField(std::string &name)
+    bool drawNameField(std::string &name)
     {
         std::array<char, 256> buffer{};
         name.copy(buffer.data(), std::min(name.size(), buffer.size() - 1));
 
         ImGui::TextUnformatted("name");
         ImGui::SameLine();
-        ImGui::SetNextItemWidth(-RenameWidth);
-        if (ImGui::InputText("##name", buffer.data(), buffer.size()))
-            name = buffer.data();
+        ImGui::SetNextItemWidth(-FLT_MIN);
+        bool entered = ImGui::InputText(
+            "##name", buffer.data(), buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+        name = buffer.data();
+
+        return entered;
     }
 }
 
 void TilePalettesUi::drawChooser(TilePalettes &tilePalettes)
 {
-    ImGui::SetNextItemWidth(-RenameWidth);
+    ImGui::SetNextItemWidth(-AddWidth);
     if (ImGui::BeginCombo("##palette", selectedPalette.c_str()))
     {
         for (const auto &[name, palette] : tilePalettes)
@@ -89,18 +92,13 @@ std::optional<PaletteRenamed> TilePalettesUi::drawRename(TilePalettes &tilePalet
     if (renamingTo.empty())
         renamingTo = selectedPalette;
 
-    drawNameField(renamingTo);
+    bool entered = drawNameField(renamingTo);
 
     std::optional<std::string> why = whyNotARename(tilePalettes, selectedPalette, renamingTo);
-    ImGui::SameLine();
-    ImGui::BeginDisabled(why.has_value() || renamingTo == selectedPalette);
-    bool rename = ImGui::Button("rename", ImVec2(-FLT_MIN, 0.0f));
-    ImGui::EndDisabled();
-
     if (why)
         ImGui::TextColored(CannotSaveColour, "%s", why->c_str());
 
-    if (!rename)
+    if (!entered || why || renamingTo == selectedPalette)
         return std::nullopt;
 
     PaletteRenamed renamed{selectedPalette, renamingTo};

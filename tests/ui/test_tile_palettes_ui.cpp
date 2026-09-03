@@ -281,6 +281,75 @@ TEST_CASE("A rename is handed back so the level can be told", "[TilePalettesUi]"
     REQUIRE(palettes.contains("default"));
 }
 
+namespace
+{
+    struct Renaming
+    {
+        TextureCache textures;
+        std::optional<Armed> armed;
+        EditorCommands commands;
+        std::optional<PaletteRenamed> renamed;
+
+        explicit Renaming(const TilePalettes &palettes)
+        {
+            textures.warm(palettes.begin()->second.tileSet.texture);
+        }
+
+        auto drawing(TilePalettesUi &tilePalettesUi, TilePalettes &palettes)
+        {
+            return [&]
+            {
+                if (std::optional<PaletteRenamed> said =
+                        tilePalettesUi.draw(palettes, textures, commands, armed))
+                    renamed = said;
+            };
+        }
+    };
+}
+
+TEST_CASE("A name typed is not a rename until it is entered", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+
+    Renaming renaming(palettes);
+    auto drawing = renaming.drawing(tilePalettesUi, palettes);
+
+    gui.type("##name", "base", drawing);
+
+    REQUIRE_FALSE(renaming.renamed.has_value());
+    REQUIRE(palettes.contains("default"));
+
+    gui.pressEnter(drawing);
+
+    REQUIRE(renaming.renamed.has_value());
+    REQUIRE(renaming.renamed->from == "default");
+    REQUIRE(renaming.renamed->to == "base");
+    REQUIRE(palettes.contains("base"));
+    REQUIRE_FALSE(palettes.contains("default"));
+}
+
+TEST_CASE("A name already taken is not entered", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+    palettes["other"] = paletteOf({{0, TileData{}}});
+
+    Renaming renaming(palettes);
+    auto drawing = renaming.drawing(tilePalettesUi, palettes);
+
+    gui.type("##name", "other", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE_FALSE(renaming.renamed.has_value());
+    REQUIRE(palettes.contains("default"));
+    REQUIRE(palettes.contains("other"));
+}
+
 #endif // SKIP_OPENGL_TESTS
 
 TEST_CASE("Reverting takes back a palette that was added", "[TilePalettesUi]")

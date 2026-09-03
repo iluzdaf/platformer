@@ -10,6 +10,7 @@
 #include "rendering/texture_cache.hpp"
 
 class Actor;
+class Npc;
 class Pickup;
 struct GameData;
 class ScreenTransition;
@@ -30,7 +31,8 @@ public:
         const glm::mat4 &projection,
         const TileMap &tileMap,
         const std::vector<Pickup> &pickups,
-        const std::vector<Actor *> &actors) const;
+        const std::vector<std::unique_ptr<Npc>> &npcs,
+        const Actor &player) const;
     void draw(const ScreenTransition &screenTransition) const;
 
     const TextureCache &getTextures() const;

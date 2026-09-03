@@ -435,7 +435,8 @@ TEST_CASE("A level still loads while a type rename waits to be saved", "[TypesUi
         readLevelData(assetPath("levels/level6.json")),
         gameData.tilePalettes,
         gameData.playerData,
-        gameData.npcData));
+        gameData.npcData,
+        gameData.pickupData));
 }
 
 TEST_CASE("A type rename outlives a reload of the values it waits on", "[TypesUi]")

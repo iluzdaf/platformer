@@ -60,7 +60,11 @@ TEST_CASE("The levels section has nothing unsaved when it is first drawn", "[Uns
     GameData gameData = loadGameData();
     std::string levelPath = assetPath(levels.getFirst());
     Level level(
-        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        readLevelData(levelPath),
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
     EditorCommands commands;
 
     gui.frame([&] { levelsUi.draw(levels, levelPath, commands, false); });
@@ -76,7 +80,11 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
     GameData gameData = loadGameData();
     std::string levelPath = assetPath(levels.getFirst());
     Level level(
-        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        readLevelData(levelPath),
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
     EditorCommands commands;
 
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
@@ -97,7 +105,11 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
     GameData gameData = loadGameData();
     std::string levelPath = assetPath("levels/level1.json");
     Level level(
-        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        readLevelData(levelPath),
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
 
     std::optional<Armed> armed;
     EditorCommands commands;
@@ -118,7 +130,11 @@ TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSecti
     GameData gameData = loadGameData();
     std::string levelPath = assetPath("levels/level1.json");
     Level level(
-        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        readLevelData(levelPath),
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
 
     std::optional<Armed> armed = PaintTile{5};
     EditorCommands commands;

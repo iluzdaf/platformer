@@ -131,15 +131,16 @@ void Game::render()
     renderer.draw(
         camera.getProjection(),
         world.getLevel().getTileMap(),
-        world.getPickups(),
-        world.getActors());
+        world.getLevel().getPickups(),
+        world.getLevel().getNpcs(),
+        world.getPlayer());
 
     gameUi.draw(
         GameUiSubject{
             gameData,
             world.getLevel(),
             world.getLevelPath(),
-            world.getNpcs(),
+            world.getLevel().getNpcs(),
             world.getPlayer(),
             renderer.getTextures(),
             levels,

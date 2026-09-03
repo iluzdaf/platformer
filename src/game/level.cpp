@@ -18,6 +18,13 @@
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
 #include "tile_map/tile.hpp"
+#include "npc/npc.hpp"
+#include "pickups/pickup.hpp"
+#include "pickups/pickup_data.hpp"
+#include "pickups/collecting.hpp"
+#include "game/catalogue.hpp"
+#include "actor/actor.hpp"
+#include <memory>
 
 namespace
 {
@@ -27,7 +34,8 @@ Level::Level(
     const LevelData &levelData,
     const TilePalettes &tilePalettes,
     const PlayerData &playerData,
-    const std::map<std::string, NpcData> &npcData)
+    const std::map<std::string, NpcData> &npcData,
+    const std::map<std::string, PickupData> &pickupData)
     : tileMap(levelData.tileMapData, tilePalettes)
 {
     playerStartTilePosition = levelData.playerStartTilePosition;
@@ -46,9 +54,9 @@ Level::Level(
     if (nextLevel.empty())
         throw std::runtime_error("nextLevel must not be empty");
 
-    npcs = levelData.npcs;
-    pickups = levelData.pickups;
-    for (const auto &npc : npcs)
+    npcSpawns = levelData.npcs;
+    pickupSpawns = levelData.pickups;
+    for (const auto &npc : npcSpawns)
     {
         if (!tileMap.validTilePosition(npc.tilePosition))
             throw std::runtime_error("Npc start position is out of bounds");
@@ -62,13 +70,16 @@ Level::Level(
     for (const auto &[type, data] : npcData)
         npcProfiles.emplace(type, buildNavigationProfile(data.actorData));
 
-    for (const NpcSpawnData &spawn : npcs)
+    for (const NpcSpawnData &spawn : npcSpawns)
     {
         if (!npcProfiles.contains(spawn.type))
             throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
         addGraphFor(spawn.type, npcProfiles.at(spawn.type));
     }
+
+    rebuildNpcs(npcData);
+    rebuildPickups(pickupData);
 }
 
 void Level::addGraphFor(const std::string &name, const NavigationProfile &profile)
@@ -150,10 +161,10 @@ const NavigationGraph &Level::graphForNpc(const NpcSpawnData &spawn) const
 
 std::optional<PatrolData> Level::runBeneathNpc(std::size_t index) const
 {
-    if (index >= npcs.size())
+    if (index >= npcSpawns.size())
         throw std::runtime_error("Cannot look under an npc the level does not have");
 
-    const NpcSpawnData &spawn = npcs[index];
+    const NpcSpawnData &spawn = npcSpawns[index];
     const NavigationGraph &graph = graphForNpc(spawn);
     std::optional<int> standing = nearestNodeTo(graph, tileMap.feetOnTile(spawn.tilePosition));
     if (!standing)
@@ -184,14 +195,84 @@ const std::string &Level::getNextLevel() const
     return nextLevel;
 }
 
-const std::vector<PickupSpawnData> &Level::getPickups() const
+Level::~Level() = default;
+
+void Level::rebuildNpcs(const std::map<std::string, NpcData> &npcData)
+{
+    npcs.clear();
+
+    for (const NpcSpawnData &spawn : npcSpawns)
+    {
+        std::unique_ptr<Npc> made =
+            std::make_unique<Npc>(oneNamed(npcData, "npc", spawn.type), patrolFor(spawn));
+        made->setPosition(
+            tileMap.feetOnTile(spawn.tilePosition) -
+            made->getPhysicsBody().getBottomCenterOffset());
+        npcs.push_back(std::move(made));
+    }
+}
+
+void Level::rebuildPickups(const std::map<std::string, PickupData> &pickupData)
+{
+    pickups.clear();
+
+    for (const PickupSpawnData &spawn : pickupSpawns)
+    {
+        const PickupData &kind = oneNamed(pickupData, "pickup", spawn.type);
+        pickups.push_back(
+            Pickup(kind, tileMap.middleOfTile(spawn.tilePosition) - kind.size * 0.5f));
+    }
+}
+
+const std::vector<std::unique_ptr<Npc>> &Level::getNpcs() const
+{
+    return npcs;
+}
+
+const std::vector<Pickup> &Level::getPickups() const
 {
     return pickups;
 }
 
-const std::vector<NpcSpawnData> &Level::getNpcs() const
+void Level::preFixedUpdate()
 {
-    return npcs;
+    for (const std::unique_ptr<Npc> &npc : npcs)
+        npc->preFixedUpdate();
+}
+
+void Level::fixedUpdate(float deltaTime, const glm::vec2 &playerPosition)
+{
+    for (const std::unique_ptr<Npc> &npc : npcs)
+        npc->fixedUpdate(deltaTime, *this, playerPosition);
+}
+
+void Level::postFixedUpdate()
+{
+    for (const std::unique_ptr<Npc> &npc : npcs)
+        npc->postFixedUpdate();
+}
+
+void Level::update(float deltaTime)
+{
+    tileMap.update(deltaTime);
+
+    for (Pickup &pickup : pickups)
+        pickup.update(deltaTime);
+}
+
+std::vector<Pickup> Level::takePickupsTouching(const AABB &reach)
+{
+    return takeWhatTouches(pickups, reach);
+}
+
+const std::vector<PickupSpawnData> &Level::getPickupSpawns() const
+{
+    return pickupSpawns;
+}
+
+const std::vector<NpcSpawnData> &Level::getNpcSpawns() const
+{
+    return npcSpawns;
 }
 
 void Level::addNpc(const NpcSpawnData &spawn)
@@ -200,45 +281,45 @@ void Level::addNpc(const NpcSpawnData &spawn)
         throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
     addGraphFor(spawn.type, npcProfiles.at(spawn.type));
-    npcs.push_back(spawn);
+    npcSpawns.push_back(spawn);
 }
 
 void Level::removeNpc(std::size_t index)
 {
-    if (index >= npcs.size())
+    if (index >= npcSpawns.size())
         throw std::runtime_error("Cannot remove an npc the level does not have");
 
-    npcs.erase(npcs.begin() + static_cast<std::ptrdiff_t>(index));
+    npcSpawns.erase(npcSpawns.begin() + static_cast<std::ptrdiff_t>(index));
 }
 
 void Level::setNpcSpawnTile(std::size_t index, glm::ivec2 tilePosition)
 {
-    if (index >= npcs.size())
+    if (index >= npcSpawns.size())
         throw std::runtime_error("Cannot move an npc the level does not have");
 
     if (!tileMap.validTilePosition(tilePosition))
         throw std::runtime_error("Tile coordinates out of bounds");
 
-    npcs[index].tilePosition = tilePosition;
+    npcSpawns[index].tilePosition = tilePosition;
 }
 
 void Level::setNpcPatrol(std::size_t index, PatrolData patrol)
 {
-    if (index >= npcs.size())
+    if (index >= npcSpawns.size())
         throw std::runtime_error("Cannot give a beat to an npc the level does not have");
 
     if (!tileMap.validTilePosition(patrol.from) || !tileMap.validTilePosition(patrol.to))
         throw std::runtime_error("Tile coordinates out of bounds");
 
-    npcs[index].patrol = patrol;
+    npcSpawns[index].patrol = patrol;
 }
 
 void Level::clearNpcPatrol(std::size_t index)
 {
-    if (index >= npcs.size())
+    if (index >= npcSpawns.size())
         throw std::runtime_error("Cannot clear the beat of an npc the level does not have");
 
-    npcs[index].patrol.reset();
+    npcSpawns[index].patrol.reset();
 }
 
 void Level::setPlayerStartTile(glm::ivec2 tilePosition)
@@ -263,7 +344,7 @@ LevelData Level::toLevelData() const
     levelData.tileMapData = tileMap.toTileMapData();
     levelData.playerStartTilePosition = playerStartTilePosition;
     levelData.nextLevel = nextLevel;
-    levelData.npcs = npcs;
-    levelData.pickups = pickups;
+    levelData.npcs = npcSpawns;
+    levelData.pickups = pickupSpawns;
     return levelData;
 }

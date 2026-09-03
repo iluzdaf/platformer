@@ -46,7 +46,11 @@ namespace
         levelData.npcs = npcs;
 
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), shippedNpcData());
+            levelData,
+            palettesFrom(getDefaultTileDataMap()),
+            PlayerData(),
+            shippedNpcData(),
+            shippedPickupData());
     }
 
     NpcSpawnData villagerAt(glm::ivec2 tilePosition)
@@ -191,7 +195,7 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
     levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
     commands.drain();
 
-    REQUIRE(level.getNpcs().front().tilePosition == target);
+    REQUIRE(level.getNpcSpawns().front().tilePosition == target);
     REQUIRE(asked);
     REQUIRE_FALSE(armed);
 }
@@ -208,8 +212,8 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
 
     levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
 
-    REQUIRE(level.getNpcs().front().patrol->to == target);
-    REQUIRE(level.getNpcs().front().patrol->from == glm::ivec2(1, Standing));
+    REQUIRE(level.getNpcSpawns().front().patrol->to == target);
+    REQUIRE(level.getNpcSpawns().front().patrol->from == glm::ivec2(1, Standing));
 }
 
 TEST_CASE("The first end picked of an absent beat becomes both of them", "[LevelUi]")
@@ -217,14 +221,14 @@ TEST_CASE("The first end picked of an absent beat becomes both of them", "[Level
     LevelUi levelUi;
     EditorCommands commands;
     Level level = levelPlacing({villagerAt(glm::ivec2(2, Standing))});
-    REQUIRE_FALSE(level.getNpcs().front().patrol);
+    REQUIRE_FALSE(level.getNpcSpawns().front().patrol);
 
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolFrom, 0};
     glm::ivec2 target(5, Standing);
 
     levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
 
-    REQUIRE(level.getNpcs().front().patrol == PatrolData{target, target});
+    REQUIRE(level.getNpcSpawns().front().patrol == PatrolData{target, target});
 }
 
 TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[LevelUi]")
@@ -237,7 +241,7 @@ TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[Lev
     REQUIRE_NOTHROW(levelUi.update(
         clicking(level, glm::ivec2(5, Standing)), level, LevelPath, armed, commands));
 
-    REQUIRE(level.getNpcs().front().tilePosition == glm::ivec2(2, Standing));
+    REQUIRE(level.getNpcSpawns().front().tilePosition == glm::ivec2(2, Standing));
     REQUIRE_FALSE(armed);
 }
 

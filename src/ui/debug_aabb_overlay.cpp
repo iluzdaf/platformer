@@ -174,10 +174,10 @@ void drawSpawnOf(
         return;
     }
 
-    if (showing.what != ActorShown::What::Npc || showing.npcIndex >= level.getNpcs().size())
+    if (showing.what != ActorShown::What::Npc || showing.npcIndex >= level.getNpcSpawns().size())
         return;
 
-    const NpcSpawnData &spawn = level.getNpcs()[showing.npcIndex];
+    const NpcSpawnData &spawn = level.getNpcSpawns()[showing.npcIndex];
     drawSpawn(spawn.tilePosition, spawn.type);
 
     std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawn);

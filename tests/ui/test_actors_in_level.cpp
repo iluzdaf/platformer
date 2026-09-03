@@ -34,7 +34,11 @@ namespace
         levelData.npcs = npcs;
 
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), shippedNpcData());
+            levelData,
+            palettesFrom(getDefaultTileDataMap()),
+            PlayerData(),
+            shippedNpcData(),
+            shippedPickupData());
     }
 
     constexpr int IslandRow = 1;
@@ -55,7 +59,11 @@ namespace
         levelData.npcs = npcs;
 
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), shippedNpcData());
+            levelData,
+            palettesFrom(getDefaultTileDataMap()),
+            PlayerData(),
+            shippedNpcData(),
+            shippedPickupData());
     }
 
     NpcSpawnData villagerAt(glm::ivec2 tilePosition)
@@ -69,7 +77,7 @@ namespace
     std::vector<std::unique_ptr<Npc>> liveNpcsFor(const Level &level)
     {
         std::vector<std::unique_ptr<Npc>> npcs;
-        for (const NpcSpawnData &spawn : level.getNpcs())
+        for (const NpcSpawnData &spawn : level.getNpcSpawns())
             npcs.push_back(
                 std::make_unique<Npc>(shippedNpcData().at(spawn.type), level.patrolFor(spawn)));
 

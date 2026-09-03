@@ -86,7 +86,8 @@ namespace
             corridorPlacing(npcs),
             palettesFrom(getDefaultTileDataMap()),
             playerData,
-            theUsualNpcs());
+            theUsualNpcs(),
+            {});
     }
 
     constexpr int LedgeMapTiles = 14;
@@ -126,7 +127,8 @@ namespace
             levelData,
             palettesFrom(getDefaultTileDataMap()),
             playerOfHeight(13.0f),
-            theUsualNpcs());
+            theUsualNpcs(),
+            {});
     }
 
     size_t nodesOnTheFloor(const NavigationGraph &graph)
@@ -270,13 +272,13 @@ TEST_CASE("A graph does not name the same actor twice", "[Level]")
 TEST_CASE("A level takes an npc placed after it was built", "[Level]")
 {
     Level level = levelPlacing({});
-    REQUIRE(level.getNpcs().empty());
+    REQUIRE(level.getNpcSpawns().empty());
 
     level.addNpc(spawnAt("short", StandingTile));
 
-    REQUIRE(level.getNpcs().size() == 1);
-    REQUIRE(level.getNpcs().front().tilePosition == StandingTile);
-    REQUIRE(level.getNpcs().front().type == "short");
+    REQUIRE(level.getNpcSpawns().size() == 1);
+    REQUIRE(level.getNpcSpawns().front().tilePosition == StandingTile);
+    REQUIRE(level.getNpcSpawns().front().type == "short");
 }
 
 TEST_CASE("An npc placed after building is part of what the level would save", "[Level]")
@@ -285,7 +287,7 @@ TEST_CASE("An npc placed after building is part of what the level would save", "
 
     level.addNpc(spawnAt("short", StandingTile));
 
-    REQUIRE(level.toLevelData().npcs == level.getNpcs());
+    REQUIRE(level.toLevelData().npcs == level.getNpcSpawns());
 }
 
 TEST_CASE("A level keeps the npcs it already had when another is placed", "[Level]")
@@ -294,7 +296,7 @@ TEST_CASE("A level keeps the npcs it already had when another is placed", "[Leve
 
     level.addNpc(spawnAt("short", glm::ivec2(4, FloorRow - 1)));
 
-    REQUIRE(level.getNpcs().size() == 2);
+    REQUIRE(level.getNpcSpawns().size() == 2);
 }
 
 TEST_CASE("A level lets go of an npc it was placing", "[Level]")
@@ -303,7 +305,7 @@ TEST_CASE("A level lets go of an npc it was placing", "[Level]")
 
     level.removeNpc(0);
 
-    REQUIRE(level.getNpcs().empty());
+    REQUIRE(level.getNpcSpawns().empty());
 }
 
 TEST_CASE("Removing an npc leaves the others where they were", "[Level]")
@@ -313,8 +315,8 @@ TEST_CASE("Removing an npc leaves the others where they were", "[Level]")
 
     level.removeNpc(0);
 
-    REQUIRE(level.getNpcs().size() == 1);
-    REQUIRE(level.getNpcs().front().tilePosition == secondTile);
+    REQUIRE(level.getNpcSpawns().size() == 1);
+    REQUIRE(level.getNpcSpawns().front().tilePosition == secondTile);
 }
 
 TEST_CASE("A level refuses to remove an npc it does not have", "[Level]")
@@ -340,7 +342,7 @@ TEST_CASE("An npc can be moved to another tile", "[Level]")
 
     level.setNpcSpawnTile(0, elsewhere);
 
-    REQUIRE(level.getNpcs().front().tilePosition == elsewhere);
+    REQUIRE(level.getNpcSpawns().front().tilePosition == elsewhere);
     REQUIRE(level.toLevelData().npcs.front().tilePosition == elsewhere);
 }
 
@@ -357,18 +359,18 @@ TEST_CASE("A level refuses to move an npc off the map", "[Level]")
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
     REQUIRE_THROWS(level.setNpcSpawnTile(0, glm::ivec2(-1, 0)));
-    REQUIRE(level.getNpcs().front().tilePosition == StandingTile);
+    REQUIRE(level.getNpcSpawns().front().tilePosition == StandingTile);
 }
 
 TEST_CASE("An npc can be given a beat it did not have", "[Level]")
 {
     glm::ivec2 other(4, FloorRow - 1);
     Level level = levelPlacing({spawnAt("short", StandingTile)});
-    REQUIRE_FALSE(level.getNpcs().front().patrol);
+    REQUIRE_FALSE(level.getNpcSpawns().front().patrol);
 
     level.setNpcPatrol(0, PatrolData{StandingTile, other});
 
-    REQUIRE(level.getNpcs().front().patrol == PatrolData{StandingTile, other});
+    REQUIRE(level.getNpcSpawns().front().patrol == PatrolData{StandingTile, other});
     REQUIRE(level.toLevelData().npcs.front().patrol == PatrolData{StandingTile, other});
 }
 
@@ -377,7 +379,7 @@ TEST_CASE("A level refuses a beat that leaves the map", "[Level]")
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
     REQUIRE_THROWS(level.setNpcPatrol(0, PatrolData{StandingTile, glm::ivec2(-1, 0)}));
-    REQUIRE_FALSE(level.getNpcs().front().patrol);
+    REQUIRE_FALSE(level.getNpcSpawns().front().patrol);
 }
 
 TEST_CASE("A level refuses to give a beat to an npc it does not have", "[Level]")
@@ -397,7 +399,7 @@ TEST_CASE("An npc can be left with no beat at all", "[Level]")
 
     level.clearNpcPatrol(0);
 
-    REQUIRE_FALSE(level.getNpcs().front().patrol);
+    REQUIRE_FALSE(level.getNpcSpawns().front().patrol);
     REQUIRE_FALSE(level.toLevelData().npcs.front().patrol);
 }
 
@@ -416,7 +418,7 @@ TEST_CASE("An npc of a type the level had none of still gets a graph", "[Level]"
 
     level.addNpc(spawnAt("tall", StandingTile));
 
-    REQUIRE_NOTHROW(level.graphForNpc(level.getNpcs().front()));
+    REQUIRE_NOTHROW(level.graphForNpc(level.getNpcSpawns().front()));
     REQUIRE(level.getGraphs().size() == 2);
 }
 
@@ -425,7 +427,7 @@ TEST_CASE("A level refuses an npc of a type it has never heard of", "[Level]")
     Level level = levelPlacing({});
 
     REQUIRE_THROWS(level.addNpc(spawnAt("dragon", StandingTile)));
-    REQUIRE(level.getNpcs().empty());
+    REQUIRE(level.getNpcSpawns().empty());
 }
 
 TEST_CASE("The run beneath an npc reaches both ends of the floor it stands on", "[Level]")
@@ -449,7 +451,7 @@ TEST_CASE("The run beneath an npc names tiles the beat can be saved as", "[Level
 
     REQUIRE(run);
     REQUIRE_NOTHROW(level.setNpcPatrol(0, *run));
-    REQUIRE(level.getNpcs().front().patrol == run);
+    REQUIRE(level.getNpcSpawns().front().patrol == run);
 }
 
 TEST_CASE("A level refuses to look under an npc it does not have", "[Level]")
@@ -466,7 +468,8 @@ TEST_CASE("A beat reaches the outer edges of the tiles it names", "[Level]")
     Level level = levelWithALedge({spawn});
     float tileSize = static_cast<float>(level.getTileMap().getTileSize());
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(level.getNpcs().front());
+    std::optional<std::pair<glm::vec2, glm::vec2>> beat =
+        level.patrolFor(level.getNpcSpawns().front());
 
     REQUIRE(beat);
     REQUIRE(beat->first.x == 1 * tileSize);
@@ -480,7 +483,8 @@ TEST_CASE("A beat named right to left reaches the same two edges", "[Level]")
     Level level = levelWithALedge({spawn});
     float tileSize = static_cast<float>(level.getTileMap().getTileSize());
 
-    std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(level.getNpcs().front());
+    std::optional<std::pair<glm::vec2, glm::vec2>> beat =
+        level.patrolFor(level.getNpcSpawns().front());
 
     REQUIRE(beat);
     REQUIRE(beat->first.x == 5 * tileSize);

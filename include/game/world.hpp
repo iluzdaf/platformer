@@ -2,16 +2,12 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 #include <signals.hpp>
 #include "game/score.hpp"
-#include "pickups/pickup.hpp"
 
-class Actor;
 class IntentionSource;
 class Level;
 class LuaScriptSystem;
-class Npc;
 class Player;
 struct GameData;
 
@@ -39,19 +35,14 @@ public:
 
     Level &getLevel();
     const Player &getPlayer() const;
-    const std::vector<std::unique_ptr<Npc>> &getNpcs() const;
-    const std::vector<Pickup> &getPickups() const;
-    const std::vector<Actor *> &getActors() const;
     const Score &getScore() const;
 
     void rebuildNpcs();
-    void rebuildPickups();
 
 private:
     void rebuildLevel(const std::string &levelPath);
 
     std::string path;
-    void refreshActors();
 
     GameData &gameData;
     const IntentionSource &intentionSource;
@@ -59,9 +50,6 @@ private:
 
     std::unique_ptr<Level> level;
     std::unique_ptr<Player> player;
-    std::vector<std::unique_ptr<Npc>> npcs;
-    std::vector<Pickup> pickups;
-    std::vector<Actor *> actors;
     Score score;
     fteng::connection onLevelCompleteConnection;
 };

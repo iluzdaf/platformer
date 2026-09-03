@@ -27,8 +27,7 @@ TEST_CASE("Loading a level fills the world with the level and its cast", "[World
     REQUIRE_FALSE(world.isPlaying("levels/level1.json"));
 
     const Level &level = world.getLevel();
-    REQUIRE(world.getNpcs().size() == level.getNpcs().size());
-    REQUIRE(world.getActors().size() == world.getNpcs().size() + 1);
+    REQUIRE(world.getLevel().getNpcs().size() == level.getNpcSpawns().size());
 }
 
 TEST_CASE("The player starts standing where the level says", "[World]")
@@ -52,14 +51,13 @@ TEST_CASE("Respawning the player leaves the rest of the cast alone", "[World]")
     World world(gameData, noIntentions(), luaScriptSystem);
 
     world.loadLevel("levels/level6.json");
-    std::size_t npcsBefore = world.getNpcs().size();
+    std::size_t npcsBefore = world.getLevel().getNpcs().size();
     const Player *before = &world.getPlayer();
 
     world.respawnPlayer();
 
     REQUIRE(&world.getPlayer() != before);
-    REQUIRE(world.getNpcs().size() == npcsBefore);
-    REQUIRE(world.getActors().size() == npcsBefore + 1);
+    REQUIRE(world.getLevel().getNpcs().size() == npcsBefore);
 }
 
 TEST_CASE("The player cannot be spawned before there is a level to stand on", "[World]")
@@ -122,15 +120,14 @@ TEST_CASE("An npc added to the level joins the world when it is rebuilt", "[Worl
     World world(gameData, noIntentions(), luaScriptSystem);
     world.loadLevel("levels/level6.json");
 
-    std::size_t before = world.getNpcs().size();
+    std::size_t before = world.getLevel().getNpcs().size();
     world.getLevel().addNpc(NpcSpawnData{"villager", world.getLevel().getPlayerStartTile(), {}});
 
-    REQUIRE(world.getNpcs().size() == before);
+    REQUIRE(world.getLevel().getNpcs().size() == before);
 
     world.rebuildNpcs();
 
-    REQUIRE(world.getNpcs().size() == before + 1);
-    REQUIRE(world.getActors().size() == world.getNpcs().size() + 1);
+    REQUIRE(world.getLevel().getNpcs().size() == before + 1);
 }
 
 TEST_CASE("An npc removed from the level leaves the world when it is rebuilt", "[World]")
@@ -140,11 +137,11 @@ TEST_CASE("An npc removed from the level leaves the world when it is rebuilt", "
     World world(gameData, noIntentions(), luaScriptSystem);
     world.loadLevel("levels/level6.json");
 
-    std::size_t before = world.getNpcs().size();
+    std::size_t before = world.getLevel().getNpcs().size();
     world.getLevel().removeNpc(0);
     world.rebuildNpcs();
 
-    REQUIRE(world.getNpcs().size() == before - 1);
+    REQUIRE(world.getLevel().getNpcs().size() == before - 1);
 }
 
 TEST_CASE("A beat edited in the level reaches the npc when it is rebuilt", "[World]")
@@ -154,11 +151,11 @@ TEST_CASE("A beat edited in the level reaches the npc when it is rebuilt", "[Wor
     World world(gameData, noIntentions(), luaScriptSystem);
     world.loadLevel("levels/level6.json");
 
-    glm::ivec2 spawnTile = world.getLevel().getNpcs()[1].tilePosition;
+    glm::ivec2 spawnTile = world.getLevel().getNpcSpawns()[1].tilePosition;
     world.getLevel().setNpcSpawnTile(1, glm::ivec2(spawnTile.x - 1, spawnTile.y));
     world.rebuildNpcs();
 
-    glm::vec2 feet = world.getNpcs()[1]->getPhysicsBody().getAABB().bottomCenter();
+    glm::vec2 feet = world.getLevel().getNpcs()[1]->getPhysicsBody().getAABB().bottomCenter();
 
     REQUIRE(
         feet == world.getLevel().getTileMap().feetOnTile(glm::ivec2(spawnTile.x - 1, spawnTile.y)));

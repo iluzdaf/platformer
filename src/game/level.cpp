@@ -68,15 +68,14 @@ Level::Level(
 
     npcProfiles.clear();
     for (const auto &[type, data] : npcData)
+    {
         npcProfiles.emplace(type, buildNavigationProfile(data.actorData));
+        addGraphFor(type, npcProfiles.at(type));
+    }
 
     for (const NpcSpawnData &spawn : npcSpawns)
-    {
         if (!npcProfiles.contains(spawn.type))
             throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
-
-        addGraphFor(spawn.type, npcProfiles.at(spawn.type));
-    }
 
     rebuildNpcs(npcData);
     rebuildPickups(pickupData);
@@ -280,7 +279,6 @@ void Level::addNpc(const NpcSpawnData &spawn)
     if (!npcProfiles.contains(spawn.type))
         throw std::runtime_error("Unknown npc \"" + spawn.type + "\"");
 
-    addGraphFor(spawn.type, npcProfiles.at(spawn.type));
     npcSpawns.push_back(spawn);
 }
 

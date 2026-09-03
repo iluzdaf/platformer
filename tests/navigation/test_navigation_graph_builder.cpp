@@ -46,20 +46,31 @@ namespace
         return profileOfHeight(13.0f);
     }
 
+    using Placed = std::vector<std::pair<glm::ivec2, int>>;
+
+    void layRow(Placed &laid, int row, int fromX, int toX)
+    {
+        for (int x = fromX; x <= toX; ++x)
+            laid.push_back({glm::ivec2(x, row), 1});
+    }
+
+    Placed floorTiles()
+    {
+        Placed laid;
+        layRow(laid, FloorRow, 0, MapWidthTiles - 1);
+        return laid;
+    }
+
     TileMap setupFloor()
     {
-        TileMap tileMap = setupTileMap();
-        for (int x = 0; x < MapWidthTiles; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, FloorRow), 1);
-        return tileMap;
+        return setupTileMapWith(floorTiles());
     }
 
     TileMap setupFloorUnderOneTileOfHeadroom()
     {
-        TileMap tileMap = setupFloor();
-        for (int x = 0; x < MapWidthTiles; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, CeilingRow), 1);
-        return tileMap;
+        Placed laid = floorTiles();
+        layRow(laid, CeilingRow, 0, MapWidthTiles - 1);
+        return setupTileMapWith(laid);
     }
 
     constexpr int HighCeilingRow = 2;
@@ -67,12 +78,10 @@ namespace
 
     TileMap setupCorridorThatPinches()
     {
-        TileMap tileMap = setupFloor();
-        for (int x = 0; x < MapWidthTiles; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, HighCeilingRow), 1);
-
-        tileMap.setTileIndex(glm::ivec2(PinchColumn, FloorRow - 2), 1);
-        return tileMap;
+        Placed laid = floorTiles();
+        layRow(laid, HighCeilingRow, 0, MapWidthTiles - 1);
+        laid.push_back({glm::ivec2(PinchColumn, FloorRow - 2), 1});
+        return setupTileMapWith(laid);
     }
 
     bool anEdgeSpansThePinch(const NavigationGraph &graph, const TileMap &tileMap)
@@ -95,10 +104,9 @@ namespace
         return false;
     }
 
-    void layFloor(TileMap &tileMap, int groundY, int fromX, int toX)
+    void layFloor(Placed &laid, int groundY, int fromX, int toX)
     {
-        for (int x = fromX; x <= toX; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, groundY), 1);
+        layRow(laid, groundY, fromX, toX);
     }
 
     std::vector<float> nodeXsOnRow(const NavigationGraph &graph, float y)
@@ -261,8 +269,9 @@ TEST_CASE("A corridor that pinches stops a profile that no longer fits", "[Navig
 
 TEST_CASE("Walk edges are bidirectional along a floor", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupTileMap();
-    layFloor(tileMap, 5, 2, 4);
+    Placed laid;
+    layFloor(laid, 5, 2, 4);
+    TileMap tileMap = setupTileMapWith(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -277,9 +286,10 @@ TEST_CASE("Walk edges are bidirectional along a floor", "[NavigationGraphBuilder
 
 TEST_CASE("No walk edge spans a gap between floors", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupTileMap();
-    layFloor(tileMap, 5, 0, 2);
-    layFloor(tileMap, 5, 6, 9);
+    Placed laid;
+    layFloor(laid, 5, 0, 2);
+    layFloor(laid, 5, 6, 9);
+    TileMap tileMap = setupTileMapWith(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -293,9 +303,10 @@ TEST_CASE("No walk edge spans a gap between floors", "[NavigationGraphBuilder]")
 
 TEST_CASE("No walk edge passes through a blocked tile", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupTileMap();
-    layFloor(tileMap, 5, 0, 5);
-    tileMap.setTileIndex(glm::ivec2(3, 4), 1);
+    Placed laid;
+    layFloor(laid, 5, 0, 5);
+    laid.push_back({glm::ivec2(3, 4), 1});
+    TileMap tileMap = setupTileMapWith(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -313,9 +324,10 @@ TEST_CASE("No walk edge passes through a blocked tile", "[NavigationGraphBuilder
 
 TEST_CASE("Floors on different rows are not connected", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupTileMap();
-    layFloor(tileMap, 5, 0, 3);
-    layFloor(tileMap, 8, 0, 3);
+    Placed laid;
+    layFloor(laid, 5, 0, 3);
+    layFloor(laid, 8, 0, 3);
+    TileMap tileMap = setupTileMapWith(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -340,12 +352,11 @@ TEST_CASE(
 
 TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupTileMap();
-    float tileSize = static_cast<float>(tileMap.getTileSize());
+    float tileSize = static_cast<float>(setupTileMap().getTileSize());
 
     SECTION("Single Tile Platform at left side of TileMap")
     {
-        tileMap.setTileIndex(glm::ivec2(0, 9), 1);
+        TileMap tileMap = setupTileMapWith({{{0, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({tileSize / 2, 9 * tileSize}));
@@ -353,7 +364,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform at right side of TileMap")
     {
-        tileMap.setTileIndex(glm::ivec2(9, 9), 1);
+        TileMap tileMap = setupTileMapWith({{{9, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({9 * tileSize + tileSize / 2, 9 * tileSize}));
@@ -361,7 +372,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where both sides are cliffs")
     {
-        tileMap.setTileIndex(glm::ivec2(1, 9), 1);
+        TileMap tileMap = setupTileMapWith({{{1, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 9 * tileSize}));
@@ -369,9 +380,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where left side is a cliff and right side is a wall")
     {
-        tileMap.setTileIndex(glm::ivec2(2, 0), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 1), 1);
-        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+        TileMap tileMap = setupTileMapWith({{{2, 0}, 1}, {{2, 1}, 1}, {{1, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -379,9 +388,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where right side is a cliff and left side is a wall")
     {
-        tileMap.setTileIndex(glm::ivec2(0, 0), 1);
-        tileMap.setTileIndex(glm::ivec2(0, 1), 1);
-        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+        TileMap tileMap = setupTileMapWith({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -389,11 +396,8 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where both sides are walls")
     {
-        tileMap.setTileIndex(glm::ivec2(0, 0), 1);
-        tileMap.setTileIndex(glm::ivec2(0, 1), 1);
-        tileMap.setTileIndex(glm::ivec2(1, 1), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 0), 1);
-        tileMap.setTileIndex(glm::ivec2(2, 1), 1);
+        TileMap tileMap =
+            setupTileMapWith({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}, {{2, 0}, 1}, {{2, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -401,10 +405,9 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("2 Tile Platforms")
     {
-        for (int x = 0; x < 2; ++x)
-        {
-            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
-        }
+        Placed laid;
+        layFloor(laid, 1, 0, 1);
+        TileMap tileMap = setupTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -413,10 +416,9 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("3 Tile Platforms")
     {
-        for (int x = 0; x < 3; ++x)
-        {
-            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
-        }
+        Placed laid;
+        layFloor(laid, 1, 0, 2);
+        TileMap tileMap = setupTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -425,10 +427,9 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("5 Tile Platforms")
     {
-        for (int x = 0; x < 5; ++x)
-        {
-            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
-        }
+        Placed laid;
+        layFloor(laid, 1, 0, 4);
+        TileMap tileMap = setupTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -437,10 +438,9 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("10 Tile Platforms")
     {
-        for (int x = 0; x < 10; ++x)
-        {
-            tileMap.setTileIndex(glm::ivec2(x, 1), 1);
-        }
+        Placed laid;
+        layFloor(laid, 1, 0, 9);
+        TileMap tileMap = setupTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -449,16 +449,15 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("No nodes")
     {
-        NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
+        NavigationGraph navigationGraph = buildNavigationGraph(setupTileMap(), standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 0);
     }
 
     SECTION("No walkable tiles")
     {
-        for (int x = 0; x < 3; ++x)
-        {
-            tileMap.setTileIndex(glm::ivec2(x, 0), 1);
-        }
+        Placed laid;
+        layFloor(laid, 0, 0, 2);
+        TileMap tileMap = setupTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 0);
     }
@@ -499,17 +498,18 @@ namespace
         return profileThatMoves(13.0f, jumperMotionData());
     }
 
+    Placed twoPlatforms(int gapTiles, int rowsUp = 0, int widthTiles = 20)
+    {
+        Placed laid;
+        layFloor(laid, PlatformRow, 0, LeftPlatformEnd);
+        layFloor(laid, PlatformRow - rowsUp, LeftPlatformEnd + gapTiles + 1, widthTiles - 1);
+        return laid;
+    }
+
     TileMap setupTwoPlatforms(int gapTiles, int rowsUp = 0, int widthTiles = 20)
     {
-        TileMap tileMap = setupTileMap(widthTiles, WideMapHeightTiles);
-
-        for (int x = 0; x <= LeftPlatformEnd; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
-
-        for (int x = LeftPlatformEnd + gapTiles + 1; x < widthTiles; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, PlatformRow - rowsUp), 1);
-
-        return tileMap;
+        return setupTileMapWith(
+            twoPlatforms(gapTiles, rowsUp, widthTiles), widthTiles, WideMapHeightTiles);
     }
 
     glm::vec2 takeOffPosition(const TileMap &tileMap)
@@ -664,9 +664,9 @@ TEST_CASE(
     "[NavigationGraphBuilder][Jump]")
 {
     constexpr int GapTiles = 3;
-    TileMap tileMap = setupTwoPlatforms(GapTiles);
-    for (int x = LeftPlatformEnd + 1; x <= LeftPlatformEnd + GapTiles; ++x)
-        tileMap.setTileIndex(glm::ivec2(x, PlatformRow - 2), 1);
+    Placed laid = twoPlatforms(GapTiles);
+    layFloor(laid, PlatformRow - 2, LeftPlatformEnd + 1, LeftPlatformEnd + GapTiles);
+    TileMap tileMap = setupTileMapWith(laid, 20, WideMapHeightTiles);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -933,12 +933,10 @@ namespace
 
     TileMap setupLedgeAboveFloor()
     {
-        TileMap tileMap = setupTileMap(20, WideMapHeightTiles);
-        for (int x = 0; x < 20; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, FloorBelowRow), 1);
-
-        for (int x = 0; x <= LeftPlatformEnd; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+        Placed laid;
+        layFloor(laid, FloorBelowRow, 0, 19);
+        layFloor(laid, PlatformRow, 0, LeftPlatformEnd);
+        TileMap tileMap = setupTileMapWith(laid, 20, WideMapHeightTiles);
 
         return tileMap;
     }
@@ -1040,14 +1038,12 @@ namespace
 
     TileMap setupLedgeAboveSpikes()
     {
-        TileMap tileMap = setupTileMap(20, WideMapHeightTiles, 16, paletteWithSpikes());
+        Placed laid;
         for (int x = 0; x < 20; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, FloorBelowRow), SpikeTileIndex);
+            laid.push_back({glm::ivec2(x, FloorBelowRow), SpikeTileIndex});
+        layFloor(laid, PlatformRow, 0, LeftPlatformEnd);
 
-        for (int x = 0; x <= LeftPlatformEnd; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
-
-        return tileMap;
+        return setupTileMapWith(laid, 20, WideMapHeightTiles, 16, paletteWithSpikes());
     }
     int nodeJustPastTheLedge(const NavigationGraph &graph, float floorY)
     {
@@ -1067,17 +1063,12 @@ namespace
 
     TileMap setupLedgesAboveFloor()
     {
-        TileMap tileMap = setupTileMap(20, TallMapHeightTiles);
-        for (int x = 0; x < 20; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, DeepFloorRow), 1);
+        Placed laid;
+        layFloor(laid, DeepFloorRow, 0, 19);
+        layFloor(laid, PlatformRow, 0, NearLedgeEnd);
+        layFloor(laid, PlatformRow, FarLedgeStart, FarLedgeEnd);
 
-        for (int x = 0; x <= NearLedgeEnd; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
-
-        for (int x = FarLedgeStart; x <= FarLedgeEnd; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
-
-        return tileMap;
+        return setupTileMapWith(laid, 20, TallMapHeightTiles);
     }
 
     int nodeAt(const NavigationGraph &graph, glm::vec2 position)
@@ -1254,14 +1245,18 @@ namespace
         return profile;
     }
 
+    Placed wallFromTheFloor()
+    {
+        Placed laid;
+        layFloor(laid, ClimbFloorRow, 0, 9);
+        for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)
+            laid.push_back({glm::ivec2(ClimbWallX, y), 1});
+        return laid;
+    }
+
     TileMap setupWallFromTheFloor()
     {
-        TileMap tileMap = setupTileMap(10, 12);
-        for (int x = 0; x < 10; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, ClimbFloorRow), 1);
-        for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)
-            tileMap.setTileIndex(glm::ivec2(ClimbWallX, y), 1);
-        return tileMap;
+        return setupTileMapWith(wallFromTheFloor(), 10, 12);
     }
 
     std::vector<NavigationNode> nodesOnWalls(const NavigationGraph &graph)
@@ -1330,8 +1325,9 @@ TEST_CASE(
     "A wall that does not reach the floor is not climbed from it",
     "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
-    tileMap.setTileIndex(glm::ivec2(ClimbWallX, ClimbFloorRow - 1), 0);
+    Placed laid = wallFromTheFloor();
+    laid.push_back({glm::ivec2(ClimbWallX, ClimbFloorRow - 1), 0});
+    TileMap tileMap = setupTileMapWith(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -1343,9 +1339,10 @@ TEST_CASE(
     "A ledge beside the wall breaks one long climb into two",
     "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
-    tileMap.setTileIndex(glm::ivec2(ClimbWallX - 1, 6), 1);
-    tileMap.setTileIndex(glm::ivec2(ClimbWallX + 1, 6), 1);
+    Placed laid = wallFromTheFloor();
+    laid.push_back({glm::ivec2(ClimbWallX - 1, 6), 1});
+    laid.push_back({glm::ivec2(ClimbWallX + 1, 6), 1});
+    TileMap tileMap = setupTileMapWith(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -1356,9 +1353,9 @@ TEST_CASE(
 
 TEST_CASE("A wall you cannot stand on top of is not climbed", "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
-    for (int x = 0; x < 10; ++x)
-        tileMap.setTileIndex(glm::ivec2(x, ClimbWallTopRow - 1), 1);
+    Placed laid = wallFromTheFloor();
+    layFloor(laid, ClimbWallTopRow - 1, 0, 9);
+    TileMap tileMap = setupTileMapWith(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -1437,17 +1434,18 @@ TEST_CASE(
 
 TEST_CASE("A wall an actor cannot grip is not climbed", "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
-
     TilePalette palette = getDefaultTileDataMap();
     TileData ungrippable;
     ungrippable.solid = true;
     ungrippable.grippable = false;
     palette.tiles[2] = ungrippable;
 
-    TileMap ungrippableWall(tileMap.toTileMapData(), palettesFrom(palette));
+    Placed laid;
+    layFloor(laid, ClimbFloorRow, 0, 9);
     for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)
-        ungrippableWall.setTileIndex(glm::ivec2(ClimbWallX, y), 2);
+        laid.push_back({glm::ivec2(ClimbWallX, y), 2});
+
+    TileMap ungrippableWall = setupTileMapWith(laid, 10, 12, 16, palette);
 
     REQUIRE(nodesOnWalls(buildNavigationGraph(ungrippableWall, climberProfile())).empty());
 }

@@ -30,15 +30,18 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 {
     TileMap tileMap = setupTileMap();
 
-    SECTION("Sets and gets tile indices correctly")
+    SECTION("Reads back the tiles it was built with")
     {
-        REQUIRE_NOTHROW(tileMap.setTileIndex(glm::ivec2(1, 1), 5));
-        REQUIRE_NOTHROW(tileMap.setTileIndex(glm::ivec2(0, 2), 7));
-        REQUIRE_NOTHROW(tileMap.setTileIndex(glm::ivec2(0, 0), 0));
-        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == 5);
-        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(0, 2)) == 7);
-        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(2, 2)) == 0);
-        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(0, 0)) == 0);
+        TileMap built = setupTileMapWith({{{1, 1}, 5}, {{0, 2}, 7}});
+        REQUIRE(built.tilePositionToTileIndex(glm::ivec2(1, 1)) == 5);
+        REQUIRE(built.tilePositionToTileIndex(glm::ivec2(0, 2)) == 7);
+        REQUIRE(built.tilePositionToTileIndex(glm::ivec2(2, 2)) == 0);
+        REQUIRE(built.tilePositionToTileIndex(glm::ivec2(0, 0)) == 0);
+    }
+
+    SECTION("A fresh map is all zeroes")
+    {
+        REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == 0);
     }
 
     SECTION("tilePositionToTileIndex handles out of bounds by throwing out of range")
@@ -53,17 +56,10 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
             tileMap.tilePositionToTileIndex(glm::ivec2(0, 23)), "Tile coordinates out of bounds");
     }
 
-    SECTION("setTileIndex handles out of bounds")
+    SECTION("A map built with a negative tile index is refused")
     {
         REQUIRE_THROWS_WITH(
-            tileMap.setTileIndex(glm::ivec2(13, 0), 1), "Tile coordinates out of bounds");
-    }
-
-    SECTION("setTileIndex Throws on negative value")
-    {
-        REQUIRE_THROWS_WITH(
-            tileMap.setTileIndex(glm::ivec2(2, 2), -5),
-            "Tile index must be greater or equals to 0");
+            setupTileMapWith({{{2, 2}, -5}}), "Tile index must be greater or equals to 0");
     }
 }
 
@@ -243,10 +239,10 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     tileMapData.height = 2;
     TilePalette palette =
         paletteOf({{1, animatedTileData1}, {0, emptyTileData}, {3, animatedTileData2}});
+    tileMapData.width.reset();
+    tileMapData.height.reset();
+    tileMapData.indices = std::vector<std::vector<int>>{{1, 0}, {0, 3}};
     TileMap tileMap(tileMapData, palettesFrom(palette));
-    tileMap.setTileIndex(glm::ivec2(0, 0), 1);
-    tileMap.setTileIndex(glm::ivec2(0, 1), 0);
-    tileMap.setTileIndex(glm::ivec2(1, 1), 3);
 
     SECTION("Animated tiles")
     {
@@ -288,8 +284,7 @@ TEST_CASE("TileMap tilesOverlapping returns correct tile coordinates", "[TileMap
 
 TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap(3, 3);
-    tileMap.setTileIndex(glm::ivec2(1, 1), 1);
+    TileMap tileMap = setupTileMapWith({{{1, 1}, 1}}, 3, 3);
 
     AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
 
@@ -376,14 +371,8 @@ TEST_CASE("A spot on a tile's edge belongs to the tile it is the edge of", "[Til
 
 TEST_CASE("Nothing stands on ground it is buried in", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(3, 5), 1);
-
-    REQUIRE(tileMap.standsOnGround(glm::ivec2(3, 4)));
-
-    tileMap.setTileIndex(glm::ivec2(3, 4), 1);
-
-    REQUIRE_FALSE(tileMap.standsOnGround(glm::ivec2(3, 4)));
+    REQUIRE(setupTileMapWith({{{3, 5}, 1}}).standsOnGround(glm::ivec2(3, 4)));
+    REQUIRE_FALSE(setupTileMapWith({{{3, 5}, 1}, {{3, 4}, 1}}).standsOnGround(glm::ivec2(3, 4)));
 }
 
 TEST_CASE("Nothing stands on thin air", "[TileMap]")

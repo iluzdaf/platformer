@@ -63,7 +63,7 @@ TEST_CASE("A level saves the pickups it was given", "[Pickups]")
     Level level = levelFrom(levelPlacing({{"coin", middleOf(glm::ivec2(2, 3))}}));
 
     REQUIRE(
-        level.toLevelData().pickups ==
+        level.getPickupSpawns() ==
         std::vector<PickupSpawnData>{{"coin", middleOf(glm::ivec2(2, 3))}});
 }
 

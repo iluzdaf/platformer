@@ -56,7 +56,7 @@ namespace
         return {{"villager", setupNpcData()}};
     }
 
-    Level levelOf(TileMap &tileMap, glm::ivec2 npcTile)
+    Level levelOf(const TileMap &tileMap, glm::ivec2 npcTile)
     {
         LevelData levelData;
         levelData.playerStart = feetOf(glm::ivec2(0, 0));
@@ -68,10 +68,11 @@ namespace
 
     Level setupWalkableLevel()
     {
-        TileMap tileMap = setupTileMap();
+        std::vector<std::pair<glm::ivec2, int>> laid;
         for (int x = 0; x < 10; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, 6), 1);
-        return levelOf(tileMap, glm::ivec2(4, 5));
+            laid.push_back({glm::ivec2(x, 6), 1});
+
+        return levelOf(setupTileMapWith(laid), glm::ivec2(4, 5));
     }
 
     constexpr int TwoTierWidthTiles = 20;
@@ -83,28 +84,26 @@ namespace
     constexpr glm::ivec2 UnderThePlatform{6, FloorRow - 1};
     constexpr glm::ivec2 SpawnTile{4, 5};
 
-    Level setupTwoTierLevel()
+    TileMap twoTierTiles()
     {
-        TileMap tileMap = setupTileMap(TwoTierWidthTiles, TwoTierHeightTiles);
-
+        std::vector<std::pair<glm::ivec2, int>> laid;
         for (int x = 0; x < TwoTierWidthTiles; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, FloorRow), 1);
+            laid.push_back({glm::ivec2(x, FloorRow), 1});
 
         for (int x = PlatformFirstTile; x <= PlatformLastTile; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+            laid.push_back({glm::ivec2(x, PlatformRow), 1});
 
-        return levelOf(tileMap, UnderThePlatform);
+        return setupTileMapWith(laid, TwoTierWidthTiles, TwoTierHeightTiles);
+    }
+
+    Level setupTwoTierLevel()
+    {
+        return levelOf(twoTierTiles(), UnderThePlatform);
     }
 
     Level twoTierLevelWith(const std::vector<NpcSpawnData> &npcs)
     {
-        TileMap tileMap = setupTileMap(TwoTierWidthTiles, TwoTierHeightTiles);
-
-        for (int x = 0; x < TwoTierWidthTiles; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, FloorRow), 1);
-
-        for (int x = PlatformFirstTile; x <= PlatformLastTile; ++x)
-            tileMap.setTileIndex(glm::ivec2(x, PlatformRow), 1);
+        TileMap tileMap = twoTierTiles();
 
         LevelData levelData;
 
@@ -366,7 +365,7 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
     REQUIRE(spawnsIn(level)[0].type == "villager");
     REQUIRE(spawnsIn(level)[0].position == feetOf(glm::ivec2(1, 1)));
     REQUIRE(spawnsIn(level)[1].position == feetOf(glm::ivec2(2, 1)));
-    REQUIRE(level.toLevelData().npcs == levelData.npcs);
+    REQUIRE(spawnsIn(level) == levelData.npcs);
 }
 
 TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level]")
@@ -391,7 +390,6 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
                          << " in " << entry.path().filename().string() << " has nowhere to walk");
 
             Npc npc(spawnAt("villager", SpawnTile), setupNpcData());
-            npc.moveTo(spawn.position);
 
             float startX = npc.getPosition().x;
             stepNpc(npc, level, 400);
@@ -501,7 +499,6 @@ TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("explorer"));
-    npc.moveTo(spawn.position);
 
     const float topOfTheLedge = surfaceOf(LedgeRow);
     const float theGround = surfaceOf(GroundRow);
@@ -547,7 +544,6 @@ TEST_CASE("The shipped villager runs from the player and settles once it is gone
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("villager"));
-    npc.moveTo(spawn.position);
 
     glm::vec2 crowding = footOf(npc) + glm::vec2(12.0f, 0.0f);
     float startedAt = footOf(npc).x;
@@ -577,7 +573,6 @@ TEST_CASE("The shipped villager never freezes out in the open on its platform", 
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("villager"));
-    npc.moveTo(spawn.position);
 
     constexpr float LeftEnd = 16.0f, RightEnd = 112.0f;
     auto outInTheOpen = [](float x)
@@ -611,7 +606,6 @@ TEST_CASE(
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("villager"));
-    npc.moveTo(spawn.position);
 
     glm::vec2 cornering(112.0f, 96.0f);
     for (int step = 0; step < 600; ++step)
@@ -648,7 +642,6 @@ TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("villager"));
-    npc.moveTo(spawn.position);
 
     glm::vec2 driving(8.0f, 96.0f);
     int flips = 0;
@@ -674,7 +667,6 @@ TEST_CASE("The shipped villager pays no mind to a player on the platform below",
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("villager"));
-    npc.moveTo(spawn.position);
 
     float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
     for (int step = 0; step < 1200; ++step)
@@ -695,7 +687,6 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("villager"));
-    npc.moveTo(spawn.position);
 
     REQUIRE(npc.getStateName() == "patrol");
 
@@ -755,7 +746,6 @@ TEST_CASE("The shipped explorer climbs the wall above the ledge", "[Npc][Level][
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("explorer"));
-    npc.moveTo(spawn.position);
 
     const float theLedge = surfaceOf(LedgeRow);
     const float topOfTheFace = surfaceOf(1);
@@ -785,7 +775,6 @@ TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level
     NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("villager"));
-    npc.moveTo(spawn.position);
 
     float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
     for (int step = 0; step < 3000; ++step)
@@ -810,7 +799,6 @@ TEST_CASE("A beat ending partway up a wall is climbed to and no further", "[Npc]
         patrolling("explorer", LedgeRightEnd, LedgeRightEnd, glm::ivec2(1, LedgeRow - 3));
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("explorer"));
-    npc.moveTo(spawn.position);
 
     float highest = footOf(npc).y;
     for (int step = 0; step < 4000; ++step)
@@ -855,7 +843,6 @@ TEST_CASE("A patrolling npc says which node it set off from and where it is head
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at(spawn.type));
-    npc.moveTo(spawn.position);
 
     REQUIRE_FALSE(npc.getCurrentNodeId());
 
@@ -931,20 +918,6 @@ namespace
     }
 }
 
-TEST_CASE("A beat given to a placed npc reaches the npc, not only the level", "[Npc][Level]")
-{
-    const glm::ivec2 shortOfTheEnd{LedgeLastTile - 2, LedgeRow - 1};
-
-    Level placedWithIt = levelWithALedgeAndAWall(
-        {patrolling("villager", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)});
-
-    Level givenItAfter = levelWithALedgeAndAWall(
-        {patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd)});
-    givenItAfter.getNpc(0).setPatrol(beatOf(shortOfTheEnd, LedgeRightEnd));
-
-    REQUIRE(leftmostReached(givenItAfter, 600) == leftmostReached(placedWithIt, 600));
-}
-
 TEST_CASE("An npc walks further when its beat is the whole ledge", "[Npc][Level]")
 {
     const glm::ivec2 shortOfTheEnd{LedgeLastTile - 2, LedgeRow - 1};
@@ -957,16 +930,14 @@ TEST_CASE("An npc walks further when its beat is the whole ledge", "[Npc][Level]
     REQUIRE(leftmostReached(wholeLedge, 600) < leftmostReached(shortBeat, 600));
 }
 
-TEST_CASE("Clearing a beat lets an npc walk past where it used to turn", "[Npc][Level]")
+TEST_CASE("An npc with no beat at all walks past where a beat would turn it", "[Npc][Level]")
 {
     const glm::ivec2 shortOfTheEnd{LedgeLastTile - 2, LedgeRow - 1};
 
     Level kept = levelWithALedgeAndAWall(
         {patrolling("villager", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)});
 
-    Level freed = levelWithALedgeAndAWall(
-        {patrolling("villager", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)});
-    freed.getNpc(0).clearPatrol();
+    Level freed = levelWithALedgeAndAWall({spawnAt("villager", LedgeRightEnd)});
 
     REQUIRE(leftmostReached(freed, 600) < leftmostReached(kept, 600));
 }

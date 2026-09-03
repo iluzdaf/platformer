@@ -1,4 +1,5 @@
 #include <memory>
+#include "game/level_data.hpp"
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -8,6 +9,7 @@
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
+#include "tile_map/tile_map.hpp"
 #include "pickups/pickup.hpp"
 #include "actor/actor.hpp"
 #include "tile_map/touching_tiles.hpp"
@@ -27,24 +29,30 @@ World::~World() = default;
 
 void World::loadLevel(const std::string &levelPath)
 {
-    rebuildLevel(levelPath);
+    path = levelPath;
+    rebuildFrom(readLevelData(levelPath));
+}
+
+void World::rebuildFrom(const LevelData &fromData)
+{
+    levelData = fromData;
+    level = std::make_unique<Level>(
+        levelData,
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
+    luaScriptSystem.bindLevel(level.get());
+    levelData.tileMapData = level->getTileMap().toTileMapData();
 
     respawnPlayer();
 
     onLevelLoaded();
 }
 
-void World::rebuildLevel(const std::string &levelPath)
+const LevelData &World::getLevelData() const
 {
-    std::unique_ptr<Level> newLevel = std::make_unique<Level>(
-        readLevelData(levelPath),
-        gameData.tilePalettes,
-        gameData.playerData,
-        gameData.npcData,
-        gameData.pickupData);
-    level = std::move(newLevel);
-    path = levelPath;
-    luaScriptSystem.bindLevel(level.get());
+    return levelData;
 }
 
 void World::respawnPlayer()
@@ -70,11 +78,6 @@ void World::respawnPlayer()
     player->onHitCeiling.connect([this] { luaScriptSystem.triggerHitCeiling(); });
     player->onPickup.connect([this](int scoreDelta) { score.add(scoreDelta); });
     luaScriptSystem.bindPlayer(player.get());
-}
-
-void World::rebuildNpcs()
-{
-    level->rebuildNpcs(gameData.npcData);
 }
 
 void World::preFixedUpdate()
@@ -115,7 +118,7 @@ const std::string &World::getLevelPath() const
     return path;
 }
 
-Level &World::getLevel()
+const Level &World::getLevel() const
 {
     return *level.get();
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/level_data.hpp"
+
 #include <string>
 #include <cstddef>
 #include <map>
@@ -25,7 +27,8 @@ class LevelUi
 {
 public:
     void draw(
-        Level &level,
+        const Level &level,
+        const LevelData &levelData,
         const std::string &levelPath,
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerFeet,
@@ -37,13 +40,14 @@ public:
         const;
     void update(
         const MouseOnTheMap &mouse,
-        Level &level,
+        const Level &level,
+        const LevelData &levelData,
         const std::string &levelPath,
         std::optional<Armed> &armed,
         EditorCommands &commands);
 
-    void save(const Level &level, const std::string &levelPath);
-    bool unsavedSince(const Level &level, const std::string &levelPath);
+    void save(const LevelData &levelData, const std::string &levelPath);
+    bool unsavedSince(const LevelData &levelData, const std::string &levelPath);
     void valuesReplaced();
 
 private:
@@ -53,10 +57,14 @@ private:
     GridShown grid;
     bool drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
 
-    std::string asItWouldBeSaved(const Level &level) const;
-    void drawLevel(Level &level, const std::string &levelPath);
+    std::string asItWouldBeSaved(const LevelData &levelData) const;
+    void drawLevel(
+        const LevelData &levelData,
+        const std::string &levelPath,
+        EditorCommands &commands);
     void drawActors(
-        Level &level,
+        const Level &level,
+        const LevelData &levelData,
         const ActorMotionState &playerMotionState,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,

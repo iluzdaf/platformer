@@ -80,6 +80,12 @@ namespace
         return levelData;
     }
 
+    Level levelOf(const LevelData &levelData, const PlayerData &playerData = playerOfHeight(13.0f))
+    {
+        return Level(
+            levelData, palettesFrom(getDefaultTileDataMap()), playerData, theUsualNpcs(), {});
+    }
+
     Level levelPlacing(
         const std::vector<NpcSpawnData> &npcs,
         const PlayerData &playerData = playerOfHeight(13.0f))
@@ -195,29 +201,16 @@ TEST_CASE("A level naming an npc that does not exist fails to load", "[Level]")
         Catch::Matchers::ContainsSubstring("nobody"));
 }
 
-TEST_CASE("Editing the tiles changes what the graphs describe", "[Level]")
+TEST_CASE("A gap in the floor changes what the graphs describe", "[Level]")
 {
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
     NavigationProfile walker = profileOfHeight(13.0f);
 
-    REQUIRE(nodesOnTheFloor(level.graphFor(walker)) == 2);
+    LevelData whole = corridorPlacing({spawnAt("short", StandingTile)});
+    LevelData holed = whole;
+    (*holed.tileMapData.indices)[FloorRow][5] = 0;
 
-    level.getTileMap().setTileIndex(glm::ivec2(5, FloorRow), 0);
-    level.rebuildGraphs();
-
-    REQUIRE(nodesOnTheFloor(level.graphFor(walker)) == 4);
-}
-
-TEST_CASE("Rebuilding keeps a graph for every profile it had", "[Level]")
-{
-    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
-    size_t before = level.getGraphs().size();
-
-    level.rebuildGraphs();
-
-    REQUIRE(level.getGraphs().size() == before);
-    REQUIRE(nodesOnTheFloor(level.graphFor(profileOfHeight(13.0f))) == 2);
-    REQUIRE(nodesOnTheFloor(level.graphFor(profileOfHeight(20.0f))) == 0);
+    REQUIRE(nodesOnTheFloor(levelOf(whole).graphFor(walker)) == 2);
+    REQUIRE(nodesOnTheFloor(levelOf(holed).graphFor(walker)) == 4);
 }
 
 TEST_CASE("A graph is named for every actor that navigates by it", "[Level]")
@@ -247,10 +240,10 @@ TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
         levelPlacing({spawnAt("short", StandingTile), spawnAt("alsoShort", StandingTile)});
 
     REQUIRE(
-        &level.graphFor(level.getNpc(0).getNavigationProfile()) ==
-        &level.graphFor(level.getNpc(1).getNavigationProfile()));
+        &level.graphFor(level.getNpcs()[0]->getNavigationProfile()) ==
+        &level.graphFor(level.getNpcs()[1]->getNavigationProfile()));
     REQUIRE(
-        &level.graphFor(level.getNpc(0).getNavigationProfile()) !=
+        &level.graphFor(level.getNpcs()[0]->getNavigationProfile()) !=
         &level.graphFor(profileOfHeight(20.0f)));
 
     std::vector<std::string> names;
@@ -261,22 +254,20 @@ TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
     REQUIRE(std::find(names.begin(), names.end(), "player, alsoShort, short") != names.end());
 }
 
-TEST_CASE("A level can be pointed at a different level next", "[Level]")
+TEST_CASE("A level names the level its data points at next", "[Level]")
 {
-    Level level = levelPlacing({});
+    LevelData levelData = corridorPlacing({});
+    levelData.nextLevel = "levels/level4.json";
 
-    level.setNextLevel("levels/level4.json");
-
-    REQUIRE(level.getNextLevel() == "levels/level4.json");
-    REQUIRE(level.toLevelData().nextLevel == "levels/level4.json");
+    REQUIRE(levelOf(levelData).getNextLevel() == "levels/level4.json");
 }
 
-TEST_CASE("A level refuses to have no level next", "[Level]")
+TEST_CASE("A level whose data names no level next is refused", "[Level]")
 {
-    Level level = levelPlacing({});
+    LevelData levelData = corridorPlacing({});
+    levelData.nextLevel.clear();
 
-    REQUIRE_THROWS(level.setNextLevel(""));
-    REQUIRE_FALSE(level.getNextLevel().empty());
+    REQUIRE_THROWS(levelOf(levelData));
 }
 
 TEST_CASE("A graph does not name the same actor twice", "[Level]")
@@ -288,119 +279,18 @@ TEST_CASE("A graph does not name the same actor twice", "[Level]")
         REQUIRE(graph.name.find("short", graph.name.find("short") + 1) == std::string::npos);
 }
 
-TEST_CASE("A level takes an npc placed after it was built", "[Level]")
+TEST_CASE("An npc is built from the catalogue entry its type names", "[Level]")
 {
-    Level level = levelPlacing({});
-    REQUIRE(spawnsIn(level).empty());
-
-    level.addNpc(spawnAt("short", StandingTile), theUsualNpcs().at("short"));
-
-    REQUIRE(spawnsIn(level).size() == 1);
-    REQUIRE(spawnsIn(level).front().position == feetOf(StandingTile));
-    REQUIRE(spawnsIn(level).front().type == "short");
-}
-
-TEST_CASE("An npc placed after building is part of what the level would save", "[Level]")
-{
-    Level level = levelPlacing({});
-
-    level.addNpc(spawnAt("short", StandingTile), theUsualNpcs().at("short"));
-
-    REQUIRE(level.toLevelData().npcs == spawnsIn(level));
-}
-
-TEST_CASE("An npc is built from the data it was added with", "[Level]")
-{
-    Level level = levelPlacing({});
-
-    level.addNpc(spawnAt("tall", StandingTile), theUsualNpcs().at("tall"));
+    Level level = levelPlacing({spawnAt("tall", StandingTile)});
 
     REQUIRE(level.getNpcs().front()->getNavigationProfile() == profileOfHeight(20.0f));
 }
 
-TEST_CASE("A level keeps the npcs it already had when another is placed", "[Level]")
-{
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
-
-    level.addNpc(spawnAt("short", glm::ivec2(4, FloorRow - 1)), theUsualNpcs().at("short"));
-
-    REQUIRE(spawnsIn(level).size() == 2);
-}
-
-TEST_CASE("A level lets go of an npc it was placing", "[Level]")
-{
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
-
-    level.removeNpc(0);
-
-    REQUIRE(spawnsIn(level).empty());
-}
-
-TEST_CASE("Removing an npc leaves the others where they were", "[Level]")
-{
-    glm::ivec2 secondTile(4, FloorRow - 1);
-    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("short", secondTile)});
-
-    level.removeNpc(0);
-
-    REQUIRE(spawnsIn(level).size() == 1);
-    REQUIRE(spawnsIn(level).front().position == feetOf(secondTile));
-}
-
-TEST_CASE("A level refuses to remove an npc it does not have", "[Level]")
-{
-    Level level = levelPlacing({});
-
-    REQUIRE_THROWS_WITH(level.removeNpc(0), "This level has no npc 0, it has 0");
-}
-
-TEST_CASE("An npc removed is gone from what the level would save", "[Level]")
-{
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
-
-    level.removeNpc(0);
-
-    REQUIRE(level.toLevelData().npcs.empty());
-}
-
-TEST_CASE("An npc can be moved to another tile", "[Level]")
-{
-    glm::ivec2 elsewhere(4, FloorRow - 1);
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
-
-    level.getNpc(0).moveTo(feetOf(elsewhere));
-
-    REQUIRE(spawnsIn(level).front().position == feetOf(elsewhere));
-    REQUIRE(level.toLevelData().npcs.front().position == feetOf(elsewhere));
-}
-
-TEST_CASE("A level refuses to move an npc it does not have", "[Level]")
-{
-    Level level = levelPlacing({});
-
-    REQUIRE_THROWS_WITH(
-        level.getNpc(0).moveTo(glm::vec2(0.0f)), "This level has no npc 0, it has 0");
-}
-
-TEST_CASE("A level refuses to move an npc off the map", "[Level]")
+TEST_CASE("A tile off the map has no feet to stand on", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
     REQUIRE_THROWS(level.getTileMap().feetOnTile(glm::ivec2(-1, 0)));
-    REQUIRE(spawnsIn(level).front().position == feetOf(StandingTile));
-}
-
-TEST_CASE("An npc can be given a beat it did not have", "[Level]")
-{
-    glm::ivec2 other(4, FloorRow - 1);
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
-    REQUIRE_FALSE(spawnsIn(level).front().patrol);
-
-    PatrolData beat = beatOf(StandingTile, other);
-    level.getNpc(0).setPatrol(beat);
-
-    REQUIRE(spawnsIn(level).front().patrol == beat);
-    REQUIRE(level.toLevelData().npcs.front().patrol == beat);
 }
 
 TEST_CASE("A beat cannot be built from a tile off the map", "[Level]")
@@ -408,60 +298,18 @@ TEST_CASE("A beat cannot be built from a tile off the map", "[Level]")
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
     REQUIRE_THROWS(beatBetween(level.getTileMap(), StandingTile, glm::ivec2(-1, 0)));
-    REQUIRE_FALSE(spawnsIn(level).front().patrol);
-}
-
-TEST_CASE("A level refuses to give a beat to an npc it does not have", "[Level]")
-{
-    Level level = levelPlacing({});
-
-    REQUIRE_THROWS_WITH(
-        level.getNpc(0).setPatrol(PatrolData{}), "This level has no npc 0, it has 0");
-}
-
-TEST_CASE("An npc can be left with no beat at all", "[Level]")
-{
-    glm::ivec2 other(4, FloorRow - 1);
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
-    level.getNpc(0).setPatrol(beatOf(StandingTile, other));
-
-    level.getNpc(0).clearPatrol();
-
-    REQUIRE_FALSE(spawnsIn(level).front().patrol);
-    REQUIRE_FALSE(level.toLevelData().npcs.front().patrol);
-}
-
-TEST_CASE("A level refuses to clear the beat of an npc it does not have", "[Level]")
-{
-    Level level = levelPlacing({});
-
-    REQUIRE_THROWS_WITH(level.getNpc(0).clearPatrol(), "This level has no npc 0, it has 0");
-}
-
-TEST_CASE("Placing an npc adds no graph, because its type already had one", "[Level]")
-{
-    Level level = levelPlacing({});
-    std::size_t before = level.getGraphs().size();
-
-    level.addNpc(spawnAt("tall", StandingTile), theUsualNpcs().at("tall"));
-
-    REQUIRE_NOTHROW(level.graphFor(level.getNpc(0).getNavigationProfile()));
-    REQUIRE(level.getGraphs().size() == before);
 }
 
 TEST_CASE("A level refuses an npc of a type it has never heard of", "[Level]")
 {
-    Level level = levelPlacing({});
-
-    REQUIRE_THROWS(level.addNpc(spawnAt("dragon", StandingTile), NpcData{}));
-    REQUIRE(spawnsIn(level).empty());
+    REQUIRE_THROWS(levelPlacing({spawnAt("dragon", StandingTile)}));
 }
 
 TEST_CASE("The run beneath an npc reaches both ends of the floor it stands on", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    std::optional<PatrolData> run = level.runBeneathNpc(0);
+    std::optional<PatrolData> run = level.runBeneath(profileOfHeight(13.0f), feetOf(StandingTile));
 
     REQUIRE(run);
     REQUIRE(run->from.y == feetOf(StandingTile).y);
@@ -470,30 +318,33 @@ TEST_CASE("The run beneath an npc reaches both ends of the floor it stands on", 
     REQUIRE(run->to.x > feetOf(StandingTile).x);
 }
 
-TEST_CASE("The run beneath an npc names tiles the beat can be saved as", "[Level]")
+TEST_CASE("A run handed back is a beat a level will take", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
-
-    std::optional<PatrolData> run = level.runBeneathNpc(0);
+    std::optional<PatrolData> run = level.runBeneath(profileOfHeight(13.0f), feetOf(StandingTile));
 
     REQUIRE(run);
-    REQUIRE_NOTHROW(level.getNpc(0).setPatrol(*run));
-    REQUIRE(spawnsIn(level).front().patrol == run);
+
+    LevelData walking = corridorPlacing({spawnAt("short", StandingTile)});
+    walking.npcs.front().patrol = run;
+
+    REQUIRE(spawnsIn(levelOf(walking)).front().patrol == run);
 }
 
 TEST_CASE("Looking under an npc reads the graph that npc walks", "[Level]")
 {
-    Level tallOne = levelPlacing({spawnAt("tall", StandingTile)});
-    Level shortOne = levelPlacing({spawnAt("short", StandingTile)});
+    Level level = levelPlacing({});
 
-    REQUIRE(tallOne.runBeneathNpc(0) != shortOne.runBeneathNpc(0));
+    REQUIRE(
+        level.runBeneath(profileOfHeight(20.0f), feetOf(StandingTile)) !=
+        level.runBeneath(profileOfHeight(13.0f), feetOf(StandingTile)));
 }
 
-TEST_CASE("A level refuses to look under an npc it does not have", "[Level]")
+TEST_CASE("A level has nothing to look under for a profile it does not graph", "[Level]")
 {
     Level level = levelPlacing({});
 
-    REQUIRE_THROWS_WITH(level.runBeneathNpc(0), "This level has no npc 0, it has 0");
+    REQUIRE_THROWS(level.runBeneath(profileOfHeight(99.0f), feetOf(StandingTile)));
 }
 
 TEST_CASE("A beat reaches the outer edges of the tiles it names", "[Level]")
@@ -503,7 +354,7 @@ TEST_CASE("A beat reaches the outer edges of the tiles it names", "[Level]")
     Level level = levelWithALedge({spawn});
     float tileSize = static_cast<float>(level.getTileMap().getTileSize());
 
-    const std::optional<PatrolData> &beat = level.getNpc(0).getSpawn().patrol;
+    const std::optional<PatrolData> &beat = level.getNpcs()[0]->getSpawn().patrol;
 
     REQUIRE(beat);
     REQUIRE(beat->from.x == 1 * tileSize);
@@ -517,27 +368,20 @@ TEST_CASE("A beat named right to left reaches the same two edges", "[Level]")
     Level level = levelWithALedge({spawn});
     float tileSize = static_cast<float>(level.getTileMap().getTileSize());
 
-    const std::optional<PatrolData> &beat = level.getNpc(0).getSpawn().patrol;
+    const std::optional<PatrolData> &beat = level.getNpcs()[0]->getSpawn().patrol;
 
     REQUIRE(beat);
     REQUIRE(beat->from.x == 5 * tileSize);
     REQUIRE(beat->to.x == 1 * tileSize);
 }
 
-TEST_CASE("A level hands back the npc standing at an index", "[Level]")
+TEST_CASE("A level stands its npcs up in the order its data places them", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
 
-    REQUIRE(level.getNpc(0).getSpawn().type == "short");
-    REQUIRE(level.getNpc(1).getSpawn().type == "tall");
-    REQUIRE(&level.getNpc(1) == level.getNpcs()[1].get());
-}
-
-TEST_CASE("A level says how many npcs it has when asked for one it lacks", "[Level]")
-{
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
-
-    REQUIRE_THROWS_WITH(level.getNpc(1), "This level has no npc 1, it has 1");
+    REQUIRE(level.getNpcs().size() == 2);
+    REQUIRE(level.getNpcs()[0]->getSpawn().type == "short");
+    REQUIRE(level.getNpcs()[1]->getSpawn().type == "tall");
 }
 
 TEST_CASE("A tile picked in the editor survives the trip through world space", "[Level]")

@@ -24,8 +24,7 @@ namespace
 
 TEST_CASE("PhysicsBody resolves collisions with solid tiles", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(0, 5), 1);
+    TileMap tileMap = setupTileMapWith({{{0, 5}, 1}});
     PhysicsBody body = setupBody({0, 4 * 16.0f}, {0, 980});
     FixedTimeStep timeStepper;
     timeStepper.run(1.0f, [&](float deltaTime) { body.stepPhysics(deltaTime, tileMap); });
@@ -45,24 +44,21 @@ TEST_CASE("PhysicsBody clamps to map bounds", "[PhysicsBody]")
 
 TEST_CASE("PhysicsBody detects contact with ground", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(1, 2), 1);
+    TileMap tileMap = setupTileMapWith({{{1, 2}, 1}});
     PhysicsBody body = setupBody({16, 16});
     REQUIRE(body.contactWithGround(tileMap));
 }
 
 TEST_CASE("PhysicsBody detects contact with ceiling", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(1, 2), 1);
+    TileMap tileMap = setupTileMapWith({{{1, 2}, 1}});
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithCeiling(tileMap));
 }
 
 TEST_CASE("PhysicsBody inside a tile is neither standing on it nor under it", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(1, 3), 1);
+    TileMap tileMap = setupTileMapWith({{{1, 3}, 1}});
     PhysicsBody body = setupBody({16, 48});
 
     REQUIRE_FALSE(body.contactWithGround(tileMap));
@@ -71,31 +67,27 @@ TEST_CASE("PhysicsBody inside a tile is neither standing on it nor under it", "[
 
 TEST_CASE("PhysicsBody detects contact with left wall", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(0, 3), 1);
+    TileMap tileMap = setupTileMapWith({{{0, 3}, 1}});
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithLeftWall(tileMap));
 }
 
 TEST_CASE("PhysicsBody detects contact with right wall", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(2, 3), 1);
+    TileMap tileMap = setupTileMapWith({{{2, 3}, 1}});
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithRightWall(tileMap));
 }
 TEST_CASE("PhysicsBody detects a wall beside its head", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(0, 3), 1);
+    TileMap tileMap = setupTileMapWith({{{0, 3}, 1}});
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithLeftWallAtHead(tileMap));
 }
 
 TEST_CASE("PhysicsBody beside a ledge touches the wall but not at its head", "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(0, 4), 1);
+    TileMap tileMap = setupTileMapWith({{{0, 4}, 1}});
     PhysicsBody body = setupBody({16, 56});
     REQUIRE(body.contactWithLeftWall(tileMap));
     REQUIRE_FALSE(body.contactWithLeftWallAtHead(tileMap));
@@ -105,8 +97,7 @@ TEST_CASE(
     "PhysicsBody beside a ledge on its right touches the wall but not at its head",
     "[PhysicsBody]")
 {
-    TileMap tileMap = setupTileMap();
-    tileMap.setTileIndex(glm::ivec2(2, 4), 1);
+    TileMap tileMap = setupTileMapWith({{{2, 4}, 1}});
     PhysicsBody body = setupBody({16, 56});
     REQUIRE(body.contactWithRightWall(tileMap));
     REQUIRE_FALSE(body.contactWithRightWallAtHead(tileMap));

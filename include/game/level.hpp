@@ -35,36 +35,24 @@ public:
     ~Level();
 
     const TileMap &getTileMap() const;
-    TileMap &getTileMap();
 
     const NavigationGraph &graphFor(const NavigationProfile &profile) const;
     const std::vector<NamedNavigationGraph> &getGraphs() const;
-
-    void rebuildGraphs();
 
     glm::vec2 getPlayerStart() const;
     const std::string &getNextLevel() const;
     const std::vector<PickupSpawnData> &getPickupSpawns() const;
 
     const std::vector<std::unique_ptr<Npc>> &getNpcs() const;
-    Npc &getNpc(std::size_t index);
-    const Npc &getNpc(std::size_t index) const;
     const std::vector<Pickup> &getPickups() const;
-
-    void rebuildNpcs(const std::map<std::string, NpcData> &npcData);
-    void rebuildPickups(const std::map<std::string, PickupData> &pickupData);
 
     void preFixedUpdate();
     void fixedUpdate(float deltaTime, const glm::vec2 &playerPosition);
     void postFixedUpdate();
     void update(float deltaTime);
     std::vector<Pickup> takePickupsTouching(const AABB &reach);
-    void addNpc(const NpcSpawnData &spawn, const NpcData &npcData);
-    void removeNpc(std::size_t index);
-    std::optional<PatrolData> runBeneathNpc(std::size_t index) const;
-    void setPlayerStart(glm::vec2 position);
-    void setNextLevel(const std::string &levelPath);
-    LevelData toLevelData() const;
+    std::optional<PatrolData> runBeneath(const NavigationProfile &profile, glm::vec2 position)
+        const;
 
 private:
     TileMap tileMap;
@@ -77,4 +65,5 @@ private:
     std::set<std::string> npcTypes;
 
     void addGraphFor(const std::string &name, const NavigationProfile &profile);
+    void rebuildPickups(const std::map<std::string, PickupData> &pickupData);
 };

@@ -1,4 +1,6 @@
 #pragma once
+
+#include "game/level_data.hpp"
 #include <string>
 
 #include "ui/editor_ui.hpp"
@@ -18,7 +20,8 @@ class Window;
 struct GameUiSubject
 {
     GameData &gameData;
-    Level &level;
+    const Level &level;
+    const LevelData &levelData;
     const std::string &levelPath;
     const Player &player;
     const TextureCache &textures;
@@ -37,7 +40,8 @@ public:
     void draw(const GameUiSubject &subject);
     void update(
         float deltaTime,
-        Level &level,
+        const Level &level,
+        const LevelData &levelData,
         const std::string &levelPath,
         const Camera2D &camera);
     void resize(int width, int height);

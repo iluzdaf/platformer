@@ -15,10 +15,8 @@
 #include <array>
 #include <span>
 #include <imgui_internal.h>
-#include <memory>
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
-#include "npc/npc.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 
@@ -34,7 +32,7 @@ namespace
     constexpr std::array AboveTheInspector{"State", "Overlays"};
     constexpr std::array EveryFold{"State", "Overlays", "Inspector", "Actors"};
 
-    Level levelPlacing(const std::vector<NpcSpawnData> &npcs)
+    LevelData dataPlacing(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
         levelData.playerStart = feetOf(glm::ivec2(0, 0));
@@ -46,6 +44,11 @@ namespace
         levelData.playerStart = feetOf(glm::ivec2(1, Standing));
         levelData.npcs = npcs;
 
+        return levelData;
+    }
+
+    Level levelOf(const LevelData &levelData)
+    {
         return Level(
             levelData,
             palettesFrom(getDefaultTileDataMap()),
@@ -53,6 +56,28 @@ namespace
             shippedNpcData(),
             shippedPickupData());
     }
+
+    struct Editing
+    {
+        LevelData levelData;
+        Level level;
+        EditorCommands commands;
+        std::optional<LevelData> edited;
+
+        explicit Editing(const std::vector<NpcSpawnData> &npcs = {})
+            : levelData(dataPlacing(npcs)), level(levelOf(levelData))
+        {
+            std::ignore =
+                commands.onLevelEdited.connect([this](const LevelData &now) { edited = now; });
+        }
+
+        const LevelData &asked()
+        {
+            commands.drain();
+            REQUIRE(edited);
+            return *edited;
+        }
+    };
 
     NpcSpawnData villagerAt(glm::ivec2 tilePosition)
     {
@@ -87,162 +112,205 @@ namespace
 TEST_CASE("Painting sets the tile under the mouse while the button is down", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
+    Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
     glm::ivec2 target(3, 2);
 
-    levelUi.update(holding(level, target), level, LevelPath, armed, commands);
+    levelUi.update(
+        holding(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
 
-    REQUIRE(level.getTileMap().tilePositionToTileIndex(target) == PaintedTile);
+    REQUIRE((*editing.asked().tileMapData.indices)[target.y][target.x] == PaintedTile);
     REQUIRE(armed == std::optional<Armed>(PaintTile{PaintedTile}));
 }
 
 TEST_CASE("Painting waits for the button", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
+    Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
     glm::ivec2 target(3, 2);
 
-    levelUi.update(over(level, target), level, LevelPath, armed, commands);
+    levelUi.update(
+        over(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
 
-    REQUIRE(level.getTileMap().tilePositionToTileIndex(target) == 0);
+    editing.commands.drain();
+    REQUIRE_FALSE(editing.edited);
 }
 
 TEST_CASE("A click that belongs to the panel does not reach the map", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
+    Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
     glm::ivec2 target(3, 2);
 
-    MouseOnTheMap mouse = holding(level, target);
+    MouseOnTheMap mouse = holding(editing.level, target);
     mouse.overTheUi = true;
-    levelUi.update(mouse, level, LevelPath, armed, commands);
+    levelUi.update(mouse, editing.level, editing.levelData, LevelPath, armed, editing.commands);
 
-    REQUIRE(level.getTileMap().tilePositionToTileIndex(target) == 0);
+    editing.commands.drain();
+    REQUIRE_FALSE(editing.edited);
 }
 
 TEST_CASE("A click outside the map changes nothing", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
+    Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
 
     MouseOnTheMap mouse;
     mouse.worldPosition = glm::vec2(-40.0f, -40.0f);
     mouse.heldDown = true;
-    levelUi.update(mouse, level, LevelPath, armed, commands);
+    levelUi.update(mouse, editing.level, editing.levelData, LevelPath, armed, editing.commands);
 
-    REQUIRE(level.getTileMap().tilePositionToTileIndex(glm::ivec2(0, 0)) == 0);
+    editing.commands.drain();
+    REQUIRE_FALSE(editing.edited);
 }
 
 TEST_CASE("Nothing happens when nothing is armed", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
+    Editing editing;
     std::optional<Armed> armed;
     glm::ivec2 target(3, 2);
 
-    levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
+    levelUi.update(
+        clicking(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
 
-    REQUIRE(level.getTileMap().tilePositionToTileIndex(target) == 0);
+    editing.commands.drain();
+    REQUIRE_FALSE(editing.edited);
 }
 
 TEST_CASE("Picking the player start moves it and puts the pick down", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
+    Editing editing;
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
     glm::ivec2 target(4, Standing);
 
-    levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
+    levelUi.update(
+        clicking(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
 
-    REQUIRE(level.getTileMap().tileUnderFeet(level.getPlayerStart()) == target);
+    REQUIRE(editing.level.getTileMap().tileUnderFeet(editing.asked().playerStart) == target);
     REQUIRE_FALSE(armed);
 }
 
 TEST_CASE("A pick waits for the click rather than the hold", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({});
-    glm::ivec2 before = level.getTileMap().tileUnderFeet(level.getPlayerStart());
+    Editing editing;
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
 
-    levelUi.update(holding(level, glm::ivec2(4, Standing)), level, LevelPath, armed, commands);
+    levelUi.update(
+        holding(editing.level, glm::ivec2(4, Standing)),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
 
-    REQUIRE(level.getTileMap().tileUnderFeet(level.getPlayerStart()) == before);
+    editing.commands.drain();
+    REQUIRE_FALSE(editing.edited);
     REQUIRE(armed);
 }
 
 TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({villagerAt(glm::ivec2(2, Standing))});
+    Editing editing({villagerAt(glm::ivec2(2, Standing))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 0};
     glm::ivec2 target(5, Standing);
 
-    bool asked = false;
-    std::ignore = commands.onNpcsChanged.connect([&asked] { asked = true; });
-
-    levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
-    commands.drain();
-
-    REQUIRE(spawnsIn(level).front().position == feetOf(target));
-    REQUIRE(asked);
+    levelUi.update(
+        clicking(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
+    REQUIRE(editing.asked().npcs.front().position == feetOf(target));
     REQUIRE_FALSE(armed);
 }
 
 TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({villagerAt(glm::ivec2(2, Standing))});
-    level.getNpc(0).setPatrol(beatOf(glm::ivec2(1, Standing), glm::ivec2(8, Standing)));
+    NpcSpawnData walking = villagerAt(glm::ivec2(2, Standing));
+    walking.patrol = beatOf(glm::ivec2(1, Standing), glm::ivec2(8, Standing));
+    Editing editing({walking});
 
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolTo, 0};
     glm::ivec2 target(5, Standing);
 
-    levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
+    levelUi.update(
+        clicking(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
 
-    REQUIRE(spawnsIn(level).front().patrol->to == beatOf(target, target).to);
-    REQUIRE(spawnsIn(level).front().patrol->from == beatOf(glm::ivec2(1, Standing), target).from);
+    REQUIRE(editing.asked().npcs.front().patrol->to == beatOf(target, target).to);
+    REQUIRE(
+        editing.asked().npcs.front().patrol->from == beatOf(glm::ivec2(1, Standing), target).from);
 }
 
 TEST_CASE("The first end picked of an absent beat becomes both of them", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({villagerAt(glm::ivec2(2, Standing))});
-    REQUIRE_FALSE(spawnsIn(level).front().patrol);
+    Editing editing({villagerAt(glm::ivec2(2, Standing))});
+    REQUIRE_FALSE(editing.levelData.npcs.front().patrol);
 
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolFrom, 0};
     glm::ivec2 target(5, Standing);
 
-    levelUi.update(clicking(level, target), level, LevelPath, armed, commands);
+    levelUi.update(
+        clicking(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
 
-    REQUIRE(spawnsIn(level).front().patrol == beatOf(target, target));
+    REQUIRE(editing.asked().npcs.front().patrol == beatOf(target, target));
 }
 
 TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[LevelUi]")
 {
     LevelUi levelUi;
-    EditorCommands commands;
-    Level level = levelPlacing({villagerAt(glm::ivec2(2, Standing))});
+    Editing editing({villagerAt(glm::ivec2(2, Standing))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 4};
 
     REQUIRE_NOTHROW(levelUi.update(
-        clicking(level, glm::ivec2(5, Standing)), level, LevelPath, armed, commands));
+        clicking(editing.level, glm::ivec2(5, Standing)),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands));
 
-    REQUIRE(spawnsIn(level).front().position == feetOf(glm::ivec2(2, Standing)));
+    editing.commands.drain();
+    REQUIRE_FALSE(editing.edited);
     REQUIRE_FALSE(armed);
 }
 
@@ -250,8 +318,8 @@ TEST_CASE("The level section draws every fold without a tile sheet", "[LevelUi]"
 {
     HeadlessImGui gui;
     LevelUi levelUi;
-    Level level = levelPlacing({villagerAt(glm::ivec2(3, Standing))});
-    std::vector<std::unique_ptr<Npc>> npcs;
+    LevelData levelData = dataPlacing({villagerAt(glm::ivec2(3, Standing))});
+    Level level = levelOf(levelData);
     ActorMotionState motion;
     ActorState playerState;
     std::optional<Armed> armed;
@@ -268,6 +336,7 @@ TEST_CASE("The level section draws every fold without a tile sheet", "[LevelUi]"
 
                 levelUi.draw(
                     level,
+                    levelData,
                     LevelPath,
                     motion,
                     level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),

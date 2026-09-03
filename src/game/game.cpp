@@ -7,6 +7,7 @@
 #include "game/level.hpp"
 #include "game/levels.hpp"
 #include "game/world.hpp"
+#include "game/level_data.hpp"
 #include "player/player.hpp"
 #include "ui/game_ui.hpp"
 #include "rendering/screen_transition.hpp"
@@ -52,7 +53,8 @@ Game::Game(Window &window, ReloadCommands &reloadCommands)
     gameUi.commands().onLoadLevel.connect([this](const std::string &levelPath)
                                           { world.loadLevel(levelPath); });
     gameUi.commands().onRespawn.connect([this] { world.respawnPlayer(); });
-    gameUi.commands().onNpcsChanged.connect([this] { world.rebuildNpcs(); });
+    gameUi.commands().onLevelEdited.connect([this](const LevelData &edited)
+                                            { world.rebuildFrom(edited); });
     gameUi.commands().onSettingsChanged.connect(
         [this]
         { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });
@@ -105,7 +107,7 @@ void Game::frame(float deltaTime)
     luaScriptSystem.update(deltaTime);
     camera.update(deltaTime);
     screenTransition.update(deltaTime);
-    gameUi.update(deltaTime, world.getLevel(), world.getLevelPath(), camera);
+    gameUi.update(deltaTime, world.getLevel(), world.getLevelData(), world.getLevelPath(), camera);
 
     playback.advance(
         deltaTime,
@@ -139,6 +141,7 @@ void Game::render()
         GameUiSubject{
             gameData,
             world.getLevel(),
+            world.getLevelData(),
             world.getLevelPath(),
             world.getPlayer(),
             renderer.getTextures(),

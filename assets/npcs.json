@@ -1,7 +1,7 @@
 {
     "explorer":{
         "actorData":{
-            "sheet":{"texture":"textures/player.png","cellSize":[16,16]},
+            "sheet":{"texture":"textures/explorer.png","cellSize":[16,16]},
             "size":[16,16],
             "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
             "motionData":{
@@ -18,9 +18,9 @@
                 "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
             },
             "animationData":{
-                "idle":{"frames":[5],"frameDuration":1},
-                "walk":{"frames":[6,3],"frameDuration":0.15},
-                "fall":{"frames":[2],"frameDuration":1}
+                "idle":{"frames":[2],"frameDuration":1},
+                "walk":{"frames":[3,1],"frameDuration":0.15},
+                "fall":{"frames":[0],"frameDuration":1}
             }
         },
         "stateMachineBehaviorData":{
@@ -30,7 +30,7 @@
     },
     "villager":{
         "actorData":{
-            "sheet":{"texture":"textures/player.png","cellSize":[16,16]},
+            "sheet":{"texture":"textures/villager.png","cellSize":[16,16]},
             "size":[16,16],
             "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
             "motionData":{
@@ -38,9 +38,9 @@
                 "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
             },
             "animationData":{
-                "idle":{"frames":[5],"frameDuration":1},
-                "walk":{"frames":[6,3],"frameDuration":0.15},
-                "fall":{"frames":[2],"frameDuration":1}
+                "idle":{"frames":[2],"frameDuration":1},
+                "walk":{"frames":[3,1],"frameDuration":0.15},
+                "fall":{"frames":[0],"frameDuration":1}
             }
         },
         "stateMachineBehaviorData":{

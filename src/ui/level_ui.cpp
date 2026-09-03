@@ -78,7 +78,7 @@ void LevelUi::drawActors(
     {
         level.addNpc(NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt});
 
-        std::size_t placed = level.getNpcs().size() - 1;
+        std::size_t placed = level.getNpcSpawns().size() - 1;
         if (std::optional<PatrolData> run = level.runBeneathNpc(placed))
             level.setNpcPatrol(placed, *run);
 
@@ -214,7 +214,8 @@ void LevelUi::update(
         return;
 
     PickTile picking = std::get<PickTile>(*armed);
-    if (picking.what != PickTile::For::PlayerStart && picking.npcIndex >= level.getNpcs().size())
+    if (picking.what != PickTile::For::PlayerStart &&
+        picking.npcIndex >= level.getNpcSpawns().size())
     {
         armed.reset();
         return;
@@ -233,7 +234,7 @@ void LevelUi::update(
 
     case PickTile::For::PatrolFrom:
     case PickTile::For::PatrolTo: {
-        const NpcSpawnData &spawn = level.getNpcs()[picking.npcIndex];
+        const NpcSpawnData &spawn = level.getNpcSpawns()[picking.npcIndex];
         PatrolData patrol = spawn.patrol.value_or(PatrolData{tilePosition, tilePosition});
         if (picking.what == PickTile::For::PatrolFrom)
             patrol.from = tilePosition;

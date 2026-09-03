@@ -31,7 +31,8 @@ namespace
             readLevelData(levelPath),
             gameData.tilePalettes,
             gameData.playerData,
-            gameData.npcData};
+            gameData.npcData,
+            gameData.pickupData};
         std::vector<std::unique_ptr<Npc>> npcs;
         TextureCache textures;
         ActorMotionState motion;
@@ -97,7 +98,7 @@ TEST_CASE("A level that strands an npc says so where its save would be", "[Edito
     Editing editing;
 
     editing.level.addNpc(NpcSpawnData{"villager", glm::ivec2(2, 8), std::nullopt});
-    std::size_t placed = editing.level.getNpcs().size() - 1;
+    std::size_t placed = editing.level.getNpcSpawns().size() - 1;
     editing.level.setNpcPatrol(placed, PatrolData{glm::ivec2(2, 8), glm::ivec2(2, 1)});
 
     SectionSaving saving = editorUi.savingIn(EditorSection::Level, editing.subject());

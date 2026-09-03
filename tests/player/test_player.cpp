@@ -36,7 +36,7 @@ namespace
         LevelData levelData;
         levelData.tileMapData = tileMap.toTileMapData();
 
-        Level level(levelData, palettesFrom(palette), setupPlayerData(), {});
+        Level level(levelData, palettesFrom(palette), setupPlayerData(), {}, {});
 
         FixedTimeStep timeStepper(step);
         input.set(intentions);
@@ -332,7 +332,7 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
 
     LevelData levelData;
     levelData.tileMapData = tileMap.toTileMapData();
-    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {});
+    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {}, {});
 
     ScriptedIntentions input;
     Player player(setupPlayerData(), input);
@@ -411,7 +411,12 @@ namespace
     {
         LevelData levelData;
         levelData.tileMapData = pitOf(tiles, kind, gameData.tilePalettes);
-        Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        Level level(
+            levelData,
+            gameData.tilePalettes,
+            gameData.playerData,
+            gameData.npcData,
+            gameData.pickupData);
 
         float pitLeft = static_cast<float>(PitStart) * 16.0f;
         float pitRight = static_cast<float>(PitStart + tiles) * 16.0f;
@@ -524,7 +529,12 @@ TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]
     GameData gameData = shippedGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+    Level level(
+        levelData,
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
 
     struct Step
     {
@@ -577,7 +587,12 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
     GameData gameData = shippedGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level4.json"), std::string{}));
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+    Level level(
+        levelData,
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
 
     constexpr float GapLeft = 5 * 16.0f;
     constexpr float GapRight = 8 * 16.0f;
@@ -638,7 +653,12 @@ TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[L
     GameData gameData = shippedGameData();
     LevelData levelData;
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level1.json"), std::string{}));
-    Level level(levelData, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+    Level level(
+        levelData,
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
 
     float inView = static_cast<float>(gameData.settings.windowWidth) / gameData.cameraData.zoom;
     INFO("level is " << level.getTileMap().getWorldWidth() << "px, the camera shows " << inView);
@@ -718,7 +738,7 @@ TEST_CASE("A ceiling bump is over before the frame it happened in ends", "[Playe
 
     LevelData levelData;
     levelData.tileMapData = tileMap.toTileMapData();
-    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {});
+    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {}, {});
 
     ScriptedIntentions input;
     Player player(setupPlayerData(), input);

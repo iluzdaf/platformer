@@ -3,19 +3,13 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/world.hpp"
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
-#include "game/catalogue.hpp"
 #include "game/level.hpp"
+#include "pickups/pickup.hpp"
 #include "actor/actor.hpp"
-#include "npc/npc.hpp"
-#include "npc/npc_spawn_data.hpp"
-#include "pickups/pickup_spawn_data.hpp"
-#include "pickups/pickup_data.hpp"
-#include "pickups/collecting.hpp"
 #include "tile_map/touching_tiles.hpp"
 #include "player/player.hpp"
 #include "input/intention_source.hpp"
@@ -37,17 +31,17 @@ void World::loadLevel(const std::string &levelPath)
 
     respawnPlayer();
 
-    rebuildNpcs();
-
-    rebuildPickups();
-
     onLevelLoaded();
 }
 
 void World::rebuildLevel(const std::string &levelPath)
 {
     std::unique_ptr<Level> newLevel = std::make_unique<Level>(
-        readLevelData(levelPath), gameData.tilePalettes, gameData.playerData, gameData.npcData);
+        readLevelData(levelPath),
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData);
     level = std::move(newLevel);
     path = levelPath;
     luaScriptSystem.bindLevel(level.get());
@@ -78,90 +72,39 @@ void World::respawnPlayer()
     player->onHitCeiling.connect([this] { luaScriptSystem.triggerHitCeiling(); });
     player->onPickup.connect([this](int scoreDelta) { score.add(scoreDelta); });
     luaScriptSystem.bindPlayer(player.get());
-
-    refreshActors();
 }
 
 void World::rebuildNpcs()
 {
-    npcs.clear();
-
-    for (const NpcSpawnData &spawn : level->getNpcs())
-    {
-        std::unique_ptr<Npc> newNpc = std::make_unique<Npc>(
-            oneNamed(gameData.npcData, "npc", spawn.type), level->patrolFor(spawn));
-        newNpc->setPosition(
-            level->getTileMap().feetOnTile(spawn.tilePosition) -
-            newNpc->getPhysicsBody().getBottomCenterOffset());
-        npcs.push_back(std::move(newNpc));
-    }
-
-    refreshActors();
-}
-
-void World::rebuildPickups()
-{
-    pickups.clear();
-
-    for (const PickupSpawnData &spawn : level->getPickups())
-    {
-        const PickupData &kind = oneNamed(gameData.pickupData, "pickup", spawn.type);
-
-        pickups.push_back(
-            Pickup(kind, level->getTileMap().middleOfTile(spawn.tilePosition) - kind.size * 0.5f));
-    }
-}
-
-const std::vector<Pickup> &World::getPickups() const
-{
-    return pickups;
-}
-
-void World::refreshActors()
-{
-    actors.clear();
-
-    for (auto &npc : npcs)
-        actors.push_back(npc.get());
-
-    if (player)
-        actors.push_back(player.get());
+    level->rebuildNpcs(gameData.npcData);
 }
 
 void World::preFixedUpdate()
 {
-    for (Actor *actor : actors)
-        actor->preFixedUpdate();
+    level->preFixedUpdate();
+    player->preFixedUpdate();
 }
 
 void World::fixedUpdate(float deltaTime)
 {
-    std::optional<glm::vec2> playerPosition;
-    if (player)
-        playerPosition = player->getPhysicsBody().getAABB().bottomCenter();
-
-    for (Actor *actor : actors)
-        actor->fixedUpdate(
-            deltaTime, *level.get(), actor == player.get() ? std::nullopt : playerPosition);
+    level->fixedUpdate(deltaTime, player->getPhysicsBody().getAABB().bottomCenter());
+    player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
 
     touchTiles(*player.get(), level->getTileMap());
 
-    for (const Pickup &taken : takeWhatTouches(pickups, player->getPhysicsBody().getAABB()))
+    for (const Pickup &taken : level->takePickupsTouching(player->getPhysicsBody().getAABB()))
         player->onPickup(taken.getScoreDelta());
 }
 
 void World::postFixedUpdate()
 {
-    for (Actor *actor : actors)
-        actor->postFixedUpdate();
+    level->postFixedUpdate();
+    player->postFixedUpdate();
 }
 
 void World::update(float deltaTime)
 {
-    level->getTileMap().update(deltaTime);
-
-    for (Pickup &pickup : pickups)
-        pickup.update(deltaTime);
+    level->update(deltaTime);
 }
 
 bool World::isPlaying(const std::string &levelPath) const
@@ -182,16 +125,6 @@ Level &World::getLevel()
 const Player &World::getPlayer() const
 {
     return *player.get();
-}
-
-const std::vector<std::unique_ptr<Npc>> &World::getNpcs() const
-{
-    return npcs;
-}
-
-const std::vector<Actor *> &World::getActors() const
-{
-    return actors;
 }
 
 const Score &World::getScore() const

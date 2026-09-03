@@ -1,4 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <map>
 #include <string>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
@@ -24,10 +27,21 @@ namespace
         return levelData;
     }
 
+    const std::map<std::string, PickupData> &pickupCatalogue()
+    {
+        static const std::map<std::string, PickupData> kinds{
+            {"coin", PickupData{}}, {"gem", PickupData{}}};
+        return kinds;
+    }
+
     Level levelFrom(const LevelData &levelData)
     {
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), shippedNpcData());
+            levelData,
+            palettesFrom(getDefaultTileDataMap()),
+            PlayerData(),
+            shippedNpcData(),
+            pickupCatalogue());
     }
 }
 
@@ -35,10 +49,10 @@ TEST_CASE("A level remembers the pickups it places", "[Pickups]")
 {
     Level level = levelFrom(levelPlacing({{"coin", glm::ivec2(2, 3)}, {"gem", glm::ivec2(1, 1)}}));
 
-    REQUIRE(level.getPickups().size() == 2);
-    REQUIRE(level.getPickups()[0].type == "coin");
-    REQUIRE(level.getPickups()[0].tilePosition == glm::ivec2(2, 3));
-    REQUIRE(level.getPickups()[1].type == "gem");
+    REQUIRE(level.getPickupSpawns().size() == 2);
+    REQUIRE(level.getPickupSpawns()[0].type == "coin");
+    REQUIRE(level.getPickupSpawns()[0].tilePosition == glm::ivec2(2, 3));
+    REQUIRE(level.getPickupSpawns()[1].type == "gem");
 }
 
 TEST_CASE("A level saves the pickups it was given", "[Pickups]")
@@ -91,4 +105,32 @@ TEST_CASE("A pickup nothing is said about is worth nothing", "[Pickups]")
 TEST_CASE("The shipped catalogue offers pickups to place", "[Pickups]")
 {
     REQUIRE_FALSE(loadGameData().pickupData.empty());
+}
+
+TEST_CASE("A level naming a pickup that does not exist fails to load", "[Pickups]")
+{
+    REQUIRE_THROWS_WITH(
+        levelFrom(levelPlacing({{"nobody", glm::ivec2(1, 1)}})),
+        Catch::Matchers::ContainsSubstring("nobody"));
+}
+
+TEST_CASE("A level advances the pickups it holds", "[Pickups]")
+{
+    std::map<std::string, PickupData> spinning{{"coin", PickupData{}}};
+    spinning["coin"].animationData.frames = {0, 1, 2};
+    spinning["coin"].animationData.frameDuration = 0.1f;
+
+    Level level(
+        levelPlacing({{"coin", glm::ivec2(1, 1)}}),
+        palettesFrom(getDefaultTileDataMap()),
+        PlayerData(),
+        shippedNpcData(),
+        spinning);
+
+    REQUIRE(level.getPickups().size() == 1);
+    REQUIRE(level.getPickups().front().getCurrentFrame() == 0);
+
+    level.update(0.15f);
+
+    REQUIRE(level.getPickups().front().getCurrentFrame() == 1);
 }

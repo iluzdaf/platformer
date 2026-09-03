@@ -62,7 +62,7 @@ namespace
         levelData.tileMapData = tileMap.toTileMapData();
         levelData.npcs = {spawnAt("villager", npcTile)};
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue());
+            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue(), {});
     }
 
     Level setupWalkableLevel()
@@ -110,7 +110,7 @@ namespace
         levelData.npcs = npcs;
 
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue());
+            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue(), {});
     }
 
     float floorTopY(const TileMap &tileMap)
@@ -198,7 +198,12 @@ namespace
         levelData.playerStartTilePosition = OnTheGround;
         levelData.npcs = npcs;
 
-        return Level(levelData, shippedPalettes(), loadGameData().playerData, shippedNpcData());
+        return Level(
+            levelData,
+            shippedPalettes(),
+            loadGameData().playerData,
+            shippedNpcData(),
+            shippedPickupData());
     }
 
     float surfaceOf(int row)
@@ -349,12 +354,12 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
     levelData.tileMapData.height = 10;
     levelData.npcs = {spawnAt("villager", {1, 1}), spawnAt("villager", {2, 1})};
 
-    Level level(levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue());
+    Level level(levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue(), {});
 
-    REQUIRE(level.getNpcs().size() == 2);
-    REQUIRE(level.getNpcs()[0].type == "villager");
-    REQUIRE(level.getNpcs()[0].tilePosition == glm::ivec2(1, 1));
-    REQUIRE(level.getNpcs()[1].tilePosition == glm::ivec2(2, 1));
+    REQUIRE(level.getNpcSpawns().size() == 2);
+    REQUIRE(level.getNpcSpawns()[0].type == "villager");
+    REQUIRE(level.getNpcSpawns()[0].tilePosition == glm::ivec2(1, 1));
+    REQUIRE(level.getNpcSpawns()[1].tilePosition == glm::ivec2(2, 1));
     REQUIRE(level.toLevelData().npcs == levelData.npcs);
 }
 
@@ -370,9 +375,10 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
             readLevelData(entry.path().string()),
             shippedPalettes(),
             PlayerData(),
-            shippedNpcData());
+            shippedNpcData(),
+            shippedPickupData());
         const TileMap &tileMap = level.getTileMap();
-        for (const NpcSpawnData &spawn : level.getNpcs())
+        for (const NpcSpawnData &spawn : level.getNpcSpawns())
         {
             ++placed;
             INFO(
@@ -404,7 +410,7 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
     auto levelWith = [&](std::vector<NpcSpawnData> npcs)
     {
         levelData.npcs = std::move(npcs);
-        return Level(levelData, palettesFrom(palette), PlayerData(), npcCatalogue());
+        return Level(levelData, palettesFrom(palette), PlayerData(), npcCatalogue(), {});
     };
 
     SECTION("out of bounds")
@@ -863,4 +869,40 @@ TEST_CASE("A patrolling npc says which node it set off from and where it is head
     REQUIRE(legsWalked.size() > 1);
     for (const auto &[setOffAt, headingFor] : legsWalked)
         REQUIRE(setOffAt != headingFor);
+}
+
+TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
+{
+    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
+
+    REQUIRE(level.getNpcs().size() == 1);
+    const Npc &npc = *level.getNpcs().front();
+    REQUIRE(npc.getStateName() == "patrol");
+
+    for (int step = 0; step < 20; ++step)
+    {
+        level.preFixedUpdate();
+        level.fixedUpdate(0.01f, footOf(npc) + glm::vec2(8.0f, 0.0f));
+    }
+
+    REQUIRE(npc.getStateName() == "flee");
+}
+
+TEST_CASE("A level drives the npcs it holds", "[Npc][Level]")
+{
+    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
+    const Npc &npc = *level.getNpcs().front();
+
+    glm::vec2 setOffAt = footOf(npc);
+
+    for (int step = 0; step < 200; ++step)
+    {
+        level.preFixedUpdate();
+        level.fixedUpdate(0.01f, glm::vec2(112.0f, 192.0f));
+        level.postFixedUpdate();
+    }
+
+    REQUIRE(footOf(npc).x != setOffAt.x);
 }

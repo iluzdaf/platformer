@@ -1,4 +1,5 @@
 #include <exception>
+#include "npc/npc.hpp"
 #include <iostream>
 #include <memory>
 #include <string>
@@ -78,7 +79,8 @@ void GameRenderer::draw(
     const glm::mat4 &projection,
     const TileMap &tileMap,
     const std::vector<Pickup> &pickups,
-    const std::vector<Actor *> &actors) const
+    const std::vector<std::unique_ptr<Npc>> &npcs,
+    const Actor &player) const
 {
     glClearColor(0.1f, 0.12f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -111,10 +113,10 @@ void GameRenderer::draw(
             uvEnd);
     }
 
-    for (const Actor *actor : actors)
+    auto drawActor = [&](const Actor &actor)
     {
-        const ActorState &actorState = actor->getState();
-        const Sheet &sheet = actor->getSheet();
+        const ActorState &actorState = actor.getState();
+        const Sheet &sheet = actor.getSheet();
         const Texture2D &texture = textures.get(sheet.texture);
         auto [uvStart, uvEnd] = frameUvRangeIn(
             static_cast<int>(texture.getWidth()),
@@ -127,12 +129,17 @@ void GameRenderer::draw(
             *tileSetShader.get(),
             texture,
             projection,
-            actor->getPosition(),
+            actor.getPosition(),
             actorState.size,
             uvStart,
             uvEnd,
             actorState.facingLeft);
-    }
+    };
+
+    for (const std::unique_ptr<Npc> &npc : npcs)
+        drawActor(*npc);
+
+    drawActor(player);
 }
 
 void GameRenderer::draw(const ScreenTransition &screenTransition) const

@@ -191,7 +191,7 @@ namespace
 std::optional<std::string> npcsThatCannotGetBack(const Level &level)
 {
     std::string names;
-    const std::vector<NpcSpawnData> &spawns = level.getNpcs();
+    const std::vector<NpcSpawnData> &spawns = level.getNpcSpawns();
     for (std::size_t index = 0; index < spawns.size(); ++index)
     {
         std::optional<std::pair<glm::vec2, glm::vec2>> beat = level.patrolFor(spawns[index]);
@@ -217,7 +217,7 @@ ActorAsked drawActorsInLevel(
     ActorShown showing,
     std::optional<Armed> &armed)
 {
-    const std::vector<NpcSpawnData> &spawns = level.getNpcs();
+    const std::vector<NpcSpawnData> &spawns = level.getNpcSpawns();
     if (showing.what == ActorShown::What::Npc && showing.npcIndex >= spawns.size())
         showing = ActorShown{};
 

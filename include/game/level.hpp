@@ -16,6 +16,12 @@
 #include "tile_map/tile_palette.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
+#include "pickups/pickup.hpp"
+#include "pickups/pickup_data.hpp"
+#include <memory>
+
+class Npc;
+struct AABB;
 
 class Level
 {
@@ -24,7 +30,9 @@ public:
         const LevelData &levelData,
         const TilePalettes &tilePalettes,
         const PlayerData &playerData,
-        const std::map<std::string, NpcData> &npcData);
+        const std::map<std::string, NpcData> &npcData,
+        const std::map<std::string, PickupData> &pickupData);
+    ~Level();
 
     const TileMap &getTileMap() const;
     TileMap &getTileMap();
@@ -38,8 +46,20 @@ public:
 
     glm::ivec2 getPlayerStartTile() const;
     const std::string &getNextLevel() const;
-    const std::vector<NpcSpawnData> &getNpcs() const;
-    const std::vector<PickupSpawnData> &getPickups() const;
+    const std::vector<NpcSpawnData> &getNpcSpawns() const;
+    const std::vector<PickupSpawnData> &getPickupSpawns() const;
+
+    const std::vector<std::unique_ptr<Npc>> &getNpcs() const;
+    const std::vector<Pickup> &getPickups() const;
+
+    void rebuildNpcs(const std::map<std::string, NpcData> &npcData);
+    void rebuildPickups(const std::map<std::string, PickupData> &pickupData);
+
+    void preFixedUpdate();
+    void fixedUpdate(float deltaTime, const glm::vec2 &playerPosition);
+    void postFixedUpdate();
+    void update(float deltaTime);
+    std::vector<Pickup> takePickupsTouching(const AABB &reach);
     void addNpc(const NpcSpawnData &spawn);
     void removeNpc(std::size_t index);
     void setNpcSpawnTile(std::size_t index, glm::ivec2 tilePosition);
@@ -54,8 +74,10 @@ private:
     TileMap tileMap;
     glm::ivec2 playerStartTilePosition = glm::ivec2(0, 0);
     std::string nextLevel;
-    std::vector<NpcSpawnData> npcs;
-    std::vector<PickupSpawnData> pickups;
+    std::vector<NpcSpawnData> npcSpawns;
+    std::vector<PickupSpawnData> pickupSpawns;
+    std::vector<std::unique_ptr<Npc>> npcs;
+    std::vector<Pickup> pickups;
     std::vector<NamedNavigationGraph> graphs;
     std::map<std::string, NavigationProfile> npcProfiles;
 

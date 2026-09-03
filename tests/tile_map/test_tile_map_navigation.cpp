@@ -17,7 +17,12 @@ namespace
 {
     Level loadLevel(const std::string &path)
     {
-        return Level(readLevelData(path), shippedPalettes(), PlayerData(), shippedNpcData());
+        return Level(
+            readLevelData(path),
+            shippedPalettes(),
+            PlayerData(),
+            shippedNpcData(),
+            shippedPickupData());
     }
 
     void layFloor(TileMap &tileMap, int groundY, int fromX, int toX)
@@ -86,7 +91,7 @@ TEST_CASE(
     REQUIRE(reloaded.getTileMap().getHeight() == loaded.getTileMap().getHeight());
     REQUIRE(reloaded.getTileMap().getTileSize() == loaded.getTileMap().getTileSize());
     REQUIRE(reloaded.getNextLevel() == loaded.getNextLevel());
-    REQUIRE(reloaded.getNpcs() == loaded.getNpcs());
+    REQUIRE(reloaded.getNpcSpawns() == loaded.getNpcSpawns());
     REQUIRE(reloaded.getPlayerStartTile() == loaded.getPlayerStartTile());
 
     for (int y = 0; y < loaded.getTileMap().getHeight(); ++y)
@@ -127,8 +132,8 @@ TEST_CASE("A level knows where it heads next", "[TileMap][Level]")
     Level level = loadLevel(assetPath("levels/level6.json"));
 
     REQUIRE(level.getNextLevel() == "levels/level1.json");
-    REQUIRE_FALSE(level.getNpcs().empty());
-    for (const NpcSpawnData &spawn : level.getNpcs())
+    REQUIRE_FALSE(level.getNpcSpawns().empty());
+    for (const NpcSpawnData &spawn : level.getNpcSpawns())
         REQUIRE(shippedNpcData().contains(spawn.type));
 
     for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))

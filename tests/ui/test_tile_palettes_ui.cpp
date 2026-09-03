@@ -325,7 +325,8 @@ TEST_CASE("A level still loads while a palette rename waits to be saved", "[Tile
         readLevelData(assetPath("levels/level1.json")),
         gameData.tilePalettes,
         gameData.playerData,
-        gameData.npcData));
+        gameData.npcData,
+        gameData.pickupData));
 }
 
 TEST_CASE("A palette rename outlives a reload of the values it waits on", "[TilePalettesUi]")

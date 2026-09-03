@@ -286,7 +286,7 @@ TEST_CASE("A level takes an npc placed after it was built", "[Level]")
     Level level = levelPlacing({});
     REQUIRE(spawnsIn(level).empty());
 
-    level.addNpc(spawnAt("short", StandingTile), theUsualNpcs());
+    level.addNpc(spawnAt("short", StandingTile), theUsualNpcs().at("short"));
 
     REQUIRE(spawnsIn(level).size() == 1);
     REQUIRE(spawnsIn(level).front().tilePosition == StandingTile);
@@ -297,16 +297,25 @@ TEST_CASE("An npc placed after building is part of what the level would save", "
 {
     Level level = levelPlacing({});
 
-    level.addNpc(spawnAt("short", StandingTile), theUsualNpcs());
+    level.addNpc(spawnAt("short", StandingTile), theUsualNpcs().at("short"));
 
     REQUIRE(level.toLevelData().npcs == spawnsIn(level));
+}
+
+TEST_CASE("An npc is built from the data it was added with", "[Level]")
+{
+    Level level = levelPlacing({});
+
+    level.addNpc(spawnAt("tall", StandingTile), theUsualNpcs().at("tall"));
+
+    REQUIRE(level.getNpcs().front()->getNavigationProfile() == profileOfHeight(20.0f));
 }
 
 TEST_CASE("A level keeps the npcs it already had when another is placed", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
 
-    level.addNpc(spawnAt("short", glm::ivec2(4, FloorRow - 1)), theUsualNpcs());
+    level.addNpc(spawnAt("short", glm::ivec2(4, FloorRow - 1)), theUsualNpcs().at("short"));
 
     REQUIRE(spawnsIn(level).size() == 2);
 }
@@ -428,7 +437,7 @@ TEST_CASE("Placing an npc adds no graph, because its type already had one", "[Le
     Level level = levelPlacing({});
     std::size_t before = level.getGraphs().size();
 
-    level.addNpc(spawnAt("tall", StandingTile), theUsualNpcs());
+    level.addNpc(spawnAt("tall", StandingTile), theUsualNpcs().at("tall"));
 
     REQUIRE_NOTHROW(level.graphFor(spawnsIn(level).front().type));
     REQUIRE(level.getGraphs().size() == before);
@@ -438,7 +447,7 @@ TEST_CASE("A level refuses an npc of a type it has never heard of", "[Level]")
 {
     Level level = levelPlacing({});
 
-    REQUIRE_THROWS(level.addNpc(spawnAt("dragon", StandingTile), theUsualNpcs()));
+    REQUIRE_THROWS(level.addNpc(spawnAt("dragon", StandingTile), NpcData{}));
     REQUIRE(spawnsIn(level).empty());
 }
 

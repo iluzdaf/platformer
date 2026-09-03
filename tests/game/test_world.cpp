@@ -123,7 +123,8 @@ TEST_CASE("An npc added to the level is standing in it straight away", "[World]"
 
     std::size_t before = world.getLevel().getNpcs().size();
     world.getLevel().addNpc(
-        NpcSpawnData{"villager", world.getLevel().getPlayerStartTile(), {}}, gameData.npcData);
+        NpcSpawnData{"villager", world.getLevel().getPlayerStartTile(), {}},
+        gameData.npcData.at("villager"));
 
     REQUIRE(world.getLevel().getNpcs().size() == before + 1);
 

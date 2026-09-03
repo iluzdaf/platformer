@@ -19,6 +19,7 @@
 #include "ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/catalogue.hpp"
 #include "npc/npc_data.hpp"
 #include "ui/tile_map_overlays.hpp"
 #include "game/levels.hpp"
@@ -75,7 +76,8 @@ void LevelUi::drawActors(
     if (asked.addNpcOfType)
     {
         level.addNpc(
-            NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt}, npcData);
+            NpcSpawnData{*asked.addNpcOfType, level.getPlayerStartTile(), std::nullopt},
+            oneNamed(npcData, "npc", *asked.addNpcOfType));
 
         std::size_t placed = level.getNpcs().size() - 1;
         if (std::optional<PatrolData> run = level.runBeneathNpc(placed))

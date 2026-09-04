@@ -7,7 +7,6 @@
 #include <string_view>
 #include <optional>
 #include "ui/editor_ui.hpp"
-#include "ui/type_shown.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
@@ -260,14 +259,14 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
     case EditorSection::Types:
         return {
             typesUi.unsavedSince(subject.gameData),
-            typesNamingNoSheet(subject.gameData),
+            typesUi.cannotSaveBecause(subject.gameData),
             [this, &subject] { typesUi.save(subject.gameData); },
             [this, &subject] { typesUi.revert(subject.gameData); }};
 
     case EditorSection::TilePalettes:
         return {
             tilePalettesUi.unsavedSince(subject.gameData.tilePalettes),
-            std::nullopt,
+            tilePalettesUi.cannotSaveBecause(),
             [this, &subject] { tilePalettesUi.save(subject.gameData.tilePalettes); },
             [this, &subject] { tilePalettesUi.revert(subject.gameData.tilePalettes); }};
 

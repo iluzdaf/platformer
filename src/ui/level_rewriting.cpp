@@ -63,33 +63,33 @@ bool rewriting::typeIn(std::vector<PickupSpawnData> &pickups, const Renames &ren
     return renameSpawnTypes(pickups, renames);
 }
 
-std::vector<std::string> rewriting::theLevels(const std::string &directory, const Rewrite &rewrite)
+rewriting::Reach rewriting::theLevels(const std::string &directory, const Rewrite &rewrite)
 {
-    std::vector<std::string> rewritten;
-    for (const std::string &levelPath : levelFilesIn(directory))
-    {
-        std::optional<LevelData> levelData = readLevelDataIfYouCan(levelPath);
-        if (!levelData || !rewrite(*levelData))
-            continue;
+    Reach reach = whatItWouldReach(directory, rewrite);
+    if (!reach.unreadable.empty())
+        return Reach{{}, std::move(reach.unreadable)};
 
-        writeLevelData(*levelData, levelPath);
-        rewritten.push_back(levelPath);
+    for (const std::string &levelPath : reach.levels)
+    {
+        LevelData levelData = readLevelData(levelPath);
+        rewrite(levelData);
+        writeLevelData(levelData, levelPath);
     }
 
-    return rewritten;
+    return reach;
 }
 
-std::vector<std::string> rewriting::whatItWouldReach(
-    const std::string &directory,
-    const Rewrite &rewrite)
+rewriting::Reach rewriting::whatItWouldReach(const std::string &directory, const Rewrite &rewrite)
 {
-    std::vector<std::string> reached;
+    Reach reach;
     for (const std::string &levelPath : levelFilesIn(directory))
     {
         std::optional<LevelData> levelData = readLevelDataIfYouCan(levelPath);
-        if (levelData && rewrite(*levelData))
-            reached.push_back(levelPath);
+        if (!levelData)
+            reach.unreadable.push_back(levelPath);
+        else if (rewrite(*levelData))
+            reach.levels.push_back(levelPath);
     }
 
-    return reached;
+    return reach;
 }

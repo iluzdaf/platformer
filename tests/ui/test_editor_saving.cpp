@@ -102,6 +102,14 @@ TEST_CASE("Every section that saves a file has a save to press", "[EditorSaving]
         REQUIRE(editorUi.savingIn(listed, editing.subject()).save != nullptr);
 }
 
+TEST_CASE("Palettes with every level readable have nothing said against a save", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::TilePalettes, editing.subject()).cannotBecause);
+}
+
 TEST_CASE("Playing back is not a thing that saves", "[EditorSaving]")
 {
     EditorUi editorUi;

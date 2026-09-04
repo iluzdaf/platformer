@@ -342,6 +342,7 @@ add_executable(tests
     tests/reloading/test_reloader.cpp
     tests/reloading/test_file_watcher_listener.cpp
     tests/game/test_game.cpp
+    tests/game/test_game_data.cpp
     tests/window/test_window.cpp
     tests/game/test_world.cpp
     tests/game/test_catalogue.cpp

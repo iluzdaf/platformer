@@ -165,12 +165,27 @@ void TypesUi::revert(GameData &gameData)
 
 void TypesUi::save(GameData &gameData)
 {
-    renamesTakeEffect(npcRenaming.sinceSaved(), gameData.npcData);
-    renamesTakeEffect(pickupRenaming.sinceSaved(), gameData.pickupData);
-    showing.name = nameAfterRenames(
-        showing.what == TypeShown::What::Npc ? npcRenaming.sinceSaved()
-                                             : pickupRenaming.sinceSaved(),
-        showing.name);
+    Renames npcs = npcRenaming.sinceSaved(), pickups = pickupRenaming.sinceSaved();
+
+    bool npcsWritten = writeRenamesIntoLevels(
+        npcRenaming,
+        std::string(assets::Levels),
+        [](LevelData &levelData, const Renames &renames)
+        { return rewriting::typeIn(levelData.npcs, renames); });
+
+    bool pickupsWritten = writeRenamesIntoLevels(
+        pickupRenaming,
+        std::string(assets::Levels),
+        [](LevelData &levelData, const Renames &renames)
+        { return rewriting::typeIn(levelData.pickups, renames); });
+
+    if (!npcsWritten || !pickupsWritten)
+        return;
+
+    renamesTakeEffect(npcs, gameData.npcData);
+    renamesTakeEffect(pickups, gameData.pickupData);
+    showing.name =
+        nameAfterRenames(showing.what == TypeShown::What::Npc ? npcs : pickups, showing.name);
 
     if (saveable.unsaved("npcs", asJson(gameData.npcData)))
     {
@@ -183,18 +198,6 @@ void TypesUi::save(GameData &gameData)
         savePickupData(gameData.pickupData);
         saveable.saved("pickups", asJson(gameData.pickupData));
     }
-
-    writeRenamesIntoLevels(
-        npcRenaming,
-        std::string(assets::Levels),
-        [](LevelData &levelData, const Renames &renames)
-        { return rewriting::typeIn(levelData.npcs, renames); });
-
-    writeRenamesIntoLevels(
-        pickupRenaming,
-        std::string(assets::Levels),
-        [](LevelData &levelData, const Renames &renames)
-        { return rewriting::typeIn(levelData.pickups, renames); });
 }
 
 bool TypesUi::unsavedSince(const GameData &gameData)
@@ -204,6 +207,17 @@ bool TypesUi::unsavedSince(const GameData &gameData)
 
     return npcs || pickups || !npcRenaming.sinceSaved().empty() ||
            !pickupRenaming.sinceSaved().empty();
+}
+
+std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData) const
+{
+    if (std::optional<std::string> noSheet = typesNamingNoSheet(gameData))
+        return noSheet;
+
+    if (std::optional<std::string> npcs = npcRenaming.cannotSaveBecause())
+        return npcs;
+
+    return pickupRenaming.cannotSaveBecause();
 }
 
 void TypesUi::show(const TypeShown &type)

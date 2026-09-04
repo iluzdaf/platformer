@@ -68,4 +68,14 @@ TEST_CASE("AABB expandToInclude", "[AABB]")
         REQUIRE(a.size.x == Approx(10.0f));
         REQUIRE(a.size.y == Approx(10.0f));
     }
+
+    SECTION("Including an empty AABB changes nothing")
+    {
+        AABB a{glm::vec2(5, 5), glm::vec2(10, 10)};
+        a.expandToInclude(AABB{});
+        REQUIRE(a.position.x == Approx(5.0f));
+        REQUIRE(a.position.y == Approx(5.0f));
+        REQUIRE(a.size.x == Approx(10.0f));
+        REQUIRE(a.size.y == Approx(10.0f));
+    }
 }

@@ -1,7 +1,20 @@
 #include <cstddef>
+#include <functional>
 #include <unordered_map>
 #include "ui/fading_aabbs.hpp"
 #include "physics/aabb.hpp"
+
+namespace
+{
+    std::size_t keyOf(const AABB &box)
+    {
+        glm::ivec2 position = glm::round(box.position * 100.0f);
+        glm::ivec2 size = glm::round(box.size * 100.0f);
+        std::size_t h1 = std::hash<int>()(position.x) ^ std::hash<int>()(position.y << 1);
+        std::size_t h2 = std::hash<int>()(size.x) ^ std::hash<int>()(size.y << 1);
+        return h1 ^ (h2 << 1);
+    }
+}
 
 void FadingAABBs::add(AABB box, ImU32 color, float seconds)
 {
@@ -10,15 +23,15 @@ void FadingAABBs::add(AABB box, ImU32 color, float seconds)
         return;
     }
 
-    std::size_t hash = box.hash();
-    auto it = boxes.find(hash);
+    std::size_t key = keyOf(box);
+    auto it = boxes.find(key);
     if (it != boxes.end())
     {
         it->second.secondsLeft = seconds;
     }
     else
     {
-        boxes[hash] = Fading{box, color, seconds};
+        boxes[key] = Fading{box, color, seconds};
     }
 }
 

@@ -32,10 +32,8 @@ void ActorMotion::readContacts(const PhysicsBody &physicsBody, const TileMap &ti
         state.contacts.wasLastWallLeft = true;
     else if (state.contacts.grippableRightWall)
         state.contacts.wasLastWallLeft = false;
-    if (!physicsBody.getCollisionAABBX().isEmpty())
-        state.contacts.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());
-    if (!physicsBody.getCollisionAABBY().isEmpty())
-        state.contacts.collisionAABBY.expandToInclude(physicsBody.getCollisionAABBY());
+    state.contacts.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());
+    state.contacts.collisionAABBY.expandToInclude(physicsBody.getCollisionAABBY());
 }
 
 void ActorMotion::readMotion(const PhysicsBody &physicsBody)

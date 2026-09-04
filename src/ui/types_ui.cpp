@@ -216,8 +216,7 @@ bool TypesUi::unsavedSince(const GameData &gameData)
     bool npcs = saveable.unsavedSince("npcs", asJson(gameData.npcData));
     bool pickups = saveable.unsavedSince("pickups", asJson(gameData.pickupData));
 
-    return npcs || pickups || !npcRenaming.sinceSaved().empty() ||
-           !pickupRenaming.sinceSaved().empty();
+    return npcs || pickups || npcRenaming.pending() || pickupRenaming.pending();
 }
 
 std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData) const

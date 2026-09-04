@@ -82,18 +82,8 @@ GameData loadGameData()
     readInto(loaded.tilePalettes, assets::TilePalettes);
     readInto(loaded.levels, assets::LevelList);
 
-    requireDefaultPalette(loaded.tilePalettes);
-
     if (loaded.levels.first.empty())
         throw std::runtime_error("first must not be empty");
 
     return loaded;
-}
-
-void requireDefaultPalette(const TilePalettes &tilePalettes)
-{
-    if (!tilePalettes.contains(std::string(DefaultTilePalette)))
-        throw std::runtime_error(
-            "No tile palette is named \"" + std::string(DefaultTilePalette) +
-            "\", and every level counts on one");
 }

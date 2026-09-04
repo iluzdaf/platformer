@@ -1,5 +1,7 @@
 #pragma once
 
+#include <exception>
+#include <iostream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -24,7 +26,16 @@ public:
         std::vector<std::tuple<std::decay_t<Args>...>> firing;
         firing.swap(requested);
         for (const auto &args : firing)
-            std::apply([this](const auto &...unpacked) { signal(unpacked...); }, args);
+        {
+            try
+            {
+                std::apply([this](const auto &...unpacked) { signal(unpacked...); }, args);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
     }
 
 private:

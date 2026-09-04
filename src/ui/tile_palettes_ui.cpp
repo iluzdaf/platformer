@@ -50,6 +50,17 @@ bool TilePalettesUi::shownIn(const TilePalettes &tilePalettes, const std::string
     return tilePalettes.contains(name) && !renaming.gone(name);
 }
 
+std::optional<std::string> TilePalettesUi::firstRemainingAfter(
+    const TilePalettes &tilePalettes,
+    const std::string &leaving) const
+{
+    for (const auto &[name, palette] : tilePalettes)
+        if (name != leaving && !renaming.gone(name))
+            return renaming.shownName(name);
+
+    return std::nullopt;
+}
+
 std::string TilePalettesUi::firstShownIn(const TilePalettes &tilePalettes) const
 {
     for (const auto &[name, palette] : tilePalettes)
@@ -83,10 +94,10 @@ void TilePalettesUi::add(TilePalettes &tilePalettes)
 
 void TilePalettesUi::remove(TilePalettes &tilePalettes)
 {
-    if (selectedPalette == DefaultTilePalette || !shownIn(tilePalettes, selectedPalette))
+    if (!shownIn(tilePalettes, selectedPalette))
         return;
 
-    if (renaming.remove(selectedPalette, std::string(DefaultTilePalette)))
+    if (renaming.remove(selectedPalette, firstRemainingAfter(tilePalettes, selectedPalette)))
         lookAheadAtLevels(
             renaming,
             levelsDirectory,
@@ -116,7 +127,7 @@ void TilePalettesUi::drawChooser(TilePalettes &tilePalettes)
         add(tilePalettes);
 
     ImGui::SameLine();
-    ImGui::BeginDisabled(selectedPalette.empty() || selectedPalette == DefaultTilePalette);
+    ImGui::BeginDisabled(selectedPalette.empty());
     if (ImGui::Button("remove", ImVec2(-FLT_MIN, 0.0f)))
         remove(tilePalettes);
 
@@ -125,13 +136,6 @@ void TilePalettesUi::drawChooser(TilePalettes &tilePalettes)
 
 void TilePalettesUi::drawRename(const TilePalettes &tilePalettes)
 {
-    if (selectedPalette == DefaultTilePalette)
-    {
-        ImGui::TextDisabled("every level counts on a palette named default");
-        renaming.drawWhatTheLevelsNeed();
-        return;
-    }
-
     if (!renaming.draw(
             "a palette",
             selectedPalette,
@@ -256,7 +260,7 @@ bool TilePalettesUi::unsavedSince(const TilePalettes &tilePalettes)
 {
     bool values = saveable.unsavedSince("palettes", asJson(tilePalettes));
 
-    return values || !renaming.sinceSaved().empty();
+    return values || renaming.pending();
 }
 
 std::optional<std::string> TilePalettesUi::cannotSaveBecause() const

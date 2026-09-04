@@ -619,3 +619,15 @@ TEST_CASE("Levels that can be read again let the renames through", "[Renaming]")
 
     std::filesystem::remove_all(directory);
 }
+
+TEST_CASE("Removing with nothing to fall back to re-points nothing", "[Renaming]")
+{
+    Renaming renaming;
+
+    REQUIRE(renaming.remove("ice", std::nullopt));
+
+    REQUIRE(renaming.gone("ice"));
+    REQUIRE(renaming.pending());
+    REQUIRE(renaming.sinceSaved().empty());
+    REQUIRE(renaming.removed() == std::vector<std::string>{"ice"});
+}

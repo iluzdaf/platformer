@@ -58,7 +58,7 @@ namespace navigation
         const NavigationProfile &profile,
         int headroom);
 
-    void addTakeOffNodes(
+    void addJumpTakeOffNodes(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,

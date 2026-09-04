@@ -1,5 +1,3 @@
-#include <cstddef>
-#include <functional>
 #include "physics/aabb.hpp"
 
 float AABB::left() const
@@ -62,13 +60,4 @@ void AABB::expandToInclude(const AABB &other)
 bool AABB::isEmpty() const
 {
     return glm::all(glm::lessThan(glm::abs(size), glm::vec2(1e-5f)));
-}
-
-std::size_t AABB::hash() const
-{
-    glm::ivec2 pos = glm::round(position * 100.0f);
-    glm::ivec2 roundedSize = glm::round(this->size * 100.0f);
-    std::size_t h1 = std::hash<int>()(pos.x) ^ std::hash<int>()(pos.y << 1);
-    std::size_t h2 = std::hash<int>()(roundedSize.x) ^ std::hash<int>()(roundedSize.y << 1);
-    return h1 ^ (h2 << 1);
 }

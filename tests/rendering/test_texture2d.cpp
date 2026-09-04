@@ -14,4 +14,9 @@ TEST_CASE("Texture2D does not exist", "[Texture2D]")
     REQUIRE_THROWS_WITH(
         Texture2D(assetPath("textures/does_not_exist.png")), "Failed to load Texture2D");
 }
+
+TEST_CASE("A texture with no path is refused", "[Texture2D]")
+{
+    REQUIRE_THROWS_WITH(Texture2D(""), "Texture2D filePath must not be empty");
+}
 #endif // SKIP_OPENGL_TESTS

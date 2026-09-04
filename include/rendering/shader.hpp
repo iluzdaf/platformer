@@ -22,9 +22,6 @@ public:
 
 private:
     GLuint shaderID = 0;
-    std::string compileLinkLog;
-
-    std::string loadFile(const std::string &path) const;
-    void initFromShaderFile(const std::string &vertexPath, const std::string &fragmentPath);
-    void initFromCode(const std::string &vertexCode, const std::string &fragmentCode);
 };
+
+std::string readShaderFile(const std::string &path);

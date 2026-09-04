@@ -40,7 +40,7 @@ namespace
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)
-            (*levelData.tileMapData.indices)[FloorRow][x] = PaintedTile;
+            levelData.tileMapData.indices[FloorRow][x] = PaintedTile;
 
         levelData.playerStart = feetOf(glm::ivec2(1, Standing));
         levelData.npcs = npcs;
@@ -125,7 +125,7 @@ TEST_CASE("Painting sets the tile under the mouse while the button is down", "[L
         armed,
         editing.commands);
 
-    REQUIRE((*editing.asked().tileMapData.indices)[target.y][target.x] == PaintedTile);
+    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == PaintedTile);
     REQUIRE(armed == std::optional<Armed>(PaintTile{PaintedTile}));
 }
 

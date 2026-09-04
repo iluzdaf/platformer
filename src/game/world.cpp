@@ -9,7 +9,6 @@
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
-#include "tile_map/tile_map.hpp"
 #include "pickups/pickup.hpp"
 #include "actor/actor.hpp"
 #include "tile_map/touching_tiles.hpp"
@@ -44,7 +43,6 @@ void World::rebuildFrom(const LevelData &fromData)
         gameData.npcData,
         gameData.pickupData);
     luaScriptSystem.bindLevel(level.get());
-    levelData.tileMapData = level->getTileMap().toTileMapData();
 
     onLevelBuilt();
 }

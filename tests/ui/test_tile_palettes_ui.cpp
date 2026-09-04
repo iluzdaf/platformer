@@ -3,6 +3,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -52,8 +53,7 @@ namespace
     TileMapData aTileMapOn(const std::string &palette)
     {
         TileMapData tileMapData;
-        tileMapData.width = 2;
-        tileMapData.height = 2;
+        tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
         tileMapData.tilePalette = palette;
         return tileMapData;
     }

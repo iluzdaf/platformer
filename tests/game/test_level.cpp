@@ -73,8 +73,8 @@ namespace
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)
         {
-            (*levelData.tileMapData.indices)[FloorRow][x] = 1;
-            (*levelData.tileMapData.indices)[CeilingRow][x] = 1;
+            levelData.tileMapData.indices[FloorRow][x] = 1;
+            levelData.tileMapData.indices[CeilingRow][x] = 1;
         }
         levelData.playerStart = feetOf(glm::ivec2(1, FloorRow - 1));
         levelData.npcs = npcs;
@@ -117,7 +117,7 @@ namespace
         levelData.tileMapData.tilePalette = "default";
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(LedgeMapRows, std::vector<int>(LedgeMapTiles, 0));
-        std::vector<std::vector<int>> &indices = *levelData.tileMapData.indices;
+        std::vector<std::vector<int>> &indices = levelData.tileMapData.indices;
 
         for (int x = 0; x < LedgeMapTiles; ++x)
         {
@@ -209,7 +209,7 @@ TEST_CASE("A gap in the floor changes what the graphs describe", "[Level]")
 
     LevelData whole = corridorPlacing({spawnAt("short", StandingTile)});
     LevelData holed = whole;
-    (*holed.tileMapData.indices)[FloorRow][5] = 0;
+    holed.tileMapData.indices[FloorRow][5] = 0;
 
     REQUIRE(nodesOnTheFloor(levelOf(whole).graphFor(walker)) == 2);
     REQUIRE(nodesOnTheFloor(levelOf(holed).graphFor(walker)) == 4);

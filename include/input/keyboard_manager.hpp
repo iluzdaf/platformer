@@ -12,7 +12,6 @@ public:
     void poll(GLFWwindow *window);
     void poll(const InputPoller &poller);
     bool isPressed(int key) const;
-    bool isReleased(int key) const;
     bool isDown(int key) const;
 
 private:
@@ -20,7 +19,6 @@ private:
     {
         bool down = false;
         bool justPressed = false;
-        bool justReleased = false;
     };
     std::unordered_map<int, KeyState> keyStates;
 };

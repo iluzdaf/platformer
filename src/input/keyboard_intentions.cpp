@@ -15,7 +15,17 @@ KeyboardIntentions::KeyboardIntentions()
 void KeyboardIntentions::process(GLFWwindow *window)
 {
     keyboardManager.poll(window);
+    readIntentions();
+}
 
+void KeyboardIntentions::process(const KeyboardManager::InputPoller &poller)
+{
+    keyboardManager.poll(poller);
+    readIntentions();
+}
+
+void KeyboardIntentions::readIntentions()
+{
     intentions.jumpRequested = keyboardManager.isPressed(GLFW_KEY_C);
     intentions.jumpHeld = keyboardManager.isDown(GLFW_KEY_C);
     intentions.dashRequested = keyboardManager.isPressed(GLFW_KEY_X);

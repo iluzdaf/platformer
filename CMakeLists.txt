@@ -320,6 +320,7 @@ add_executable(tests
     tests/cameras/test_camera2d.cpp
     tests/cameras/test_camera_shake.cpp
     tests/input/test_keyboard_manager.cpp
+    tests/input/test_keyboard_intentions.cpp
     tests/animations/test_animation_manager.cpp
     tests/animations/test_frame_animation.cpp
     tests/navigation/test_navigation_graph.cpp

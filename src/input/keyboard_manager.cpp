@@ -18,7 +18,6 @@ void KeyboardManager::poll(const InputPoller &poller)
         bool isCurrentlyDown = poller(key) == GLFW_PRESS;
         bool wasDown = state.down;
         state.justPressed = !wasDown && isCurrentlyDown;
-        state.justReleased = wasDown && !isCurrentlyDown;
         state.down = isCurrentlyDown;
     }
 }
@@ -27,12 +26,6 @@ bool KeyboardManager::isPressed(int key) const
 {
     auto it = keyStates.find(key);
     return it != keyStates.end() && it->second.justPressed;
-}
-
-bool KeyboardManager::isReleased(int key) const
-{
-    auto it = keyStates.find(key);
-    return it != keyStates.end() && it->second.justReleased;
 }
 
 bool KeyboardManager::isDown(int key) const

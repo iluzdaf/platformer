@@ -9,9 +9,12 @@ class KeyboardIntentions : public IntentionSource
 public:
     KeyboardIntentions();
     void process(GLFWwindow *window);
+    void process(const KeyboardManager::InputPoller &poller);
     InputIntentions getIntentions() const override;
 
 private:
     KeyboardManager keyboardManager;
     InputIntentions intentions;
+
+    void readIntentions();
 };

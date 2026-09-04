@@ -221,10 +221,7 @@ void LevelUi::update(
 
         LevelData edited = levelData;
         edited.tileMapData = tileMap.toTileMapData();
-        if (!edited.tileMapData.indices)
-            return;
-
-        edited.tileMapData.indices.value()[tilePosition.y][tilePosition.x] = painting->tileIndex;
+        edited.tileMapData.indices[tilePosition.y][tilePosition.x] = painting->tileIndex;
         commands.onLevelEdited(edited);
 
         return;

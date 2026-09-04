@@ -158,8 +158,7 @@ TEST_CASE("A level knows where it heads next", "[TileMap][Level]")
 TEST_CASE("A level naming a palette that does not exist fails to load", "[TileMap][Level]")
 {
     TileMapData tileMapData;
-    tileMapData.width = 4;
-    tileMapData.height = 4;
+    tileMapData.indices = std::vector<std::vector<int>>(4, std::vector<int>(4, 0));
     tileMapData.tilePalette = "nope";
 
     REQUIRE_THROWS_WITH(TileMap(tileMapData, shippedPalettes()), "Unknown tile palette \"nope\"");

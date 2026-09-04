@@ -27,7 +27,7 @@ namespace
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)
-            (*levelData.tileMapData.indices)[FloorRow][x] = 1;
+            levelData.tileMapData.indices[FloorRow][x] = 1;
 
         levelData.playerStart = feetOf(glm::ivec2(1, Standing));
         levelData.npcs = npcs;
@@ -51,10 +51,10 @@ namespace
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)
-            (*levelData.tileMapData.indices)[FloorRow][x] = 1;
+            levelData.tileMapData.indices[FloorRow][x] = 1;
 
         for (int x = IslandFirstTile; x < MapTiles; ++x)
-            (*levelData.tileMapData.indices)[IslandRow][x] = 1;
+            levelData.tileMapData.indices[IslandRow][x] = 1;
 
         levelData.playerStart = feetOf(glm::ivec2(1, Standing));
         levelData.npcs = npcs;

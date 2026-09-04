@@ -16,48 +16,27 @@
 
 TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
 {
-    const bool hasTileIndices = tileMapData.indices.has_value();
-    const bool hasExplicitSize = tileMapData.width.has_value() && tileMapData.height.has_value();
-    if (hasTileIndices && hasExplicitSize)
-        throw std::runtime_error("Cannot specify both tileIndices and width/height explicitly.");
-
-    if (hasTileIndices)
-    {
-        const auto &indices = tileMapData.indices.value();
-        height = static_cast<int>(indices.size());
-        width = height > 0 ? static_cast<int>(indices[0].size()) : 0;
-
-        for (int tileY = 0; tileY < height; ++tileY)
-        {
-            if (static_cast<int>(indices[tileY].size()) != width)
-            {
-                throw std::runtime_error("Inconsistent row width in tileIndices");
-            }
-        }
-
-        tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, 0));
-        for (int tileY = 0; tileY < height; ++tileY)
-        {
-            for (int tileX = 0; tileX < width; ++tileX)
-            {
-                if (indices[tileY][tileX] < 0)
-                    throw std::runtime_error("Tile index must be greater or equals to 0");
-
-                tileIndices[tileX][tileY] = indices[tileY][tileX];
-            }
-        }
-    }
-    else if (hasExplicitSize)
-    {
-        height = tileMapData.height.value();
-        width = tileMapData.width.value();
-        tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, 0));
-    }
-    else
-        throw std::runtime_error("Must specify either tileIndices or width/height.");
-
+    const std::vector<std::vector<int>> &indices = tileMapData.indices;
+    height = static_cast<int>(indices.size());
+    width = height > 0 ? static_cast<int>(indices[0].size()) : 0;
     if (width == 0 || height == 0)
-        throw std::runtime_error("TileMapData has invalid dimensions");
+        throw std::runtime_error("A tile map needs at least one tile");
+
+    for (int tileY = 0; tileY < height; ++tileY)
+        if (static_cast<int>(indices[tileY].size()) != width)
+            throw std::runtime_error("Inconsistent row width in tileIndices");
+
+    tileIndices = std::vector<std::vector<int>>(width, std::vector<int>(height, 0));
+    for (int tileY = 0; tileY < height; ++tileY)
+    {
+        for (int tileX = 0; tileX < width; ++tileX)
+        {
+            if (indices[tileY][tileX] < 0)
+                throw std::runtime_error("Tile index must be greater or equals to 0");
+
+            tileIndices[tileX][tileY] = indices[tileY][tileX];
+        }
+    }
 
     tilePalette = tileMapData.tilePalette;
     if (tilePalette.empty())
@@ -237,7 +216,7 @@ TileMapData TileMap::toTileMapData() const
     data.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
     for (int y = 0; y < height; ++y)
         for (int x = 0; x < width; ++x)
-            (*data.indices)[y][x] = tileIndices[x][y];
+            data.indices[y][x] = tileIndices[x][y];
     data.tilePalette = tilePalette;
     return data;
 }

@@ -134,8 +134,7 @@ inline TileMap setupTileMap(
 
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
-    tileMapData.width = width;
-    tileMapData.height = height;
+    tileMapData.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
     return TileMap(tileMapData, palettesFrom(sized));
 }
 
@@ -153,7 +152,7 @@ inline TileMap setupTileMapWith(
     tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
     for (const auto &[tile, tileIndex] : placed)
-        (*tileMapData.indices)[tile.y][tile.x] = tileIndex;
+        tileMapData.indices[tile.y][tile.x] = tileIndex;
 
     return TileMap(tileMapData, palettesFrom(sized));
 }

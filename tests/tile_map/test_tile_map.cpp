@@ -69,8 +69,7 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     solidTileData.solid = true;
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
-    tileMapData.width = 3;
-    tileMapData.height = 3;
+    tileMapData.indices = std::vector<std::vector<int>>(3, std::vector<int>(3, 0));
     TilePaletteData palette =
         paletteOf({{1, solidTileData}, {0, emptyTileData}, {3, emptyTileData}});
     TileMap tileMap(tileMapData, palettesFrom(palette));
@@ -106,8 +105,7 @@ TEST_CASE("A tile map refuses cells that are not square", "[TileMap]")
 
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
-    tileMapData.width = 2;
-    tileMapData.height = 2;
+    tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
 
     REQUIRE_THROWS_WITH(
         TileMap(tileMapData, palettesFrom(palette)),
@@ -122,8 +120,7 @@ TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
 
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
-    tileMapData.width = 2;
-    tileMapData.height = 2;
+    tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
 
     TileMap tileMap(tileMapData, palettesFrom(palette));
 
@@ -138,8 +135,7 @@ TEST_CASE("A tile is as big as the cell its palette draws it from", "[TileMap]")
 
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
-    tileMapData.width = 2;
-    tileMapData.height = 2;
+    tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
 
     TileMap tileMap(tileMapData, palettesFrom(palette));
 
@@ -157,8 +153,7 @@ TEST_CASE("A level takes the size of a tile from the palette it names", "[TileMa
 
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
-    tileMapData.width = 4;
-    tileMapData.height = 4;
+    tileMapData.indices = std::vector<std::vector<int>>(4, std::vector<int>(4, 0));
 
     REQUIRE(TileMap(tileMapData, palettesFrom(small)).getWorldWidth() == 32);
     REQUIRE(TileMap(tileMapData, palettesFrom(large)).getWorldWidth() == 128);
@@ -208,8 +203,7 @@ TEST_CASE("A palette naming a tile below zero fails to load", "[TileMap]")
 
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
-    tileMapData.width = 2;
-    tileMapData.height = 2;
+    tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
 
     REQUIRE_THROWS_WITH(
         TileMap(tileMapData, palettesFrom(palette)),
@@ -246,12 +240,8 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     animatedTileData2.animationData = {{{5, 6}, 0.1f}};
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
-    tileMapData.width = 2;
-    tileMapData.height = 2;
     TilePaletteData palette =
         paletteOf({{1, animatedTileData1}, {0, emptyTileData}, {3, animatedTileData2}});
-    tileMapData.width.reset();
-    tileMapData.height.reset();
     tileMapData.indices = std::vector<std::vector<int>>{{1, 0}, {0, 3}};
     TileMap tileMap(tileMapData, palettesFrom(palette));
 
@@ -397,16 +387,6 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
 {
     TilePalettes palettes = palettesFrom(getDefaultTileDataMap());
 
-    SECTION("Both a grid and a size")
-    {
-        TileMapData both;
-        both.indices = std::vector<std::vector<int>>{{0, 0}, {0, 0}};
-        both.width = 2;
-        both.height = 2;
-        REQUIRE_THROWS_WITH(
-            TileMap(both, palettes), Catch::Matchers::ContainsSubstring("Cannot specify both"));
-    }
-
     SECTION("A grid whose rows are not all one width")
     {
         TileMapData ragged;
@@ -416,27 +396,34 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
             Catch::Matchers::ContainsSubstring("Inconsistent row width"));
     }
 
-    SECTION("Neither a grid nor a size")
+    SECTION("A grid whose later row is wider")
+    {
+        TileMapData ragged;
+        ragged.indices = std::vector<std::vector<int>>{{0}, {0, 0}};
+        REQUIRE_THROWS_WITH(
+            TileMap(ragged, palettes),
+            Catch::Matchers::ContainsSubstring("Inconsistent row width"));
+    }
+
+    SECTION("A grid with no rows")
     {
         REQUIRE_THROWS_WITH(
             TileMap(TileMapData{}, palettes),
-            Catch::Matchers::ContainsSubstring("Must specify either"));
+            Catch::Matchers::ContainsSubstring("at least one tile"));
     }
 
-    SECTION("A size of nothing")
+    SECTION("A grid whose rows hold nothing")
     {
         TileMapData nothing;
-        nothing.width = 0;
-        nothing.height = 0;
+        nothing.indices = std::vector<std::vector<int>>{{}, {}};
         REQUIRE_THROWS_WITH(
-            TileMap(nothing, palettes), Catch::Matchers::ContainsSubstring("invalid dimensions"));
+            TileMap(nothing, palettes), Catch::Matchers::ContainsSubstring("at least one tile"));
     }
 
     SECTION("A level naming no palette")
     {
         TileMapData unnamed;
-        unnamed.width = 2;
-        unnamed.height = 2;
+        unnamed.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
         REQUIRE_THROWS_WITH(
             TileMap(unnamed, palettes),
             Catch::Matchers::ContainsSubstring("names no tile palette"));
@@ -448,8 +435,7 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
         palette.tileSet.texture.clear();
         TileMapData sized;
         sized.tilePalette = "default";
-        sized.width = 2;
-        sized.height = 2;
+        sized.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
         REQUIRE_THROWS_WITH(
             TileMap(sized, palettesFrom(palette)),
             Catch::Matchers::ContainsSubstring("names no tile set texture"));
@@ -461,8 +447,7 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
         palette.tileSet.cellSize = glm::ivec2(0);
         TileMapData sized;
         sized.tilePalette = "default";
-        sized.width = 2;
-        sized.height = 2;
+        sized.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
         REQUIRE_THROWS_WITH(
             TileMap(sized, palettesFrom(palette)),
             Catch::Matchers::ContainsSubstring("cell size of 0"));

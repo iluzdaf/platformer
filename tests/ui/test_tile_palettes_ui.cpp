@@ -1,3 +1,5 @@
+#include <filesystem>
+#include <fstream>
 #include <map>
 #include <optional>
 #include <string>
@@ -8,8 +10,11 @@
 #include "assets/asset_paths.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_map.hpp"
+#include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "game/level.hpp"
+#include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
 #include "test_helpers/asset_path.hpp"
@@ -24,6 +29,160 @@ namespace
         palettes["other"] = paletteOf({{0, TileData{}}});
         return palettes;
     }
+
+    std::filesystem::path aLevelNaming(const std::string &palette)
+    {
+        std::filesystem::path directory =
+            std::filesystem::temp_directory_path() / "platformer_palette_levels";
+        std::filesystem::remove_all(directory);
+        std::filesystem::create_directories(directory);
+
+        LevelData levelData = readLevelData(assetPath("levels/level1.json"));
+        levelData.tileMapData.tilePalette = palette;
+        writeLevelData(levelData, (directory / "level1.json").string());
+
+        return directory;
+    }
+
+    std::string paletteNamedIn(const std::filesystem::path &directory)
+    {
+        return readLevelData((directory / "level1.json").string()).tileMapData.tilePalette;
+    }
+
+    TileMapData aTileMapOn(const std::string &palette)
+    {
+        TileMapData tileMapData;
+        tileMapData.width = 2;
+        tileMapData.height = 2;
+        tileMapData.tilePalette = palette;
+        return tileMapData;
+    }
+}
+
+TEST_CASE("The default palette cannot be removed", "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes = namedPalettes();
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.show("default");
+    tilePalettesUi.remove(palettes);
+
+    REQUIRE(palettes.contains("default"));
+    REQUIRE(tilePalettesUi.shownPalette() == "default");
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+}
+
+TEST_CASE("A palette removed stays until the save and shows another", "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes = namedPalettes();
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.show("other");
+    tilePalettesUi.remove(palettes);
+
+    REQUIRE(palettes.contains("other"));
+    REQUIRE(tilePalettesUi.shownPalette() == "default");
+    REQUIRE(tilePalettesUi.unsavedSince(palettes));
+}
+
+TEST_CASE("A level still builds while a palette removal waits to be saved", "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes = namedPalettes();
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.show("other");
+    tilePalettesUi.remove(palettes);
+
+    REQUIRE_NOTHROW(TileMap(aTileMapOn("other"), palettes));
+}
+
+TEST_CASE("A palette added and removed before a save vanishes at once", "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes = namedPalettes();
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.add(palettes);
+    std::string added = tilePalettesUi.shownPalette();
+    REQUIRE(palettes.contains(added));
+
+    tilePalettesUi.remove(palettes);
+
+    REQUIRE_FALSE(palettes.contains(added));
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+}
+
+TEST_CASE("Reverting puts back a palette that was removed", "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes = namedPalettes();
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.show("other");
+    tilePalettesUi.remove(palettes);
+    tilePalettesUi.revert(palettes);
+
+    REQUIRE(palettes.contains("other"));
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.show("other");
+    REQUIRE_NOTHROW(TileMap(aTileMapOn("other"), palettes));
+}
+
+TEST_CASE(
+    "Saving a removal re-points the levels before the palettes are written",
+    "[TilePalettesUi]")
+{
+    std::filesystem::path directory = aLevelNaming("other");
+    std::optional<TilePalettes> written;
+    TilePalettesUi tilePalettesUi(
+        directory.string(),
+        [&](const TilePalettes &palettes)
+        {
+            REQUIRE(paletteNamedIn(directory) == "default");
+            written = palettes;
+        });
+    TilePalettes palettes = namedPalettes();
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.show("other");
+    tilePalettesUi.remove(palettes);
+
+    tilePalettesUi.save(palettes);
+
+    REQUIRE(written.has_value());
+    REQUIRE_FALSE(written->contains("other"));
+    REQUIRE_FALSE(palettes.contains("other"));
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("A removal cannot be saved while a level cannot be read", "[TilePalettesUi]")
+{
+    std::filesystem::path directory = aLevelNaming("other");
+    std::ofstream(directory / "broken.json") << "{";
+    bool wrote = false;
+    TilePalettesUi tilePalettesUi(directory.string(), [&](const TilePalettes &) { wrote = true; });
+    TilePalettes palettes = namedPalettes();
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.show("other");
+    tilePalettesUi.remove(palettes);
+
+    REQUIRE(tilePalettesUi.cannotSaveBecause() == "broken cannot be read");
+
+    tilePalettesUi.save(palettes);
+
+    REQUIRE_FALSE(wrote);
+    REQUIRE(palettes.contains("other"));
+    REQUIRE(paletteNamedIn(directory) == "other");
+    REQUIRE(tilePalettesUi.unsavedSince(palettes));
+
+    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
@@ -233,12 +392,12 @@ TEST_CASE("A name typed is not a rename until it is entered", "[TilePalettesUi]"
 {
     HeadlessImGui gui;
     TilePalettesUi tilePalettesUi;
-    TilePalettes palettes;
-    palettes["default"] = paletteOf({{0, TileData{}}});
+    TilePalettes palettes = twoPalettes();
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
     TypingAName renaming(palettes);
+    tilePalettesUi.show("other");
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "base", drawing);
@@ -254,33 +413,86 @@ TEST_CASE("A palette keeps the name the levels know until it is saved", "[TilePa
 {
     HeadlessImGui gui;
     TilePalettesUi tilePalettesUi;
-    TilePalettes palettes;
-    palettes["default"] = paletteOf({{0, TileData{}}});
+    TilePalettes palettes = twoPalettes();
 
     TypingAName renaming(palettes);
+    tilePalettesUi.show("other");
+    auto drawing = renaming.drawing(tilePalettesUi, palettes);
+
+    gui.type("##name", "base", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(palettes.contains("other"));
+    REQUIRE_FALSE(palettes.contains("base"));
+}
+
+TEST_CASE("The default palette keeps its name", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes = twoPalettes();
+
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    TypingAName renaming(palettes);
+    tilePalettesUi.show("default");
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "base", drawing);
     gui.pressEnter(drawing);
 
     REQUIRE(palettes.contains("default"));
-    REQUIRE_FALSE(palettes.contains("base"));
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+}
+
+TEST_CASE("A removed name taken by a new palette keeps the levels on it", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    std::filesystem::path directory = aLevelNaming("other");
+    bool wrote = false;
+    TilePalettesUi tilePalettesUi(
+        directory.string(),
+        [&](const TilePalettes &)
+        {
+            REQUIRE(paletteNamedIn(directory) == "other");
+            wrote = true;
+        });
+    TilePalettes palettes = twoPalettes();
+
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    TypingAName renaming(palettes);
+    tilePalettesUi.show("other");
+    tilePalettesUi.remove(palettes);
+    tilePalettesUi.add(palettes);
+    auto drawing = renaming.drawing(tilePalettesUi, palettes);
+
+    gui.type("##name", "other", drawing);
+    gui.pressEnter(drawing);
+
+    tilePalettesUi.save(palettes);
+
+    REQUIRE(wrote);
+    REQUIRE(palettes.size() == 2);
+    REQUIRE(palettes.at("other").tiles.empty());
+    REQUIRE(tilePalettesUi.shownPalette() == "other");
+
+    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A name already taken is not entered", "[TilePalettesUi]")
 {
     HeadlessImGui gui;
     TilePalettesUi tilePalettesUi;
-    TilePalettes palettes;
-    palettes["default"] = paletteOf({{0, TileData{}}});
-    palettes["other"] = paletteOf({{0, TileData{}}});
+    TilePalettes palettes = twoPalettes();
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
     TypingAName renaming(palettes);
+    tilePalettesUi.show("other");
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
-    gui.type("##name", "other", drawing);
+    gui.type("##name", "default", drawing);
     gui.pressEnter(drawing);
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
@@ -290,12 +502,12 @@ TEST_CASE("Reverting takes back a rename that was never saved", "[TilePalettesUi
 {
     HeadlessImGui gui;
     TilePalettesUi tilePalettesUi;
-    TilePalettes palettes;
-    palettes["default"] = paletteOf({{0, TileData{}}});
+    TilePalettes palettes = twoPalettes();
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
     TypingAName renaming(palettes);
+    tilePalettesUi.show("other");
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "base", drawing);
@@ -305,7 +517,7 @@ TEST_CASE("Reverting takes back a rename that was never saved", "[TilePalettesUi
     tilePalettesUi.revert(palettes);
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
-    REQUIRE(palettes.contains("default"));
+    REQUIRE(palettes.contains("other"));
 }
 
 TEST_CASE("A level still loads while a palette rename waits to be saved", "[TilePalettesUi]")
@@ -313,16 +525,22 @@ TEST_CASE("A level still loads while a palette rename waits to be saved", "[Tile
     HeadlessImGui gui;
     TilePalettesUi tilePalettesUi;
     GameData gameData = loadGameData();
+    gameData.tilePalettes["ice"] = gameData.tilePalettes.at("default");
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(gameData.tilePalettes));
 
     TypingAName renaming(gameData.tilePalettes);
+    tilePalettesUi.show("ice");
     auto drawing = renaming.drawing(tilePalettesUi, gameData.tilePalettes);
 
-    gui.type("##name", "default1", drawing);
+    gui.type("##name", "snow", drawing);
     gui.pressEnter(drawing);
+
+    LevelData levelData = readLevelData(assetPath("levels/level1.json"));
+    levelData.tileMapData.tilePalette = "ice";
 
     REQUIRE(tilePalettesUi.unsavedSince(gameData.tilePalettes));
     REQUIRE_NOTHROW(Level(
-        readLevelData(assetPath("levels/level1.json")),
+        levelData,
         gameData.tilePalettes,
         gameData.playerData,
         gameData.npcData,
@@ -333,12 +551,12 @@ TEST_CASE("A palette rename outlives a reload of the values it waits on", "[Tile
 {
     HeadlessImGui gui;
     TilePalettesUi tilePalettesUi;
-    TilePalettes palettes;
-    palettes["default"] = paletteOf({{0, TileData{}}});
+    TilePalettes palettes = twoPalettes();
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
     TypingAName renaming(palettes);
+    tilePalettesUi.show("other");
     auto drawing = renaming.drawing(tilePalettesUi, palettes);
 
     gui.type("##name", "base", drawing);

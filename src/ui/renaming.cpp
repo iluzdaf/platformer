@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <functional>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -88,8 +89,8 @@ std::optional<Renamed> Renaming::draw(
         whyNotARename(what, shownName(selected), typing, taken(typing));
     if (why)
         drawWrapped(CannotSaveColour, *why);
-    else if (std::string levels = whatTheLevelsNeed(); !levels.empty())
-        drawWrapped(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled), levels);
+    else
+        drawWhatTheLevelsNeed();
 
     if (!entered || why || typing == shownName(selected))
         return std::nullopt;
@@ -101,9 +102,53 @@ std::optional<Renamed> Renaming::draw(
     return renamed;
 }
 
-const Renames &Renaming::sinceSaved() const
+void Renaming::drawWhatTheLevelsNeed() const
 {
-    return renames;
+    if (std::optional<std::string> cannot = cannotSaveBecause())
+        drawWrapped(CannotSaveColour, *cannot);
+    else if (std::string levels = whatTheLevelsNeed(); !levels.empty())
+        drawWrapped(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled), levels);
+}
+
+void Renaming::added(const std::string &name)
+{
+    neverSaved.insert(name);
+}
+
+bool Renaming::remove(const std::string &onDisk, const std::string &fallingBackTo)
+{
+    renames.erase(onDisk);
+    rePointed.clear();
+
+    if (neverSaved.erase(onDisk) > 0)
+        return false;
+
+    removals.insert_or_assign(onDisk, fallingBackTo);
+    return true;
+}
+
+bool Renaming::gone(const std::string &onDisk) const
+{
+    return removals.contains(onDisk);
+}
+
+std::vector<std::string> Renaming::removed() const
+{
+    std::vector<std::string> names;
+    for (const auto &[was, fallsBackTo] : removals)
+        names.push_back(was);
+
+    return names;
+}
+
+Renames Renaming::sinceSaved() const
+{
+    Renames pending = renames;
+    for (const auto &[was, fallsBackTo] : removals)
+        if (!somethingIsBecoming(was))
+            pending.insert({was, fallsBackTo});
+
+    return pending;
 }
 
 std::string nameAfterRenames(const Renames &renames, const std::string &name)
@@ -131,6 +176,14 @@ std::string Renaming::shownName(const std::string &onDisk) const
     return nameAfterRenames(renames, onDisk);
 }
 
+std::optional<std::string> Renaming::cannotSaveBecause() const
+{
+    if (unreadable.empty())
+        return std::nullopt;
+
+    return levelsInAList(unreadable) + " cannot be read";
+}
+
 std::string Renaming::whatTheLevelsNeed() const
 {
     if (!willRePoint.empty())
@@ -154,7 +207,10 @@ bool Renaming::somethingIsBecoming(const std::string &name) const
 void Renaming::applied(const std::vector<std::string> &levels)
 {
     renames.clear();
+    removals.clear();
+    neverSaved.clear();
     willRePoint.clear();
+    unreadable.clear();
     rePointed = levels;
 }
 
@@ -163,13 +219,21 @@ void Renaming::willReach(const std::vector<std::string> &levels)
     willRePoint = levels;
 }
 
+void Renaming::cannotReach(const std::vector<std::string> &levels)
+{
+    unreadable = levels;
+}
+
 void Renaming::forget()
 {
     typing.clear();
     lastSelected.clear();
     renames.clear();
+    removals.clear();
+    neverSaved.clear();
     rePointed.clear();
     willRePoint.clear();
+    unreadable.clear();
 }
 
 void lookAheadAtLevels(
@@ -177,23 +241,31 @@ void lookAheadAtLevels(
     const std::string &directory,
     const std::function<bool(LevelData &, const Renames &)> &rename)
 {
-    const Renames &renames = renaming.sinceSaved();
-    renaming.willReach(
-        rewriting::whatItWouldReach(
-            directory, [&](LevelData &levelData) { return rename(levelData, renames); }));
+    const Renames renames = renaming.sinceSaved();
+    rewriting::Reach reach = rewriting::whatItWouldReach(
+        directory, [&](LevelData &levelData) { return rename(levelData, renames); });
+
+    renaming.willReach(reach.levels);
+    renaming.cannotReach(reach.unreadable);
 }
 
-void writeRenamesIntoLevels(
+bool writeRenamesIntoLevels(
     Renaming &renaming,
     const std::string &directory,
     const std::function<bool(LevelData &, const Renames &)> &rename)
 {
-    const Renames &renames = renaming.sinceSaved();
+    const Renames renames = renaming.sinceSaved();
     if (renames.empty())
-        return;
+        return true;
 
-    std::vector<std::string> rewritten = rewriting::theLevels(
+    rewriting::Reach reach = rewriting::theLevels(
         directory, [&](LevelData &levelData) { return rename(levelData, renames); });
+    if (!reach.unreadable.empty())
+    {
+        renaming.cannotReach(reach.unreadable);
+        return false;
+    }
 
-    renaming.applied(rewritten);
+    renaming.applied(reach.levels);
+    return true;
 }

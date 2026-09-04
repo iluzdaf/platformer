@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include "ui/saveable.hpp"
 #include "ui/type_shown.hpp"
@@ -16,6 +17,7 @@ public:
     void save(GameData &gameData);
     void revert(GameData &gameData);
     bool unsavedSince(const GameData &gameData);
+    std::optional<std::string> cannotSaveBecause(const GameData &gameData) const;
     void valuesReplaced();
     void show(const TypeShown &type);
 

@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <map>
@@ -50,19 +51,28 @@ public:
         std::string_view what,
         const std::string &selected,
         const NameTaken &taken);
+    void drawWhatTheLevelsNeed() const;
 
-    const Renames &sinceSaved() const;
+    void added(const std::string &name);
+    bool remove(const std::string &onDisk, const std::string &fallingBackTo);
+    bool gone(const std::string &onDisk) const;
+    std::vector<std::string> removed() const;
+
+    Renames sinceSaved() const;
     std::string shownName(const std::string &onDisk) const;
     std::string whatTheLevelsNeed() const;
+    std::optional<std::string> cannotSaveBecause() const;
     bool somethingIsBecoming(const std::string &name) const;
     void applied(const std::vector<std::string> &levels);
     void willReach(const std::vector<std::string> &levels);
+    void cannotReach(const std::vector<std::string> &levels);
     void forget();
 
 private:
     std::string typing, lastSelected;
-    Renames renames;
-    std::vector<std::string> rePointed, willRePoint;
+    Renames renames, removals;
+    std::set<std::string> neverSaved;
+    std::vector<std::string> rePointed, willRePoint, unreadable;
 };
 
 template <class T>
@@ -74,7 +84,7 @@ void revertTo(const Saveable &saveable, std::string_view name, T &value, Renamin
 
 struct LevelData;
 
-void writeRenamesIntoLevels(
+bool writeRenamesIntoLevels(
     Renaming &renaming,
     const std::string &directory,
     const std::function<bool(LevelData &, const Renames &)> &rename);

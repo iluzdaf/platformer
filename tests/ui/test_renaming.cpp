@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <fstream>
 #include <glaze/glaze.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -48,6 +49,18 @@ namespace
             std::filesystem::copy_file(assetPath(std::string("levels/") + name), directory / name);
 
         return directory;
+    }
+
+    std::filesystem::path someLevelsOneUnreadable()
+    {
+        std::filesystem::path directory = someLevelsToRewrite();
+        std::ofstream(directory / "broken.json") << "{";
+        return directory;
+    }
+
+    bool rePointPalettes(LevelData &levelData, const Renames &renames)
+    {
+        return rewriting::paletteIn(levelData.tileMapData, renames);
     }
 
     float heightDrawing(HeadlessImGui &gui, Renaming &renaming)
@@ -217,12 +230,13 @@ TEST_CASE("Every spawn of a renamed pickup type is re-pointed", "[Renaming]")
 
 TEST_CASE("A rename nobody's level uses rewrites nothing", "[Renaming]")
 {
-    std::vector<std::string> rewritten = rewriting::theLevels(
+    rewriting::Reach reach = rewriting::theLevels(
         std::string(assets::Levels),
         [](LevelData &levelData)
         { return rewriting::paletteIn(levelData.tileMapData, {{"nobody", "somebody"}}); });
 
-    REQUIRE(rewritten.empty());
+    REQUIRE(reach.levels.empty());
+    REQUIRE(reach.unreadable.empty());
 }
 
 TEST_CASE("Renames written into the levels stop waiting", "[Renaming]")
@@ -304,12 +318,12 @@ TEST_CASE("The levels a rename reaches are handed back", "[Renaming]")
 {
     std::filesystem::path directory = someLevelsToRewrite();
 
-    std::vector<std::string> rewritten = rewriting::theLevels(
+    rewriting::Reach reach = rewriting::theLevels(
         directory.string(),
         [](LevelData &levelData)
         { return rewriting::paletteIn(levelData.tileMapData, {{"default", "base"}}); });
 
-    REQUIRE(levelsInAList(rewritten) == "level1 and level2");
+    REQUIRE(levelsInAList(reach.levels) == "level1 and level2");
 
     std::filesystem::remove_all(directory);
 }
@@ -456,4 +470,152 @@ TEST_CASE("Levels too many for one line wrap inside the inspector", "[Renaming]"
     many.applied(lots);
 
     REQUIRE(heightDrawing(gui, many) > heightDrawing(gui, one));
+}
+
+TEST_CASE("A removal waits to be written into the levels", "[Renaming]")
+{
+    Renaming renaming;
+
+    REQUIRE(renaming.remove("ice", "default"));
+
+    REQUIRE(renaming.gone("ice"));
+    REQUIRE(renaming.sinceSaved() == Renames{{"ice", "default"}});
+    REQUIRE(renaming.removed() == std::vector<std::string>{"ice"});
+}
+
+TEST_CASE("Removing what was only just added vanishes with nothing to re-point", "[Renaming]")
+{
+    Renaming renaming;
+    renaming.added("palette 2");
+
+    REQUIRE_FALSE(renaming.remove("palette 2", "default"));
+
+    REQUIRE_FALSE(renaming.gone("palette 2"));
+    REQUIRE(renaming.sinceSaved().empty());
+}
+
+TEST_CASE("Removing after a rename removes the name on disk", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "ice", "snow");
+
+    REQUIRE(renaming.remove("ice", "default"));
+
+    REQUIRE(renaming.sinceSaved() == Renames{{"ice", "default"}});
+    REQUIRE(renaming.shownName("ice") == "ice");
+}
+
+TEST_CASE("A removed name taken again keeps the levels pointing at it", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming;
+    renaming.remove("ice", "default");
+    auto drawing = [&] { renaming.draw("a palette", "palette 2", nobodyHasIt); };
+
+    gui.type("##name", "ice", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(renaming.sinceSaved() == Renames{{"palette 2", "ice"}});
+    REQUIRE(renaming.removed() == std::vector<std::string>{"ice"});
+}
+
+TEST_CASE("Forgetting drops a removal that was never written", "[Renaming]")
+{
+    Renaming renaming;
+    renaming.remove("ice", "default");
+
+    renaming.forget();
+
+    REQUIRE_FALSE(renaming.gone("ice"));
+    REQUIRE(renaming.sinceSaved().empty());
+}
+
+TEST_CASE("A removal written into the levels stops waiting", "[Renaming]")
+{
+    Renaming renaming;
+    renaming.remove("ice", "default");
+
+    renaming.applied({});
+
+    REQUIRE_FALSE(renaming.gone("ice"));
+    REQUIRE(renaming.removed().empty());
+}
+
+TEST_CASE("The levels a removal will reach are named before it is saved", "[Renaming]")
+{
+    Renaming renaming;
+    renaming.remove("default", "base");
+    std::filesystem::path directory = someLevelsToRewrite();
+
+    lookAheadAtLevels(renaming, directory.string(), rePointPalettes);
+
+    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 will be re-pointed.");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("A level that cannot be read is named and nothing is rewritten", "[Renaming]")
+{
+    std::filesystem::path directory = someLevelsOneUnreadable();
+
+    rewriting::Reach reach = rewriting::theLevels(
+        directory.string(),
+        [](LevelData &levelData)
+        { return rewriting::paletteIn(levelData.tileMapData, {{"default", "base"}}); });
+
+    REQUIRE(reach.levels.empty());
+    REQUIRE(levelsInAList(reach.unreadable) == "broken");
+
+    LevelData untouched;
+
+    REQUIRE_FALSE(
+        glz::read_file_json(untouched, (directory / "level1.json").string(), std::string{}));
+    REQUIRE(untouched.tileMapData.tilePalette == "default");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("Renames wait while a level cannot be read", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "default", "base");
+    std::filesystem::path directory = someLevelsOneUnreadable();
+
+    REQUIRE_FALSE(writeRenamesIntoLevels(renaming, directory.string(), rePointPalettes));
+
+    REQUIRE(renaming.sinceSaved() == Renames{{"default", "base"}});
+    REQUIRE(renaming.cannotSaveBecause() == "broken cannot be read");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("A level that cannot be read is said before the save", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "default", "base");
+    std::filesystem::path directory = someLevelsOneUnreadable();
+
+    lookAheadAtLevels(renaming, directory.string(), rePointPalettes);
+
+    REQUIRE(renaming.cannotSaveBecause() == "broken cannot be read");
+    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 will be re-pointed.");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("Levels that can be read again let the renames through", "[Renaming]")
+{
+    HeadlessImGui gui;
+    Renaming renaming = renamedOnce(gui, "default", "base");
+    std::filesystem::path directory = someLevelsOneUnreadable();
+
+    REQUIRE_FALSE(writeRenamesIntoLevels(renaming, directory.string(), rePointPalettes));
+
+    std::filesystem::remove(directory / "broken.json");
+
+    REQUIRE(writeRenamesIntoLevels(renaming, directory.string(), rePointPalettes));
+    REQUIRE_FALSE(renaming.cannotSaveBecause().has_value());
+    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
+
+    std::filesystem::remove_all(directory);
 }

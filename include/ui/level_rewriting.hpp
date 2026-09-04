@@ -13,10 +13,15 @@ namespace rewriting
 {
     using Rewrite = std::function<bool(LevelData &)>;
 
+    struct Reach
+    {
+        std::vector<std::string> levels, unreadable;
+    };
+
     bool paletteIn(TileMapData &tileMapData, const Renames &renames);
     bool typeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames);
     bool typeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames);
 
-    std::vector<std::string> theLevels(const std::string &directory, const Rewrite &rewrite);
-    std::vector<std::string> whatItWouldReach(const std::string &directory, const Rewrite &rewrite);
+    Reach theLevels(const std::string &directory, const Rewrite &rewrite);
+    Reach whatItWouldReach(const std::string &directory, const Rewrite &rewrite);
 }

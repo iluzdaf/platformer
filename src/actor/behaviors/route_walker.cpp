@@ -9,6 +9,7 @@
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_path.hpp"
+#include "navigation/navigation_place.hpp"
 
 namespace
 {

@@ -16,7 +16,7 @@
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
-#include "navigation/navigation_path.hpp"
+#include "navigation/navigation_place.hpp"
 #include "npc/npc.hpp"
 #include "physics/aabb.hpp"
 #include "physics/physics_body.hpp"

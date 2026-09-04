@@ -10,7 +10,7 @@
 #include <set>
 #include <vector>
 #include <glaze/glaze.hpp>
-#include "navigation/navigation_path.hpp"
+#include "navigation/navigation_place.hpp"
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"

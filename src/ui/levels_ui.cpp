@@ -85,8 +85,8 @@ bool LevelsUi::unsavedSince(const LevelsData &levels)
     return saveable.unsavedSince("levels", asJson(levels));
 }
 
-void LevelsUi::valuesReplaced()
+void LevelsUi::reloaded(LevelsData &current, const LevelsData &onDisk)
 {
     askedToSwitchTo.reset();
-    saveable.valuesReplaced();
+    reload(saveable, "levels", current, onDisk);
 }

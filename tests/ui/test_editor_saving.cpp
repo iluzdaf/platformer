@@ -110,6 +110,49 @@ TEST_CASE("Palettes with every level readable have nothing said against a save",
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::TilePalettes, editing.subject()).cannotBecause);
 }
 
+TEST_CASE(
+    "A reload keeps the sections with unsaved edits and follows the disk for the rest",
+    "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Camera, subject).unsaved);
+
+    editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
+    float edited = editing.gameData.playerData.fallFromHeightThreshold;
+
+    GameData onDisk = loadGameData();
+    onDisk.cameraData.zoom += 1.0f;
+    editorUi.reloaded(editing.gameData, onDisk);
+
+    REQUIRE(editing.gameData.playerData.fallFromHeightThreshold == edited);
+    REQUIRE(editing.gameData.cameraData.zoom == onDisk.cameraData.zoom);
+    REQUIRE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Camera, subject).unsaved);
+}
+
+TEST_CASE("Reverting a section kept through a reload takes what is on disk now", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
+
+    editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
+
+    GameData onDisk = loadGameData();
+    onDisk.playerData.fallFromHeightThreshold += 50.0f;
+    editorUi.reloaded(editing.gameData, onDisk);
+    editorUi.savingIn(EditorSection::Player, subject).revert();
+
+    REQUIRE(
+        editing.gameData.playerData.fallFromHeightThreshold ==
+        onDisk.playerData.fallFromHeightThreshold);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
+}
+
 TEST_CASE("Playing back is not a thing that saves", "[EditorSaving]")
 {
     EditorUi editorUi;

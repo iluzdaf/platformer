@@ -563,7 +563,7 @@ TEST_CASE("A palette rename outlives a reload of the values it waits on", "[Tile
     gui.pressEnter(drawing);
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
 
-    tilePalettesUi.valuesReplaced();
+    tilePalettesUi.reloaded(palettes, palettes);
 
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
 }

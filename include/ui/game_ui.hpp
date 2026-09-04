@@ -46,7 +46,7 @@ public:
         const std::string &levelPath,
         const Camera2D &camera);
     void resize(int width, int height);
-    void valuesReplaced();
+    void reloaded(GameData &current, const GameData &onDisk);
 
     EditorCommands &commands();
 

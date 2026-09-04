@@ -245,8 +245,10 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   itself except the level it is painting.
 - `Saveable` decides what is unsaved by comparing json, the value now against the value
   last saved or first seen, so no type has to compare itself. Revert reads that json
-  back. A reload from disk clears every baseline, since the value underneath was
-  replaced.
+  back. A reload from disk treats each section like a text editor treats a dirty
+  buffer: a section with unsaved edits keeps them and stays unsaved against what is
+  now on disk, a clean section takes the disk value, and either way the baseline
+  moves to the disk value so revert means what is on disk now.
 
 **Movement is a set of abilities, each optional in the data, each owning one slot of the
 motion state.**

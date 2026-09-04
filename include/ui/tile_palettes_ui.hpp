@@ -37,7 +37,7 @@ public:
     void revert(TilePalettes &tilePalettes);
     bool unsavedSince(const TilePalettes &tilePalettes);
     std::optional<std::string> cannotSaveBecause() const;
-    void valuesReplaced();
+    void reloaded(TilePalettes &current, const TilePalettes &onDisk);
 
 private:
     void drawChooser(TilePalettes &tilePalettes);

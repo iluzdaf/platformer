@@ -62,7 +62,7 @@ bool PlayerUi::unsavedSince(const GameData &gameData)
     return saveable.unsavedSince("player", asJson(gameData.playerData));
 }
 
-void PlayerUi::valuesReplaced()
+void PlayerUi::reloaded(GameData &current, const GameData &onDisk)
 {
-    saveable.valuesReplaced();
+    reload(saveable, "player", current.playerData, onDisk.playerData);
 }

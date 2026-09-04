@@ -69,8 +69,8 @@ Game::Game(Window &window, Reloader &reloader)
     reloadConnections.push_back(reloader.commands.onReload.connect(
         [this]
         {
-            gameData = loadGameData();
-            gameUi.valuesReplaced();
+            GameData onDisk = loadGameData();
+            gameUi.reloaded(gameData, onDisk);
             this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
             camera.setZoom(gameData.cameraData.zoom);
             renderer.warm(gameData);

@@ -11,7 +11,7 @@
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "input/input_intentions.hpp"
-#include "navigation/navigation_path.hpp"
+#include "navigation/navigation_place.hpp"
 
 namespace
 {

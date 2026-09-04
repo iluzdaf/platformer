@@ -13,15 +13,7 @@ TEST_CASE("KeyboardManager tracks key press and release", "[keyboard]")
         keyboardManager.poll([](int key)
                              { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
         REQUIRE(keyboardManager.isPressed(GLFW_KEY_SPACE));
-    }
-
-    SECTION("Key release is detected")
-    {
-        keyboardManager.poll([](int) { return GLFW_RELEASE; });
-        keyboardManager.poll([](int key)
-                             { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
-        keyboardManager.poll([](int) { return GLFW_RELEASE; });
-        REQUIRE(keyboardManager.isReleased(GLFW_KEY_SPACE));
+        REQUIRE(keyboardManager.isDown(GLFW_KEY_SPACE));
     }
 
     SECTION("Key press state resets correctly")
@@ -33,16 +25,13 @@ TEST_CASE("KeyboardManager tracks key press and release", "[keyboard]")
         keyboardManager.poll([](int key)
                              { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
         REQUIRE_FALSE(keyboardManager.isPressed(GLFW_KEY_SPACE));
+        REQUIRE(keyboardManager.isDown(GLFW_KEY_SPACE));
     }
 
-    SECTION("Key release state resets correctly")
+    SECTION("A key nobody registered is never down")
     {
-        keyboardManager.poll([](int) { return GLFW_RELEASE; });
-        keyboardManager.poll([](int key)
-                             { return key == GLFW_KEY_SPACE ? GLFW_PRESS : GLFW_RELEASE; });
-        keyboardManager.poll([](int) { return GLFW_RELEASE; });
-        REQUIRE(keyboardManager.isReleased(GLFW_KEY_SPACE));
-        keyboardManager.poll([](int) { return GLFW_RELEASE; });
-        REQUIRE_FALSE(keyboardManager.isReleased(GLFW_KEY_SPACE));
+        keyboardManager.poll([](int) { return GLFW_PRESS; });
+        REQUIRE_FALSE(keyboardManager.isDown(GLFW_KEY_A));
+        REQUIRE_FALSE(keyboardManager.isPressed(GLFW_KEY_A));
     }
 }

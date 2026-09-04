@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <glm/glm.hpp>
 #include <imgui.h>
 #include "ui/sheet_field.hpp"
 #include "ui/inspector_edited.hpp"
@@ -48,6 +49,25 @@ inspector::Edited drawSheetFields(SheetData &value)
     edited |= inspector::draw("cellSize", value.cellSize);
 
     return edited;
+}
+
+inspector::Edited drawSquareSheetFields(SheetData &value)
+{
+    inspector::Edited edited = drawTextureChooser(value.texture);
+
+    int side = value.cellSize.x;
+    inspector::Edited squared = inspector::draw("cellSize", side);
+    if (squared)
+        value.cellSize = glm::ivec2(side);
+
+    if (value.cellSize.x != value.cellSize.y)
+        ImGui::TextColored(
+            CannotSaveColour,
+            "cells %d by %d, and a tile map lays out squares",
+            value.cellSize.x,
+            value.cellSize.y);
+
+    return edited |= squared;
 }
 
 inspector::Edited drawCustomField(std::string_view name, SheetData &value)

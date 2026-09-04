@@ -172,7 +172,7 @@ void TilePalettesUi::draw(
     drawRename(tilePalettes);
 
     TilePaletteData &palette = tilePalettes.at(selectedPalette);
-    drawSheetFields(palette.tileSet);
+    drawSquareSheetFields(palette.tileSet);
     ImGui::Separator();
 
     const Texture2D *tileSet = textures.find(palette.tileSet.texture);

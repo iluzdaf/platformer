@@ -29,33 +29,22 @@ namespace
         const NavigationProfile &profile,
         int headroom)
     {
+        glm::ivec2 start = tileMap.tileContaining(from);
+        if (!tileMap.validTilePosition(start) || tileMap.getTileAtTilePosition(start).isSolid())
+            return std::nullopt;
+
+        std::optional<glm::vec2> landing =
+            navigation::standingBelow(tileMap, from.x, from.y, profile, headroom);
+        if (!landing)
+            return std::nullopt;
+
         float tileSize = static_cast<float>(tileMap.getTileSize());
-        glm::ivec2 startTilePosition = tileMap.tileContaining(from);
-
-        for (int y = startTilePosition.y; y < tileMap.getHeight(); ++y)
-        {
-            glm::ivec2 groundTilePosition(startTilePosition.x, y);
-            if (!tileMap.validTilePosition(groundTilePosition))
+        for (int row = start.y; static_cast<float>(row) * tileSize < landing->y; ++row)
+            if (!navigation::clearAt(
+                    tileMap, glm::vec2(from.x, static_cast<float>(row) * tileSize), profile))
                 return std::nullopt;
 
-            glm::vec2 standing(from.x, static_cast<float>(y) * tileSize);
-
-            if (tileMap.getTileAtTilePosition(groundTilePosition).isSolid())
-            {
-                if (y == startTilePosition.y)
-                    return std::nullopt;
-
-                return navigation::canStandOn(tileMap, groundTilePosition, headroom) &&
-                               navigation::clearAt(tileMap, standing, profile)
-                           ? std::optional(standing)
-                           : std::nullopt;
-            }
-
-            if (!navigation::clearAt(tileMap, standing, profile))
-                return std::nullopt;
-        }
-
-        return std::nullopt;
+        return landing;
     }
 
     std::vector<glm::vec2> fallLandings(

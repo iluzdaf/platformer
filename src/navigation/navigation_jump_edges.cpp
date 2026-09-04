@@ -101,35 +101,6 @@ namespace
 
         return candidate.reach < against.reach;
     }
-
-    std::optional<glm::vec2> standingBelow(
-        const TileMap &tileMap,
-        float x,
-        float below,
-        const NavigationProfile &profile,
-        int headroom)
-    {
-        float tileSize = static_cast<float>(tileMap.getTileSize());
-        glm::ivec2 column = tileMap.tileContaining(glm::vec2(x, below));
-
-        for (int y = column.y + 1; y < tileMap.getHeight(); ++y)
-        {
-            glm::ivec2 ground(column.x, y);
-            if (!tileMap.validTilePosition(ground))
-                return std::nullopt;
-            if (!tileMap.getTileAtTilePosition(ground).isSolid())
-                continue;
-
-            glm::vec2 standing(x, static_cast<float>(y) * tileSize);
-            if (navigation::canStandOn(tileMap, ground, headroom) &&
-                navigation::clearAt(tileMap, standing, profile))
-                return standing;
-
-            return std::nullopt;
-        }
-
-        return std::nullopt;
-    }
 }
 
 namespace navigation
@@ -304,7 +275,7 @@ namespace navigation
             {
                 float x = ledge.x - reach + static_cast<float>(taken) * step;
                 std::optional<glm::vec2> takeOff =
-                    standingBelow(tileMap, x, ledge.y, profile, headroom);
+                    navigation::standingBelow(tileMap, x, ledge.y, profile, headroom);
                 if (!takeOff)
                     continue;
 

@@ -29,9 +29,9 @@ Game::Game(Window &window, Reloader &reloader)
             gameUi.resize(width, height);
         });
 
-    keyboardManager.registerKey(GLFW_KEY_P);
-    keyboardManager.registerKey(GLFW_KEY_S);
-    keyboardManager.registerKey(GLFW_KEY_F1);
+    keys.registerKey(GLFW_KEY_P);
+    keys.registerKey(GLFW_KEY_S);
+    keys.registerKey(GLFW_KEY_F1);
     showEditors = gameData.settings.debug;
 
     world.onLevelBuilt.connect(
@@ -92,12 +92,12 @@ void Game::frame(float deltaTime)
 {
     gameUi.commands().drain();
 
-    keyboardManager.poll(window.getHandle());
-    if (keyboardManager.isPressed(GLFW_KEY_P))
+    keys.poll(window.keysDown());
+    if (keys.isPressed(GLFW_KEY_P))
         playback.isPaused() ? playback.play() : playback.pause();
-    if (keyboardManager.isPressed(GLFW_KEY_F1))
+    if (keys.isPressed(GLFW_KEY_F1))
         showEditors = !showEditors;
-    if (keyboardManager.isPressed(GLFW_KEY_S))
+    if (keys.isPressed(GLFW_KEY_S))
         playback.step();
 
     luaScriptSystem.update(deltaTime);
@@ -109,7 +109,7 @@ void Game::frame(float deltaTime)
         deltaTime,
         [this]
         {
-            keyboardIntentions.process(window.getHandle());
+            keyboardIntentions.process(window.keysDown());
             world.preFixedUpdate();
         },
         [this](float dt)

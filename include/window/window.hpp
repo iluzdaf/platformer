@@ -3,6 +3,7 @@
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
 #include <signals.hpp>
+#include "input/keys_down.hpp"
 
 struct GLFWwindow;
 
@@ -20,6 +21,7 @@ public:
     void setSize(int width, int height);
     glm::ivec2 getFramebufferSize() const;
     GLFWwindow *getHandle() const;
+    KeysDown keysDown() const;
 
     fteng::signal<void(int, int)> onResize;
 

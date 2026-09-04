@@ -8,7 +8,7 @@
 #include "rendering/game_renderer.hpp"
 #include "rendering/screen_transition.hpp"
 #include "cameras/camera2d.hpp"
-#include "input/keyboard_manager.hpp"
+#include "input/key_tracker.hpp"
 #include "input/keyboard_intentions.hpp"
 #include "game/playback.hpp"
 #include "scripting/lua_script_system.hpp"
@@ -29,7 +29,7 @@ private:
     Window &window;
     GameData gameData;
     Camera2D camera;
-    KeyboardManager keyboardManager;
+    KeyTracker keys;
     KeyboardIntentions keyboardIntentions;
     Playback playback;
     LuaScriptSystem luaScriptSystem;

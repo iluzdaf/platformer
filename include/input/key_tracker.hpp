@@ -1,16 +1,12 @@
 #pragma once
 #include <unordered_map>
-#include <functional>
+#include "input/keys_down.hpp"
 
-struct GLFWwindow;
-
-class KeyboardManager
+class KeyTracker
 {
 public:
-    using InputPoller = std::function<int(int)>;
     void registerKey(int key);
-    void poll(GLFWwindow *window);
-    void poll(const InputPoller &poller);
+    void poll(const KeysDown &keysDown);
     bool isPressed(int key) const;
     bool isDown(int key) const;
 

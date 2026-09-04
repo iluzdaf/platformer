@@ -162,7 +162,7 @@ add_library(platformer_lib OBJECT
     src/physics/physics_body.cpp
     src/cameras/camera2d.cpp
     src/cameras/camera_shake.cpp
-    src/input/keyboard_manager.cpp
+    src/input/key_tracker.cpp
     src/input/keyboard_intentions.cpp
     src/animations/frame_animation.cpp
     src/animations/animation_manager.cpp
@@ -319,7 +319,7 @@ add_executable(tests
     tests/physics/tests_physics_body.cpp
     tests/cameras/test_camera2d.cpp
     tests/cameras/test_camera_shake.cpp
-    tests/input/test_keyboard_manager.cpp
+    tests/input/test_key_tracker.cpp
     tests/input/test_keyboard_intentions.cpp
     tests/animations/test_animation_manager.cpp
     tests/animations/test_frame_animation.cpp

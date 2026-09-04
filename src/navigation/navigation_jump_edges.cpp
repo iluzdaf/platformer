@@ -51,15 +51,11 @@ namespace
         int toId = 0;
         std::vector<glm::vec2> path;
         float holdDuration = 0.0f;
-        float reach = 0.0f;
     };
 
     bool easierThan(const JumpCandidate &candidate, const JumpCandidate &against)
     {
-        if (candidate.holdDuration != against.holdDuration)
-            return candidate.holdDuration < against.holdDuration;
-
-        return candidate.reach < against.reach;
+        return candidate.holdDuration < against.holdDuration;
     }
 }
 
@@ -101,9 +97,7 @@ namespace navigation
                     if (components.at(fromId) == components.at(*toId))
                         continue;
 
-                    float reach = std::abs(navigationGraph.getNode(*toId).position.x - takeOff.x);
-
-                    JumpCandidate candidate{*toId, landing->path, arc.holdDuration, reach};
+                    JumpCandidate candidate{*toId, landing->path, arc.holdDuration};
 
                     std::pair<int, int> platform(fromId, components.at(*toId));
                     auto found = easiest.find(platform);

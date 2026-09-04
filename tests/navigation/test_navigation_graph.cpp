@@ -107,3 +107,11 @@ TEST_CASE("addEdge throws on invalid node IDs", "[NavigationGraph]")
         REQUIRE_THROWS_AS(graph.addEdge(-5, 500, EdgeType::Jump), std::runtime_error);
     }
 }
+
+TEST_CASE("A node id can be taken only once", "[NavigationGraph]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, glm::vec2(0.0f));
+
+    REQUIRE_THROWS(navigationGraph.addNode(0, glm::vec2(16.0f)));
+}

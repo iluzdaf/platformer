@@ -14,15 +14,6 @@
 
 namespace
 {
-    bool alreadyConnected(const NavigationGraph &navigationGraph, int fromId, int toId)
-    {
-        for (const auto &edge : navigationGraph.getOutgoingEdges(fromId))
-            if (edge.toId == toId)
-                return true;
-
-        return false;
-    }
-
     std::optional<glm::vec2> surfaceBelow(
         const TileMap &tileMap,
         glm::vec2 from,
@@ -122,9 +113,6 @@ namespace navigation
                 std::optional<int> toId =
                     nodeGoverning(navigationGraph, tileMap, landing, headroom);
                 if (!toId || *toId == fromId)
-                    continue;
-
-                if (alreadyConnected(navigationGraph, fromId, *toId))
                     continue;
 
                 navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, {}, 0.0f});

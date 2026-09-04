@@ -58,3 +58,80 @@ TEST_CASE("Camera2D resize updates projection", "[Camera2D]")
         }
     }
 }
+
+TEST_CASE("A world smaller than the view is centred in it", "[Camera2D]")
+{
+    Camera2D camera(Camera2DData(1.0f), 100, 80);
+    camera.setWorldBounds(glm::vec2(0, 0), glm::vec2(50, 50));
+
+    camera.follow(glm::vec2(9999.0f, -9999.0f));
+
+    REQUIRE(camera.getPosition() == glm::vec2(25.0f, 25.0f));
+}
+
+TEST_CASE("Bounds that do not span anything are refused", "[Camera2D]")
+{
+    Camera2D camera(Camera2DData(1.0f), 100, 80);
+
+    REQUIRE_THROWS(camera.setWorldBounds(glm::vec2(10, 0), glm::vec2(10, 100)));
+    REQUIRE_THROWS(camera.setWorldBounds(glm::vec2(0, 10), glm::vec2(100, 10)));
+}
+
+TEST_CASE("A window with no size is refused", "[Camera2D]")
+{
+    Camera2D camera(Camera2DData(1.0f), 100, 80);
+
+    REQUIRE_THROWS(camera.resize(0, 80));
+    REQUIRE_THROWS(camera.resize(100, 0));
+}
+
+TEST_CASE("A shake moves the view for as long as it was asked to", "[Camera2D]")
+{
+    Camera2D camera(Camera2DData(1.0f), 100, 80);
+    glm::mat4 still = camera.getProjection();
+
+    camera.startShake(0.2f, 8.0f);
+    REQUIRE(camera.shaking());
+
+    bool moved = false;
+    for (int step = 0; step < 30; ++step)
+    {
+        camera.update(0.01f);
+        moved = moved || camera.getProjection() != still;
+    }
+
+    REQUIRE(moved);
+    REQUIRE_FALSE(camera.shaking());
+}
+
+TEST_CASE("A shake of no time or no size is refused", "[Camera2D]")
+{
+    Camera2D camera(Camera2DData(1.0f), 100, 80);
+
+    REQUIRE_THROWS(camera.startShake(0.0f, 8.0f));
+    REQUIRE_THROWS(camera.startShake(0.2f, 0.0f));
+}
+
+TEST_CASE("Zoom is what it was set to, and must be positive", "[Camera2D]")
+{
+    Camera2D camera(Camera2DData(1.0f), 100, 80);
+
+    camera.setZoom(2.0f);
+
+    REQUIRE(camera.getZoom() == 2.0f);
+    REQUIRE_THROWS(camera.setZoom(0.0f));
+}
+
+TEST_CASE("The view's top left is half a window up and left of the camera", "[Camera2D]")
+{
+    Camera2D camera(Camera2DData(1.0f), 100, 80);
+    camera.setWorldBounds(glm::vec2(0, 0), glm::vec2(1000, 1000));
+    camera.follow(glm::vec2(100.0f, 100.0f));
+
+    REQUIRE(camera.getWindowSize() == glm::vec2(100.0f, 80.0f));
+    REQUIRE(camera.getTopLeftPosition() == glm::vec2(50.0f, 60.0f));
+
+    camera.setZoom(2.0f);
+
+    REQUIRE(camera.getTopLeftPosition() == glm::vec2(75.0f, 80.0f));
+}

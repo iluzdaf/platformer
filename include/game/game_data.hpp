@@ -31,8 +31,6 @@ struct GameData
 
 GameData loadGameData();
 
-void requireDefaultPalette(const TilePalettes &tilePalettes);
-
 void saveGameSettings(const GameSettingsData &settings);
 void saveCameraData(const Camera2DData &cameraData);
 void savePlayerData(const PlayerData &playerData);

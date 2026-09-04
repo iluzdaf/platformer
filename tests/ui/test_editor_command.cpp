@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
+#include <stdexcept>
 #include "ui/editor_command.hpp"
 #include "ui/editor_commands.hpp"
 
@@ -109,4 +110,36 @@ TEST_CASE("An editor command stays connected when the caller keeps nothing", "[E
 
     REQUIRE(respawns == 1);
     REQUIRE(loaded == std::vector<std::string>{"levels/level2.json"});
+}
+
+TEST_CASE(
+    "An editor command whose handler throws is reported rather than escaping",
+    "[EditorCommand]")
+{
+    EditorCommand<> command;
+    command.connect([] { throw std::runtime_error("cannot build the level"); });
+
+    command();
+
+    REQUIRE_NOTHROW(command.drain());
+}
+
+TEST_CASE("One editor command that throws does not stop the next", "[EditorCommand]")
+{
+    EditorCommand<int> command;
+    std::vector<int> delivered;
+    command.connect(
+        [&](int asked)
+        {
+            if (asked == 1)
+                throw std::runtime_error("cannot build the level");
+
+            delivered.push_back(asked);
+        });
+
+    command(1);
+    command(2);
+    REQUIRE_NOTHROW(command.drain());
+
+    REQUIRE(delivered == std::vector<int>{2});
 }

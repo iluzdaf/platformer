@@ -45,6 +45,9 @@ private:
     void drawRename(const TilePalettes &tilePalettes);
     bool shownIn(const TilePalettes &tilePalettes, const std::string &name) const;
     std::string firstShownIn(const TilePalettes &tilePalettes) const;
+    std::optional<std::string> firstRemainingAfter(
+        const TilePalettes &tilePalettes,
+        const std::string &leaving) const;
 
     std::string levelsDirectory;
     WritePalettes writePalettes;

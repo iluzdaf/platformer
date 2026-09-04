@@ -115,7 +115,7 @@ void Renaming::added(const std::string &name)
     neverSaved.insert(name);
 }
 
-bool Renaming::remove(const std::string &onDisk, const std::string &fallingBackTo)
+bool Renaming::remove(const std::string &onDisk, const std::optional<std::string> &fallingBackTo)
 {
     renames.erase(onDisk);
     rePointed.clear();
@@ -135,18 +135,24 @@ bool Renaming::gone(const std::string &onDisk) const
 std::vector<std::string> Renaming::removed() const
 {
     std::vector<std::string> names;
+    names.reserve(removals.size());
     for (const auto &[was, fallsBackTo] : removals)
         names.push_back(was);
 
     return names;
 }
 
+bool Renaming::pending() const
+{
+    return !renames.empty() || !removals.empty();
+}
+
 Renames Renaming::sinceSaved() const
 {
     Renames pending = renames;
     for (const auto &[was, fallsBackTo] : removals)
-        if (!somethingIsBecoming(was))
-            pending.insert({was, fallsBackTo});
+        if (fallsBackTo && !somethingIsBecoming(was))
+            pending.insert({was, *fallsBackTo});
 
     return pending;
 }

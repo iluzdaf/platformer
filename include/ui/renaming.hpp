@@ -54,10 +54,11 @@ public:
     void drawWhatTheLevelsNeed() const;
 
     void added(const std::string &name);
-    bool remove(const std::string &onDisk, const std::string &fallingBackTo);
+    bool remove(const std::string &onDisk, const std::optional<std::string> &fallingBackTo);
     bool gone(const std::string &onDisk) const;
     std::vector<std::string> removed() const;
 
+    bool pending() const;
     Renames sinceSaved() const;
     std::string shownName(const std::string &onDisk) const;
     std::string whatTheLevelsNeed() const;
@@ -70,7 +71,8 @@ public:
 
 private:
     std::string typing, lastSelected;
-    Renames renames, removals;
+    Renames renames;
+    std::map<std::string, std::optional<std::string>> removals;
     std::set<std::string> neverSaved;
     std::vector<std::string> rePointed, willRePoint, unreadable;
 };

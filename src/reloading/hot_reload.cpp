@@ -1,28 +1,18 @@
 #include <string>
 #include "reloading/hot_reload.hpp"
+#include "assets/asset_paths.hpp"
 
 HotReload::HotReload()
 {
-    levelWatcher.onLevelChanged.connect([this](const std::string &levelPath)
-                                        { reloader.levelChanged(levelPath); });
+    listener.onFileModified = [this](const std::string &path) { reloader.fileChanged(path); };
 
-    assetWatcher.onShaderChanged.connect([this](const std::string &shaderPath)
-                                         { reloader.shaderChanged(shaderPath); });
-
-    assetWatcher.onTextureChanged.connect([this](const std::string &texturePath)
-                                          { reloader.textureChanged(texturePath); });
-
-    gameDataWatcher.onGameDataChanged.connect([this] { reloader.gameDataChanged(); });
-
-    scriptWatcher.onScriptsChanged.connect([this] { reloader.scriptsChanged(); });
+    fileWatcher.addWatch(assets::root(), &listener, true);
+    fileWatcher.watch();
 }
 
 void HotReload::process()
 {
-    levelWatcher.process();
-    assetWatcher.process();
-    gameDataWatcher.process();
-    scriptWatcher.process();
+    listener.process();
 }
 
 Reloader &HotReload::getReloader()

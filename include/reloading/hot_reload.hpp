@@ -1,10 +1,8 @@
 #pragma once
 
-#include "reloading/asset_watcher.hpp"
-#include "reloading/game_data_watcher.hpp"
-#include "reloading/level_watcher.hpp"
+#include <efsw/efsw.hpp>
+#include "reloading/file_watcher_listener.hpp"
 #include "reloading/reloader.hpp"
-#include "reloading/script_watcher.hpp"
 
 class HotReload
 {
@@ -16,8 +14,6 @@ public:
 
 private:
     Reloader reloader;
-    LevelWatcher levelWatcher;
-    AssetWatcher assetWatcher;
-    GameDataWatcher gameDataWatcher;
-    ScriptWatcher scriptWatcher;
+    FileWatcherListener listener;
+    efsw::FileWatcher fileWatcher;
 };

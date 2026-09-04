@@ -10,6 +10,8 @@ public:
 
     void levelLoaded(const std::string &levelPath);
 
+    void fileChanged(const std::string &path);
+
     void levelChanged(const std::string &levelPath);
     void shaderChanged(const std::string &shaderPath);
     void textureChanged(const std::string &texturePath);

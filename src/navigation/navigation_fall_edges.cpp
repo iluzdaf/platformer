@@ -53,7 +53,7 @@ namespace
         const NavigationProfile &profile,
         int headroom)
     {
-        float stride = profile.colliderSize.x * 0.5f + 1.0f;
+        float stride = profile.physicsBodyData.colliderSize.x * 0.5f + 1.0f;
 
         std::vector<glm::vec2> landings;
         for (float direction : {-1.0f, 1.0f})

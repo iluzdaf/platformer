@@ -19,7 +19,7 @@ namespace
     int tilesOfHeadroom(const TileMap &tileMap, const NavigationProfile &profile)
     {
         float tileSize = static_cast<float>(tileMap.getTileSize());
-        return static_cast<int>(std::ceil(profile.colliderSize.y / tileSize));
+        return static_cast<int>(std::ceil(profile.physicsBodyData.colliderSize.y / tileSize));
     }
 
     void addRunEnds(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom)
@@ -119,8 +119,10 @@ namespace navigation
     bool clearAt(const TileMap &tileMap, glm::vec2 feetPosition, const NavigationProfile &profile)
     {
         constexpr float Inset = 0.5f;
-        float halfWidth = profile.colliderSize.x * 0.5f - Inset;
-        glm::vec2 low(feetPosition.x - halfWidth, feetPosition.y - profile.colliderSize.y + Inset);
+        float halfWidth = profile.physicsBodyData.colliderSize.x * 0.5f - Inset;
+        glm::vec2 low(
+            feetPosition.x - halfWidth,
+            feetPosition.y - profile.physicsBodyData.colliderSize.y + Inset);
         glm::vec2 high(feetPosition.x + halfWidth, feetPosition.y - Inset);
 
         glm::ivec2 lowTilePosition = tileMap.tileContaining(low);

@@ -228,7 +228,7 @@ void TilePalettesUi::revert(TilePalettes &tilePalettes)
     revertTo(saveable, "palettes", tilePalettes, renaming);
 }
 
-void TilePalettesUi::save(TilePalettes &tilePalettes)
+bool TilePalettesUi::save(TilePalettes &tilePalettes, LevelData &playing)
 {
     Renames pending = renaming.sinceSaved();
     std::vector<std::string> removed = renaming.removed();
@@ -238,7 +238,7 @@ void TilePalettesUi::save(TilePalettes &tilePalettes)
             levelsDirectory,
             [](LevelData &levelData, const Renames &renames)
             { return rewriting::paletteIn(levelData.tileMapData, renames); }))
-        return;
+        return false;
 
     for (const std::string &name : removed)
         tilePalettes.erase(name);
@@ -248,6 +248,8 @@ void TilePalettesUi::save(TilePalettes &tilePalettes)
 
     writePalettes(tilePalettes);
     saveable.saved("palettes", asJson(tilePalettes));
+
+    return rewriting::paletteIn(playing.tileMapData, pending);
 }
 
 bool TilePalettesUi::unsavedSince(const TilePalettes &tilePalettes)

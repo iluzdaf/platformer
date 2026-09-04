@@ -61,7 +61,11 @@ Game::Game(Window &window, Reloader &reloader)
                                             { renderer.warmTexture(texturePath); });
 
     reloadConnections.push_back(reloader.commands.onLoadLevel.connect(
-        [this](const std::string &levelPath) { world.loadLevel(levelPath); }));
+        [this](const std::string &levelPath)
+        {
+            if (gameUi.levelFollowsTheDisk(world.getLevelData(), levelPath))
+                world.loadLevel(levelPath);
+        }));
     reloadConnections.push_back(reloader.commands.onReloadShader.connect(
         [this](const std::string &shaderPath) { renderer.reloadShader(shaderPath); }));
     reloadConnections.push_back(reloader.commands.onReloadTexture.connect(
@@ -76,7 +80,12 @@ Game::Game(Window &window, Reloader &reloader)
             renderer.warm(gameData);
 
             std::string current = world.getLevelPath();
-            world.loadLevel(current.empty() ? gameData.levels.first : current);
+            if (current.empty())
+                world.loadLevel(gameData.levels.first);
+            else if (gameUi.levelFollowsTheDisk(world.getLevelData(), current))
+                world.loadLevel(current);
+            else
+                world.rebuildFrom(LevelData(world.getLevelData()));
         }));
     reloadConnections.push_back(
         reloader.commands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));

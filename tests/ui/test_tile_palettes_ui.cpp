@@ -151,12 +151,31 @@ TEST_CASE(
     tilePalettesUi.show("other");
     tilePalettesUi.remove(palettes);
 
-    tilePalettesUi.save(palettes);
+    LevelData playing = readLevelData((directory / "level1.json").string());
+    REQUIRE(tilePalettesUi.save(palettes, playing));
 
     REQUIRE(written.has_value());
     REQUIRE_FALSE(written->contains("other"));
     REQUIRE_FALSE(palettes.contains("other"));
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+    REQUIRE(playing.tileMapData.tilePalette == "default");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("Saving with nothing pending leaves the playing level alone", "[TilePalettesUi]")
+{
+    std::filesystem::path directory = aLevelNaming("other");
+    bool wrote = false;
+    TilePalettesUi tilePalettesUi(directory.string(), [&](const TilePalettes &) { wrote = true; });
+    TilePalettes palettes = namedPalettes();
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    LevelData playing = readLevelData((directory / "level1.json").string());
+    REQUIRE_FALSE(tilePalettesUi.save(palettes, playing));
+
+    REQUIRE(wrote);
+    REQUIRE(playing.tileMapData.tilePalette == "other");
 
     std::filesystem::remove_all(directory);
 }
@@ -175,10 +194,12 @@ TEST_CASE("A removal cannot be saved while a level cannot be read", "[TilePalett
 
     REQUIRE(tilePalettesUi.cannotSaveBecause() == "broken cannot be read");
 
-    tilePalettesUi.save(palettes);
+    LevelData playing = readLevelData((directory / "level1.json").string());
+    REQUIRE_FALSE(tilePalettesUi.save(palettes, playing));
 
     REQUIRE_FALSE(wrote);
     REQUIRE(palettes.contains("other"));
+    REQUIRE(playing.tileMapData.tilePalette == "other");
     REQUIRE(paletteNamedIn(directory) == "other");
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
 
@@ -470,9 +491,11 @@ TEST_CASE("A removed name taken by a new palette keeps the levels on it", "[Tile
     gui.type("##name", "other", drawing);
     gui.pressEnter(drawing);
 
-    tilePalettesUi.save(palettes);
+    LevelData playing = readLevelData((directory / "level1.json").string());
+    REQUIRE_FALSE(tilePalettesUi.save(palettes, playing));
 
     REQUIRE(wrote);
+    REQUIRE(playing.tileMapData.tilePalette == "other");
     REQUIRE(palettes.size() == 2);
     REQUIRE(palettes.at("other").tiles.empty());
     REQUIRE(tilePalettesUi.shownPalette() == "other");

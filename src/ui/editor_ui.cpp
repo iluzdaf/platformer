@@ -267,7 +267,12 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
         return {
             tilePalettesUi.unsavedSince(subject.gameData.tilePalettes),
             tilePalettesUi.cannotSaveBecause(),
-            [this, &subject] { tilePalettesUi.save(subject.gameData.tilePalettes); },
+            [this, &subject]
+            {
+                LevelData playing = subject.levelData;
+                if (tilePalettesUi.save(subject.gameData.tilePalettes, playing))
+                    commands.onLevelEdited(playing);
+            },
             [this, &subject] { tilePalettesUi.revert(subject.gameData.tilePalettes); }};
 
     case EditorSection::Playback:
@@ -285,5 +290,9 @@ void EditorUi::reloaded(GameData &current, const GameData &onDisk)
     typesUi.reloaded(current, onDisk);
     tilePalettesUi.reloaded(current.tilePalettes, onDisk.tilePalettes);
     levelsUi.reloaded(current.levels, onDisk.levels);
-    levelUi.valuesReplaced();
+}
+
+bool EditorUi::levelFollowsTheDisk(const LevelData &current, const std::string &levelPath)
+{
+    return levelUi.followsTheDisk(current, levelPath);
 }

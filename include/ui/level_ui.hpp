@@ -48,7 +48,7 @@ public:
 
     void save(const LevelData &levelData, const std::string &levelPath);
     bool unsavedSince(const LevelData &levelData, const std::string &levelPath);
-    void valuesReplaced();
+    bool followsTheDisk(const LevelData &current, const std::string &levelPath);
 
 private:
     Saveable saveable;

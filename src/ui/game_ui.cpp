@@ -69,6 +69,11 @@ void GameUi::reloaded(GameData &current, const GameData &onDisk)
     editorUi.reloaded(current, onDisk);
 }
 
+bool GameUi::levelFollowsTheDisk(const LevelData &current, const std::string &levelPath)
+{
+    return editorUi.levelFollowsTheDisk(current, levelPath);
+}
+
 EditorCommands &GameUi::commands()
 {
     return editorUi.commands;

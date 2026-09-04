@@ -1,6 +1,4 @@
 #include <cstddef>
-#include <algorithm>
-#include <filesystem>
 #include <glaze/glaze.hpp>
 #include <string>
 #include <vector>
@@ -9,13 +7,7 @@
 
 std::vector<std::string> levelPathsIn(const std::string &directory)
 {
-    std::vector<std::string> paths;
-    for (const auto &entry : std::filesystem::directory_iterator(assets::pathTo(directory)))
-        if (entry.path().extension() == ".json")
-            paths.push_back(assets::underRoot(entry.path().string()));
-
-    std::sort(paths.begin(), paths.end());
-    return paths;
+    return assets::filesIn(directory, ".json");
 }
 
 std::string levelName(const std::string &levelPath)

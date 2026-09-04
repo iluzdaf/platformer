@@ -16,6 +16,7 @@
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/sheet_in_scope.hpp"
+#include "ui/sheet_field.hpp"
 #include "rendering/tile_set_fit.hpp"
 #include "tile_map/tile_data.hpp"
 #include "game/level_data.hpp"
@@ -171,7 +172,7 @@ void TilePalettesUi::draw(
     drawRename(tilePalettes);
 
     TilePaletteData &palette = tilePalettes.at(selectedPalette);
-    inspector::drawFields(palette.tileSet);
+    drawSheetFields(palette.tileSet);
     ImGui::Separator();
 
     const Texture2D *tileSet = textures.find(palette.tileSet.texture);

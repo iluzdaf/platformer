@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace assets
 {
@@ -32,4 +33,5 @@ namespace assets
     const std::string &root();
     std::string pathTo(std::string_view relative);
     std::string underRoot(const std::string &path);
+    std::vector<std::string> filesIn(std::string_view directory, std::string_view extension);
 }

@@ -33,13 +33,26 @@ TEST_CASE("A sheet naming no texture says so where the texture is", "[SheetField
 {
     HeadlessImGui gui;
 
-    SheetData named{"textures/somewhere.png", glm::ivec2(16)};
+    SheetData named{"textures/player.png", glm::ivec2(16)};
     SheetData unnamed{"", glm::ivec2(16)};
 
     float withTexture = drawnHeightOf(gui, named);
     float without = drawnHeightOf(gui, unnamed);
 
     REQUIRE(without > withTexture);
+}
+
+TEST_CASE("A sheet naming a texture nobody has says so where the texture is", "[SheetField]")
+{
+    HeadlessImGui gui;
+
+    SheetData onDisk{"textures/player.png", glm::ivec2(16)};
+    SheetData nowhere{"textures/somewhere.png", glm::ivec2(16)};
+
+    float found = drawnHeightOf(gui, onDisk);
+    float missing = drawnHeightOf(gui, nowhere);
+
+    REQUIRE(missing > found);
 }
 
 TEST_CASE("A sheet keeps what it was given after being drawn", "[SheetField]")

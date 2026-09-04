@@ -153,3 +153,14 @@ TEST_CASE("A dash refuses a fraction it cannot use", "[DashAbility]")
     data.airborneFraction = 1.5f;
     REQUIRE_THROWS(DashAbility{data});
 }
+
+TEST_CASE("A dash that goes nowhere or takes no time is refused", "[DashAbility]")
+{
+    DashAbilityData noSpeed;
+    noSpeed.dashSpeed = 0.0f;
+    REQUIRE_THROWS(DashAbility{noSpeed});
+
+    DashAbilityData noTime;
+    noTime.dashDuration = 0.0f;
+    REQUIRE_THROWS(DashAbility{noTime});
+}

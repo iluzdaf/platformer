@@ -23,8 +23,9 @@ PatrolBehavior::PatrolBehavior(
 {
 }
 
-std::optional<PatrolBehavior::BeatEnd> PatrolBehavior::endOfTheBeat(
+PatrolBehavior::BeatEnd PatrolBehavior::endOfTheBeat(
     const ActorBehaviorContext &context,
+    int from,
     bool second) const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
@@ -32,37 +33,22 @@ std::optional<PatrolBehavior::BeatEnd> PatrolBehavior::endOfTheBeat(
     if (patrolBetween)
     {
         glm::vec2 asked = second ? patrolBetween->second : patrolBetween->first;
-        std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, asked);
-        if (!place)
-            return std::nullopt;
-
-        return BeatEnd{
-            place->position, endOfThePathBeyond(navigationGraph, *place, context.worldPosition)};
+        if (std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, asked))
+            return BeatEnd{
+                place->position,
+                endOfThePathBeyond(navigationGraph, *place, context.worldPosition)};
     }
 
-    std::optional<int> from = walker.getCurrentNodeId();
-    if (!from)
-        return std::nullopt;
-
-    std::optional<int> end;
-    for (int id : walkableFrom(navigationGraph, *from))
+    int end = from;
+    for (int id : walkableFrom(navigationGraph, from))
     {
-        if (!end)
-        {
-            end = id;
-            continue;
-        }
-
         float here = navigationGraph.getNode(id).position.x;
-        float best = navigationGraph.getNode(*end).position.x;
+        float best = navigationGraph.getNode(end).position.x;
         if (second ? here > best : here < best)
             end = id;
     }
 
-    if (!end)
-        return std::nullopt;
-
-    return BeatEnd{navigationGraph.getNode(*end).position, *end};
+    return BeatEnd{navigationGraph.getNode(end).position, end};
 }
 
 bool PatrolBehavior::standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const
@@ -88,8 +74,8 @@ InputIntentions PatrolBehavior::decide(float deltaTime, const ActorBehaviorConte
         return InputIntentions();
 
     walker.advanceOnArrival(context);
-    if (walker.routeFinished())
-        planRoute(context);
+    if (std::optional<int> from = walker.getCurrentNodeId(); from && walker.routeFinished())
+        planRoute(context, *from);
 
     return walker.follow(deltaTime, context);
 }
@@ -104,22 +90,15 @@ std::optional<int> PatrolBehavior::getTargetNodeId() const
     return walker.getTargetNodeId();
 }
 
-void PatrolBehavior::planRoute(const ActorBehaviorContext &context)
+void PatrolBehavior::planRoute(const ActorBehaviorContext &context, int from)
 {
-    std::optional<int> from = walker.getCurrentNodeId();
-    if (!from)
-        return;
+    BeatEnd destination = endOfTheBeat(context, from, headingForTheSecond);
 
-    std::optional<BeatEnd> destination = endOfTheBeat(context, headingForTheSecond);
-
-    if (destination && standingAt(context, *destination))
+    if (standingAt(context, destination))
     {
         headingForTheSecond = !headingForTheSecond;
-        destination = endOfTheBeat(context, headingForTheSecond);
+        destination = endOfTheBeat(context, from, headingForTheSecond);
     }
 
-    if (!destination)
-        return;
-
-    walker.takeRouteTo(context, destination->routeVia, destination->position);
+    walker.takeRouteTo(context, destination.routeVia, destination.position);
 }

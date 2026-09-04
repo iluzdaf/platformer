@@ -51,3 +51,10 @@ TEST_CASE("WallClimbAbility basic movement behaviour", "[WallClimbAbility]")
         REQUIRE(state.wallClimb.velocity.y == Approx(0.0f));
     }
 }
+
+TEST_CASE("A climb that goes nowhere is refused", "[WallClimbAbility]")
+{
+    WallClimbAbilityData noSpeed;
+    noSpeed.climbSpeed = 0.0f;
+    REQUIRE_THROWS(WallClimbAbility(noSpeed));
+}

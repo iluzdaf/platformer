@@ -123,3 +123,10 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
         REQUIRE_FALSE(state.jump.active);
     }
 }
+
+TEST_CASE("A jump that does not go up is refused", "[JumpAbility]")
+{
+    JumpAbilityData downwards;
+    downwards.jumpSpeed = 0.0f;
+    REQUIRE_THROWS(JumpAbility(downwards));
+}

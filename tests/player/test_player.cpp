@@ -789,3 +789,12 @@ TEST_CASE("A ceiling bump is over before the frame it happened in ends", "[Playe
     REQUIRE(framesEndingWithHitCeiling == 0);
     REQUIRE(framesEndingWithBumpedCeiling == 1);
 }
+
+TEST_CASE("A player has no state name and stands on no node", "[Player]")
+{
+    Player player = setupPlayer();
+
+    REQUIRE(player.getStateName().empty());
+    REQUIRE_FALSE(player.getCurrentNodeId());
+    REQUIRE_FALSE(player.getTargetNodeId());
+}

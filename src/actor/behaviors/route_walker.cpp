@@ -91,12 +91,9 @@ bool RouteWalker::hasLostTheRoute(const ActorBehaviorContext &context) const
     float rightEnd = node.position.x;
     for (int id : walkableFrom(navigationGraph, *currentNodeId))
     {
-        NavigationNode onFoot = navigationGraph.getNode(id);
-        if (std::abs(onFoot.position.y - node.position.y) > SurfaceTolerance)
-            continue;
-
-        leftEnd = std::min(leftEnd, onFoot.position.x);
-        rightEnd = std::max(rightEnd, onFoot.position.x);
+        float x = navigationGraph.getNode(id).position.x;
+        leftEnd = std::min(leftEnd, x);
+        rightEnd = std::max(rightEnd, x);
     }
 
     return context.worldPosition.x < leftEnd - reach || context.worldPosition.x > rightEnd + reach;
@@ -123,7 +120,7 @@ bool RouteWalker::routeFinished() const
 
 void RouteWalker::advanceOnArrival(const ActorBehaviorContext &context)
 {
-    if (!targetNodeId || !hasArrived(context))
+    if (!currentNodeId || !targetNodeId || !hasArrived(context, *currentNodeId, *targetNodeId))
         return;
 
     currentNodeId = targetNodeId;
@@ -247,23 +244,21 @@ bool RouteWalker::withinReachOf(const ActorBehaviorContext &context, int nodeId)
     return std::abs(node.position.x - context.worldPosition.x) <= reach;
 }
 
-bool RouteWalker::hasArrived(const ActorBehaviorContext &context) const
+bool RouteWalker::hasArrived(const ActorBehaviorContext &context, int setOffAt, int headingFor)
+    const
 {
-    if (!currentNodeId || !targetNodeId)
-        return false;
-
     const NavigationGraph &navigationGraph = context.navigationGraph;
-    glm::vec2 target = targetPosition(context, *currentNodeId, *targetNodeId);
+    glm::vec2 target = targetPosition(context, setOffAt, headingFor);
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
 
-    const NavigationEdge *leg = edgeBetween(navigationGraph, *currentNodeId, *targetNodeId);
+    const NavigationEdge *leg = edgeBetween(navigationGraph, setOffAt, headingFor);
     if (leg && leg->type == EdgeType::Climb)
     {
         if (std::abs(target.y - context.worldPosition.y) <= SurfaceTolerance)
             return true;
 
         float climbDirection =
-            directionTowards(navigationGraph.getNode(*currentNodeId).position.y, target.y);
+            directionTowards(navigationGraph.getNode(setOffAt).position.y, target.y);
 
         return directionTowards(context.worldPosition.y, target.y) != climbDirection;
     }
@@ -274,8 +269,7 @@ bool RouteWalker::hasArrived(const ActorBehaviorContext &context) const
     if (std::abs(target.x - context.worldPosition.x) <= reach)
         return true;
 
-    float legDirection =
-        directionTowards(navigationGraph.getNode(*currentNodeId).position.x, target.x);
+    float legDirection = directionTowards(navigationGraph.getNode(setOffAt).position.x, target.x);
 
     return directionTowards(context.worldPosition.x, target.x) != legDirection;
 }

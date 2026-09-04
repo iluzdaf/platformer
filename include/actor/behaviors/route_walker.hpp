@@ -34,7 +34,7 @@ private:
     void anchor(const ActorBehaviorContext &context);
     glm::vec2 targetPosition(const ActorBehaviorContext &context, int setOffAt, int headingFor)
         const;
-    bool hasArrived(const ActorBehaviorContext &context) const;
+    bool hasArrived(const ActorBehaviorContext &context, int setOffAt, int headingFor) const;
     bool withinReachOf(const ActorBehaviorContext &context, int nodeId) const;
     bool hasLostTheRoute(const ActorBehaviorContext &context) const;
 };

@@ -1,24 +1,42 @@
 #ifndef SKIP_OPENGL_TESTS
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include <string>
 #include "rendering/shader.hpp"
 #include "rendering/shader_data.hpp"
 #include "test_helpers/asset_path.hpp"
 
+namespace
+{
+    const std::string ValidVertex = R"(
+        #version 330 core
+        layout (location = 0) in vec3 aPos;
+        void main() {
+            gl_Position = vec4(aPos, 1.0);
+        }
+    )";
+
+    const std::string ValidFragment = R"(
+        #version 330 core
+        out vec4 FragColor;
+        void main() {
+            FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+    )";
+}
+
 TEST_CASE("Shader is valid", "[Shader]")
 {
-    ShaderData shaderData;
-    shaderData.vertexPath = assetPath("shaders/sprite.vs");
-    shaderData.fragmentPath = assetPath("shaders/sprite.fs");
+    ShaderData shaderData{
+        readShaderFile(assetPath("shaders/sprite.vs")),
+        readShaderFile(assetPath("shaders/sprite.fs"))};
     REQUIRE_NOTHROW(Shader(shaderData));
 }
 
-TEST_CASE("Shader does not exist", "[Shader]")
+TEST_CASE("A shader with no code is refused", "[Shader]")
 {
-    ShaderData shaderData;
-    shaderData.vertexPath = assetPath("shaders/does_not_exist.vs");
-    shaderData.fragmentPath = assetPath("shaders/does_not_exist.fs");
-    REQUIRE_THROWS_WITH(Shader(shaderData), "Vertex shader code is empty");
+    REQUIRE_THROWS_WITH(Shader(ShaderData{"", ValidFragment}), "Vertex shader code is empty");
+    REQUIRE_THROWS_WITH(Shader(ShaderData{ValidVertex, ""}), "Fragment shader code is empty");
 }
 
 TEST_CASE("Shader is broken", "[Shader]")
@@ -32,18 +50,24 @@ TEST_CASE("Shader is broken", "[Shader]")
         }
     )";
 
+    REQUIRE_THROWS_WITH(
+        Shader(ShaderData{brokenVertex, ValidFragment}),
+        Catch::Matchers::ContainsSubstring("Vertex shader compilation failed"));
+}
+
+TEST_CASE("A fragment shader that does not compile is refused", "[Shader]")
+{
     const std::string brokenFragment = R"(
         #version 330 core
         out vec4 FragColor;
         void main() {
-            FragColor = vec4(1.0, 0.0, 0.0); // this is actually valid
+            FragColor = vec4(1.0, 0.0, 0.0, 1.0)  // <- missing semicolon!
         }
     )";
 
-    ShaderData shaderData;
-    shaderData.vertexCode = brokenVertex;
-    shaderData.fragmentCode = brokenFragment;
-    REQUIRE_THROWS(Shader(shaderData));
+    REQUIRE_THROWS_WITH(
+        Shader(ShaderData{ValidVertex, brokenFragment}),
+        Catch::Matchers::ContainsSubstring("Fragment shader compilation failed"));
 }
 
 TEST_CASE("Shader fails to link", "[Shader]")
@@ -51,7 +75,7 @@ TEST_CASE("Shader fails to link", "[Shader]")
     const std::string vertexShaderCode = R"(
         #version 330 core
         layout(location = 0) in vec3 aPos;
-    
+
         out vec3 fragData; // mismatched with fragment input
 
         void main() {
@@ -70,9 +94,8 @@ TEST_CASE("Shader fails to link", "[Shader]")
         }
     )";
 
-    ShaderData shaderData;
-    shaderData.vertexCode = vertexShaderCode;
-    shaderData.fragmentCode = fragmentShaderCode;
-    REQUIRE_THROWS(Shader(shaderData));
+    REQUIRE_THROWS_WITH(
+        Shader(ShaderData{vertexShaderCode, fragmentShaderCode}),
+        Catch::Matchers::ContainsSubstring("Shader program linking failed"));
 }
 #endif // SKIP_OPENGL_TESTS

@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "rendering/game_renderer.hpp"
 #include "rendering/screen_transition.hpp"
+#include "rendering/shader.hpp"
 #include "rendering/shader_data.hpp"
 #include "rendering/tile_map_drawing.hpp"
 #include "rendering/sheet_textures.hpp"
@@ -52,11 +53,8 @@ void GameRenderer::warmTexture(const std::string &texturePath)
 
 std::unique_ptr<Shader> GameRenderer::loadShader(std::string_view vertex, std::string_view fragment)
 {
-    ShaderData shaderData;
-    shaderData.vertexPath = assets::pathTo(vertex);
-    shaderData.fragmentPath = assets::pathTo(fragment);
-
-    return std::make_unique<Shader>(shaderData);
+    return std::make_unique<Shader>(ShaderData{
+        readShaderFile(assets::pathTo(vertex)), readShaderFile(assets::pathTo(fragment))});
 }
 
 void GameRenderer::reloadShader(const std::string &shaderPath)
@@ -103,7 +101,7 @@ void GameRenderer::draw(
             sheet.cellSize.x,
             sheet.cellSize.y);
 
-        spriteRenderer.drawWithUV(
+        spriteRenderer.draw(
             *tileSetShader.get(),
             texture,
             projection,
@@ -125,7 +123,7 @@ void GameRenderer::draw(
             sheet.cellSize.x,
             sheet.cellSize.y);
 
-        spriteRenderer.drawWithUV(
+        spriteRenderer.draw(
             *tileSetShader.get(),
             texture,
             projection,

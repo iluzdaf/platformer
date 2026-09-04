@@ -307,6 +307,8 @@ add_executable(tests
     tests/rendering/test_texture2d.cpp
     tests/rendering/test_gl_ownership.cpp
     tests/rendering/test_shader.cpp
+    tests/rendering/test_shader_file.cpp
+    tests/rendering/test_screen_transition.cpp
     tests/tile_map/test_tile_map.cpp
     tests/tile_map/test_tile.cpp
     tests/tile_map/test_level_tile_caps.cpp

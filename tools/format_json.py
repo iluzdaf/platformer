@@ -5,7 +5,7 @@ aligned into columns. TileMap::save produces the same bytes, so a level saved
 from the in game editor and one written here are identical. The pre commit
 hook runs --format over staged assets.
 
-    python3 tools/format_json.py --format assets/game_data.json
+    python3 tools/format_json.py --format assets/data/game.json
     python3 tools/format_json.py --check
 
 With no paths it applies to every json under assets. Note that no editor can

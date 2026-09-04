@@ -29,6 +29,11 @@ namespace navigation
         glm::vec2 landing,
         int headroom);
 
+    std::vector<std::vector<int>> walkRuns(
+        const NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        int headroom);
+
     void addWalkEdges(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom);
 
     std::vector<ChosenJump> chooseJumps(

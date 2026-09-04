@@ -63,40 +63,6 @@ namespace
         return std::nullopt;
     }
 
-    std::unordered_map<int, int> walkComponents(const NavigationGraph &navigationGraph)
-    {
-        std::unordered_map<int, int> components;
-
-        int nextComponent = 0;
-        for (const auto &[id, node] : navigationGraph.getNodes())
-        {
-            if (components.contains(id))
-                continue;
-
-            components[id] = nextComponent;
-
-            std::vector<int> pending{id};
-            while (!pending.empty())
-            {
-                int at = pending.back();
-                pending.pop_back();
-
-                for (const auto &edge : navigationGraph.getOutgoingEdges(at))
-                {
-                    if (edge.type != EdgeType::Walk || components.contains(edge.toId))
-                        continue;
-
-                    components[edge.toId] = nextComponent;
-                    pending.push_back(edge.toId);
-                }
-            }
-
-            ++nextComponent;
-        }
-
-        return components;
-    }
-
     std::optional<JumpLanding> jumpFrom(
         const TileMap &tileMap,
         glm::vec2 takeOff,
@@ -174,7 +140,11 @@ namespace navigation
         const NavigationProfile &profile,
         int headroom)
     {
-        std::unordered_map<int, int> components = walkComponents(navigationGraph);
+        std::unordered_map<int, int> components;
+        std::vector<std::vector<int>> runs = walkRuns(navigationGraph, tileMap, headroom);
+        for (size_t run = 0; run < runs.size(); ++run)
+            for (int id : runs[run])
+                components[id] = static_cast<int>(run);
 
         std::map<std::pair<int, int>, JumpCandidate> easiest;
 

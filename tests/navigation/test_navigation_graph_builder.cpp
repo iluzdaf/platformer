@@ -14,6 +14,7 @@
 #include "actor/abilities/wall_climb_ability_data.hpp"
 #include <utility>
 #include "navigation/navigation_graph_builder.hpp"
+#include "navigation/navigation_graph_steps.hpp"
 #include <glaze/glaze.hpp>
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_node.hpp"
@@ -299,6 +300,22 @@ TEST_CASE("No walk edge spans a gap between floors", "[NavigationGraphBuilder]")
 
     REQUIRE(isReachable(graph, {0.0f, 80.0f}, {48.0f, 80.0f}));
     REQUIRE(isReachable(graph, {96.0f, 80.0f}, {160.0f, 80.0f}));
+}
+
+TEST_CASE("A floor is one run, and a gap makes it two", "[NavigationGraphBuilder]")
+{
+    Placed laid;
+    layFloor(laid, 5, 0, 2);
+    layFloor(laid, 5, 6, 9);
+    TileMap tileMap = setupTileMapWith(laid);
+    NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
+
+    std::vector<std::vector<int>> runs = navigation::walkRuns(graph, tileMap, 1);
+
+    REQUIRE(runs.size() == 2);
+    for (const std::vector<int> &run : runs)
+        for (size_t at = 1; at < run.size(); ++at)
+            REQUIRE(graph.getNode(run[at - 1]).position.x < graph.getNode(run[at]).position.x);
 }
 
 TEST_CASE("No walk edge passes through a blocked tile", "[NavigationGraphBuilder]")

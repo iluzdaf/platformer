@@ -34,3 +34,10 @@ TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
         REQUIRE(state.move.velocity.x == Approx(0.0f));
     }
 }
+
+TEST_CASE("A move that goes nowhere is refused", "[MoveAbility]")
+{
+    MoveAbilityData noSpeed;
+    noSpeed.moveSpeed = 0.0f;
+    REQUIRE_THROWS(MoveAbility(noSpeed));
+}

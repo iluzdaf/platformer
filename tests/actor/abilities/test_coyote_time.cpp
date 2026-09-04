@@ -30,3 +30,8 @@ TEST_CASE("CoyoteTime basic behavior", "[CoyoteTime]")
         REQUIRE_FALSE(coyote.isCoyoteAvailable());
     }
 }
+
+TEST_CASE("A coyote window of no time is refused", "[CoyoteTime]")
+{
+    REQUIRE_THROWS(CoyoteTime(0.0f));
+}

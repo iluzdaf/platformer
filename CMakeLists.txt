@@ -329,6 +329,7 @@ add_executable(tests
     tests/actor/behaviors/test_flee_behavior.cpp
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/actor/behaviors/test_state_machine_behavior.cpp
+    tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/pickups/test_pickup_data.cpp
     tests/pickups/test_pickup.cpp
@@ -349,6 +350,7 @@ add_executable(tests
     tests/actor/abilities/test_wall_slide_ability.cpp
     tests/actor/abilities/test_wall_jump_ability.cpp
     tests/actor/test_actor_motion.cpp
+    tests/actor/test_actor_animation_state.cpp
     tests/actor/abilities/test_wall_hang_ability.cpp
     tests/actor/abilities/test_wall_climb_ability.cpp
     tests/actor/abilities/test_mantle_ability.cpp

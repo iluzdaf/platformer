@@ -210,3 +210,52 @@ TEST_CASE("Ignores a threat that is close by but not on its ground", "[StateMach
     behavior.decide(0.01f, at(navigationGraph, {192.0f, 192.0f}, glm::vec2(160.0f, 192.0f)));
     REQUIRE(behavior.getStateName() == "flee");
 }
+
+TEST_CASE("A state with nothing to do asks for nothing", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = setupRun();
+    BehaviorStateData idle;
+    idle.name = "idle";
+    StateMachineBehaviorData data;
+    data.states = {idle};
+    StateMachineBehavior behavior(data, std::nullopt);
+
+    InputIntentions asked =
+        behavior.decide(0.016f, at(navigationGraph, {0.0f, 192.0f}, std::nullopt));
+
+    REQUIRE(behavior.getStateName() == "idle");
+    REQUIRE(asked.direction.x == 0.0f);
+    REQUIRE_FALSE(asked.jumpRequested);
+}
+
+TEST_CASE("A transition to a state it does not have is ignored", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = setupRun();
+    StateMachineBehaviorData data = setupData();
+    BehaviorTransitionData haunted;
+    haunted.from = "flee";
+    haunted.to = "ghost";
+    haunted.threatWithin = 48.0f;
+    data.transitions.push_back(haunted);
+    StateMachineBehavior behavior(data, std::nullopt);
+    ActorBehaviorContext threatened = at(navigationGraph, {0.0f, 192.0f}, glm::vec2(8.0f, 192.0f));
+
+    behavior.decide(0.016f, threatened);
+    REQUIRE(behavior.getStateName() == "flee");
+
+    behavior.decide(0.016f, threatened);
+
+    REQUIRE(behavior.getStateName() == "flee");
+}
+
+TEST_CASE("Given no states at all, resetting is nothing", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = setupRun();
+    StateMachineBehavior behavior(StateMachineBehaviorData{}, std::nullopt);
+
+    behavior.reset();
+
+    REQUIRE(
+        behavior.decide(0.016f, at(navigationGraph, {0.0f, 192.0f}, std::nullopt)).direction.x ==
+        0.0f);
+}

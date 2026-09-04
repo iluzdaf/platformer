@@ -51,3 +51,10 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
         REQUIRE(state.wallSlide.velocity.y == Approx(0.0f));
     }
 }
+
+TEST_CASE("A slide that does not slide is refused", "[WallSlideAbility]")
+{
+    WallSlideAbilityData noSpeed;
+    noSpeed.slideSpeed = 0.0f;
+    REQUIRE_THROWS(WallSlideAbility(noSpeed));
+}

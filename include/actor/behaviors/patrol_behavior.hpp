@@ -33,7 +33,7 @@ private:
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween;
     bool headingForTheSecond = false;
 
-    void planRoute(const ActorBehaviorContext &context);
-    std::optional<BeatEnd> endOfTheBeat(const ActorBehaviorContext &context, bool second) const;
+    void planRoute(const ActorBehaviorContext &context, int from);
+    BeatEnd endOfTheBeat(const ActorBehaviorContext &context, int from, bool second) const;
     bool standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const;
 };

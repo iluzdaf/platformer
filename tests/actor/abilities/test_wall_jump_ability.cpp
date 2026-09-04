@@ -169,3 +169,14 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         REQUIRE(state.wallJump.direction == 1);
     }
 }
+
+TEST_CASE("A wall jump that does not go up and away is refused", "[WallJumpAbility]")
+{
+    WallJumpAbilityData downwards;
+    downwards.wallJumpSpeed = 0.0f;
+    REQUIRE_THROWS(WallJumpAbility(downwards));
+
+    WallJumpAbilityData intoTheWall;
+    intoTheWall.wallJumpHorizontalSpeed = 0.0f;
+    REQUIRE_THROWS(WallJumpAbility(intoTheWall));
+}

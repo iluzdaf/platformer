@@ -6,9 +6,9 @@
 #include "ui/data_inspector.hpp"
 #include "ui/frame_picker.hpp"
 #include "ui/sheet_in_scope.hpp"
-#include "game/score_icon.hpp"
+#include "game/score_icon_data.hpp"
 
-inspector::Edited drawCustomField(std::string_view name, ScoreIcon &value)
+inspector::Edited drawCustomField(std::string_view name, ScoreIconData &value)
 {
     if (!ImGui::TreeNode(std::string(name).c_str()))
         return {};

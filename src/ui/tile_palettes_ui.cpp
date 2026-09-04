@@ -20,11 +20,11 @@
 #include "game/game_data.hpp"
 #include "assets/asset_paths.hpp"
 #include "game/level_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/texture_cache.hpp"
 #include "ui/editor_commands.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 
 namespace
 {
@@ -58,7 +58,7 @@ void TilePalettesUi::drawChooser(TilePalettes &tilePalettes)
         return;
 
     std::string name = aNameNobodyHasTaken(tilePalettes);
-    TilePalette made;
+    TilePaletteData made;
     if (tilePalettes.contains(selectedPalette))
         made.tileSet = tilePalettes.at(selectedPalette).tileSet;
 
@@ -102,7 +102,7 @@ void TilePalettesUi::draw(
     ImGui::Separator();
     drawRename(tilePalettes);
 
-    TilePalette &palette = tilePalettes.at(selectedPalette);
+    TilePaletteData &palette = tilePalettes.at(selectedPalette);
     inspector::drawFields(palette.tileSet);
     ImGui::Separator();
 

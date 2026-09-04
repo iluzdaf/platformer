@@ -13,7 +13,7 @@
 #include "test_helpers/headless_imgui.hpp"
 #include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_data.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
@@ -125,7 +125,7 @@ TEST_CASE("The types that draw themselves say so", "[DataInspector]")
 {
     STATIC_REQUIRE(inspector::HasCustomField<TileColliderData>);
     STATIC_REQUIRE(inspector::HasCustomField<FrameAnimationData>);
-    STATIC_REQUIRE(inspector::HasCustomField<Sheet>);
+    STATIC_REQUIRE(inspector::HasCustomField<SheetData>);
 }
 
 TEST_CASE("An animation keeps the frames it was given", "[DataInspector]")

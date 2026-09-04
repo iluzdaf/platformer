@@ -7,8 +7,8 @@
 #include <string>
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map_data.hpp"
-#include "tile_map/tile_palette.hpp"
-#include "assets/sheet.hpp"
+#include "tile_map/tile_palette_data.hpp"
+#include "assets/sheet_data.hpp"
 #include "physics/aabb.hpp"
 
 class TileMap
@@ -24,7 +24,7 @@ public:
     int getWorldWidth() const;
     int getWorldHeight() const;
     int getTileSize() const;
-    const Sheet &getTileSet() const;
+    const SheetData &getTileSet() const;
     void update(float deltaTime);
     std::vector<glm::ivec2> tilesOverlapping(glm::vec2 worldPosition, glm::vec2 size) const;
     glm::vec2 topLeftOfTile(glm::ivec2 tilePosition) const;
@@ -44,5 +44,5 @@ private:
     std::vector<std::vector<int>> tileIndices;
     std::unordered_map<int, Tile> tiles;
     std::string tilePalette;
-    Sheet tileSet;
+    SheetData tileSet;
 };

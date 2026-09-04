@@ -5,9 +5,9 @@
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "cameras/camera2d_data.hpp"
-#include "game/score_icon.hpp"
+#include "game/score_icon_data.hpp"
 #include "game/levels_data.hpp"
 
 struct GameSettingsData
@@ -15,7 +15,7 @@ struct GameSettingsData
     int windowWidth = 800;
     int windowHeight = 600;
     bool debug = false;
-    ScoreIcon scoreIcon;
+    ScoreIconData scoreIcon;
 };
 
 struct GameData

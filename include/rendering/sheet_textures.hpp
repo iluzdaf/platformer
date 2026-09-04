@@ -2,13 +2,13 @@
 
 #include <map>
 #include <string>
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 class TextureCache;
 struct PlayerData;
 struct NpcData;
 struct PickupData;
-struct ScoreIcon;
+struct ScoreIconData;
 
 void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes);
 
@@ -21,4 +21,4 @@ void warmPickupTextures(
     TextureCache &textures,
     const std::map<std::string, PickupData> &pickupData);
 
-void warmScoreIcon(TextureCache &textures, const ScoreIcon &scoreIcon);
+void warmScoreIcon(TextureCache &textures, const ScoreIconData &scoreIcon);

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <imgui_internal.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_fields.hpp"
@@ -9,7 +9,7 @@
 
 namespace
 {
-    float drawnHeightOf(HeadlessImGui &gui, Sheet &sheet)
+    float drawnHeightOf(HeadlessImGui &gui, SheetData &sheet)
     {
         float reached = 0.0f;
         gui.frame(
@@ -26,15 +26,15 @@ namespace
 
 TEST_CASE("A sheet draws itself rather than falling through", "[SheetField]")
 {
-    STATIC_REQUIRE(inspector::HasCustomField<Sheet>);
+    STATIC_REQUIRE(inspector::HasCustomField<SheetData>);
 }
 
 TEST_CASE("A sheet naming no texture says so where the texture is", "[SheetField]")
 {
     HeadlessImGui gui;
 
-    Sheet named{"textures/somewhere.png", glm::ivec2(16)};
-    Sheet unnamed{"", glm::ivec2(16)};
+    SheetData named{"textures/somewhere.png", glm::ivec2(16)};
+    SheetData unnamed{"", glm::ivec2(16)};
 
     float withTexture = drawnHeightOf(gui, named);
     float without = drawnHeightOf(gui, unnamed);
@@ -45,7 +45,7 @@ TEST_CASE("A sheet naming no texture says so where the texture is", "[SheetField
 TEST_CASE("A sheet keeps what it was given after being drawn", "[SheetField]")
 {
     HeadlessImGui gui;
-    Sheet sheet{"textures/somewhere.png", glm::ivec2(24, 32)};
+    SheetData sheet{"textures/somewhere.png", glm::ivec2(24, 32)};
 
     drawnHeightOf(gui, sheet);
 

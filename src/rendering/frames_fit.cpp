@@ -2,11 +2,11 @@
 #include <string>
 #include "rendering/frames_fit.hpp"
 #include <vector>
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 
 void checkFramesFit(
     const std::vector<int> &frames,
-    const Sheet &sheet,
+    const SheetData &sheet,
     const std::string &whose,
     int textureWidth,
     int textureHeight)

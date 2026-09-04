@@ -24,7 +24,7 @@
 #include "game/game_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 namespace
 {
@@ -405,7 +405,7 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
 {
     LevelData levelData;
     levelData.playerStart = feetOf(glm::ivec2(0, 0));
-    TilePalette palette = getDefaultTileDataMap();
+    TilePaletteData palette = getDefaultTileDataMap();
     levelData.tileMapData.indices = std::vector<std::vector<int>>(10, std::vector<int>(10, 0));
     for (int x = 0; x < 10; ++x)
         (*levelData.tileMapData.indices)[6][x] = 1;

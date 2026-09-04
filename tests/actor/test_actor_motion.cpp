@@ -8,16 +8,16 @@
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_map.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 namespace
 {
     constexpr int Grippable = 1;
     constexpr int Slippery = 2;
 
-    TilePalette wallsOfBothKinds()
+    TilePaletteData wallsOfBothKinds()
     {
-        TilePalette palette = paletteOf({{0, TileData{}}});
+        TilePaletteData palette = paletteOf({{0, TileData{}}});
 
         TileData grippable;
         grippable.solid = true;

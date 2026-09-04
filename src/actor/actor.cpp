@@ -80,7 +80,7 @@ void Actor::fixedUpdate(
     actorState.currentAnimationState = animationManager.getCurrentState();
 }
 
-const Sheet &Actor::getSheet() const
+const SheetData &Actor::getSheet() const
 {
     return sheet;
 }

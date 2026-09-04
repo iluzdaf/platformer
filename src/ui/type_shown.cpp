@@ -4,7 +4,7 @@
 #include "game/game_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
 
 TypeShown addTypeTo(GameData &gameData, TypeShown::What what)
@@ -33,7 +33,7 @@ void removeTypeFrom(GameData &gameData, const TypeShown &showing)
 
 namespace
 {
-    std::optional<std::string> whyNot(const Sheet &sheet)
+    std::optional<std::string> whyNot(const SheetData &sheet)
     {
         if (sheet.texture.empty())
             return "names no sheet to draw from";
@@ -78,7 +78,7 @@ std::optional<std::string> typesNamingNoSheet(const GameData &gameData)
     return names + " name no sheet to draw from";
 }
 
-Sheet *sheetOf(GameData &gameData, const TypeShown &showing)
+SheetData *sheetOf(GameData &gameData, const TypeShown &showing)
 {
     if (showing.what == TypeShown::What::Npc)
     {

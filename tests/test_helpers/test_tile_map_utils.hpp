@@ -9,7 +9,7 @@
 #include "game/level_data.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "game/game_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "npc/npc_data.hpp"
 #include <vector>
@@ -20,17 +20,17 @@
 #include "pickups/pickup_data.hpp"
 #include "assets/asset_paths.hpp"
 
-inline TilePalette paletteOf(std::map<int, TileData> tiles)
+inline TilePaletteData paletteOf(std::map<int, TileData> tiles)
 {
-    TilePalette palette;
+    TilePaletteData palette;
     palette.tileSet.texture = std::string(assets::TileSetTexture);
     palette.tiles = std::move(tiles);
     return palette;
 }
 
-inline const TilePalette &getDefaultTileDataMap()
+inline const TilePaletteData &getDefaultTileDataMap()
 {
-    static const TilePalette map = []
+    static const TilePaletteData map = []
     {
         TileData solid;
         solid.solid = solid.grippable = true;
@@ -99,7 +99,7 @@ inline const std::map<std::string, PickupData> &shippedPickupData()
     return pickupData;
 }
 
-inline int aTileIn(const TilePalette &palette, bool TileData::*what)
+inline int aTileIn(const TilePaletteData &palette, bool TileData::*what)
 {
     for (const auto &[tileIndex, tileData] : palette.tiles)
         if (tileData.*what)
@@ -108,17 +108,17 @@ inline int aTileIn(const TilePalette &palette, bool TileData::*what)
     throw std::runtime_error("no tile in this palette is what the test needs");
 }
 
-inline int aSolidTileIn(const TilePalette &palette)
+inline int aSolidTileIn(const TilePaletteData &palette)
 {
     return aTileIn(palette, &TileData::solid);
 }
 
-inline int aDeadlyTileIn(const TilePalette &palette)
+inline int aDeadlyTileIn(const TilePaletteData &palette)
 {
     return aTileIn(palette, &TileData::deadly);
 }
 
-inline TilePalettes palettesFrom(const TilePalette &palette)
+inline TilePalettes palettesFrom(const TilePaletteData &palette)
 {
     return {{"default", palette}};
 }
@@ -127,9 +127,9 @@ inline TileMap setupTileMap(
     int width = 10,
     int height = 10,
     int tileSize = 16,
-    const TilePalette &palette = getDefaultTileDataMap())
+    const TilePaletteData &palette = getDefaultTileDataMap())
 {
-    TilePalette sized = palette;
+    TilePaletteData sized = palette;
     sized.tileSet.cellSize = glm::ivec2(tileSize);
 
     TileMapData tileMapData;
@@ -143,9 +143,9 @@ inline TileMap setupTileMapWith(
     int width = 10,
     int height = 10,
     int tileSize = 16,
-    const TilePalette &palette = getDefaultTileDataMap())
+    const TilePaletteData &palette = getDefaultTileDataMap())
 {
-    TilePalette sized = palette;
+    TilePaletteData sized = palette;
     sized.tileSet.cellSize = glm::ivec2(tileSize);
 
     TileMapData tileMapData;

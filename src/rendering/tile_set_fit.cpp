@@ -1,8 +1,8 @@
 #include <stdexcept>
 #include <string>
 #include "rendering/tile_set_fit.hpp"
-#include "tile_map/tile_palette.hpp"
-#include "assets/sheet.hpp"
+#include "tile_map/tile_palette_data.hpp"
+#include "assets/sheet_data.hpp"
 
 namespace
 {
@@ -21,12 +21,12 @@ int tilesInSheet(int textureWidth, int textureHeight, int tileSize)
 }
 
 void checkTileSetFits(
-    const TilePalette &palette,
+    const TilePaletteData &palette,
     const std::string &paletteName,
     int textureWidth,
     int textureHeight)
 {
-    const Sheet &tileSet = palette.tileSet;
+    const SheetData &tileSet = palette.tileSet;
     if (tileSet.cellSize.x <= 0)
         throw std::runtime_error("A tile set cell must be wider than 0" + named(paletteName));
 

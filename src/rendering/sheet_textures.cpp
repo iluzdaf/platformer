@@ -6,18 +6,18 @@
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_set_fit.hpp"
 #include "rendering/frames_fit.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "actor/actor_data.hpp"
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
 #include "animations/frame_animation_data.hpp"
-#include "game/score_icon.hpp"
+#include "game/score_icon_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/actor_animation_data.hpp"
 #include <optional>
 #include <vector>
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 
 namespace
 {
@@ -28,7 +28,7 @@ namespace
 
     void framesFitting(
         TextureCache &textures,
-        const Sheet &sheet,
+        const SheetData &sheet,
         const std::vector<int> &frames,
         const std::string &whose)
     {
@@ -59,7 +59,7 @@ namespace
                 framesFitting(textures, actorData.sheet, animation->frames, whose);
     }
 
-    void warmOne(TextureCache &textures, const Sheet &sheet, const std::string &whose)
+    void warmOne(TextureCache &textures, const SheetData &sheet, const std::string &whose)
     {
         if (sheet.texture.empty())
             throw std::runtime_error("No sheet is named for " + whose);
@@ -108,7 +108,7 @@ void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes)
     }
 }
 
-void warmScoreIcon(TextureCache &textures, const ScoreIcon &scoreIcon)
+void warmScoreIcon(TextureCache &textures, const ScoreIconData &scoreIcon)
 {
     warmOne(textures, scoreIcon.sheet, "the score");
 

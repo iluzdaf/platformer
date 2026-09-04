@@ -28,7 +28,7 @@ TEST_CASE("A sheet too small for one tile holds none", "[TilePicker]")
 #include "ui/tile_picker.hpp"
 #include "ui/editor_ui.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 namespace
 {
@@ -40,7 +40,7 @@ namespace
             {
                 ImGui::BeginChild("picker", ImVec2(width, 900.0f));
                 float before = ImGui::GetCursorPosY();
-                drawTilePicker(sheet, Sheet{"", glm::ivec2(cellSize)}, std::nullopt);
+                drawTilePicker(sheet, SheetData{"", glm::ivec2(cellSize)}, std::nullopt);
                 height = ImGui::GetCursorPosY() - before;
                 ImGui::EndChild();
             });
@@ -62,7 +62,7 @@ TEST_CASE("The tile picker offers more cells than the palette configures", "[Til
 {
     HeadlessImGui gui;
     Texture2D tileSet = aSheetOf(7, 6);
-    const TilePalette &palette = shippedPalettes().at("default");
+    const TilePaletteData &palette = shippedPalettes().at("default");
 
     int cells = tilesInSheet(
         static_cast<int>(tileSet.getWidth()),

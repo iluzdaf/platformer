@@ -5,14 +5,14 @@
 #include "ui/inspector_edited.hpp"
 
 struct FrameAnimationData;
-struct Sheet;
-struct ScoreIcon;
+struct SheetData;
+struct ScoreIconData;
 struct TileColliderData;
 
 inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &value);
 inspector::Edited drawCustomField(std::string_view name, TileColliderData &value);
-inspector::Edited drawCustomField(std::string_view name, Sheet &value);
-inspector::Edited drawCustomField(std::string_view name, ScoreIcon &value);
+inspector::Edited drawCustomField(std::string_view name, SheetData &value);
+inspector::Edited drawCustomField(std::string_view name, ScoreIconData &value);
 
 namespace inspector
 {

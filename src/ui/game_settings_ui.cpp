@@ -5,8 +5,8 @@
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
 #include "game/game_data.hpp"
-#include "game/score_icon.hpp"
-#include "assets/sheet.hpp"
+#include "game/score_icon_data.hpp"
+#include "assets/sheet_data.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "rendering/texture_cache.hpp"
 #include "rendering/texture2d.hpp"
@@ -16,7 +16,7 @@ void GameSettingsUi::draw(
     const TextureCache &textures,
     EditorCommands &commands)
 {
-    const Sheet &sheet = gameData.settings.scoreIcon.sheet;
+    const SheetData &sheet = gameData.settings.scoreIcon.sheet;
     const Texture2D *texture = textures.find(sheet.texture);
     if (!texture && !sheet.texture.empty() && sheet.texture != askedToWarm)
     {

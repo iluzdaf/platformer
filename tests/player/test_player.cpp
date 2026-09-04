@@ -18,7 +18,7 @@
 #include "test_helpers/asset_path.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_map.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "tile_map/tile_data.hpp"
 
 using Catch::Approx;
@@ -32,7 +32,7 @@ namespace
         float totalTime,
         InputIntentions intentions = InputIntentions(),
         float step = 0.01f,
-        const TilePalette &palette = getDefaultTileDataMap())
+        const TilePaletteData &palette = getDefaultTileDataMap())
     {
         LevelData levelData;
         levelData.playerStart = feetOf(glm::ivec2(0, 0));
@@ -725,7 +725,7 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
 
 TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
 {
-    TilePalette palette = getDefaultTileDataMap();
+    TilePaletteData palette = getDefaultTileDataMap();
     TileData ungrippable;
     ungrippable.solid = true;
     ungrippable.grippable = false;

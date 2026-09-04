@@ -14,7 +14,7 @@ A simple 2D platformer built with OpenGL. This project is designed as a learning
 Targets **C++23**.
 
 | | Windows | macOS | Linux |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Compiler | MSVC | LLVM clang | LLVM clang with libc++ |
 | Editor | Visual Studio 2022 | VS Code | VS Code |
 | Build | the editor's CMake support | the editor's CMake support | the editor's CMake support |
@@ -146,12 +146,12 @@ Installed by step 4 above, and run on every commit.
 Every pull request runs two jobs at once. All four results must be green to merge.
 
 | job | runs on | description |
-|---|---|---|
+| --- | --- | --- |
 | `build-and-test` | Windows, macOS, Linux | configures, builds under `-Werror`, runs the test suite |
 | `checks` | Linux | the four checks below |
 
 | check | run by |
-|---|---|
+| --- | --- |
 | json assets are formatted | `tools/format_json.py --check` |
 | sources are formatted | `clang-format` |
 | naming, and includes that are used | `clang-tidy` |
@@ -162,7 +162,7 @@ Every pull request runs two jobs at once. All four results must be green to merg
 Every platform builds the same way, from `CMakeLists.txt`.
 
 | | |
-|---|---|
+| --- | --- |
 | [CMakeLists.txt](CMakeLists.txt) | the `platformer_lib`, `platformer` and `tests` targets, and the compile database, linked to the repository root from whichever of `build/Debug` or `build/Release` you configured last |
 | [.vscode/extensions.json](.vscode/extensions.json) | CMake Tools to build, clangd for code intelligence, C/C++ for the debugger |
 | [.vscode/settings.json](.vscode/settings.json) | the generator, the build directory, and clangd in place of the C/C++ extension's IntelliSense and formatter |
@@ -218,6 +218,61 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   replace them.
 - Scanning for them writes an argument into every compile command naming a file that
   exists only after a build, which breaks anything reading the compile database.
+
+**Runtime classes are built from data, and the editor edits the data.**
+
+- Every class that runs is built from a struct that is read from json and copied in:
+  `Level` from `LevelData`, `Player` from `PlayerData`, `Npc` from a spawn and an
+  `NpcData`, `Pickup` from `PickupData`. `GameData` is the set of those structs, and
+  `World` keeps the `LevelData` its level was built from.
+- Nothing edits a running object. `Level`, `Npc`, `Pickup` and `TileMap` have no
+  setters; their only non-const members are the ones that tick them. Applying a change
+  means building the thing again from changed data.
+- The editor is handed `GameData` by reference and edits it in place, because nothing
+  running holds a reference into it. A change shows when something is next built from
+  it: a camera zoom right away, a player at the next respawn, an npc kind at the next
+  level load.
+- The level is the exception, because painting has to be visible. `LevelUi` copies the
+  `LevelData`, changes the copy, and asks for `rebuildFrom` through `onLevelEdited`. The
+  rebuild replaces the `Level` and leaves the player where it stood; `loadLevel` is the
+  one that respawns.
+- Nothing is written to disk until save. Writing is what the file watcher reacts to, and
+  a slider that wrote as it moved would rebuild the world on every frame. A game data
+  save reloads everything through `onReload`; a level save reloads that level. So save
+  is the moment a change reaches every object, and the editor never rebuilds anything
+  itself except the level it is painting.
+- `Saveable` decides what is unsaved by comparing json, the value now against the value
+  last saved or first seen, so no type has to compare itself. Revert reads that json
+  back. A reload from disk clears every baseline, since the value underneath was
+  replaced.
+
+**Movement is a set of abilities, each optional in the data, each owning one slot of the
+motion state.**
+
+- `ActorMotionData` holds an `optional` per ability. An actor has exactly the abilities
+  its data names, so an npc that should not jump has no `jumpAbilityData`, and a
+  mechanic is granted or withheld in json rather than by a flag or a counter.
+- Each ability reads anything and writes only its own slot: a velocity, an `active`
+  flag, and an `emit` flag for the tick it started. It may read contacts, the velocity
+  physics produced, and other abilities' slots. Gravity is zero while hanging, sliding
+  or mantling; a mantle starts from `wallHang.active` at a ledge.
+- Abilities do not fight over velocity. `AbilitySystem` runs them all, then picks with
+  a fixed ladder: a dash, a mantle or a wall jump owns the whole vector; otherwise move
+  gives x, and a jump, a hang's climb or a slide gives y over gravity.
+- They run in a fixed order, move first and gravity last. A later ability sees what an
+  earlier one decided this tick; an earlier one sees a later one's from the last tick.
+  Contacts are what physics found at the end of the previous tick.
+- Buffers and coyote windows belong to the ability that needs them, so a jump buffer
+  and a wall jump buffer are two objects with two durations, not one shared timer.
+- Abilities do not raise signals. `Player::postFixedUpdate` reads the `emit` flags and
+  raises `onDash`, `onWallJump` and `onWallSliding`, which is where Lua hears them. An
+  ability depends on its data, the intentions and the state, and a signal would make it
+  depend on an owner, of which there are two and one has no signals. A flag is state: a
+  test reads it, and an npc ignores it. And by then the tick is over, so whoever hears
+  sees the actor where physics left it.
+- `Player` and `Npc` share the pipeline, and differ only in where `InputIntentions`
+  come from: the keyboard, or a behaviour walking a navigation graph. What an npc can
+  traverse is a profile derived from the same ability data.
 
 ## 🔭 Future Plans
 

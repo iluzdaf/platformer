@@ -1,10 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
+#include <filesystem>
+#include <fstream>
 #include <map>
 #include <optional>
 #include <string>
 #include <imgui_internal.h>
 #include "game/game_data.hpp"
 #include "npc/npc_data.hpp"
+#include "actor/actor_data.hpp"
+#include "assets/asset_paths.hpp"
 #include "pickups/pickup_data.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "ui/type_shown.hpp"
@@ -14,6 +18,7 @@
 #include "ui/editor_commands.hpp"
 #include "rendering/texture_cache.hpp"
 #include "game/level.hpp"
+#include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
 #include "test_helpers/asset_path.hpp"
 
@@ -25,6 +30,29 @@ namespace
         gameData.npcData = {{"villager", NpcData{}}, {"explorer", NpcData{}}};
         gameData.pickupData = {{"coin", PickupData{}}, {"gem", PickupData{}}};
         return gameData;
+    }
+
+    std::filesystem::path levelsPlacingTypes()
+    {
+        std::filesystem::path directory =
+            std::filesystem::temp_directory_path() / "platformer_type_levels";
+        std::filesystem::remove_all(directory);
+        std::filesystem::create_directories(directory);
+
+        for (const char *name : {"level5.json", "level6.json"})
+            std::filesystem::copy_file(assetPath(std::string("levels/") + name), directory / name);
+
+        return directory;
+    }
+
+    std::string firstNpcTypeIn(const std::filesystem::path &directory)
+    {
+        return readLevelData((directory / "level6.json").string()).npcs.front().type;
+    }
+
+    std::string firstPickupTypeIn(const std::filesystem::path &directory)
+    {
+        return readLevelData((directory / "level5.json").string()).pickups.front().type;
     }
 
     struct TypeRenaming
@@ -458,4 +486,126 @@ TEST_CASE("A type rename outlives a reload of the values it waits on", "[TypesUi
     typesUi.reloaded(gameData, gameData);
 
     REQUIRE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("Saving a type rename re-points the levels before the types are written", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    std::filesystem::path directory = levelsPlacingTypes();
+    std::optional<std::map<std::string, NpcData>> written;
+    TypesUi typesUi(
+        directory.string(),
+        [&](const std::map<std::string, NpcData> &npcs)
+        {
+            REQUIRE(firstNpcTypeIn(directory) == "farmer");
+            written = npcs;
+        },
+        [](const std::map<std::string, PickupData> &) {});
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+    gui.type("##name", "farmer", drawing);
+    gui.pressEnter(drawing);
+
+    LevelData playing = readLevelData((directory / "level6.json").string());
+    REQUIRE(typesUi.save(gameData, playing));
+
+    REQUIRE(written.has_value());
+    REQUIRE(written->contains("farmer"));
+    REQUIRE_FALSE(written->contains("villager"));
+    REQUIRE(playing.npcs.front().type == "farmer");
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("Saving a pickup rename re-points the level being played", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    std::filesystem::path directory = levelsPlacingTypes();
+    bool wrote = false;
+    TypesUi typesUi(
+        directory.string(),
+        [](const std::map<std::string, NpcData> &) {},
+        [&](const std::map<std::string, PickupData> &)
+        {
+            REQUIRE(firstPickupTypeIn(directory) == "penny");
+            wrote = true;
+        });
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+    gui.type("##name", "penny", drawing);
+    gui.pressEnter(drawing);
+
+    LevelData playing = readLevelData((directory / "level5.json").string());
+    REQUIRE(typesUi.save(gameData, playing));
+
+    REQUIRE(wrote);
+    REQUIRE(playing.pickups.front().type == "penny");
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("A type save with nothing pending leaves the playing level alone", "[TypesUi]")
+{
+    std::filesystem::path directory = levelsPlacingTypes();
+    bool wrote = false;
+    TypesUi typesUi(
+        directory.string(),
+        [&](const std::map<std::string, NpcData> &) { wrote = true; },
+        [&](const std::map<std::string, PickupData> &) { wrote = true; });
+    GameData gameData = twoOfEach();
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    LevelData playing = readLevelData((directory / "level6.json").string());
+    REQUIRE_FALSE(typesUi.save(gameData, playing));
+
+    REQUIRE_FALSE(wrote);
+    REQUIRE(playing.npcs.front().type == firstNpcTypeIn(directory));
+
+    std::filesystem::remove_all(directory);
+}
+
+TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    std::filesystem::path directory = levelsPlacingTypes();
+    std::ofstream(directory / "broken.json") << "{";
+    bool wrote = false;
+    TypesUi typesUi(
+        directory.string(),
+        [&](const std::map<std::string, NpcData> &) { wrote = true; },
+        [&](const std::map<std::string, PickupData> &) { wrote = true; });
+    GameData gameData = twoOfEach();
+    for (auto &[name, npc] : gameData.npcData)
+        npc.actorData.sheet.texture = std::string(assets::PlayerTexture);
+    for (auto &[name, pickup] : gameData.pickupData)
+        pickup.sheet.texture = std::string(assets::PlayerTexture);
+    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    TypeRenaming renaming;
+    auto drawing = renaming.drawing(typesUi, gameData);
+    gui.type("##name", "farmer", drawing);
+    gui.pressEnter(drawing);
+
+    REQUIRE(typesUi.cannotSaveBecause(gameData) == "broken cannot be read");
+
+    LevelData playing = readLevelData((directory / "level6.json").string());
+    REQUIRE_FALSE(typesUi.save(gameData, playing));
+
+    REQUIRE_FALSE(wrote);
+    REQUIRE(gameData.npcData.contains("villager"));
+    REQUIRE(playing.npcs.front().type == "villager");
+    REQUIRE(firstNpcTypeIn(directory) == "villager");
+    REQUIRE(typesUi.unsavedSince(gameData));
+
+    std::filesystem::remove_all(directory);
 }

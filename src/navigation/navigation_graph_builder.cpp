@@ -180,15 +180,12 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
     addNodes(navigationGraph, tileMap, headroom);
     navigation::addFallLandingNodes(navigationGraph, tileMap, profile, headroom);
     navigation::addTakeOffNodes(navigationGraph, tileMap, profile, headroom);
-    navigation::addWalkEdges(navigationGraph, tileMap, headroom);
 
     std::vector<navigation::ChosenJump> jumps =
         navigation::chooseJumps(navigationGraph, tileMap, profile, headroom);
     navigation::addJumpLandingNodes(navigationGraph, jumps);
 
-    navigationGraph.clearEdges();
     navigation::addWalkEdges(navigationGraph, tileMap, headroom);
-
     navigation::addJumpEdges(navigationGraph, tileMap, headroom, jumps);
     navigation::addFallEdges(navigationGraph, tileMap, profile, headroom);
 

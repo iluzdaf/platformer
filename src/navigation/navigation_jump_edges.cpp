@@ -223,7 +223,7 @@ namespace navigation
         }
     }
 
-    void addTakeOffNodes(
+    void addJumpTakeOffNodes(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,

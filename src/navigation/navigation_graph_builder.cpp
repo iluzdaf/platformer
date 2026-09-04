@@ -22,7 +22,7 @@ namespace
         return static_cast<int>(std::ceil(profile.colliderSize.y / tileSize));
     }
 
-    void addNodes(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom)
+    void addRunEnds(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom)
     {
         int nextNodeId = 0;
 
@@ -177,9 +177,9 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
     NavigationGraph navigationGraph;
     int headroom = tilesOfHeadroom(tileMap, profile);
 
-    addNodes(navigationGraph, tileMap, headroom);
+    addRunEnds(navigationGraph, tileMap, headroom);
     navigation::addFallLandingNodes(navigationGraph, tileMap, profile, headroom);
-    navigation::addTakeOffNodes(navigationGraph, tileMap, profile, headroom);
+    navigation::addJumpTakeOffNodes(navigationGraph, tileMap, profile, headroom);
 
     std::vector<navigation::ChosenJump> jumps =
         navigation::chooseJumps(navigationGraph, tileMap, profile, headroom);

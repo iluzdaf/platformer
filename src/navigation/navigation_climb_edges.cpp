@@ -1,8 +1,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <optional>
-#include <utility>
-#include <cmath>
 #include "navigation/navigation_graph_steps.hpp"
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -14,24 +12,23 @@
 
 namespace
 {
-    bool canHangAt(const TileMap &tileMap, int climbX, int wallX, int footRow, int headroom)
+    bool grippableBeside(const TileMap &tileMap, int wallX, int footRow, int headroom)
     {
         for (int offset = 1; offset <= headroom; ++offset)
         {
             glm::ivec2 beside(wallX, footRow - offset);
-            glm::ivec2 body(climbX, footRow - offset);
-            if (!tileMap.validTilePosition(beside) || !tileMap.validTilePosition(body))
-                return false;
-
-            if (!tileMap.getTileAtTilePosition(beside).isGrippable())
-                return false;
-
-            const Tile &bodyTile = tileMap.getTileAtTilePosition(body);
-            if (bodyTile.isSolid() || bodyTile.isDeadly())
+            if (!tileMap.validTilePosition(beside) ||
+                !tileMap.getTileAtTilePosition(beside).isGrippable())
                 return false;
         }
 
         return true;
+    }
+
+    bool canHangAt(const TileMap &tileMap, int climbX, int wallX, int footRow, int headroom)
+    {
+        return navigation::canStandOn(tileMap, glm::ivec2(climbX, footRow), headroom) &&
+               grippableBeside(tileMap, wallX, footRow, headroom);
     }
 
     glm::vec2 againstTheWall(const TileMap &tileMap, int climbX, int wallX, int footRow)
@@ -39,16 +36,6 @@ namespace
         float tileSize = static_cast<float>(tileMap.getTileSize());
         glm::vec2 corner = tileMap.topLeftOfTile(glm::ivec2(climbX, footRow));
         return corner + glm::vec2(wallX > climbX ? tileSize : 0.0f, 0.0f);
-    }
-
-    std::optional<int> nodeAtPosition(const NavigationGraph &navigationGraph, glm::vec2 position)
-    {
-        for (const auto &[id, node] : navigationGraph.getNodes())
-            if (std::abs(node.position.x - position.x) <= 0.1f &&
-                std::abs(node.position.y - position.y) <= 0.1f)
-                return id;
-
-        return std::nullopt;
     }
 
     std::optional<int> ledgeAboveTheFace(
@@ -98,7 +85,7 @@ namespace navigation
         auto endOfTheFace = [&](int climbX, int wallX, int footRow)
         {
             glm::vec2 position = againstTheWall(tileMap, climbX, wallX, footRow);
-            std::optional<int> existing = nodeAtPosition(navigationGraph, position);
+            std::optional<int> existing = navigationGraph.nodeAtPosition(position);
             if (existing)
                 return *existing;
 

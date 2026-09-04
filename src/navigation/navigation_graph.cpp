@@ -1,3 +1,4 @@
+#include <optional>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
@@ -65,14 +66,16 @@ const std::vector<NavigationEdge> &NavigationGraph::getOutgoingEdges(int id) con
     return empty;
 }
 
-bool NavigationGraph::hasNodeAtPosition(glm::vec2 position, float epsilon) const
+std::optional<int> NavigationGraph::nodeAtPosition(glm::vec2 position, float epsilon) const
 {
     for (const auto &[id, node] : nodes)
-    {
         if (glm::distance(node.position, position) < epsilon)
-        {
-            return true;
-        }
-    }
-    return false;
+            return id;
+
+    return std::nullopt;
+}
+
+bool NavigationGraph::hasNodeAtPosition(glm::vec2 position, float epsilon) const
+{
+    return nodeAtPosition(position, epsilon).has_value();
 }

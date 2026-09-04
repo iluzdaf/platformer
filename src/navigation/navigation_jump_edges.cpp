@@ -26,43 +26,6 @@ namespace
         std::vector<glm::vec2> path;
     };
 
-    std::optional<JumpLanding> landingOf(
-        const TileMap &tileMap,
-        glm::vec2 takeOff,
-        const std::vector<glm::vec2> &arc,
-        float direction,
-        const NavigationProfile &profile)
-    {
-        float previousY = takeOff.y;
-        std::vector<glm::vec2> path{takeOff};
-
-        for (size_t index = 1; index < arc.size(); ++index)
-        {
-            glm::vec2 position = takeOff + glm::vec2(direction * arc[index].x, arc[index].y);
-            bool descending = position.y >= previousY;
-            previousY = position.y;
-            path.push_back(position);
-
-            if (descending)
-            {
-                glm::ivec2 underfoot = tileMap.tileContaining(position + glm::vec2(0.0f, 1.0f));
-                if (tileMap.validTilePosition(underfoot) &&
-                    tileMap.getTileAtTilePosition(underfoot).isSolid())
-                {
-                    glm::vec2 landing(
-                        position.x, static_cast<float>(underfoot.y * tileMap.getTileSize()));
-                    path.back() = landing;
-                    return JumpLanding{landing, path};
-                }
-            }
-
-            if (!navigation::clearAt(tileMap, position, profile))
-                return std::nullopt;
-        }
-
-        return std::nullopt;
-    }
-
     std::optional<JumpLanding> jumpFrom(
         const TileMap &tileMap,
         glm::vec2 takeOff,
@@ -70,13 +33,10 @@ namespace
         float direction,
         const NavigationProfile &profile)
     {
-        if (!profile.motionData || !profile.physicsBodyData)
-            return landingOf(tileMap, takeOff, arc.offsets, direction, profile);
-
         JumpAttempt attempt = simulateJumpAgainst(
             tileMap,
-            *profile.motionData,
-            *profile.physicsBodyData,
+            profile.motionData,
+            profile.physicsBodyData,
             takeOff,
             direction,
             arc.holdFraction);
@@ -200,7 +160,7 @@ namespace navigation
         const NavigationProfile &profile,
         int headroom)
     {
-        if (!profile.motionData || !profile.physicsBodyData || profile.jumpArcs.empty())
+        if (profile.jumpArcs.empty())
             return;
 
         float reach = 0.0f;
@@ -229,8 +189,8 @@ namespace navigation
             {
                 JumpAttempt attempt = simulateJumpAgainst(
                     tileMap,
-                    *profile.motionData,
-                    *profile.physicsBodyData,
+                    profile.motionData,
+                    profile.physicsBodyData,
                     from,
                     towards,
                     arc.holdFraction);
@@ -255,7 +215,7 @@ namespace navigation
             return comesDown;
         };
 
-        float step = profile.colliderSize.x;
+        float step = profile.physicsBodyData.colliderSize.x;
         for (glm::vec2 ledge : ledges)
         {
             bool alreadyServed = false;
@@ -281,7 +241,8 @@ namespace navigation
 
                 bool crowded = false;
                 for (const auto &[id, node] : navigationGraph.getNodes())
-                    if (glm::distance(node.position, *takeOff) < profile.colliderSize.x)
+                    if (glm::distance(node.position, *takeOff) <
+                        profile.physicsBodyData.colliderSize.x)
                         crowded = true;
 
                 if (crowded)

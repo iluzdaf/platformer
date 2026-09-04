@@ -38,7 +38,7 @@ namespace
     NavigationProfile profileOfHeight(float height)
     {
         NavigationProfile profile;
-        profile.colliderSize = glm::vec2(8.0f, height);
+        profile.physicsBodyData.colliderSize = glm::vec2(8.0f, height);
         return profile;
     }
 
@@ -1349,7 +1349,7 @@ TEST_CASE("Hanging without climbing is no way up", "[NavigationGraphBuilder][Cli
 {
     TileMap tileMap = setupWallFromTheFloor();
     NavigationProfile hangsOnly = climberProfile();
-    hangsOnly.motionData->wallClimbAbilityData.reset();
+    hangsOnly.motionData.wallClimbAbilityData.reset();
 
     REQUIRE(rowsJoinedByClimbing(buildNavigationGraph(tileMap, hangsOnly), tileMap).empty());
 }

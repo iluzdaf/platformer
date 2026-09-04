@@ -6,8 +6,5 @@
 NavigationProfile buildNavigationProfile(const ActorData &actorData)
 {
     return NavigationProfile{
-        actorData.physicsBodyData.colliderSize,
-        simulateJumpArcs(actorData.motionData),
-        actorData.motionData,
-        actorData.physicsBodyData};
+        simulateJumpArcs(actorData.motionData), actorData.motionData, actorData.physicsBodyData};
 }

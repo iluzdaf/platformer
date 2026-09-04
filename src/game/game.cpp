@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/game.hpp"
+#include "game/reloads.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "game/world.hpp"
@@ -62,10 +63,7 @@ Game::Game(Window &window, Reloader &reloader)
 
     reloadConnections.push_back(reloader.commands.onLoadLevel.connect(
         [this](const std::string &levelPath)
-        {
-            if (gameUi.levelFollowsTheDisk(world.getLevelData(), levelPath))
-                world.loadLevel(levelPath);
-        }));
+        { reloads::levelChanged(world, gameUi.editor(), levelPath); }));
     reloadConnections.push_back(reloader.commands.onReloadShader.connect(
         [this](const std::string &shaderPath) { renderer.reloadShader(shaderPath); }));
     reloadConnections.push_back(reloader.commands.onReloadTexture.connect(
@@ -74,18 +72,10 @@ Game::Game(Window &window, Reloader &reloader)
         [this]
         {
             GameData onDisk = loadGameData();
-            gameUi.reloaded(gameData, onDisk);
+            reloads::gameDataChanged(world, gameUi.editor(), gameData, onDisk);
             this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
             camera.setZoom(gameData.cameraData.zoom);
             renderer.warm(gameData);
-
-            std::string current = world.getLevelPath();
-            if (current.empty())
-                world.loadLevel(gameData.levels.first);
-            else if (gameUi.levelFollowsTheDisk(world.getLevelData(), current))
-                world.loadLevel(current);
-            else
-                world.rebuildFrom(LevelData(world.getLevelData()));
         }));
     reloadConnections.push_back(
         reloader.commands.onReloadScripts.connect([this] { luaScriptSystem.loadScripts(); }));

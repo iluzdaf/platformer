@@ -64,14 +64,9 @@ void GameUi::resize(int width, int height)
     imGuiManager.resize(width, height);
 }
 
-void GameUi::reloaded(GameData &current, const GameData &onDisk)
+EditorUi &GameUi::editor()
 {
-    editorUi.reloaded(current, onDisk);
-}
-
-bool GameUi::levelFollowsTheDisk(const LevelData &current, const std::string &levelPath)
-{
-    return editorUi.levelFollowsTheDisk(current, levelPath);
+    return editorUi;
 }
 
 EditorCommands &GameUi::commands()

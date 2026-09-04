@@ -12,9 +12,6 @@ void touchTiles(Player &player, const TileMap &tileMap)
 
     for (const auto &tilePosition : tilePositions)
     {
-        if (!tileMap.validTilePosition(tilePosition))
-            continue;
-
         const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
         glm::vec2 tileWorldPosition = tileMap.topLeftOfTile(tilePosition);
         std::optional<AABB> tileAABB = tile.getAABBAt(tileWorldPosition);

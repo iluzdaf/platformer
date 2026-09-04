@@ -242,7 +242,10 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   a slider that wrote as it moved would rebuild the world on every frame. A game data
   save reloads everything through `onReload`; a level save reloads that level. So save
   is the moment a change reaches every object, and the editor never rebuilds anything
-  itself except the level it is painting.
+  itself except the level it is painting. The level being played follows the same
+  dirty-buffer rule as the sections: a level file that changes on disk is reloaded only
+  while the Level section is clean, and a palettes save re-points the level in memory as
+  well as on disk, so what is kept never names a palette that is gone.
 - `Saveable` decides what is unsaved by comparing json, the value now against the value
   last saved or first seen, so no type has to compare itself. Revert reads that json
   back. A reload from disk treats each section like a text editor treats a dirty

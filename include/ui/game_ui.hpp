@@ -47,6 +47,7 @@ public:
         const Camera2D &camera);
     void resize(int width, int height);
     void reloaded(GameData &current, const GameData &onDisk);
+    bool levelFollowsTheDisk(const LevelData &current, const std::string &levelPath);
 
     EditorCommands &commands();
 

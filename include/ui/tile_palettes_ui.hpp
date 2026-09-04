@@ -11,6 +11,7 @@
 #include "game/game_data.hpp"
 
 class TextureCache;
+struct LevelData;
 struct EditorCommands;
 
 class TilePalettesUi
@@ -33,7 +34,7 @@ public:
     void add(TilePalettes &tilePalettes);
     void remove(TilePalettes &tilePalettes);
 
-    void save(TilePalettes &tilePalettes);
+    bool save(TilePalettes &tilePalettes, LevelData &playing);
     void revert(TilePalettes &tilePalettes);
     bool unsavedSince(const TilePalettes &tilePalettes);
     std::optional<std::string> cannotSaveBecause() const;

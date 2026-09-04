@@ -78,6 +78,7 @@ public:
     EditorCommands commands;
 
     void reloaded(GameData &current, const GameData &onDisk);
+    bool levelFollowsTheDisk(const LevelData &current, const std::string &levelPath);
 
     SectionSaving savingIn(EditorSection listed, const EditorSubject &subject);
 

@@ -153,6 +153,21 @@ TEST_CASE("Reverting a section kept through a reload takes what is on disk now",
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
 }
 
+TEST_CASE("The level being played follows the disk only while it is clean", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
+
+    REQUIRE(editorUi.levelFollowsTheDisk(editing.levelData, editing.levelPath));
+
+    editing.levelData.playerStart.x += 16.0f;
+
+    REQUIRE_FALSE(editorUi.levelFollowsTheDisk(editing.levelData, editing.levelPath));
+    REQUIRE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
+}
+
 TEST_CASE("Playing back is not a thing that saves", "[EditorSaving]")
 {
     EditorUi editorUi;

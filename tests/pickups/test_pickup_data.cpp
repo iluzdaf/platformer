@@ -23,6 +23,7 @@ namespace
     {
         LevelData levelData;
         levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.tileMapData.tilePalette = "default";
         levelData.tileMapData.width = 4;
         levelData.tileMapData.height = 4;
         levelData.pickups = pickups;

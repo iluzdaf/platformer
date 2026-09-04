@@ -133,6 +133,7 @@ inline TileMap setupTileMap(
     sized.tileSet.cellSize = glm::ivec2(tileSize);
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.width = width;
     tileMapData.height = height;
     return TileMap(tileMapData, palettesFrom(sized));
@@ -149,6 +150,7 @@ inline TileMap setupTileMapWith(
     sized.tileSet.cellSize = glm::ivec2(tileSize);
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
     for (const auto &[tile, tileIndex] : placed)
         (*tileMapData.indices)[tile.y][tile.x] = tileIndex;

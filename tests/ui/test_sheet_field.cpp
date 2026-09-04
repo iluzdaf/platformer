@@ -9,6 +9,19 @@
 
 namespace
 {
+    float squareHeightOf(HeadlessImGui &gui, SheetData &sheet)
+    {
+        float reached = 0.0f;
+        gui.frame(
+            [&]
+            {
+                drawSquareSheetFields(sheet);
+                reached = ImGui::GetCurrentWindow()->DC.CursorPos.y;
+            });
+
+        return reached;
+    }
+
     float drawnHeightOf(HeadlessImGui &gui, SheetData &sheet)
     {
         float reached = 0.0f;
@@ -64,4 +77,40 @@ TEST_CASE("A sheet keeps what it was given after being drawn", "[SheetField]")
 
     REQUIRE(sheet.texture == "textures/somewhere.png");
     REQUIRE(sheet.cellSize == glm::ivec2(24, 32));
+}
+
+TEST_CASE("Square sheet fields say when the cells are not square", "[SheetField]")
+{
+    HeadlessImGui gui;
+
+    SheetData square{"textures/player.png", glm::ivec2(16)};
+    SheetData oblong{"textures/player.png", glm::ivec2(16, 24)};
+
+    REQUIRE(squareHeightOf(gui, oblong) > squareHeightOf(gui, square));
+}
+
+TEST_CASE("Nudging the one cell size squares the cells", "[SheetField]")
+{
+    HeadlessImGui gui;
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    SheetData sheet{"textures/player.png", glm::ivec2(16, 24)};
+    auto drawing = [&] { drawSquareSheetFields(sheet); };
+
+    gui.frame(
+        [&]
+        {
+            ImGui::ActivateItemByID(ImGui::GetID("##cellSize"));
+            drawing();
+        });
+    gui.frame(drawing);
+
+    ImGuiIO &io = ImGui::GetIO();
+    io.AddKeyEvent(ImGuiKey_RightArrow, true);
+    gui.frame(drawing);
+    io.AddKeyEvent(ImGuiKey_RightArrow, false);
+    gui.frame(drawing);
+
+    REQUIRE(sheet.cellSize.x == sheet.cellSize.y);
+    REQUIRE(sheet.cellSize.x > 16);
 }

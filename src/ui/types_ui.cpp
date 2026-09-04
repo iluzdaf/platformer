@@ -2,6 +2,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/types_ui.hpp"
@@ -15,7 +16,6 @@
 #include "assets/sheet_data.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "game/game_data.hpp"
-#include "assets/asset_paths.hpp"
 #include "game/level_data.hpp"
 #include "ui/renaming.hpp"
 #include "ui/level_rewriting.hpp"
@@ -54,6 +54,12 @@ namespace
                 ImGui::PopStyleColor();
         }
     }
+}
+
+TypesUi::TypesUi(std::string levelsDirectory, WriteNpcs writeNpcs, WritePickups writePickups)
+    : levelsDirectory(std::move(levelsDirectory)), writeNpcs(std::move(writeNpcs)),
+      writePickups(std::move(writePickups))
+{
 }
 
 void TypesUi::drawChooser(GameData &gameData)
@@ -110,7 +116,7 @@ void TypesUi::drawRename(const GameData &gameData)
 
     lookAheadAtLevels(
         renaming,
-        std::string(assets::Levels),
+        levelsDirectory,
         [npc](LevelData &levelData, const Renames &renames)
         {
             return npc ? rewriting::typeIn(levelData.npcs, renames)
@@ -163,24 +169,24 @@ void TypesUi::revert(GameData &gameData)
     revertTo(saveable, "pickups", gameData.pickupData, pickupRenaming);
 }
 
-void TypesUi::save(GameData &gameData)
+bool TypesUi::save(GameData &gameData, LevelData &playing)
 {
     Renames npcs = npcRenaming.sinceSaved(), pickups = pickupRenaming.sinceSaved();
 
     bool npcsWritten = writeRenamesIntoLevels(
         npcRenaming,
-        std::string(assets::Levels),
+        levelsDirectory,
         [](LevelData &levelData, const Renames &renames)
         { return rewriting::typeIn(levelData.npcs, renames); });
 
     bool pickupsWritten = writeRenamesIntoLevels(
         pickupRenaming,
-        std::string(assets::Levels),
+        levelsDirectory,
         [](LevelData &levelData, const Renames &renames)
         { return rewriting::typeIn(levelData.pickups, renames); });
 
     if (!npcsWritten || !pickupsWritten)
-        return;
+        return false;
 
     renamesTakeEffect(npcs, gameData.npcData);
     renamesTakeEffect(pickups, gameData.pickupData);
@@ -189,15 +195,20 @@ void TypesUi::save(GameData &gameData)
 
     if (saveable.unsaved("npcs", asJson(gameData.npcData)))
     {
-        saveNpcData(gameData.npcData);
+        writeNpcs(gameData.npcData);
         saveable.saved("npcs", asJson(gameData.npcData));
     }
 
     if (saveable.unsaved("pickups", asJson(gameData.pickupData)))
     {
-        savePickupData(gameData.pickupData);
+        writePickups(gameData.pickupData);
         saveable.saved("pickups", asJson(gameData.pickupData));
     }
+
+    bool npcsRePointed = rewriting::typeIn(playing.npcs, npcs);
+    bool pickupsRePointed = rewriting::typeIn(playing.pickups, pickups);
+
+    return npcsRePointed || pickupsRePointed;
 }
 
 bool TypesUi::unsavedSince(const GameData &gameData)

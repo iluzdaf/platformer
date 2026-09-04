@@ -260,7 +260,12 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
         return {
             typesUi.unsavedSince(subject.gameData),
             typesUi.cannotSaveBecause(subject.gameData),
-            [this, &subject] { typesUi.save(subject.gameData); },
+            [this, &subject]
+            {
+                LevelData playing = subject.levelData;
+                if (typesUi.save(subject.gameData, playing))
+                    commands.onLevelEdited(playing);
+            },
             [this, &subject] { typesUi.revert(subject.gameData); }};
 
     case EditorSection::TilePalettes:

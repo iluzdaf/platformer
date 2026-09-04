@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 #include "navigation/navigation_edge.hpp"
@@ -17,6 +18,7 @@ public:
     const std::unordered_map<int, NavigationNode> &getNodes() const;
     const std::vector<NavigationEdge> &getEdges() const;
     const std::vector<NavigationEdge> &getOutgoingEdges(int id) const;
+    std::optional<int> nodeAtPosition(glm::vec2 position, float epsilon = 0.1f) const;
     bool hasNodeAtPosition(glm::vec2 position, float epsilon = 0.1f) const;
 
 private:

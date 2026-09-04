@@ -268,6 +268,7 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "assets/asset_paths.hpp"
 #include "rendering/texture_cache.hpp"
+#include <imgui_internal.h>
 #include "test_helpers/headless_imgui.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
@@ -358,6 +359,34 @@ TEST_CASE("The palette editor reports unsaved once a tile set changes", "[TilePa
     palettes["default"].tileSet.texture = std::string(assets::PlayerTexture);
 
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
+}
+
+TEST_CASE("The palette editor says when its texture is not under textures", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TextureCache textures;
+    std::optional<Armed> armed;
+    EditorCommands commands;
+
+    auto heightNaming = [&](const std::string &texture)
+    {
+        TilePalettesUi tilePalettesUi;
+        TilePalettes palettes;
+        palettes["ice"] = paletteOf({{0, TileData{}}});
+        palettes["ice"].tileSet.texture = texture;
+
+        float reached = 0.0f;
+        gui.frame(
+            [&]
+            {
+                tilePalettesUi.draw(palettes, textures, commands, armed);
+                reached = ImGui::GetCurrentWindow()->DC.CursorPos.y;
+            });
+
+        return reached;
+    };
+
+    REQUIRE(heightNaming("textures/nowhere.png") > heightNaming("textures/coin.png"));
 }
 
 TEST_CASE("A tile set nobody loaded is asked for once", "[TilePalettesUi]")

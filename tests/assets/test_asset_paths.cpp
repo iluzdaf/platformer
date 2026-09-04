@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
+#include <string>
+#include <vector>
 #include "assets/asset_paths.hpp"
 
 TEST_CASE("The assets root is somewhere that exists", "[AssetPaths]")
@@ -38,4 +40,18 @@ TEST_CASE("A path the file watcher reports is named the same way", "[AssetPaths]
         std::filesystem::path(assets::root()) / "levels" / "level6.json";
 
     REQUIRE(assets::underRoot(reported.string()) == "levels/level6.json");
+}
+
+TEST_CASE("Files under a directory are listed by extension in order", "[AssetPaths]")
+{
+    std::vector<std::string> pngs = assets::filesIn(assets::Textures, ".png");
+
+    REQUIRE(
+        pngs == std::vector<std::string>{
+                    "textures/cavern.png",
+                    "textures/coin.png",
+                    "textures/explorer.png",
+                    "textures/player.png",
+                    "textures/villager.png"});
+    REQUIRE(assets::filesIn(assets::Textures, ".json").empty());
 }

@@ -77,7 +77,7 @@ public:
 
     EditorCommands commands;
 
-    void valuesReplaced();
+    void reloaded(GameData &current, const GameData &onDisk);
 
     SectionSaving savingIn(EditorSection listed, const EditorSubject &subject);
 

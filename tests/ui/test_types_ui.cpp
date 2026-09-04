@@ -455,7 +455,7 @@ TEST_CASE("A type rename outlives a reload of the values it waits on", "[TypesUi
     gui.pressEnter(drawing);
     REQUIRE(typesUi.unsavedSince(gameData));
 
-    typesUi.valuesReplaced();
+    typesUi.reloaded(gameData, gameData);
 
     REQUIRE(typesUi.unsavedSince(gameData));
 }

@@ -71,3 +71,12 @@ template <class T> std::string asJson(const T &value)
 
     return json;
 }
+
+template <class T>
+void reload(Saveable &saveable, std::string_view name, T &current, const T &onDisk)
+{
+    if (!saveable.unsaved(name, asJson(current)))
+        current = onDisk;
+
+    saveable.saved(name, asJson(onDisk));
+}

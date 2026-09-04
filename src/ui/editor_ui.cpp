@@ -277,13 +277,13 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
     return {};
 }
 
-void EditorUi::valuesReplaced()
+void EditorUi::reloaded(GameData &current, const GameData &onDisk)
 {
-    gameSettingsUi.valuesReplaced();
-    cameraUi.valuesReplaced();
-    playerUi.valuesReplaced();
-    typesUi.valuesReplaced();
-    tilePalettesUi.valuesReplaced();
+    gameSettingsUi.reloaded(current, onDisk);
+    cameraUi.reloaded(current, onDisk);
+    playerUi.reloaded(current, onDisk);
+    typesUi.reloaded(current, onDisk);
+    tilePalettesUi.reloaded(current.tilePalettes, onDisk.tilePalettes);
+    levelsUi.reloaded(current.levels, onDisk.levels);
     levelUi.valuesReplaced();
-    levelsUi.valuesReplaced();
 }

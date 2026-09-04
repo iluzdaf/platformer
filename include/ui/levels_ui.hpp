@@ -19,7 +19,7 @@ public:
     void save(const LevelsData &levels);
     void revert(LevelsData &levels);
     bool unsavedSince(const LevelsData &levels);
-    void valuesReplaced();
+    void reloaded(LevelsData &current, const LevelsData &onDisk);
 
 private:
     Saveable saveable;

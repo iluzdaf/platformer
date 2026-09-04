@@ -64,9 +64,9 @@ void GameUi::resize(int width, int height)
     imGuiManager.resize(width, height);
 }
 
-void GameUi::valuesReplaced()
+void GameUi::reloaded(GameData &current, const GameData &onDisk)
 {
-    editorUi.valuesReplaced();
+    editorUi.reloaded(current, onDisk);
 }
 
 EditorCommands &GameUi::commands()

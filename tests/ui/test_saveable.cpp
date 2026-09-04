@@ -48,16 +48,62 @@ TEST_CASE("Saveable moves its baseline when a value is saved", "[Saveable]")
     REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
 }
 
-TEST_CASE("Saveable takes replaced values as the new baseline", "[Saveable]")
+TEST_CASE("A clean value follows the disk on a reload", "[Saveable]")
 {
     Saveable saveable;
     Camera2DData data;
+    saveable.seen("camera", asJson(data));
 
+    Camera2DData onDisk;
+    onDisk.zoom += 1.0f;
+    reload(saveable, "camera", data, onDisk);
+
+    REQUIRE(data.zoom == onDisk.zoom);
+    REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
+}
+
+TEST_CASE("An unsaved value is kept through a reload and stays unsaved", "[Saveable]")
+{
+    Saveable saveable;
+    Camera2DData data;
     saveable.seen("camera", asJson(data));
     data.zoom += 1.0f;
-    saveable.valuesReplaced();
-    saveable.seen("camera", asJson(data));
+    float edited = data.zoom;
 
+    Camera2DData onDisk;
+    onDisk.zoom += 2.0f;
+    reload(saveable, "camera", data, onDisk);
+
+    REQUIRE(data.zoom == edited);
+    REQUIRE(saveable.unsaved("camera", asJson(data)));
+}
+
+TEST_CASE("A value never looked at follows the disk on a reload", "[Saveable]")
+{
+    Saveable saveable;
+    Camera2DData data;
+    data.zoom += 1.0f;
+
+    Camera2DData onDisk;
+    reload(saveable, "camera", data, onDisk);
+
+    REQUIRE(data.zoom == onDisk.zoom);
+    REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
+}
+
+TEST_CASE("Reverting after a reload goes to what is on disk now", "[Saveable]")
+{
+    Saveable saveable;
+    Camera2DData data;
+    saveable.seen("camera", asJson(data));
+    data.zoom += 1.0f;
+
+    Camera2DData onDisk;
+    onDisk.zoom += 2.0f;
+    reload(saveable, "camera", data, onDisk);
+    revertTo(saveable, "camera", data);
+
+    REQUIRE(data.zoom == onDisk.zoom);
     REQUIRE_FALSE(saveable.unsaved("camera", asJson(data)));
 }
 

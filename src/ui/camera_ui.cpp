@@ -31,7 +31,7 @@ bool CameraUi::unsavedSince(const GameData &gameData)
     return saveable.unsavedSince("camera", asJson(gameData.cameraData));
 }
 
-void CameraUi::valuesReplaced()
+void CameraUi::reloaded(GameData &current, const GameData &onDisk)
 {
-    saveable.valuesReplaced();
+    reload(saveable, "camera", current.cameraData, onDisk.cameraData);
 }

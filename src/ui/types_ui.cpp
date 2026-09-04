@@ -225,7 +225,8 @@ void TypesUi::show(const TypeShown &type)
     showing = type;
 }
 
-void TypesUi::valuesReplaced()
+void TypesUi::reloaded(GameData &current, const GameData &onDisk)
 {
-    saveable.valuesReplaced();
+    reload(saveable, "npcs", current.npcData, onDisk.npcData);
+    reload(saveable, "pickups", current.pickupData, onDisk.pickupData);
 }

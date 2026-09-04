@@ -50,6 +50,18 @@ namespace
                 player.postFixedUpdate();
             });
     }
+
+    void runAFrame(Player &player, const Level &level, const FixedTimeStep &timestepper)
+    {
+        player.preFixedUpdate();
+        timestepper.run(
+            1.0f / 60.0f,
+            [&](float dt)
+            {
+                player.fixedUpdate(dt, level);
+                player.postFixedUpdate();
+            });
+    }
 }
 
 TEST_CASE("Player falls under normal gravity", "[Player]")
@@ -273,6 +285,19 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
         simulatePlayer(player, input, ceiling, 0.1f, inputIntentions);
         REQUIRE(hitCeilingTriggered);
     }
+
+    SECTION("onDash")
+    {
+        player.setPosition(glm::vec2(16, 19 * 16 - 16));
+        simulatePlayer(player, input, tileMap, 0.1f);
+        bool dashTriggered = false;
+        player.onDash.connect([&] { dashTriggered = true; });
+        InputIntentions inputIntentions;
+        inputIntentions.direction.x = 1.0f;
+        inputIntentions.dashRequested = true;
+        simulatePlayer(player, input, tileMap, 0.01f, inputIntentions);
+        REQUIRE(dashTriggered);
+    }
 }
 
 TEST_CASE("Player movement ability integration", "[Player]")
@@ -454,9 +479,7 @@ namespace
                     }
                     input.set(intentions);
 
-                    player.preFixedUpdate();
-                    timestepper.run(1.0f / 60.0f, [&](float dt) { player.fixedUpdate(dt, level); });
-                    player.postFixedUpdate();
+                    runAFrame(player, level, timestepper);
 
                     glm::vec2 position = player.getPosition();
                     if (kind == Pit::StepUp)
@@ -565,9 +588,7 @@ TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]
                 intentions.direction.x = step.towards;
                 input.set(intentions);
 
-                player.preFixedUpdate();
-                timestepper.run(1.0f / 60.0f, [&](float dt) { player.fixedUpdate(dt, level); });
-                player.postFixedUpdate();
+                runAFrame(player, level, timestepper);
 
                 if (player.getMotion().getState().contacts.onGround &&
                     std::abs(player.getPosition().y + 16.0f - step.landOn) < 0.5f)
@@ -628,9 +649,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
                     intentions.jumpHeld = frame - frameTriggered < 20;
                 input.set(intentions);
 
-                player.preFixedUpdate();
-                timestepper.run(1.0f / 60.0f, [&](float dt) { player.fixedUpdate(dt, level); });
-                player.postFixedUpdate();
+                runAFrame(player, level, timestepper);
 
                 glm::vec2 position = player.getPosition();
                 if (position.y + 16.0f > 7 * 16.0f)
@@ -773,10 +792,10 @@ TEST_CASE("A ceiling bump is over before the frame it happened in ends", "[Playe
             [&](float dt)
             {
                 player.fixedUpdate(dt, level);
+                player.postFixedUpdate();
                 if (player.getMotion().getState().contacts.hitCeiling)
                     ++stepsTouchingCeiling;
             });
-        player.postFixedUpdate();
 
         const ActorContactState &contacts = player.getMotion().getState().contacts;
         if (contacts.hitCeiling)

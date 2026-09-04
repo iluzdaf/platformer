@@ -14,7 +14,7 @@ void Pickup::update(float deltaTime)
     animation.update(deltaTime);
 }
 
-const Sheet &Pickup::getSheet() const
+const SheetData &Pickup::getSheet() const
 {
     return sheet;
 }

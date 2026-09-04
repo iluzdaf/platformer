@@ -2,7 +2,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "animations/frame_animation_data.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "physics/aabb.hpp"
 #include "pickups/collecting.hpp"
 #include "pickups/pickup.hpp"
@@ -13,7 +13,7 @@ namespace
     PickupData worth(int scoreDelta)
     {
         PickupData pickupData;
-        pickupData.sheet = Sheet{"textures/somewhere.png", glm::ivec2(16)};
+        pickupData.sheet = SheetData{"textures/somewhere.png", glm::ivec2(16)};
         pickupData.animationData = FrameAnimationData{{0}, 1.0f};
         pickupData.size = glm::vec2(16.0f);
         pickupData.scoreDelta = scoreDelta;

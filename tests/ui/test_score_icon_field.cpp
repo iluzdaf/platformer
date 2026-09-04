@@ -2,8 +2,8 @@
 #include <string>
 #include <imgui_internal.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include "assets/sheet.hpp"
-#include "game/score_icon.hpp"
+#include "assets/sheet_data.hpp"
+#include "game/score_icon_data.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_fields.hpp"
@@ -11,7 +11,7 @@
 
 TEST_CASE("A score icon draws itself rather than falling through", "[ScoreIconField]")
 {
-    STATIC_REQUIRE(inspector::HasCustomField<ScoreIcon>);
+    STATIC_REQUIRE(inspector::HasCustomField<ScoreIconData>);
 }
 
 #ifndef SKIP_OPENGL_TESTS
@@ -22,7 +22,7 @@ TEST_CASE("A score icon draws itself rather than falling through", "[ScoreIconFi
 
 namespace
 {
-    float heightOfIcon(HeadlessImGui &gui, ScoreIcon &icon, bool withSheet)
+    float heightOfIcon(HeadlessImGui &gui, ScoreIconData &icon, bool withSheet)
     {
         Texture2D sheet = aSheetOf(7, 6);
         SheetInScope offering{&sheet, icon.sheet, icon.frame};
@@ -51,7 +51,7 @@ namespace
 TEST_CASE("The frame is a picture to pick when a sheet is in scope", "[ScoreIconField]")
 {
     HeadlessImGui gui;
-    ScoreIcon icon{Sheet{"textures/somewhere.png", glm::ivec2(16)}, 3};
+    ScoreIconData icon{SheetData{"textures/somewhere.png", glm::ivec2(16)}, 3};
 
     float asNumber = heightOfIcon(gui, icon, false);
     float asPicture = heightOfIcon(gui, icon, true);
@@ -62,7 +62,7 @@ TEST_CASE("The frame is a picture to pick when a sheet is in scope", "[ScoreIcon
 TEST_CASE("The frame keeps what it was when nothing is picked", "[ScoreIconField]")
 {
     HeadlessImGui gui;
-    ScoreIcon icon{Sheet{"textures/somewhere.png", glm::ivec2(16)}, 3};
+    ScoreIconData icon{SheetData{"textures/somewhere.png", glm::ivec2(16)}, 3};
 
     heightOfIcon(gui, icon, true);
 

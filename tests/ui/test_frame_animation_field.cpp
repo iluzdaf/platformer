@@ -57,14 +57,14 @@ TEST_CASE("An animation with no duration does not spin", "[AnimationPreview]")
 #include "rendering/texture2d.hpp"
 #include "test_helpers/made_sheet.hpp"
 #include "ui/sheet_in_scope.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 
 namespace
 {
     float heightOfFrames(HeadlessImGui &gui, FrameAnimationData &animation, bool withSheet)
     {
         Texture2D coin = aSheetOf(7, 6);
-        SheetInScope offering{&coin, Sheet{"textures/somewhere.png", glm::ivec2(16)}, 0};
+        SheetInScope offering{&coin, SheetData{"textures/somewhere.png", glm::ivec2(16)}, 0};
 
         float reached = 0.0f;
         gui.frame(

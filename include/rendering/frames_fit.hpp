@@ -3,11 +3,11 @@
 #include <string>
 #include <vector>
 
-struct Sheet;
+struct SheetData;
 
 void checkFramesFit(
     const std::vector<int> &frames,
-    const Sheet &sheet,
+    const SheetData &sheet,
     const std::string &whose,
     int textureWidth,
     int textureHeight);

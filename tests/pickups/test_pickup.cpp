@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "animations/frame_animation_data.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
 
@@ -12,7 +12,7 @@ namespace
     PickupData spinning()
     {
         PickupData pickupData;
-        pickupData.sheet = Sheet{"textures/somewhere.png", glm::ivec2(Cell)};
+        pickupData.sheet = SheetData{"textures/somewhere.png", glm::ivec2(Cell)};
         pickupData.animationData = FrameAnimationData{{3, 8, 11}, 0.2f};
         return pickupData;
     }
@@ -32,7 +32,7 @@ TEST_CASE("A pickup shows the frame its animation is on", "[Pickup]")
 TEST_CASE("A pickup draws from the sheet its kind names", "[Pickup]")
 {
     PickupData pickupData = spinning();
-    pickupData.sheet = Sheet{"textures/somewhere.png", glm::ivec2(24, 32)};
+    pickupData.sheet = SheetData{"textures/somewhere.png", glm::ivec2(24, 32)};
 
     Pickup pickup(pickupData, glm::vec2(0.0f));
 

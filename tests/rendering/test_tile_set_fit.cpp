@@ -7,18 +7,18 @@
 #include "rendering/tile_set_fit.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 TEST_CASE("A tile set covering every tile a palette declares fits", "[TileSet]")
 {
-    TilePalette palette = paletteOf({{0, TileData{}}, {48, TileData{}}});
+    TilePaletteData palette = paletteOf({{0, TileData{}}, {48, TileData{}}});
 
     REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 112, 112));
 }
 
 TEST_CASE("A tile past the end of its tile set is refused", "[TileSet]")
 {
-    TilePalette palette = paletteOf({{0, TileData{}}, {49, TileData{}}});
+    TilePaletteData palette = paletteOf({{0, TileData{}}, {49, TileData{}}});
 
     REQUIRE_THROWS_WITH(
         checkTileSetFits(palette, "default", 112, 112),
@@ -29,7 +29,7 @@ TEST_CASE("A tile past the end of its tile set is refused", "[TileSet]")
 
 TEST_CASE("A taller sheet keeps every tile where it was and holds more", "[TileSet]")
 {
-    TilePalette palette = paletteOf({{0, TileData{}}, {55, TileData{}}});
+    TilePaletteData palette = paletteOf({{0, TileData{}}, {55, TileData{}}});
 
     REQUIRE_THROWS(checkTileSetFits(palette, "default", 112, 112));
     REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 112, 128));
@@ -37,7 +37,7 @@ TEST_CASE("A taller sheet keeps every tile where it was and holds more", "[TileS
 
 TEST_CASE("A sheet holding no whole tile is refused", "[TileSet]")
 {
-    TilePalette palette = paletteOf({{0, TileData{}}});
+    TilePaletteData palette = paletteOf({{0, TileData{}}});
 
     REQUIRE_THROWS_WITH(
         checkTileSetFits(palette, "default", 8, 8),
@@ -46,7 +46,7 @@ TEST_CASE("A sheet holding no whole tile is refused", "[TileSet]")
 
 TEST_CASE("A tile set cell narrower than a pixel is refused", "[TileSet]")
 {
-    TilePalette palette = paletteOf({{0, TileData{}}});
+    TilePaletteData palette = paletteOf({{0, TileData{}}});
     palette.tileSet.cellSize = glm::ivec2(0);
 
     REQUIRE_THROWS_WITH(
@@ -56,7 +56,7 @@ TEST_CASE("A tile set cell narrower than a pixel is refused", "[TileSet]")
 
 TEST_CASE("A wider sheet holds more tiles", "[TileSet]")
 {
-    TilePalette palette = paletteOf({{0, TileData{}}, {63, TileData{}}});
+    TilePaletteData palette = paletteOf({{0, TileData{}}, {63, TileData{}}});
 
     REQUIRE_THROWS(checkTileSetFits(palette, "default", 112, 112));
     REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 128, 128));

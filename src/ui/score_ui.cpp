@@ -5,13 +5,13 @@
 #include "rendering/texture2d.hpp"
 #include "ui/imgui_manager.hpp"
 #include "game/score.hpp"
-#include "game/score_icon.hpp"
+#include "game/score_icon_data.hpp"
 
 void drawScore(
     const ImGuiManager &,
     const Score &score,
     const Texture2D &icon,
-    const ScoreIcon &scoreIcon)
+    const ScoreIconData &scoreIcon)
 {
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
     ImGui::Begin(

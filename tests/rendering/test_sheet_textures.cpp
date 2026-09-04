@@ -24,7 +24,7 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 #include "assets/asset_paths.hpp"
 #include "rendering/sheet_textures.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "rendering/texture_cache.hpp"
 #include "game/game_data.hpp"

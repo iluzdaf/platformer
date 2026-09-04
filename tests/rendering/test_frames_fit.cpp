@@ -3,16 +3,16 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "rendering/frames_fit.hpp"
 
 namespace
 {
     constexpr int Wide = 160, Tall = 16;
 
-    Sheet cells(int width, int height)
+    SheetData cells(int width, int height)
     {
-        return Sheet{"textures/somewhere.png", glm::ivec2(width, height)};
+        return SheetData{"textures/somewhere.png", glm::ivec2(width, height)};
     }
 }
 

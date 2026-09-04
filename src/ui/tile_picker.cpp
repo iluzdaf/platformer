@@ -9,7 +9,7 @@
 #include "ui/tile_picker.hpp"
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_set_fit.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 
 bool drawTileCell(const Texture2D &tileSet, int tileSize, int tileIndex)
 {
@@ -41,7 +41,7 @@ void drawTileImage(const Texture2D &sheet, int cellSize, int tileIndex, float si
 
 std::optional<int> drawTilePicker(
     const Texture2D &sheet,
-    const Sheet &tileSet,
+    const SheetData &tileSet,
     std::optional<int> armed)
 {
     int cells = tilesInSheet(

@@ -27,7 +27,7 @@
 #include "tile_map/tile_map.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 namespace
 {
@@ -1044,9 +1044,9 @@ namespace
 {
     constexpr int SpikeTileIndex = 2;
 
-    TilePalette paletteWithSpikes()
+    TilePaletteData paletteWithSpikes()
     {
-        TilePalette palette = getDefaultTileDataMap();
+        TilePaletteData palette = getDefaultTileDataMap();
         TileData spikes;
         spikes.deadly = true;
         palette.tiles[SpikeTileIndex] = spikes;
@@ -1467,7 +1467,7 @@ TEST_CASE(
 
 TEST_CASE("A wall an actor cannot grip is not climbed", "[NavigationGraphBuilder][Climb]")
 {
-    TilePalette palette = getDefaultTileDataMap();
+    TilePaletteData palette = getDefaultTileDataMap();
     TileData ungrippable;
     ungrippable.solid = true;
     ungrippable.grippable = false;

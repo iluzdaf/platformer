@@ -3,6 +3,6 @@
 #include <string_view>
 #include "ui/inspector_edited.hpp"
 
-struct Sheet;
+struct SheetData;
 
-inspector::Edited drawCustomField(std::string_view name, Sheet &value);
+inspector::Edited drawCustomField(std::string_view name, SheetData &value);

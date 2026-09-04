@@ -5,7 +5,7 @@
 #include "ui/armed.hpp"
 #include "ui/saveable.hpp"
 #include "ui/renaming.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 class TextureCache;
 struct EditorCommands;

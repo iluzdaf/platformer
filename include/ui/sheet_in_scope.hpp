@@ -1,13 +1,13 @@
 #pragma once
 
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 
 class Texture2D;
 
 struct SheetInScope
 {
     const Texture2D *texture = nullptr;
-    Sheet sheet;
+    SheetData sheet;
     int frame = 0;
 };
 

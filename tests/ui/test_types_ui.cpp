@@ -10,7 +10,7 @@
 #include "ui/type_shown.hpp"
 #include "ui/types_ui.hpp"
 #include "ui/sheet_in_scope.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "ui/editor_commands.hpp"
 #include "rendering/texture_cache.hpp"
 #include "game/level.hpp"

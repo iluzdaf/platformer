@@ -10,7 +10,7 @@
 #include "cameras/camera2d_data.hpp"
 #include "player/player_data.hpp"
 #include "npc/npc_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "assets/asset_paths.hpp"
 #include "serialization/json_format.hpp"
 

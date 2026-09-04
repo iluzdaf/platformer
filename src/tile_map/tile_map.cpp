@@ -9,7 +9,7 @@
 #include <glaze/glaze.hpp>
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_data.hpp"
 #include "physics/aabb.hpp"
@@ -258,7 +258,7 @@ bool TileMap::probeSolidTiles(
     return false;
 }
 
-const Sheet &TileMap::getTileSet() const
+const SheetData &TileMap::getTileSet() const
 {
     return tileSet;
 }

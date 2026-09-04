@@ -12,7 +12,7 @@
 #include "ui/editor_commands.hpp"
 #include "rendering/texture_cache.hpp"
 #include "rendering/texture2d.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "game/game_data.hpp"
 #include "assets/asset_paths.hpp"
@@ -120,7 +120,7 @@ void TypesUi::drawRename(const GameData &gameData)
 
 void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
 {
-    Sheet *sheet = sheetOf(gameData, showing);
+    SheetData *sheet = sheetOf(gameData, showing);
     if (!sheet)
     {
         ImGui::TextDisabled("pick a type");

@@ -8,7 +8,7 @@
 #include "assets/asset_paths.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
@@ -53,7 +53,7 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "test_helpers/headless_imgui.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_palette.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
 #include "game/level.hpp"
@@ -221,8 +221,8 @@ TEST_CASE(
     gui.frame([&] { tilePalettesUi.draw(palettes, textures, commands, armed); });
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
-    TilePalette made;
-    made.tileSet = Sheet{std::string(assets::TileSetTexture), glm::ivec2(16)};
+    TilePaletteData made;
+    made.tileSet = SheetData{std::string(assets::TileSetTexture), glm::ivec2(16)};
     palettes.insert({"ice", made});
 
     REQUIRE(palettes["ice"].tiles.empty());
@@ -360,8 +360,8 @@ TEST_CASE("Reverting takes back a palette that was added", "[TilePalettesUi]")
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
-    TilePalette made;
-    made.tileSet = Sheet{std::string(assets::TileSetTexture), glm::ivec2(16)};
+    TilePaletteData made;
+    made.tileSet = SheetData{std::string(assets::TileSetTexture), glm::ivec2(16)};
     palettes.insert({"ice", made});
 
     tilePalettesUi.revert(palettes);

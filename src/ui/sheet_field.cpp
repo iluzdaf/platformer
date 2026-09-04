@@ -5,9 +5,9 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/unsaved_colours.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 
-inspector::Edited drawCustomField(std::string_view name, Sheet &value)
+inspector::Edited drawCustomField(std::string_view name, SheetData &value)
 {
     if (!ImGui::TreeNode(std::string(name).c_str()))
         return {};

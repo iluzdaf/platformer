@@ -19,7 +19,7 @@
 #include "actor/actor.hpp"
 #include "pickups/pickup.hpp"
 #include "actor/actor_state.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "assets/asset_paths.hpp"
 
 GameRenderer::GameRenderer()
@@ -92,7 +92,7 @@ void GameRenderer::draw(
 
     for (const Pickup &pickup : pickups)
     {
-        const Sheet &sheet = pickup.getSheet();
+        const SheetData &sheet = pickup.getSheet();
         const Texture2D &texture = textures.get(sheet.texture);
         auto [uvStart, uvEnd] = frameUvRangeIn(
             static_cast<int>(texture.getWidth()),
@@ -114,7 +114,7 @@ void GameRenderer::draw(
     auto drawActor = [&](const Actor &actor)
     {
         const ActorState &actorState = actor.getState();
-        const Sheet &sheet = actor.getSheet();
+        const SheetData &sheet = actor.getSheet();
         const Texture2D &texture = textures.get(sheet.texture);
         auto [uvStart, uvEnd] = frameUvRangeIn(
             static_cast<int>(texture.getWidth()),

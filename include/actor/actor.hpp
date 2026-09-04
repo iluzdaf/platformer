@@ -4,7 +4,7 @@
 #include <optional>
 #include <string_view>
 #include "actor/actor_state.hpp"
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/actor_motion.hpp"
 #include "actor/actor_behavior.hpp"
@@ -33,7 +33,7 @@ public:
     const glm::vec2 &getPosition() const;
     const NavigationProfile &getNavigationProfile() const;
     std::string_view getStateName() const;
-    const Sheet &getSheet() const;
+    const SheetData &getSheet() const;
     std::optional<int> getCurrentNodeId() const;
     std::optional<int> getTargetNodeId() const;
     void setPosition(const glm::vec2 &position);
@@ -49,7 +49,7 @@ protected:
     PhysicsBody physicsBody;
     AnimationManager animationManager;
     ActorState actorState;
-    Sheet sheet;
+    SheetData sheet;
     NavigationProfile navigationProfile;
     std::unique_ptr<ActorBehavior> behavior;
 };

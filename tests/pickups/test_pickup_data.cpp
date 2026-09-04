@@ -7,7 +7,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glaze/glaze.hpp>
-#include "assets/sheet.hpp"
+#include "assets/sheet_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
@@ -65,7 +65,7 @@ TEST_CASE("A placed pickup survives being written and read back", "[Pickups]")
 TEST_CASE("A pickup type survives being written and read back", "[Pickups]")
 {
     PickupData written;
-    written.sheet = Sheet{"textures/somewhere.png", glm::ivec2(24, 32)};
+    written.sheet = SheetData{"textures/somewhere.png", glm::ivec2(24, 32)};
     written.animationData = FrameAnimationData{{7, 8}, 0.5f};
     written.size = glm::vec2(24.0f, 32.0f);
     written.scoreDelta = 3;

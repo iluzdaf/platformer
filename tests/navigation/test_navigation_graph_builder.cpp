@@ -1181,6 +1181,22 @@ TEST_CASE("Nothing falls onto spikes", "[NavigationGraphBuilder][Fall]")
     REQUIRE(countEdgesOfType(graph, EdgeType::Fall) == 0);
 }
 
+TEST_CASE(
+    "Nothing falls through spikes to the floor beneath them",
+    "[NavigationGraphBuilder][Fall]")
+{
+    Placed laid;
+    layFloor(laid, FloorBelowRow, 0, 19);
+    for (int x = 0; x < 20; ++x)
+        laid.push_back({glm::ivec2(x, PlatformRow + 1), SpikeTileIndex});
+    layFloor(laid, PlatformRow, 0, LeftPlatformEnd);
+    TileMap tileMap = setupTileMapWith(laid, 20, WideMapHeightTiles, 16, paletteWithSpikes());
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) == 0);
+}
+
 TEST_CASE("A ledge gets a node directly below it", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = setupLedgeAboveFloor();

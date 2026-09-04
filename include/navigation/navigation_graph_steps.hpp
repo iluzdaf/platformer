@@ -29,6 +29,13 @@ namespace navigation
         glm::vec2 landing,
         int headroom);
 
+    std::optional<glm::vec2> standingBelow(
+        const TileMap &tileMap,
+        float x,
+        float below,
+        const NavigationProfile &profile,
+        int headroom);
+
     std::vector<std::vector<int>> walkRuns(
         const NavigationGraph &navigationGraph,
         const TileMap &tileMap,

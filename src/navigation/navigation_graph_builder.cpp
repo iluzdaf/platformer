@@ -170,6 +170,34 @@ namespace navigation
 
         return nearest;
     }
+
+    std::optional<glm::vec2> standingBelow(
+        const TileMap &tileMap,
+        float x,
+        float below,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        float tileSize = static_cast<float>(tileMap.getTileSize());
+        glm::ivec2 column = tileMap.tileContaining(glm::vec2(x, below));
+
+        for (int y = column.y + 1; y < tileMap.getHeight(); ++y)
+        {
+            glm::ivec2 ground(column.x, y);
+            if (!tileMap.validTilePosition(ground))
+                return std::nullopt;
+            if (!tileMap.getTileAtTilePosition(ground).isSolid())
+                continue;
+
+            glm::vec2 standing(x, static_cast<float>(y) * tileSize);
+            if (canStandOn(tileMap, ground, headroom) && clearAt(tileMap, standing, profile))
+                return standing;
+
+            return std::nullopt;
+        }
+
+        return std::nullopt;
+    }
 }
 
 NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationProfile &profile)

@@ -340,7 +340,7 @@ add_executable(tests
     tests/pickups/test_collecting.cpp
     tests/assets/test_asset_paths.cpp
     tests/reloading/test_reloader.cpp
-    tests/reloading/test_game_data_watcher.cpp
+    tests/reloading/test_file_watcher_listener.cpp
     tests/game/test_game.cpp
     tests/window/test_window.cpp
     tests/game/test_world.cpp

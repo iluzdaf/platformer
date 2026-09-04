@@ -4,14 +4,14 @@
 #include <set>
 #include "input/input_intentions.hpp"
 #include "input/keyboard_intentions.hpp"
-#include "input/keyboard_manager.hpp"
+#include "input/keys_down.hpp"
 
 namespace
 {
-    KeyboardManager::InputPoller holding(std::initializer_list<int> keys)
+    KeysDown holding(std::initializer_list<int> keys)
     {
         std::set<int> down(keys);
-        return [down](int key) { return down.contains(key) ? GLFW_PRESS : GLFW_RELEASE; };
+        return [down](int key) { return down.contains(key); };
     }
 }
 

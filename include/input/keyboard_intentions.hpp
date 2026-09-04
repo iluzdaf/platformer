@@ -1,6 +1,7 @@
 #pragma once
 
-#include "input/keyboard_manager.hpp"
+#include "input/key_tracker.hpp"
+#include "input/keys_down.hpp"
 #include "input/input_intentions.hpp"
 #include "input/intention_source.hpp"
 
@@ -8,13 +9,10 @@ class KeyboardIntentions : public IntentionSource
 {
 public:
     KeyboardIntentions();
-    void process(GLFWwindow *window);
-    void process(const KeyboardManager::InputPoller &poller);
+    void process(const KeysDown &keysDown);
     InputIntentions getIntentions() const override;
 
 private:
-    KeyboardManager keyboardManager;
+    KeyTracker keys;
     InputIntentions intentions;
-
-    void readIntentions();
 };

@@ -1,42 +1,29 @@
 #include <GLFW/glfw3.h>
 #include "input/keyboard_intentions.hpp"
+#include "input/keys_down.hpp"
 
 KeyboardIntentions::KeyboardIntentions()
 {
-    keyboardManager.registerKey(GLFW_KEY_UP);
-    keyboardManager.registerKey(GLFW_KEY_DOWN);
-    keyboardManager.registerKey(GLFW_KEY_LEFT);
-    keyboardManager.registerKey(GLFW_KEY_RIGHT);
-    keyboardManager.registerKey(GLFW_KEY_Z);
-    keyboardManager.registerKey(GLFW_KEY_X);
-    keyboardManager.registerKey(GLFW_KEY_C);
+    keys.registerKey(GLFW_KEY_UP);
+    keys.registerKey(GLFW_KEY_DOWN);
+    keys.registerKey(GLFW_KEY_LEFT);
+    keys.registerKey(GLFW_KEY_RIGHT);
+    keys.registerKey(GLFW_KEY_Z);
+    keys.registerKey(GLFW_KEY_X);
+    keys.registerKey(GLFW_KEY_C);
 }
 
-void KeyboardIntentions::process(GLFWwindow *window)
+void KeyboardIntentions::process(const KeysDown &keysDown)
 {
-    keyboardManager.poll(window);
-    readIntentions();
-}
+    keys.poll(keysDown);
 
-void KeyboardIntentions::process(const KeyboardManager::InputPoller &poller)
-{
-    keyboardManager.poll(poller);
-    readIntentions();
-}
-
-void KeyboardIntentions::readIntentions()
-{
-    intentions.jumpRequested = keyboardManager.isPressed(GLFW_KEY_C);
-    intentions.jumpHeld = keyboardManager.isDown(GLFW_KEY_C);
-    intentions.dashRequested = keyboardManager.isPressed(GLFW_KEY_X);
-    intentions.climbRequested = keyboardManager.isDown(GLFW_KEY_Z);
+    intentions.jumpRequested = keys.isPressed(GLFW_KEY_C);
+    intentions.jumpHeld = keys.isDown(GLFW_KEY_C);
+    intentions.dashRequested = keys.isPressed(GLFW_KEY_X);
+    intentions.climbRequested = keys.isDown(GLFW_KEY_Z);
     intentions.direction = {
-        keyboardManager.isDown(GLFW_KEY_LEFT)
-            ? -1.0f
-            : (keyboardManager.isDown(GLFW_KEY_RIGHT) ? 1.0f : 0.0f),
-        keyboardManager.isDown(GLFW_KEY_UP)
-            ? -1.0f
-            : (keyboardManager.isDown(GLFW_KEY_DOWN) ? 1.0f : 0.0f)};
+        keys.isDown(GLFW_KEY_LEFT) ? -1.0f : (keys.isDown(GLFW_KEY_RIGHT) ? 1.0f : 0.0f),
+        keys.isDown(GLFW_KEY_UP) ? -1.0f : (keys.isDown(GLFW_KEY_DOWN) ? 1.0f : 0.0f)};
 }
 
 InputIntentions KeyboardIntentions::getIntentions() const

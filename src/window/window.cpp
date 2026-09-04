@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include "window/window.hpp"
+#include "input/keys_down.hpp"
 
 Window::Window(int width, int height, const std::string &title)
 {
@@ -74,4 +75,9 @@ glm::ivec2 Window::getFramebufferSize() const
 GLFWwindow *Window::getHandle() const
 {
     return handle;
+}
+
+KeysDown Window::keysDown() const
+{
+    return [window = handle](int key) { return glfwGetKey(window, key) == GLFW_PRESS; };
 }

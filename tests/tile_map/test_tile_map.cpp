@@ -68,6 +68,7 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     TileData solidTileData, emptyTileData;
     solidTileData.solid = true;
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.width = 3;
     tileMapData.height = 3;
     TilePaletteData palette =
@@ -104,6 +105,7 @@ TEST_CASE("A tile map refuses cells that are not square", "[TileMap]")
     palette.tileSet.cellSize = glm::ivec2(16, 32);
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.width = 2;
     tileMapData.height = 2;
 
@@ -119,6 +121,7 @@ TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
     palette.tileSet.cellSize = glm::ivec2(8);
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.width = 2;
     tileMapData.height = 2;
 
@@ -134,6 +137,7 @@ TEST_CASE("A tile is as big as the cell its palette draws it from", "[TileMap]")
     palette.tileSet.cellSize = glm::ivec2(8);
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.width = 2;
     tileMapData.height = 2;
 
@@ -152,6 +156,7 @@ TEST_CASE("A level takes the size of a tile from the palette it names", "[TileMa
     large.tileSet.cellSize = glm::ivec2(32);
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.width = 4;
     tileMapData.height = 4;
 
@@ -186,6 +191,7 @@ TEST_CASE("A painted tile the palette says nothing about is empty", "[TileMap]")
     TilePaletteData palette = paletteOf({{0, TileData{}}, {1, TileData{}}});
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 7}};
 
     TileMap tileMap(tileMapData, palettesFrom(palette));
@@ -201,6 +207,7 @@ TEST_CASE("A palette naming a tile below zero fails to load", "[TileMap]")
     TilePaletteData palette = paletteOf({{-1, TileData{}}});
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.width = 2;
     tileMapData.height = 2;
 
@@ -215,6 +222,7 @@ TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
     TilePaletteData palette = paletteOf({{0, TileData{}}, {1, TileData{}}});
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 0}};
 
     REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));
@@ -225,6 +233,7 @@ TEST_CASE("The empty tile is paintable even when a palette omits it", "[TileMap]
     TilePaletteData palette = paletteOf({{1, TileData{}}});
 
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 0}};
 
     REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));
@@ -236,6 +245,7 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     animatedTileData1.animationData = {{{10, 11, 12}, 0.1f}};
     animatedTileData2.animationData = {{{5, 6}, 0.1f}};
     TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
     tileMapData.width = 2;
     tileMapData.height = 2;
     TilePaletteData palette =
@@ -422,11 +432,22 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
             TileMap(nothing, palettes), Catch::Matchers::ContainsSubstring("invalid dimensions"));
     }
 
+    SECTION("A level naming no palette")
+    {
+        TileMapData unnamed;
+        unnamed.width = 2;
+        unnamed.height = 2;
+        REQUIRE_THROWS_WITH(
+            TileMap(unnamed, palettes),
+            Catch::Matchers::ContainsSubstring("names no tile palette"));
+    }
+
     SECTION("A palette naming no tile set texture")
     {
         TilePaletteData palette = paletteOf({{0, TileData{}}});
         palette.tileSet.texture.clear();
         TileMapData sized;
+        sized.tilePalette = "default";
         sized.width = 2;
         sized.height = 2;
         REQUIRE_THROWS_WITH(
@@ -439,6 +460,7 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
         TilePaletteData palette = paletteOf({{0, TileData{}}});
         palette.tileSet.cellSize = glm::ivec2(0);
         TileMapData sized;
+        sized.tilePalette = "default";
         sized.width = 2;
         sized.height = 2;
         REQUIRE_THROWS_WITH(

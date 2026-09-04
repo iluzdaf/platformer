@@ -36,6 +36,7 @@ namespace
     {
         LevelData levelData;
         levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.tileMapData.tilePalette = "default";
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
         for (int x = 0; x < MapTiles; ++x)

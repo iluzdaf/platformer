@@ -4,7 +4,6 @@
 #include "game/game_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
-#include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
 
 TEST_CASE("Game data without a default palette is refused", "[GameData]")
@@ -19,5 +18,4 @@ TEST_CASE("Game data without a default palette is refused", "[GameData]")
 TEST_CASE("Every level counts on the palette named default", "[GameData]")
 {
     REQUIRE_NOTHROW(requireDefaultPalette(shippedPalettes()));
-    REQUIRE(TileMapData{}.tilePalette == DefaultTilePalette);
 }

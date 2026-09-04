@@ -60,6 +60,9 @@ TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalette
         throw std::runtime_error("TileMapData has invalid dimensions");
 
     tilePalette = tileMapData.tilePalette;
+    if (tilePalette.empty())
+        throw std::runtime_error("This level names no tile palette");
+
     auto palette = tilePalettes.find(tilePalette);
     if (palette == tilePalettes.end())
         throw std::runtime_error("Unknown tile palette \"" + tilePalette + "\"");

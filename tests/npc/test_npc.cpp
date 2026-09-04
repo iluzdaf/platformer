@@ -163,6 +163,7 @@ namespace
     Level levelWithALedgeAndAWall(const std::vector<NpcSpawnData> &npcs)
     {
         TileMapData tileMapData;
+        tileMapData.tilePalette = "default";
         tileMapData.indices =
             std::vector<std::vector<int>>(LedgeHeightTiles, std::vector<int>(LedgeWidthTiles, 0));
         std::vector<std::vector<int>> &indices = *tileMapData.indices;
@@ -355,6 +356,7 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
 {
     LevelData levelData;
     levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.tileMapData.tilePalette = "default";
     levelData.tileMapData.width = 10;
     levelData.tileMapData.height = 10;
     levelData.npcs = {spawnAt("villager", {1, 1}), spawnAt("villager", {2, 1})};
@@ -406,6 +408,7 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
     LevelData levelData;
     levelData.playerStart = feetOf(glm::ivec2(0, 0));
     TilePaletteData palette = getDefaultTileDataMap();
+    levelData.tileMapData.tilePalette = "default";
     levelData.tileMapData.indices = std::vector<std::vector<int>>(10, std::vector<int>(10, 0));
     for (int x = 0; x < 10; ++x)
         (*levelData.tileMapData.indices)[6][x] = 1;

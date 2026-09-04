@@ -16,11 +16,6 @@
 
 TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
 {
-    initFrom(tileMapData, tilePalettes);
-}
-
-void TileMap::initFrom(const TileMapData &tileMapData, const TilePalettes &tilePalettes)
-{
     const bool hasTileIndices = tileMapData.indices.has_value();
     const bool hasExplicitSize = tileMapData.width.has_value() && tileMapData.height.has_value();
     if (hasTileIndices && hasExplicitSize)
@@ -113,11 +108,6 @@ glm::ivec2 TileMap::tileContaining(glm::vec2 worldPosition) const
         static_cast<int>(worldPosition.x) / tileSize, static_cast<int>(worldPosition.y) / tileSize);
 }
 
-int TileMap::tileIndexAt(glm::vec2 worldPosition) const
-{
-    return tilePositionToTileIndex(tileContaining(worldPosition));
-}
-
 int TileMap::getWidth() const
 {
     return width;
@@ -140,11 +130,6 @@ const Tile &TileMap::getTile(int tileIndex) const
 const Tile &TileMap::getTileAtTilePosition(glm::ivec2 tilePosition) const
 {
     return getTile(tilePositionToTileIndex(tilePosition));
-}
-
-const Tile &TileMap::getTileAtWorldPosition(glm::vec2 worldPosition) const
-{
-    return getTile(tileIndexAt(worldPosition));
 }
 
 int TileMap::getTileSize() const
@@ -261,9 +246,6 @@ bool TileMap::probeSolidTiles(
     auto tilePositions = tilesOverlapping(probeAABB.position, probeAABB.size);
     for (const auto &tilePosition : tilePositions)
     {
-        if (!validTilePosition(tilePosition))
-            continue;
-
         const Tile &tile = getTileAtTilePosition(tilePosition);
         if (!tile.isSolid())
             continue;

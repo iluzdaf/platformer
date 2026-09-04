@@ -16,16 +16,15 @@ class TileMap
 public:
     TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
     int tilePositionToTileIndex(glm::ivec2 tilePosition) const;
-    int tileIndexAt(glm::vec2 worldPosition) const;
     glm::ivec2 tileContaining(glm::vec2 worldPosition) const;
     const Tile &getTile(int tileIndex) const;
     const Tile &getTileAtTilePosition(glm::ivec2 tilePosition) const;
-    const Tile &getTileAtWorldPosition(glm::vec2 worldPosition) const;
     int getWidth() const;
     int getHeight() const;
     int getWorldWidth() const;
     int getWorldHeight() const;
     int getTileSize() const;
+    const Sheet &getTileSet() const;
     void update(float deltaTime);
     std::vector<glm::ivec2> tilesOverlapping(glm::vec2 worldPosition, glm::vec2 size) const;
     glm::vec2 topLeftOfTile(glm::ivec2 tilePosition) const;
@@ -46,10 +45,4 @@ private:
     std::unordered_map<int, Tile> tiles;
     std::string tilePalette;
     Sheet tileSet;
-
-public:
-    const Sheet &getTileSet() const;
-
-private:
-    void initFrom(const TileMapData &tileMapData, const TilePalettes &tilePalettes);
 };

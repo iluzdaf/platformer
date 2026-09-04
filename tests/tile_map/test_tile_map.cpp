@@ -381,3 +381,67 @@ TEST_CASE("Nothing stands on thin air", "[TileMap]")
 
     REQUIRE_FALSE(tileMap.standsOnGround(glm::ivec2(3, 4)));
 }
+
+TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
+{
+    TilePalettes palettes = palettesFrom(getDefaultTileDataMap());
+
+    SECTION("Both a grid and a size")
+    {
+        TileMapData both;
+        both.indices = std::vector<std::vector<int>>{{0, 0}, {0, 0}};
+        both.width = 2;
+        both.height = 2;
+        REQUIRE_THROWS_WITH(
+            TileMap(both, palettes), Catch::Matchers::ContainsSubstring("Cannot specify both"));
+    }
+
+    SECTION("A grid whose rows are not all one width")
+    {
+        TileMapData ragged;
+        ragged.indices = std::vector<std::vector<int>>{{0, 0}, {0}};
+        REQUIRE_THROWS_WITH(
+            TileMap(ragged, palettes),
+            Catch::Matchers::ContainsSubstring("Inconsistent row width"));
+    }
+
+    SECTION("Neither a grid nor a size")
+    {
+        REQUIRE_THROWS_WITH(
+            TileMap(TileMapData{}, palettes),
+            Catch::Matchers::ContainsSubstring("Must specify either"));
+    }
+
+    SECTION("A size of nothing")
+    {
+        TileMapData nothing;
+        nothing.width = 0;
+        nothing.height = 0;
+        REQUIRE_THROWS_WITH(
+            TileMap(nothing, palettes), Catch::Matchers::ContainsSubstring("invalid dimensions"));
+    }
+
+    SECTION("A palette naming no tile set texture")
+    {
+        TilePalette palette = paletteOf({{0, TileData{}}});
+        palette.tileSet.texture.clear();
+        TileMapData sized;
+        sized.width = 2;
+        sized.height = 2;
+        REQUIRE_THROWS_WITH(
+            TileMap(sized, palettesFrom(palette)),
+            Catch::Matchers::ContainsSubstring("names no tile set texture"));
+    }
+
+    SECTION("A palette whose cells have no size")
+    {
+        TilePalette palette = paletteOf({{0, TileData{}}});
+        palette.tileSet.cellSize = glm::ivec2(0);
+        TileMapData sized;
+        sized.width = 2;
+        sized.height = 2;
+        REQUIRE_THROWS_WITH(
+            TileMap(sized, palettesFrom(palette)),
+            Catch::Matchers::ContainsSubstring("cell size of 0"));
+    }
+}

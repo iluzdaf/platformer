@@ -223,6 +223,16 @@ TEST_CASE("Every file loadGameData reads reloads everything", "[Reloader]")
     REQUIRE(heard.levels.empty());
 }
 
+TEST_CASE("A file nobody has heard of under data reloads everything too", "[Reloader]")
+{
+    Reloader reloader;
+    Heard heard(reloader);
+
+    reloader.fileChanged("data/weather.json");
+
+    REQUIRE(heard.everything == 1);
+}
+
 TEST_CASE("A file nobody knows does nothing", "[Reloader]")
 {
     Reloader reloader;

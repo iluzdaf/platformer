@@ -14,22 +14,6 @@ namespace
                path[directory.size()] == '/';
     }
 
-    bool isGameData(std::string_view path)
-    {
-        for (std::string_view named :
-             {assets::GameSettings,
-              assets::Camera,
-              assets::Player,
-              assets::Npcs,
-              assets::Pickups,
-              assets::TilePalettes,
-              assets::LevelList})
-            if (path == named)
-                return true;
-
-        return false;
-    }
-
     void reporting(const std::function<void()> &rebuild)
     {
         try
@@ -58,7 +42,7 @@ void Reloader::fileChanged(const std::string &path)
         shaderChanged(path);
     else if (under(path, assets::Scripts))
         scriptsChanged();
-    else if (isGameData(path))
+    else if (under(path, assets::Data))
         gameDataChanged();
 }
 

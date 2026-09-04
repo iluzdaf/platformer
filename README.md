@@ -85,7 +85,9 @@ Terminal commands below assume a Unix shell. On Windows use Git Bash.
 
 ```bash
 platformer/
-├── assets/          json configuration, textures, tile maps
+├── assets/          what the game loads
+│   ├── data/        the json every editor section saves: game, camera, player, npcs, pickups, palettes, levels
+│   └── levels/      scripts/        shaders/        textures/
 ├── include/         headers, by subject
 │   ├── actor/       movement abilities, behaviors, animation state
 │   ├── tile_map/    the grid, its tiles, and what they do on contact
@@ -112,8 +114,8 @@ Formatting is defined by [.clang-format](.clang-format) and naming by
 
 ### Json Assets
 
-Levels and `game_data.json` share one format, written both by `TileMap::save` and by
-`tools/format_json.py`:
+Levels and the game data under `assets/data/` share one format, written both by the game
+and by `tools/format_json.py`:
 
 ```json
 "indices":[

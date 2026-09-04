@@ -1482,3 +1482,81 @@ TEST_CASE("A wall an actor cannot grip is not climbed", "[NavigationGraphBuilder
 
     REQUIRE(nodesOnWalls(buildNavigationGraph(ungrippableWall, climberProfile())).empty());
 }
+
+TEST_CASE("A jump still falling after ten seconds is no jump", "[NavigationGraphBuilder][Jump]")
+{
+    constexpr int TallerThanTenSecondsOfFalling = 420;
+    Placed laid;
+    layFloor(laid, 1, 0, LeftPlatformEnd);
+    TileMap tileMap = setupTileMapWith(laid, 20, TallerThanTenSecondsOfFalling);
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
+
+    REQUIRE(countEdgesOfType(graph, EdgeType::Jump) == 0);
+}
+
+TEST_CASE(
+    "The easiest jump is kept whichever order the arcs are tried in",
+    "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupTwoPlatforms(2);
+    NavigationProfile longestHoldFirst = jumperProfile();
+    NavigationProfile shortestHoldFirst = longestHoldFirst;
+    std::ranges::reverse(shortestHoldFirst.jumpArcs);
+    REQUIRE(longestHoldFirst.jumpArcs.size() > 1);
+
+    auto holdsOfJumps = [](const NavigationGraph &graph)
+    {
+        std::vector<float> holds;
+        for (const auto &edge : graph.getEdges())
+            if (edge.type == EdgeType::Jump)
+                holds.push_back(edge.holdDuration);
+        std::ranges::sort(holds);
+        return holds;
+    };
+
+    REQUIRE(
+        holdsOfJumps(buildNavigationGraph(tileMap, longestHoldFirst)) ==
+        holdsOfJumps(buildNavigationGraph(tileMap, shortestHoldFirst)));
+}
+
+TEST_CASE("A place is not walkable to itself, nor to another row", "[NavigationGraphBuilder]")
+{
+    Placed laid;
+    layFloor(laid, 5, 0, 9);
+    layFloor(laid, 3, 0, 9);
+    TileMap tileMap = setupTileMapWith(laid);
+    glm::vec2 onTheLowerFloor = tileMap.feetOnTile(glm::ivec2(2, 4));
+    glm::vec2 onTheUpperFloor = tileMap.feetOnTile(glm::ivec2(5, 2));
+
+    REQUIRE_FALSE(navigation::isWalkableBetween(tileMap, onTheLowerFloor, onTheLowerFloor, 1));
+    REQUIRE_FALSE(navigation::isWalkableBetween(tileMap, onTheLowerFloor, onTheUpperFloor, 1));
+}
+
+TEST_CASE(
+    "A fall onto a floor the graph has no node for is no edge",
+    "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    NavigationGraph graph;
+    graph.addNode(0, takeOffPosition(tileMap));
+
+    navigation::addFallEdges(graph, tileMap, jumperProfile(), 1);
+
+    REQUIRE(graph.getEdges().empty());
+}
+
+TEST_CASE(
+    "A jump onto a floor the graph has no node for is no edge",
+    "[NavigationGraphBuilder][Jump]")
+{
+    TileMap tileMap = setupLedgeAboveFloor();
+    NavigationGraph graph;
+    graph.addNode(0, takeOffPosition(tileMap));
+    glm::vec2 comesDown(takeOffPosition(tileMap).x + 40.0f, static_cast<float>(FloorBelowRow * 16));
+    std::vector<navigation::ChosenJump> jumps{{0, {takeOffPosition(tileMap), comesDown}, 0.2f}};
+
+    navigation::addJumpEdges(graph, tileMap, 1, jumps);
+
+    REQUIRE(graph.getEdges().empty());
+}

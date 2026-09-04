@@ -102,3 +102,24 @@ TEST_CASE("A walk stays on the platform", "[NavigationPath]")
     REQUIRE(walkableFrom(setupTwoFloors(), 0) == std::vector{0, 1, 2});
     REQUIRE(walkableFrom(setupTwoFloors(), 4) == std::vector{3, 4, 5});
 }
+
+TEST_CASE("A route found twice is settled once, by the cheaper way", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, glm::vec2(0.0f, 0.0f));
+    navigationGraph.addNode(1, glm::vec2(0.0f, 10.0f));
+    navigationGraph.addNode(2, glm::vec2(28.0f, 0.0f));
+    navigationGraph.addNode(3, glm::vec2(30.0f, 10.0f));
+    navigationGraph.addNode(4, glm::vec2(30.0f, 40.0f));
+    navigationGraph.addNode(5, glm::vec2(0.0f, 40.0f));
+    for (auto [from, to] :
+         {std::pair(0, 1),
+          std::pair(0, 2),
+          std::pair(1, 3),
+          std::pair(2, 3),
+          std::pair(3, 4),
+          std::pair(4, 5)})
+        navigationGraph.addEdge(from, to, EdgeType::Walk);
+
+    REQUIRE(findPath(navigationGraph, 0, 5) == std::vector{0, 2, 3, 4, 5});
+}

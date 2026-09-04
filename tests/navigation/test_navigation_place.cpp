@@ -241,3 +241,20 @@ TEST_CASE("The end of a path that is one node is that node", "[NavigationPlace]"
     REQUIRE(place->fromId == place->toId);
     REQUIRE(endOfThePathTowards(navigationGraph, *place, {300.0f, 96.0f}) == 0);
 }
+
+TEST_CASE("Nothing is on the same run in a graph with no nodes", "[NavigationPlace]")
+{
+    NavigationGraph navigationGraph;
+
+    REQUIRE_FALSE(onTheSameRun(navigationGraph, {16.0f, 96.0f}, {112.0f, 96.0f}));
+}
+
+TEST_CASE("A path between two nodes in one place is that place", "[NavigationPlace]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {16.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+
+    REQUIRE(placeOnThePath(navigationGraph, {40.0f, 96.0f})->position == glm::vec2(16.0f, 96.0f));
+}

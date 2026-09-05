@@ -29,16 +29,6 @@ bool drawTileCell(const Texture2D &tileSet, int tileSize, int tileIndex)
     return clicked;
 }
 
-void drawTileImage(const Texture2D &sheet, int cellSize, int tileIndex, float size)
-{
-    auto [uvStart, uvEnd] = sheet.getUVRange(tileIndex, cellSize, false);
-    ImGui::Image(
-        (ImTextureID)(intptr_t)sheet.getTextureID(),
-        ImVec2(size, size),
-        ImVec2(uvStart.x, uvStart.y),
-        ImVec2(uvEnd.x, uvEnd.y));
-}
-
 std::optional<int> drawTilePicker(
     const Texture2D &sheet,
     const SheetData &tileSet,

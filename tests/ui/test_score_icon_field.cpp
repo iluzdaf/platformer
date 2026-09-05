@@ -25,7 +25,7 @@ namespace
     float heightOfIcon(HeadlessImGui &gui, ScoreIconData &icon, bool withSheet)
     {
         Texture2D sheet = aSheetOf(7, 6);
-        SheetInScope offering{&sheet, icon.sheet, icon.frame};
+        SheetInScope offering{&sheet, icon.sheet};
 
         float reached = 0.0f;
         gui.frame(

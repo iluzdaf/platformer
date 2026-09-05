@@ -609,3 +609,43 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
 
     std::filesystem::remove_all(directory);
 }
+
+#ifndef SKIP_OPENGL_TESTS
+
+#include "test_helpers/pictures_drawn.hpp"
+#include "ui/sheet_preview.hpp"
+
+TEST_CASE("The types section previews an npc above its fields", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    TextureCache textures;
+    EditorCommands commands;
+    gameData.npcData["villager"].actorData.sheet.texture = std::string(assets::PlayerTexture);
+    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    auto drawing = [&] { typesUi.draw(gameData, textures, commands); };
+
+    REQUIRE_FALSE(drawsAPictureWide(gui, PreviewSize, drawing));
+
+    textures.warm(std::string(assets::PlayerTexture));
+
+    REQUIRE(drawsAPictureWide(gui, PreviewSize, drawing));
+}
+
+TEST_CASE("The types section previews a pickup above its fields", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    TextureCache textures;
+    EditorCommands commands;
+    gameData.pickupData["coin"].sheet.texture = std::string(assets::PlayerTexture);
+    textures.warm(std::string(assets::PlayerTexture));
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+
+    REQUIRE(
+        drawsAPictureWide(gui, PreviewSize, [&] { typesUi.draw(gameData, textures, commands); }));
+}
+
+#endif

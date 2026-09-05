@@ -270,7 +270,9 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "rendering/texture_cache.hpp"
 #include <imgui_internal.h>
 #include "test_helpers/headless_imgui.hpp"
+#include "test_helpers/pictures_drawn.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
+#include "ui/sheet_preview.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "ui/armed.hpp"
@@ -686,6 +688,32 @@ TEST_CASE("A palette rename outlives a reload of the values it waits on", "[Tile
     tilePalettesUi.reloaded(palettes, palettes);
 
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
+}
+
+TEST_CASE("The palette editor previews the picked tile above its fields", "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+
+    TextureCache textures;
+    textures.warm(palettes["default"].tileSet.texture);
+
+    std::optional<Armed> armed;
+    EditorCommands commands;
+    auto drawing = [&] { tilePalettesUi.draw(palettes, textures, commands, armed); };
+
+    REQUIRE_FALSE(drawsAPictureWide(gui, PreviewSize, drawing));
+
+    armed = PaintTile{0};
+
+    REQUIRE(drawsAPictureWide(gui, PreviewSize, drawing));
+
+    armed = PaintTile{1};
+
+    REQUIRE(drawsAPictureWide(gui, PreviewSize, drawing));
+    REQUIRE_FALSE(palettes["default"].tiles.contains(1));
 }
 
 #endif // SKIP_OPENGL_TESTS

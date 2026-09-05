@@ -15,6 +15,8 @@
 struct LevelData;
 class TextureCache;
 struct EditorCommands;
+struct SheetInScope;
+struct ActorAnimationData;
 
 class TypesUi
 {
@@ -39,6 +41,7 @@ private:
     void drawChooser(GameData &gameData);
     void drawRename(const GameData &gameData);
     void drawShown(GameData &gameData, const TextureCache &textures, EditorCommands &commands);
+    void drawActorPreview(const SheetInScope &scope, const ActorAnimationData &animations);
 
     std::string levelsDirectory;
     WriteNpcs writeNpcs;
@@ -46,5 +49,6 @@ private:
     Saveable saveable;
     Renaming npcRenaming, pickupRenaming;
     TypeShown showing;
+    std::string previewing = "idle";
     std::string askedToWarm;
 };

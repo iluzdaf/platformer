@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <vector>
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/types_ui.hpp"
@@ -10,6 +11,10 @@
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/sheet_in_scope.hpp"
+#include "ui/sheet_preview.hpp"
+#include "actor/actor_data.hpp"
+#include "npc/npc_data.hpp"
+#include "pickups/pickup_data.hpp"
 #include "ui/editor_commands.hpp"
 #include "rendering/texture_cache.hpp"
 #include "rendering/texture2d.hpp"
@@ -24,6 +29,7 @@
 namespace
 {
     constexpr float ButtonsWidth = 108.0f;
+    constexpr float PreviewChooserWidth = 100.0f;
 
     std::string labelOf(const TypeShown &showing)
     {
@@ -140,12 +146,42 @@ void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, Editor
         commands.onWarmTexture(sheet->texture);
     }
 
-    ShowingSheet offering(SheetInScope{texture, *sheet, 0});
+    SheetInScope scope{texture, *sheet};
+    ShowingSheet offering(scope);
 
     if (showing.what == TypeShown::What::Npc)
-        inspector::drawFields(gameData.npcData.at(showing.name));
+    {
+        NpcData &npc = gameData.npcData.at(showing.name);
+        drawActorPreview(scope, npc.actorData.animationData);
+        inspector::drawFields(npc);
+    }
     else
-        inspector::drawFields(gameData.pickupData.at(showing.name));
+    {
+        PickupData &pickup = gameData.pickupData.at(showing.name);
+        drawAnimationPreview(scope, pickup.animationData);
+        inspector::drawFields(pickup);
+    }
+}
+
+void TypesUi::drawActorPreview(const SheetInScope &scope, const ActorAnimationData &animations)
+{
+    if (!scope.texture)
+        return;
+
+    std::vector<NamedAnimation> offered = animationsOf(animations);
+    const NamedAnimation &shown = animationNamed(offered, previewing);
+    drawAnimationPreview(scope, *shown.animation);
+
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(PreviewChooserWidth);
+    if (!ImGui::BeginCombo("##previewing", shown.name))
+        return;
+
+    for (const NamedAnimation &animation : offered)
+        if (ImGui::Selectable(animation.name, animation.name == shown.name))
+            previewing = animation.name;
+
+    ImGui::EndCombo();
 }
 
 void TypesUi::draw(GameData &gameData, const TextureCache &textures, EditorCommands &commands)

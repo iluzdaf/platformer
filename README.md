@@ -269,6 +269,9 @@ motion state.**
 - They run in a fixed order, move first and gravity last. A later ability sees what an
   earlier one decided this tick; an earlier one sees a later one's from the last tick.
   Contacts are what physics found at the end of the previous tick.
+- A lip no taller than the body's `stepHeight` is walked over, and a body found resting
+  inside a surface is lifted onto it. Anything taller is a wall. The number lives in the
+  physics body data, so it is tuning rather than an accident of the probe's shape.
 - Buffers and coyote windows belong to the ability that needs them, so a jump buffer
   and a wall jump buffer are two objects with two durations, not one shared timer.
 - Abilities do not raise signals. `Player::postFixedUpdate` reads the `emit` flags and

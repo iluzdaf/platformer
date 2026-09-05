@@ -13,6 +13,8 @@
 #include "rendering/screen_transition.hpp"
 #include "cameras/camera2d.hpp"
 #include "window/window.hpp"
+#include "input/keys_down.hpp"
+#include "input/keys_unless_captured.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "reloading/reloader.hpp"
 
@@ -91,7 +93,8 @@ void Game::frame(float deltaTime)
 {
     gameUi.commands().drain();
 
-    keys.poll(window.keysDown());
+    KeysDown keysDown = keysUnlessCaptured(window.keysDown(), gameUi.wantsKeyboard());
+    keys.poll(keysDown);
     if (keys.isPressed(GLFW_KEY_P))
         playback.isPaused() ? playback.play() : playback.pause();
     if (keys.isPressed(GLFW_KEY_F1))
@@ -106,9 +109,9 @@ void Game::frame(float deltaTime)
 
     playback.advance(
         deltaTime,
-        [this]
+        [this, &keysDown]
         {
-            keyboardIntentions.process(window.keysDown());
+            keyboardIntentions.process(keysDown);
             world.preFixedUpdate();
         },
         [this](float dt)

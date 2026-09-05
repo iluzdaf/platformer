@@ -165,6 +165,7 @@ add_library(platformer_lib OBJECT
     src/cameras/camera_shake.cpp
     src/input/key_tracker.cpp
     src/input/keyboard_intentions.cpp
+    src/input/keys_unless_captured.cpp
     src/animations/frame_animation.cpp
     src/animations/animation_manager.cpp
     src/scripting/lua_script_system.cpp
@@ -322,6 +323,7 @@ add_executable(tests
     tests/cameras/test_camera_shake.cpp
     tests/input/test_key_tracker.cpp
     tests/input/test_keyboard_intentions.cpp
+    tests/input/test_keys_unless_captured.cpp
     tests/animations/test_animation_manager.cpp
     tests/animations/test_frame_animation.cpp
     tests/navigation/test_navigation_graph.cpp

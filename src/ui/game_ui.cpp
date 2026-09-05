@@ -64,6 +64,11 @@ void GameUi::resize(int width, int height)
     imGuiManager.resize(width, height);
 }
 
+bool GameUi::wantsKeyboard() const
+{
+    return imGuiManager.getIO().WantCaptureKeyboard;
+}
+
 EditorUi &GameUi::editor()
 {
     return editorUi;

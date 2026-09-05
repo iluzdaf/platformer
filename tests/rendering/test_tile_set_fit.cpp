@@ -7,6 +7,7 @@
 #include "rendering/tile_set_fit.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "tile_map/tile_data.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
 
 TEST_CASE("A tile set covering every tile a palette declares fits", "[TileSet]")
@@ -24,6 +25,29 @@ TEST_CASE("A tile past the end of its tile set is refused", "[TileSet]")
         checkTileSetFits(palette, "default", 112, 112),
         Catch::Matchers::ContainsSubstring("Tile 49") &&
             Catch::Matchers::ContainsSubstring("49 tiles") &&
+            Catch::Matchers::ContainsSubstring("default"));
+}
+
+TEST_CASE("A tile animating inside its tile set fits", "[TileSet]")
+{
+    TileData animated;
+    animated.animationData = FrameAnimationData{{0, 48}, 0.1f};
+    TilePaletteData palette = paletteOf({{0, animated}});
+
+    REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 112, 112));
+}
+
+TEST_CASE("A tile animating past the end of its tile set is refused", "[TileSet]")
+{
+    TileData animated;
+    animated.animationData = FrameAnimationData{{0, 49}, 0.1f};
+    TilePaletteData palette = paletteOf({{3, animated}});
+
+    REQUIRE_THROWS_WITH(
+        checkTileSetFits(palette, "default", 112, 112),
+        Catch::Matchers::ContainsSubstring("Tile 3") &&
+            Catch::Matchers::ContainsSubstring("frame 49") &&
+            Catch::Matchers::ContainsSubstring("holds 49") &&
             Catch::Matchers::ContainsSubstring("default"));
 }
 

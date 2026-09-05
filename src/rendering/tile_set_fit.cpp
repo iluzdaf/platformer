@@ -1,6 +1,8 @@
 #include <stdexcept>
 #include <string>
 #include "rendering/tile_set_fit.hpp"
+#include "rendering/frames_fit.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "assets/sheet_data.hpp"
 
@@ -36,8 +38,18 @@ void checkTileSetFits(
             "Tile set \"" + tileSet.texture + "\" holds no whole tiles at " +
             std::to_string(tileSet.cellSize.x) + " across" + named(paletteName));
     for (const auto &[tileIndex, tileData] : palette.tiles)
+    {
         if (tileIndex >= cells)
             throw std::runtime_error(
                 "Tile " + std::to_string(tileIndex) + " is past the " + std::to_string(cells) +
                 " tiles of \"" + tileSet.texture + "\"" + named(paletteName));
+
+        if (tileData.animationData)
+            checkFramesFit(
+                tileData.animationData->frames,
+                tileSet,
+                "Tile " + std::to_string(tileIndex) + named(paletteName),
+                textureWidth,
+                textureHeight);
+    }
 }

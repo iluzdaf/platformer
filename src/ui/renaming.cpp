@@ -97,7 +97,6 @@ std::optional<Renamed> Renaming::draw(
 
     Renamed renamed{shownName(selected), typing};
     rememberRename(renames, renamed.from, renamed.to);
-    rePointed.clear();
 
     return renamed;
 }
@@ -118,7 +117,6 @@ void Renaming::added(const std::string &name)
 bool Renaming::remove(const std::string &onDisk, const std::optional<std::string> &fallingBackTo)
 {
     renames.erase(onDisk);
-    rePointed.clear();
 
     if (neverSaved.erase(onDisk) > 0)
         return false;
@@ -192,13 +190,10 @@ std::optional<std::string> Renaming::cannotSaveBecause() const
 
 std::string Renaming::whatTheLevelsNeed() const
 {
-    if (!willRePoint.empty())
-        return levelsInAList(willRePoint) + " will be re-pointed.";
+    if (willRePoint.empty())
+        return {};
 
-    if (!rePointed.empty())
-        return levelsInAList(rePointed) + " re-pointed.";
-
-    return {};
+    return levelsInAList(willRePoint) + " will be re-pointed.";
 }
 
 bool Renaming::somethingIsBecoming(const std::string &name) const
@@ -210,14 +205,13 @@ bool Renaming::somethingIsBecoming(const std::string &name) const
     return false;
 }
 
-void Renaming::applied(const std::vector<std::string> &levels)
+void Renaming::applied()
 {
     renames.clear();
     removals.clear();
     neverSaved.clear();
     willRePoint.clear();
     unreadable.clear();
-    rePointed = levels;
 }
 
 void Renaming::willReach(const std::vector<std::string> &levels)
@@ -237,7 +231,6 @@ void Renaming::forget()
     renames.clear();
     removals.clear();
     neverSaved.clear();
-    rePointed.clear();
     willRePoint.clear();
     unreadable.clear();
 }
@@ -272,6 +265,6 @@ bool writeRenamesIntoLevels(
         return false;
     }
 
-    renaming.applied(reach.levels);
+    renaming.applied();
     return true;
 }

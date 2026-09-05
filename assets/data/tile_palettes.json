@@ -1,5 +1,5 @@
 {
-    "default":{
+    "cavern":{
         "tileSet":{"texture":"textures/cavern.png","cellSize":[16,16]},
         "tiles":{
             "0":{},
@@ -8,25 +8,38 @@
             "3":{"deadly":true,"collider":{"offset":[12,0],"size":[4,16]}},
             "4":{"deadly":true,"collider":{"offset":[0,0],"size":[16,4]}},
             "5":{"portal":true,"collider":{"offset":[4,4],"size":[8,8]}},
-            "6":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "7":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "8":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "6":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[14,15]}},
+            "7":{"solid":true,"collider":{"offset":[0,0],"size":[16,15]}},
+            "8":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[14,15]}},
+            "9":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[14,15]}},
+            "10":{"solid":true,"collider":{"offset":[0,0],"size":[16,15]}},
+            "11":{"solid":true,"collider":{"offset":[0,0],"size":[16,15]}},
+            "12":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[14,15]}},
             "13":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "14":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[14,16]}},
             "15":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[14,16]}},
+            "16":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "17":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
             "18":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[14,16]}},
-            "20":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "21":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "24":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "25":{"solid":true,"collider":{"offset":[2,0],"size":[12,16]}},
+            "19":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[12,15]}},
+            "20":{"solid":true,"grippable":true,"collider":{"offset":[0,1],"size":[14,15]}},
+            "21":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[14,16]}},
+            "22":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "23":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "24":{"solid":true,"grippable":true,"collider":{"offset":[0,0],"size":[14,16]}},
+            "25":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[12,16]}},
+            "26":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[14,16]}},
             "27":{"solid":true,"grippable":true,"collider":{"offset":[2,1],"size":[14,15]}},
             "28":{"solid":true,"collider":{"offset":[0,1],"size":[16,15]}},
+            "29":{"solid":true,"collider":{"offset":[0,1],"size":[16,15]}},
             "30":{"solid":true,"grippable":true,"collider":{"offset":[0,1],"size":[14,15]}},
-            "31":{"solid":true,"collider":{"offset":[2,1],"size":[12,15]}},
-            "32":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
+            "31":{"solid":true,"grippable":true,"collider":{"offset":[2,1],"size":[12,15]}},
+            "32":{"solid":true,"grippable":true,"collider":{"offset":[2,1],"size":[14,15]}},
             "33":{"solid":true,"collider":{"offset":[0,1],"size":[16,15]}},
-            "35":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "36":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}},
-            "37":{"solid":true,"collider":{"offset":[0,0],"size":[16,16]}}
+            "34":{"solid":true,"collider":{"offset":[2,1],"size":[12,14]}},
+            "35":{"solid":true,"collider":{"offset":[2,1],"size":[14,14]}},
+            "36":{"solid":true,"collider":{"offset":[0,1],"size":[16,14]}},
+            "37":{"solid":true,"collider":{"offset":[0,1],"size":[14,14]}}
         }
     }
 }

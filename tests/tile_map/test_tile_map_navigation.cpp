@@ -9,6 +9,13 @@
 #include <string>
 #include <iterator>
 #include "npc/npc_spawn_data.hpp"
+#include "npc/npc_data.hpp"
+#include "pickups/pickup_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
+#include "tile_map/tile_palette_data.hpp"
+#include <map>
+#include <optional>
+#include <glm/gtc/matrix_transform.hpp>
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
@@ -18,14 +25,13 @@
 
 namespace
 {
-    Level loadLevel(const std::string &path)
+    Level loadLevel(
+        const std::string &path,
+        const TilePalettes &palettes = shippedPalettes(),
+        const std::map<std::string, NpcData> &npcs = shippedNpcData(),
+        const std::map<std::string, PickupData> &pickups = shippedPickupData())
     {
-        return Level(
-            readLevelData(path),
-            shippedPalettes(),
-            PlayerData(),
-            shippedNpcData(),
-            shippedPickupData());
+        return Level(readLevelData(path), palettes, PlayerData(), npcs, pickups);
     }
 
     TileMap floorAt(int groundY, int fromX, int toX)
@@ -37,14 +43,39 @@ namespace
         return setupTileMapWith(laid);
     }
 
-    LevelData asTheEditorWouldHoldIt(const std::string &path)
+    LevelData asTheEditorWouldHoldIt(
+        const std::string &path,
+        const TilePalettes &palettes = shippedPalettes(),
+        const std::map<std::string, NpcData> &npcs = shippedNpcData(),
+        const std::map<std::string, PickupData> &pickups = shippedPickupData())
     {
         LevelData data = readLevelData(path);
-        Level level(data, shippedPalettes(), PlayerData(), shippedNpcData(), shippedPickupData());
+        Level level(data, palettes, PlayerData(), npcs, pickups);
         data.tileMapData = level.getTileMap().toTileMapData();
 
         return data;
     }
+
+    struct ALevelOfItsOwn
+    {
+        TilePalettes palettes = palettesFrom(getDefaultTileDataMap());
+        std::map<std::string, NpcData> npcs = {{"villager", NpcData{}}};
+        std::map<std::string, PickupData> pickups = {{"coin", PickupData{}}};
+
+        LevelData levelData() const
+        {
+            LevelData data;
+            data.tileMapData.tilePalette = "default";
+            data.tileMapData.indices = std::vector<std::vector<int>>(3, std::vector<int>(20, 0));
+            for (int x = 0; x < 20; ++x)
+                data.tileMapData.indices[2][x] = 1;
+            data.playerStart = feetOf(glm::ivec2(0, 1));
+            data.nextLevel = "levels/somewhere.json";
+            data.npcs = {NpcSpawnData{"villager", feetOf(glm::ivec2(2, 1)), std::nullopt}};
+            data.pickups = {PickupSpawnData{"coin", feetOf(glm::ivec2(3, 1))}};
+            return data;
+        }
+    };
 
     std::string readFile(const std::filesystem::path &path)
     {
@@ -70,13 +101,13 @@ TEST_CASE(
 {
     std::filesystem::path savePath =
         std::filesystem::temp_directory_path() / "platformer_save_roundtrip.json";
-    std::filesystem::copy_file(
-        assetPath("levels/level6.json"),
-        savePath,
-        std::filesystem::copy_options::overwrite_existing);
+    ALevelOfItsOwn own;
+    writeLevelData(own.levelData(), savePath.string());
 
-    Level loaded = loadLevel(savePath.string());
-    writeLevelData(asTheEditorWouldHoldIt(savePath.string()), savePath.string());
+    Level loaded = loadLevel(savePath.string(), own.palettes, own.npcs, own.pickups);
+    writeLevelData(
+        asTheEditorWouldHoldIt(savePath.string(), own.palettes, own.npcs, own.pickups),
+        savePath.string());
 
     std::string savedJson = readFile(savePath);
 
@@ -97,8 +128,10 @@ TEST_CASE(
     REQUIRE(savedJson.find("\"playerStart\":[") != std::string::npos);
     REQUIRE(savedJson.find("\"playerStart\":[\n") == std::string::npos);
 
-    Level reloaded = loadLevel(savePath.string());
-    writeLevelData(asTheEditorWouldHoldIt(savePath.string()), savePath.string());
+    Level reloaded = loadLevel(savePath.string(), own.palettes, own.npcs, own.pickups);
+    writeLevelData(
+        asTheEditorWouldHoldIt(savePath.string(), own.palettes, own.npcs, own.pickups),
+        savePath.string());
     REQUIRE(readFile(savePath) == savedJson);
 
     REQUIRE(reloaded.getTileMap().getWidth() == loaded.getTileMap().getWidth());

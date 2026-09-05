@@ -25,6 +25,7 @@
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "test_helpers/asset_path.hpp"
 #include "tile_map/tile_palette_data.hpp"
+#include "tile_map/tile_data.hpp"
 
 namespace
 {
@@ -137,12 +138,23 @@ namespace
     constexpr int RiseFirstTile = 12;
     constexpr int RiseLastTile = 18;
 
-    constexpr int WallTile = 18;
-    constexpr int CornerTile = 13;
-    constexpr int GroundTile = 33;
-    constexpr int SurfaceTile = 36;
-    constexpr int SurfaceStartTile = 35;
-    constexpr int SurfaceEndTile = 37;
+    constexpr int Solid = 1;
+    constexpr int Grippable = 2;
+    constexpr int WallTile = Grippable;
+    constexpr int CornerTile = Grippable;
+    constexpr int GroundTile = Solid;
+    constexpr int SurfaceTile = Solid;
+    constexpr int SurfaceStartTile = Solid;
+    constexpr int SurfaceEndTile = Solid;
+
+    TilePaletteData ledgePalette()
+    {
+        TileData solid;
+        solid.solid = true;
+        TileData grippable;
+        grippable.solid = grippable.grippable = true;
+        return paletteOf({{0, TileData{}}, {Solid, solid}, {Grippable, grippable}});
+    }
 
     constexpr glm::ivec2 LedgeLeftEnd{1, LedgeRow - 1};
     constexpr glm::ivec2 LedgeRightEnd{LedgeLastTile, LedgeRow - 1};
@@ -205,7 +217,7 @@ namespace
 
         return Level(
             levelData,
-            shippedPalettes(),
+            palettesFrom(ledgePalette()),
             loadGameData().playerData,
             shippedNpcData(),
             shippedPickupData());

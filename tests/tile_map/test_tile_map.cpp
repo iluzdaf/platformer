@@ -10,6 +10,8 @@
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_collider_data.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "tile_map/tile.hpp"
@@ -167,8 +169,18 @@ TEST_CASE("Every shipped palette names a texture that is on disk", "[TileMap]")
 
 TEST_CASE("A palette survives being written and read back", "[TilePalette]")
 {
+    TileData spike;
+    spike.deadly = true;
+    spike.collider = TileColliderData{glm::vec2(0.0f, 12.0f), glm::vec2(16.0f, 4.0f)};
+    TileData wall;
+    wall.solid = wall.grippable = true;
+    TileData torch;
+    torch.animationData = FrameAnimationData{{3, 4, 5}, 0.2f};
+    TilePalettes palettes =
+        palettesFrom(paletteOf({{0, TileData{}}, {1, spike}, {2, wall}, {7, torch}}));
+
     std::string written;
-    REQUIRE_FALSE(glz::write_json(shippedPalettes(), written));
+    REQUIRE_FALSE(glz::write_json(palettes, written));
 
     TilePalettes readBack;
     REQUIRE_FALSE(glz::read_json(readBack, written));
@@ -177,8 +189,13 @@ TEST_CASE("A palette survives being written and read back", "[TilePalette]")
     REQUIRE_FALSE(glz::write_json(readBack, rewritten));
 
     REQUIRE(rewritten == written);
-    REQUIRE(readBack.at("default").tileSet == shippedPalettes().at("default").tileSet);
-    REQUIRE(readBack.at("default").tiles.size() == shippedPalettes().at("default").tiles.size());
+    const TilePaletteData &back = readBack.at("default");
+    REQUIRE(back.tileSet == palettes.at("default").tileSet);
+    REQUIRE(back.tiles.size() == 4);
+    REQUIRE(back.tiles.at(1).deadly);
+    REQUIRE(back.tiles.at(1).collider->size == glm::vec2(16.0f, 4.0f));
+    REQUIRE(back.tiles.at(2).grippable);
+    REQUIRE(back.tiles.at(7).animationData->frames == std::vector<int>{3, 4, 5});
 }
 
 TEST_CASE("A painted tile the palette says nothing about is empty", "[TileMap]")

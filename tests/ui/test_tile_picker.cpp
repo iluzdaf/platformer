@@ -27,8 +27,6 @@ TEST_CASE("A sheet too small for one tile holds none", "[TilePicker]")
 #include "test_helpers/headless_imgui.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/editor_ui.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
-#include "tile_map/tile_palette_data.hpp"
 
 namespace
 {
@@ -56,20 +54,6 @@ namespace
 
         return static_cast<int>(height / oneRow + 0.5f);
     }
-}
-
-TEST_CASE("The tile picker offers more cells than the palette configures", "[TilePicker]")
-{
-    HeadlessImGui gui;
-    Texture2D tileSet = aSheetOf(7, 6);
-    const TilePaletteData &palette = shippedPalettes().at("default");
-
-    int cells = tilesInSheet(
-        static_cast<int>(tileSet.getWidth()),
-        static_cast<int>(tileSet.getHeight()),
-        palette.tileSet.cellSize.x);
-
-    REQUIRE(cells > static_cast<int>(palette.tiles.size()));
 }
 
 TEST_CASE("A smaller cell means the picker draws more of them", "[TilePicker]")

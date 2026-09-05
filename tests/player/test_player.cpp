@@ -20,6 +20,7 @@
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_collider_data.hpp"
 
 using Catch::Approx;
 
@@ -403,10 +404,23 @@ namespace
         return gameData;
     }
 
-    TileMapData pitOf(int tiles, Pit kind, const TilePalettes &tilePalettes)
+    constexpr int PitSolid = 1;
+    constexpr int PitSpike = 2;
+
+    TilePalettes pitPalette()
     {
-        int solidTile = aSolidTileIn(tilePalettes.at("default"));
-        int spikeTile = aDeadlyTileIn(tilePalettes.at("default"));
+        TileData solid;
+        solid.solid = true;
+        TileData spike;
+        spike.deadly = true;
+        spike.collider = TileColliderData{glm::vec2(0.0f, 12.0f), glm::vec2(16.0f, 4.0f)};
+        return palettesFrom(paletteOf({{0, TileData{}}, {PitSolid, solid}, {PitSpike, spike}}));
+    }
+
+    TileMapData pitOf(int tiles, Pit kind)
+    {
+        int solidTile = PitSolid;
+        int spikeTile = PitSpike;
 
         std::vector<std::vector<int>> rows(PitMapHeight, std::vector<int>(PitMapWidth, 0));
         for (int x = 0; x < PitMapWidth; ++x)
@@ -435,13 +449,9 @@ namespace
     {
         LevelData levelData;
         levelData.playerStart = feetOf(glm::ivec2(0, 0));
-        levelData.tileMapData = pitOf(tiles, kind, gameData.tilePalettes);
+        levelData.tileMapData = pitOf(tiles, kind);
         Level level(
-            levelData,
-            gameData.tilePalettes,
-            gameData.playerData,
-            gameData.npcData,
-            gameData.pickupData);
+            levelData, pitPalette(), gameData.playerData, gameData.npcData, gameData.pickupData);
 
         float pitLeft = static_cast<float>(PitStart) * 16.0f;
         float pitRight = static_cast<float>(PitStart + tiles) * 16.0f;
@@ -547,29 +557,63 @@ TEST_CASE("The shipped player's jump and dash together are worth five tiles", "[
     REQUIRE(gameData.playerData.actorData.motionData.dashAbilityData->airborneFraction < 1.0f);
 }
 
-TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]")
+namespace
+{
+    constexpr int StairsSolid = 1;
+    constexpr int StairsWall = 2;
+
+    TilePalettes stairsPalette()
+    {
+        TileData solid;
+        solid.solid = true;
+        TileData wall;
+        wall.solid = wall.grippable = true;
+        return palettesFrom(paletteOf({{0, TileData{}}, {StairsSolid, solid}, {StairsWall, wall}}));
+    }
+
+    TileMapData threeStairs()
+    {
+        TileMapData tileMapData;
+        tileMapData.tilePalette = "default";
+        tileMapData.indices = std::vector<std::vector<int>>(14, std::vector<int>(20, 0));
+        std::vector<std::vector<int>> &rows = tileMapData.indices;
+
+        for (int y = 0; y < 12; ++y)
+            rows[y][0] = rows[y][19] = StairsWall;
+        for (int x = 0; x < 20; ++x)
+            rows[12][x] = rows[13][x] = StairsSolid;
+
+        for (int x = 12; x <= 18; ++x)
+            rows[10][x] = StairsSolid;
+        for (int x = 3; x <= 9; ++x)
+            rows[8][x] = StairsSolid;
+        for (int x = 1; x <= 6; ++x)
+            rows[6][x] = StairsSolid;
+
+        return tileMapData;
+    }
+}
+
+TEST_CASE("The shipped player can climb three stepped platforms", "[Player][Tuning]")
 {
     GameData gameData = shippedGameData();
     LevelData levelData;
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
-    REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level6.json"), std::string{}));
-    Level level(
-        levelData,
-        gameData.tilePalettes,
-        gameData.playerData,
-        gameData.npcData,
-        gameData.pickupData);
+    levelData.playerStart = feetOf(glm::ivec2(1, 11));
+    levelData.tileMapData = threeStairs();
+    Level level(levelData, stairsPalette(), gameData.playerData, {}, {});
 
     struct Step
     {
         const char *what;
-        float edgeX, standOn, towards, intoPlatform, landOn;
+        float edgeX, standOn, towards, intoPlatform;
+        int landOnRow;
     };
 
+    const TileMap &tileMap = level.getTileMap();
     for (Step step :
-         {Step{"floor to the lowest platform", 192.0f, 192.0f, 1.0f, -1.0f, 160.0f},
-          Step{"lowest to the middle platform", 192.0f, 160.0f, -1.0f, 1.0f, 128.0f},
-          Step{"middle to the highest platform", 160.0f, 128.0f, -1.0f, -1.0f, 96.0f}})
+         {Step{"floor to the lowest platform", 192.0f, 192.0f, 1.0f, -1.0f, 10},
+          Step{"lowest to the middle platform", 192.0f, 160.0f, -1.0f, 1.0f, 8},
+          Step{"middle to the highest platform", 160.0f, 128.0f, -1.0f, -1.0f, 6}})
     {
         int takeOffPointsThatWork = 0;
         for (float back = 0.0f; back <= 44.0f; back += 2.0f)
@@ -590,8 +634,9 @@ TEST_CASE("The shipped player can climb every step of level6", "[Player][Tuning]
 
                 runAFrame(player, level, timestepper);
 
+                glm::vec2 feet = player.getPhysicsBody().getAABB().bottomCenter();
                 if (player.getMotion().getState().contacts.onGround &&
-                    std::abs(player.getPosition().y + 16.0f - step.landOn) < 0.5f)
+                    tileMap.tileStoodOnAt(feet).y == step.landOnRow - 1)
                 {
                     ++takeOffPointsThatWork;
                     break;

@@ -46,6 +46,7 @@ public:
         const std::string &levelPath,
         const Camera2D &camera);
     void resize(int width, int height);
+    bool wantsKeyboard() const;
     EditorUi &editor();
     EditorCommands &commands();
 

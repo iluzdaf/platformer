@@ -25,6 +25,5 @@
         {"type":"villager","position":[56,96],"patrol":{"from":[16,96],"to":[112,96]}},
         {"type":"explorer","position":[168,192],"patrol":{"from":[16,96],"to":[208,160]}},
         {"type":"explorer","position":[248,160],"patrol":{"from":[224,160],"to":[304,48]}}
-    ],
-    "pickups":[]
+    ]
 }

@@ -1,29 +1,17 @@
 {
     "actorData":{
-        "sheet":{"texture":"textures/player.png","cellSize":[16,16]},
-        "size":[16,16],
+        "sheet":{"texture":"textures/player.png"},
         "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
         "motionData":{
             "moveAbilityData":{"moveSpeed":110},
-            "jumpAbilityData":{
-                "jumpSpeed":-280,
-                "jumpBufferDuration":0.15,
-                "jumpCoyoteDuration":0.15,
-                "jumpDuration":0.2
-            },
+            "jumpAbilityData":{"jumpSpeed":-280},
             "dashAbilityData":{"dashSpeed":400,"dashDuration":0.15,"airborneFraction":0.6},
-            "wallSlideAbilityData":{"slideSpeed":50},
-            "wallJumpAbilityData":{
-                "wallJumpSpeed":-250,
-                "wallJumpHorizontalSpeed":250,
-                "wallJumpDuration":0.2,
-                "wallJumpBufferDuration":0.15,
-                "wallJumpCoyoteDuration":0.15
-            },
+            "wallSlideAbilityData":{},
+            "wallJumpAbilityData":{},
             "wallHangAbilityData":{},
-            "wallClimbAbilityData":{"climbSpeed":80},
-            "mantleAbilityData":{"mantleSpeed":90,"mantleDuration":0.3},
-            "gravityAbilityData":{"gravity":500,"maxFallSpeed":600}
+            "wallClimbAbilityData":{},
+            "mantleAbilityData":{},
+            "gravityAbilityData":{}
         },
         "animationData":{
             "idle":{"frames":[5],"frameDuration":1},

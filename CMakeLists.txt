@@ -279,6 +279,7 @@ add_executable(tests
     tests/test_main.cpp
     tests/ui/test_saveable.cpp
     tests/serialization/test_json_format.cpp
+    tests/serialization/test_only_what_differs.cpp
     tests/ui/test_editor_command.cpp
     tests/ui/test_armed.cpp
     tests/ui/test_grid_shown.cpp
@@ -345,6 +346,7 @@ add_executable(tests
     tests/reloading/test_reloader.cpp
     tests/reloading/test_file_watcher_listener.cpp
     tests/game/test_game.cpp
+    tests/game/test_game_data.cpp
     tests/game/test_reloads.cpp
     tests/window/test_window.cpp
     tests/game/test_world.cpp

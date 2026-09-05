@@ -15,7 +15,5 @@
         "tilePalette":"cavern"
     },
     "playerStart":[8,128],
-    "nextLevel":"levels/level4.json",
-    "npcs":[],
-    "pickups":[]
+    "nextLevel":"levels/level4.json"
 }

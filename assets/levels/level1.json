@@ -12,7 +12,7 @@
             [33,28,33,33,28,33,33,28,33,33],
             [13,13,13,13,13,13,13,13,13,13]
         ],
-        "tilePalette":"default"
+        "tilePalette":"cavern"
     },
     "playerStart":[8,128],
     "nextLevel":"levels/level2.json",

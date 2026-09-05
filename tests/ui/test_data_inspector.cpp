@@ -123,7 +123,6 @@ TEST_CASE("A type without one still reaches the reflection path", "[DataInspecto
 
 TEST_CASE("The types that draw themselves say so", "[DataInspector]")
 {
-    STATIC_REQUIRE(inspector::HasCustomField<TileColliderData>);
     STATIC_REQUIRE(inspector::HasCustomField<FrameAnimationData>);
     STATIC_REQUIRE(inspector::HasCustomField<SheetData>);
 }

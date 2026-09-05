@@ -8,7 +8,6 @@ struct SheetInScope
 {
     const Texture2D *texture = nullptr;
     SheetData sheet;
-    int frame = 0;
 };
 
 const SheetInScope *sheetInScope();

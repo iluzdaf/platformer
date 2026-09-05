@@ -7,10 +7,8 @@
 struct FrameAnimationData;
 struct SheetData;
 struct ScoreIconData;
-struct TileColliderData;
 
 inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &value);
-inspector::Edited drawCustomField(std::string_view name, TileColliderData &value);
 inspector::Edited drawCustomField(std::string_view name, SheetData &value);
 inspector::Edited drawCustomField(std::string_view name, ScoreIconData &value);
 

@@ -17,6 +17,7 @@
 #include "ui/tile_picker.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "ui/sheet_field.hpp"
+#include "ui/sheet_preview.hpp"
 #include "rendering/tile_set_fit.hpp"
 #include "tile_map/tile_data.hpp"
 #include "game/level_data.hpp"
@@ -215,16 +216,19 @@ void TilePalettesUi::draw(
 
     ImGui::Text("tile %d", *picked);
 
-    ShowingSheet offering(SheetInScope{tileSet, palette.tileSet, *picked});
+    SheetInScope scope{tileSet, palette.tileSet};
+    ShowingSheet offering(scope);
 
     auto known = palette.tiles.find(*picked);
     if (known != palette.tiles.end())
     {
+        drawTilePreview(scope, *picked, known->second);
         inspector::drawFields(known->second);
         return;
     }
 
     TileData nothingSaid;
+    drawTilePreview(scope, *picked, nothingSaid);
     if (inspector::drawFields(nothingSaid))
         palette.tiles.insert({*picked, nothingSaid});
 }

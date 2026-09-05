@@ -5,7 +5,6 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "ui/tile_picker.hpp"
-#include "ui/frame_animation_field.hpp"
 
 inspector::Edited drawFramePicked(const SheetInScope &offering, int &frame)
 {

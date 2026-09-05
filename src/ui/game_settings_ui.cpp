@@ -24,7 +24,7 @@ void GameSettingsUi::draw(
         commands.onWarmTexture(sheet.texture);
     }
 
-    ShowingSheet offering(SheetInScope{texture, sheet, gameData.settings.scoreIcon.frame});
+    ShowingSheet offering(SheetInScope{texture, sheet});
 
     if (inspector::drawFields(gameData.settings).onCommit)
         commands.onSettingsChanged();

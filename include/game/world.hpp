@@ -16,7 +16,7 @@ class World
 {
 public:
     World(
-        GameData &gameData,
+        const GameData &gameData,
         const IntentionSource &intentionSource,
         LuaScriptSystem &luaScriptSystem);
     ~World();
@@ -43,7 +43,7 @@ private:
     std::string path;
     LevelData levelData;
 
-    GameData &gameData;
+    const GameData &gameData;
     const IntentionSource &intentionSource;
     LuaScriptSystem &luaScriptSystem;
 

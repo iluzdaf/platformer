@@ -14,7 +14,7 @@
 #include "player/player.hpp"
 #include "window/window.hpp"
 
-GameUi::GameUi(Window &window, int width, int height)
+GameUi::GameUi(const Window &window, int width, int height)
     : imGuiManager(window.getHandle(), width, height)
 {
 }

@@ -36,7 +36,7 @@ struct GameUiSubject
 class GameUi
 {
 public:
-    GameUi(Window &window, int width, int height);
+    GameUi(const Window &window, int width, int height);
 
     void draw(const GameUiSubject &subject);
     void update(

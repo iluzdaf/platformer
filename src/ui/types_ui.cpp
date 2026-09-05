@@ -132,7 +132,7 @@ void TypesUi::drawRename(const GameData &gameData)
 
 void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
 {
-    SheetData *sheet = sheetOf(gameData, showing);
+    const SheetData *sheet = sheetOf(gameData, showing);
     if (!sheet)
     {
         ImGui::TextDisabled("pick a type");

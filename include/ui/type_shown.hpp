@@ -26,7 +26,7 @@ void removeTypeFrom(GameData &gameData, const TypeShown &showing);
 
 struct SheetData;
 
-SheetData *sheetOf(GameData &gameData, const TypeShown &showing);
+const SheetData *sheetOf(const GameData &gameData, const TypeShown &showing);
 
 std::optional<std::string> whyATypeCannotBeSaved(const GameData &gameData, const TypeShown &type);
 

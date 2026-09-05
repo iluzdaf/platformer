@@ -64,7 +64,7 @@ public:
     std::string whatTheLevelsNeed() const;
     std::optional<std::string> cannotSaveBecause() const;
     bool somethingIsBecoming(const std::string &name) const;
-    void applied(const std::vector<std::string> &levels);
+    void applied();
     void willReach(const std::vector<std::string> &levels);
     void cannotReach(const std::vector<std::string> &levels);
     void forget();
@@ -74,7 +74,7 @@ private:
     Renames renames;
     std::map<std::string, std::optional<std::string>> removals;
     std::set<std::string> neverSaved;
-    std::vector<std::string> rePointed, willRePoint, unreadable;
+    std::vector<std::string> willRePoint, unreadable;
 };
 
 template <class T>

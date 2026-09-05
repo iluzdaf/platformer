@@ -153,10 +153,10 @@ TEST_CASE("A rename already written is not written again", "[Renaming]")
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, "default", "base");
 
-    renaming.applied({"levels/level1.json", "levels/level2.json"});
+    renaming.applied();
 
     REQUIRE(renaming.sinceSaved().empty());
-    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
+    REQUIRE(renaming.whatTheLevelsNeed().empty());
 }
 
 TEST_CASE("Forgetting puts the field back to what is selected", "[Renaming]")
@@ -333,7 +333,7 @@ TEST_CASE("The levels a rename reaches are handed back", "[Renaming]")
     std::filesystem::remove_all(directory);
 }
 
-TEST_CASE("The levels a rename reaches are named back", "[Renaming]")
+TEST_CASE("Nothing is said once the levels are rewritten", "[Renaming]")
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, Cave, "base");
@@ -346,7 +346,7 @@ TEST_CASE("The levels a rename reaches are named back", "[Renaming]")
         { return rewriting::paletteIn(levelData.tileMapData, renames); });
 
     REQUIRE(renaming.sinceSaved().empty());
-    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
+    REQUIRE(renaming.whatTheLevelsNeed().empty());
 
     LevelData rewritten;
 
@@ -455,7 +455,7 @@ TEST_CASE("What will happen stops being said once it has", "[Renaming]")
 
     writeRenamesIntoLevels(renaming, directory.string(), rename);
 
-    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
+    REQUIRE(renaming.whatTheLevelsNeed().empty());
 
     std::filesystem::remove_all(directory);
 }
@@ -465,14 +465,14 @@ TEST_CASE("Levels too many for one line wrap inside the inspector", "[Renaming]"
     HeadlessImGui gui;
 
     Renaming one;
-    one.applied({"levels/level1.json"});
+    one.willReach({"levels/level1.json"});
 
     Renaming many;
     std::vector<std::string> lots;
     for (int at = 1; at <= 20; ++at)
         lots.push_back("levels/level" + std::to_string(at) + ".json");
 
-    many.applied(lots);
+    many.willReach(lots);
 
     REQUIRE(heightDrawing(gui, many) > heightDrawing(gui, one));
 }
@@ -540,7 +540,7 @@ TEST_CASE("A removal written into the levels stops waiting", "[Renaming]")
     Renaming renaming;
     renaming.remove("ice", "default");
 
-    renaming.applied({});
+    renaming.applied();
 
     REQUIRE_FALSE(renaming.gone("ice"));
     REQUIRE(renaming.removed().empty());
@@ -620,7 +620,7 @@ TEST_CASE("Levels that can be read again let the renames through", "[Renaming]")
 
     REQUIRE(writeRenamesIntoLevels(renaming, directory.string(), rePointPalettes));
     REQUIRE_FALSE(renaming.cannotSaveBecause().has_value());
-    REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 re-pointed.");
+    REQUIRE(renaming.whatTheLevelsNeed().empty());
 
     std::filesystem::remove_all(directory);
 }

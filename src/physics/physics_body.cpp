@@ -1,17 +1,27 @@
 #include <functional>
+#include <stdexcept>
+#include <string>
 #include "physics/physics_body.hpp"
 #include "physics/physics_body_data.hpp"
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile.hpp"
 
-PhysicsBody::PhysicsBody(const PhysicsBodyData &data) : data(data)
-{
-}
-
 namespace
 {
     constexpr float ContactProbeDepth = 0.1f;
+    constexpr float HeadroomFraction = 0.25f;
+}
+
+PhysicsBody::PhysicsBody(const PhysicsBodyData &data) : data(data)
+{
+    if (data.stepHeight < 0.0f)
+        throw std::runtime_error("A step height below 0 is not a height");
+
+    if (data.stepHeight >= data.colliderSize.y * (1.0f - HeadroomFraction))
+        throw std::runtime_error(
+            "A step height of " + std::to_string(data.stepHeight) +
+            " leaves nothing of the body to walk into a wall with");
 }
 
 void PhysicsBody::setPosition(const glm::vec2 &newPosition)
@@ -86,7 +96,7 @@ void PhysicsBody::resolveCollisionAgainstTile(
             positionWithOffset.y += overlap.y;
             pushedApart = true;
         }
-        else if (velocityComponent > 0 && delta.y < 0)
+        else if (velocityComponent >= 0 && delta.y < 0)
         {
             positionWithOffset.y -= overlap.y;
             pushedApart = true;
@@ -105,21 +115,20 @@ void PhysicsBody::resolveHorizontalCollision(const TileMap &tileMap)
     collisionAABBX = AABB();
     glm::vec2 nextPositionWithOffset = nextPosition + getColliderOffset();
 
+    float headroom = getColliderSize().y * HeadroomFraction;
     glm::vec2 reducedColliderSize = getColliderSize();
-    reducedColliderSize.y *= 0.5f;
+    reducedColliderSize.y -= headroom + data.stepHeight;
 
-    glm::vec2 positionOffset(0.0f);
-    positionOffset.y = (getColliderSize().y - reducedColliderSize.y) * 0.5f;
+    glm::vec2 positionOffset(0.0f, headroom);
 
-    glm::vec2 probePosition = nextPositionWithOffset + positionOffset;
-    AABB proposedAABB(probePosition, reducedColliderSize);
+    AABB proposedAABB(nextPositionWithOffset + positionOffset, reducedColliderSize);
 
     tileMap.probeSolidTiles(
         proposedAABB,
         [&](const Tile &, const AABB &tileAABB)
         {
             resolveCollisionAgainstTile(
-                proposedAABB,
+                AABB(nextPositionWithOffset + positionOffset, reducedColliderSize),
                 tileAABB,
                 {1.0f, 0.0f},
                 nextVelocity.x,
@@ -142,15 +151,14 @@ void PhysicsBody::resolveVerticalCollision(const TileMap &tileMap)
     glm::vec2 positionOffset(0.0f);
     positionOffset.x = (getColliderSize().x - reducedColliderSize.x) * 0.5f;
 
-    glm::vec2 probePosition = nextPositionWithOffset + positionOffset;
-    AABB proposedAABB(probePosition, reducedColliderSize);
+    AABB proposedAABB(nextPositionWithOffset + positionOffset, reducedColliderSize);
 
     tileMap.probeSolidTiles(
         proposedAABB,
         [&](const Tile &, const AABB &tileAABB)
         {
             resolveCollisionAgainstTile(
-                proposedAABB,
+                AABB(nextPositionWithOffset + positionOffset, reducedColliderSize),
                 tileAABB,
                 {0.0f, 1.0f},
                 nextVelocity.y,

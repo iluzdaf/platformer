@@ -26,13 +26,8 @@ namespace
 
     template <typename T> void writeTo(const T &value, std::string_view asset)
     {
-        std::string path = assets::pathTo(asset);
-        std::string json;
-        if (glz::write_json(value, json))
-            throw std::runtime_error("Failed to serialise " + path);
-
-        std::ofstream out(path);
-        out << withStructureOnLines(json);
+        std::ofstream out(assets::pathTo(asset));
+        out << asFileText(value);
     }
 }
 

@@ -100,7 +100,7 @@ void LuaScriptSystem::triggerDeath()
         onDeath();
 }
 
-void LuaScriptSystem::bindLevel(Level *level)
+void LuaScriptSystem::bindLevel(const Level *level)
 {
     lua["level"] = level;
 }

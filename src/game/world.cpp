@@ -17,7 +17,7 @@
 #include "scripting/lua_script_system.hpp"
 
 World::World(
-    GameData &gameData,
+    const GameData &gameData,
     const IntentionSource &intentionSource,
     LuaScriptSystem &luaScriptSystem)
     : gameData(gameData), intentionSource(intentionSource), luaScriptSystem(luaScriptSystem)

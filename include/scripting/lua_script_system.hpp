@@ -33,7 +33,7 @@ public:
         World *world);
     void triggerLevelComplete();
     void triggerDeath();
-    void bindLevel(Level *level);
+    void bindLevel(const Level *level);
     sol::state &getLua();
     void triggerWallJump();
     void triggerDash();

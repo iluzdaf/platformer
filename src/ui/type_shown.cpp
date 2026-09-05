@@ -78,7 +78,7 @@ std::optional<std::string> typesNamingNoSheet(const GameData &gameData)
     return names + " name no sheet to draw from";
 }
 
-SheetData *sheetOf(GameData &gameData, const TypeShown &showing)
+const SheetData *sheetOf(const GameData &gameData, const TypeShown &showing)
 {
     if (showing.what == TypeShown::What::Npc)
     {

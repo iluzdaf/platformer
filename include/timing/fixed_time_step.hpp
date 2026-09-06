@@ -2,10 +2,12 @@
 
 #include <functional>
 
+inline constexpr float PhysicsStep = 0.01f;
+
 class FixedTimeStep
 {
 public:
-    explicit FixedTimeStep(float maxStep = 0.01f);
+    explicit FixedTimeStep(float maxStep = PhysicsStep);
     void run(float deltaTime, const std::function<void(float)> &stepFunc);
     float getMaxStep() const;
 

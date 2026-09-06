@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 #include <algorithm>
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
@@ -190,4 +191,42 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
     }
 
     REQUIRE(landedSomewhere);
+}
+
+#include "actor/abilities/ability_system.hpp"
+#include "actor/actor_motion_state.hpp"
+#include "input/input_intentions.hpp"
+#include "timing/fixed_time_step.hpp"
+
+TEST_CASE("An arc the builder simulates is the path the game's own steps take", "[JumpArc]")
+{
+    ActorMotionData motionData = jumperMotionData();
+    std::vector<glm::vec2> arc = simulateJumpArc(motionData).offsets;
+    REQUIRE(arc.size() > 2);
+
+    AbilitySystem abilitySystem(motionData);
+    ActorMotionState state;
+    InputIntentions holding;
+    holding.direction.x = 1.0f;
+    holding.jumpRequested = true;
+    holding.jumpHeld = true;
+    state.contacts.onGround = true;
+
+    std::vector<glm::vec2> walked{glm::vec2(0.0f)};
+    FixedTimeStep timestepper;
+    timestepper.run(
+        PhysicsStep * static_cast<float>(arc.size() - 1),
+        [&](float dt)
+        {
+            abilitySystem.applyMovement(dt, holding, state);
+            walked.push_back(walked.back() + state.targetVelocity * dt);
+            state.contacts.onGround = false;
+        });
+
+    REQUIRE(walked.size() == arc.size());
+    for (std::size_t at = 0; at < arc.size(); ++at)
+    {
+        REQUIRE(walked[at].x == Catch::Approx(arc[at].x));
+        REQUIRE(walked[at].y == Catch::Approx(arc[at].y));
+    }
 }

@@ -8,10 +8,10 @@
 #include "navigation/jump_arc.hpp"
 #include "physics/physics_body.hpp"
 #include "tile_map/tile_map.hpp"
+#include "timing/fixed_time_step.hpp"
 
 namespace
 {
-    constexpr float SimulationTimeStep = 0.01f;
     constexpr int MaximumSteps = 1000;
     constexpr float HoldFractions[] = {1.0f, 0.75f, 0.5f, 0.25f};
 
@@ -42,19 +42,19 @@ JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
     InputIntentions inputIntentions = holdingJumpAndRunning();
 
     state.contacts.onGround = true;
-    abilitySystem.applyMovement(SimulationTimeStep, inputIntentions, state);
+    abilitySystem.applyMovement(PhysicsStep, inputIntentions, state);
     if (state.targetVelocity.y >= 0.0f)
         return {};
 
     std::vector<glm::vec2> offsets{glm::vec2(0.0f)};
-    glm::vec2 offset = state.targetVelocity * SimulationTimeStep;
+    glm::vec2 offset = state.targetVelocity * PhysicsStep;
     offsets.push_back(offset);
 
     state.contacts.onGround = false;
     for (int step = 1; step < MaximumSteps; ++step)
     {
-        abilitySystem.applyMovement(SimulationTimeStep, inputIntentions, state);
-        offset += state.targetVelocity * SimulationTimeStep;
+        abilitySystem.applyMovement(PhysicsStep, inputIntentions, state);
+        offset += state.targetVelocity * PhysicsStep;
         offsets.push_back(offset);
 
         if (offset.y >= 0.0f)
@@ -104,9 +104,9 @@ JumpAttempt simulateJumpAgainst(
     state.contacts.onGround = true;
     for (int step = 0; step < MaximumSteps; ++step)
     {
-        abilitySystem.applyMovement(SimulationTimeStep, inputIntentions, state);
+        abilitySystem.applyMovement(PhysicsStep, inputIntentions, state);
         physicsBody.setVelocity(state.targetVelocity);
-        physicsBody.stepPhysics(SimulationTimeStep, tileMap);
+        physicsBody.stepPhysics(PhysicsStep, tileMap);
 
         state.contacts.onGround = physicsBody.contactWithGround(tileMap);
         state.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);

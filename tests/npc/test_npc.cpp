@@ -50,7 +50,7 @@ namespace
         for (int x = 0; x < 10; ++x)
             laid.push_back({glm::ivec2(x, 6), 1});
 
-        return levelOf(aTileMapWith(laid), glm::ivec2(4, 5));
+        return levelOf(aTileMap(laid), glm::ivec2(4, 5));
     }
 
     constexpr int TwoTierWidthTiles = 20;
@@ -70,7 +70,7 @@ namespace
         for (int x = PlatformFirstTile; x <= PlatformLastTile; ++x)
             laid.push_back({glm::ivec2(x, PlatformRow), 1});
 
-        return aTileMapWith(laid, TwoTierWidthTiles, TwoTierHeightTiles);
+        return aTileMap(laid, TwoTierWidthTiles, TwoTierHeightTiles);
     }
 
     Level setupTwoTierLevel()

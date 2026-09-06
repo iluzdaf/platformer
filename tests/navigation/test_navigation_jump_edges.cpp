@@ -9,7 +9,8 @@
 #include "actor/actor_data.hpp"
 #include "game/game_data.hpp"
 #include "helpers/asset_path.hpp"
-#include "helpers/graph_fixtures.hpp"
+#include "helpers/actors.hpp"
+#include "helpers/maps.hpp"
 #include "helpers/graph_queries.hpp"
 #include "helpers/tiles.hpp"
 #include "navigation/navigation_edge.hpp"
@@ -24,7 +25,7 @@
 
 TEST_CASE("A profile that cannot jump gets no jump edges", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupTwoPlatforms(3);
+    TileMap tileMap = twoPlatformsApart(3);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -34,7 +35,7 @@ TEST_CASE("A profile that cannot jump gets no jump edges", "[NavigationGraphBuil
 TEST_CASE("A jumper crosses a gap it can clear", "[NavigationGraphBuilder][Jump]")
 {
     constexpr int GapTiles = 3;
-    TileMap tileMap = setupTwoPlatforms(GapTiles);
+    TileMap tileMap = twoPlatformsApart(GapTiles);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -44,7 +45,7 @@ TEST_CASE("A jumper crosses a gap it can clear", "[NavigationGraphBuilder][Jump]
 TEST_CASE("A jumper crosses a gap in both directions", "[NavigationGraphBuilder][Jump]")
 {
     constexpr int GapTiles = 3;
-    TileMap tileMap = setupTwoPlatforms(GapTiles);
+    TileMap tileMap = twoPlatformsApart(GapTiles);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -53,7 +54,7 @@ TEST_CASE("A jumper crosses a gap in both directions", "[NavigationGraphBuilder]
 
 TEST_CASE("A jumper does not cross a gap beyond its reach", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupTwoPlatforms(14, 0, 30);
+    TileMap tileMap = twoPlatformsApart(14, 0, 30);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -64,7 +65,7 @@ TEST_CASE("A jumper reaches a ledge two tiles up", "[NavigationGraphBuilder][Jum
 {
     constexpr int GapTiles = 2;
     constexpr int RowsUp = 2;
-    TileMap tileMap = setupTwoPlatforms(GapTiles, RowsUp);
+    TileMap tileMap = twoPlatformsApart(GapTiles, RowsUp);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -76,7 +77,7 @@ TEST_CASE("A jumper does not reach a ledge six tiles up", "[NavigationGraphBuild
 {
     constexpr int GapTiles = 2;
     constexpr int RowsUp = 6;
-    TileMap tileMap = setupTwoPlatforms(GapTiles, RowsUp);
+    TileMap tileMap = twoPlatformsApart(GapTiles, RowsUp);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -93,8 +94,8 @@ TEST_CASE(
 {
     constexpr int GapTiles = 3;
     Placed laid = twoPlatforms(GapTiles);
-    layFloor(laid, PlatformRow - 2, LeftPlatformEnd + 1, LeftPlatformEnd + GapTiles);
-    TileMap tileMap = aTileMapWith(laid, 20, WideMapHeightTiles);
+    layRow(laid, PlatformRow - 2, LeftPlatformEnd + 1, LeftPlatformEnd + GapTiles);
+    TileMap tileMap = aTileMap(laid, 20, WideMapHeightTiles);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -104,7 +105,7 @@ TEST_CASE(
 
 TEST_CASE("A jumper still walks the platform it stands on", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupTwoPlatforms(3);
+    TileMap tileMap = twoPlatformsApart(3);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -114,7 +115,7 @@ TEST_CASE("A jumper still walks the platform it stands on", "[NavigationGraphBui
 TEST_CASE("A jump edge carries the arc that produced it", "[NavigationGraphBuilder][Jump]")
 {
     constexpr int GapTiles = 3;
-    TileMap tileMap = setupTwoPlatforms(GapTiles);
+    TileMap tileMap = twoPlatformsApart(GapTiles);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -132,7 +133,7 @@ TEST_CASE("A jump edge carries the arc that produced it", "[NavigationGraphBuild
 TEST_CASE("An arc on an edge rises above both of its ends", "[NavigationGraphBuilder][Jump]")
 {
     constexpr int GapTiles = 3;
-    TileMap tileMap = setupTwoPlatforms(GapTiles);
+    TileMap tileMap = twoPlatformsApart(GapTiles);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -152,7 +153,7 @@ TEST_CASE("An arc on an edge rises above both of its ends", "[NavigationGraphBui
 
 TEST_CASE("A walk edge is drawn straight", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupTwoPlatforms(3);
+    TileMap tileMap = twoPlatformsApart(3);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -298,7 +299,7 @@ TEST_CASE(
 
 TEST_CASE("A jump edge records the hold that made it", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupTwoPlatforms(3);
+    TileMap tileMap = twoPlatformsApart(3);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -309,7 +310,7 @@ TEST_CASE("A jump edge records the hold that made it", "[NavigationGraphBuilder]
 
 TEST_CASE("A walk edge is held for nothing", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupTwoPlatforms(3);
+    TileMap tileMap = twoPlatformsApart(3);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -321,7 +322,7 @@ TEST_CASE("A walk edge is held for nothing", "[NavigationGraphBuilder][Jump]")
 TEST_CASE("A gap needing less than a full jump records less", "[NavigationGraphBuilder][Jump]")
 {
     NavigationProfile profile = jumperProfile();
-    TileMap tileMap = setupTwoPlatforms(1);
+    TileMap tileMap = twoPlatformsApart(1);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profile);
 
@@ -332,15 +333,17 @@ TEST_CASE("A gap needing less than a full jump records less", "[NavigationGraphB
 
 TEST_CASE("A jump is the smallest one that reaches", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupLedgesAboveFloor();
+    TileMap tileMap = ledgesAboveAFloor();
     float ledgeY = static_cast<float>(PlatformRow) * 16.0f;
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
     int acrossTheGap =
-        nodeAt(graph, glm::vec2(static_cast<float>(NearLedgeEnd + 1) * 16.0f, ledgeY));
-    int farSide = nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeStart) * 16.0f, ledgeY));
-    int longWayOff = nodeAt(graph, glm::vec2(0.0f, ledgeY));
+        graph.nodeAtPosition(glm::vec2(static_cast<float>(NearLedgeEnd + 1) * 16.0f, ledgeY))
+            .value_or(-1);
+    int farSide = graph.nodeAtPosition(glm::vec2(static_cast<float>(FarLedgeStart) * 16.0f, ledgeY))
+                      .value_or(-1);
+    int longWayOff = graph.nodeAtPosition(glm::vec2(0.0f, ledgeY)).value_or(-1);
     REQUIRE(acrossTheGap >= 0);
     REQUIRE(farSide >= 0);
     REQUIRE(longWayOff >= 0);
@@ -358,16 +361,19 @@ TEST_CASE("A jump is the smallest one that reaches", "[NavigationGraphBuilder][J
 
 TEST_CASE("A jump crosses to a platform once", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupLedgesAboveFloor();
+    TileMap tileMap = ledgesAboveAFloor();
     float ledgeY = static_cast<float>(PlatformRow) * 16.0f;
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    int takeOffId = nodeAt(graph, glm::vec2(0.0f, ledgeY));
-    int nearEdgeId = nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeStart) * 16.0f, ledgeY));
+    int takeOffId = graph.nodeAtPosition(glm::vec2(0.0f, ledgeY)).value_or(-1);
+    int nearEdgeId =
+        graph.nodeAtPosition(glm::vec2(static_cast<float>(FarLedgeStart) * 16.0f, ledgeY))
+            .value_or(-1);
     REQUIRE(takeOffId >= 0);
     REQUIRE(nearEdgeId >= 0);
-    REQUIRE(nodeAt(graph, glm::vec2(static_cast<float>(FarLedgeEnd + 1) * 16.0f, ledgeY)) >= 0);
+    REQUIRE(
+        graph.hasNodeAtPosition(glm::vec2(static_cast<float>(FarLedgeEnd + 1) * 16.0f, ledgeY)));
 
     const NavigationEdge *only = onlyJumpFrom(graph, takeOffId);
     REQUIRE(only);
@@ -378,7 +384,7 @@ TEST_CASE("A jump crosses to a platform once", "[NavigationGraphBuilder][Jump]")
 
 TEST_CASE("Nothing jumps to where it could walk", "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupLedgesAboveFloor();
+    TileMap tileMap = ledgesAboveAFloor();
     float floorY = static_cast<float>(DeepFloorRow) * 16.0f;
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
@@ -408,8 +414,8 @@ TEST_CASE("A jump still falling after ten seconds is no jump", "[NavigationGraph
 {
     constexpr int TallerThanTenSecondsOfFalling = 420;
     Placed laid;
-    layFloor(laid, 1, 0, LeftPlatformEnd);
-    TileMap tileMap = aTileMapWith(laid, 20, TallerThanTenSecondsOfFalling);
+    layRow(laid, 1, 0, LeftPlatformEnd);
+    TileMap tileMap = aTileMap(laid, 20, TallerThanTenSecondsOfFalling);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -420,7 +426,7 @@ TEST_CASE(
     "The easiest jump is kept whichever order the arcs are tried in",
     "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupTwoPlatforms(2);
+    TileMap tileMap = twoPlatformsApart(2);
     NavigationProfile longestHoldFirst = jumperProfile();
     NavigationProfile shortestHoldFirst = longestHoldFirst;
     std::ranges::reverse(shortestHoldFirst.jumpArcs);
@@ -445,7 +451,7 @@ TEST_CASE(
     "A jump onto a floor the graph has no node for is no edge",
     "[NavigationGraphBuilder][Jump]")
 {
-    TileMap tileMap = setupLedgeAboveFloor();
+    TileMap tileMap = aLedgeAboveAFloor();
     NavigationGraph graph;
     graph.addNode(0, takeOffPosition(tileMap));
     glm::vec2 comesDown(takeOffPosition(tileMap).x + 40.0f, static_cast<float>(FloorBelowRow * 16));

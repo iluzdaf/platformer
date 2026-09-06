@@ -158,9 +158,25 @@ std::vector<glm::ivec2> TileMap::tilesOverlapping(glm::vec2 worldPosition, glm::
     return tileCoordinates;
 }
 
-glm::vec2 TileMap::topLeftOfTile(glm::ivec2 tilePosition) const
+glm::vec2 topLeftOfTile(glm::ivec2 tilePosition, int tileSize)
 {
     return glm::vec2(tilePosition.x * tileSize, tilePosition.y * tileSize);
+}
+
+glm::vec2 feetOnTile(glm::ivec2 tilePosition, int tileSize)
+{
+    glm::vec2 surface = topLeftOfTile(tilePosition + glm::ivec2(0, 1), tileSize);
+    return surface + glm::vec2(tileSize * 0.5f, 0.0f);
+}
+
+glm::vec2 middleOfTile(glm::ivec2 tilePosition, int tileSize)
+{
+    return topLeftOfTile(tilePosition, tileSize) + glm::vec2(tileSize * 0.5f);
+}
+
+glm::vec2 TileMap::topLeftOfTile(glm::ivec2 tilePosition) const
+{
+    return ::topLeftOfTile(tilePosition, tileSize);
 }
 
 glm::vec2 TileMap::feetOnTile(glm::ivec2 tilePosition) const
@@ -168,13 +184,12 @@ glm::vec2 TileMap::feetOnTile(glm::ivec2 tilePosition) const
     if (!validTilePosition(tilePosition))
         throw std::runtime_error("Tile coordinates out of bounds");
 
-    glm::vec2 surface = topLeftOfTile(tilePosition + glm::ivec2(0, 1));
-    return surface + glm::vec2(tileSize * 0.5f, 0.0f);
+    return ::feetOnTile(tilePosition, tileSize);
 }
 
 glm::vec2 TileMap::middleOfTile(glm::ivec2 tilePosition) const
 {
-    return topLeftOfTile(tilePosition) + glm::vec2(tileSize * 0.5f);
+    return ::middleOfTile(tilePosition, tileSize);
 }
 
 glm::ivec2 TileMap::tileUnderFeet(glm::vec2 feet) const

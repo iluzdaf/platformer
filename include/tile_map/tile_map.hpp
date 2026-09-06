@@ -11,6 +11,10 @@
 #include "assets/sheet_data.hpp"
 #include "physics/aabb.hpp"
 
+glm::vec2 topLeftOfTile(glm::ivec2 tilePosition, int tileSize);
+glm::vec2 feetOnTile(glm::ivec2 tilePosition, int tileSize);
+glm::vec2 middleOfTile(glm::ivec2 tilePosition, int tileSize);
+
 class TileMap
 {
 public:

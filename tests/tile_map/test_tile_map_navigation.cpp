@@ -43,7 +43,7 @@ namespace
         for (int x = fromX; x <= toX; ++x)
             laid.push_back({glm::ivec2(x, groundY), 1});
 
-        return aTileMapWith(laid);
+        return aTileMap(laid);
     }
 
     LevelData asTheEditorWouldHoldIt(

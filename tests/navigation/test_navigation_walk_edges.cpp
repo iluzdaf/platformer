@@ -7,7 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/game_data.hpp"
 #include "helpers/asset_path.hpp"
-#include "helpers/graph_fixtures.hpp"
+#include "helpers/actors.hpp"
+#include "helpers/maps.hpp"
 #include "helpers/graph_queries.hpp"
 #include "helpers/tiles.hpp"
 #include "navigation/navigation_edge.hpp"
@@ -20,7 +21,7 @@
 
 TEST_CASE("A floor gives a profile somewhere to walk", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupFloor();
+    TileMap tileMap = aFloor();
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -32,7 +33,7 @@ TEST_CASE("A floor gives a profile somewhere to walk", "[NavigationGraphBuilder]
 
 TEST_CASE("A profile too tall for the headroom has nowhere to stand", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupFloorUnderOneTileOfHeadroom();
+    TileMap tileMap = aFloorUnderOneTileOfHeadroom();
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profileOfHeight(20.0f));
 
@@ -41,7 +42,7 @@ TEST_CASE("A profile too tall for the headroom has nowhere to stand", "[Navigati
 
 TEST_CASE("A profile that fits the headroom still walks under it", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupFloorUnderOneTileOfHeadroom();
+    TileMap tileMap = aFloorUnderOneTileOfHeadroom();
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -50,7 +51,7 @@ TEST_CASE("A profile that fits the headroom still walks under it", "[NavigationG
 
 TEST_CASE("A profile that fits walks the length of a one tile corridor", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupFloorUnderOneTileOfHeadroom();
+    TileMap tileMap = aFloorUnderOneTileOfHeadroom();
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -59,7 +60,7 @@ TEST_CASE("A profile that fits walks the length of a one tile corridor", "[Navig
 
 TEST_CASE("Headroom rounds up to whole tiles", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupFloorUnderOneTileOfHeadroom();
+    TileMap tileMap = aFloorUnderOneTileOfHeadroom();
     float tileSize = static_cast<float>(tileMap.getTileSize());
 
     SECTION("a collider exactly one tile tall needs one tile")
@@ -77,7 +78,7 @@ TEST_CASE("Headroom rounds up to whole tiles", "[NavigationGraphBuilder]")
 
 TEST_CASE("A corridor that pinches stops a profile that no longer fits", "[NavigationGraphBuilder]")
 {
-    TileMap tileMap = setupCorridorThatPinches();
+    TileMap tileMap = aCorridorThatPinches();
 
     SECTION("a profile needing two tiles cannot pass the pinch")
     {
@@ -99,8 +100,8 @@ TEST_CASE("A corridor that pinches stops a profile that no longer fits", "[Navig
 TEST_CASE("Walk edges are bidirectional along a floor", "[NavigationGraphBuilder]")
 {
     Placed laid;
-    layFloor(laid, 5, 2, 4);
-    TileMap tileMap = aTileMapWith(laid);
+    layRow(laid, 5, 2, 4);
+    TileMap tileMap = aTileMap(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -116,9 +117,9 @@ TEST_CASE("Walk edges are bidirectional along a floor", "[NavigationGraphBuilder
 TEST_CASE("No walk edge spans a gap between floors", "[NavigationGraphBuilder]")
 {
     Placed laid;
-    layFloor(laid, 5, 0, 2);
-    layFloor(laid, 5, 6, 9);
-    TileMap tileMap = aTileMapWith(laid);
+    layRow(laid, 5, 0, 2);
+    layRow(laid, 5, 6, 9);
+    TileMap tileMap = aTileMap(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -133,9 +134,9 @@ TEST_CASE("No walk edge spans a gap between floors", "[NavigationGraphBuilder]")
 TEST_CASE("A floor is one run, and a gap makes it two", "[NavigationGraphBuilder]")
 {
     Placed laid;
-    layFloor(laid, 5, 0, 2);
-    layFloor(laid, 5, 6, 9);
-    TileMap tileMap = aTileMapWith(laid);
+    layRow(laid, 5, 0, 2);
+    layRow(laid, 5, 6, 9);
+    TileMap tileMap = aTileMap(laid);
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
     std::vector<std::vector<int>> runs = navigation::walkRuns(graph, tileMap, 1);
@@ -149,9 +150,9 @@ TEST_CASE("A floor is one run, and a gap makes it two", "[NavigationGraphBuilder
 TEST_CASE("No walk edge passes through a blocked tile", "[NavigationGraphBuilder]")
 {
     Placed laid;
-    layFloor(laid, 5, 0, 5);
+    layRow(laid, 5, 0, 5);
     laid.push_back({glm::ivec2(3, 4), 1});
-    TileMap tileMap = aTileMapWith(laid);
+    TileMap tileMap = aTileMap(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -170,9 +171,9 @@ TEST_CASE("No walk edge passes through a blocked tile", "[NavigationGraphBuilder
 TEST_CASE("Floors on different rows are not connected", "[NavigationGraphBuilder]")
 {
     Placed laid;
-    layFloor(laid, 5, 0, 3);
-    layFloor(laid, 8, 0, 3);
-    TileMap tileMap = aTileMapWith(laid);
+    layRow(laid, 5, 0, 3);
+    layRow(laid, 8, 0, 3);
+    TileMap tileMap = aTileMap(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -201,7 +202,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform at left side of TileMap")
     {
-        TileMap tileMap = aTileMapWith({{{0, 9}, 1}});
+        TileMap tileMap = aTileMap({{{0, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({tileSize / 2, 9 * tileSize}));
@@ -209,7 +210,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform at right side of TileMap")
     {
-        TileMap tileMap = aTileMapWith({{{9, 9}, 1}});
+        TileMap tileMap = aTileMap({{{9, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({9 * tileSize + tileSize / 2, 9 * tileSize}));
@@ -217,7 +218,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where both sides are cliffs")
     {
-        TileMap tileMap = aTileMapWith({{{1, 9}, 1}});
+        TileMap tileMap = aTileMap({{{1, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 9 * tileSize}));
@@ -225,7 +226,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where left side is a cliff and right side is a wall")
     {
-        TileMap tileMap = aTileMapWith({{{2, 0}, 1}, {{2, 1}, 1}, {{1, 1}, 1}});
+        TileMap tileMap = aTileMap({{{2, 0}, 1}, {{2, 1}, 1}, {{1, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -233,7 +234,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where right side is a cliff and left side is a wall")
     {
-        TileMap tileMap = aTileMapWith({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}});
+        TileMap tileMap = aTileMap({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -242,7 +243,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     SECTION("Single Tile Platform where both sides are walls")
     {
         TileMap tileMap =
-            aTileMapWith({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}, {{2, 0}, 1}, {{2, 1}, 1}});
+            aTileMap({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}, {{2, 0}, 1}, {{2, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -251,8 +252,8 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     SECTION("2 Tile Platforms")
     {
         Placed laid;
-        layFloor(laid, 1, 0, 1);
-        TileMap tileMap = aTileMapWith(laid);
+        layRow(laid, 1, 0, 1);
+        TileMap tileMap = aTileMap(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -262,8 +263,8 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     SECTION("3 Tile Platforms")
     {
         Placed laid;
-        layFloor(laid, 1, 0, 2);
-        TileMap tileMap = aTileMapWith(laid);
+        layRow(laid, 1, 0, 2);
+        TileMap tileMap = aTileMap(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -273,8 +274,8 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     SECTION("5 Tile Platforms")
     {
         Placed laid;
-        layFloor(laid, 1, 0, 4);
-        TileMap tileMap = aTileMapWith(laid);
+        layRow(laid, 1, 0, 4);
+        TileMap tileMap = aTileMap(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -284,8 +285,8 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     SECTION("10 Tile Platforms")
     {
         Placed laid;
-        layFloor(laid, 1, 0, 9);
-        TileMap tileMap = aTileMapWith(laid);
+        layRow(laid, 1, 0, 9);
+        TileMap tileMap = aTileMap(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -301,8 +302,8 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     SECTION("No walkable tiles")
     {
         Placed laid;
-        layFloor(laid, 0, 0, 2);
-        TileMap tileMap = aTileMapWith(laid);
+        layRow(laid, 0, 0, 2);
+        TileMap tileMap = aTileMap(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 0);
     }
@@ -336,9 +337,9 @@ TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Le
 TEST_CASE("A place is not walkable to itself, nor to another row", "[NavigationGraphBuilder]")
 {
     Placed laid;
-    layFloor(laid, 5, 0, 9);
-    layFloor(laid, 3, 0, 9);
-    TileMap tileMap = aTileMapWith(laid);
+    layRow(laid, 5, 0, 9);
+    layRow(laid, 3, 0, 9);
+    TileMap tileMap = aTileMap(laid);
     glm::vec2 onTheLowerFloor = tileMap.feetOnTile(glm::ivec2(2, 4));
     glm::vec2 onTheUpperFloor = tileMap.feetOnTile(glm::ivec2(5, 2));
 

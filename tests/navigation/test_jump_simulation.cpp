@@ -235,7 +235,7 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
 
 TEST_CASE("An attempt that lands says how many steps it took", "[JumpArc]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 5}, 1}, {{1, 5}, 1}, {{2, 5}, 1}, {{3, 5}, 1}});
+    TileMap tileMap = aTileMap({{{0, 5}, 1}, {{1, 5}, 1}, {{2, 5}, 1}, {{3, 5}, 1}});
     ActorMotionData motionData = jumperMotionData();
     PhysicsBodyData body;
 
@@ -250,7 +250,7 @@ TEST_CASE("An attempt that lands says how many steps it took", "[JumpArc]")
 
 TEST_CASE("An attempt that never lands is capped and says so", "[JumpArc]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 9}, 1}}, 4, 10);
+    TileMap tileMap = aTileMap({{{0, 9}, 1}}, 4, 10);
     ActorMotionData motionData = jumperMotionData();
     motionData.gravityAbilityData.reset();
     PhysicsBodyData body;

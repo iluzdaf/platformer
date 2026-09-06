@@ -1,5 +1,7 @@
 #pragma once
 
+#include "navigation/navigation_build_report.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <optional>
 #include <unordered_map>
@@ -20,8 +22,11 @@ public:
     const std::vector<NavigationEdge> &getOutgoingEdges(int id) const;
     std::optional<int> nodeAtPosition(glm::vec2 position, float epsilon = 0.1f) const;
     bool hasNodeAtPosition(glm::vec2 position, float epsilon = 0.1f) const;
+    NavigationBuildReport &building();
+    const NavigationBuildReport &builtWith() const;
 
 private:
+    NavigationBuildReport buildReport;
     std::unordered_map<int, NavigationNode> nodes;
     std::vector<NavigationEdge> edges;
     std::unordered_map<int, std::vector<NavigationEdge>> adjacency;

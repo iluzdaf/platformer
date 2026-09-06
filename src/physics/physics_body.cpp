@@ -96,7 +96,7 @@ void PhysicsBody::resolveCollisionAgainstTile(
             positionWithOffset.y += overlap.y;
             pushedApart = true;
         }
-        else if (velocityComponent >= 0 && delta.y < 0)
+        else if (velocityComponent > 0 && delta.y < 0)
         {
             positionWithOffset.y -= overlap.y;
             pushedApart = true;
@@ -110,25 +110,34 @@ void PhysicsBody::resolveCollisionAgainstTile(
     collisionAABB.expandToInclude(tileAABB);
 }
 
+AABB PhysicsBody::horizontalProbeAt(glm::vec2 positionWithOffset) const
+{
+    float headroom = getColliderSize().y * HeadroomFraction;
+    glm::vec2 size = getColliderSize();
+    size.y -= headroom + data.stepHeight;
+
+    return AABB(positionWithOffset + glm::vec2(0.0f, headroom), size);
+}
+
+AABB PhysicsBody::verticalProbeAt(glm::vec2 positionWithOffset) const
+{
+    glm::vec2 size = getColliderSize();
+    size.x *= 0.5f;
+
+    return AABB(positionWithOffset + glm::vec2((getColliderSize().x - size.x) * 0.5f, 0.0f), size);
+}
+
 void PhysicsBody::resolveHorizontalCollision(const TileMap &tileMap)
 {
     collisionAABBX = AABB();
     glm::vec2 nextPositionWithOffset = nextPosition + getColliderOffset();
 
-    float headroom = getColliderSize().y * HeadroomFraction;
-    glm::vec2 reducedColliderSize = getColliderSize();
-    reducedColliderSize.y -= headroom + data.stepHeight;
-
-    glm::vec2 positionOffset(0.0f, headroom);
-
-    AABB proposedAABB(nextPositionWithOffset + positionOffset, reducedColliderSize);
-
     tileMap.probeSolidTiles(
-        proposedAABB,
+        horizontalProbeAt(nextPositionWithOffset),
         [&](const Tile &, const AABB &tileAABB)
         {
             resolveCollisionAgainstTile(
-                AABB(nextPositionWithOffset + positionOffset, reducedColliderSize),
+                horizontalProbeAt(nextPositionWithOffset),
                 tileAABB,
                 {1.0f, 0.0f},
                 nextVelocity.x,
@@ -145,20 +154,12 @@ void PhysicsBody::resolveVerticalCollision(const TileMap &tileMap)
     collisionAABBY = AABB();
     glm::vec2 nextPositionWithOffset = nextPosition + getColliderOffset();
 
-    glm::vec2 reducedColliderSize = getColliderSize();
-    reducedColliderSize.x *= 0.5f;
-
-    glm::vec2 positionOffset(0.0f);
-    positionOffset.x = (getColliderSize().x - reducedColliderSize.x) * 0.5f;
-
-    AABB proposedAABB(nextPositionWithOffset + positionOffset, reducedColliderSize);
-
     tileMap.probeSolidTiles(
-        proposedAABB,
+        verticalProbeAt(nextPositionWithOffset),
         [&](const Tile &, const AABB &tileAABB)
         {
             resolveCollisionAgainstTile(
-                AABB(nextPositionWithOffset + positionOffset, reducedColliderSize),
+                verticalProbeAt(nextPositionWithOffset),
                 tileAABB,
                 {0.0f, 1.0f},
                 nextVelocity.y,
@@ -166,6 +167,47 @@ void PhysicsBody::resolveVerticalCollision(const TileMap &tileMap)
                 collisionAABBY);
             return false;
         });
+
+    nextPosition = nextPositionWithOffset - getColliderOffset();
+}
+
+void PhysicsBody::pushOutOfSolids(const TileMap &tileMap)
+{
+    glm::vec2 nextPositionWithOffset = nextPosition + getColliderOffset();
+    const float epsilon = 0.001f;
+
+    auto settle =
+        [&](auto probeAt, glm::vec2 axisMask, float &velocityComponent, AABB &collisionAABB)
+    {
+        tileMap.probeSolidTiles(
+            probeAt(nextPositionWithOffset),
+            [&](const Tile &, const AABB &tileAABB)
+            {
+                AABB probe = probeAt(nextPositionWithOffset);
+                glm::vec2 delta = probe.center() - tileAABB.center();
+                glm::vec2 overlap = (tileAABB.size + probe.size) * 0.5f - glm::abs(delta);
+                if (overlap.x < epsilon || overlap.y < epsilon)
+                    return false;
+
+                glm::vec2 outwards =
+                    glm::vec2(delta.x < 0.0f ? -1.0f : 1.0f, delta.y <= 0.0f ? -1.0f : 1.0f);
+                nextPositionWithOffset += axisMask * outwards * overlap;
+                velocityComponent = 0.0f;
+                collisionAABB.expandToInclude(tileAABB);
+                return false;
+            });
+    };
+
+    settle(
+        [&](glm::vec2 at) { return verticalProbeAt(at); },
+        glm::vec2(0.0f, 1.0f),
+        nextVelocity.y,
+        collisionAABBY);
+    settle(
+        [&](glm::vec2 at) { return horizontalProbeAt(at); },
+        glm::vec2(1.0f, 0.0f),
+        nextVelocity.x,
+        collisionAABBX);
 
     nextPosition = nextPositionWithOffset - getColliderOffset();
 }
@@ -309,6 +351,7 @@ void PhysicsBody::stepPhysics(float deltaTime, const TileMap &tileMap)
     nextPosition += glm::vec2(0, nextVelocity.y) * deltaTime;
     resolveVerticalCollision(tileMap);
 
+    pushOutOfSolids(tileMap);
     clampToTileMapBounds(tileMap);
 
     position = nextPosition;

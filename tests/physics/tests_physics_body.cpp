@@ -82,6 +82,59 @@ TEST_CASE("A body over two tiles is lifted once, not once per tile", "[PhysicsBo
     REQUIRE(body.getPosition().y == Approx(4 * 16.0f));
 }
 
+TEST_CASE("A body shifted into a wall is pushed out the shortest way", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMapWith({{{3, 3}, 1}});
+    PhysicsBody body = setupBody({3 * 16.0f - 14.0f, 3 * 16.0f}, {0, 0});
+
+    body.stepPhysics(0.01f, tileMap);
+
+    REQUIRE(body.getPosition().x == Approx(2 * 16.0f));
+    REQUIRE(body.getPosition().y == Approx(3 * 16.0f));
+    REQUIRE(body.getVelocity().x == Approx(0.0f));
+    REQUIRE_FALSE(body.getCollisionAABBX().isEmpty());
+}
+
+TEST_CASE("A body with its head in a ceiling is pushed down out of it", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMapWith({{{3, 2}, 1}});
+    PhysicsBody body = setupBody({3 * 16.0f, 3 * 16.0f - 1.0f}, {0, 0});
+
+    body.stepPhysics(0.01f, tileMap);
+
+    REQUIRE(body.getPosition().y == Approx(3 * 16.0f));
+    REQUIRE(body.getVelocity().y == Approx(0.0f));
+}
+
+TEST_CASE("A body deeper across than down is pushed up, not sideways", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMapWith({{{3, 5}, 1}});
+    PhysicsBody body = setupBody({3 * 16.0f + 4.0f, 4 * 16.0f + 2.0f}, {0, 0});
+
+    body.stepPhysics(0.01f, tileMap);
+
+    REQUIRE(body.getPosition().x == Approx(3 * 16.0f + 4.0f));
+    REQUIRE(body.getPosition().y == Approx(4 * 16.0f));
+}
+
+TEST_CASE(
+    "A body on a lower tile beside a taller corner keeps its feet on what it feels",
+    "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMapWith(
+        {{{0, 5}, Full}, {{1, 5}, OnePixelLow}, {{2, 5}, OnePixelLow}},
+        10,
+        10,
+        16,
+        surfacesOfThreeHeights());
+    PhysicsBody body = setupBody({14, 4 * 16.0f + 1.0f}, {0, 0});
+
+    body.stepPhysics(0.01f, tileMap);
+
+    REQUIRE(body.getPosition().y == Approx(4 * 16.0f + 1.0f));
+    REQUIRE(body.contactWithGround(tileMap));
+}
+
 TEST_CASE("A body found resting inside a surface is lifted onto it", "[PhysicsBody]")
 {
     TileMap tileMap = setupTileMapWith({{{0, 5}, 1}});

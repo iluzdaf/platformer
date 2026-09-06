@@ -2,19 +2,26 @@
 #include <functional>
 #include "timing/fixed_time_step.hpp"
 
+namespace
+{
+    constexpr float Slack = 1e-6f;
+}
+
 FixedTimeStep::FixedTimeStep(float maxStep) : maxStep(maxStep)
 {
 }
 
-void FixedTimeStep::run(float deltaTime, const std::function<void(float)> &stepFunc) const
+void FixedTimeStep::run(float deltaTime, const std::function<void(float)> &stepFunc)
 {
-    while (deltaTime > 0.0f)
+    carried += deltaTime;
+
+    while (carried + Slack >= maxStep)
     {
-        float dt = std::min(maxStep, deltaTime);
-        stepFunc(dt);
-        deltaTime -= dt;
+        stepFunc(maxStep);
+        carried = std::max(carried - maxStep, 0.0f);
     }
 }
+
 float FixedTimeStep::getMaxStep() const
 {
     return maxStep;

@@ -22,7 +22,9 @@ public:
     ~World();
 
     void loadLevel(const std::string &levelPath);
-    void rebuildFrom(const LevelData &fromData);
+    void rebuildFrom(
+        const LevelData &fromData,
+        const glm::vec2 &movingThePlayerBy = glm::vec2(0.0f));
 
     fteng::signal<void()> onLevelBuilt;
     void respawnPlayer();

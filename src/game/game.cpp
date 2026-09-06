@@ -56,6 +56,9 @@ Game::Game(Window &window, Reloader &reloader)
     gameUi.commands().onRespawn.connect([this] { world.respawnPlayer(); });
     gameUi.commands().onLevelEdited.connect([this](const LevelData &edited)
                                             { world.rebuildFrom(edited); });
+    gameUi.commands().onLevelResized.connect(
+        [this](const LevelData &resized, const glm::vec2 &shift)
+        { world.rebuildFrom(resized, shift); });
     gameUi.commands().onSettingsChanged.connect(
         [this]
         { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });

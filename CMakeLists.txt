@@ -127,6 +127,7 @@ add_library(platformer_lib OBJECT
     src/ui/renaming.cpp
     src/ui/level_rewriting.cpp
     src/ui/tile_picker.cpp
+    src/ui/size_buttons.cpp
     src/ui/sheet_in_scope.cpp
     src/ui/frame_animation_field.cpp
     src/ui/frame_picker.cpp
@@ -157,6 +158,7 @@ add_library(platformer_lib OBJECT
     src/game/beat_between.cpp
     src/game/level_data_file.cpp
     src/game/levels.cpp
+    src/game/level_resizing.cpp
     src/game/score.cpp
     src/physics/aabb.cpp
     src/timing/fixed_time_step.cpp
@@ -283,6 +285,7 @@ add_executable(tests
     tests/ui/test_editor_command.cpp
     tests/ui/test_armed.cpp
     tests/ui/test_tile_map_shown.cpp
+    tests/ui/test_size_buttons.cpp
     tests/ui/test_tile_picker.cpp
     tests/ui/test_level_ui_update.cpp
     tests/ui/test_actors_in_level.cpp
@@ -354,6 +357,7 @@ add_executable(tests
     tests/game/test_playback.cpp
     tests/game/test_level.cpp
     tests/game/test_levels.cpp
+    tests/game/test_level_resizing.cpp
     tests/tile_map/test_tile_map_navigation.cpp
     tests/actor/abilities/test_jump_ability.cpp
     tests/actor/abilities/test_dash_ability.cpp

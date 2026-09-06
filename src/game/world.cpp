@@ -33,16 +33,20 @@ void World::loadLevel(const std::string &levelPath)
     respawnPlayer();
 }
 
-void World::rebuildFrom(const LevelData &fromData)
+void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePlayerBy)
 {
-    levelData = fromData;
-    level = std::make_unique<Level>(
-        levelData,
+    std::unique_ptr<Level> built = std::make_unique<Level>(
+        fromData,
         gameData.tilePalettes,
         gameData.playerData,
         gameData.npcData,
         gameData.pickupData);
+
+    levelData = fromData;
+    level = std::move(built);
     luaScriptSystem.bindLevel(level.get());
+    if (player)
+        player->setPosition(player->getPosition() + movingThePlayerBy);
 
     onLevelBuilt();
 }

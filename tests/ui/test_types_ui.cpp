@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
+#include <memory>
 #include <fstream>
 #include <map>
 #include <optional>
@@ -21,6 +22,7 @@
 #include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
 #include "helpers/asset_path.hpp"
+#include "helpers/temporary_levels.hpp"
 
 namespace
 {
@@ -32,17 +34,13 @@ namespace
         return gameData;
     }
 
-    std::filesystem::path levelsPlacingTypes()
+    std::unique_ptr<TemporaryLevels> levelsPlacingTypes()
     {
-        std::filesystem::path directory =
-            std::filesystem::temp_directory_path() / "platformer_type_levels";
-        std::filesystem::remove_all(directory);
-        std::filesystem::create_directories(directory);
-
+        auto levels = std::make_unique<TemporaryLevels>("type_levels");
         for (const char *name : {"level5.json", "level6.json"})
-            std::filesystem::copy_file(assetPath(std::string("levels/") + name), directory / name);
+            levels->copyShipped(name);
 
-        return directory;
+        return levels;
     }
 
     std::string firstNpcTypeIn(const std::filesystem::path &directory)
@@ -491,7 +489,8 @@ TEST_CASE("A type rename outlives a reload of the values it waits on", "[TypesUi
 TEST_CASE("Saving a type rename re-points the levels before the types are written", "[TypesUi]")
 {
     HeadlessImGui gui;
-    std::filesystem::path directory = levelsPlacingTypes();
+    std::unique_ptr<TemporaryLevels> levels = levelsPlacingTypes();
+    const std::filesystem::path &directory = levels->directory;
     std::optional<std::map<std::string, NpcData>> written;
     TypesUi typesUi(
         directory.string(),
@@ -518,14 +517,13 @@ TEST_CASE("Saving a type rename re-points the levels before the types are writte
     REQUIRE_FALSE(written->contains("villager"));
     REQUIRE(playing.npcs.front().type == "farmer");
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Saving a pickup rename re-points the level being played", "[TypesUi]")
 {
     HeadlessImGui gui;
-    std::filesystem::path directory = levelsPlacingTypes();
+    std::unique_ptr<TemporaryLevels> levels = levelsPlacingTypes();
+    const std::filesystem::path &directory = levels->directory;
     bool wrote = false;
     TypesUi typesUi(
         directory.string(),
@@ -549,13 +547,12 @@ TEST_CASE("Saving a pickup rename re-points the level being played", "[TypesUi]"
 
     REQUIRE(wrote);
     REQUIRE(playing.pickups.front().type == "penny");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A type save with nothing pending leaves the playing level alone", "[TypesUi]")
 {
-    std::filesystem::path directory = levelsPlacingTypes();
+    std::unique_ptr<TemporaryLevels> levels = levelsPlacingTypes();
+    const std::filesystem::path &directory = levels->directory;
     bool wrote = false;
     TypesUi typesUi(
         directory.string(),
@@ -569,14 +566,13 @@ TEST_CASE("A type save with nothing pending leaves the playing level alone", "[T
 
     REQUIRE_FALSE(wrote);
     REQUIRE(playing.npcs.front().type == firstNpcTypeIn(directory));
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesUi]")
 {
     HeadlessImGui gui;
-    std::filesystem::path directory = levelsPlacingTypes();
+    std::unique_ptr<TemporaryLevels> levels = levelsPlacingTypes();
+    const std::filesystem::path &directory = levels->directory;
     std::ofstream(directory / "broken.json") << "{";
     bool wrote = false;
     TypesUi typesUi(
@@ -606,8 +602,6 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
     REQUIRE(playing.npcs.front().type == "villager");
     REQUIRE(firstNpcTypeIn(directory) == "villager");
     REQUIRE(typesUi.unsavedSince(gameData));
-
-    std::filesystem::remove_all(directory);
 }
 
 #ifndef SKIP_OPENGL_TESTS

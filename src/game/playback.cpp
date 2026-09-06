@@ -2,6 +2,11 @@
 #include <functional>
 #include "game/playback.hpp"
 
+namespace
+{
+    constexpr float LongestCatchUp = 0.25f;
+}
+
 void Playback::play()
 {
     paused = false;
@@ -37,14 +42,14 @@ void Playback::advance(
 
     if (stepping)
     {
-        float once = std::min(deltaTime, timestepper.getMaxStep());
-        fixedStep(once);
-        endFrame(once);
+        fixedStep(timestepper.getMaxStep());
+        endFrame(timestepper.getMaxStep());
         stepping = false;
     }
     else
     {
-        timestepper.run(deltaTime, fixedStep);
-        endFrame(deltaTime);
+        float caughtUp = std::min(deltaTime, LongestCatchUp);
+        timestepper.run(caughtUp, fixedStep);
+        endFrame(caughtUp);
     }
 }

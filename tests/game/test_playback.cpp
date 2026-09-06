@@ -97,6 +97,16 @@ TEST_CASE("Playing again picks up where it stopped", "[Playback]")
     REQUIRE(ran.steps.size() == 5);
 }
 
+TEST_CASE("A hitch is caught up for at most a quarter second", "[Playback]")
+{
+    Playback playback;
+    Ran ran;
+
+    ran.advance(playback, 5.0f);
+
+    REQUIRE(ran.steps.size() == 25);
+}
+
 TEST_CASE("It starts playing", "[Playback]")
 {
     Playback playback;

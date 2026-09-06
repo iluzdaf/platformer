@@ -23,6 +23,15 @@ struct ActorMotionState;
 struct ActorState;
 class Npc;
 
+struct EditorCommands;
+struct Resize;
+
+void askedToResize(
+    Resize resize,
+    const LevelData &levelData,
+    int tileSize,
+    EditorCommands &commands);
+
 class LevelUi
 {
 public:
@@ -58,6 +67,7 @@ private:
 
     std::string asItWouldBeSaved(const LevelData &levelData) const;
     void drawLevel(
+        const Level &level,
         const LevelData &levelData,
         const std::string &levelPath,
         EditorCommands &commands);

@@ -19,6 +19,7 @@
 #include "actor/actor_state.hpp"
 #include "test_helpers/headless_imgui.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
+#include "game/level_resizing.hpp"
 
 namespace
 {
@@ -355,4 +356,53 @@ TEST_CASE("The level section draws every fold without a tile sheet", "[LevelUi]"
     float withoutTheInspector = drawTo(AboveTheInspector);
 
     REQUIRE(drawTo(EveryFold) > withoutTheInspector);
+}
+
+namespace
+{
+    struct Resized
+    {
+        LevelData level;
+        glm::vec2 shift;
+    };
+
+    Resized resizedBy(Resize resize)
+    {
+        Editing editing;
+        std::optional<Resized> asked;
+        std::ignore = editing.commands.onLevelResized.connect(
+            [&](const LevelData &level, const glm::vec2 &shift) { asked = Resized{level, shift}; });
+
+        askedToResize(resize, editing.levelData, 16, editing.commands);
+        editing.commands.drain();
+
+        REQUIRE(asked);
+        return *asked;
+    }
+}
+
+TEST_CASE("A column on the left is asked for with the shift that moves the player", "[LevelUi]")
+{
+    Resized asked = resizedBy(Resize{Side::Left, true});
+
+    REQUIRE(asked.level.tileMapData.indices[0].size() == MapTiles + 1);
+    REQUIRE(asked.shift == glm::vec2(16.0f, 0.0f));
+}
+
+TEST_CASE(
+    "A column off the left is asked for with the shift that moves the player back",
+    "[LevelUi]")
+{
+    Resized asked = resizedBy(Resize{Side::Left, false});
+
+    REQUIRE(asked.level.tileMapData.indices[0].size() == MapTiles - 1);
+    REQUIRE(asked.shift == glm::vec2(-16.0f, 0.0f));
+}
+
+TEST_CASE("A row below is asked for with no shift", "[LevelUi]")
+{
+    Resized asked = resizedBy(Resize{Side::Below, true});
+
+    REQUIRE(asked.level.tileMapData.indices.size() == MapTiles + 1);
+    REQUIRE(asked.shift == glm::vec2(0.0f));
 }

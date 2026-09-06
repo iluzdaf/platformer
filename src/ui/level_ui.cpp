@@ -25,6 +25,8 @@
 #include "game/catalogue.hpp"
 #include "npc/npc_data.hpp"
 #include "ui/tile_map_overlays.hpp"
+#include "ui/size_buttons.hpp"
+#include "game/level_resizing.hpp"
 #include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 
@@ -57,7 +59,7 @@ void LevelUi::draw(
     if (!ImGui::CollapsingHeader("Inspector"))
         return;
 
-    drawLevel(levelData, levelPath, commands);
+    drawLevel(level, levelData, levelPath, commands);
     drawActors(
         level, levelData, playerMotionState, playerFeet, playerState, npcData, armed, commands);
 }
@@ -123,11 +125,25 @@ std::string LevelUi::asItWouldBeSaved(const LevelData &levelData) const
     return json;
 }
 
+void askedToResize(
+    Resize resize,
+    const LevelData &levelData,
+    int tileSize,
+    EditorCommands &commands)
+{
+    commands.onLevelResized(resizedBy(resize, levelData, tileSize), shiftOf(resize, tileSize));
+}
+
 void LevelUi::drawLevel(
+    const Level &level,
     const LevelData &levelData,
     const std::string &levelPath,
     EditorCommands &commands)
 {
+    const TileMap &tileMap = level.getTileMap();
+    if (std::optional<Resize> resize = drawSizeButtons(tileMap.getWidth(), tileMap.getHeight()))
+        askedToResize(*resize, levelData, tileMap.getTileSize(), commands);
+
     ImGui::TextUnformatted("next");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(110.0f);

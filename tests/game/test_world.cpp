@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <optional>
 #include "game/level_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include <cstddef>
@@ -219,4 +220,41 @@ TEST_CASE("A moved player start does not move the player until it respawns", "[W
     REQUIRE(
         world.getPlayer().getPhysicsBody().getAABB().bottomCenter() ==
         tileMap.feetOnTile(tileMap.tileUnderFeet(world.getLevel().getPlayerStart())));
+}
+
+TEST_CASE("A rebuild with a shift moves the player once the level stands", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    ScriptedIntentions intentions;
+    World world(gameData, intentions, luaScriptSystem);
+    world.loadLevel("levels/level6.json");
+
+    glm::vec2 stoodAt = world.getPlayer().getPosition();
+    glm::vec2 npcAt = world.getLevel().getNpcs().front()->getPosition();
+
+    world.rebuildFrom(world.getLevelData(), glm::vec2(16.0f, 0.0f));
+
+    REQUIRE(world.getPlayer().getPosition() == stoodAt + glm::vec2(16.0f, 0.0f));
+    REQUIRE(world.getLevel().getNpcs().front()->getPosition() == npcAt);
+}
+
+TEST_CASE("A rebuild that cannot be built leaves the world as it was", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    ScriptedIntentions intentions;
+    World world(gameData, intentions, luaScriptSystem);
+    world.loadLevel("levels/level6.json");
+    const Level *before = &world.getLevel();
+    LevelData wasPlaying = world.getLevelData();
+    glm::vec2 stoodAt = world.getPlayer().getPosition();
+
+    LevelData broken = wasPlaying;
+    broken.npcs.push_back(NpcSpawnData{"villager", glm::vec2(-100.0f, -100.0f), std::nullopt});
+
+    REQUIRE_THROWS(world.rebuildFrom(broken, glm::vec2(16.0f, 0.0f)));
+    REQUIRE(&world.getLevel() == before);
+    REQUIRE(world.getLevelData().npcs.size() == wasPlaying.npcs.size());
+    REQUIRE(world.getPlayer().getPosition() == stoodAt);
 }

@@ -180,6 +180,7 @@ add_library(platformer_lib OBJECT
     src/navigation/navigation_path.cpp
     src/navigation/navigation_place.cpp
     src/navigation/jump_simulation.cpp
+    src/navigation/navigation_build_report.cpp
     src/navigation/navigation_profile_builder.cpp
     src/actor/actor_behavior.cpp
     src/actor/behaviors/input_behavior.cpp
@@ -337,6 +338,7 @@ add_executable(tests
     tests/navigation/test_navigation_place.cpp
     tests/navigation/test_navigation_profile.cpp
     tests/navigation/test_jump_simulation.cpp
+    tests/navigation/test_navigation_build_cost.cpp
     tests/actor/behaviors/test_flee_behavior.cpp
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/actor/behaviors/test_state_machine_behavior.cpp

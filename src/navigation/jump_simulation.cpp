@@ -115,6 +115,7 @@ JumpAttempt simulateJumpAgainst(
         state.velocity = physicsBody.getVelocity();
 
         attempt.path.push_back(feet());
+        attempt.steps = step + 1;
 
         if (step > 0 && state.contacts.onGround)
         {
@@ -126,5 +127,8 @@ JumpAttempt simulateJumpAgainst(
         }
     }
 
-    return {};
+    JumpAttempt capped;
+    capped.steps = attempt.steps;
+    capped.capped = true;
+    return capped;
 }

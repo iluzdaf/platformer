@@ -5,6 +5,7 @@
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
 #include "navigation/jump_simulation.hpp"
+#include "navigation/navigation_build_report.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "test_helpers/test_tile_map_utils.hpp"
 #include "physics/physics_body_data.hpp"
@@ -229,4 +230,49 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
         REQUIRE(walked[at].x == Catch::Approx(arc[at].x));
         REQUIRE(walked[at].y == Catch::Approx(arc[at].y));
     }
+}
+
+TEST_CASE("An attempt that lands says how many steps it took", "[JumpArc]")
+{
+    TileMap tileMap = setupTileMapWith({{{0, 5}, 1}, {{1, 5}, 1}, {{2, 5}, 1}, {{3, 5}, 1}});
+    ActorMotionData motionData = jumperMotionData();
+    PhysicsBodyData body;
+
+    JumpAttempt attempt =
+        simulateJumpAgainst(tileMap, motionData, body, tileMap.feetOnTile({1, 4}), 1.0f, 1.0f);
+
+    REQUIRE(attempt.landed);
+    REQUIRE_FALSE(attempt.capped);
+    REQUIRE(attempt.steps == static_cast<int>(attempt.path.size()) - 1);
+    REQUIRE(attempt.steps > 1);
+}
+
+TEST_CASE("An attempt that never lands is capped and says so", "[JumpArc]")
+{
+    TileMap tileMap = setupTileMapWith({{{0, 9}, 1}}, 4, 10);
+    ActorMotionData motionData = jumperMotionData();
+    motionData.gravityAbilityData.reset();
+    PhysicsBodyData body;
+
+    JumpAttempt attempt =
+        simulateJumpAgainst(tileMap, motionData, body, tileMap.feetOnTile({0, 8}), 1.0f, 1.0f);
+
+    REQUIRE_FALSE(attempt.landed);
+    REQUIRE(attempt.capped);
+    REQUIRE(attempt.steps == 1000);
+}
+
+TEST_CASE("A report adds up what its attempts cost", "[JumpArc]")
+{
+    NavigationBuildReport report;
+    JumpAttempt landed;
+    landed.steps = 12;
+    JumpAttempt capped;
+    capped.steps = 1000;
+    capped.capped = true;
+
+    report.noting(landed);
+    report.noting(capped);
+
+    REQUIRE(report == NavigationBuildReport{1012, 1});
 }

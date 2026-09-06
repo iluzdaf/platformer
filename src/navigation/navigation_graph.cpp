@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_build_report.hpp"
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_edge.hpp"
 
@@ -78,4 +79,13 @@ std::optional<int> NavigationGraph::nodeAtPosition(glm::vec2 position, float eps
 bool NavigationGraph::hasNodeAtPosition(glm::vec2 position, float epsilon) const
 {
     return nodeAtPosition(position, epsilon).has_value();
+}
+NavigationBuildReport &NavigationGraph::building()
+{
+    return buildReport;
+}
+
+const NavigationBuildReport &NavigationGraph::builtWith() const
+{
+    return buildReport;
 }

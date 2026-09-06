@@ -9,6 +9,7 @@
 #include "navigation/navigation_graph_steps.hpp"
 #include "navigation/jump_arc.hpp"
 #include "navigation/jump_simulation.hpp"
+#include "navigation/navigation_build_report.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "tile_map/tile.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -31,7 +32,8 @@ namespace
         glm::vec2 takeOff,
         const JumpArc &arc,
         float direction,
-        const NavigationProfile &profile)
+        const NavigationProfile &profile,
+        NavigationBuildReport &report)
     {
         JumpAttempt attempt = simulateJumpAgainst(
             tileMap,
@@ -40,6 +42,7 @@ namespace
             takeOff,
             direction,
             arc.holdFraction);
+        report.noting(attempt);
         if (!attempt.landed)
             return std::nullopt;
 
@@ -84,8 +87,8 @@ namespace navigation
             for (const JumpArc &arc : profile.jumpArcs)
                 for (float direction : {1.0f, -1.0f})
                 {
-                    std::optional<JumpLanding> landing =
-                        jumpFrom(tileMap, takeOff, arc, direction, profile);
+                    std::optional<JumpLanding> landing = jumpFrom(
+                        tileMap, takeOff, arc, direction, profile, navigationGraph.building());
                     if (!landing || landing->position.y > takeOff.y)
                         continue;
 
@@ -188,6 +191,7 @@ namespace navigation
                     from,
                     towards,
                     arc.holdFraction);
+                navigationGraph.building().noting(attempt);
                 if (!attempt.landed ||
                     std::abs(attempt.path.back().y - ledge.y) >= SurfaceTolerance)
                     continue;

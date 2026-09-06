@@ -12,6 +12,8 @@ struct JumpAttempt
 {
     std::vector<glm::vec2> path;
     bool landed = false;
+    int steps = 0;
+    bool capped = false;
 };
 
 JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction = 1.0f);

@@ -1,4 +1,3 @@
-#include <filesystem>
 #include <string>
 #include <catch2/catch_test_macros.hpp>
 #include "game/game_data.hpp"
@@ -7,7 +6,7 @@
 #include "game/reloads.hpp"
 #include "game/world.hpp"
 #include "scripting/lua_script_system.hpp"
-#include "helpers/asset_path.hpp"
+#include "helpers/temporary_levels.hpp"
 #include "helpers/actors.hpp"
 #include "ui/editor_ui.hpp"
 
@@ -19,23 +18,15 @@ namespace
         LuaScriptSystem luaScriptSystem;
         World world{gameData, noIntentions(), luaScriptSystem};
         EditorUi editorUi;
-        std::filesystem::path directory =
-            std::filesystem::temp_directory_path() / "platformer_reloads";
-        std::string levelPath = (directory / "level1.json").string();
+        TemporaryLevels levels{"reloads"};
+        std::string levelPath = levels.pathOf("level1.json");
 
         Playing()
         {
-            std::filesystem::remove_all(directory);
-            std::filesystem::create_directories(directory);
-            std::filesystem::copy_file(assetPath("levels/level1.json"), levelPath);
+            levels.copyShipped("level1.json");
 
             world.loadLevel(levelPath);
             editorUi.levelFollowsTheDisk(world.getLevelData(), levelPath);
-        }
-
-        ~Playing()
-        {
-            std::filesystem::remove_all(directory);
         }
 
         Playing(const Playing &) = delete;

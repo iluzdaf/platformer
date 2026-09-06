@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <fstream>
+#include <memory>
 #include <glaze/glaze.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -18,7 +18,7 @@
 #include "ui/renaming.hpp"
 #include "ui/level_rewriting.hpp"
 #include "ui/saveable.hpp"
-#include "game/level_data_file.hpp"
+#include "helpers/temporary_levels.hpp"
 
 namespace
 {
@@ -40,27 +40,23 @@ namespace
 
     const std::string Cave = "cave";
 
-    std::filesystem::path someLevelsToRewrite()
+    std::unique_ptr<TemporaryLevels> someLevelsToRewrite()
     {
-        std::filesystem::path directory =
-            std::filesystem::temp_directory_path() / "platformer_renaming_levels";
-        std::filesystem::remove_all(directory);
-        std::filesystem::create_directories(directory);
-
+        auto levels = std::make_unique<TemporaryLevels>("renaming_levels");
         LevelData levelData;
         levelData.tileMapData.indices = {{0}};
         levelData.tileMapData.tilePalette = Cave;
         for (const char *name : {"level1.json", "level2.json"})
-            writeLevelData(levelData, (directory / name).string());
+            levels->write(name, levelData);
 
-        return directory;
+        return levels;
     }
 
-    std::filesystem::path someLevelsOneUnreadable()
+    std::unique_ptr<TemporaryLevels> someLevelsOneUnreadable()
     {
-        std::filesystem::path directory = someLevelsToRewrite();
-        std::ofstream(directory / "broken.json") << "{";
-        return directory;
+        std::unique_ptr<TemporaryLevels> levels = someLevelsToRewrite();
+        levels->writeText("broken.json", "{");
+        return levels;
     }
 
     bool rePointPalettes(LevelData &levelData, const Renames &renames)
@@ -321,7 +317,8 @@ TEST_CASE("No levels re-pointed says nothing", "[Renaming]")
 
 TEST_CASE("The levels a rename reaches are handed back", "[Renaming]")
 {
-    std::filesystem::path directory = someLevelsToRewrite();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsToRewrite();
+    const std::filesystem::path &directory = levels->directory;
 
     rewriting::Reach reach = rewriting::theLevels(
         directory.string(),
@@ -329,15 +326,14 @@ TEST_CASE("The levels a rename reaches are handed back", "[Renaming]")
         { return rewriting::paletteIn(levelData.tileMapData, {{Cave, "base"}}); });
 
     REQUIRE(levelsInAList(reach.levels) == "level1 and level2");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Nothing is said once the levels are rewritten", "[Renaming]")
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, Cave, "base");
-    std::filesystem::path directory = someLevelsToRewrite();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsToRewrite();
+    const std::filesystem::path &directory = levels->directory;
 
     writeRenamesIntoLevels(
         renaming,
@@ -353,8 +349,6 @@ TEST_CASE("Nothing is said once the levels are rewritten", "[Renaming]")
     REQUIRE_FALSE(
         glz::read_file_json(rewritten, (directory / "level1.json").string(), std::string{}));
     REQUIRE(rewritten.tileMapData.tilePalette == "base");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Renames that take effect move the keys they name", "[Renaming]")
@@ -385,7 +379,8 @@ TEST_CASE("The levels a rename will reach are named before it is saved", "[Renam
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, Cave, "base");
-    std::filesystem::path directory = someLevelsToRewrite();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsToRewrite();
+    const std::filesystem::path &directory = levels->directory;
 
     lookAheadAtLevels(
         renaming,
@@ -401,15 +396,14 @@ TEST_CASE("The levels a rename will reach are named before it is saved", "[Renam
     REQUIRE_FALSE(
         glz::read_file_json(untouched, (directory / "level1.json").string(), std::string{}));
     REQUIRE(untouched.tileMapData.tilePalette == Cave);
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A rename the levels never named says nothing", "[Renaming]")
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, "nobody", "somebody");
-    std::filesystem::path directory = someLevelsToRewrite();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsToRewrite();
+    const std::filesystem::path &directory = levels->directory;
 
     lookAheadAtLevels(
         renaming,
@@ -418,15 +412,14 @@ TEST_CASE("A rename the levels never named says nothing", "[Renaming]")
         { return rewriting::paletteIn(levelData.tileMapData, renames); });
 
     REQUIRE(renaming.whatTheLevelsNeed().empty());
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("What the levels need is forgotten with the rename", "[Renaming]")
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, Cave, "base");
-    std::filesystem::path directory = someLevelsToRewrite();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsToRewrite();
+    const std::filesystem::path &directory = levels->directory;
 
     lookAheadAtLevels(
         renaming,
@@ -437,15 +430,14 @@ TEST_CASE("What the levels need is forgotten with the rename", "[Renaming]")
     renaming.forget();
 
     REQUIRE(renaming.whatTheLevelsNeed().empty());
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("What will happen stops being said once it has", "[Renaming]")
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, Cave, "base");
-    std::filesystem::path directory = someLevelsToRewrite();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsToRewrite();
+    const std::filesystem::path &directory = levels->directory;
 
     auto rename = [](LevelData &levelData, const Renames &renames)
     { return rewriting::paletteIn(levelData.tileMapData, renames); };
@@ -456,8 +448,6 @@ TEST_CASE("What will happen stops being said once it has", "[Renaming]")
     writeRenamesIntoLevels(renaming, directory.string(), rename);
 
     REQUIRE(renaming.whatTheLevelsNeed().empty());
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Levels too many for one line wrap inside the inspector", "[Renaming]")
@@ -550,18 +540,18 @@ TEST_CASE("The levels a removal will reach are named before it is saved", "[Rena
 {
     Renaming renaming;
     renaming.remove(Cave, "base");
-    std::filesystem::path directory = someLevelsToRewrite();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsToRewrite();
+    const std::filesystem::path &directory = levels->directory;
 
     lookAheadAtLevels(renaming, directory.string(), rePointPalettes);
 
     REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 will be re-pointed.");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A level that cannot be read is named and nothing is rewritten", "[Renaming]")
 {
-    std::filesystem::path directory = someLevelsOneUnreadable();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsOneUnreadable();
+    const std::filesystem::path &directory = levels->directory;
 
     rewriting::Reach reach = rewriting::theLevels(
         directory.string(),
@@ -576,43 +566,40 @@ TEST_CASE("A level that cannot be read is named and nothing is rewritten", "[Ren
     REQUIRE_FALSE(
         glz::read_file_json(untouched, (directory / "level1.json").string(), std::string{}));
     REQUIRE(untouched.tileMapData.tilePalette == Cave);
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Renames wait while a level cannot be read", "[Renaming]")
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, Cave, "base");
-    std::filesystem::path directory = someLevelsOneUnreadable();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsOneUnreadable();
+    const std::filesystem::path &directory = levels->directory;
 
     REQUIRE_FALSE(writeRenamesIntoLevels(renaming, directory.string(), rePointPalettes));
 
     REQUIRE(renaming.sinceSaved() == Renames{{Cave, "base"}});
     REQUIRE(renaming.cannotSaveBecause() == "broken cannot be read");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A level that cannot be read is said before the save", "[Renaming]")
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, Cave, "base");
-    std::filesystem::path directory = someLevelsOneUnreadable();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsOneUnreadable();
+    const std::filesystem::path &directory = levels->directory;
 
     lookAheadAtLevels(renaming, directory.string(), rePointPalettes);
 
     REQUIRE(renaming.cannotSaveBecause() == "broken cannot be read");
     REQUIRE(renaming.whatTheLevelsNeed() == "level1 and level2 will be re-pointed.");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Levels that can be read again let the renames through", "[Renaming]")
 {
     HeadlessImGui gui;
     Renaming renaming = renamedOnce(gui, Cave, "base");
-    std::filesystem::path directory = someLevelsOneUnreadable();
+    std::unique_ptr<TemporaryLevels> levels = someLevelsOneUnreadable();
+    const std::filesystem::path &directory = levels->directory;
 
     REQUIRE_FALSE(writeRenamesIntoLevels(renaming, directory.string(), rePointPalettes));
 
@@ -621,8 +608,6 @@ TEST_CASE("Levels that can be read again let the renames through", "[Renaming]")
     REQUIRE(writeRenamesIntoLevels(renaming, directory.string(), rePointPalettes));
     REQUIRE_FALSE(renaming.cannotSaveBecause().has_value());
     REQUIRE(renaming.whatTheLevelsNeed().empty());
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Removing with nothing to fall back to re-points nothing", "[Renaming]")

@@ -21,6 +21,7 @@
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
 #include "helpers/tiles.hpp"
+#include "helpers/levels.hpp"
 #include "game/level_resizing.hpp"
 
 namespace
@@ -37,18 +38,7 @@ namespace
 
     LevelData dataPlacing(const std::vector<NpcSpawnData> &npcs)
     {
-        LevelData levelData;
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
-        levelData.tileMapData.tilePalette = "default";
-        levelData.tileMapData.indices =
-            std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
-        for (int x = 0; x < MapTiles; ++x)
-            levelData.tileMapData.indices[FloorRow][x] = PaintedTile;
-
-        levelData.playerStart = feetOf(glm::ivec2(1, Standing));
-        levelData.npcs = npcs;
-
-        return levelData;
+        return aFloorLevelPlacing(npcs, PaintedTile);
     }
 
     Level levelOf(const LevelData &levelData)
@@ -82,14 +72,6 @@ namespace
             return *edited;
         }
     };
-
-    NpcSpawnData villagerAt(glm::ivec2 tilePosition)
-    {
-        NpcSpawnData spawn;
-        spawn.type = "villager";
-        spawn.position = feetOf(tilePosition);
-        return spawn;
-    }
 
     MouseOnTheMap over(const Level &level, glm::ivec2 tilePosition)
     {
@@ -241,7 +223,7 @@ TEST_CASE("A pick waits for the click rather than the hold", "[LevelUi]")
 TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi]")
 {
     LevelUi levelUi;
-    Editing editing({villagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 0};
     glm::ivec2 target(5, Standing);
 
@@ -259,7 +241,7 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
 TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]")
 {
     LevelUi levelUi;
-    NpcSpawnData walking = villagerAt(glm::ivec2(2, Standing));
+    NpcSpawnData walking = aVillagerAt(glm::ivec2(2, Standing));
     walking.patrol = beatOf(glm::ivec2(1, Standing), glm::ivec2(8, Standing));
     Editing editing({walking});
 
@@ -282,7 +264,7 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
 TEST_CASE("The first end picked of an absent beat becomes both of them", "[LevelUi]")
 {
     LevelUi levelUi;
-    Editing editing({villagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
     REQUIRE_FALSE(editing.levelData.npcs.front().patrol);
 
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolFrom, 0};
@@ -302,7 +284,7 @@ TEST_CASE("The first end picked of an absent beat becomes both of them", "[Level
 TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[LevelUi]")
 {
     LevelUi levelUi;
-    Editing editing({villagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 4};
 
     REQUIRE_NOTHROW(levelUi.update(
@@ -322,7 +304,7 @@ TEST_CASE("The level section draws every fold without a tile sheet", "[LevelUi]"
 {
     HeadlessImGui gui;
     LevelUi levelUi;
-    LevelData levelData = dataPlacing({villagerAt(glm::ivec2(3, Standing))});
+    LevelData levelData = dataPlacing({aVillagerAt(glm::ivec2(3, Standing))});
     Level level = levelOf(levelData);
     ActorMotionState motion;
     ActorState playerState;

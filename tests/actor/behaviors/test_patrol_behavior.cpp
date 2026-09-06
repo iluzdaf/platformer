@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <vector>
 #include "actor/actor_behavior_context.hpp"
-#include "actor/actor_contact_state.hpp"
+#include "helpers/behaviour_context.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
@@ -15,20 +15,6 @@
 
 namespace
 {
-    NavigationGraph setupPlatform(int nodeCount = 2, float spacing = 96.0f)
-    {
-        NavigationGraph navigationGraph;
-        for (int id = 0; id < nodeCount; ++id)
-            navigationGraph.addNode(id, {id * spacing, 192.0f});
-
-        for (int id = 1; id < nodeCount; ++id)
-        {
-            navigationGraph.addEdge(id - 1, id, EdgeType::Walk);
-            navigationGraph.addEdge(id, id - 1, EdgeType::Walk);
-        }
-        return navigationGraph;
-    }
-
     NavigationGraph setupGap()
     {
         NavigationGraph navigationGraph;
@@ -49,28 +35,6 @@ namespace
         return navigationGraph;
     }
 
-    ActorContactState standing()
-    {
-        ActorContactState contacts;
-        contacts.onGround = true;
-        return contacts;
-    }
-
-    ActorBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
-    {
-        return {
-            navigationGraph,
-            worldPosition,
-            glm::vec2(8.0f, 13.0f),
-            std::nullopt,
-            ActorContactState{}};
-    }
-
-    ActorBehaviorContext standingAt(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
-    {
-        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt, standing()};
-    }
-
     PatrolBehaviorData setupData()
     {
         PatrolBehaviorData data;
@@ -89,7 +53,7 @@ namespace
         glm::vec2 position)
     {
         behavior.reset();
-        behavior.decide(0.01f, at(navigationGraph, position));
+        behavior.decide(0.01f, airborneAt(navigationGraph, position));
     }
 
     std::vector<int> walk(
@@ -102,7 +66,8 @@ namespace
         glm::vec2 position = start;
         for (int step = 0; step < steps; ++step)
         {
-            InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, position));
+            InputIntentions inputIntentions =
+                behavior.decide(0.01f, airborneAt(navigationGraph, position));
             if (visited.empty() || visited.back() != *behavior.getCurrentNodeId())
                 visited.push_back(*behavior.getCurrentNodeId());
             position.x += inputIntentions.direction.x * 2.0f;
@@ -121,7 +86,8 @@ namespace
         bool gotThere = false;
         for (int step = 0; step < steps; ++step)
         {
-            InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, position));
+            InputIntentions inputIntentions =
+                behavior.decide(0.01f, airborneAt(navigationGraph, position));
             position.x += inputIntentions.direction.x * 2.0f;
 
             if (std::abs(position.x - farEnd) < 8.0f)
@@ -143,7 +109,8 @@ namespace
         float leftMost = position.x, rightMost = position.x;
         for (int step = 0; step < steps; ++step)
         {
-            InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, position));
+            InputIntentions inputIntentions =
+                behavior.decide(0.01f, airborneAt(navigationGraph, position));
             position.x += inputIntentions.direction.x * 2.0f;
             leftMost = std::min(leftMost, position.x);
             rightMost = std::max(rightMost, position.x);
@@ -154,7 +121,7 @@ namespace
 
 TEST_CASE("Starts at the nearest node with somewhere to walk", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform();
+    NavigationGraph navigationGraph = aWalkRun(2);
     PatrolBehavior behavior(setupData());
 
     anchorAt(behavior, navigationGraph, {90.0f, 192.0f});
@@ -172,7 +139,7 @@ TEST_CASE("Has nothing to do on a graph with no edges at all", "[PatrolBehavior]
     anchorAt(behavior, navigationGraph, {0, 0});
 
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
-    REQUIRE(behavior.decide(0.01f, at(navigationGraph, {0, 0})).direction.x == 0.0f);
+    REQUIRE(behavior.decide(0.01f, airborneAt(navigationGraph, {0, 0})).direction.x == 0.0f);
 }
 
 TEST_CASE("Takes a jump edge when it is the only way on", "[PatrolBehavior]")
@@ -192,7 +159,8 @@ TEST_CASE("Asks to jump while crossing a jump edge", "[PatrolBehavior]")
     PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
-    InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, {0.0f, 192.0f}));
+    InputIntentions inputIntentions =
+        behavior.decide(0.01f, airborneAt(navigationGraph, {0.0f, 192.0f}));
 
     REQUIRE(inputIntentions.jumpRequested);
     REQUIRE(inputIntentions.direction.x > 0.0f);
@@ -200,13 +168,14 @@ TEST_CASE("Asks to jump while crossing a jump edge", "[PatrolBehavior]")
 
 TEST_CASE("Never asks to jump on a platform it can walk", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(4);
+    NavigationGraph navigationGraph = aWalkRun(4);
     PatrolBehavior behavior(setupData());
     glm::vec2 position(0.0f, 192.0f);
 
     for (int step = 0; step < 1200; ++step)
     {
-        InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, position));
+        InputIntentions inputIntentions =
+            behavior.decide(0.01f, airborneAt(navigationGraph, position));
         REQUIRE_FALSE(inputIntentions.jumpRequested);
         position.x += inputIntentions.direction.x * 2.0f;
     }
@@ -220,7 +189,7 @@ TEST_CASE("Does not arrive at a ledge it is still below", "[PatrolBehavior]")
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
     REQUIRE(behavior.getTargetNodeId() == 1);
 
-    behavior.decide(0.01f, at(navigationGraph, {96.0f, 192.0f}));
+    behavior.decide(0.01f, airborneAt(navigationGraph, {96.0f, 192.0f}));
 
     REQUIRE(behavior.getCurrentNodeId() == 0);
 }
@@ -231,14 +200,14 @@ TEST_CASE("Arrives at a ledge once it stands on it", "[PatrolBehavior]")
     PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 160.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
-    behavior.decide(0.01f, at(navigationGraph, {96.0f, 160.0f}));
+    behavior.decide(0.01f, airborneAt(navigationGraph, {96.0f, 160.0f}));
 
     REQUIRE(behavior.getCurrentNodeId() == 1);
 }
 
 TEST_CASE("Patrols a two node platform end to end", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform();
+    NavigationGraph navigationGraph = aWalkRun(2);
     PatrolBehavior behavior(setupData());
     std::vector<int> visited = walk(behavior, navigationGraph, {0.0f, 192.0f}, 600);
 
@@ -249,7 +218,7 @@ TEST_CASE("Patrols a two node platform end to end", "[PatrolBehavior]")
 
 TEST_CASE("Walks to the far end of a longer run before turning", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(4);
+    NavigationGraph navigationGraph = aWalkRun(4);
     PatrolBehavior behavior(setupData());
     std::vector<int> visited = walk(behavior, navigationGraph, {0.0f, 192.0f}, 1200);
 
@@ -261,9 +230,10 @@ TEST_CASE("Walks to the far end of a longer run before turning", "[PatrolBehavio
 
 TEST_CASE("Emits no input other than a walk direction", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform();
+    NavigationGraph navigationGraph = aWalkRun(2);
     PatrolBehavior behavior(setupData());
-    InputIntentions inputIntentions = behavior.decide(0.01f, at(navigationGraph, {0.0f, 192.0f}));
+    InputIntentions inputIntentions =
+        behavior.decide(0.01f, airborneAt(navigationGraph, {0.0f, 192.0f}));
 
     REQUIRE(inputIntentions.direction.x != 0.0f);
     REQUIRE(inputIntentions.direction.y == 0.0f);
@@ -321,7 +291,8 @@ TEST_CASE("Stops asking to jump once the hold is spent", "[PatrolBehavior]")
     std::vector<bool> asked;
     for (int step = 0; step < 10; ++step)
     {
-        asked.push_back(behavior.decide(0.01f, at(navigationGraph, position)).jumpRequested);
+        asked.push_back(
+            behavior.decide(0.01f, airborneAt(navigationGraph, position)).jumpRequested);
         position.x += 1.0f;
     }
 
@@ -346,7 +317,7 @@ TEST_CASE("Holds a longer jump for longer", "[PatrolBehavior]")
         glm::vec2 position(0.0f, 192.0f);
         for (int step = 0; step < 40; ++step)
         {
-            if (behavior.decide(0.01f, at(navigationGraph, position)).jumpRequested)
+            if (behavior.decide(0.01f, airborneAt(navigationGraph, position)).jumpRequested)
                 ++steps;
             position.x += 1.0f;
         }
@@ -455,7 +426,8 @@ TEST_CASE("Does not steer while falling", "[PatrolBehavior]")
     for (float x : {99.0f, 101.0f, 103.0f, 100.0f, 102.0f})
     {
         INFO("falling past x " << x);
-        REQUIRE(behavior.decide(0.01f, at(navigationGraph, {x, 300.0f})).direction.x == 0.0f);
+        REQUIRE(
+            behavior.decide(0.01f, airborneAt(navigationGraph, {x, 300.0f})).direction.x == 0.0f);
     }
 }
 
@@ -510,7 +482,7 @@ TEST_CASE("Tries the jump again after coming up short", "[PatrolBehavior]")
 
 TEST_CASE("Told nowhere to walk, it paces what it is standing on", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(3, 64.0f);
+    NavigationGraph navigationGraph = aWalkRun(3, 64.0f);
     PatrolBehavior behavior(setupData());
 
     anchorAt(behavior, navigationGraph, {64.0f, 192.0f});
@@ -522,7 +494,7 @@ TEST_CASE("Told nowhere to walk, it paces what it is standing on", "[PatrolBehav
 
 TEST_CASE("Told where to walk, it walks between those two and turns round", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(4, 64.0f);
+    NavigationGraph navigationGraph = aWalkRun(4, 64.0f);
 
     PatrolBehavior behavior(setupData(), between({64.0f, 192.0f}, {128.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {64.0f, 192.0f});
@@ -536,7 +508,7 @@ TEST_CASE("Told where to walk, it walks between those two and turns round", "[Pa
 
 TEST_CASE("A beat may end between two nodes rather than at one", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(2, 192.0f);
+    NavigationGraph navigationGraph = aWalkRun(2, 192.0f);
     PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {96.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
 
@@ -549,7 +521,7 @@ TEST_CASE("A beat may end between two nodes rather than at one", "[PatrolBehavio
 
 TEST_CASE("A beat ending between nodes still turns round and comes back", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(2, 192.0f);
+    NavigationGraph navigationGraph = aWalkRun(2, 192.0f);
     PatrolBehavior behavior(setupData(), between({48.0f, 192.0f}, {144.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {48.0f, 192.0f});
 
@@ -562,7 +534,7 @@ TEST_CASE("A beat ending between nodes still turns round and comes back", "[Patr
 
 TEST_CASE("A beat end past the end of a run means the end of the run", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(2, 192.0f);
+    NavigationGraph navigationGraph = aWalkRun(2, 192.0f);
     PatrolBehavior behavior(setupData(), between({0.0f, 192.0f}, {4000.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
 
@@ -571,7 +543,7 @@ TEST_CASE("A beat end past the end of a run means the end of the run", "[PatrolB
 
 TEST_CASE("A beat end several nodes along is still stopped at", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(4, 64.0f);
+    NavigationGraph navigationGraph = aWalkRun(4, 64.0f);
     PatrolBehavior behavior(setupData(), between({32.0f, 192.0f}, {160.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {32.0f, 192.0f});
 
@@ -585,7 +557,7 @@ TEST_CASE("A beat end several nodes along is still stopped at", "[PatrolBehavior
 
 TEST_CASE("A beat end several nodes along is reached and left again", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(4, 64.0f);
+    NavigationGraph navigationGraph = aWalkRun(4, 64.0f);
     PatrolBehavior behavior(setupData(), between({32.0f, 192.0f}, {160.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {32.0f, 192.0f});
 
@@ -594,7 +566,7 @@ TEST_CASE("A beat end several nodes along is reached and left again", "[PatrolBe
 
 TEST_CASE("A beat inside one half of a single edge is not overshot", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(2, 320.0f);
+    NavigationGraph navigationGraph = aWalkRun(2, 320.0f);
     PatrolBehavior behavior(setupData(), between({32.0f, 192.0f}, {128.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {32.0f, 192.0f});
 
@@ -607,7 +579,7 @@ TEST_CASE("A beat inside one half of a single edge is not overshot", "[PatrolBeh
 
 TEST_CASE("A beat in the far half of a single edge is not overshot either", "[PatrolBehavior]")
 {
-    NavigationGraph navigationGraph = setupPlatform(2, 320.0f);
+    NavigationGraph navigationGraph = aWalkRun(2, 320.0f);
     PatrolBehavior behavior(setupData(), between({200.0f, 192.0f}, {250.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {200.0f, 192.0f});
 

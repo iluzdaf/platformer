@@ -1,5 +1,4 @@
 #include <catch2/catch_test_macros.hpp>
-#include <filesystem>
 #include <string>
 #include "game/levels_data.hpp"
 #include <tuple>
@@ -11,6 +10,7 @@
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
 #include "helpers/asset_path.hpp"
+#include "helpers/temporary_levels.hpp"
 #include "ui/camera_ui.hpp"
 #include "ui/levels_ui.hpp"
 #include "ui/editor_commands.hpp"
@@ -18,16 +18,11 @@
 
 namespace
 {
-    std::string aCopyOfLevelOne()
+    struct ACopyOfLevelOne
     {
-        std::filesystem::path directory =
-            std::filesystem::temp_directory_path() / "platformer_level_on_disk";
-        std::filesystem::remove_all(directory);
-        std::filesystem::create_directories(directory);
-        std::filesystem::copy_file(assetPath("levels/level1.json"), directory / "level1.json");
-
-        return (directory / "level1.json").string();
-    }
+        TemporaryLevels levels{"level_on_disk"};
+        std::string path = (levels.copyShipped("level1.json"), levels.pathOf("level1.json"));
+    };
 
     void drawCameraOnce(HeadlessImGui &gui, CameraUi &cameraUi, GameData &gameData)
     {
@@ -190,7 +185,8 @@ TEST_CASE("Reverting the levels section puts the first level back", "[UnsavedSec
 TEST_CASE("A clean level follows the disk", "[UnsavedSections]")
 {
     LevelUi levelUi;
-    std::string levelPath = aCopyOfLevelOne();
+    ACopyOfLevelOne copy;
+    const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
@@ -200,7 +196,8 @@ TEST_CASE("A clean level follows the disk", "[UnsavedSections]")
 TEST_CASE("A level with unsaved edits is kept and stays unsaved", "[UnsavedSections]")
 {
     LevelUi levelUi;
-    std::string levelPath = aCopyOfLevelOne();
+    ACopyOfLevelOne copy;
+    const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
@@ -216,7 +213,8 @@ TEST_CASE(
     "[UnsavedSections]")
 {
     LevelUi levelUi;
-    std::string levelPath = aCopyOfLevelOne();
+    ACopyOfLevelOne copy;
+    const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
@@ -231,7 +229,8 @@ TEST_CASE(
 TEST_CASE("A level that followed the disk is compared against what it loaded", "[UnsavedSections]")
 {
     LevelUi levelUi;
-    std::string levelPath = aCopyOfLevelOne();
+    ACopyOfLevelOne copy;
+    const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
@@ -247,7 +246,8 @@ TEST_CASE("A level that followed the disk is compared against what it loaded", "
 TEST_CASE("A level never looked at follows the disk", "[UnsavedSections]")
 {
     LevelUi levelUi;
-    std::string levelPath = aCopyOfLevelOne();
+    ACopyOfLevelOne copy;
+    const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
 
     REQUIRE(levelUi.followsTheDisk(levelData, levelPath));

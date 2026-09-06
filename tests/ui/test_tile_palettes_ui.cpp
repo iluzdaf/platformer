@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <memory>
 #include <fstream>
 #include <map>
 #include <optional>
@@ -20,6 +21,7 @@
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
 #include "helpers/asset_path.hpp"
+#include "helpers/temporary_levels.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 namespace
@@ -32,18 +34,14 @@ namespace
         return palettes;
     }
 
-    std::filesystem::path aLevelNaming(const std::string &palette)
+    std::unique_ptr<TemporaryLevels> aLevelNaming(const std::string &palette)
     {
-        std::filesystem::path directory =
-            std::filesystem::temp_directory_path() / "platformer_palette_levels";
-        std::filesystem::remove_all(directory);
-        std::filesystem::create_directories(directory);
-
+        auto levels = std::make_unique<TemporaryLevels>("palette_levels");
         LevelData levelData = readLevelData(assetPath("levels/level1.json"));
         levelData.tileMapData.tilePalette = palette;
-        writeLevelData(levelData, (directory / "level1.json").string());
+        levels->write("level1.json", levelData);
 
-        return directory;
+        return levels;
     }
 
     std::string paletteNamedIn(const std::filesystem::path &directory)
@@ -62,7 +60,8 @@ namespace
 
 TEST_CASE("Removing a palette re-points its levels to the first that remains", "[TilePalettesUi]")
 {
-    std::filesystem::path directory = aLevelNaming("default");
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("default");
+    const std::filesystem::path &directory = levels->directory;
     std::optional<TilePalettes> written;
     TilePalettesUi tilePalettesUi(
         directory.string(), [&](const TilePalettes &palettes) { written = palettes; });
@@ -80,13 +79,12 @@ TEST_CASE("Removing a palette re-points its levels to the first that remains", "
     REQUIRE(paletteNamedIn(directory) == "other");
     REQUIRE(playing.tileMapData.tilePalette == "other");
     REQUIRE_NOTHROW(TileMap(playing.tileMapData, palettes));
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Removing the last palette leaves its levels naming it", "[TilePalettesUi]")
 {
-    std::filesystem::path directory = aLevelNaming("only");
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("only");
+    const std::filesystem::path &directory = levels->directory;
     std::optional<TilePalettes> written;
     TilePalettesUi tilePalettesUi(
         directory.string(), [&](const TilePalettes &palettes) { written = palettes; });
@@ -108,8 +106,6 @@ TEST_CASE("Removing the last palette leaves its levels naming it", "[TilePalette
     REQUIRE_THROWS_WITH(
         TileMap(playing.tileMapData, palettes),
         Catch::Matchers::ContainsSubstring("Unknown tile palette"));
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A palette removed stays until the save and shows another", "[TilePalettesUi]")
@@ -175,7 +171,8 @@ TEST_CASE(
     "Saving a removal re-points the levels before the palettes are written",
     "[TilePalettesUi]")
 {
-    std::filesystem::path directory = aLevelNaming("other");
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("other");
+    const std::filesystem::path &directory = levels->directory;
     std::optional<TilePalettes> written;
     TilePalettesUi tilePalettesUi(
         directory.string(),
@@ -198,13 +195,12 @@ TEST_CASE(
     REQUIRE_FALSE(palettes.contains("other"));
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
     REQUIRE(playing.tileMapData.tilePalette == "default");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("Saving with nothing pending leaves the playing level alone", "[TilePalettesUi]")
 {
-    std::filesystem::path directory = aLevelNaming("other");
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("other");
+    const std::filesystem::path &directory = levels->directory;
     bool wrote = false;
     TilePalettesUi tilePalettesUi(directory.string(), [&](const TilePalettes &) { wrote = true; });
     TilePalettes palettes = namedPalettes();
@@ -215,13 +211,12 @@ TEST_CASE("Saving with nothing pending leaves the playing level alone", "[TilePa
 
     REQUIRE(wrote);
     REQUIRE(playing.tileMapData.tilePalette == "other");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A removal cannot be saved while a level cannot be read", "[TilePalettesUi]")
 {
-    std::filesystem::path directory = aLevelNaming("other");
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("other");
+    const std::filesystem::path &directory = levels->directory;
     std::ofstream(directory / "broken.json") << "{";
     bool wrote = false;
     TilePalettesUi tilePalettesUi(directory.string(), [&](const TilePalettes &) { wrote = true; });
@@ -241,8 +236,6 @@ TEST_CASE("A removal cannot be saved while a level cannot be read", "[TilePalett
     REQUIRE(playing.tileMapData.tilePalette == "other");
     REQUIRE(paletteNamedIn(directory) == "other");
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
@@ -547,7 +540,8 @@ TEST_CASE(
     "[TilePalettesUi]")
 {
     HeadlessImGui gui;
-    std::filesystem::path directory = aLevelNaming("default");
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("default");
+    const std::filesystem::path &directory = levels->directory;
     bool wrote = false;
     TilePalettesUi tilePalettesUi(directory.string(), [&](const TilePalettes &) { wrote = true; });
     TilePalettes palettes = twoPalettes();
@@ -570,14 +564,13 @@ TEST_CASE(
     REQUIRE(palettes.size() == 1);
     REQUIRE(paletteNamedIn(directory) == "base");
     REQUIRE(playing.tileMapData.tilePalette == "base");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A removed name taken by a new palette keeps the levels on it", "[TilePalettesUi]")
 {
     HeadlessImGui gui;
-    std::filesystem::path directory = aLevelNaming("other");
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("other");
+    const std::filesystem::path &directory = levels->directory;
     bool wrote = false;
     TilePalettesUi tilePalettesUi(
         directory.string(),
@@ -607,8 +600,6 @@ TEST_CASE("A removed name taken by a new palette keeps the levels on it", "[Tile
     REQUIRE(palettes.size() == 2);
     REQUIRE(palettes.at("other").tiles.empty());
     REQUIRE(tilePalettesUi.shownPalette() == "other");
-
-    std::filesystem::remove_all(directory);
 }
 
 TEST_CASE("A name already taken is not entered", "[TilePalettesUi]")

@@ -317,10 +317,13 @@ add_executable(tests
     tests/rendering/test_shader_file.cpp
     tests/rendering/test_screen_transition.cpp
     tests/tile_map/test_tile_map.cpp
+    tests/tile_map/test_tile_palette_data.cpp
     tests/tile_map/test_tile.cpp
     tests/tile_map/test_level_tile_caps.cpp
     tests/tile_map/test_touching_tiles.cpp
     tests/player/test_player.cpp
+    tests/player/test_player_tuning.cpp
+    tests/player/test_shipped_levels.cpp
     tests/timing/test_fixed_time_step.cpp
     tests/physics/test_aabb.cpp
     tests/physics/test_physics_body.cpp
@@ -333,7 +336,10 @@ add_executable(tests
     tests/animations/test_frame_animation.cpp
     tests/navigation/test_navigation_graph.cpp
     tests/scripting/test_lua_script_system.cpp
-    tests/navigation/test_navigation_graph_builder.cpp
+    tests/navigation/test_navigation_climb_edges.cpp
+    tests/navigation/test_navigation_fall_edges.cpp
+    tests/navigation/test_navigation_jump_edges.cpp
+    tests/navigation/test_navigation_walk_edges.cpp
     tests/navigation/test_navigation_path.cpp
     tests/navigation/test_navigation_place.cpp
     tests/navigation/test_navigation_profile.cpp
@@ -344,6 +350,7 @@ add_executable(tests
     tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
+    tests/npc/test_shipped_npcs.cpp
     tests/pickups/test_pickup_data.cpp
     tests/pickups/test_pickup.cpp
     tests/pickups/test_collecting.cpp

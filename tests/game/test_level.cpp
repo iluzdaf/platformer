@@ -22,18 +22,11 @@
 #include "player/player_data.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
+#include "helpers/levels.hpp"
 #include "helpers/actors.hpp"
 
 namespace
 {
-    NpcSpawnData spawnAt(std::string type, glm::ivec2 tilePosition)
-    {
-        NpcSpawnData spawn;
-        spawn.type = std::move(type);
-        spawn.position = feetOf(tilePosition);
-        return spawn;
-    }
-
     constexpr int MapTiles = 10;
     constexpr int FloorRow = 6;
     constexpr int CeilingRow = 4;

@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <functional>
+#include <vector>
 #include <stdexcept>
 #include <string>
 #include "physics/physics_body.hpp"
@@ -176,38 +178,68 @@ void PhysicsBody::pushOutOfSolids(const TileMap &tileMap)
     glm::vec2 nextPositionWithOffset = nextPosition + getColliderOffset();
     const float epsilon = 0.001f;
 
-    auto settle =
-        [&](auto probeAt, glm::vec2 axisMask, float &velocityComponent, AABB &collisionAABB)
+    auto insideTheMap = [&](glm::vec2 moved)
     {
-        tileMap.probeSolidTiles(
-            probeAt(nextPositionWithOffset),
-            [&](const Tile &, const AABB &tileAABB)
-            {
-                AABB probe = probeAt(nextPositionWithOffset);
-                glm::vec2 delta = probe.center() - tileAABB.center();
-                glm::vec2 overlap = (tileAABB.size + probe.size) * 0.5f - glm::abs(delta);
-                if (overlap.x < epsilon || overlap.y < epsilon)
-                    return false;
-
-                glm::vec2 outwards =
-                    glm::vec2(delta.x < 0.0f ? -1.0f : 1.0f, delta.y <= 0.0f ? -1.0f : 1.0f);
-                nextPositionWithOffset += axisMask * outwards * overlap;
-                velocityComponent = 0.0f;
-                collisionAABB.expandToInclude(tileAABB);
-                return false;
-            });
+        AABB body(nextPositionWithOffset + moved, getColliderSize());
+        return body.left() >= 0.0f && body.top() >= 0.0f &&
+               body.right() <= static_cast<float>(tileMap.getWorldWidth()) &&
+               body.bottom() <= static_cast<float>(tileMap.getWorldHeight());
     };
 
-    settle(
-        [&](glm::vec2 at) { return verticalProbeAt(at); },
-        glm::vec2(0.0f, 1.0f),
-        nextVelocity.y,
-        collisionAABBY);
-    settle(
-        [&](glm::vec2 at) { return horizontalProbeAt(at); },
-        glm::vec2(1.0f, 0.0f),
-        nextVelocity.x,
-        collisionAABBX);
+    struct WayOut
+    {
+        glm::vec2 move;
+        float *velocityComponent;
+        AABB *collisionAABB;
+    };
+
+    auto waysOutOf = [&](const AABB &tileAABB, std::vector<WayOut> &ways)
+    {
+        auto along = [&](const AABB &probe, glm::vec2 axis, float &velocity, AABB &box)
+        {
+            glm::vec2 delta = probe.center() - tileAABB.center();
+            glm::vec2 overlap = (tileAABB.size + probe.size) * 0.5f - glm::abs(delta);
+            if (overlap.x < epsilon || overlap.y < epsilon)
+                return;
+
+            ways.push_back(
+                {-axis * (probe.position + probe.size - tileAABB.position), &velocity, &box});
+            ways.push_back(
+                {axis * (tileAABB.position + tileAABB.size - probe.position), &velocity, &box});
+        };
+
+        along(
+            verticalProbeAt(nextPositionWithOffset), {0.0f, 1.0f}, nextVelocity.y, collisionAABBY);
+        along(
+            horizontalProbeAt(nextPositionWithOffset),
+            {1.0f, 0.0f},
+            nextVelocity.x,
+            collisionAABBX);
+    };
+
+    tileMap.probeSolidTiles(
+        AABB(nextPositionWithOffset, getColliderSize()),
+        [&](const Tile &, const AABB &tileAABB)
+        {
+            std::vector<WayOut> ways;
+            waysOutOf(tileAABB, ways);
+            if (ways.empty())
+                return false;
+
+            auto shorter = [](const WayOut &a, const WayOut &b)
+            { return glm::length(a.move) < glm::length(b.move); };
+            std::sort(ways.begin(), ways.end(), shorter);
+            auto allowed = std::find_if(
+                ways.begin(),
+                ways.end(),
+                [&](const WayOut &way) { return insideTheMap(way.move); });
+            const WayOut &taken = allowed == ways.end() ? ways.front() : *allowed;
+
+            nextPositionWithOffset += taken.move;
+            *taken.velocityComponent = 0.0f;
+            taken.collisionAABB->expandToInclude(tileAABB);
+            return false;
+        });
 
     nextPosition = nextPositionWithOffset - getColliderOffset();
 }

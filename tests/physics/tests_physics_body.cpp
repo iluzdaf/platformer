@@ -135,6 +135,40 @@ TEST_CASE(
     REQUIRE(body.contactWithGround(tileMap));
 }
 
+TEST_CASE(
+    "A body inside a tile on the top row is pushed down, since up is out of the map",
+    "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMapWith({{{3, 0}, 1}});
+    PhysicsBody body = setupBody({3 * 16.0f, 0.0f}, {0, 0});
+
+    body.stepPhysics(0.01f, tileMap);
+
+    REQUIRE(body.getPosition().y == Approx(16.0f));
+    REQUIRE(body.getPosition().x == Approx(3 * 16.0f));
+}
+
+TEST_CASE("A body inside a tile on the bottom row is pushed up", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMapWith({{{3, 9}, 1}});
+    PhysicsBody body = setupBody({3 * 16.0f, 9 * 16.0f}, {0, 0});
+
+    body.stepPhysics(0.01f, tileMap);
+
+    REQUIRE(body.getPosition().y == Approx(8 * 16.0f));
+}
+
+TEST_CASE("A body inside a tile in the left column is pushed right", "[PhysicsBody]")
+{
+    TileMap tileMap = setupTileMapWith({{{0, 3}, 1}, {{0, 2}, 1}, {{0, 4}, 1}});
+    PhysicsBody body = setupBody({2.0f, 3 * 16.0f}, {0, 0});
+
+    body.stepPhysics(0.01f, tileMap);
+
+    REQUIRE(body.getPosition().x == Approx(16.0f));
+    REQUIRE(body.getPosition().y == Approx(3 * 16.0f));
+}
+
 TEST_CASE("A body found resting inside a surface is lifted onto it", "[PhysicsBody]")
 {
     TileMap tileMap = setupTileMapWith({{{0, 5}, 1}});

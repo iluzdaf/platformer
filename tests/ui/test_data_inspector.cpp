@@ -10,7 +10,7 @@
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "cameras/camera2d_data.hpp"
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/headless_imgui.hpp"
 #include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "assets/sheet_data.hpp"

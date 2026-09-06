@@ -5,8 +5,10 @@
 #include <glaze/glaze.hpp>
 #include <optional>
 #include <vector>
-#include "test_helpers/asset_path.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/asset_path.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/shipped.hpp"
+#include "helpers/tiles.hpp"
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_data.hpp"
@@ -18,7 +20,7 @@
 
 TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
 
     REQUIRE(tileMap.getWidth() == 10);
     REQUIRE(tileMap.getHeight() == 10);
@@ -30,11 +32,11 @@ TEST_CASE("TileMap initializes grid correctly", "[TileMap]")
 
 TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
 
     SECTION("Reads back the tiles it was built with")
     {
-        TileMap built = setupTileMapWith({{{1, 1}, 5}, {{0, 2}, 7}});
+        TileMap built = aTileMapWith({{{1, 1}, 5}, {{0, 2}, 7}});
         REQUIRE(built.tilePositionToTileIndex(glm::ivec2(1, 1)) == 5);
         REQUIRE(built.tilePositionToTileIndex(glm::ivec2(0, 2)) == 7);
         REQUIRE(built.tilePositionToTileIndex(glm::ivec2(2, 2)) == 0);
@@ -61,7 +63,7 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
     SECTION("A map built with a negative tile index is refused")
     {
         REQUIRE_THROWS_WITH(
-            setupTileMapWith({{{2, 2}, -5}}), "Tile index must be greater or equals to 0");
+            aTileMapWith({{{2, 2}, -5}}), "Tile index must be greater or equals to 0");
     }
 }
 
@@ -74,7 +76,7 @@ TEST_CASE("TileMap returns correct tile", "[TileMap]")
     tileMapData.indices = std::vector<std::vector<int>>(3, std::vector<int>(3, 0));
     TilePaletteData palette =
         paletteOf({{1, solidTileData}, {0, emptyTileData}, {3, emptyTileData}});
-    TileMap tileMap(tileMapData, palettesFrom(palette));
+    TileMap tileMap(tileMapData, theOnlyPalette(palette));
 
     SECTION("Known indices")
     {
@@ -110,7 +112,7 @@ TEST_CASE("A tile map refuses cells that are not square", "[TileMap]")
     tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
 
     REQUIRE_THROWS_WITH(
-        TileMap(tileMapData, palettesFrom(palette)),
+        TileMap(tileMapData, theOnlyPalette(palette)),
         Catch::Matchers::ContainsSubstring("lays out squares"));
 }
 
@@ -124,7 +126,7 @@ TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
     tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
 
-    TileMap tileMap(tileMapData, palettesFrom(palette));
+    TileMap tileMap(tileMapData, theOnlyPalette(palette));
 
     REQUIRE(tileMap.getTileSet().texture == "textures/somewhere_else.png");
     REQUIRE(tileMap.getTileSet().cellSize.x == 8);
@@ -139,7 +141,7 @@ TEST_CASE("A tile is as big as the cell its palette draws it from", "[TileMap]")
     tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
 
-    TileMap tileMap(tileMapData, palettesFrom(palette));
+    TileMap tileMap(tileMapData, theOnlyPalette(palette));
 
     REQUIRE(tileMap.getTileSize() == 8);
     REQUIRE(tileMap.getWorldWidth() == 16);
@@ -157,8 +159,8 @@ TEST_CASE("A level takes the size of a tile from the palette it names", "[TileMa
     tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>(4, std::vector<int>(4, 0));
 
-    REQUIRE(TileMap(tileMapData, palettesFrom(small)).getWorldWidth() == 32);
-    REQUIRE(TileMap(tileMapData, palettesFrom(large)).getWorldWidth() == 128);
+    REQUIRE(TileMap(tileMapData, theOnlyPalette(small)).getWorldWidth() == 32);
+    REQUIRE(TileMap(tileMapData, theOnlyPalette(large)).getWorldWidth() == 128);
 }
 
 TEST_CASE("Every shipped palette names a texture that is on disk", "[TileMap]")
@@ -177,7 +179,7 @@ TEST_CASE("A palette survives being written and read back", "[TilePalette]")
     TileData torch;
     torch.animationData = FrameAnimationData{{3, 4, 5}, 0.2f};
     TilePalettes palettes =
-        palettesFrom(paletteOf({{0, TileData{}}, {1, spike}, {2, wall}, {7, torch}}));
+        theOnlyPalette(paletteOf({{0, TileData{}}, {1, spike}, {2, wall}, {7, torch}}));
 
     std::string written;
     REQUIRE_FALSE(glz::write_json(palettes, written));
@@ -206,7 +208,7 @@ TEST_CASE("A painted tile the palette says nothing about is empty", "[TileMap]")
     tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 7}};
 
-    TileMap tileMap(tileMapData, palettesFrom(palette));
+    TileMap tileMap(tileMapData, theOnlyPalette(palette));
 
     const Tile &tile = tileMap.getTile(7);
     REQUIRE(tile.isEmpty());
@@ -223,7 +225,7 @@ TEST_CASE("A palette naming a tile below zero fails to load", "[TileMap]")
     tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
 
     REQUIRE_THROWS_WITH(
-        TileMap(tileMapData, palettesFrom(palette)),
+        TileMap(tileMapData, theOnlyPalette(palette)),
         Catch::Matchers::ContainsSubstring("below 0") &&
             Catch::Matchers::ContainsSubstring("default"));
 }
@@ -236,7 +238,7 @@ TEST_CASE("A level painted only with tiles its palette has loads", "[TileMap]")
     tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 0}};
 
-    REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));
+    REQUIRE_NOTHROW(TileMap(tileMapData, theOnlyPalette(palette)));
 }
 
 TEST_CASE("The empty tile is paintable even when a palette omits it", "[TileMap]")
@@ -247,7 +249,7 @@ TEST_CASE("The empty tile is paintable even when a palette omits it", "[TileMap]
     tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>{{0, 1}, {1, 0}};
 
-    REQUIRE_NOTHROW(TileMap(tileMapData, palettesFrom(palette)));
+    REQUIRE_NOTHROW(TileMap(tileMapData, theOnlyPalette(palette)));
 }
 
 TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
@@ -260,7 +262,7 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
     TilePaletteData palette =
         paletteOf({{1, animatedTileData1}, {0, emptyTileData}, {3, animatedTileData2}});
     tileMapData.indices = std::vector<std::vector<int>>{{1, 0}, {0, 3}};
-    TileMap tileMap(tileMapData, palettesFrom(palette));
+    TileMap tileMap(tileMapData, theOnlyPalette(palette));
 
     SECTION("Animated tiles")
     {
@@ -284,14 +286,14 @@ TEST_CASE("TileMap animates tiles correctly", "[TileMap]")
 
 TEST_CASE("TileMap calculates world dimensions correctly", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     REQUIRE(tileMap.getWorldWidth() == 10 * 16);
     REQUIRE(tileMap.getWorldHeight() == 10 * 16);
 }
 
 TEST_CASE("TileMap tilesOverlapping returns correct tile coordinates", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     glm::vec2 worldPosition(15.0f, 15.0f);
     glm::vec2 size(16.0f, 16.0f);
     auto positions = tileMap.tilesOverlapping(worldPosition, size);
@@ -302,7 +304,7 @@ TEST_CASE("TileMap tilesOverlapping returns correct tile coordinates", "[TileMap
 
 TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]")
 {
-    TileMap tileMap = setupTileMapWith({{{1, 1}, 1}}, 3, 3);
+    TileMap tileMap = aTileMapWith({{{1, 1}, 1}}, 3, 3);
 
     AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
 
@@ -314,7 +316,7 @@ TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]
 
 TEST_CASE("TileMap names the spot an actor stands on inside a tile", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
 
     glm::vec2 standingIn = tileMap.feetOnTile(glm::ivec2(3, 4));
 
@@ -324,7 +326,7 @@ TEST_CASE("TileMap names the spot an actor stands on inside a tile", "[TileMap]"
 
 TEST_CASE("The two corners of a tile say which corner they are", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     glm::ivec2 tilePosition(3, 4);
     float tileSize = static_cast<float>(tileMap.getTileSize());
 
@@ -336,7 +338,7 @@ TEST_CASE("The two corners of a tile say which corner they are", "[TileMap]")
 
 TEST_CASE("The middle of a tile is half a tile in from its corner", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     glm::ivec2 tilePosition(3, 4);
     float tileSize = static_cast<float>(tileMap.getTileSize());
 
@@ -348,7 +350,7 @@ TEST_CASE("The middle of a tile is half a tile in from its corner", "[TileMap]")
 
 TEST_CASE("The middle of a tile is half a tile above where feet stand on it", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     glm::ivec2 tilePosition(3, 4);
     float tileSize = static_cast<float>(tileMap.getTileSize());
 
@@ -360,7 +362,7 @@ TEST_CASE("The middle of a tile is half a tile above where feet stand on it", "[
 
 TEST_CASE("The tile containing a point is not the tile stood on at it", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     glm::vec2 feet = tileMap.feetOnTile(glm::ivec2(3, 4));
 
     REQUIRE(tileMap.tileStoodOnAt(feet) == glm::ivec2(3, 4));
@@ -369,7 +371,7 @@ TEST_CASE("The tile containing a point is not the tile stood on at it", "[TileMa
 
 TEST_CASE("TileMap names the tile an actor standing somewhere is on", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     glm::ivec2 tilePosition(3, 4);
 
     REQUIRE(tileMap.tileStoodOnAt(tileMap.feetOnTile(tilePosition)) == tilePosition);
@@ -377,7 +379,7 @@ TEST_CASE("TileMap names the tile an actor standing somewhere is on", "[TileMap]
 
 TEST_CASE("A spot on a tile's edge belongs to the tile it is the edge of", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     float rightEdge = static_cast<float>(tileMap.getWidth() * tileMap.getTileSize());
     float floorSurface = static_cast<float>(tileMap.getHeight() * tileMap.getTileSize());
 
@@ -389,20 +391,20 @@ TEST_CASE("A spot on a tile's edge belongs to the tile it is the edge of", "[Til
 
 TEST_CASE("Nothing stands on ground it is buried in", "[TileMap]")
 {
-    REQUIRE(setupTileMapWith({{{3, 5}, 1}}).standsOnGround(glm::ivec2(3, 4)));
-    REQUIRE_FALSE(setupTileMapWith({{{3, 5}, 1}, {{3, 4}, 1}}).standsOnGround(glm::ivec2(3, 4)));
+    REQUIRE(aTileMapWith({{{3, 5}, 1}}).standsOnGround(glm::ivec2(3, 4)));
+    REQUIRE_FALSE(aTileMapWith({{{3, 5}, 1}, {{3, 4}, 1}}).standsOnGround(glm::ivec2(3, 4)));
 }
 
 TEST_CASE("Nothing stands on thin air", "[TileMap]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
 
     REQUIRE_FALSE(tileMap.standsOnGround(glm::ivec2(3, 4)));
 }
 
 TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
 {
-    TilePalettes palettes = palettesFrom(getDefaultTileDataMap());
+    TilePalettes palettes = theOnlyPalette(aPaletteWithASolidTile());
 
     SECTION("A grid whose rows are not all one width")
     {
@@ -454,7 +456,7 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
         sized.tilePalette = "default";
         sized.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
         REQUIRE_THROWS_WITH(
-            TileMap(sized, palettesFrom(palette)),
+            TileMap(sized, theOnlyPalette(palette)),
             Catch::Matchers::ContainsSubstring("names no tile set texture"));
     }
 
@@ -466,7 +468,7 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
         sized.tilePalette = "default";
         sized.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
         REQUIRE_THROWS_WITH(
-            TileMap(sized, palettesFrom(palette)),
+            TileMap(sized, theOnlyPalette(palette)),
             Catch::Matchers::ContainsSubstring("cell size of 0"));
     }
 }

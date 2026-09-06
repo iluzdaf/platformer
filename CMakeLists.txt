@@ -308,7 +308,7 @@ add_executable(tests
     tests/rendering/test_texture_cache.cpp
     tests/rendering/test_tile_set_fit.cpp
     tests/rendering/test_frame_uv_range.cpp
-    tests/test_helpers/test_made_sheet.cpp
+    tests/rendering/test_made_sheet.cpp
     tests/rendering/test_frames_fit.cpp
     tests/rendering/test_sheet_textures.cpp
     tests/rendering/test_texture2d.cpp
@@ -322,8 +322,8 @@ add_executable(tests
     tests/tile_map/test_touching_tiles.cpp
     tests/player/test_player.cpp
     tests/timing/test_fixed_time_step.cpp
-    tests/physics/tests_aabb.cpp
-    tests/physics/tests_physics_body.cpp
+    tests/physics/test_aabb.cpp
+    tests/physics/test_physics_body.cpp
     tests/cameras/test_camera2d.cpp
     tests/cameras/test_camera_shake.cpp
     tests/input/test_key_tracker.cpp

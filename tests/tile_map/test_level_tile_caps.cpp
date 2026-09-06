@@ -4,8 +4,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/glm.hpp>
 #include "game/levels.hpp"
-#include "test_helpers/asset_path.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/asset_path.hpp"
+#include "helpers/shipped.hpp"
+#include "helpers/tiles.hpp"
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"

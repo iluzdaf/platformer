@@ -1,4 +1,4 @@
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/tiles.hpp"
 #include "game/levels_data.hpp"
 #include "game/level_data.hpp"
 #include <cstddef>
@@ -16,7 +16,7 @@
 #include "game/level_data_file.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "rendering/texture_cache.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/asset_path.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/editor_ui.hpp"
 

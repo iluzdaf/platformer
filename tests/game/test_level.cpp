@@ -20,7 +20,9 @@
 #include "npc/npc_spawn_data.hpp"
 #include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/tiles.hpp"
+#include "helpers/actors.hpp"
 
 namespace
 {
@@ -84,7 +86,7 @@ namespace
     Level levelOf(const LevelData &levelData, const PlayerData &playerData = playerOfHeight(13.0f))
     {
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), playerData, theUsualNpcs(), {});
+            levelData, theOnlyPalette(aPaletteWithASolidTile()), playerData, theUsualNpcs(), {});
     }
 
     Level levelPlacing(
@@ -93,7 +95,7 @@ namespace
     {
         return Level(
             corridorPlacing(npcs),
-            palettesFrom(getDefaultTileDataMap()),
+            theOnlyPalette(aPaletteWithASolidTile()),
             playerData,
             theUsualNpcs(),
             {});
@@ -136,7 +138,7 @@ namespace
 
         return Level(
             levelData,
-            palettesFrom(getDefaultTileDataMap()),
+            theOnlyPalette(aPaletteWithASolidTile()),
             playerOfHeight(13.0f),
             theUsualNpcs(),
             {});

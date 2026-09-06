@@ -4,7 +4,7 @@
 #include <optional>
 #include <imgui.h>
 #include "game/level_resizing.hpp"
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/headless_imgui.hpp"
 #include "ui/size_buttons.hpp"
 
 namespace

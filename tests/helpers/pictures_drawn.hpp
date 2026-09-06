@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/headless_imgui.hpp"
 
 template <class Draw> bool drawsAPictureWide(HeadlessImGui &gui, float width, Draw &&draw)
 {

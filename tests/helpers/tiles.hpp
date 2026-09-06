@@ -1,60 +1,18 @@
 #pragma once
 
-#include <utility>
-#include <map>
-#include <glaze/glaze.hpp>
-#include <string>
 #include <stdexcept>
-#include "tile_map/tile_map.hpp"
-#include "game/level_data.hpp"
-#include "tile_map/tile_map_data.hpp"
-#include "game/game_data.hpp"
-#include "tile_map/tile_palette_data.hpp"
-#include "tile_map/tile_data.hpp"
-#include "npc/npc_data.hpp"
+#include <string>
+#include <utility>
 #include <vector>
-#include <memory>
+#include <glaze/glaze.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include "game/level_data.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/shipped.hpp"
 #include "npc/npc_spawn_data.hpp"
-#include "npc/npc.hpp"
-#include "game/level.hpp"
-#include "pickups/pickup_data.hpp"
-#include "assets/asset_paths.hpp"
-
-inline TilePaletteData paletteOf(std::map<int, TileData> tiles)
-{
-    TilePaletteData palette;
-    palette.tileSet.texture = std::string(assets::TileSetTexture);
-    palette.tiles = std::move(tiles);
-    return palette;
-}
-
-inline const TilePaletteData &getDefaultTileDataMap()
-{
-    static const TilePaletteData map = []
-    {
-        TileData solid;
-        solid.solid = solid.grippable = true;
-        return paletteOf({{0, TileData{}}, {1, solid}});
-    }();
-    return map;
-}
-
-inline const TilePalettes &shippedPalettes()
-{
-    static const TilePalettes palettes = [] { return loadGameData().tilePalettes; }();
-    return palettes;
-}
-
-inline const std::string &shippedPaletteName()
-{
-    return shippedPalettes().begin()->first;
-}
-
-inline const std::map<std::string, NpcData> &shippedNpcData()
-{
-    static const std::map<std::string, NpcData> npcData = [] { return loadGameData().npcData; }();
-    return npcData;
-}
+#include "tile_map/tile_map.hpp"
+#include "tile_map/tile_map_data.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 constexpr float TestTileSize = 16.0f;
 
@@ -88,32 +46,11 @@ inline PatrolData beatOf(glm::ivec2 fromTile, glm::ivec2 toTile, float tileSize 
     return PatrolData{from, to};
 }
 
-inline std::vector<NpcSpawnData> spawnsIn(const Level &level)
-{
-    std::vector<NpcSpawnData> spawns;
-    for (const std::unique_ptr<Npc> &npc : level.getNpcs())
-        spawns.push_back(npc->getSpawn());
-
-    return spawns;
-}
-
-inline const std::map<std::string, PickupData> &shippedPickupData()
-{
-    static const std::map<std::string, PickupData> pickupData = []
-    { return loadGameData().pickupData; }();
-    return pickupData;
-}
-
-inline TilePalettes palettesFrom(const TilePaletteData &palette)
-{
-    return {{"default", palette}};
-}
-
-inline TileMap setupTileMap(
+inline TileMap aTileMap(
     int width = 10,
     int height = 10,
     int tileSize = 16,
-    const TilePaletteData &palette = getDefaultTileDataMap())
+    const TilePaletteData &palette = aPaletteWithASolidTile())
 {
     TilePaletteData sized = palette;
     sized.tileSet.cellSize = glm::ivec2(tileSize);
@@ -121,15 +58,15 @@ inline TileMap setupTileMap(
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
     tileMapData.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
-    return TileMap(tileMapData, palettesFrom(sized));
+    return TileMap(tileMapData, theOnlyPalette(sized));
 }
 
-inline TileMap setupTileMapWith(
+inline TileMap aTileMapWith(
     const std::vector<std::pair<glm::ivec2, int>> &placed,
     int width = 10,
     int height = 10,
     int tileSize = 16,
-    const TilePaletteData &palette = getDefaultTileDataMap())
+    const TilePaletteData &palette = aPaletteWithASolidTile())
 {
     TilePaletteData sized = palette;
     sized.tileSet.cellSize = glm::ivec2(tileSize);
@@ -140,7 +77,7 @@ inline TileMap setupTileMapWith(
     for (const auto &[tile, tileIndex] : placed)
         tileMapData.indices[tile.y][tile.x] = tileIndex;
 
-    return TileMap(tileMapData, palettesFrom(sized));
+    return TileMap(tileMapData, theOnlyPalette(sized));
 }
 
 inline TileMap tilesOfLevel(const std::string &jsonFilePath)

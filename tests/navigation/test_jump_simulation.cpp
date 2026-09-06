@@ -7,7 +7,8 @@
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_build_report.hpp"
 #include "actor/actor_motion_data.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/tiles.hpp"
 #include "physics/physics_body_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include <cstddef>
@@ -167,7 +168,7 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
     TileMapData tileMapData;
     tileMapData.indices = rows;
     tileMapData.tilePalette = "default";
-    TileMap tileMap(tileMapData, palettesFrom(getDefaultTileDataMap()));
+    TileMap tileMap(tileMapData, theOnlyPalette(aPaletteWithASolidTile()));
 
     PhysicsBodyData physicsBodyData;
     physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
@@ -234,7 +235,7 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
 
 TEST_CASE("An attempt that lands says how many steps it took", "[JumpArc]")
 {
-    TileMap tileMap = setupTileMapWith({{{0, 5}, 1}, {{1, 5}, 1}, {{2, 5}, 1}, {{3, 5}, 1}});
+    TileMap tileMap = aTileMapWith({{{0, 5}, 1}, {{1, 5}, 1}, {{2, 5}, 1}, {{3, 5}, 1}});
     ActorMotionData motionData = jumperMotionData();
     PhysicsBodyData body;
 
@@ -249,7 +250,7 @@ TEST_CASE("An attempt that lands says how many steps it took", "[JumpArc]")
 
 TEST_CASE("An attempt that never lands is capped and says so", "[JumpArc]")
 {
-    TileMap tileMap = setupTileMapWith({{{0, 9}, 1}}, 4, 10);
+    TileMap tileMap = aTileMapWith({{{0, 9}, 1}}, 4, 10);
     ActorMotionData motionData = jumperMotionData();
     motionData.gravityAbilityData.reset();
     PhysicsBodyData body;

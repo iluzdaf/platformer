@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <string>
 #include "rendering/shader.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/asset_path.hpp"
 
 TEST_CASE("A shader file is read whole", "[Shader]")
 {

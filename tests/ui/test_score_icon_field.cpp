@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "assets/sheet_data.hpp"
 #include "game/score_icon_data.hpp"
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/headless_imgui.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/score_icon_field.hpp"
@@ -17,7 +17,7 @@ TEST_CASE("A score icon draws itself rather than falling through", "[ScoreIconFi
 #ifndef SKIP_OPENGL_TESTS
 
 #include "rendering/texture2d.hpp"
-#include "test_helpers/made_sheet.hpp"
+#include "helpers/made_sheet.hpp"
 #include "ui/sheet_in_scope.hpp"
 
 namespace

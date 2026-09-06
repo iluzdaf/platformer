@@ -4,7 +4,7 @@
 #include <string>
 #include "rendering/shader.hpp"
 #include "rendering/shader_data.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/asset_path.hpp"
 
 namespace
 {

@@ -15,7 +15,9 @@
 #include "pickups/pickup_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
 #include "player/player_data.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/shipped.hpp"
+#include "helpers/tiles.hpp"
 
 namespace
 {
@@ -40,7 +42,7 @@ namespace
     {
         return Level(
             levelData,
-            palettesFrom(getDefaultTileDataMap()),
+            theOnlyPalette(aPaletteWithASolidTile()),
             PlayerData(),
             shippedNpcData(),
             pickupCatalogue());
@@ -108,7 +110,7 @@ TEST_CASE("A level advances the pickups it holds", "[Pickups]")
 
     Level level(
         levelPlacing({{"coin", middleOf(glm::ivec2(1, 1))}}),
-        palettesFrom(getDefaultTileDataMap()),
+        theOnlyPalette(aPaletteWithASolidTile()),
         PlayerData(),
         shippedNpcData(),
         spinning);

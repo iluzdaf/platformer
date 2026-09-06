@@ -7,8 +7,8 @@
 #include "game/reloads.hpp"
 #include "game/world.hpp"
 #include "scripting/lua_script_system.hpp"
-#include "test_helpers/asset_path.hpp"
-#include "test_helpers/test_player_utils.hpp"
+#include "helpers/asset_path.hpp"
+#include "helpers/actors.hpp"
 #include "ui/editor_ui.hpp"
 
 namespace

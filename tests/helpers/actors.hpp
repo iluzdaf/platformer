@@ -1,19 +1,24 @@
 #pragma once
+
+#include <memory>
+#include <vector>
+#include "actor/abilities/dash_ability_data.hpp"
+#include "actor/abilities/gravity_ability_data.hpp"
+#include "actor/abilities/jump_ability_data.hpp"
+#include "actor/abilities/mantle_ability_data.hpp"
+#include "actor/abilities/move_ability_data.hpp"
+#include "actor/abilities/wall_climb_ability_data.hpp"
+#include "actor/abilities/wall_hang_ability_data.hpp"
+#include "actor/abilities/wall_jump_ability_data.hpp"
+#include "actor/abilities/wall_slide_ability_data.hpp"
+#include "animations/frame_animation_data.hpp"
+#include "game/level.hpp"
+#include "input/input_intentions.hpp"
+#include "input/intention_source.hpp"
+#include "npc/npc.hpp"
+#include "npc/npc_spawn_data.hpp"
 #include "player/player.hpp"
 #include "player/player_data.hpp"
-#include "actor/abilities/jump_ability_data.hpp"
-#include "actor/abilities/dash_ability_data.hpp"
-#include "actor/abilities/move_ability_data.hpp"
-#include "actor/abilities/wall_slide_ability_data.hpp"
-#include "actor/abilities/wall_jump_ability_data.hpp"
-#include "actor/abilities/wall_hang_ability_data.hpp"
-#include "actor/abilities/wall_climb_ability_data.hpp"
-#include "actor/abilities/mantle_ability_data.hpp"
-#include "actor/abilities/gravity_ability_data.hpp"
-#include "animations/frame_animation_data.hpp"
-#include "input/intention_source.hpp"
-#include "input/input_intentions.hpp"
-#include "animations/frame_animation_data.hpp"
 
 class ScriptedIntentions : public IntentionSource
 {
@@ -38,7 +43,7 @@ inline const IntentionSource &noIntentions()
     return source;
 }
 
-inline PlayerData setupPlayerData()
+inline PlayerData playerDataWithEveryAbility()
 {
     PlayerData playerData;
     playerData.actorData.animationData.idle = FrameAnimationData({0}, 1.0f);
@@ -55,7 +60,16 @@ inline PlayerData setupPlayerData()
     return playerData;
 }
 
-inline Player setupPlayer(const IntentionSource &intentionSource = noIntentions())
+inline Player aPlayerWithEveryAbility(const IntentionSource &intentionSource = noIntentions())
 {
-    return Player(setupPlayerData(), intentionSource);
+    return Player(playerDataWithEveryAbility(), intentionSource);
+}
+
+inline std::vector<NpcSpawnData> spawnsIn(const Level &level)
+{
+    std::vector<NpcSpawnData> spawns;
+    for (const std::unique_ptr<Npc> &npc : level.getNpcs())
+        spawns.push_back(npc->getSpawn());
+
+    return spawns;
 }

@@ -5,7 +5,7 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include "rendering/texture2d.hpp"
 #include "rendering/tile_set_fit.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/palettes.hpp"
 #include "tile_map/tile_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "tile_map/tile_palette_data.hpp"

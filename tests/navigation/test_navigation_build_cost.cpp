@@ -8,8 +8,8 @@
 #include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_build_report.hpp"
 #include "navigation/navigation_graph.hpp"
-#include "test_helpers/asset_path.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/asset_path.hpp"
+#include "helpers/shipped.hpp"
 
 namespace
 {

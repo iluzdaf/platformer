@@ -6,7 +6,7 @@
 #include "game/levels_data.hpp"
 #include "game/game_data.hpp"
 #include "ui/saveable.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/asset_path.hpp"
 
 TEST_CASE("The game data names the level the game starts on", "[Levels]")
 {

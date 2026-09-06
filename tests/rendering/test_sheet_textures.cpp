@@ -5,11 +5,12 @@
 #include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
 #include "player/player.hpp"
-#include "test_helpers/test_player_utils.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/actors.hpp"
 
 TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 {
-    PlayerData playerData = setupPlayerData();
+    PlayerData playerData = playerDataWithEveryAbility();
     playerData.actorData.sheet.texture = "textures/somewhere_else.png";
 
     Player player(playerData, noIntentions());
@@ -25,7 +26,6 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 #include "rendering/sheet_textures.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
 #include "rendering/texture_cache.hpp"
 #include "game/game_data.hpp"
 #include "pickups/pickup_data.hpp"
@@ -37,7 +37,7 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 
 TEST_CASE("Every actor's sheet is loaded before anything draws", "[SheetTextures]")
 {
-    PlayerData playerData = setupPlayerData();
+    PlayerData playerData = playerDataWithEveryAbility();
     playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
 
     NpcData villager;
@@ -53,7 +53,7 @@ TEST_CASE("Every actor's sheet is loaded before anything draws", "[SheetTextures
 
 TEST_CASE("An actor that names no sheet is refused by name", "[SheetTextures]")
 {
-    PlayerData playerData = setupPlayerData();
+    PlayerData playerData = playerDataWithEveryAbility();
     playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
 
     std::map<std::string, NpcData> npcData{{"villager", NpcData{}}};

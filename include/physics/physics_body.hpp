@@ -49,5 +49,8 @@ private:
         float &velocityComponent,
         glm::vec2 &positionWithOffset,
         AABB &collisionAABB);
+    AABB horizontalProbeAt(glm::vec2 positionWithOffset) const;
+    AABB verticalProbeAt(glm::vec2 positionWithOffset) const;
+    void pushOutOfSolids(const TileMap &tileMap);
     void clampToTileMapBounds(const TileMap &tileMap);
 };

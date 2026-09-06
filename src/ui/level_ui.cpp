@@ -17,7 +17,7 @@
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
-#include "ui/grid_shown.hpp"
+#include "ui/tile_map_shown.hpp"
 #include "ui/imgui_manager.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
@@ -151,12 +151,7 @@ void LevelUi::drawOverlayToggles()
     if (!ImGui::CollapsingHeader("Overlays"))
         return;
 
-    ImGui::Checkbox("Info", &drawTileInfo);
-    ImGui::SameLine();
-    ImGui::Checkbox("Grid", &grid.showing);
-    ImGui::Checkbox("Colliders", &drawTileColliders);
-    ImGui::SameLine();
-    ImGui::Checkbox("Bounds", &drawLevelBounds);
+    ImGui::Checkbox("Tile map", &tileMapShown.showing);
     navigationUi.drawOverlayToggles();
 }
 
@@ -165,17 +160,13 @@ void LevelUi::drawOverlay(
     const Camera2D &camera,
     const Level &level) const
 {
-    if (grid.showing)
+    if (tileMapShown.showing)
+    {
         drawTileGrid(imGuiManager, camera, level.getTileMap());
-
-    if (drawTileInfo)
-        ::drawTileInfo(imGuiManager, camera, level.getTileMap());
-
-    if (drawTileColliders)
-        ::drawTileColliders(imGuiManager, camera, level);
-
-    if (drawLevelBounds)
-        ::drawLevelBounds(imGuiManager, camera, level);
+        drawTileInfo(imGuiManager, camera, level.getTileMap());
+        drawTileColliders(imGuiManager, camera, level);
+        drawLevelBounds(imGuiManager, camera, level);
+    }
 
     drawSpawnOf(imGuiManager, camera, level, showingActor);
 
@@ -204,7 +195,7 @@ void LevelUi::update(
     if (saveable.lastSeen(levelPath).empty())
         saveable.seen(levelPath, asItWouldBeSaved(levelData));
 
-    grid = whileArmed(grid, armed.has_value());
+    tileMapShown = whileArmed(tileMapShown, armed.has_value());
 
     if (!armed || mouse.overTheUi)
         return;

@@ -7,7 +7,7 @@
 #include <map>
 #include <optional>
 #include "ui/editor_commands.hpp"
-#include "ui/grid_shown.hpp"
+#include "ui/tile_map_shown.hpp"
 #include "ui/armed.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "ui/actors_in_level.hpp"
@@ -54,8 +54,7 @@ private:
     Saveable saveable;
     NavigationUi navigationUi;
     ActorShown showingActor;
-    GridShown grid;
-    bool drawTileInfo = false, drawTileColliders = false, drawLevelBounds = false;
+    TileMapShown tileMapShown;
 
     std::string asItWouldBeSaved(const LevelData &levelData) const;
     void drawLevel(

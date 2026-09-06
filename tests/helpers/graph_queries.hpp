@@ -7,10 +7,12 @@
 #include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "helpers/graph_fixtures.hpp"
+#include "helpers/maps.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
+#include "navigation/navigation_path.hpp"
+#include <optional>
 #include "tile_map/tile_map.hpp"
 
 inline std::vector<float> nodeXsOnRow(const NavigationGraph &graph, float y)
@@ -21,23 +23,6 @@ inline std::vector<float> nodeXsOnRow(const NavigationGraph &graph, float y)
             xs.push_back(node.position.x);
     std::sort(xs.begin(), xs.end());
     return xs;
-}
-
-inline int nodeIdAt(const NavigationGraph &graph, float x, float y)
-{
-    for (const auto &[id, node] : graph.getNodes())
-        if (node.position == glm::vec2(x, y))
-            return id;
-    return -1;
-}
-
-inline int nodeAt(const NavigationGraph &graph, glm::vec2 position)
-{
-    for (const auto &[id, node] : graph.getNodes())
-        if (glm::distance(node.position, position) < 0.5f)
-            return id;
-
-    return -1;
 }
 
 inline bool hasEdgeBetween(const NavigationGraph &graph, float fromX, float toX, float y)
@@ -76,25 +61,9 @@ inline bool hasEdgeBetween(
 
 inline bool isReachable(const NavigationGraph &graph, glm::vec2 from, glm::vec2 to)
 {
-    int fromId = nodeIdAt(graph, from.x, from.y);
-    int toId = nodeIdAt(graph, to.x, to.y);
-    if (fromId < 0 || toId < 0)
-        return false;
-
-    std::set<int> seen{fromId};
-    std::vector<int> pending{fromId};
-    while (!pending.empty())
-    {
-        int nodeId = pending.back();
-        pending.pop_back();
-        if (nodeId == toId)
-            return true;
-
-        for (const auto &edge : graph.getOutgoingEdges(nodeId))
-            if (seen.insert(edge.toId).second)
-                pending.push_back(edge.toId);
-    }
-    return false;
+    std::optional<int> fromId = graph.nodeAtPosition(from);
+    std::optional<int> toId = graph.nodeAtPosition(to);
+    return fromId && toId && !findPath(graph, *fromId, *toId).empty();
 }
 
 inline size_t nodesOnTheFloor(const NavigationGraph &graph, const TileMap &tileMap)

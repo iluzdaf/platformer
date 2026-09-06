@@ -47,11 +47,6 @@ namespace
             {"alsoShort", npcOfHeight(13.0f)}};
     }
 
-    NavigationProfile profileOfHeight(float height)
-    {
-        return buildNavigationProfile(npcOfHeight(height).actorData);
-    }
-
     PlayerData playerOfHeight(float height)
     {
         PlayerData playerData;
@@ -403,4 +398,13 @@ TEST_CASE("A beat picked in the editor survives the trip through world space", "
 
     REQUIRE(tilesOfBeat(tileMap, beatBetween(tileMap, left, right)) == std::pair(left, right));
     REQUIRE(tilesOfBeat(tileMap, beatBetween(tileMap, right, left)) == std::pair(right, left));
+}
+
+TEST_CASE("A beat between tiles is the same with or without a map", "[Level]")
+{
+    Level level = levelPlacing({});
+    const TileMap &tileMap = level.getTileMap();
+
+    REQUIRE(beatBetween(tileMap, {1, 4}, {5, 4}) == beatBetween({1, 4}, {5, 4}, 16));
+    REQUIRE(beatBetween({1, 4}, {5, 4}, 16) == PatrolData{{16.0f, 80.0f}, {96.0f, 80.0f}});
 }

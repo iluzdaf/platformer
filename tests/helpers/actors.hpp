@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/dash_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
@@ -11,6 +12,10 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/abilities/wall_slide_ability_data.hpp"
+#include "actor/actor_data.hpp"
+#include "actor/actor_motion_data.hpp"
+#include "navigation/navigation_profile.hpp"
+#include "navigation/navigation_profile_builder.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/level.hpp"
 #include "input/input_intentions.hpp"
@@ -72,4 +77,62 @@ inline std::vector<NpcSpawnData> spawnsIn(const Level &level)
         spawns.push_back(npc->getSpawn());
 
     return spawns;
+}
+
+inline ActorData anActorOfHeight(float height)
+{
+    ActorData actorData;
+    actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, height);
+    return actorData;
+}
+
+inline ActorMotionData jumperMotionData()
+{
+    ActorMotionData motionData;
+    motionData.moveAbilityData = MoveAbilityData{};
+    motionData.gravityAbilityData = GravityAbilityData{};
+    motionData.jumpAbilityData = JumpAbilityData{};
+    return motionData;
+}
+
+inline ActorMotionData fallerMotionData()
+{
+    ActorMotionData motionData;
+    motionData.gravityAbilityData = GravityAbilityData{};
+    return motionData;
+}
+
+inline ActorMotionData climberMotionData()
+{
+    ActorMotionData motionData;
+    motionData.wallHangAbilityData = WallHangAbilityData();
+    motionData.wallClimbAbilityData = WallClimbAbilityData();
+    return motionData;
+}
+
+inline NavigationProfile profileThatMoves(float height, const ActorMotionData &motionData)
+{
+    ActorData actorData = anActorOfHeight(height);
+    actorData.motionData = motionData;
+    return buildNavigationProfile(actorData);
+}
+
+inline NavigationProfile profileOfHeight(float height)
+{
+    return buildNavigationProfile(anActorOfHeight(height));
+}
+
+inline NavigationProfile standardProfile()
+{
+    return profileOfHeight(13.0f);
+}
+
+inline NavigationProfile jumperProfile()
+{
+    return profileThatMoves(13.0f, jumperMotionData());
+}
+
+inline NavigationProfile climberProfile()
+{
+    return profileThatMoves(13.0f, climberMotionData());
 }

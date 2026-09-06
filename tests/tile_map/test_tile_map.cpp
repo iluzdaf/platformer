@@ -34,7 +34,7 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 
     SECTION("Reads back the tiles it was built with")
     {
-        TileMap built = aTileMapWith({{{1, 1}, 5}, {{0, 2}, 7}});
+        TileMap built = aTileMap({{{1, 1}, 5}, {{0, 2}, 7}});
         REQUIRE(built.tilePositionToTileIndex(glm::ivec2(1, 1)) == 5);
         REQUIRE(built.tilePositionToTileIndex(glm::ivec2(0, 2)) == 7);
         REQUIRE(built.tilePositionToTileIndex(glm::ivec2(2, 2)) == 0);
@@ -60,8 +60,7 @@ TEST_CASE("TileMap set/get tile indices correctly", "[TileMap]")
 
     SECTION("A map built with a negative tile index is refused")
     {
-        REQUIRE_THROWS_WITH(
-            aTileMapWith({{{2, 2}, -5}}), "Tile index must be greater or equals to 0");
+        REQUIRE_THROWS_WITH(aTileMap({{{2, 2}, -5}}), "Tile index must be greater or equals to 0");
     }
 }
 
@@ -271,7 +270,7 @@ TEST_CASE("TileMap tilesOverlapping returns correct tile coordinates", "[TileMap
 
 TEST_CASE("TileMap probeSolidTiles detects solid tile intersections", "[TileMap]")
 {
-    TileMap tileMap = aTileMapWith({{{1, 1}, 1}}, 3, 3);
+    TileMap tileMap = aTileMap({{{1, 1}, 1}}, 3, 3);
 
     AABB probeAABB(glm::vec2(16.0f, 16.0f), glm::vec2(16.0f));
 
@@ -358,8 +357,8 @@ TEST_CASE("A spot on a tile's edge belongs to the tile it is the edge of", "[Til
 
 TEST_CASE("Nothing stands on ground it is buried in", "[TileMap]")
 {
-    REQUIRE(aTileMapWith({{{3, 5}, 1}}).standsOnGround(glm::ivec2(3, 4)));
-    REQUIRE_FALSE(aTileMapWith({{{3, 5}, 1}, {{3, 4}, 1}}).standsOnGround(glm::ivec2(3, 4)));
+    REQUIRE(aTileMap({{{3, 5}, 1}}).standsOnGround(glm::ivec2(3, 4)));
+    REQUIRE_FALSE(aTileMap({{{3, 5}, 1}, {{3, 4}, 1}}).standsOnGround(glm::ivec2(3, 4)));
 }
 
 TEST_CASE("Nothing stands on thin air", "[TileMap]")
@@ -438,4 +437,16 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
             TileMap(sized, theOnlyPalette(palette)),
             Catch::Matchers::ContainsSubstring("cell size of 0"));
     }
+}
+
+TEST_CASE("Where feet and middles fall on a tile is the same with or without a map", "[TileMap]")
+{
+    TileMap tileMap = aTileMap({}, 10, 10, 16);
+    glm::ivec2 tile(3, 4);
+
+    REQUIRE(feetOnTile(tile, 16) == tileMap.feetOnTile(tile));
+    REQUIRE(middleOfTile(tile, 16) == tileMap.middleOfTile(tile));
+    REQUIRE(topLeftOfTile(tile, 16) == tileMap.topLeftOfTile(tile));
+    REQUIRE(feetOnTile(tile, 16) == glm::vec2(56.0f, 80.0f));
+    REQUIRE(middleOfTile(tile, 16) == glm::vec2(56.0f, 72.0f));
 }

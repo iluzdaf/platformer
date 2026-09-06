@@ -30,3 +30,14 @@ inline TilePalettes theOnlyPalette(const TilePaletteData &palette)
 {
     return {{"default", palette}};
 }
+
+inline constexpr int SpikeTileIndex = 2;
+
+inline TilePaletteData aPaletteWithSpikes()
+{
+    TilePaletteData palette = aPaletteWithASolidTile();
+    TileData spikes;
+    spikes.deadly = true;
+    palette.tiles[SpikeTileIndex] = spikes;
+    return palette;
+}

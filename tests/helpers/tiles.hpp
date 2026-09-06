@@ -6,6 +6,7 @@
 #include <vector>
 #include <glaze/glaze.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "game/beat_between.hpp"
 #include "game/level_data.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
@@ -18,51 +19,21 @@ constexpr float TestTileSize = 16.0f;
 
 inline glm::vec2 feetOf(glm::ivec2 tile, float tileSize = TestTileSize)
 {
-    return glm::vec2(tile.x * tileSize + tileSize * 0.5f, (tile.y + 1) * tileSize);
+    return feetOnTile(tile, static_cast<int>(tileSize));
 }
 
 inline glm::vec2 middleOf(glm::ivec2 tile, float tileSize = TestTileSize)
 {
-    return glm::vec2(tile.x * tileSize + tileSize * 0.5f, tile.y * tileSize + tileSize * 0.5f);
+    return middleOfTile(tile, static_cast<int>(tileSize));
 }
 
 inline PatrolData beatOf(glm::ivec2 fromTile, glm::ivec2 toTile, float tileSize = TestTileSize)
 {
-    glm::vec2 from = feetOf(fromTile, tileSize);
-    glm::vec2 to = feetOf(toTile, tileSize);
-    float outwards = tileSize * 0.5f;
-
-    if (from.x <= to.x)
-    {
-        from.x -= outwards;
-        to.x += outwards;
-    }
-    else
-    {
-        from.x += outwards;
-        to.x -= outwards;
-    }
-
-    return PatrolData{from, to};
+    return beatBetween(fromTile, toTile, static_cast<int>(tileSize));
 }
 
 inline TileMap aTileMap(
-    int width = 10,
-    int height = 10,
-    int tileSize = 16,
-    const TilePaletteData &palette = aPaletteWithASolidTile())
-{
-    TilePaletteData sized = palette;
-    sized.tileSet.cellSize = glm::ivec2(tileSize);
-
-    TileMapData tileMapData;
-    tileMapData.tilePalette = "default";
-    tileMapData.indices = std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
-    return TileMap(tileMapData, theOnlyPalette(sized));
-}
-
-inline TileMap aTileMapWith(
-    const std::vector<std::pair<glm::ivec2, int>> &placed,
+    const std::vector<std::pair<glm::ivec2, int>> &placed = {},
     int width = 10,
     int height = 10,
     int tileSize = 16,

@@ -44,7 +44,7 @@ namespace
 
 TEST_CASE("ActorMotion remembers which side a grippable wall was on", "[ActorMotion]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
+    TileMap tileMap = aTileMap({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
 
     ActorMotion motion{ActorMotionData()};
     motion.readContacts(bodyBesideWalls(), tileMap);
@@ -55,10 +55,9 @@ TEST_CASE("ActorMotion remembers which side a grippable wall was on", "[ActorMot
 
 TEST_CASE("ActorMotion does not remember a wall it could not grip", "[ActorMotion]")
 {
-    TileMap grippableOnTheLeft =
-        aTileMapWith({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
+    TileMap grippableOnTheLeft = aTileMap({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
 
-    TileMap slipperyOnTheRight = aTileMapWith({{{2, 3}, Slippery}}, 10, 10, 16, wallsOfBothKinds());
+    TileMap slipperyOnTheRight = aTileMap({{{2, 3}, Slippery}}, 10, 10, 16, wallsOfBothKinds());
 
     ActorMotion motion{ActorMotionData()};
     motion.readContacts(bodyBesideWalls(), grippableOnTheLeft);

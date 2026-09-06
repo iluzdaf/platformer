@@ -52,7 +52,7 @@ namespace
 
     TileMap aStepFrom(int lowTile)
     {
-        return aTileMapWith(
+        return aTileMap(
             {{{0, 5}, lowTile}, {{1, 5}, lowTile}, {{2, 5}, Full}, {{3, 5}, Full}},
             10,
             10,
@@ -75,7 +75,7 @@ namespace
 
 TEST_CASE("A body over two tiles is lifted once, not once per tile", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 5}, 1}, {{1, 5}, 1}});
+    TileMap tileMap = aTileMap({{{0, 5}, 1}, {{1, 5}, 1}});
     PhysicsBody body = setupBody({8, 4 * 16.0f + 1.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -85,7 +85,7 @@ TEST_CASE("A body over two tiles is lifted once, not once per tile", "[PhysicsBo
 
 TEST_CASE("A body shifted into a wall is pushed out the shortest way", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{3, 3}, 1}});
+    TileMap tileMap = aTileMap({{{3, 3}, 1}});
     PhysicsBody body = setupBody({3 * 16.0f - 14.0f, 3 * 16.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -98,7 +98,7 @@ TEST_CASE("A body shifted into a wall is pushed out the shortest way", "[Physics
 
 TEST_CASE("A body with its head in a ceiling is pushed down out of it", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{3, 2}, 1}});
+    TileMap tileMap = aTileMap({{{3, 2}, 1}});
     PhysicsBody body = setupBody({3 * 16.0f, 3 * 16.0f - 1.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -109,7 +109,7 @@ TEST_CASE("A body with its head in a ceiling is pushed down out of it", "[Physic
 
 TEST_CASE("A body deeper across than down is pushed up, not sideways", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{3, 5}, 1}});
+    TileMap tileMap = aTileMap({{{3, 5}, 1}});
     PhysicsBody body = setupBody({3 * 16.0f + 4.0f, 4 * 16.0f + 2.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -122,7 +122,7 @@ TEST_CASE(
     "A body on a lower tile beside a taller corner keeps its feet on what it feels",
     "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith(
+    TileMap tileMap = aTileMap(
         {{{0, 5}, Full}, {{1, 5}, OnePixelLow}, {{2, 5}, OnePixelLow}},
         10,
         10,
@@ -140,7 +140,7 @@ TEST_CASE(
     "A body inside a tile on the top row is pushed down, since up is out of the map",
     "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{3, 0}, 1}});
+    TileMap tileMap = aTileMap({{{3, 0}, 1}});
     PhysicsBody body = setupBody({3 * 16.0f, 0.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -151,7 +151,7 @@ TEST_CASE(
 
 TEST_CASE("A body inside a tile on the bottom row is pushed up", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{3, 9}, 1}});
+    TileMap tileMap = aTileMap({{{3, 9}, 1}});
     PhysicsBody body = setupBody({3 * 16.0f, 9 * 16.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -161,7 +161,7 @@ TEST_CASE("A body inside a tile on the bottom row is pushed up", "[PhysicsBody]"
 
 TEST_CASE("A body inside a tile in the left column is pushed right", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 3}, 1}, {{0, 2}, 1}, {{0, 4}, 1}});
+    TileMap tileMap = aTileMap({{{0, 3}, 1}, {{0, 2}, 1}, {{0, 4}, 1}});
     PhysicsBody body = setupBody({2.0f, 3 * 16.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -172,7 +172,7 @@ TEST_CASE("A body inside a tile in the left column is pushed right", "[PhysicsBo
 
 TEST_CASE("A body found resting inside a surface is lifted onto it", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 5}, 1}});
+    TileMap tileMap = aTileMap({{{0, 5}, 1}});
     PhysicsBody body = setupBody({0, 4 * 16.0f + 1.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -184,7 +184,7 @@ TEST_CASE("A body found resting inside a surface is lifted onto it", "[PhysicsBo
 
 TEST_CASE("A body resting on a surface is left where it is", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 5}, 1}});
+    TileMap tileMap = aTileMap({{{0, 5}, 1}});
     PhysicsBody body = setupBody({0, 4 * 16.0f}, {0, 0});
 
     body.stepPhysics(0.01f, tileMap);
@@ -234,7 +234,7 @@ TEST_CASE("The step height is the body's to say", "[PhysicsBody]")
 
 TEST_CASE("Stepping down onto a lower surface still drops", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith(
+    TileMap tileMap = aTileMap(
         {{{0, 5}, Full}, {{1, 5}, Full}, {{2, 5}, OnePixelLow}, {{3, 5}, OnePixelLow}},
         10,
         10,
@@ -261,7 +261,7 @@ TEST_CASE("A step height that leaves no body to collide with is refused", "[Phys
 
 TEST_CASE("PhysicsBody resolves collisions with solid tiles", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 5}, 1}});
+    TileMap tileMap = aTileMap({{{0, 5}, 1}});
     PhysicsBody body = setupBody({0, 4 * 16.0f}, {0, 980});
     FixedTimeStep timeStepper;
     timeStepper.run(1.0f, [&](float deltaTime) { body.stepPhysics(deltaTime, tileMap); });
@@ -281,21 +281,21 @@ TEST_CASE("PhysicsBody clamps to map bounds", "[PhysicsBody]")
 
 TEST_CASE("PhysicsBody detects contact with ground", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{1, 2}, 1}});
+    TileMap tileMap = aTileMap({{{1, 2}, 1}});
     PhysicsBody body = setupBody({16, 16});
     REQUIRE(body.contactWithGround(tileMap));
 }
 
 TEST_CASE("PhysicsBody detects contact with ceiling", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{1, 2}, 1}});
+    TileMap tileMap = aTileMap({{{1, 2}, 1}});
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithCeiling(tileMap));
 }
 
 TEST_CASE("PhysicsBody inside a tile is neither standing on it nor under it", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{1, 3}, 1}});
+    TileMap tileMap = aTileMap({{{1, 3}, 1}});
     PhysicsBody body = setupBody({16, 48});
 
     REQUIRE_FALSE(body.contactWithGround(tileMap));
@@ -304,27 +304,27 @@ TEST_CASE("PhysicsBody inside a tile is neither standing on it nor under it", "[
 
 TEST_CASE("PhysicsBody detects contact with left wall", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 3}, 1}});
+    TileMap tileMap = aTileMap({{{0, 3}, 1}});
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithLeftWall(tileMap));
 }
 
 TEST_CASE("PhysicsBody detects contact with right wall", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{2, 3}, 1}});
+    TileMap tileMap = aTileMap({{{2, 3}, 1}});
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithRightWall(tileMap));
 }
 TEST_CASE("PhysicsBody detects a wall beside its head", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 3}, 1}});
+    TileMap tileMap = aTileMap({{{0, 3}, 1}});
     PhysicsBody body = setupBody({16, 48});
     REQUIRE(body.contactWithLeftWallAtHead(tileMap));
 }
 
 TEST_CASE("PhysicsBody beside a ledge touches the wall but not at its head", "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{0, 4}, 1}});
+    TileMap tileMap = aTileMap({{{0, 4}, 1}});
     PhysicsBody body = setupBody({16, 56});
     REQUIRE(body.contactWithLeftWall(tileMap));
     REQUIRE_FALSE(body.contactWithLeftWallAtHead(tileMap));
@@ -334,7 +334,7 @@ TEST_CASE(
     "PhysicsBody beside a ledge on its right touches the wall but not at its head",
     "[PhysicsBody]")
 {
-    TileMap tileMap = aTileMapWith({{{2, 4}, 1}});
+    TileMap tileMap = aTileMap({{{2, 4}, 1}});
     PhysicsBody body = setupBody({16, 56});
     REQUIRE(body.contactWithRightWall(tileMap));
     REQUIRE_FALSE(body.contactWithRightWallAtHead(tileMap));

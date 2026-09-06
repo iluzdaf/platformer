@@ -6,7 +6,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/game_data.hpp"
 #include "helpers/asset_path.hpp"
-#include "helpers/graph_fixtures.hpp"
+#include "helpers/actors.hpp"
+#include "helpers/maps.hpp"
 #include "helpers/graph_queries.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
@@ -29,7 +30,7 @@ TEST_CASE(
     "A wall an actor can hang on becomes a way up and back down",
     "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
+    TileMap tileMap = aWallFromTheFloor();
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -42,7 +43,7 @@ TEST_CASE(
 
 TEST_CASE("An actor that cannot climb is given no way up a wall", "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
+    TileMap tileMap = aWallFromTheFloor();
 
     REQUIRE(
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, standardProfile()), tileMap).empty());
@@ -50,7 +51,7 @@ TEST_CASE("An actor that cannot climb is given no way up a wall", "[NavigationGr
 
 TEST_CASE("Hanging without climbing is no way up", "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
+    TileMap tileMap = aWallFromTheFloor();
     NavigationProfile hangsOnly = climberProfile();
     hangsOnly.motionData.wallClimbAbilityData.reset();
 
@@ -63,7 +64,7 @@ TEST_CASE(
 {
     Placed laid = wallFromTheFloor();
     laid.push_back({glm::ivec2(ClimbWallX, ClimbFloorRow - 1), 0});
-    TileMap tileMap = aTileMapWith(laid, 10, 12);
+    TileMap tileMap = aTileMap(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -78,7 +79,7 @@ TEST_CASE(
     Placed laid = wallFromTheFloor();
     laid.push_back({glm::ivec2(ClimbWallX - 1, 6), 1});
     laid.push_back({glm::ivec2(ClimbWallX + 1, 6), 1});
-    TileMap tileMap = aTileMapWith(laid, 10, 12);
+    TileMap tileMap = aTileMap(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -90,8 +91,8 @@ TEST_CASE(
 TEST_CASE("A wall you cannot stand on top of is not climbed", "[NavigationGraphBuilder][Climb]")
 {
     Placed laid = wallFromTheFloor();
-    layFloor(laid, ClimbWallTopRow - 1, 0, 9);
-    TileMap tileMap = aTileMapWith(laid, 10, 12);
+    layRow(laid, ClimbWallTopRow - 1, 0, 9);
+    TileMap tileMap = aTileMap(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -101,7 +102,7 @@ TEST_CASE("A wall you cannot stand on top of is not climbed", "[NavigationGraphB
 
 TEST_CASE("A wall an actor can climb gets a node on it", "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
+    TileMap tileMap = aWallFromTheFloor();
 
     std::vector<NavigationNode> onWalls =
         nodesOnWalls(buildNavigationGraph(tileMap, climberProfile()));
@@ -116,7 +117,7 @@ TEST_CASE("A wall an actor can climb gets a node on it", "[NavigationGraphBuilde
 
 TEST_CASE("An actor that cannot climb gets no wall nodes", "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
+    TileMap tileMap = aWallFromTheFloor();
 
     REQUIRE(nodesOnWalls(buildNavigationGraph(tileMap, standardProfile())).empty());
 }
@@ -125,7 +126,7 @@ TEST_CASE(
     "Climbing goes by way of the wall, never straight onto the ledge",
     "[NavigationGraphBuilder][Climb]")
 {
-    TileMap tileMap = setupWallFromTheFloor();
+    TileMap tileMap = aWallFromTheFloor();
     NavigationGraph graph = buildNavigationGraph(tileMap, climberProfile());
 
     int climbs = 0;
@@ -177,11 +178,11 @@ TEST_CASE("A wall an actor cannot grip is not climbed", "[NavigationGraphBuilder
     palette.tiles[2] = ungrippable;
 
     Placed laid;
-    layFloor(laid, ClimbFloorRow, 0, 9);
+    layRow(laid, ClimbFloorRow, 0, 9);
     for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)
         laid.push_back({glm::ivec2(ClimbWallX, y), 2});
 
-    TileMap ungrippableWall = aTileMapWith(laid, 10, 12, 16, palette);
+    TileMap ungrippableWall = aTileMap(laid, 10, 12, 16, palette);
 
     REQUIRE(nodesOnWalls(buildNavigationGraph(ungrippableWall, climberProfile())).empty());
 }

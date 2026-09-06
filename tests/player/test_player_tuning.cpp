@@ -118,7 +118,7 @@ namespace
                     }
                     input.set(intentions);
 
-                    runAFrame(player, level, timestepper);
+                    runFor(player, level, 1.0f / 60.0f, timestepper);
 
                     glm::vec2 position = player.getPosition();
                     if (kind == Pit::StepUp)
@@ -151,7 +151,7 @@ namespace
 
 TEST_CASE("The shipped player's jump is worth three tiles", "[Player][Tuning]")
 {
-    GameData gameData = shippedGameData();
+    GameData gameData = loadGameData();
 
     REQUIRE(getsAcross(gameData, 3, Pit::StepUp, true, false));
     REQUIRE_FALSE(getsAcross(gameData, 4, Pit::StepUp, true, false));
@@ -165,7 +165,7 @@ TEST_CASE("The shipped player's jump is worth three tiles", "[Player][Tuning]")
 
 TEST_CASE("The shipped player's dash is worth four tiles, and no spikes", "[Player][Tuning]")
 {
-    GameData gameData = shippedGameData();
+    GameData gameData = loadGameData();
 
     REQUIRE(getsAcross(gameData, 4, Pit::Hole, false, true));
     REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Hole, false, true));
@@ -175,7 +175,7 @@ TEST_CASE("The shipped player's dash is worth four tiles, and no spikes", "[Play
 
 TEST_CASE("The shipped player's jump and dash together are worth five tiles", "[Player][Tuning]")
 {
-    GameData gameData = shippedGameData();
+    GameData gameData = loadGameData();
 
     REQUIRE(getsAcross(gameData, 5, Pit::Hole, true, true));
     REQUIRE_FALSE(getsAcross(gameData, 6, Pit::Hole, true, true));
@@ -226,7 +226,7 @@ namespace
 
 TEST_CASE("The shipped player can climb three stepped platforms", "[Player][Tuning]")
 {
-    GameData gameData = shippedGameData();
+    GameData gameData = loadGameData();
     LevelData levelData;
     levelData.playerStart = feetOf(glm::ivec2(1, 11));
     levelData.tileMapData = threeStairs();
@@ -262,7 +262,7 @@ TEST_CASE("The shipped player can climb three stepped platforms", "[Player][Tuni
                 intentions.direction.x = step.towards;
                 input.set(intentions);
 
-                runAFrame(player, level, timestepper);
+                runFor(player, level, 1.0f / 60.0f, timestepper);
 
                 glm::vec2 feet = player.getPhysicsBody().getAABB().bottomCenter();
                 if (player.getMotion().getState().contacts.onGround &&

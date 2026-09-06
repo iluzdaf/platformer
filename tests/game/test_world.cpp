@@ -16,6 +16,26 @@
 #include "tile_map/tile_map.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "test_helpers/test_player_utils.hpp"
+#include "timing/fixed_time_step.hpp"
+
+namespace
+{
+    void walkFor(World &world, int frames)
+    {
+        FixedTimeStep timestepper;
+        for (int frame = 0; frame < frames; ++frame)
+        {
+            world.preFixedUpdate();
+            timestepper.run(
+                1.0f / 60.0f,
+                [&](float dt)
+                {
+                    world.fixedUpdate(dt);
+                    world.postFixedUpdate();
+                });
+        }
+    }
+}
 
 TEST_CASE("Loading a level fills the world with the level and its cast", "[World]")
 {
@@ -109,12 +129,7 @@ TEST_CASE("The player acts on the intentions the world was given", "[World]")
     moveRight.direction = {1.0f, 0.0f};
     intentions.set(moveRight);
 
-    for (int step = 0; step < 30; step++)
-    {
-        world.preFixedUpdate();
-        world.fixedUpdate(1.0f / 60.0f);
-        world.postFixedUpdate();
-    }
+    walkFor(world, 30);
 
     REQUIRE(world.getPlayer().getPosition().x > startX);
 }
@@ -181,12 +196,7 @@ TEST_CASE("Rebuilding from edited data leaves the player where it walked to", "[
     InputIntentions moveRight;
     moveRight.direction = {1.0f, 0.0f};
     intentions.set(moveRight);
-    for (int step = 0; step < 30; step++)
-    {
-        world.preFixedUpdate();
-        world.fixedUpdate(1.0f / 60.0f);
-        world.postFixedUpdate();
-    }
+    walkFor(world, 30);
     const Player *before = &world.getPlayer();
     glm::vec2 walkedTo = world.getPlayer().getPosition();
     REQUIRE(walkedTo != world.getLevel().getPlayerStart());

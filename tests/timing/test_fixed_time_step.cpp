@@ -58,3 +58,8 @@ TEST_CASE("Time carried over many frames is never lost", "[FixedTimeStep]")
 
     REQUIRE(steps == 100);
 }
+
+TEST_CASE("The step the game runs is the one the graphs are built on", "[FixedTimeStep]")
+{
+    REQUIRE(FixedTimeStep().getMaxStep() == PhysicsStep);
+}

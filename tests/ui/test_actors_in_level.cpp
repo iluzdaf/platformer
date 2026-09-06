@@ -10,8 +10,10 @@
 #include "player/player_data.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
-#include "test_helpers/headless_imgui.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/headless_imgui.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/shipped.hpp"
+#include "helpers/tiles.hpp"
 
 namespace
 {
@@ -34,7 +36,7 @@ namespace
 
         return Level(
             levelData,
-            palettesFrom(getDefaultTileDataMap()),
+            theOnlyPalette(aPaletteWithASolidTile()),
             PlayerData(),
             shippedNpcData(),
             shippedPickupData());
@@ -61,7 +63,7 @@ namespace
 
         return Level(
             levelData,
-            palettesFrom(getDefaultTileDataMap()),
+            theOnlyPalette(aPaletteWithASolidTile()),
             PlayerData(),
             shippedNpcData(),
             shippedPickupData());

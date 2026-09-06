@@ -1,7 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <optional>
 #include "game/level_data.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/tiles.hpp"
+#include "helpers/actors.hpp"
 #include <cstddef>
 #include <string>
 #include "game/world.hpp"
@@ -15,7 +16,6 @@
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
 #include "scripting/lua_script_system.hpp"
-#include "test_helpers/test_player_utils.hpp"
 #include "timing/fixed_time_step.hpp"
 
 namespace

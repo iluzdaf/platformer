@@ -10,7 +10,7 @@
 #include "actor/actor_data.hpp"
 #include "assets/asset_paths.hpp"
 #include "pickups/pickup_data.hpp"
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/headless_imgui.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/types_ui.hpp"
 #include "ui/sheet_in_scope.hpp"
@@ -20,7 +20,7 @@
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/asset_path.hpp"
 
 namespace
 {
@@ -612,7 +612,7 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
 
 #ifndef SKIP_OPENGL_TESTS
 
-#include "test_helpers/pictures_drawn.hpp"
+#include "helpers/pictures_drawn.hpp"
 #include "ui/sheet_preview.hpp"
 
 TEST_CASE("The types section previews an npc above its fields", "[TypesUi]")

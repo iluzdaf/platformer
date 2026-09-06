@@ -22,8 +22,11 @@
 #include "game/level_data_file.hpp"
 #include "game/level_data.hpp"
 #include "game/game_data.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/shipped.hpp"
+#include "helpers/tiles.hpp"
+#include "helpers/actors.hpp"
+#include "helpers/asset_path.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "tile_map/tile_data.hpp"
 
@@ -64,7 +67,7 @@ namespace
         levelData.tileMapData = tileMap.toTileMapData();
         levelData.npcs = {spawnAt("villager", npcTile)};
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue(), {});
+            levelData, theOnlyPalette(aPaletteWithASolidTile()), PlayerData(), npcCatalogue(), {});
     }
 
     Level setupWalkableLevel()
@@ -73,7 +76,7 @@ namespace
         for (int x = 0; x < 10; ++x)
             laid.push_back({glm::ivec2(x, 6), 1});
 
-        return levelOf(setupTileMapWith(laid), glm::ivec2(4, 5));
+        return levelOf(aTileMapWith(laid), glm::ivec2(4, 5));
     }
 
     constexpr int TwoTierWidthTiles = 20;
@@ -94,7 +97,7 @@ namespace
         for (int x = PlatformFirstTile; x <= PlatformLastTile; ++x)
             laid.push_back({glm::ivec2(x, PlatformRow), 1});
 
-        return setupTileMapWith(laid, TwoTierWidthTiles, TwoTierHeightTiles);
+        return aTileMapWith(laid, TwoTierWidthTiles, TwoTierHeightTiles);
     }
 
     Level setupTwoTierLevel()
@@ -113,7 +116,7 @@ namespace
         levelData.npcs = npcs;
 
         return Level(
-            levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue(), {});
+            levelData, theOnlyPalette(aPaletteWithASolidTile()), PlayerData(), npcCatalogue(), {});
     }
 
     float floorTopY(const TileMap &tileMap)
@@ -217,7 +220,7 @@ namespace
 
         return Level(
             levelData,
-            palettesFrom(ledgePalette()),
+            theOnlyPalette(ledgePalette()),
             loadGameData().playerData,
             shippedNpcData(),
             shippedPickupData());
@@ -339,7 +342,7 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
 
 TEST_CASE("Stands still in a level with nothing to walk on", "[Npc]")
 {
-    TileMap tiles = setupTileMap();
+    TileMap tiles = aTileMap();
     Level level = levelOf(tiles, glm::ivec2(3, 4));
 
     Npc npc(spawnAt("villager", SpawnTile), setupNpcData());
@@ -372,7 +375,8 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
     levelData.tileMapData.indices = std::vector<std::vector<int>>(10, std::vector<int>(10, 0));
     levelData.npcs = {spawnAt("villager", {1, 1}), spawnAt("villager", {2, 1})};
 
-    Level level(levelData, palettesFrom(getDefaultTileDataMap()), PlayerData(), npcCatalogue(), {});
+    Level level(
+        levelData, theOnlyPalette(aPaletteWithASolidTile()), PlayerData(), npcCatalogue(), {});
 
     REQUIRE(spawnsIn(level).size() == 2);
     REQUIRE(spawnsIn(level)[0].type == "villager");
@@ -418,7 +422,7 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
 {
     LevelData levelData;
     levelData.playerStart = feetOf(glm::ivec2(0, 0));
-    TilePaletteData palette = getDefaultTileDataMap();
+    TilePaletteData palette = aPaletteWithASolidTile();
     levelData.tileMapData.tilePalette = "default";
     levelData.tileMapData.indices = std::vector<std::vector<int>>(10, std::vector<int>(10, 0));
     for (int x = 0; x < 10; ++x)
@@ -427,7 +431,7 @@ TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Leve
     auto levelWith = [&](std::vector<NpcSpawnData> npcs)
     {
         levelData.npcs = std::move(npcs);
-        return Level(levelData, palettesFrom(palette), PlayerData(), npcCatalogue(), {});
+        return Level(levelData, theOnlyPalette(palette), PlayerData(), npcCatalogue(), {});
     };
 
     SECTION("out of bounds")

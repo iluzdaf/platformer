@@ -25,8 +25,9 @@
 #include "actor/actor_motion_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_map.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/tiles.hpp"
+#include "helpers/asset_path.hpp"
 #include "tile_map/tile_palette_data.hpp"
 
 namespace
@@ -64,14 +65,14 @@ namespace
 
     TileMap setupFloor()
     {
-        return setupTileMapWith(floorTiles());
+        return aTileMapWith(floorTiles());
     }
 
     TileMap setupFloorUnderOneTileOfHeadroom()
     {
         Placed laid = floorTiles();
         layRow(laid, CeilingRow, 0, MapWidthTiles - 1);
-        return setupTileMapWith(laid);
+        return aTileMapWith(laid);
     }
 
     constexpr int HighCeilingRow = 2;
@@ -82,7 +83,7 @@ namespace
         Placed laid = floorTiles();
         layRow(laid, HighCeilingRow, 0, MapWidthTiles - 1);
         laid.push_back({glm::ivec2(PinchColumn, FloorRow - 2), 1});
-        return setupTileMapWith(laid);
+        return aTileMapWith(laid);
     }
 
     bool anEdgeSpansThePinch(const NavigationGraph &graph, const TileMap &tileMap)
@@ -272,7 +273,7 @@ TEST_CASE("Walk edges are bidirectional along a floor", "[NavigationGraphBuilder
 {
     Placed laid;
     layFloor(laid, 5, 2, 4);
-    TileMap tileMap = setupTileMapWith(laid);
+    TileMap tileMap = aTileMapWith(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -290,7 +291,7 @@ TEST_CASE("No walk edge spans a gap between floors", "[NavigationGraphBuilder]")
     Placed laid;
     layFloor(laid, 5, 0, 2);
     layFloor(laid, 5, 6, 9);
-    TileMap tileMap = setupTileMapWith(laid);
+    TileMap tileMap = aTileMapWith(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -307,7 +308,7 @@ TEST_CASE("A floor is one run, and a gap makes it two", "[NavigationGraphBuilder
     Placed laid;
     layFloor(laid, 5, 0, 2);
     layFloor(laid, 5, 6, 9);
-    TileMap tileMap = setupTileMapWith(laid);
+    TileMap tileMap = aTileMapWith(laid);
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
     std::vector<std::vector<int>> runs = navigation::walkRuns(graph, tileMap, 1);
@@ -323,7 +324,7 @@ TEST_CASE("No walk edge passes through a blocked tile", "[NavigationGraphBuilder
     Placed laid;
     layFloor(laid, 5, 0, 5);
     laid.push_back({glm::ivec2(3, 4), 1});
-    TileMap tileMap = setupTileMapWith(laid);
+    TileMap tileMap = aTileMapWith(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -344,7 +345,7 @@ TEST_CASE("Floors on different rows are not connected", "[NavigationGraphBuilder
     Placed laid;
     layFloor(laid, 5, 0, 3);
     layFloor(laid, 8, 0, 3);
-    TileMap tileMap = setupTileMapWith(laid);
+    TileMap tileMap = aTileMapWith(laid);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
@@ -369,11 +370,11 @@ TEST_CASE(
 
 TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 {
-    float tileSize = static_cast<float>(setupTileMap().getTileSize());
+    float tileSize = static_cast<float>(aTileMap().getTileSize());
 
     SECTION("Single Tile Platform at left side of TileMap")
     {
-        TileMap tileMap = setupTileMapWith({{{0, 9}, 1}});
+        TileMap tileMap = aTileMapWith({{{0, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({tileSize / 2, 9 * tileSize}));
@@ -381,7 +382,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform at right side of TileMap")
     {
-        TileMap tileMap = setupTileMapWith({{{9, 9}, 1}});
+        TileMap tileMap = aTileMapWith({{{9, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({9 * tileSize + tileSize / 2, 9 * tileSize}));
@@ -389,7 +390,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where both sides are cliffs")
     {
-        TileMap tileMap = setupTileMapWith({{{1, 9}, 1}});
+        TileMap tileMap = aTileMapWith({{{1, 9}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 9 * tileSize}));
@@ -397,7 +398,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where left side is a cliff and right side is a wall")
     {
-        TileMap tileMap = setupTileMapWith({{{2, 0}, 1}, {{2, 1}, 1}, {{1, 1}, 1}});
+        TileMap tileMap = aTileMapWith({{{2, 0}, 1}, {{2, 1}, 1}, {{1, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -405,7 +406,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("Single Tile Platform where right side is a cliff and left side is a wall")
     {
-        TileMap tileMap = setupTileMapWith({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}});
+        TileMap tileMap = aTileMapWith({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -414,7 +415,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     SECTION("Single Tile Platform where both sides are walls")
     {
         TileMap tileMap =
-            setupTileMapWith({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}, {{2, 0}, 1}, {{2, 1}, 1}});
+            aTileMapWith({{{0, 0}, 1}, {{0, 1}, 1}, {{1, 1}, 1}, {{2, 0}, 1}, {{2, 1}, 1}});
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 1);
         REQUIRE(navigationGraph.hasNodeAtPosition({1 * tileSize + tileSize / 2, 1 * tileSize}));
@@ -424,7 +425,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     {
         Placed laid;
         layFloor(laid, 1, 0, 1);
-        TileMap tileMap = setupTileMapWith(laid);
+        TileMap tileMap = aTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -435,7 +436,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     {
         Placed laid;
         layFloor(laid, 1, 0, 2);
-        TileMap tileMap = setupTileMapWith(laid);
+        TileMap tileMap = aTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -446,7 +447,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     {
         Placed laid;
         layFloor(laid, 1, 0, 4);
-        TileMap tileMap = setupTileMapWith(laid);
+        TileMap tileMap = aTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -457,7 +458,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     {
         Placed laid;
         layFloor(laid, 1, 0, 9);
-        TileMap tileMap = setupTileMapWith(laid);
+        TileMap tileMap = aTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 2);
         REQUIRE(navigationGraph.hasNodeAtPosition({0, 1 * tileSize}));
@@ -466,7 +467,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
 
     SECTION("No nodes")
     {
-        NavigationGraph navigationGraph = buildNavigationGraph(setupTileMap(), standardProfile());
+        NavigationGraph navigationGraph = buildNavigationGraph(aTileMap(), standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 0);
     }
 
@@ -474,7 +475,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     {
         Placed laid;
         layFloor(laid, 0, 0, 2);
-        TileMap tileMap = setupTileMapWith(laid);
+        TileMap tileMap = aTileMapWith(laid);
         NavigationGraph navigationGraph = buildNavigationGraph(tileMap, standardProfile());
         REQUIRE(navigationGraph.getNodes().size() == 0);
     }
@@ -525,7 +526,7 @@ namespace
 
     TileMap setupTwoPlatforms(int gapTiles, int rowsUp = 0, int widthTiles = 20)
     {
-        return setupTileMapWith(
+        return aTileMapWith(
             twoPlatforms(gapTiles, rowsUp, widthTiles), widthTiles, WideMapHeightTiles);
     }
 
@@ -683,7 +684,7 @@ TEST_CASE(
     constexpr int GapTiles = 3;
     Placed laid = twoPlatforms(GapTiles);
     layFloor(laid, PlatformRow - 2, LeftPlatformEnd + 1, LeftPlatformEnd + GapTiles);
-    TileMap tileMap = setupTileMapWith(laid, 20, WideMapHeightTiles);
+    TileMap tileMap = aTileMapWith(laid, 20, WideMapHeightTiles);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -953,7 +954,7 @@ namespace
         Placed laid;
         layFloor(laid, FloorBelowRow, 0, 19);
         layFloor(laid, PlatformRow, 0, LeftPlatformEnd);
-        TileMap tileMap = setupTileMapWith(laid, 20, WideMapHeightTiles);
+        TileMap tileMap = aTileMapWith(laid, 20, WideMapHeightTiles);
 
         return tileMap;
     }
@@ -1046,7 +1047,7 @@ namespace
 
     TilePaletteData paletteWithSpikes()
     {
-        TilePaletteData palette = getDefaultTileDataMap();
+        TilePaletteData palette = aPaletteWithASolidTile();
         TileData spikes;
         spikes.deadly = true;
         palette.tiles[SpikeTileIndex] = spikes;
@@ -1060,7 +1061,7 @@ namespace
             laid.push_back({glm::ivec2(x, FloorBelowRow), SpikeTileIndex});
         layFloor(laid, PlatformRow, 0, LeftPlatformEnd);
 
-        return setupTileMapWith(laid, 20, WideMapHeightTiles, 16, paletteWithSpikes());
+        return aTileMapWith(laid, 20, WideMapHeightTiles, 16, paletteWithSpikes());
     }
     int nodeJustPastTheLedge(const NavigationGraph &graph, float floorY)
     {
@@ -1085,7 +1086,7 @@ namespace
         layFloor(laid, PlatformRow, 0, NearLedgeEnd);
         layFloor(laid, PlatformRow, FarLedgeStart, FarLedgeEnd);
 
-        return setupTileMapWith(laid, 20, TallMapHeightTiles);
+        return aTileMapWith(laid, 20, TallMapHeightTiles);
     }
 
     int nodeAt(const NavigationGraph &graph, glm::vec2 position)
@@ -1190,7 +1191,7 @@ TEST_CASE(
     for (int x = 0; x < 20; ++x)
         laid.push_back({glm::ivec2(x, PlatformRow + 1), SpikeTileIndex});
     layFloor(laid, PlatformRow, 0, LeftPlatformEnd);
-    TileMap tileMap = setupTileMapWith(laid, 20, WideMapHeightTiles, 16, paletteWithSpikes());
+    TileMap tileMap = aTileMapWith(laid, 20, WideMapHeightTiles, 16, paletteWithSpikes());
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -1289,7 +1290,7 @@ namespace
 
     TileMap setupWallFromTheFloor()
     {
-        return setupTileMapWith(wallFromTheFloor(), 10, 12);
+        return aTileMapWith(wallFromTheFloor(), 10, 12);
     }
 
     std::vector<NavigationNode> nodesOnWalls(const NavigationGraph &graph)
@@ -1360,7 +1361,7 @@ TEST_CASE(
 {
     Placed laid = wallFromTheFloor();
     laid.push_back({glm::ivec2(ClimbWallX, ClimbFloorRow - 1), 0});
-    TileMap tileMap = setupTileMapWith(laid, 10, 12);
+    TileMap tileMap = aTileMapWith(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -1375,7 +1376,7 @@ TEST_CASE(
     Placed laid = wallFromTheFloor();
     laid.push_back({glm::ivec2(ClimbWallX - 1, 6), 1});
     laid.push_back({glm::ivec2(ClimbWallX + 1, 6), 1});
-    TileMap tileMap = setupTileMapWith(laid, 10, 12);
+    TileMap tileMap = aTileMapWith(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -1388,7 +1389,7 @@ TEST_CASE("A wall you cannot stand on top of is not climbed", "[NavigationGraphB
 {
     Placed laid = wallFromTheFloor();
     layFloor(laid, ClimbWallTopRow - 1, 0, 9);
-    TileMap tileMap = setupTileMapWith(laid, 10, 12);
+    TileMap tileMap = aTileMapWith(laid, 10, 12);
 
     std::set<std::pair<int, int>> joined =
         rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
@@ -1467,7 +1468,7 @@ TEST_CASE(
 
 TEST_CASE("A wall an actor cannot grip is not climbed", "[NavigationGraphBuilder][Climb]")
 {
-    TilePaletteData palette = getDefaultTileDataMap();
+    TilePaletteData palette = aPaletteWithASolidTile();
     TileData ungrippable;
     ungrippable.solid = true;
     ungrippable.grippable = false;
@@ -1478,7 +1479,7 @@ TEST_CASE("A wall an actor cannot grip is not climbed", "[NavigationGraphBuilder
     for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)
         laid.push_back({glm::ivec2(ClimbWallX, y), 2});
 
-    TileMap ungrippableWall = setupTileMapWith(laid, 10, 12, 16, palette);
+    TileMap ungrippableWall = aTileMapWith(laid, 10, 12, 16, palette);
 
     REQUIRE(nodesOnWalls(buildNavigationGraph(ungrippableWall, climberProfile())).empty());
 }
@@ -1488,7 +1489,7 @@ TEST_CASE("A jump still falling after ten seconds is no jump", "[NavigationGraph
     constexpr int TallerThanTenSecondsOfFalling = 420;
     Placed laid;
     layFloor(laid, 1, 0, LeftPlatformEnd);
-    TileMap tileMap = setupTileMapWith(laid, 20, TallerThanTenSecondsOfFalling);
+    TileMap tileMap = aTileMapWith(laid, 20, TallerThanTenSecondsOfFalling);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
@@ -1525,7 +1526,7 @@ TEST_CASE("A place is not walkable to itself, nor to another row", "[NavigationG
     Placed laid;
     layFloor(laid, 5, 0, 9);
     layFloor(laid, 3, 0, 9);
-    TileMap tileMap = setupTileMapWith(laid);
+    TileMap tileMap = aTileMapWith(laid);
     glm::vec2 onTheLowerFloor = tileMap.feetOnTile(glm::ivec2(2, 4));
     glm::vec2 onTheUpperFloor = tileMap.feetOnTile(glm::ivec2(5, 2));
 

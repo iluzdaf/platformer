@@ -17,8 +17,10 @@
 #include <imgui_internal.h>
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
-#include "test_helpers/headless_imgui.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/headless_imgui.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/shipped.hpp"
+#include "helpers/tiles.hpp"
 #include "game/level_resizing.hpp"
 
 namespace
@@ -53,7 +55,7 @@ namespace
     {
         return Level(
             levelData,
-            palettesFrom(getDefaultTileDataMap()),
+            theOnlyPalette(aPaletteWithASolidTile()),
             PlayerData(),
             shippedNpcData(),
             shippedPickupData());

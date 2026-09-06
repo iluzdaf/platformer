@@ -3,16 +3,16 @@
 #include <vector>
 #include <imgui_internal.h>
 #include "ui/data_inspector.hpp"
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/headless_imgui.hpp"
 
 #ifndef SKIP_OPENGL_TESTS
 
 #include <glm/gtc/matrix_transform.hpp>
 #include "rendering/texture2d.hpp"
-#include "test_helpers/made_sheet.hpp"
+#include "helpers/made_sheet.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "assets/sheet_data.hpp"
-#include "test_helpers/pictures_drawn.hpp"
+#include "helpers/pictures_drawn.hpp"
 #include "ui/sheet_preview.hpp"
 
 namespace

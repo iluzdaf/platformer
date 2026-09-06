@@ -9,7 +9,8 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "assets/asset_paths.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/shipped.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"
@@ -18,7 +19,7 @@
 #include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/asset_path.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 namespace
@@ -269,9 +270,8 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "assets/asset_paths.hpp"
 #include "rendering/texture_cache.hpp"
 #include <imgui_internal.h>
-#include "test_helpers/headless_imgui.hpp"
-#include "test_helpers/pictures_drawn.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/headless_imgui.hpp"
+#include "helpers/pictures_drawn.hpp"
 #include "ui/sheet_preview.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
@@ -279,7 +279,7 @@ TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")
 #include "ui/editor_commands.hpp"
 #include "game/level.hpp"
 #include "game/game_data.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/asset_path.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
 namespace

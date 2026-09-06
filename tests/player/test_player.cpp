@@ -11,11 +11,12 @@
 #include "timing/fixed_time_step.hpp"
 #include "input/input_intentions.hpp"
 #include "player/player.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
-#include "test_helpers/test_player_utils.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/tiles.hpp"
+#include "helpers/actors.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/asset_path.hpp"
 #include "game/game_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
@@ -33,13 +34,13 @@ namespace
         float totalTime,
         InputIntentions intentions = InputIntentions(),
         float step = 0.01f,
-        const TilePaletteData &palette = getDefaultTileDataMap())
+        const TilePaletteData &palette = aPaletteWithASolidTile())
     {
         LevelData levelData;
         levelData.playerStart = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData = tileMap.toTileMapData();
 
-        Level level(levelData, palettesFrom(palette), setupPlayerData(), {}, {});
+        Level level(levelData, theOnlyPalette(palette), playerDataWithEveryAbility(), {}, {});
 
         FixedTimeStep timeStepper(step);
         input.set(intentions);
@@ -68,9 +69,9 @@ namespace
 TEST_CASE("Player falls under normal gravity", "[Player]")
 {
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
     const float gravity = GravityAbilityData().gravity;
-    TileMap tileMap = setupTileMap(1, static_cast<int>(gravity / 16.0f) + 2);
+    TileMap tileMap = aTileMap(1, static_cast<int>(gravity / 16.0f) + 2);
     simulatePlayer(player, input, tileMap, 1.0f);
     const ActorMotionState &state = player.getMotion().getState();
     REQUIRE(state.velocity.y == Approx(gravity));
@@ -80,11 +81,11 @@ TEST_CASE("Player falls under normal gravity", "[Player]")
 TEST_CASE("Player sets onGround correctly", "[Player]")
 {
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
 
     SECTION("Player lands on solid tile")
     {
-        TileMap tileMap = setupTileMapWith({{{0, 5}, 1}});
+        TileMap tileMap = aTileMapWith({{{0, 5}, 1}});
         simulatePlayer(player, input, tileMap, 1.0f);
         float expectedY = static_cast<float>(4 * tileMap.getTileSize());
         const ActorMotionState &state = player.getMotion().getState();
@@ -95,7 +96,7 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
 
     SECTION("Player walks off a ledge and is no longer onGround")
     {
-        TileMap tileMap = setupTileMapWith({{{1, 5}, 1}, {{2, 5}, 1}});
+        TileMap tileMap = aTileMapWith({{{1, 5}, 1}, {{2, 5}, 1}});
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, input, tileMap, 0.1f);
         const ActorMotionState &state = player.getMotion().getState();
@@ -109,9 +110,9 @@ TEST_CASE("Player sets onGround correctly", "[Player]")
 
 TEST_CASE("Player uses correct animation state", "[Player]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
     player.setPosition({5 * 16, 9 * 16});
 
     SECTION("Player is idle by default")
@@ -149,8 +150,8 @@ TEST_CASE("Player uses correct animation state", "[Player]")
 TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 {
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
-    TileMap tileMap = setupTileMap();
+    Player player = aPlayerWithEveryAbility(input);
+    TileMap tileMap = aTileMap();
 
     SECTION("Starts facing right")
     {
@@ -183,9 +184,9 @@ TEST_CASE("Player sets facingLeft flag correctly", "[Player]")
 
 TEST_CASE("Player and tilemap bounds", "[Player]")
 {
-    TileMap tileMap = setupTileMap();
+    TileMap tileMap = aTileMap();
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
 
     SECTION("Player stays within bounds")
     {
@@ -221,7 +222,7 @@ TEST_CASE("Player and tilemap bounds", "[Player]")
 TEST_CASE("Player sets wall touch flags correctly", "[Player]")
 {
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
     const ActorMotionState &state = player.getMotion().getState();
 
     SECTION("Touching right wall")
@@ -230,7 +231,7 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         for (int y = 0; y < 10; ++y)
             wall.push_back({glm::ivec2(6, y), 1});
 
-        TileMap tileMap = setupTileMapWith(wall);
+        TileMap tileMap = aTileMapWith(wall);
         player.setPosition(glm::vec2(5 * 16.0f, 16.0f));
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
@@ -245,7 +246,7 @@ TEST_CASE("Player sets wall touch flags correctly", "[Player]")
         for (int y = 0; y < 10; ++y)
             wall.push_back({glm::ivec2(3, y), 1});
 
-        TileMap tileMap = setupTileMapWith(wall);
+        TileMap tileMap = aTileMapWith(wall);
         player.setPosition(glm::vec2(4 * 16.0f, 16.0f));
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
@@ -261,9 +262,9 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
     for (int x = 0; x < 10; ++x)
         laid.push_back({glm::ivec2(x, 19), 1});
 
-    TileMap tileMap = setupTileMapWith(laid, 10, 20);
+    TileMap tileMap = aTileMapWith(laid, 10, 20);
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
 
     SECTION("onFallFromHeight")
     {
@@ -276,7 +277,7 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
 
     SECTION("onHitCeiling")
     {
-        TileMap ceiling = setupTileMapWith({{{2, 2}, 1}, {{2, 5}, 1}});
+        TileMap ceiling = aTileMapWith({{{2, 2}, 1}, {{2, 5}, 1}});
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, input, ceiling, 0.01f);
         bool hitCeilingTriggered = false;
@@ -304,12 +305,12 @@ TEST_CASE("Player event callbacks are triggered", "[Player]")
 TEST_CASE("Player movement ability integration", "[Player]")
 {
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
     InputIntentions inputIntentions;
 
     SECTION("Player cannot move into solid tile")
     {
-        TileMap tileMap = setupTileMapWith({{{3, 5}, 1}, {{2, 4}, 1}, {{1, 4}, 1}, {{1, 5}, 1}});
+        TileMap tileMap = aTileMapWith({{{3, 5}, 1}, {{2, 4}, 1}, {{1, 4}, 1}, {{1, 5}, 1}});
         player.setPosition(glm::vec2(2 * tileMap.getTileSize(), 5 * tileMap.getTileSize()));
 
         SECTION("Moving right into solid tile")
@@ -331,7 +332,7 @@ TEST_CASE("Player movement ability integration", "[Player]")
     {
         int ceilingTileX = 2;
         int ceilingTileY = 2;
-        TileMap tileMap = setupTileMapWith({{{ceilingTileX, ceilingTileY}, 1}, {{2, 5}, 1}});
+        TileMap tileMap = aTileMapWith({{{ceilingTileX, ceilingTileY}, 1}, {{2, 5}, 1}});
         player.setPosition({2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()});
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
@@ -351,16 +352,17 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
     for (int x = 0; x < 20; ++x)
         laid.push_back({glm::ivec2(x, 12), 1});
 
-    TileMap tileMap = setupTileMapWith(laid, 20, 20);
+    TileMap tileMap = aTileMapWith(laid, 20, 20);
 
     LevelData levelData;
 
     levelData.playerStart = feetOf(glm::ivec2(0, 0));
     levelData.tileMapData = tileMap.toTileMapData();
-    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {}, {});
+    Level level(
+        levelData, theOnlyPalette(aPaletteWithASolidTile()), playerDataWithEveryAbility(), {}, {});
 
     ScriptedIntentions input;
-    Player player(setupPlayerData(), input);
+    Player player(playerDataWithEveryAbility(), input);
 
     float ledgeRight = static_cast<float>(LedgeLastTile + 1) * 16.0f;
     float ledgeTop = static_cast<float>(LedgeRow) * 16.0f;
@@ -414,7 +416,7 @@ namespace
         TileData spike;
         spike.deadly = true;
         spike.collider = TileColliderData{glm::vec2(0.0f, 12.0f), glm::vec2(16.0f, 4.0f)};
-        return palettesFrom(paletteOf({{0, TileData{}}, {PitSolid, solid}, {PitSpike, spike}}));
+        return theOnlyPalette(paletteOf({{0, TileData{}}, {PitSolid, solid}, {PitSpike, spike}}));
     }
 
     TileMapData pitOf(int tiles, Pit kind)
@@ -568,7 +570,8 @@ namespace
         solid.solid = true;
         TileData wall;
         wall.solid = wall.grippable = true;
-        return palettesFrom(paletteOf({{0, TileData{}}, {StairsSolid, solid}, {StairsWall, wall}}));
+        return theOnlyPalette(
+            paletteOf({{0, TileData{}}, {StairsSolid, solid}, {StairsWall, wall}}));
     }
 
     TileMapData threeStairs()
@@ -750,10 +753,10 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
         for (int y = 5; y < 8; ++y)
             laid.push_back({glm::ivec2(x, y), 1});
 
-    TileMap tileMap = setupTileMapWith(laid, 12, 10);
+    TileMap tileMap = aTileMapWith(laid, 12, 10);
 
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
     const ActorMotionState &state = player.getMotion().getState();
 
     player.setPosition(glm::vec2(4 * 16.0f + 4.0f, 8 * 16.0f - 16.0f));
@@ -770,7 +773,7 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
 
 TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
 {
-    TilePaletteData palette = getDefaultTileDataMap();
+    TilePaletteData palette = aPaletteWithASolidTile();
     TileData ungrippable;
     ungrippable.solid = true;
     ungrippable.grippable = false;
@@ -780,10 +783,10 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
     for (int y = 0; y < 8; ++y)
         laid.push_back({glm::ivec2(5, y), 2});
 
-    TileMap tileMap = setupTileMapWith(laid, 10, 10, 16, palette);
+    TileMap tileMap = aTileMapWith(laid, 10, 10, 16, palette);
 
     ScriptedIntentions input;
-    Player player = setupPlayer(input);
+    Player player = aPlayerWithEveryAbility(input);
     const ActorMotionState &state = player.getMotion().getState();
     player.setPosition(glm::vec2(4 * 16.0f + 4.0f, 16.0f));
 
@@ -807,16 +810,17 @@ TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in
         laid.push_back({glm::ivec2(x, 6), 1});
     }
 
-    TileMap tileMap = setupTileMapWith(laid, 20, 20);
+    TileMap tileMap = aTileMapWith(laid, 20, 20);
 
     LevelData levelData;
 
     levelData.playerStart = feetOf(glm::ivec2(0, 0));
     levelData.tileMapData = tileMap.toTileMapData();
-    Level level(levelData, palettesFrom(getDefaultTileDataMap()), setupPlayerData(), {}, {});
+    Level level(
+        levelData, theOnlyPalette(aPaletteWithASolidTile()), playerDataWithEveryAbility(), {}, {});
 
     ScriptedIntentions input;
-    Player player(setupPlayerData(), input);
+    Player player(playerDataWithEveryAbility(), input);
     player.setPosition(glm::vec2(5 * 16.0f, 10 * 16.0f - 16.0f));
 
     FixedTimeStep timestepper;
@@ -856,7 +860,7 @@ TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in
 
 TEST_CASE("A player has no state name and stands on no node", "[Player]")
 {
-    Player player = setupPlayer();
+    Player player = aPlayerWithEveryAbility();
 
     REQUIRE(player.getStateName().empty());
     REQUIRE_FALSE(player.getCurrentNodeId());

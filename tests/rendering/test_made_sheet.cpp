@@ -2,7 +2,7 @@
 
 #ifndef SKIP_OPENGL_TESTS
 #include "rendering/texture2d.hpp"
-#include "test_helpers/made_sheet.hpp"
+#include "helpers/made_sheet.hpp"
 
 TEST_CASE("A made sheet is the shape it was asked for", "[MadeSheet]")
 {

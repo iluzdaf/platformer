@@ -2,7 +2,7 @@
 #include <imgui_internal.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "assets/sheet_data.hpp"
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/headless_imgui.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/sheet_field.hpp"

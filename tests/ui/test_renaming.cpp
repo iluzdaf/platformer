@@ -13,7 +13,7 @@
 #include "ui/renames.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/headless_imgui.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "ui/renaming.hpp"
 #include "ui/level_rewriting.hpp"

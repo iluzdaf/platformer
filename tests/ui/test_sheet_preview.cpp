@@ -151,8 +151,8 @@ TEST_CASE("Nothing offered is nothing to preview", "[SheetPreview]")
 #include <imgui_internal.h>
 #include "assets/sheet_data.hpp"
 #include "rendering/texture2d.hpp"
-#include "test_helpers/headless_imgui.hpp"
-#include "test_helpers/made_sheet.hpp"
+#include "helpers/headless_imgui.hpp"
+#include "helpers/made_sheet.hpp"
 #include "tile_map/tile_data.hpp"
 #include "ui/sheet_in_scope.hpp"
 

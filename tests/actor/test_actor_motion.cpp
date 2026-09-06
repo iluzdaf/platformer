@@ -5,7 +5,8 @@
 #include "actor/actor_motion_state.hpp"
 #include "physics/physics_body.hpp"
 #include "physics/physics_body_data.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/tiles.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
@@ -43,7 +44,7 @@ namespace
 
 TEST_CASE("ActorMotion remembers which side a grippable wall was on", "[ActorMotion]")
 {
-    TileMap tileMap = setupTileMapWith({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
+    TileMap tileMap = aTileMapWith({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
 
     ActorMotion motion{ActorMotionData()};
     motion.readContacts(bodyBesideWalls(), tileMap);
@@ -55,10 +56,9 @@ TEST_CASE("ActorMotion remembers which side a grippable wall was on", "[ActorMot
 TEST_CASE("ActorMotion does not remember a wall it could not grip", "[ActorMotion]")
 {
     TileMap grippableOnTheLeft =
-        setupTileMapWith({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
+        aTileMapWith({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
 
-    TileMap slipperyOnTheRight =
-        setupTileMapWith({{{2, 3}, Slippery}}, 10, 10, 16, wallsOfBothKinds());
+    TileMap slipperyOnTheRight = aTileMapWith({{{2, 3}, Slippery}}, 10, 10, 16, wallsOfBothKinds());
 
     ActorMotion motion{ActorMotionData()};
     motion.readContacts(bodyBesideWalls(), grippableOnTheLeft);

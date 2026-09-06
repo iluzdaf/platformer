@@ -6,7 +6,7 @@
 #include "game/level_resizing.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
+#include "helpers/palettes.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"
 
@@ -181,20 +181,20 @@ TEST_CASE(
     LevelData twice = resizedBy(ShrinkLeft, once, TileSize);
 
     REQUIRE(twice.tileMapData.indices == Grid{{}, {}});
-    REQUIRE_THROWS(TileMap(twice.tileMapData, palettesFrom(getDefaultTileDataMap())));
+    REQUIRE_THROWS(TileMap(twice.tileMapData, theOnlyPalette(aPaletteWithASolidTile())));
 }
 
 TEST_CASE("A resized level builds a tile map of its new size", "[LevelResizing]")
 {
     LevelData grown = resizedBy(GrowLeft, resizedBy(GrowBelow, aSmallLevel(), TileSize), TileSize);
-    TileMap bigger(grown.tileMapData, palettesFrom(getDefaultTileDataMap()));
+    TileMap bigger(grown.tileMapData, theOnlyPalette(aPaletteWithASolidTile()));
 
     REQUIRE(bigger.getWidth() == 3);
     REQUIRE(bigger.getHeight() == 3);
     REQUIRE(bigger.tilePositionToTileIndex({1, 0}) == 1);
 
     LevelData shrunk = resizedBy(ShrinkAbove, aSmallLevel(), TileSize);
-    TileMap smaller(shrunk.tileMapData, palettesFrom(getDefaultTileDataMap()));
+    TileMap smaller(shrunk.tileMapData, theOnlyPalette(aPaletteWithASolidTile()));
 
     REQUIRE(smaller.getHeight() == 1);
     REQUIRE(smaller.tilePositionToTileIndex({0, 0}) == 3);

@@ -23,8 +23,8 @@ TEST_CASE("A sheet too small for one tile holds none", "[TilePicker]")
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
 #include "rendering/texture2d.hpp"
-#include "test_helpers/made_sheet.hpp"
-#include "test_helpers/headless_imgui.hpp"
+#include "helpers/made_sheet.hpp"
+#include "helpers/headless_imgui.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/editor_ui.hpp"
 

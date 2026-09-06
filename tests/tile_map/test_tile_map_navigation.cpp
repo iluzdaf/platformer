@@ -19,8 +19,11 @@
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
-#include "test_helpers/test_tile_map_utils.hpp"
-#include "test_helpers/asset_path.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/shipped.hpp"
+#include "helpers/tiles.hpp"
+#include "helpers/actors.hpp"
+#include "helpers/asset_path.hpp"
 #include "tile_map/tile_map_data.hpp"
 
 namespace
@@ -40,7 +43,7 @@ namespace
         for (int x = fromX; x <= toX; ++x)
             laid.push_back({glm::ivec2(x, groundY), 1});
 
-        return setupTileMapWith(laid);
+        return aTileMapWith(laid);
     }
 
     LevelData asTheEditorWouldHoldIt(
@@ -58,7 +61,7 @@ namespace
 
     struct ALevelOfItsOwn
     {
-        TilePalettes palettes = palettesFrom(getDefaultTileDataMap());
+        TilePalettes palettes = theOnlyPalette(aPaletteWithASolidTile());
         std::map<std::string, NpcData> npcs = {{"villager", NpcData{}}};
         std::map<std::string, PickupData> pickups = {{"coin", PickupData{}}};
 

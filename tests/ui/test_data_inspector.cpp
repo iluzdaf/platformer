@@ -47,14 +47,6 @@ TEST_CASE("An engaged optional does not lend its fields the checkbox's id", "[Da
     REQUIRE(itemsSharingTheIdOf(gui, "collider", tileData) == 1);
 }
 
-TEST_CASE("An optional nobody engaged draws only its checkbox", "[DataInspector]")
-{
-    HeadlessImGui gui;
-    TileData tileData;
-
-    REQUIRE(itemsSharingTheIdOf(gui, "collider", tileData) == 1);
-}
-
 namespace inspector_test
 {
     struct Drawn

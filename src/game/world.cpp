@@ -81,10 +81,10 @@ void World::respawnPlayer()
     luaScriptSystem.bindPlayer(player.get());
 }
 
-void World::preFixedUpdate()
+void World::beginFrame()
 {
-    level->preFixedUpdate();
-    player->preFixedUpdate();
+    level->beginFrame();
+    player->beginFrame();
 }
 
 void World::fixedUpdate(float deltaTime)

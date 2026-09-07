@@ -49,7 +49,7 @@ namespace
         FixedTimeStep timestepper;
         for (int frame = 0; frame < frames; ++frame)
         {
-            world.preFixedUpdate();
+            world.beginFrame();
             timestepper.run(
                 1.0f / 60.0f,
                 [&](float dt)

@@ -43,7 +43,7 @@ public:
     const std::vector<std::unique_ptr<Npc>> &getNpcs() const;
     const std::vector<Pickup> &getPickups() const;
 
-    void preFixedUpdate();
+    void beginFrame();
     void fixedUpdate(float deltaTime, const glm::vec2 &playerPosition);
     void postFixedUpdate();
     void update(float deltaTime);

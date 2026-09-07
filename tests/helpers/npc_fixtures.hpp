@@ -145,7 +145,7 @@ inline void stepNpc(Npc &npc, const Level &level, int steps)
 {
     for (int step = 0; step < steps; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
     }
 }

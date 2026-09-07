@@ -29,7 +29,7 @@ public:
     fteng::signal<void()> onLevelBuilt;
     void respawnPlayer();
 
-    void preFixedUpdate();
+    void beginFrame();
     void fixedUpdate(float deltaTime);
     void postFixedUpdate();
     void update(float deltaTime);

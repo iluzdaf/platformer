@@ -67,8 +67,8 @@ void LevelUi::drawActors(
     if (asked.addNpcOfType)
     {
         const NpcData &kind = oneNamed(npcData, "npc", *asked.addNpcOfType);
-        NpcSpawnData placing{*asked.addNpcOfType, levelData.playerStart, std::nullopt};
-        placing.patrol = level.runBeneath(buildNavigationProfile(kind.actorData), placing.position);
+        NpcSpawnData placing{*asked.addNpcOfType, levelData.playerFeet, std::nullopt};
+        placing.patrol = level.runBeneath(buildNavigationProfile(kind.actorData), placing.feet);
 
         LevelData edited = levelData;
         edited.npcs.push_back(placing);
@@ -228,11 +228,11 @@ void LevelUi::update(
     switch (picking.what)
     {
     case PickTile::For::PlayerStart:
-        edited.playerStart = tileMap.feetOnTile(tilePosition);
+        edited.playerFeet = tileMap.feetOnTile(tilePosition);
         break;
 
     case PickTile::For::NpcSpawn:
-        edited.npcs[picking.npcIndex].position = tileMap.feetOnTile(tilePosition);
+        edited.npcs[picking.npcIndex].feet = tileMap.feetOnTile(tilePosition);
         break;
 
     case PickTile::For::PatrolFrom:

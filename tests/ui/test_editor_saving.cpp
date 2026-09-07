@@ -205,7 +205,7 @@ TEST_CASE("The level being played follows the disk only while it is clean", "[Ed
 
     REQUIRE(editorUi.levelFollowsTheDisk(editing.levelData, editing.levelPath));
 
-    editing.levelData.playerStart.x += 16.0f;
+    editing.levelData.playerFeet.x += 16.0f;
 
     REQUIRE_FALSE(editorUi.levelFollowsTheDisk(editing.levelData, editing.levelPath));
     REQUIRE(editorUi.savingIn(EditorSection::Level, subject).unsaved);

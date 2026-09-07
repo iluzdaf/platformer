@@ -35,7 +35,7 @@ namespace
         const TilePaletteData &palette = aPaletteWithASolidTile())
     {
         LevelData levelData;
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData = tileMap.toTileMapData();
 
         Level level(levelData, theOnlyPalette(palette), playerDataWithEveryAbility(), {}, {});
@@ -336,7 +336,7 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
 
     LevelData levelData;
 
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.playerFeet = feetOf(glm::ivec2(0, 0));
     levelData.tileMapData = tileMap.toTileMapData();
     Level level(
         levelData, theOnlyPalette(aPaletteWithASolidTile()), playerDataWithEveryAbility(), {}, {});
@@ -435,7 +435,7 @@ TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in
 
     LevelData levelData;
 
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.playerFeet = feetOf(glm::ivec2(0, 0));
     levelData.tileMapData = tileMap.toTileMapData();
     Level level(
         levelData, theOnlyPalette(aPaletteWithASolidTile()), playerDataWithEveryAbility(), {}, {});

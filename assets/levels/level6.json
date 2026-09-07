@@ -18,12 +18,12 @@
         ],
         "tilePalette":"cavern"
     },
-    "playerStart":[24,192],
+    "playerFeet":[24,192],
     "nextLevel":"levels/level1.json",
     "npcs":[
-        {"type":"villager","position":[104,192],"patrol":{"from":[32,192],"to":[192,192]}},
-        {"type":"villager","position":[56,96],"patrol":{"from":[16,96],"to":[112,96]}},
-        {"type":"explorer","position":[168,192],"patrol":{"from":[16,96],"to":[208,160]}},
-        {"type":"explorer","position":[248,160],"patrol":{"from":[224,160],"to":[304,48]}}
+        {"type":"villager","feet":[104,192],"patrol":{"from":[32,192],"to":[192,192]}},
+        {"type":"villager","feet":[56,96],"patrol":{"from":[16,96],"to":[112,96]}},
+        {"type":"explorer","feet":[168,192],"patrol":{"from":[16,96],"to":[208,160]}},
+        {"type":"explorer","feet":[248,160],"patrol":{"from":[224,160],"to":[304,48]}}
     ]
 }

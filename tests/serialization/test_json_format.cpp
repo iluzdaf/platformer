@@ -40,8 +40,8 @@ TEST_CASE("A grid is padded so every cell is as wide as the widest", "[JsonForma
 TEST_CASE("Padding stops at the grid and leaves the rest alone", "[JsonFormat]")
 {
     REQUIRE(
-        withPaddedGrid(R"({"indices":[[0,10]],"playerStart":[8,128],"npcs":[[1,2]]})") ==
-        R"({"indices":[[ 0,10]],"playerStart":[8,128],"npcs":[[1,2]]})");
+        withPaddedGrid(R"({"indices":[[0,10]],"playerFeet":[8,128],"npcs":[[1,2]]})") ==
+        R"({"indices":[[ 0,10]],"playerFeet":[8,128],"npcs":[[1,2]]})");
 }
 
 TEST_CASE("Text with no grid passes through untouched", "[JsonFormat]")

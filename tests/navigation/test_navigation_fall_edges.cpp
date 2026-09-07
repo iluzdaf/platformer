@@ -32,7 +32,7 @@ TEST_CASE("A fall only ever goes down", "[NavigationGraphBuilder][Fall]")
 
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Fall)
-            REQUIRE(graph.getNode(edge.toId).position.y > graph.getNode(edge.fromId).position.y);
+            REQUIRE(graph.getNode(edge.toId).feet.y > graph.getNode(edge.fromId).feet.y);
 }
 
 TEST_CASE("Falling is not offered where you could walk", "[NavigationGraphBuilder][Fall]")
@@ -179,7 +179,7 @@ TEST_CASE("A fall clears the platform it leaves", "[NavigationGraphBuilder][Fall
 
         NavigationNode from = graph.getNode(edge.fromId);
         NavigationNode to = graph.getNode(edge.toId);
-        float stepOff = std::abs(to.position.x - from.position.x);
+        float stepOff = std::abs(to.feet.x - from.feet.x);
         REQUIRE(stepOff > 0.0f);
         REQUIRE(stepOff < 8.0f);
     }

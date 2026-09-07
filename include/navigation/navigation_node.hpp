@@ -13,6 +13,6 @@ enum class NodeKind
 struct NavigationNode
 {
     int id = 0;
-    glm::vec2 position = glm::vec2(0.0f);
+    glm::vec2 feet = glm::vec2(0.0f);
     NodeKind kind = NodeKind::OnFoot;
 };

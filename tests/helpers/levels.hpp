@@ -17,7 +17,7 @@ inline NpcSpawnData spawnAt(std::string type, glm::ivec2 tilePosition)
 {
     NpcSpawnData spawn;
     spawn.type = std::move(type);
-    spawn.position = feetOf(tilePosition);
+    spawn.feet = feetOf(tilePosition);
     return spawn;
 }
 
@@ -35,7 +35,7 @@ inline LevelData aFloorLevelPlacing(const std::vector<NpcSpawnData> &npcs, int f
     for (int x = 0; x < FloorLevelTiles; ++x)
         levelData.tileMapData.indices[FloorLevelRow][x] = floorTile;
 
-    levelData.playerStart = feetOf(glm::ivec2(1, FloorLevelStanding));
+    levelData.playerFeet = feetOf(glm::ivec2(1, FloorLevelStanding));
     levelData.npcs = npcs;
     return levelData;
 }

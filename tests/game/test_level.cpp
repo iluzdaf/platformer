@@ -57,7 +57,7 @@ namespace
     LevelData corridorPlacing(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData.tilePalette = "default";
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
@@ -66,7 +66,7 @@ namespace
             levelData.tileMapData.indices[FloorRow][x] = 1;
             levelData.tileMapData.indices[CeilingRow][x] = 1;
         }
-        levelData.playerStart = feetOf(glm::ivec2(1, FloorRow - 1));
+        levelData.playerFeet = feetOf(glm::ivec2(1, FloorRow - 1));
         levelData.npcs = npcs;
         return levelData;
     }
@@ -103,7 +103,7 @@ namespace
     Level levelWithALedge(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData.tilePalette = "default";
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(LedgeMapRows, std::vector<int>(LedgeMapTiles, 0));
@@ -121,7 +121,7 @@ namespace
         for (int x = BelowFirstTile; x <= BelowLastTile; ++x)
             indices[BelowRow][x] = 1;
 
-        levelData.playerStart = feetOf(glm::ivec2(1, LedgeGroundRow - 1));
+        levelData.playerFeet = feetOf(glm::ivec2(1, LedgeGroundRow - 1));
         levelData.npcs = npcs;
 
         return Level(
@@ -136,7 +136,7 @@ namespace
     {
         size_t count = 0;
         for (const auto &[id, node] : graph.getNodes())
-            if (node.position.y == static_cast<float>(FloorRow * 16))
+            if (node.feet.y == static_cast<float>(FloorRow * 16))
                 ++count;
         return count;
     }

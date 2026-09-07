@@ -37,10 +37,10 @@ Level::Level(
     const std::map<std::string, PickupData> &pickupData)
     : tileMap(levelData.tileMapData, tilePalettes)
 {
-    playerStart = levelData.playerStart;
-    glm::ivec2 startsOn = tileMap.tileUnderFeet(playerStart);
+    playerFeet = levelData.playerFeet;
+    glm::ivec2 startsOn = tileMap.tileUnderFeet(playerFeet);
     if (!tileMap.validTilePosition(startsOn))
-        throw std::runtime_error("playerStart is out of bounds");
+        throw std::runtime_error("playerFeet is out of bounds");
 
     const Tile &startTile = tileMap.getTileAtTilePosition(startsOn);
     if (startTile.isSolid())
@@ -56,7 +56,7 @@ Level::Level(
 
     for (const auto &npc : levelData.npcs)
     {
-        glm::ivec2 standsOn = tileMap.tileUnderFeet(npc.position);
+        glm::ivec2 standsOn = tileMap.tileUnderFeet(npc.feet);
         if (!tileMap.validTilePosition(standsOn))
             throw std::runtime_error("Npc start position is out of bounds");
         if (tileMap.getTileAtTilePosition(standsOn).isSolid())
@@ -82,7 +82,7 @@ Level::Level(
     for (const PickupSpawnData &spawn : levelData.pickups)
     {
         const PickupData &kind = oneNamed(pickupData, "pickup", spawn.type);
-        pickups.push_back(Pickup(kind, spawn.position - kind.size * 0.5f));
+        pickups.push_back(Pickup(kind, spawn.feet - glm::vec2(kind.size.x * 0.5f, kind.size.y)));
     }
 }
 
@@ -131,22 +131,22 @@ std::optional<PatrolData> Level::runBeneath(const NavigationProfile &profile, gl
     int leftmost = *standing, rightmost = *standing;
     for (int id : walkableFrom(graph, *standing))
     {
-        if (graph.getNode(id).position.x < graph.getNode(leftmost).position.x)
+        if (graph.getNode(id).feet.x < graph.getNode(leftmost).feet.x)
             leftmost = id;
 
-        if (graph.getNode(id).position.x > graph.getNode(rightmost).position.x)
+        if (graph.getNode(id).feet.x > graph.getNode(rightmost).feet.x)
             rightmost = id;
     }
 
     return beatBetween(
         tileMap,
-        tileMap.tileStoodOnAt(graph.getNode(leftmost).position),
-        tileMap.tileStoodOnAt(graph.getNode(rightmost).position));
+        tileMap.tileStoodOnAt(graph.getNode(leftmost).feet),
+        tileMap.tileStoodOnAt(graph.getNode(rightmost).feet));
 }
 
 glm::vec2 Level::getPlayerStart() const
 {
-    return playerStart;
+    return playerFeet;
 }
 
 const std::string &Level::getNextLevel() const

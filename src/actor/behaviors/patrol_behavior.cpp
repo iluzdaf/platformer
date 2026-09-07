@@ -34,31 +34,29 @@ PatrolBehavior::BeatEnd PatrolBehavior::endOfTheBeat(
     {
         glm::vec2 asked = second ? patrolBetween->second : patrolBetween->first;
         if (std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, asked))
-            return BeatEnd{
-                place->position,
-                endOfThePathBeyond(navigationGraph, *place, context.worldPosition)};
+            return BeatEnd{place->feet, endOfThePathBeyond(navigationGraph, *place, context.feet)};
     }
 
     int end = from;
     for (int id : walkableFrom(navigationGraph, from))
     {
-        float here = navigationGraph.getNode(id).position.x;
-        float best = navigationGraph.getNode(end).position.x;
+        float here = navigationGraph.getNode(id).feet.x;
+        float best = navigationGraph.getNode(end).feet.x;
         if (second ? here > best : here < best)
             end = id;
     }
 
-    return BeatEnd{navigationGraph.getNode(end).position, end};
+    return BeatEnd{navigationGraph.getNode(end).feet, end};
 }
 
 bool PatrolBehavior::standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const
 {
-    if (std::abs(context.worldPosition.y - end.position.y) > SurfaceTolerance)
+    if (std::abs(context.feet.y - end.position.y) > SurfaceTolerance)
         return false;
 
     float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
 
-    return std::abs(context.worldPosition.x - end.position.x) <= reach;
+    return std::abs(context.feet.x - end.position.x) <= reach;
 }
 
 void PatrolBehavior::reset()

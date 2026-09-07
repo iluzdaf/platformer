@@ -21,27 +21,23 @@ namespace
     {
         if (transition.threatWithin)
         {
-            if (!context.threatPosition)
+            if (!context.threatFeet)
                 return false;
 
-            if (glm::distance(context.worldPosition, *context.threatPosition) >
-                *transition.threatWithin)
+            if (glm::distance(context.feet, *context.threatFeet) > *transition.threatWithin)
                 return false;
         }
 
-        if (transition.threatBeyond && context.threatPosition)
+        if (transition.threatBeyond && context.threatFeet)
         {
-            if (glm::distance(context.worldPosition, *context.threatPosition) <=
-                *transition.threatBeyond)
+            if (glm::distance(context.feet, *context.threatFeet) <= *transition.threatBeyond)
                 return false;
         }
 
         if (transition.threatOnMySurface)
         {
-            bool sharing =
-                context.threatPosition &&
-                onTheSameRun(
-                    context.navigationGraph, context.worldPosition, *context.threatPosition);
+            bool sharing = context.threatFeet &&
+                           onTheSameRun(context.navigationGraph, context.feet, *context.threatFeet);
 
             if (sharing != *transition.threatOnMySurface)
                 return false;

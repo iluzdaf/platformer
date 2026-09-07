@@ -10,7 +10,7 @@ bool travelledInContact(EdgeType type);
 
 struct PlaceOnThePath
 {
-    glm::vec2 position = glm::vec2(0.0f);
+    glm::vec2 feet = glm::vec2(0.0f);
     int fromId = 0;
     int toId = 0;
 };

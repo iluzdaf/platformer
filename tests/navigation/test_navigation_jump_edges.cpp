@@ -125,8 +125,8 @@ TEST_CASE("A jump edge carries the arc that produced it", "[NavigationGraphBuild
             continue;
 
         REQUIRE(edge.path.size() > 2);
-        REQUIRE(edge.path.front() == graph.getNode(edge.fromId).position);
-        REQUIRE(edge.path.back().y == graph.getNode(edge.toId).position.y);
+        REQUIRE(edge.path.front() == graph.getNode(edge.fromId).feet);
+        REQUIRE(edge.path.back().y == graph.getNode(edge.toId).feet.y);
     }
 }
 
@@ -146,8 +146,8 @@ TEST_CASE("An arc on an edge rises above both of its ends", "[NavigationGraphBui
         for (const glm::vec2 &position : edge.path)
             highest = std::min(highest, position.y);
 
-        REQUIRE(highest < graph.getNode(edge.fromId).position.y);
-        REQUIRE(highest < graph.getNode(edge.toId).position.y);
+        REQUIRE(highest < graph.getNode(edge.fromId).feet.y);
+        REQUIRE(highest < graph.getNode(edge.toId).feet.y);
     }
 }
 
@@ -189,7 +189,7 @@ TEST_CASE(
 
     int topPlatformId = -1;
     for (const auto &[id, node] : graph.getNodes())
-        if (node.position.y < 100.0f)
+        if (node.feet.y < 100.0f)
             topPlatformId = id;
 
     REQUIRE(topPlatformId >= 0);
@@ -211,13 +211,13 @@ TEST_CASE(
 
         std::set<float> surfaces;
         for (const auto &[id, node] : graph.getNodes())
-            surfaces.insert(node.position.y);
+            surfaces.insert(node.feet.y);
 
         for (const auto &[id, node] : graph.getNodes())
         {
             std::set<float> fromHere;
             for (int to : roundTripFrom(graph, id))
-                fromHere.insert(graph.getNode(to).position.y);
+                fromHere.insert(graph.getNode(to).feet.y);
             if (fromHere == surfaces)
                 return true;
         }
@@ -246,13 +246,10 @@ TEST_CASE(
             continue;
 
         NavigationNode from = graph.getNode(edge.fromId);
-        INFO(
-            "jump from node " << edge.fromId << " at " << from.position.x << ","
-                              << from.position.y);
+        INFO("jump from node " << edge.fromId << " at " << from.feet.x << "," << from.feet.y);
         REQUIRE(from.kind == NodeKind::OnFoot);
 
-        if (std::abs(from.position.y - floorY) < 0.5f &&
-            graph.getNode(edge.toId).position.y < floorY)
+        if (std::abs(from.feet.y - floorY) < 0.5f && graph.getNode(edge.toId).feet.y < floorY)
             getsOffTheFloor = true;
     }
 
@@ -275,8 +272,8 @@ TEST_CASE(
         bool offered = false;
         for (const auto &edge : graph.getEdges())
             if (edge.type == EdgeType::Jump &&
-                std::abs(graph.getNode(edge.fromId).position.y - from) < 0.5f &&
-                std::abs(graph.getNode(edge.toId).position.y - to) < 0.5f)
+                std::abs(graph.getNode(edge.fromId).feet.y - from) < 0.5f &&
+                std::abs(graph.getNode(edge.toId).feet.y - to) < 0.5f)
                 offered = true;
 
         INFO("no jump from y " << from << " up to y " << to);
@@ -377,9 +374,8 @@ TEST_CASE("A jump crosses to a platform once", "[NavigationGraphBuilder][Jump]")
 
     const NavigationEdge *only = onlyJumpFrom(graph, takeOffId);
     REQUIRE(only);
-    REQUIRE(graph.getNode(only->toId).position.y == ledgeY);
-    REQUIRE(
-        graph.getNode(only->toId).position.x >= static_cast<float>(FarLedgeStart) * 16.0f - 0.5f);
+    REQUIRE(graph.getNode(only->toId).feet.y == ledgeY);
+    REQUIRE(graph.getNode(only->toId).feet.x >= static_cast<float>(FarLedgeStart) * 16.0f - 0.5f);
 }
 
 TEST_CASE("Nothing jumps to where it could walk", "[NavigationGraphBuilder][Jump]")
@@ -391,7 +387,7 @@ TEST_CASE("Nothing jumps to where it could walk", "[NavigationGraphBuilder][Jump
 
     size_t onTheFloor = 0;
     for (const auto &[id, node] : graph.getNodes())
-        if (std::abs(node.position.y - floorY) < 0.5f)
+        if (std::abs(node.feet.y - floorY) < 0.5f)
             ++onTheFloor;
 
     REQUIRE(onTheFloor >= 4);
@@ -402,8 +398,8 @@ TEST_CASE("Nothing jumps to where it could walk", "[NavigationGraphBuilder][Jump
         if (edge.type != EdgeType::Jump)
             continue;
 
-        if (std::abs(graph.getNode(edge.fromId).position.y - floorY) < 0.5f &&
-            std::abs(graph.getNode(edge.toId).position.y - floorY) < 0.5f)
+        if (std::abs(graph.getNode(edge.fromId).feet.y - floorY) < 0.5f &&
+            std::abs(graph.getNode(edge.toId).feet.y - floorY) < 0.5f)
             ++jumpsAlongTheFloor;
     }
 

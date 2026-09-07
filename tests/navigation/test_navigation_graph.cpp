@@ -28,7 +28,7 @@ TEST_CASE("Get Node by ID", "[NavigationGraph]")
     {
         auto node = graph.getNode(1);
         REQUIRE(node.id == 1);
-        REQUIRE(node.position == glm::vec2(10, 0));
+        REQUIRE(node.feet == glm::vec2(10, 0));
     }
 
     SECTION("Invalid node ID throws exception")

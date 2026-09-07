@@ -155,12 +155,11 @@ namespace navigation
 
         for (const auto &[id, node] : navigationGraph.getNodes())
         {
-            if (std::abs(node.position.y - landing.y) > SameSurface)
+            if (std::abs(node.feet.y - landing.y) > SameSurface)
                 continue;
 
-            float distance = std::abs(node.position.x - landing.x);
-            if (distance > SameSurface &&
-                !isWalkableBetween(tileMap, landing, node.position, headroom))
+            float distance = std::abs(node.feet.x - landing.x);
+            if (distance > SameSurface && !isWalkableBetween(tileMap, landing, node.feet, headroom))
                 continue;
 
             if (nearest && distance >= nearestDistance)

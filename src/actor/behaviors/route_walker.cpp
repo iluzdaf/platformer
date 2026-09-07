@@ -60,11 +60,11 @@ void RouteWalker::anchor(const ActorBehaviorContext &context)
         if (!hasSomewhereToGo(context.navigationGraph, id))
             continue;
 
-        float drop = node.position.y - context.worldPosition.y;
+        float drop = node.feet.y - context.feet.y;
         if (drop < -SurfaceTolerance)
             continue;
 
-        float distance = std::abs(node.position.x - context.worldPosition.x);
+        float distance = std::abs(node.feet.x - context.feet.x);
         bool nearer = !currentNodeId || drop < nearestDrop ||
                       (drop == nearestDrop && distance < nearestDistance);
         if (!nearer)
@@ -83,20 +83,20 @@ bool RouteWalker::hasLostTheRoute(const ActorBehaviorContext &context) const
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
     NavigationNode node = navigationGraph.getNode(*currentNodeId);
-    if (std::abs(node.position.y - context.worldPosition.y) > SurfaceTolerance)
+    if (std::abs(node.feet.y - context.feet.y) > SurfaceTolerance)
         return true;
 
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
-    float leftEnd = node.position.x;
-    float rightEnd = node.position.x;
+    float leftEnd = node.feet.x;
+    float rightEnd = node.feet.x;
     for (int id : walkableFrom(navigationGraph, *currentNodeId))
     {
-        float x = navigationGraph.getNode(id).position.x;
+        float x = navigationGraph.getNode(id).feet.x;
         leftEnd = std::min(leftEnd, x);
         rightEnd = std::max(rightEnd, x);
     }
 
-    return context.worldPosition.x < leftEnd - reach || context.worldPosition.x > rightEnd + reach;
+    return context.feet.x < leftEnd - reach || context.feet.x > rightEnd + reach;
 }
 
 void RouteWalker::keepInStep(const ActorBehaviorContext &context)
@@ -166,13 +166,13 @@ glm::vec2 RouteWalker::targetPosition(
     int headingFor) const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
-    glm::vec2 atTheNode = navigationGraph.getNode(headingFor).position;
+    glm::vec2 atTheNode = navigationGraph.getNode(headingFor).feet;
 
     const NavigationEdge *leg = edgeBetween(navigationGraph, setOffAt, headingFor);
     if (!stopShortAt || (leg && !travelledInContact(leg->type)))
         return atTheNode;
 
-    glm::vec2 setOffFrom = navigationGraph.getNode(setOffAt).position;
+    glm::vec2 setOffFrom = navigationGraph.getNode(setOffAt).feet;
     glm::vec2 nearCorner = glm::min(setOffFrom, atTheNode) - glm::vec2(SurfaceTolerance);
     glm::vec2 farCorner = glm::max(setOffFrom, atTheNode) + glm::vec2(SurfaceTolerance);
 
@@ -191,7 +191,7 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
         return inputIntentions;
 
     glm::vec2 target = targetPosition(context, *currentNodeId, *targetNodeId);
-    inputIntentions.direction.x = directionTowards(context.worldPosition.x, target.x);
+    inputIntentions.direction.x = directionTowards(context.feet.x, target.x);
 
     const NavigationEdge *leg = edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
@@ -202,10 +202,9 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
     if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)
     {
         NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
-        if (std::abs(takeOff.position.x - context.worldPosition.x) > TakeOffReach)
+        if (std::abs(takeOff.feet.x - context.feet.x) > TakeOffReach)
         {
-            inputIntentions.direction.x =
-                directionTowards(context.worldPosition.x, takeOff.position.x);
+            inputIntentions.direction.x = directionTowards(context.feet.x, takeOff.feet.x);
             return inputIntentions;
         }
     }
@@ -219,7 +218,7 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
         if (context.contacts.touchingWall())
         {
             inputIntentions.direction.x = leg->wallDirection;
-            inputIntentions.direction.y = directionTowards(context.worldPosition.y, target.y);
+            inputIntentions.direction.y = directionTowards(context.feet.y, target.y);
         }
     }
 
@@ -236,12 +235,12 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
 bool RouteWalker::withinReachOf(const ActorBehaviorContext &context, int nodeId) const
 {
     NavigationNode node = context.navigationGraph.getNode(nodeId);
-    if (std::abs(node.position.y - context.worldPosition.y) > SurfaceTolerance)
+    if (std::abs(node.feet.y - context.feet.y) > SurfaceTolerance)
         return false;
 
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
 
-    return std::abs(node.position.x - context.worldPosition.x) <= reach;
+    return std::abs(node.feet.x - context.feet.x) <= reach;
 }
 
 bool RouteWalker::hasArrived(const ActorBehaviorContext &context, int setOffAt, int headingFor)
@@ -254,24 +253,23 @@ bool RouteWalker::hasArrived(const ActorBehaviorContext &context, int setOffAt, 
     const NavigationEdge *leg = edgeBetween(navigationGraph, setOffAt, headingFor);
     if (leg && leg->type == EdgeType::Climb)
     {
-        if (std::abs(target.y - context.worldPosition.y) <= SurfaceTolerance)
+        if (std::abs(target.y - context.feet.y) <= SurfaceTolerance)
             return true;
 
-        float climbDirection =
-            directionTowards(navigationGraph.getNode(setOffAt).position.y, target.y);
+        float climbDirection = directionTowards(navigationGraph.getNode(setOffAt).feet.y, target.y);
 
-        return directionTowards(context.worldPosition.y, target.y) != climbDirection;
+        return directionTowards(context.feet.y, target.y) != climbDirection;
     }
 
-    if (std::abs(target.y - context.worldPosition.y) > SurfaceTolerance)
+    if (std::abs(target.y - context.feet.y) > SurfaceTolerance)
         return false;
 
-    if (std::abs(target.x - context.worldPosition.x) <= reach)
+    if (std::abs(target.x - context.feet.x) <= reach)
         return true;
 
-    float legDirection = directionTowards(navigationGraph.getNode(setOffAt).position.x, target.x);
+    float legDirection = directionTowards(navigationGraph.getNode(setOffAt).feet.x, target.x);
 
-    return directionTowards(context.worldPosition.x, target.x) != legDirection;
+    return directionTowards(context.feet.x, target.x) != legDirection;
 }
 
 std::optional<int> RouteWalker::getCurrentNodeId() const

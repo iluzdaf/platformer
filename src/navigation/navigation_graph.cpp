@@ -70,7 +70,7 @@ const std::vector<NavigationEdge> &NavigationGraph::getOutgoingEdges(int id) con
 std::optional<int> NavigationGraph::nodeAtPosition(glm::vec2 position, float epsilon) const
 {
     for (const auto &[id, node] : nodes)
-        if (glm::distance(node.position, position) < epsilon)
+        if (glm::distance(node.feet, position) < epsilon)
             return id;
 
     return std::nullopt;

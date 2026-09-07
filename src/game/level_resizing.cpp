@@ -92,10 +92,10 @@ LevelData resizedBy(Resize resize, const LevelData &level, int tileSize)
     resizeRows(rows, resize);
 
     glm::vec2 shift = shiftOf(resize, tileSize);
-    resized.playerStart += shift;
+    resized.playerFeet += shift;
     for (NpcSpawnData &npc : resized.npcs)
     {
-        npc.position += shift;
+        npc.feet += shift;
         if (npc.patrol)
         {
             npc.patrol->from += shift;
@@ -103,7 +103,7 @@ LevelData resizedBy(Resize resize, const LevelData &level, int tileSize)
         }
     }
     for (PickupSpawnData &pickup : resized.pickups)
-        pickup.position += shift;
+        pickup.feet += shift;
 
     if (resize.larger)
         return resized;
@@ -112,14 +112,13 @@ LevelData resizedBy(Resize resize, const LevelData &level, int tileSize)
         static_cast<int>(rows.empty() ? 0 : rows.front().size()),
         static_cast<int>(rows.size()),
         tileSize};
-    std::erase_if(
-        resized.npcs, [&](const NpcSpawnData &npc) { return !left.holdsFeet(npc.position); });
+    std::erase_if(resized.npcs, [&](const NpcSpawnData &npc) { return !left.holdsFeet(npc.feet); });
     for (NpcSpawnData &npc : resized.npcs)
         if (npc.patrol && !(left.holdsFeet(npc.patrol->from) && left.holdsFeet(npc.patrol->to)))
             npc.patrol.reset();
     std::erase_if(
         resized.pickups,
-        [&](const PickupSpawnData &pickup) { return !left.holdsPoint(pickup.position); });
+        [&](const PickupSpawnData &pickup) { return !left.holdsPoint(pickup.feet); });
 
     return resized;
 }

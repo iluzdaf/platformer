@@ -77,7 +77,7 @@ namespace
     bool getsAcross(const GameData &gameData, int tiles, Pit kind, bool jump, bool dash)
     {
         LevelData levelData;
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData = pitOf(tiles, kind);
         Level level(
             levelData, pitPalette(), gameData.playerData, gameData.npcData, gameData.pickupData);
@@ -228,7 +228,7 @@ TEST_CASE("The shipped player can climb three stepped platforms", "[Player][Tuni
 {
     GameData gameData = loadGameData();
     LevelData levelData;
-    levelData.playerStart = feetOf(glm::ivec2(1, 11));
+    levelData.playerFeet = feetOf(glm::ivec2(1, 11));
     levelData.tileMapData = threeStairs();
     Level level(levelData, stairsPalette(), gameData.playerData, {}, {});
 

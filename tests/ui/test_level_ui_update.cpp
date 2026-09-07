@@ -192,7 +192,7 @@ TEST_CASE("Picking the player start moves it and puts the pick down", "[LevelUi]
         armed,
         editing.commands);
 
-    REQUIRE(editing.level.getTileMap().tileUnderFeet(editing.asked().playerStart) == target);
+    REQUIRE(editing.level.getTileMap().tileUnderFeet(editing.asked().playerFeet) == target);
     REQUIRE_FALSE(armed);
 }
 
@@ -229,7 +229,7 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
         LevelPath,
         armed,
         editing.commands);
-    REQUIRE(editing.asked().npcs.front().position == feetOf(target));
+    REQUIRE(editing.asked().npcs.front().feet == feetOf(target));
     REQUIRE_FALSE(armed);
 }
 

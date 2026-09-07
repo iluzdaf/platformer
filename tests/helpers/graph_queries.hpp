@@ -19,8 +19,8 @@ inline std::vector<float> nodeXsOnRow(const NavigationGraph &graph, float y)
 {
     std::vector<float> xs;
     for (const auto &[id, node] : graph.getNodes())
-        if (node.position.y == y)
-            xs.push_back(node.position.x);
+        if (node.feet.y == y)
+            xs.push_back(node.feet.x);
     std::sort(xs.begin(), xs.end());
     return xs;
 }
@@ -31,7 +31,7 @@ inline bool hasEdgeBetween(const NavigationGraph &graph, float fromX, float toX,
     {
         NavigationNode from = graph.getNode(edge.fromId);
         NavigationNode to = graph.getNode(edge.toId);
-        if (from.position == glm::vec2(fromX, y) && to.position == glm::vec2(toX, y))
+        if (from.feet == glm::vec2(fromX, y) && to.feet == glm::vec2(toX, y))
             return true;
     }
     return false;
@@ -49,10 +49,10 @@ inline bool hasEdgeBetween(
         if (edge.type != type)
             continue;
 
-        if (glm::distance(graph.getNode(edge.fromId).position, from) > Tolerance)
+        if (glm::distance(graph.getNode(edge.fromId).feet, from) > Tolerance)
             continue;
 
-        if (glm::distance(graph.getNode(edge.toId).position, to) <= Tolerance)
+        if (glm::distance(graph.getNode(edge.toId).feet, to) <= Tolerance)
             return true;
     }
 
@@ -71,7 +71,7 @@ inline size_t nodesOnTheFloor(const NavigationGraph &graph, const TileMap &tileM
     float floorY = static_cast<float>(FloorRow * tileMap.getTileSize());
     size_t count = 0;
     for (const auto &[id, node] : graph.getNodes())
-        if (node.position.y == floorY)
+        if (node.feet.y == floorY)
             ++count;
     return count;
 }
@@ -86,7 +86,7 @@ inline bool walksTheFloorEndToEnd(const NavigationGraph &graph, const TileMap &t
 
         NavigationNode from = graph.getNode(edge.fromId);
         NavigationNode to = graph.getNode(edge.toId);
-        if (from.position.y == floorY && to.position.y == floorY)
+        if (from.feet.y == floorY && to.feet.y == floorY)
             return true;
     }
     return false;
@@ -109,15 +109,15 @@ inline bool jumpsAcrossTo(const NavigationGraph &graph, glm::vec2 from, glm::vec
         if (edge.type != EdgeType::Jump)
             continue;
 
-        if (glm::distance(graph.getNode(edge.fromId).position, from) > Tolerance)
+        if (glm::distance(graph.getNode(edge.fromId).feet, from) > Tolerance)
             continue;
 
         NavigationNode to = graph.getNode(edge.toId);
-        if (std::abs(to.position.y - farSide.y) > Tolerance)
+        if (std::abs(to.feet.y - farSide.y) > Tolerance)
             continue;
 
-        bool overThere = farSide.x > from.x ? to.position.x >= farSide.x - Tolerance
-                                            : to.position.x <= farSide.x + Tolerance;
+        bool overThere = farSide.x > from.x ? to.feet.x >= farSide.x - Tolerance
+                                            : to.feet.x <= farSide.x + Tolerance;
         if (overThere)
             return true;
     }
@@ -160,8 +160,8 @@ inline std::set<std::pair<int, int>> rowsJoinedByClimbing(
                 continue;
 
             glm::vec2 underfoot(0.0f, 1.0f);
-            int from = tileMap.tileContaining(graph.getNode(edge.fromId).position + underfoot).y;
-            int to = tileMap.tileContaining(graph.getNode(edge.toId).position + underfoot).y;
+            int from = tileMap.tileContaining(graph.getNode(edge.fromId).feet + underfoot).y;
+            int to = tileMap.tileContaining(graph.getNode(edge.toId).feet + underfoot).y;
             joined.insert({from, to});
         }
     return joined;
@@ -171,8 +171,8 @@ inline int nodeJustPastTheLedge(const NavigationGraph &graph, float floorY)
 {
     float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
     for (const auto &[id, node] : graph.getNodes())
-        if (std::abs(node.position.y - floorY) < 0.5f && node.position.x > ledgeEdgeX &&
-            node.position.x < ledgeEdgeX + 8.0f)
+        if (std::abs(node.feet.y - floorY) < 0.5f && node.feet.x > ledgeEdgeX &&
+            node.feet.x < ledgeEdgeX + 8.0f)
             return id;
 
     return -1;
@@ -187,11 +187,11 @@ inline bool anEdgeSpansThePinch(const NavigationGraph &graph, const TileMap &til
     {
         NavigationNode from = graph.getNode(edge.fromId);
         NavigationNode to = graph.getNode(edge.toId);
-        if (from.position.y != floorY || to.position.y != floorY)
+        if (from.feet.y != floorY || to.feet.y != floorY)
             continue;
 
-        float low = std::min(from.position.x, to.position.x);
-        float high = std::max(from.position.x, to.position.x);
+        float low = std::min(from.feet.x, to.feet.x);
+        float high = std::max(from.feet.x, to.feet.x);
         if (low < pinchX && high > pinchX)
             return true;
     }

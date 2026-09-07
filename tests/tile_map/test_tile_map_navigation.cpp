@@ -72,7 +72,7 @@ namespace
             data.tileMapData.indices = std::vector<std::vector<int>>(3, std::vector<int>(20, 0));
             for (int x = 0; x < 20; ++x)
                 data.tileMapData.indices[2][x] = 1;
-            data.playerStart = feetOf(glm::ivec2(0, 1));
+            data.playerFeet = feetOf(glm::ivec2(0, 1));
             data.nextLevel = "levels/somewhere.json";
             data.npcs = {NpcSpawnData{"villager", feetOf(glm::ivec2(2, 1)), std::nullopt}};
             data.pickups = {PickupSpawnData{"coin", feetOf(glm::ivec2(3, 1))}};
@@ -128,8 +128,8 @@ TEST_CASE(
     REQUIRE(savedJson.find("\"tilePalette\":\"default\"") != std::string::npos);
     REQUIRE(savedJson.find("\"tileData\"") == std::string::npos);
 
-    REQUIRE(savedJson.find("\"playerStart\":[") != std::string::npos);
-    REQUIRE(savedJson.find("\"playerStart\":[\n") == std::string::npos);
+    REQUIRE(savedJson.find("\"playerFeet\":[") != std::string::npos);
+    REQUIRE(savedJson.find("\"playerFeet\":[\n") == std::string::npos);
 
     Level reloaded = loadLevel(savePath.string(), own.palettes, own.npcs, own.pickups);
     writeLevelData(

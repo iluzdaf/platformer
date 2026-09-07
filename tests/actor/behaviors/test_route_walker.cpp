@@ -20,11 +20,11 @@ namespace
         return navigationGraph;
     }
 
-    ActorBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
+    ActorBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 feet)
     {
         ActorContactState standing;
         standing.onGround = true;
-        return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt, standing};
+        return {navigationGraph, feet, glm::vec2(8.0f, 13.0f), std::nullopt, standing};
     }
 }
 

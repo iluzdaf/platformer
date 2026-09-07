@@ -59,7 +59,7 @@ inline TileMap aTileMap(
 inline TileMap tilesOfLevel(const std::string &jsonFilePath)
 {
     LevelData levelData;
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.playerFeet = feetOf(glm::ivec2(0, 0));
     auto error = glz::read_file_json(levelData, jsonFilePath, std::string{});
     if (error)
         throw std::runtime_error("Failed to read " + jsonFilePath);

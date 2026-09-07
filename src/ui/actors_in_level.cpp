@@ -166,7 +166,7 @@ namespace
     {
         beginRow("Spawns At");
         drawTileArmButton(
-            asTile(tileMap.tileUnderFeet(spawn.position)),
+            asTile(tileMap.tileUnderFeet(spawn.feet)),
             PickTile{PickTile::For::NpcSpawn, index},
             armed);
 

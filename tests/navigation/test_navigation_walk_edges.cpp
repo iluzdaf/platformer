@@ -144,7 +144,7 @@ TEST_CASE("A floor is one run, and a gap makes it two", "[NavigationGraphBuilder
     REQUIRE(runs.size() == 2);
     for (const std::vector<int> &run : runs)
         for (size_t at = 1; at < run.size(); ++at)
-            REQUIRE(graph.getNode(run[at - 1]).position.x < graph.getNode(run[at]).position.x);
+            REQUIRE(graph.getNode(run[at - 1]).feet.x < graph.getNode(run[at]).feet.x);
 }
 
 TEST_CASE("No walk edge passes through a blocked tile", "[NavigationGraphBuilder]")
@@ -160,8 +160,8 @@ TEST_CASE("No walk edge passes through a blocked tile", "[NavigationGraphBuilder
     {
         NavigationNode from = graph.getNode(edge.fromId);
         NavigationNode to = graph.getNode(edge.toId);
-        float low = std::min(from.position.x, to.position.x);
-        float high = std::max(from.position.x, to.position.x);
+        float low = std::min(from.feet.x, to.feet.x);
+        float high = std::max(from.feet.x, to.feet.x);
         REQUIRE_FALSE((low <= 48.0f && high >= 64.0f));
     }
 
@@ -178,7 +178,7 @@ TEST_CASE("Floors on different rows are not connected", "[NavigationGraphBuilder
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
     for (const auto &edge : graph.getEdges())
-        REQUIRE(graph.getNode(edge.fromId).position.y == graph.getNode(edge.toId).position.y);
+        REQUIRE(graph.getNode(edge.fromId).feet.y == graph.getNode(edge.toId).feet.y);
 }
 
 TEST_CASE(
@@ -323,11 +323,11 @@ TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Le
         if (node.kind == NodeKind::OnWall)
             continue;
 
-        INFO("node " << id << " at " << node.position.x << "," << node.position.y);
-        REQUIRE(std::fmod(node.position.y, tileSize) == 0.0f);
+        INFO("node " << id << " at " << node.feet.x << "," << node.feet.y);
+        REQUIRE(std::fmod(node.feet.y, tileSize) == 0.0f);
 
-        glm::ivec2 under = tileMap.tileContaining(node.position + glm::vec2(0.0f, 1.0f));
-        glm::ivec2 justBehind = tileMap.tileContaining(node.position + glm::vec2(-1.0f, 1.0f));
+        glm::ivec2 under = tileMap.tileContaining(node.feet + glm::vec2(0.0f, 1.0f));
+        glm::ivec2 justBehind = tileMap.tileContaining(node.feet + glm::vec2(-1.0f, 1.0f));
         REQUIRE(
             (tileMap.getTileAtTilePosition(under).isSolid() ||
              tileMap.getTileAtTilePosition(justBehind).isSolid()));

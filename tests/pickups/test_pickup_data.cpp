@@ -24,7 +24,7 @@ namespace
     LevelData levelPlacing(const std::vector<PickupSpawnData> &pickups)
     {
         LevelData levelData;
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData.tilePalette = "default";
         levelData.tileMapData.indices = std::vector<std::vector<int>>(4, std::vector<int>(4, 0));
         levelData.pickups = pickups;
@@ -58,7 +58,7 @@ TEST_CASE("A placed pickup survives being written and read back", "[Pickups]")
 
     LevelData read;
 
-    read.playerStart = feetOf(glm::ivec2(0, 0));
+    read.playerFeet = feetOf(glm::ivec2(0, 0));
     REQUIRE_FALSE(glz::read_json(read, json));
 
     REQUIRE(read.pickups == written.pickups);
@@ -131,5 +131,5 @@ TEST_CASE("A pickup sits centred on where it was placed", "[Pickups]")
     REQUIRE(level.getPickups().size() == 1);
     const Pickup &coin = level.getPickups().front();
 
-    REQUIRE(coin.getPosition() + coin.getSize() * 0.5f == placedAt);
+    REQUIRE(coin.getPosition() + glm::vec2(coin.getSize().x * 0.5f, coin.getSize().y) == placedAt);
 }

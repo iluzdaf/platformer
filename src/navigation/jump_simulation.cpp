@@ -4,7 +4,7 @@
 #include "actor/actor_motion_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
-#include "actor/abilities/ability_system.hpp"
+#include "actor/abilities/abilities.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/jump_arc.hpp"
 #include "physics/physics_body.hpp"
@@ -38,13 +38,13 @@ JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
 {
     ActorMotionData shortened = releasedAfter(motionData, holdFraction);
     float holdDuration = shortened.jumpAbilityData ? shortened.jumpAbilityData->jumpDuration : 0.0f;
-    AbilitySystem abilitySystem(shortened);
+    Abilities abilities(shortened);
     Decided decided;
     Observed observed;
     InputIntentions inputIntentions = holdingJumpAndRunning();
 
     observed.contacts.onGround = true;
-    abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, decided);
+    abilities.decide(PhysicsStep, inputIntentions, observed, decided);
     if (decided.targetVelocity.y >= 0.0f)
         return {};
 
@@ -55,7 +55,7 @@ JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
     observed.contacts.onGround = false;
     for (int step = 1; step < MaximumSteps; ++step)
     {
-        abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, decided);
+        abilities.decide(PhysicsStep, inputIntentions, observed, decided);
         offset += decided.targetVelocity * PhysicsStep;
         offsets.push_back(offset);
 
@@ -89,7 +89,7 @@ JumpAttempt simulateJumpAgainst(
     float holdFraction)
 {
     ActorMotionData shortened = releasedAfter(motionData, holdFraction);
-    AbilitySystem abilitySystem(shortened);
+    Abilities abilities(shortened);
     Decided decided;
     Observed observed;
 
@@ -107,7 +107,7 @@ JumpAttempt simulateJumpAgainst(
     observed.contacts.onGround = true;
     for (int step = 0; step < MaximumSteps; ++step)
     {
-        abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, decided);
+        abilities.decide(PhysicsStep, inputIntentions, observed, decided);
         physicsBody.setVelocity(decided.targetVelocity);
         physicsBody.stepPhysics(PhysicsStep, tileMap);
 

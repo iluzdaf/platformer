@@ -28,21 +28,17 @@ Actor::Actor(const ActorData &data)
 
     const ActorAnimationData &animationData = data.animationData;
 
-    animationManager.addAnimation(ActorAnimationState::Idle, FrameAnimation(animationData.idle));
+    animator.add(ActorAnimationState::Idle, FrameAnimation(animationData.idle));
     if (animationData.walk)
-        animationManager.addAnimation(
-            ActorAnimationState::Walk, FrameAnimation(animationData.walk.value()));
+        animator.add(ActorAnimationState::Walk, FrameAnimation(animationData.walk.value()));
     if (animationData.dash)
-        animationManager.addAnimation(
-            ActorAnimationState::Dash, FrameAnimation(animationData.dash.value()));
+        animator.add(ActorAnimationState::Dash, FrameAnimation(animationData.dash.value()));
     if (animationData.jump)
-        animationManager.addAnimation(
-            ActorAnimationState::Jump, FrameAnimation(animationData.jump.value()));
+        animator.add(ActorAnimationState::Jump, FrameAnimation(animationData.jump.value()));
     if (animationData.fall)
-        animationManager.addAnimation(
-            ActorAnimationState::Fall, FrameAnimation(animationData.fall.value()));
+        animator.add(ActorAnimationState::Fall, FrameAnimation(animationData.fall.value()));
     if (animationData.wallSlide)
-        animationManager.addAnimation(
+        animator.add(
             ActorAnimationState::WallSlide, FrameAnimation(animationData.wallSlide.value()));
 }
 
@@ -63,7 +59,7 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
-    abilities.applyMovement(deltaTime, inputIntentions, observations, decisions);
+    abilities.decide(deltaTime, inputIntentions, observations, decisions);
     observations.hits.clear();
 
     physicsBody.setVelocity(decisions.targetVelocity);
@@ -73,14 +69,14 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     observations.previousVelocity = observations.velocity;
     observations.velocity = physicsBody.velocity();
 
-    animationManager.update(deltaTime, decisions, observations);
+    animator.animate(deltaTime, decisions, observations);
 
     if (!decisions.knockback.active)
         actorState.facingLeft = observations.velocity.x > 0
                                     ? false
                                     : (observations.velocity.x < 0 ? true : actorState.facingLeft);
-    actorState.currentFrame = animationManager.getCurrentAnimation().getCurrentFrame();
-    actorState.currentAnimationState = animationManager.getCurrentState();
+    actorState.currentFrame = animator.playing().frame();
+    actorState.currentAnimationState = animator.state();
 }
 
 const SheetData &Actor::drawnFrom() const

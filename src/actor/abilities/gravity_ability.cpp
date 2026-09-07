@@ -9,7 +9,7 @@ GravityAbility::GravityAbility(const GravityAbilityData &data) : data(data)
 {
 }
 
-void GravityAbility::applyMovement(
+void GravityAbility::decide(
     float deltaTime,
     const InputIntentions &,
     const Observed &observed,

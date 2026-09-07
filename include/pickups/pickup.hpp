@@ -15,7 +15,7 @@ public:
     void update(float deltaTime);
 
     const SheetData &getSheet() const;
-    int getCurrentFrame() const;
+    int frame() const;
     const glm::vec2 &getPosition() const;
     const glm::vec2 &getSize() const;
     int getScoreDelta() const;

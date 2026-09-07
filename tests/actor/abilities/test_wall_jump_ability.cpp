@@ -23,7 +23,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.grippableLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.wallJump.velocity.y == Approx(wallJumpAbilityData.wallJumpSpeed));
         REQUIRE(decided.wallJump.velocity.x == Approx(wallJumpAbilityData.wallJumpHorizontalSpeed));
         REQUIRE(decided.wallJump.active);
@@ -37,7 +37,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.grippableLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 0.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.wallJump.active);
         REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
         REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
@@ -49,14 +49,14 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.touchingLeftWall = false;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.wallJump.active);
         REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
         REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
         observed.contacts.touchingLeftWall = true;
         observed.contacts.grippableLeftWall = true;
         inputIntentions = InputIntentions();
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.wallJump.active);
         REQUIRE(decided.wallJump.velocity.y == Approx(wallJumpAbilityData.wallJumpSpeed));
         REQUIRE(decided.wallJump.velocity.x == Approx(wallJumpAbilityData.wallJumpHorizontalSpeed));
@@ -67,13 +67,13 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.onGround = false;
         observed.contacts.touchingLeftWall = true;
         observed.contacts.grippableLeftWall = true;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.touchingLeftWall = false;
         observed.contacts.grippableLeftWall = false;
         observed.contacts.wasLastWallLeft = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.wallJump.active);
         REQUIRE(decided.wallJump.velocity.y == Approx(wallJumpAbilityData.wallJumpSpeed));
         REQUIRE(decided.wallJump.velocity.x == Approx(wallJumpAbilityData.wallJumpHorizontalSpeed));
@@ -86,7 +86,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.grippableLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(
+        wallJumpAbility.decide(
             wallJumpAbilityData.wallJumpDuration + 0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.wallJump.active);
         REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
@@ -100,14 +100,14 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.grippableLeftWall = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.touchingLeftWall = false;
         observed.contacts.grippableLeftWall = false;
         observed.contacts.touchingRightWall = true;
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = -1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.wallJump.active);
         REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
         REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
@@ -120,7 +120,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.grippableLeftWall = false;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.wallJump.active);
         REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
         REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
@@ -131,12 +131,12 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.onGround = false;
         observed.contacts.touchingLeftWall = true;
         observed.contacts.grippableLeftWall = false;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.touchingLeftWall = false;
         observed.contacts.wasLastWallLeft = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.wallJump.active);
     }
 
@@ -148,7 +148,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.wasLastWallLeft = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.wallJump.active);
     }
 
@@ -157,7 +157,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.onGround = false;
         observed.contacts.touchingLeftWall = true;
         observed.contacts.grippableLeftWall = true;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
 
         observed.contacts.touchingLeftWall = false;
         observed.contacts.grippableLeftWall = false;
@@ -165,7 +165,7 @@ TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
         observed.contacts.wasLastWallLeft = true;
         inputIntentions.jumpHeld = true;
         inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE(decided.wallJump.emit);
         REQUIRE(decided.wallJump.direction == 1);

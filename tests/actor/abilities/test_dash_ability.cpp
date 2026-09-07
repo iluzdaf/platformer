@@ -20,12 +20,12 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.dash.velocity.x == Approx(-dashAbilityData.dashSpeed));
         REQUIRE(decided.dash.active);
         REQUIRE(decided.dash.direction == -1);
         inputIntentions = InputIntentions();
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.dash.velocity.x == Approx(-dashAbilityData.dashSpeed));
         REQUIRE(decided.dash.active);
         REQUIRE(decided.dash.direction == -1);
@@ -35,12 +35,12 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
         REQUIRE(decided.dash.active);
         REQUIRE(decided.dash.direction == 1);
         inputIntentions = InputIntentions();
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
         REQUIRE(decided.dash.active);
         REQUIRE(decided.dash.direction == 1);
@@ -49,7 +49,7 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     SECTION("Cannot dash if no direction given")
     {
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.dash.active);
         REQUIRE(decided.dash.velocity.x == Approx(0.0f));
     }
@@ -58,7 +58,7 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(
+        dashAbility.decide(
             dashAbilityData.dashDuration + 0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.dash.active);
         REQUIRE(decided.dash.velocity.x == Approx(0.0f));
@@ -68,10 +68,10 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         inputIntentions = InputIntentions();
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
         REQUIRE(decided.dash.active);
         REQUIRE(decided.dash.timeLeft == Approx(dashAbilityData.dashDuration - 0.02f));
@@ -81,10 +81,10 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.touchingLeftWall = true;
         inputIntentions = InputIntentions();
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.dash.velocity.x == Approx(0.0f));
         REQUIRE_FALSE(decided.dash.active);
     }
@@ -94,7 +94,7 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
         observed.contacts.touchingLeftWall = true;
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.dash.velocity.x == Approx(0.0f));
         REQUIRE_FALSE(decided.dash.active);
     }
@@ -108,20 +108,20 @@ namespace
         DashAbility dashAbility(data);
 
         observed.contacts.onGround = true;
-        dashAbility.applyMovement(0.01f, InputIntentions(), observed, decided);
+        dashAbility.decide(0.01f, InputIntentions(), observed, decided);
         observed.contacts.onGround = onGround;
 
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1.0f;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        dashAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.dash.active);
 
         float lasted = 0.01f;
         inputIntentions = InputIntentions();
         while (decided.dash.active && lasted < 2.0f)
         {
-            dashAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+            dashAbility.decide(0.01f, inputIntentions, observed, decided);
             lasted += 0.01f;
         }
         return lasted;

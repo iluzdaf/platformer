@@ -5,13 +5,13 @@
 TEST_CASE("Default Constucted FrameAnimation behaves correctly", "[FrameAnimation]")
 {
     FrameAnimation frameAnimation;
-    REQUIRE(frameAnimation.getCurrentFrame() == 0);
+    REQUIRE(frameAnimation.frame() == 0);
 
     frameAnimation.update(0.5f);
-    REQUIRE(frameAnimation.getCurrentFrame() == 0);
+    REQUIRE(frameAnimation.frame() == 0);
 
     frameAnimation.reset();
-    REQUIRE(frameAnimation.getCurrentFrame() == 0);
+    REQUIRE(frameAnimation.frame() == 0);
 }
 
 TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
@@ -20,19 +20,19 @@ TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
 
     SECTION("Starts at first frame")
     {
-        REQUIRE(frameAnimation.getCurrentFrame() == 1);
+        REQUIRE(frameAnimation.frame() == 1);
     }
 
     SECTION("Advances to next frame after time")
     {
         frameAnimation.update(0.5f);
-        REQUIRE(frameAnimation.getCurrentFrame() == 2);
+        REQUIRE(frameAnimation.frame() == 2);
     }
 
     SECTION("Wraps around after all frames")
     {
         frameAnimation.update(1.5f);
-        REQUIRE(frameAnimation.getCurrentFrame() == 1);
+        REQUIRE(frameAnimation.frame() == 1);
     }
 
     SECTION("Multiple small steps accumulate")
@@ -40,20 +40,20 @@ TEST_CASE("FrameAnimation updates frame based on time", "[FrameAnimation]")
         frameAnimation.update(0.2f);
         frameAnimation.update(0.2f);
         frameAnimation.update(0.2f);
-        REQUIRE(frameAnimation.getCurrentFrame() == 2);
+        REQUIRE(frameAnimation.frame() == 2);
     }
 
     SECTION("Reset returns to frame 0")
     {
         frameAnimation.update(1.0f);
         frameAnimation.reset();
-        REQUIRE(frameAnimation.getCurrentFrame() == 1);
+        REQUIRE(frameAnimation.frame() == 1);
     }
 
     SECTION("No time passing leaves the frame where it was")
     {
         frameAnimation.update(0.0f);
-        REQUIRE(frameAnimation.getCurrentFrame() == 1);
+        REQUIRE(frameAnimation.frame() == 1);
     }
 }
 
@@ -63,5 +63,5 @@ TEST_CASE("An animation with no duration stays on its first frame", "[FrameAnima
 
     frameAnimation.update(0.5f);
 
-    REQUIRE(frameAnimation.getCurrentFrame() == 1);
+    REQUIRE(frameAnimation.frame() == 1);
 }

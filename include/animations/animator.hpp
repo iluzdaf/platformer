@@ -7,13 +7,13 @@
 struct Decided;
 struct Observed;
 
-class AnimationManager
+class Animator
 {
 public:
-    void update(float deltaTime, const Decided &decided, const Observed &observed);
-    const FrameAnimation &getCurrentAnimation();
-    void addAnimation(ActorAnimationState state, const FrameAnimation &anim);
-    ActorAnimationState getCurrentState() const;
+    void animate(float deltaTime, const Decided &decided, const Observed &observed);
+    const FrameAnimation &playing() const;
+    void add(ActorAnimationState state, const FrameAnimation &anim);
+    ActorAnimationState state() const;
 
 private:
     ActorAnimationState currentState = ActorAnimationState::Idle;

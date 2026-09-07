@@ -22,11 +22,11 @@ TEST_CASE("A pickup shows the frame its animation is on", "[Pickup]")
 {
     Pickup pickup(spinning(), glm::vec2(0.0f));
 
-    REQUIRE(pickup.getCurrentFrame() == 3);
+    REQUIRE(pickup.frame() == 3);
 
     pickup.update(0.25f);
 
-    REQUIRE(pickup.getCurrentFrame() == 8);
+    REQUIRE(pickup.frame() == 8);
 }
 
 TEST_CASE("A pickup draws from the sheet its kind names", "[Pickup]")

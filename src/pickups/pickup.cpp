@@ -19,9 +19,9 @@ const SheetData &Pickup::getSheet() const
     return sheet;
 }
 
-int Pickup::getCurrentFrame() const
+int Pickup::frame() const
 {
-    return animation.getCurrentFrame();
+    return animation.frame();
 }
 
 const glm::vec2 &Pickup::getPosition() const

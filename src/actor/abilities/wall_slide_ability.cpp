@@ -11,7 +11,7 @@ WallSlideAbility::WallSlideAbility(const WallSlideAbilityData &data) : data(data
         throw std::runtime_error("slideSpeed must be positive");
 }
 
-void WallSlideAbility::applyMovement(
+void WallSlideAbility::decide(
     float,
     const InputIntentions &,
     const Observed &observed,

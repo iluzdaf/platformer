@@ -11,7 +11,7 @@ class WallSlideAbility : public Ability
 {
 public:
     explicit WallSlideAbility(const WallSlideAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

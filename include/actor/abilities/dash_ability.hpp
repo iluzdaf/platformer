@@ -11,7 +11,7 @@ class DashAbility : public Ability
 {
 public:
     explicit DashAbility(const DashAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

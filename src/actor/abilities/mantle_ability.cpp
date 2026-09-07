@@ -13,7 +13,7 @@ MantleAbility::MantleAbility(const MantleAbilityData &data) : data(data)
         throw std::runtime_error("mantleDuration must be greater than 0");
 }
 
-void MantleAbility::applyMovement(
+void MantleAbility::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,

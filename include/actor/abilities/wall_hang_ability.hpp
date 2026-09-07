@@ -11,7 +11,7 @@ class WallHangAbility : public Ability
 {
 public:
     explicit WallHangAbility(const WallHangAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

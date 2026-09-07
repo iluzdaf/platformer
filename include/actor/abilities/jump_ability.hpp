@@ -13,7 +13,7 @@ class JumpAbility : public Ability
 {
 public:
     explicit JumpAbility(const JumpAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

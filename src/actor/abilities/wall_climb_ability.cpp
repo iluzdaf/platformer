@@ -11,7 +11,7 @@ WallClimbAbility::WallClimbAbility(const WallClimbAbilityData &data) : data(data
         throw std::runtime_error("climbSpeed must be greater than 0");
 }
 
-void WallClimbAbility::applyMovement(
+void WallClimbAbility::decide(
     float,
     const InputIntentions &inputIntentions,
     const Observed &,

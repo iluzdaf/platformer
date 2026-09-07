@@ -97,7 +97,7 @@ void GameRenderer::draw(
         auto [uvStart, uvEnd] = frameUvRangeIn(
             static_cast<int>(texture.getWidth()),
             static_cast<int>(texture.getHeight()),
-            pickup.getCurrentFrame(),
+            pickup.frame(),
             sheet.cellSize.x,
             sheet.cellSize.y);
 

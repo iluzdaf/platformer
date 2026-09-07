@@ -61,7 +61,7 @@ TEST_CASE("An animation with no duration does not spin", "[SheetPreview]")
 
     stopped.update(1.0f);
 
-    REQUIRE(stopped.getCurrentFrame() == 10);
+    REQUIRE(stopped.frame() == 10);
 }
 
 TEST_CASE("A collider covering the whole tile covers the whole preview", "[SheetPreview]")

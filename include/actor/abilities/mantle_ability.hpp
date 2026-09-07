@@ -11,7 +11,7 @@ class MantleAbility : public Ability
 {
 public:
     explicit MantleAbility(const MantleAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

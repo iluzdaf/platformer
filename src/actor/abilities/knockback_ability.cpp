@@ -19,7 +19,7 @@ KnockbackAbility::KnockbackAbility(const KnockbackAbilityData &data) : data(data
         throw std::runtime_error("A knockback needs a duration above 0");
 }
 
-void KnockbackAbility::applyMovement(
+void KnockbackAbility::decide(
     float deltaTime,
     const InputIntentions &,
     const Observed &observed,

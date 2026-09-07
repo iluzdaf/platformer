@@ -44,7 +44,7 @@ std::optional<int> Tile::animatingTo() const
     if (!animation)
         return std::nullopt;
 
-    return animation->getCurrentFrame();
+    return animation->frame();
 }
 
 bool Tile::isSolid() const

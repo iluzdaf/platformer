@@ -20,13 +20,13 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
     {
         observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.onGround = false;
         REQUIRE(decided.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
         REQUIRE(decided.jump.active);
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
     }
 
@@ -34,20 +34,20 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
     {
         observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.onGround = false;
         REQUIRE(decided.jump.active);
 
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
         observed.contacts.hitCeiling = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE_FALSE(decided.jump.active);
         REQUIRE(decided.jump.velocity.y == Approx(0.0f));
 
         observed.contacts.hitCeiling = false;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.jump.velocity.y == Approx(0.0f));
     }
 
@@ -55,7 +55,7 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
     {
         observed.contacts.onGround = false;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.jump.active);
         REQUIRE(decided.jump.velocity.y == Approx(0.0f));
     }
@@ -64,12 +64,12 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
     {
         observed.contacts.onGround = false;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.onGround = false;
         REQUIRE_FALSE(decided.jump.active);
         REQUIRE(decided.jump.velocity.y == Approx(0.0f));
         observed.contacts.onGround = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.jump.active);
         REQUIRE(decided.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
     }
@@ -77,10 +77,10 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
     SECTION("Can jump during coyote time")
     {
         observed.contacts.onGround = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.onGround = false;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.jump.active);
         REQUIRE(decided.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
     }
@@ -89,7 +89,7 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
     {
         observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(
+        jumpAbility.decide(
             jumpAbilityData.jumpDuration + 0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.jump.active);
         REQUIRE(decided.jump.velocity.y == Approx(0.0f));
@@ -99,10 +99,10 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
     {
         observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
         REQUIRE(decided.jump.active);
         REQUIRE(decided.jump.holdTime == Approx(0.02f));
@@ -112,17 +112,17 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
     {
         observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         observed.contacts.onGround = false;
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        jumpAbility.applyMovement(jumpAbilityData.jumpDuration, inputIntentions, observed, decided);
+        jumpAbility.decide(jumpAbilityData.jumpDuration, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.jump.active);
         REQUIRE(decided.jump.velocity.y == Approx(0.0f));
         observed.contacts.onGround = true;
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        jumpAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE_FALSE(decided.jump.active);
     }
 }

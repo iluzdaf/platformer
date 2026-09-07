@@ -33,7 +33,7 @@ TEST_CASE("Mantling pulls up and over onto the ledge", "[MantleAbility]")
     SECTION("Asking to go up at a ledge starts it, and it pulls straight up first")
     {
         hangAtALedgeOnTheRight(decided, observed, inputIntentions);
-        mantleAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        mantleAbility.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE(decided.mantle.active);
         REQUIRE(decided.mantle.velocity.y == Approx(-data.mantleSpeed));
@@ -44,7 +44,7 @@ TEST_CASE("Mantling pulls up and over onto the ledge", "[MantleAbility]")
     {
         hangAtALedgeOnTheRight(decided, observed, inputIntentions);
         for (float elapsed = 0.0f; elapsed <= data.mantleDuration * 0.5f; elapsed += 0.01f)
-            mantleAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+            mantleAbility.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE(decided.mantle.active);
         REQUIRE(decided.mantle.velocity.x == Approx(data.mantleSpeed));
@@ -58,7 +58,7 @@ TEST_CASE("Mantling pulls up and over onto the ledge", "[MantleAbility]")
         observed.contacts.ledgeOnLeft = true;
         inputIntentions.direction.y = -1.0f;
         for (float elapsed = 0.0f; elapsed <= data.mantleDuration * 0.5f; elapsed += 0.01f)
-            mantleAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+            mantleAbility.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE(decided.mantle.velocity.x == Approx(-data.mantleSpeed));
     }
@@ -68,7 +68,7 @@ TEST_CASE("Mantling pulls up and over onto the ledge", "[MantleAbility]")
         decided.wallHang.active = true;
         observed.contacts.touchingRightWall = true;
         inputIntentions.direction.y = -1.0f;
-        mantleAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        mantleAbility.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE_FALSE(decided.mantle.active);
     }
@@ -77,7 +77,7 @@ TEST_CASE("Mantling pulls up and over onto the ledge", "[MantleAbility]")
     {
         hangAtALedgeOnTheRight(decided, observed, inputIntentions);
         inputIntentions.direction.y = 0.0f;
-        mantleAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        mantleAbility.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE_FALSE(decided.mantle.active);
     }
@@ -86,7 +86,7 @@ TEST_CASE("Mantling pulls up and over onto the ledge", "[MantleAbility]")
     {
         hangAtALedgeOnTheRight(decided, observed, inputIntentions);
         decided.wallHang.active = false;
-        mantleAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        mantleAbility.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE_FALSE(decided.mantle.active);
     }
@@ -97,7 +97,7 @@ TEST_CASE("Mantling pulls up and over onto the ledge", "[MantleAbility]")
         float elapsed = 0.0f;
         while (elapsed < data.mantleDuration * 2.0f && (elapsed == 0.0f || decided.mantle.active))
         {
-            mantleAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+            mantleAbility.decide(0.01f, inputIntentions, observed, decided);
             elapsed += 0.01f;
         }
 

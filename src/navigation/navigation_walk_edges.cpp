@@ -21,7 +21,7 @@ namespace navigation
         std::unordered_map<int, std::vector<NavigationNode>> nodesByRow;
 
         for (const auto &[id, node] : navigationGraph.getNodes())
-            nodesByRow[static_cast<int>(std::round(node.position.y))].push_back(node);
+            nodesByRow[static_cast<int>(std::round(node.feet.y))].push_back(node);
 
         std::vector<int> rows;
         rows.reserve(nodesByRow.size());
@@ -37,7 +37,7 @@ namespace navigation
                 nodesInRow.begin(),
                 nodesInRow.end(),
                 [](const NavigationNode &left, const NavigationNode &right)
-                { return left.position.x < right.position.x; });
+                { return left.feet.x < right.feet.x; });
 
             runs.push_back({nodesInRow[0].id});
             for (size_t index = 1; index < nodesInRow.size(); ++index)
@@ -45,7 +45,7 @@ namespace navigation
                 const NavigationNode &left = nodesInRow[index - 1];
                 const NavigationNode &right = nodesInRow[index];
 
-                if (!isWalkableBetween(tileMap, left.position, right.position, headroom))
+                if (!isWalkableBetween(tileMap, left.feet, right.feet, headroom))
                     runs.push_back({});
 
                 runs.back().push_back(right.id);

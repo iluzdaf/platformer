@@ -123,9 +123,9 @@ inline Level levelWithALedgeAndAWall(const std::vector<NpcSpawnData> &npcs)
 
     LevelData levelData;
 
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.playerFeet = feetOf(glm::ivec2(0, 0));
     levelData.tileMapData = tileMapData;
-    levelData.playerStart = feetOf(OnTheGround);
+    levelData.playerFeet = feetOf(OnTheGround);
     levelData.npcs = npcs;
 
     return Level(

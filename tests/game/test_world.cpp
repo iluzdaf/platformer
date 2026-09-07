@@ -178,7 +178,7 @@ TEST_CASE("An npc added to the level data is standing in the world it rebuilds",
     std::size_t before = world.getLevel().getNpcs().size();
 
     LevelData edited = world.getLevelData();
-    edited.npcs.push_back(NpcSpawnData{"villager", edited.playerStart, {}});
+    edited.npcs.push_back(NpcSpawnData{"villager", edited.playerFeet, {}});
     world.rebuildFrom(edited);
 
     REQUIRE(world.getLevel().getNpcs().size() == before + 1);
@@ -207,11 +207,11 @@ TEST_CASE("A spawn moved in the level data is where the npc stands", "[World]")
     World world(gameData, noIntentions(), luaScriptSystem);
     world.loadLevel("levels/level6.json");
 
-    glm::vec2 spawnAt = spawnsIn(world.getLevel())[1].position;
+    glm::vec2 spawnAt = spawnsIn(world.getLevel())[1].feet;
     glm::vec2 movedTo{spawnAt.x - TestTileSize, spawnAt.y};
 
     LevelData edited = world.getLevelData();
-    edited.npcs[1].position = movedTo;
+    edited.npcs[1].feet = movedTo;
     world.rebuildFrom(edited);
 
     glm::vec2 feet = world.getLevel().getNpcs()[1]->body().aabb().bottomCenter();
@@ -236,7 +236,7 @@ TEST_CASE("Rebuilding from edited data leaves the player where it walked to", "[
     REQUIRE(walkedTo != world.getLevel().getPlayerStart());
 
     LevelData edited = world.getLevelData();
-    edited.npcs.push_back(NpcSpawnData{"villager", edited.playerStart, {}});
+    edited.npcs.push_back(NpcSpawnData{"villager", edited.playerFeet, {}});
     world.rebuildFrom(edited);
 
     REQUIRE(&world.getPlayer() == before);
@@ -252,8 +252,8 @@ TEST_CASE("A moved player start does not move the player until it respawns", "[W
     glm::vec2 stoodAt = world.getPlayer().body().position();
 
     LevelData edited = world.getLevelData();
-    edited.playerStart = spawnsIn(world.getLevel())[0].position;
-    REQUIRE(edited.playerStart != world.getLevel().getPlayerStart());
+    edited.playerFeet = spawnsIn(world.getLevel())[0].feet;
+    REQUIRE(edited.playerFeet != world.getLevel().getPlayerStart());
     world.rebuildFrom(edited);
 
     REQUIRE(world.getPlayer().body().position() == stoodAt);

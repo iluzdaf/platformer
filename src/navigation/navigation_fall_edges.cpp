@@ -80,7 +80,7 @@ namespace navigation
             added = false;
             std::vector<glm::vec2> takeOffs;
             for (const auto &[id, node] : navigationGraph.getNodes())
-                takeOffs.push_back(node.position);
+                takeOffs.push_back(node.feet);
 
             for (glm::vec2 takeOff : takeOffs)
                 for (glm::vec2 landing : fallLandings(tileMap, takeOff, profile, headroom))
@@ -105,7 +105,7 @@ namespace navigation
 
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
-            takeOffs.emplace_back(id, node.position);
+            takeOffs.emplace_back(id, node.feet);
 
         for (const auto &[fromId, takeOff] : takeOffs)
             for (glm::vec2 landing : fallLandings(tileMap, takeOff, profile, headroom))

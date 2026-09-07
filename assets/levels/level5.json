@@ -24,9 +24,9 @@
         ],
         "tilePalette":"cavern"
     },
-    "playerStart":[8,288],
+    "playerFeet":[8,288],
     "nextLevel":"levels/level6.json",
     "pickups":[
-        {"type":"coin","position":[104,72]}
+        {"type":"coin","feet":[104,80]}
     ]
 }

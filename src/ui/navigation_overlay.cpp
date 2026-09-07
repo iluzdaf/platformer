@@ -21,8 +21,8 @@ namespace
         int id,
         unsigned int colour)
     {
-        ImVec2 position = imGuiManager.worldToScreen(
-            node.position, camera.getZoom(), camera.getTopLeftPosition());
+        ImVec2 position =
+            imGuiManager.worldToScreen(node.feet, camera.getZoom(), camera.getTopLeftPosition());
         ImDrawList *drawList = imGuiManager.getDrawList();
         drawList->AddCircleFilled(position, 5, colour, 16);
 
@@ -92,10 +92,10 @@ namespace
 
         NavigationNode fromNode = navigationGraph.getNode(edge.fromId);
         ImVec2 fromPosition = imGuiManager.worldToScreen(
-            fromNode.position, camera.getZoom(), camera.getTopLeftPosition());
+            fromNode.feet, camera.getZoom(), camera.getTopLeftPosition());
         NavigationNode toNode = navigationGraph.getNode(edge.toId);
-        ImVec2 toPosition = imGuiManager.worldToScreen(
-            toNode.position, camera.getZoom(), camera.getTopLeftPosition());
+        ImVec2 toPosition =
+            imGuiManager.worldToScreen(toNode.feet, camera.getZoom(), camera.getTopLeftPosition());
         drawList->AddLine(fromPosition, toPosition, color, 1.0f);
     }
 }

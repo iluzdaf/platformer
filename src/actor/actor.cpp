@@ -51,14 +51,10 @@ void Actor::preFixedUpdate()
     motion.beginFrame();
 }
 
-void Actor::fixedUpdate(
-    float deltaTime,
-    const Level &level,
-    std::optional<glm::vec2> threatPosition)
+void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::vec2> threatFeet)
 {
     const TileMap &tileMap = level.getTileMap();
-    ActorBehaviorContext context =
-        behaviorContext(level.graphFor(navigationProfile), threatPosition);
+    ActorBehaviorContext context = behaviorContext(level.graphFor(navigationProfile), threatFeet);
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
@@ -140,12 +136,12 @@ void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
 
 ActorBehaviorContext Actor::behaviorContext(
     const NavigationGraph &navigationGraph,
-    std::optional<glm::vec2> threatPosition) const
+    std::optional<glm::vec2> threatFeet) const
 {
     return ActorBehaviorContext{
         navigationGraph,
         feet(),
         physicsBody.colliderSize(),
-        threatPosition,
+        threatFeet,
         motion.getState().contacts};
 }

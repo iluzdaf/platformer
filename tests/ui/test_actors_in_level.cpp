@@ -38,7 +38,7 @@ namespace
     Level levelWithAnIsland(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData.tilePalette = "default";
         levelData.tileMapData.indices =
             std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
@@ -48,7 +48,7 @@ namespace
         for (int x = IslandFirstTile; x < MapTiles; ++x)
             levelData.tileMapData.indices[IslandRow][x] = 1;
 
-        levelData.playerStart = feetOf(glm::ivec2(1, Standing));
+        levelData.playerFeet = feetOf(glm::ivec2(1, Standing));
         levelData.npcs = npcs;
 
         return Level(

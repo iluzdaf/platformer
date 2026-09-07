@@ -33,14 +33,14 @@ namespace
         FleeBehavior &behavior,
         const NavigationGraph &navigationGraph,
         glm::vec2 start,
-        std::optional<glm::vec2> threatPosition,
+        std::optional<glm::vec2> threatFeet,
         int steps = 400)
     {
         glm::vec2 position = start;
         for (int step = 0; step < steps; ++step)
         {
             InputIntentions inputIntentions =
-                behavior.decide(0.01f, standingAt(navigationGraph, position, threatPosition));
+                behavior.decide(0.01f, standingAt(navigationGraph, position, threatFeet));
             position.x += inputIntentions.direction.x * 2.0f;
         }
         return *behavior.getCurrentNodeId();

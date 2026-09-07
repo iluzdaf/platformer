@@ -181,7 +181,7 @@ void drawSpawnOf(
 
     const Npc &npc = *level.getNpcs()[showing.npcIndex];
     const NpcSpawnData &spawn = npc.getSpawn();
-    drawSpawn(tileMap.tileUnderFeet(spawn.position), spawn.type);
+    drawSpawn(tileMap.tileUnderFeet(spawn.feet), spawn.type);
 
     const std::optional<PatrolData> &beat = npc.getSpawn().patrol;
     if (!beat)
@@ -193,8 +193,8 @@ void drawSpawnOf(
     if (!setsOff || !turnsRound)
         return;
 
-    glm::vec2 setsOffFrom = setsOff->position;
-    glm::vec2 turnsRoundAt = turnsRound->position;
+    glm::vec2 setsOffFrom = setsOff->feet;
+    glm::vec2 turnsRoundAt = turnsRound->feet;
     int fromId = endOfThePathTowards(graph, *setsOff, turnsRoundAt);
     int toId = endOfThePathTowards(graph, *turnsRound, setsOffFrom);
 
@@ -210,7 +210,7 @@ void drawSpawnOf(
         std::vector<glm::vec2> corners{leaving};
         for (int id : route)
         {
-            glm::vec2 corner = graph.getNode(id).position;
+            glm::vec2 corner = graph.getNode(id).feet;
             if (corner != corners.back())
                 corners.push_back(corner);
         }

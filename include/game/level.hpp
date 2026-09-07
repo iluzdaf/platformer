@@ -53,7 +53,7 @@ public:
 
 private:
     TileMap tileMap;
-    glm::vec2 playerStart = glm::vec2(0.0f);
+    glm::vec2 playerFeet = glm::vec2(0.0f);
     std::string nextLevel;
     std::vector<std::unique_ptr<Npc>> npcs;
     std::vector<Pickup> pickups;

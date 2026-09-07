@@ -151,7 +151,7 @@ TEST_CASE(
     Level level(
         levelData, theOnlyPalette(wallsThatMayKill()), playerDataWithEveryAbility(), {}, {});
     Player player = aPlayerWithEveryAbility();
-    player.standAt(levelData.playerStart - glm::vec2(0.0f, 40.0f));
+    player.standAt(levelData.playerFeet - glm::vec2(0.0f, 40.0f));
     FixedTimeStep timestepper;
 
     runFor(player, level, 1.0f, timestepper);

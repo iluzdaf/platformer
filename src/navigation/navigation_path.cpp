@@ -88,8 +88,8 @@ namespace
 
 std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, int toId)
 {
-    glm::vec2 start = navigationGraph.getNode(fromId).position;
-    glm::vec2 goal = navigationGraph.getNode(toId).position;
+    glm::vec2 start = navigationGraph.getNode(fromId).feet;
+    glm::vec2 goal = navigationGraph.getNode(toId).feet;
 
     if (fromId == toId)
         return {fromId};
@@ -112,10 +112,10 @@ std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, in
         if (!settled.insert(at).second)
             continue;
 
-        glm::vec2 here = navigationGraph.getNode(at).position;
+        glm::vec2 here = navigationGraph.getNode(at).feet;
         for (const NavigationEdge &edge : navigationGraph.getOutgoingEdges(at))
         {
-            glm::vec2 there = navigationGraph.getNode(edge.toId).position;
+            glm::vec2 there = navigationGraph.getNode(edge.toId).feet;
             float cost = travelled.at(at) + glm::distance(here, there);
 
             auto found = travelled.find(edge.toId);
@@ -159,7 +159,7 @@ std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::ve
     float nearestDistance = 0.0f;
     for (const auto &[id, node] : navigationGraph.getNodes())
     {
-        float distance = glm::distance(node.position, position);
+        float distance = glm::distance(node.feet, position);
         if (nearest && distance >= nearestDistance)
             continue;
 

@@ -186,6 +186,15 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - Each reload builds the replacement before assigning it, so a failure leaves what you
   had.
 
+**Where a thing is, is where its feet are.**
+
+- Tiles and physics bodies are top-left, because that is how they draw and collide.
+- Everything that places an actor or pickup in a level is feet, the bottom centre of the
+  collider: `playerFeet`, a spawn's `feet`, a navigation node's `feet`, `Actor::feet()`
+  and `standAt`. Feet do not depend on the collider, so placing by tile never involves an
+  offset, and the actor converts once when it stands.
+- The camera follows the centre of the player's collider.
+
 **Signals rather than an event system of our own.**
 
 - [fteng signals](https://github.com/TheWisp/signals) is one header, so there is no bus,

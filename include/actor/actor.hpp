@@ -25,7 +25,7 @@ public:
     void fixedUpdate(
         float deltaTime,
         const Level &level,
-        std::optional<glm::vec2> threatPosition = std::nullopt);
+        std::optional<glm::vec2> threatFeet = std::nullopt);
     virtual void postFixedUpdate();
     const ActorState &state() const;
     const ActorMotion &moving() const;
@@ -43,7 +43,7 @@ protected:
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
     ActorBehaviorContext behaviorContext(
         const NavigationGraph &navigationGraph,
-        std::optional<glm::vec2> threatPosition) const;
+        std::optional<glm::vec2> threatFeet) const;
 
 private:
     ActorMotion motion;

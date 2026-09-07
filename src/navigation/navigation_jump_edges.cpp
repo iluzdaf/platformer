@@ -81,7 +81,7 @@ namespace navigation
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
             if (node.kind == NodeKind::OnFoot)
-                takeOffs.emplace_back(id, node.position);
+                takeOffs.emplace_back(id, node.feet);
 
         for (const auto &[fromId, takeOff] : takeOffs)
             for (const JumpArc &arc : profile.jumpArcs)
@@ -171,9 +171,9 @@ namespace navigation
         for (const auto &[id, node] : navigationGraph.getNodes())
         {
             nextNodeId = std::max(nextNodeId, id + 1);
-            ledges.push_back(node.position);
+            ledges.push_back(node.feet);
             if (node.kind == NodeKind::OnFoot)
-                couldJump.push_back(node.position);
+                couldJump.push_back(node.feet);
         }
 
         auto landingOnTheLedge = [&](glm::vec2 from, glm::vec2 ledge) -> std::optional<glm::vec2>
@@ -239,8 +239,7 @@ namespace navigation
 
                 bool crowded = false;
                 for (const auto &[id, node] : navigationGraph.getNodes())
-                    if (glm::distance(node.position, *takeOff) <
-                        profile.physicsBodyData.colliderSize.x)
+                    if (glm::distance(node.feet, *takeOff) < profile.physicsBodyData.colliderSize.x)
                         crowded = true;
 
                 if (crowded)

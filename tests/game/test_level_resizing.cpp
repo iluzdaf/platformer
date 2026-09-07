@@ -25,7 +25,7 @@ namespace
         LevelData level;
         level.tileMapData.tilePalette = "default";
         level.tileMapData.indices = {{1, 2}, {3, 4}};
-        level.playerStart = glm::vec2(8.0f, 32.0f);
+        level.playerFeet = glm::vec2(8.0f, 32.0f);
         level.npcs = {NpcSpawnData{
             "villager",
             glm::vec2(24.0f, 32.0f),
@@ -39,7 +39,7 @@ namespace
         LevelData level;
         level.tileMapData.tilePalette = "default";
         level.tileMapData.indices = {{0, 0, 0, 0}, {0, 0, 0, 0}, {1, 1, 1, 1}};
-        level.playerStart = glm::vec2(8.0f, 32.0f);
+        level.playerFeet = glm::vec2(8.0f, 32.0f);
         level.npcs = {
             NpcSpawnData{"villager", glm::vec2(8.0f, 32.0f), std::nullopt},
             NpcSpawnData{
@@ -81,21 +81,21 @@ TEST_CASE("Growing to the left moves everything one tile right", "[LevelResizing
 {
     LevelData grown = resizedBy(GrowLeft, aSmallLevel(), TileSize);
 
-    REQUIRE(grown.playerStart == glm::vec2(24.0f, 32.0f));
-    REQUIRE(grown.npcs[0].position == glm::vec2(40.0f, 32.0f));
+    REQUIRE(grown.playerFeet == glm::vec2(24.0f, 32.0f));
+    REQUIRE(grown.npcs[0].feet == glm::vec2(40.0f, 32.0f));
     REQUIRE(grown.npcs[0].patrol->from == glm::vec2(24.0f, 32.0f));
     REQUIRE(grown.npcs[0].patrol->to == glm::vec2(40.0f, 32.0f));
-    REQUIRE(grown.pickups[0].position == glm::vec2(40.0f, 8.0f));
+    REQUIRE(grown.pickups[0].feet == glm::vec2(40.0f, 8.0f));
 }
 
 TEST_CASE("Growing above moves everything one tile down", "[LevelResizing]")
 {
     LevelData grown = resizedBy(GrowAbove, aSmallLevel(), TileSize);
 
-    REQUIRE(grown.playerStart == glm::vec2(8.0f, 48.0f));
-    REQUIRE(grown.npcs[0].position == glm::vec2(24.0f, 48.0f));
+    REQUIRE(grown.playerFeet == glm::vec2(8.0f, 48.0f));
+    REQUIRE(grown.npcs[0].feet == glm::vec2(24.0f, 48.0f));
     REQUIRE(grown.npcs[0].patrol->from == glm::vec2(8.0f, 48.0f));
-    REQUIRE(grown.pickups[0].position == glm::vec2(24.0f, 24.0f));
+    REQUIRE(grown.pickups[0].feet == glm::vec2(24.0f, 24.0f));
 }
 
 TEST_CASE("Growing to the right or below moves nothing", "[LevelResizing]")
@@ -106,7 +106,7 @@ TEST_CASE("Growing to the right or below moves nothing", "[LevelResizing]")
     {
         LevelData grown = resizedBy(resize, level, TileSize);
 
-        REQUIRE(grown.playerStart == level.playerStart);
+        REQUIRE(grown.playerFeet == level.playerFeet);
         REQUIRE(grown.npcs == level.npcs);
         REQUIRE(grown.pickups == level.pickups);
     }
@@ -128,10 +128,10 @@ TEST_CASE("Shrinking on the left moves what is left one tile back", "[LevelResiz
 {
     LevelData shrunk = resizedBy(ShrinkLeft, aWiderLevel(), TileSize);
 
-    REQUIRE(shrunk.playerStart == glm::vec2(-8.0f, 32.0f));
+    REQUIRE(shrunk.playerFeet == glm::vec2(-8.0f, 32.0f));
     REQUIRE(shrunk.npcs.size() == 1);
     REQUIRE(shrunk.npcs[0].type == "explorer");
-    REQUIRE(shrunk.npcs[0].position == glm::vec2(8.0f, 32.0f));
+    REQUIRE(shrunk.npcs[0].feet == glm::vec2(8.0f, 32.0f));
     REQUIRE(shrunk.npcs[0].patrol->from == glm::vec2(8.0f, 32.0f));
     REQUIRE(shrunk.npcs[0].patrol->to == glm::vec2(40.0f, 32.0f));
 }
@@ -162,7 +162,7 @@ TEST_CASE("Whatever stood in the row taken goes with it", "[LevelResizing]")
 
     REQUIRE(shrunk.pickups.size() == 1);
     REQUIRE(shrunk.pickups[0].type == "coin");
-    REQUIRE(shrunk.pickups[0].position == glm::vec2(56.0f, 8.0f));
+    REQUIRE(shrunk.pickups[0].feet == glm::vec2(56.0f, 8.0f));
     REQUIRE(shrunk.npcs.size() == 2);
 }
 
@@ -170,7 +170,7 @@ TEST_CASE("An npc standing on the bottom row stays when the top row goes", "[Lev
 {
     LevelData shrunk = resizedBy(ShrinkAbove, aWiderLevel(), TileSize);
 
-    REQUIRE(shrunk.npcs[0].position == glm::vec2(8.0f, 16.0f));
+    REQUIRE(shrunk.npcs[0].feet == glm::vec2(8.0f, 16.0f));
 }
 
 TEST_CASE(
@@ -207,5 +207,5 @@ TEST_CASE(
     LevelData shrunk = resizedBy(ShrinkLeft, aSmallLevel(), TileSize);
 
     REQUIRE(shrunk.npcs.size() == 1);
-    REQUIRE(shrunk.npcs[0].position == glm::vec2(8.0f, 32.0f));
+    REQUIRE(shrunk.npcs[0].feet == glm::vec2(8.0f, 32.0f));
 }

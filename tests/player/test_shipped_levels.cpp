@@ -18,7 +18,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
 {
     GameData gameData = loadGameData();
     LevelData levelData;
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.playerFeet = feetOf(glm::ivec2(0, 0));
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level4.json"), std::string{}));
     Level level(
         levelData,
@@ -29,7 +29,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
 
     constexpr float GapLeft = 5 * 16.0f;
     constexpr float GapRight = 8 * 16.0f;
-    glm::vec2 start = levelData.playerStart;
+    glm::vec2 start = levelData.playerFeet;
 
     auto runsAtItWith = [&](bool useDash)
     {
@@ -83,7 +83,7 @@ TEST_CASE("Level1 fits on screen, so the portal is in sight from the start", "[L
 {
     GameData gameData = loadGameData();
     LevelData levelData;
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.playerFeet = feetOf(glm::ivec2(0, 0));
     REQUIRE_FALSE(glz::read_file_json(levelData, assetPath("levels/level1.json"), std::string{}));
     Level level(
         levelData,

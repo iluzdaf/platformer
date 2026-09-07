@@ -260,19 +260,19 @@ TEST_CASE("Anchors to the run underfoot, not a nearer one above", "[PatrolBehavi
     SECTION("standing on the lower run, with the upper run nearer in 2d")
     {
         anchorAt(behavior, navigationGraph, {104.0f, 192.0f});
-        REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 192.0f);
+        REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).feet.y == 192.0f);
     }
 
     SECTION("standing on the upper run")
     {
         anchorAt(behavior, navigationGraph, {104.0f, 128.0f});
-        REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
+        REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).feet.y == 128.0f);
     }
 
     SECTION("falling towards a run below")
     {
         anchorAt(behavior, navigationGraph, {104.0f, 60.0f});
-        REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
+        REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).feet.y == 128.0f);
     }
 }
 
@@ -359,7 +359,7 @@ TEST_CASE("Stays on its own platform when it does not roam", "[PatrolBehavior]")
 
     REQUIRE_FALSE(visited.empty());
     for (int id : visited)
-        REQUIRE(navigationGraph.getNode(id).position.y == 128.0f);
+        REQUIRE(navigationGraph.getNode(id).feet.y == 128.0f);
 }
 
 TEST_CASE("Will not roam somewhere it cannot get back from", "[PatrolBehavior]")
@@ -372,7 +372,7 @@ TEST_CASE("Will not roam somewhere it cannot get back from", "[PatrolBehavior]")
 
     REQUIRE_FALSE(visited.empty());
     for (int id : visited)
-        REQUIRE(navigationGraph.getNode(id).position.y == 128.0f);
+        REQUIRE(navigationGraph.getNode(id).feet.y == 128.0f);
 }
 
 TEST_CASE("Roams to the far platform when it can get back", "[PatrolBehavior]")
@@ -395,12 +395,12 @@ TEST_CASE("Picks itself up again after coming off its route", "[PatrolBehavior]"
     PatrolBehavior behavior(setupData(), between({0.0f, 128.0f}, {288.0f, 192.0f}));
 
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
-    REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 128.0f);
+    REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).feet.y == 128.0f);
 
     ActorBehaviorContext knockedDown = standingAt(navigationGraph, {288.0f, 192.0f});
     behavior.decide(0.01f, knockedDown);
 
-    REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).position.y == 192.0f);
+    REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).feet.y == 192.0f);
     REQUIRE(behavior.decide(0.01f, knockedDown).direction.x != 0.0f);
 }
 

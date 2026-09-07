@@ -14,6 +14,6 @@
         ],
         "tilePalette":"cavern"
     },
-    "playerStart":[8,128],
+    "playerFeet":[8,128],
     "nextLevel":"levels/level4.json"
 }

@@ -28,7 +28,7 @@ std::optional<int> FleeBehavior::furthestAlong(
     float furthestDistance = 0.0f;
     for (int id : roundTripFrom(navigationGraph, from))
     {
-        float distance = (navigationGraph.getNode(id).position.x - threat.x) * away;
+        float distance = (navigationGraph.getNode(id).feet.x - threat.x) * away;
         if (furthest && distance <= furthestDistance)
             continue;
 
@@ -42,16 +42,15 @@ std::optional<int> FleeBehavior::furthestAlong(
 std::optional<int> FleeBehavior::furthestFrom(const ActorBehaviorContext &context) const
 {
     std::optional<int> from = walker.getCurrentNodeId();
-    if (!from || !context.threatPosition)
+    if (!from || !context.threatFeet)
         return std::nullopt;
 
-    float away = context.worldPosition.x < context.threatPosition->x ? -1.0f : 1.0f;
-    std::optional<int> refuge = furthestAlong(context, *from, *context.threatPosition, away);
+    float away = context.feet.x < context.threatFeet->x ? -1.0f : 1.0f;
+    std::optional<int> refuge = furthestAlong(context, *from, *context.threatFeet, away);
 
     bool cornered = refuge && *refuge == *from;
-    if (cornered &&
-        glm::distance(context.worldPosition, *context.threatPosition) <= data.breakPastWithin)
-        return furthestAlong(context, *from, *context.threatPosition, -away);
+    if (cornered && glm::distance(context.feet, *context.threatFeet) <= data.breakPastWithin)
+        return furthestAlong(context, *from, *context.threatFeet, -away);
 
     return refuge;
 }
@@ -59,13 +58,13 @@ std::optional<int> FleeBehavior::furthestFrom(const ActorBehaviorContext &contex
 bool FleeBehavior::fleeingTowardsTheThreat(const ActorBehaviorContext &context) const
 {
     std::optional<int> destination = walker.getTargetNodeId();
-    if (!destination || !context.threatPosition || !context.contacts.onGround)
+    if (!destination || !context.threatFeet || !context.contacts.onGround)
         return false;
 
-    glm::vec2 refuge = context.navigationGraph.getNode(*destination).position;
+    glm::vec2 refuge = context.navigationGraph.getNode(*destination).feet;
 
-    return glm::distance(refuge, *context.threatPosition) <
-           glm::distance(context.worldPosition, *context.threatPosition);
+    return glm::distance(refuge, *context.threatFeet) <
+           glm::distance(context.feet, *context.threatFeet);
 }
 
 void FleeBehavior::planRoute(const ActorBehaviorContext &context)

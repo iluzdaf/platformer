@@ -103,8 +103,7 @@ TEST_CASE("An item in a list keeps only what differs from a new one", "[OnlyWhat
         NpcSpawnData{"villager", glm::vec2(8.0f, 32.0f), std::nullopt},
         NpcSpawnData{"explorer", glm::vec2(0.0f), std::nullopt}};
 
-    REQUIRE(
-        onlyWhatDiffers(npcs) == R"([{"type":"villager","position":[8,32]},{"type":"explorer"}])");
+    REQUIRE(onlyWhatDiffers(npcs) == R"([{"type":"villager","feet":[8,32]},{"type":"explorer"}])");
 }
 
 TEST_CASE("What was left out reads back as the default it was", "[OnlyWhatDiffers]")
@@ -118,10 +117,10 @@ TEST_CASE("What was left out reads back as the default it was", "[OnlyWhatDiffer
     REQUIRE_FALSE(glz::read_json(back, onlyWhatDiffers(level)));
 
     REQUIRE(back.tileMapData.indices == level.tileMapData.indices);
-    REQUIRE(back.playerStart == glm::vec2(0.0f));
+    REQUIRE(back.playerFeet == glm::vec2(0.0f));
     REQUIRE(back.nextLevel == level.nextLevel);
     REQUIRE(back.npcs.size() == 1);
-    REQUIRE(back.npcs[0].position == glm::vec2(0.0f));
+    REQUIRE(back.npcs[0].feet == glm::vec2(0.0f));
     REQUIRE(back.pickups.empty());
 }
 
@@ -130,7 +129,7 @@ TEST_CASE("A level file lays its grid out and keeps its leaves compact", "[OnlyW
     LevelData level;
     level.tileMapData.indices = {{0, 10}, {3, 0}};
     level.tileMapData.tilePalette = "cave";
-    level.playerStart = glm::vec2(8.0f, 16.0f);
+    level.playerFeet = glm::vec2(8.0f, 16.0f);
     level.nextLevel = "levels/level2.json";
 
     REQUIRE(
@@ -139,7 +138,7 @@ TEST_CASE("A level file lays its grid out and keeps its leaves compact", "[OnlyW
                              "        \"indices\":[[ 0,10],[ 3, 0]],\n"
                              "        \"tilePalette\":\"cave\"\n"
                              "    },\n"
-                             "    \"playerStart\":[8,16],\n"
+                             "    \"playerFeet\":[8,16],\n"
                              "    \"nextLevel\":\"levels/level2.json\"\n"
                              "}");
 }

@@ -202,7 +202,7 @@ TEST_CASE("A level with unsaved edits is kept and stays unsaved", "[UnsavedSecti
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
     LevelData edited = levelData;
-    edited.playerStart.x += 16.0f;
+    edited.playerFeet.x += 16.0f;
 
     REQUIRE_FALSE(levelUi.followsTheDisk(edited, levelPath));
     REQUIRE(levelUi.unsavedSince(edited, levelPath));
@@ -219,7 +219,7 @@ TEST_CASE(
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
     LevelData edited = levelData;
-    edited.playerStart.x += 16.0f;
+    edited.playerFeet.x += 16.0f;
     writeLevelData(edited, levelPath);
 
     REQUIRE_FALSE(levelUi.followsTheDisk(edited, levelPath));
@@ -235,7 +235,7 @@ TEST_CASE("A level that followed the disk is compared against what it loaded", "
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
     LevelData changedOnDisk = levelData;
-    changedOnDisk.playerStart.x += 16.0f;
+    changedOnDisk.playerFeet.x += 16.0f;
     writeLevelData(changedOnDisk, levelPath);
 
     REQUIRE(levelUi.followsTheDisk(levelData, levelPath));

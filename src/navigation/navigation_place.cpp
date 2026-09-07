@@ -30,10 +30,10 @@ namespace
         float nearestAlong = 0.0f;
         for (const auto &[id, node] : navigationGraph.getNodes())
         {
-            if (std::abs(node.position.y - position.y) > SurfaceTolerance)
+            if (std::abs(node.feet.y - position.y) > SurfaceTolerance)
                 continue;
 
-            float along = std::abs(node.position.x - position.x);
+            float along = std::abs(node.feet.x - position.x);
             if (standingOn && along >= nearestAlong)
                 continue;
 
@@ -59,7 +59,7 @@ std::optional<PlaceOnThePath> placeOnThePath(
 
     auto consider = [&](PlaceOnThePath place)
     {
-        float distance = glm::distance(place.position, asked);
+        float distance = glm::distance(place.feet, asked);
         if (nearest && distance >= nearestDistance)
             return;
 
@@ -68,7 +68,7 @@ std::optional<PlaceOnThePath> placeOnThePath(
     };
 
     for (const auto &[id, node] : navigationGraph.getNodes())
-        consider(PlaceOnThePath{node.position, id, id});
+        consider(PlaceOnThePath{node.feet, id, id});
 
     for (const auto &[id, node] : navigationGraph.getNodes())
         for (const NavigationEdge &edge : navigationGraph.getOutgoingEdges(id))
@@ -79,8 +79,8 @@ std::optional<PlaceOnThePath> placeOnThePath(
             consider(
                 PlaceOnThePath{
                     nearestPointOn(
-                        navigationGraph.getNode(edge.fromId).position,
-                        navigationGraph.getNode(edge.toId).position,
+                        navigationGraph.getNode(edge.fromId).feet,
+                        navigationGraph.getNode(edge.toId).feet,
                         asked),
                     edge.fromId,
                     edge.toId});
@@ -94,8 +94,8 @@ int endOfThePathTowards(
     const PlaceOnThePath &place,
     glm::vec2 towards)
 {
-    glm::vec2 oneEnd = navigationGraph.getNode(place.fromId).position;
-    glm::vec2 theOther = navigationGraph.getNode(place.toId).position;
+    glm::vec2 oneEnd = navigationGraph.getNode(place.fromId).feet;
+    glm::vec2 theOther = navigationGraph.getNode(place.toId).feet;
 
     return glm::distance(towards, oneEnd) <= glm::distance(towards, theOther) ? place.fromId
                                                                               : place.toId;
@@ -106,10 +106,10 @@ int endOfThePathBeyond(
     const PlaceOnThePath &place,
     glm::vec2 comingFrom)
 {
-    glm::vec2 travelling = place.position - comingFrom;
-    glm::vec2 oneEnd = navigationGraph.getNode(place.fromId).position;
+    glm::vec2 travelling = place.feet - comingFrom;
+    glm::vec2 oneEnd = navigationGraph.getNode(place.fromId).feet;
 
-    return glm::dot(oneEnd - place.position, travelling) >= 0.0f ? place.fromId : place.toId;
+    return glm::dot(oneEnd - place.feet, travelling) >= 0.0f ? place.fromId : place.toId;
 }
 
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)

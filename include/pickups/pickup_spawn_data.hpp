@@ -7,7 +7,7 @@
 struct PickupSpawnData
 {
     std::string type;
-    glm::vec2 position = glm::vec2(0.0f);
+    glm::vec2 feet = glm::vec2(0.0f);
 
     bool operator==(const PickupSpawnData &) const = default;
 };

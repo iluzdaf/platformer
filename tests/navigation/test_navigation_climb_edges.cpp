@@ -111,7 +111,7 @@ TEST_CASE("A wall an actor can climb gets a node on it", "[NavigationGraphBuilde
     for (const NavigationNode &node : onWalls)
     {
         glm::vec2 underfoot(0.0f, 1.0f);
-        REQUIRE(tileMap.tileContaining(node.position + underfoot).y == ClimbHangRow);
+        REQUIRE(tileMap.tileContaining(node.feet + underfoot).y == ClimbHangRow);
     }
 }
 

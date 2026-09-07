@@ -32,8 +32,8 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
         {
             ++placed;
             INFO(
-                "npc \"" << spawn.type << "\" at " << spawn.position.x << "," << spawn.position.y
-                         << " in " << entry.path().filename().string() << " has nowhere to walk");
+                "npc \"" << spawn.type << "\" at " << spawn.feet.x << "," << spawn.feet.y << " in "
+                         << entry.path().filename().string() << " has nowhere to walk");
 
             Npc npc(spawnAt("villager", SpawnTile), setupNpcData());
 

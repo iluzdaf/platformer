@@ -37,7 +37,7 @@ namespace
     Level levelOf(const TileMap &tileMap, glm::ivec2 npcTile)
     {
         LevelData levelData;
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData = tileMap.toTileMapData();
         levelData.npcs = {spawnAt("villager", npcTile)};
         return Level(
@@ -84,7 +84,7 @@ namespace
 
         LevelData levelData;
 
-        levelData.playerStart = feetOf(glm::ivec2(0, 0));
+        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
         levelData.tileMapData = tileMap.toTileMapData();
         levelData.npcs = npcs;
 
@@ -186,7 +186,7 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
     }
 
     for (const auto &[id, node] : level.graphFor(npc.profile()).getNodes())
-        REQUIRE(cameWithin(footXs, node.position.x, reachOf(npc)));
+        REQUIRE(cameWithin(footXs, node.feet.x, reachOf(npc)));
 
     REQUIRE(lowestFootY <= 6.0f * tileMap.getTileSize());
 
@@ -225,7 +225,7 @@ TEST_CASE("Patrolling is deterministic, so where you place them is what differs"
 TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
 {
     LevelData levelData;
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.playerFeet = feetOf(glm::ivec2(0, 0));
     levelData.tileMapData.tilePalette = "default";
     levelData.tileMapData.indices = std::vector<std::vector<int>>(10, std::vector<int>(10, 0));
     levelData.npcs = {spawnAt("villager", {1, 1}), spawnAt("villager", {2, 1})};
@@ -235,15 +235,15 @@ TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
 
     REQUIRE(spawnsIn(level).size() == 2);
     REQUIRE(spawnsIn(level)[0].type == "villager");
-    REQUIRE(spawnsIn(level)[0].position == feetOf(glm::ivec2(1, 1)));
-    REQUIRE(spawnsIn(level)[1].position == feetOf(glm::ivec2(2, 1)));
+    REQUIRE(spawnsIn(level)[0].feet == feetOf(glm::ivec2(1, 1)));
+    REQUIRE(spawnsIn(level)[1].feet == feetOf(glm::ivec2(2, 1)));
     REQUIRE(spawnsIn(level) == levelData.npcs);
 }
 
 TEST_CASE("A level rejects an npc placed somewhere it cannot stand", "[Npc][Level]")
 {
     LevelData levelData;
-    levelData.playerStart = feetOf(glm::ivec2(0, 0));
+    levelData.playerFeet = feetOf(glm::ivec2(0, 0));
     TilePaletteData palette = aPaletteWithASolidTile();
     levelData.tileMapData.tilePalette = "default";
     levelData.tileMapData.indices = std::vector<std::vector<int>>(10, std::vector<int>(10, 0));
@@ -307,11 +307,11 @@ TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
     int floorNodes = 0;
     for (const auto &[id, node] : level.graphFor(npc.profile()).getNodes())
     {
-        if (node.position.y != floorTopY(tileMap))
+        if (node.feet.y != floorTopY(tileMap))
             continue;
 
         ++floorNodes;
-        REQUIRE(cameWithin(footXs, node.position.x, reachOf(npc)));
+        REQUIRE(cameWithin(footXs, node.feet.x, reachOf(npc)));
     }
 
     REQUIRE(floorNodes > 1);

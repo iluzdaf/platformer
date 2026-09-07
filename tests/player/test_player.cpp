@@ -403,7 +403,7 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
 
     ScriptedIntentions input;
     Player player = aPlayerWithEveryAbility(input);
-    const Decided &state = player.decided();
+    const Decided &decided = player.decided();
     player.standAt(glm::vec2(5 * 16.0f - 4.0f, 2 * 16.0f));
 
     InputIntentions holdingTheWall;
@@ -413,7 +413,7 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
 
     REQUIRE(player.observed().contacts.touchingRightWall);
     REQUIRE_FALSE(player.observed().contacts.grippableRightWall);
-    REQUIRE_FALSE(state.wallHang.active);
+    REQUIRE_FALSE(decided.wallHang.active);
     REQUIRE(player.observed().velocity.y > 0.0f);
 }
 

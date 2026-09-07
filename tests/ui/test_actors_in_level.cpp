@@ -66,7 +66,7 @@ namespace
         ActorShown showing,
         std::optional<Armed> &armed)
     {
-        Decided motion;
+        Decided decided;
         Observed observed;
         ActorState playerState;
         ActorAsked asked;
@@ -76,7 +76,7 @@ namespace
             {
                 asked = drawActorsInLevel(
                     level,
-                    motion,
+                    decided,
                     observed,
                     level.getTileMap().feetOnTile(
                         level.getTileMap().tileUnderFeet(level.getPlayerStart())),

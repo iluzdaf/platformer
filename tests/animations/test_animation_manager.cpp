@@ -48,17 +48,17 @@ TEST_CASE("An actor without airborne animations survives being airborne", "[Anim
     AnimationManager animationManager;
     animationManager.addAnimation(ActorAnimationState::Idle, animationOfFrame(1));
 
-    Decided state;
+    Decided decided;
 
     Observed observed;
     observed.contacts.onGround = false;
     observed.velocity = glm::vec2(0.0f, 40.0f);
 
-    REQUIRE_NOTHROW(animationManager.update(0.01f, state, observed));
+    REQUIRE_NOTHROW(animationManager.update(0.01f, decided, observed));
     REQUIRE(animationManager.getCurrentState() == ActorAnimationState::Idle);
 
-    state.dash.active = true;
-    REQUIRE_NOTHROW(animationManager.update(0.01f, state, observed));
+    decided.dash.active = true;
+    REQUIRE_NOTHROW(animationManager.update(0.01f, decided, observed));
     REQUIRE(animationManager.getCurrentState() == ActorAnimationState::Idle);
 }
 

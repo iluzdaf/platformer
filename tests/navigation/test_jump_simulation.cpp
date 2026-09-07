@@ -208,7 +208,7 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
     REQUIRE(arc.size() > 2);
 
     AbilitySystem abilitySystem(motionData);
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions holding;
     holding.direction.x = 1.0f;
@@ -222,8 +222,8 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
         PhysicsStep * static_cast<float>(arc.size() - 1),
         [&](float dt)
         {
-            abilitySystem.applyMovement(dt, holding, observed, state);
-            walked.push_back(walked.back() + state.targetVelocity * dt);
+            abilitySystem.applyMovement(dt, holding, observed, decided);
+            walked.push_back(walked.back() + decided.targetVelocity * dt);
             observed.contacts.onGround = false;
         });
 

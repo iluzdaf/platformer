@@ -12,9 +12,9 @@ void WallHangAbility::applyMovement(
     float,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &state)
+    Decided &decided)
 {
-    state.wallHang.active = false;
+    decided.wallHang.active = false;
 
     if (!inputIntentions.climbRequested)
         return;
@@ -22,5 +22,5 @@ void WallHangAbility::applyMovement(
     if (!observed.contacts.grippableWall())
         return;
 
-    state.wallHang.active = true;
+    decided.wallHang.active = true;
 }

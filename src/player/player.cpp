@@ -34,15 +34,14 @@ void Player::died()
 
 void Player::postFixedUpdate()
 {
-    const Decided &decisions = decided();
     const ActorContactState &contacts = observed().contacts;
-    if (decisions.dash.emit)
+    if (decided().dash.emit)
         onDash();
 
-    if (decisions.wallJump.emit)
+    if (decided().wallJump.emit)
         onWallJump();
 
-    if (decisions.wallSlide.emit)
+    if (decided().wallSlide.emit)
         onWallSliding();
 
     if (!contacts.wasOnGround && contacts.onGround &&

@@ -17,7 +17,7 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        Decided &state);
+        Decided &decided);
 
 private:
     std::vector<std::unique_ptr<Ability>> abilities;

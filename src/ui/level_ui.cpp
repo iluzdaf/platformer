@@ -41,22 +41,8 @@ void LevelUi::draw(
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
-    if (ImGui::CollapsingHeader("State"))
-    {
-        ImGui::Text(
-            "w%dxh%dxs%d",
-            level.getTileMap().getWidth(),
-            level.getTileMap().getHeight(),
-            level.getTileMap().getTileSize());
-
-        navigationUi.draw(level);
-    }
-
-    ImGui::Separator();
-    if (!ImGui::CollapsingHeader("Inspector"))
-        return;
-
     drawLevel(level, levelData, levelPath, commands);
+    navigationUi.draw(level);
     drawActors(
         level, levelData, playerMotionState, playerFeet, playerState, npcData, armed, commands);
 }

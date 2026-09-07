@@ -111,22 +111,28 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Level:
-        levelsUi.draw(
-            subject.levels,
-            subject.levelPath,
-            commands,
-            levelUi.unsavedSince(subject.levelData, subject.levelPath));
+        if (ImGui::CollapsingHeader("Levels", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            levelsUi.draw(
+                subject.levels,
+                subject.levelPath,
+                commands,
+                levelUi.unsavedSince(subject.levelData, subject.levelPath));
+        }
         ImGui::Separator();
-        levelUi.draw(
-            subject.level,
-            subject.levelData,
-            subject.levelPath,
-            subject.playerMotionState,
-            subject.playerFeet,
-            subject.playerState,
-            subject.gameData.npcData,
-            armed,
-            commands);
+        if (ImGui::CollapsingHeader("Level", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            levelUi.draw(
+                subject.level,
+                subject.levelData,
+                subject.levelPath,
+                subject.playerMotionState,
+                subject.playerFeet,
+                subject.playerState,
+                subject.gameData.npcData,
+                armed,
+                commands);
+        }
         ImGui::Separator();
         if (ImGui::CollapsingHeader("Tile palettes"))
             tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);

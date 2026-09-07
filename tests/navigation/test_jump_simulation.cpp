@@ -196,7 +196,7 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
 }
 
 #include "actor/abilities/ability_system.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 #include "timing/fixed_time_step.hpp"
@@ -208,7 +208,7 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
     REQUIRE(arc.size() > 2);
 
     AbilitySystem abilitySystem(motionData);
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions holding;
     holding.direction.x = 1.0f;

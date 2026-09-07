@@ -2,7 +2,7 @@
 #include <vector>
 #include "navigation/jump_simulation.hpp"
 #include "actor/actor_motion_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/ability_system.hpp"
 #include "input/input_intentions.hpp"
@@ -39,7 +39,7 @@ JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
     ActorMotionData shortened = releasedAfter(motionData, holdFraction);
     float holdDuration = shortened.jumpAbilityData ? shortened.jumpAbilityData->jumpDuration : 0.0f;
     AbilitySystem abilitySystem(shortened);
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions inputIntentions = holdingJumpAndRunning();
 
@@ -90,7 +90,7 @@ JumpAttempt simulateJumpAgainst(
 {
     ActorMotionData shortened = releasedAfter(motionData, holdFraction);
     AbilitySystem abilitySystem(shortened);
-    ActorMotionState state;
+    Decided state;
     Observed observed;
 
     PhysicsBody physicsBody(physicsBodyData);

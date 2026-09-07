@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "actor/abilities/mantle_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/mantle_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -11,7 +11,7 @@ using Catch::Approx;
 namespace
 {
     void hangAtALedgeOnTheRight(
-        ActorMotionState &state,
+        Decided &state,
         Observed &observed,
         InputIntentions &inputIntentions)
     {
@@ -24,7 +24,7 @@ namespace
 
 TEST_CASE("Mantling pulls up and over onto the ledge", "[MantleAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions inputIntentions;
     MantleAbilityData data;

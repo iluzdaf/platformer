@@ -1,22 +1,19 @@
 #include "animations/animation_manager.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_animation_state.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include <cstdlib>
 #include "animations/frame_animation.hpp"
 
-void AnimationManager::update(
-    float deltaTime,
-    const ActorMotionState &motionState,
-    const Observed &observed)
+void AnimationManager::update(float deltaTime, const Decided &decided, const Observed &observed)
 {
     ActorAnimationState newState = currentState;
 
-    if (motionState.dash.active)
+    if (decided.dash.active)
         newState = ActorAnimationState::Dash;
     else if (!observed.contacts.onGround)
     {
-        if (motionState.wallSlide.active || motionState.wallHang.active)
+        if (decided.wallSlide.active || decided.wallHang.active)
             newState = ActorAnimationState::WallSlide;
         else if (observed.velocity.y < 0.0f)
             newState = ActorAnimationState::Jump;

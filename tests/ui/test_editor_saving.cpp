@@ -9,7 +9,7 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
@@ -58,7 +58,7 @@ namespace
             gameData.npcData,
             gameData.pickupData};
         TextureCache textures;
-        ActorMotionState motion;
+        Decided motion;
         Observed observed;
         ActorState playerState;
         Camera2D camera{gameData.cameraData, 800, 600};

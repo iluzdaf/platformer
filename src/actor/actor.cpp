@@ -4,7 +4,7 @@
 #include "actor/hit.hpp"
 #include "actor/observing.hpp"
 #include "actor/observed.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "animations/frame_animation.hpp"
@@ -63,19 +63,19 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
-    abilities.applyMovement(deltaTime, inputIntentions, observations, decided);
+    abilities.applyMovement(deltaTime, inputIntentions, observations, decisions);
     observations.hits.clear();
 
-    physicsBody.setVelocity(decided.targetVelocity);
+    physicsBody.setVelocity(decisions.targetVelocity);
     physicsBody.stepPhysics(deltaTime, tileMap);
 
     observations.contacts = contactsAfterStep(observations.contacts, physicsBody, tileMap);
     observations.previousVelocity = observations.velocity;
     observations.velocity = physicsBody.velocity();
 
-    animationManager.update(deltaTime, decided, observations);
+    animationManager.update(deltaTime, decisions, observations);
 
-    if (!decided.knockback.active)
+    if (!decisions.knockback.active)
         actorState.facingLeft = observations.velocity.x > 0
                                     ? false
                                     : (observations.velocity.x < 0 ? true : actorState.facingLeft);
@@ -93,9 +93,9 @@ const ActorState &Actor::state() const
     return actorState;
 }
 
-const ActorMotionState &Actor::motion() const
+const Decided &Actor::decided() const
 {
-    return decided;
+    return decisions;
 }
 
 const Observed &Actor::observed() const

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "actor/actor_motion_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/hit.hpp"
 #include "actor/abilities/ability_system.hpp"
@@ -25,7 +25,7 @@ namespace
         float deltaTime,
         const InputIntentions &inputIntentions,
         Observed &observed,
-        ActorMotionState &state)
+        Decided &state)
     {
         abilitySystem.applyMovement(deltaTime, inputIntentions, observed, state);
 
@@ -35,7 +35,7 @@ namespace
 
 TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     ActorMotionData motionData;
     motionData.moveAbilityData = MoveAbilityData();

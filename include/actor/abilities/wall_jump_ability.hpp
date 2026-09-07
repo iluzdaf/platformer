@@ -8,7 +8,7 @@
 
 struct InputIntentions;
 struct Observed;
-struct ActorMotionState;
+struct Decided;
 
 class WallJumpAbility : public Ability
 {
@@ -18,7 +18,7 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        ActorMotionState &state) override;
+        Decided &state) override;
 
 private:
     WallJumpAbilityData data;
@@ -26,5 +26,5 @@ private:
     DirectionBuffer wallJumpDirectionBuffer;
     CoyoteTime wallJumpCoyote;
 
-    void startWallJump(ActorMotionState &state, int direction);
+    void startWallJump(Decided &state, int direction);
 };

@@ -5,7 +5,7 @@
 
 struct InputIntentions;
 struct Observed;
-struct ActorMotionState;
+struct Decided;
 
 class WallHangAbility : public Ability
 {
@@ -15,5 +15,5 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        ActorMotionState &state) override;
+        Decided &state) override;
 };

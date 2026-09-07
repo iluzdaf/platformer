@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "actor/abilities/wall_jump_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/wall_jump_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -19,7 +19,7 @@ void WallJumpAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    ActorMotionState &state)
+    Decided &state)
 {
     state.wallJump.emit = false;
     state.wallJump.velocity = glm::vec2(0.0f);
@@ -84,7 +84,7 @@ void WallJumpAbility::applyMovement(
     }
 }
 
-void WallJumpAbility::startWallJump(ActorMotionState &state, int direction)
+void WallJumpAbility::startWallJump(Decided &state, int direction)
 {
     state.wallJump.direction = static_cast<float>(direction);
     state.wallJump.timeLeft = data.wallJumpDuration;

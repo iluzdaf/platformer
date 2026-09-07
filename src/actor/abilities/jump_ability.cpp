@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "actor/abilities/jump_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/jump_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -16,7 +16,7 @@ void JumpAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    ActorMotionState &state)
+    Decided &state)
 {
     state.jump.velocity = glm::vec2(0.0f);
 

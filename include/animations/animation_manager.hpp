@@ -4,13 +4,13 @@
 #include "actor/actor_animation_state.hpp"
 #include "animations/frame_animation.hpp"
 
-struct ActorMotionState;
+struct Decided;
 struct Observed;
 
 class AnimationManager
 {
 public:
-    void update(float deltaTime, const ActorMotionState &motionState, const Observed &observed);
+    void update(float deltaTime, const Decided &decided, const Observed &observed);
     const FrameAnimation &getCurrentAnimation();
     void addAnimation(ActorAnimationState state, const FrameAnimation &anim);
     ActorAnimationState getCurrentState() const;

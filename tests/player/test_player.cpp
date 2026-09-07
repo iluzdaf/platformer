@@ -6,7 +6,7 @@
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
@@ -403,7 +403,7 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
 
     ScriptedIntentions input;
     Player player = aPlayerWithEveryAbility(input);
-    const ActorMotionState &state = player.motion();
+    const Decided &state = player.decided();
     player.standAt(glm::vec2(5 * 16.0f - 4.0f, 2 * 16.0f));
 
     InputIntentions holdingTheWall;

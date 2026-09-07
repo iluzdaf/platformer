@@ -1,5 +1,5 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/wall_hang_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -12,7 +12,7 @@ void WallHangAbility::applyMovement(
     float,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    ActorMotionState &state)
+    Decided &state)
 {
     state.wallHang.active = false;
 

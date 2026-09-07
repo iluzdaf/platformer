@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "actor/abilities/wall_climb_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/wall_climb_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -15,7 +15,7 @@ void WallClimbAbility::applyMovement(
     float,
     const InputIntentions &inputIntentions,
     const Observed &,
-    ActorMotionState &state)
+    Decided &state)
 {
     state.wallClimb.velocity = glm::vec2(0.0f);
 

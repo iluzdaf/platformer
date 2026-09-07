@@ -225,6 +225,9 @@ else()
         -Wall
         -Wextra
         -Wshadow
+        -Wfloat-conversion
+        -Wimplicit-int-conversion
+        -Wshorten-64-to-32
         -Werror
         -Wno-missing-braces
     )
@@ -383,7 +386,6 @@ add_executable(tests
     tests/actor/abilities/test_direction_buffer.cpp
     tests/actor/abilities/test_ability_system.cpp
     tests/actor/abilities/test_gravity_ability.cpp
-    external/stb/stb_image.cpp
 )
 
 target_compile_definitions(tests PRIVATE PLATFORMER_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets")

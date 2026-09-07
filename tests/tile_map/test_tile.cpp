@@ -97,15 +97,20 @@ TEST_CASE("Only a solid tile that says so can be gripped", "[Tile]")
 
 TEST_CASE("A tile cannot say two things that cancel each other out", "[Tile]")
 {
-    SECTION("A solid tile is never touched, so it can deliver nothing on touch")
+    SECTION("A portal is walked into, so it cannot be solid")
     {
-        TileData solidAndDeadly;
-        solidAndDeadly.solid = solidAndDeadly.deadly = true;
-        REQUIRE_THROWS(Tile(solidAndDeadly, Cell));
-
         TileData solidAndPortal;
         solidAndPortal.solid = solidAndPortal.portal = true;
         REQUIRE_THROWS(Tile(solidAndPortal, Cell));
+    }
+
+    SECTION("A solid tile can be deadly, since resting against it is touching it")
+    {
+        TileData electrified;
+        electrified.solid = electrified.deadly = true;
+        REQUIRE_NOTHROW(Tile(electrified, Cell));
+        REQUIRE(Tile(electrified, Cell).isSolid());
+        REQUIRE(Tile(electrified, Cell).isDeadly());
     }
 
     SECTION("A deadly tile kills first, so nothing after it would happen")

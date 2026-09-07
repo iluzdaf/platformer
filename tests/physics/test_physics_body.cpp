@@ -350,3 +350,18 @@ TEST_CASE("PhysicsBody knows how far its feet sit from its position", "[PhysicsB
     REQUIRE(body.getAABB().right() == Approx(103.0f));
     REQUIRE(body.getAABB().bottom() == Approx(200.0f));
 }
+
+TEST_CASE("The touch box reaches a hair past the collider on every side", "[PhysicsBody]")
+{
+    PhysicsBody body = setupBody({10, 20}, {0, 0}, {8, 16}, {4, 0});
+    AABB collider = body.getAABB();
+    AABB touch = body.touchBox();
+
+    REQUIRE(touch.left() < collider.left());
+    REQUIRE(touch.top() < collider.top());
+    REQUIRE(touch.right() > collider.right());
+    REQUIRE(touch.bottom() > collider.bottom());
+    REQUIRE(touch.size.x - collider.size.x < 1.0f);
+    REQUIRE(touch.size.y - collider.size.y < 1.0f);
+    REQUIRE(touch.center() == collider.center());
+}

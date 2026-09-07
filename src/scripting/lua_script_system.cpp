@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "scripting/lua_script_system.hpp"
 #include "game/world.hpp"
@@ -88,22 +89,11 @@ void LuaScriptSystem::bindGameObjects(
     lua["world"] = world;
 }
 
-void LuaScriptSystem::triggerLevelComplete()
+void LuaScriptSystem::emit(std::string_view hook)
 {
-    if (onLevelComplete.valid())
-        onLevelComplete();
-}
-
-void LuaScriptSystem::triggerDeath()
-{
-    if (onDeath.valid())
-        onDeath();
-}
-
-void LuaScriptSystem::triggerHurt()
-{
-    if (onHurt.valid())
-        onHurt();
+    sol::object handler = lua[hook];
+    if (handler.is<sol::function>())
+        handler.as<sol::function>()();
 }
 
 void LuaScriptSystem::bindLevel(const Level *level)
@@ -116,36 +106,6 @@ sol::state &LuaScriptSystem::getLua()
     return lua;
 }
 
-void LuaScriptSystem::triggerWallJump()
-{
-    if (onWallJump.valid())
-        onWallJump();
-}
-
-void LuaScriptSystem::triggerDash()
-{
-    if (onDash.valid())
-        onDash();
-}
-
-void LuaScriptSystem::triggerFallFromHeight()
-{
-    if (onFallFromHeight.valid())
-        onFallFromHeight();
-}
-
-void LuaScriptSystem::triggerHitCeiling()
-{
-    if (onHitCeiling.valid())
-        onHitCeiling();
-}
-
-void LuaScriptSystem::triggerWallSliding()
-{
-    if (onWallSliding.valid())
-        onWallSliding();
-}
-
 void LuaScriptSystem::loadScripts()
 {
     sol::protected_function_result result =
@@ -156,22 +116,6 @@ void LuaScriptSystem::loadScripts()
         sol::error scriptError = result;
         throw std::runtime_error(scriptError.what());
     }
-
-    onDeath = lua["onDeath"];
-    onHurt = lua["onHurt"];
-    onLevelComplete = lua["onLevelComplete"];
-    onWallJump = lua["onWallJump"];
-    onDash = lua["onDash"];
-    onFallFromHeight = lua["onFallFromHeight"];
-    onHitCeiling = lua["onHitCeiling"];
-    onWallSliding = lua["onWallSliding"];
-    onGameLoaded = lua["onGameLoaded"];
-}
-
-void LuaScriptSystem::triggerGameLoaded()
-{
-    if (onGameLoaded.valid())
-        onGameLoaded();
 }
 
 void LuaScriptSystem::bindPlayer(Player *player)

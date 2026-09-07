@@ -2,6 +2,7 @@
 
 #include "assets/asset_paths.hpp"
 #include <string>
+#include <string_view>
 #include <sol/sol.hpp>
 #include <vector>
 
@@ -31,24 +32,14 @@ public:
         Camera2D *camera,
         ScreenTransition *screenTransition,
         World *world);
-    void triggerLevelComplete();
-    void triggerDeath();
+    void emit(std::string_view hook);
     void bindLevel(const Level *level);
     sol::state &getLua();
-    void triggerWallJump();
-    void triggerDash();
-    void triggerHurt();
-    void triggerFallFromHeight();
-    void triggerHitCeiling();
-    void triggerWallSliding();
-    void triggerGameLoaded();
     void loadScripts();
     void bindPlayer(Player *player);
 
 private:
     std::string scriptPath;
     sol::state lua;
-    sol::function onDeath, onHurt, onLevelComplete, onWallJump, onDash, onFallFromHeight,
-        onHitCeiling, onWallSliding, onGameLoaded;
     std::vector<WaitingCoroutine> waitingCoroutines;
 };

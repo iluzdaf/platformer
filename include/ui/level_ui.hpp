@@ -47,6 +47,7 @@ public:
         EditorCommands &commands);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
         const;
+    void drawOverlayToggles();
     void update(
         const MouseOnTheMap &mouse,
         const Level &level,
@@ -80,5 +81,4 @@ private:
         const std::map<std::string, NpcData> &npcData,
         std::optional<Armed> &armed,
         EditorCommands &commands);
-    void drawOverlayToggles();
 };

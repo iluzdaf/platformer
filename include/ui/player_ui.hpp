@@ -16,7 +16,7 @@ class PlayerUi
 {
 public:
     void draw(GameData &gameData, EditorCommands &commands);
-
+    void drawOverlayToggles();
     void update(float deltaTime);
     void drawOverlay(
         const ImGuiManager &imGuiManager,
@@ -30,7 +30,5 @@ public:
 private:
     Saveable saveable;
     FadingAABBs fadingAABBs;
-    bool drawPlayerCollider = false;
-    bool drawPlayerCollisions = false;
-    bool drawContactProbes = false;
+    bool playerShown = false;
 };

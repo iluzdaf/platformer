@@ -30,7 +30,7 @@ public:
     const ActorState &getState() const;
     const ActorMotion &getMotion() const;
     const PhysicsBody &getPhysicsBody() const;
-    const glm::vec2 &getPosition() const;
+    glm::vec2 getPosition() const;
     const NavigationProfile &getNavigationProfile() const;
     std::string_view getStateName() const;
     const SheetData &getSheet() const;

@@ -105,7 +105,7 @@ const NavigationProfile &Actor::getNavigationProfile() const
     return navigationProfile;
 }
 
-const glm::vec2 &Actor::getPosition() const
+glm::vec2 Actor::getPosition() const
 {
     return physicsBody.position();
 }

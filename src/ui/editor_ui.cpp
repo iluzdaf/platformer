@@ -84,16 +84,14 @@ void EditorUi::draw(
 
     switch (section)
     {
-    case EditorSection::Playback:
+    case EditorSection::Runtime:
         playbackUi.draw(subject.paused, commands);
+        ImGui::Separator();
+        cameraUi.draw(subject.gameData, subject.camera, commands);
         break;
 
     case EditorSection::Game:
         gameSettingsUi.draw(subject.gameData, subject.textures, commands);
-        break;
-
-    case EditorSection::Camera:
-        cameraUi.draw(subject.gameData, subject.camera, commands);
         break;
 
     case EditorSection::Player:
@@ -221,7 +219,7 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
                 commands.onSettingsChanged();
             }};
 
-    case EditorSection::Camera:
+    case EditorSection::Runtime:
         return {
             cameraUi.unsavedSince(subject.gameData),
             std::nullopt,
@@ -272,9 +270,6 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
                     commands.onLevelEdited(playing);
             },
             [this, &subject] { typesUi.revert(subject.gameData); }};
-
-    case EditorSection::Playback:
-        break;
     }
 
     return {};

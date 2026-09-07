@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "actor/abilities/jump_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/jump_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -11,95 +12,97 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
 {
     InputIntentions inputIntentions;
     ActorMotionState state;
+    Observed observed;
     JumpAbilityData jumpAbilityData;
     JumpAbility jumpAbility(jumpAbilityData);
 
     SECTION("Can jump")
     {
-        state.contacts.onGround = true;
+        observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
-        state.contacts.onGround = false;
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
+        observed.contacts.onGround = false;
         REQUIRE(state.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
         REQUIRE(state.jump.active);
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
     }
 
     SECTION("A head against a ceiling ends the jump rather than pushing on")
     {
-        state.contacts.onGround = true;
+        observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
-        state.contacts.onGround = false;
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
+        observed.contacts.onGround = false;
         REQUIRE(state.jump.active);
 
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        state.contacts.hitCeiling = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        observed.contacts.hitCeiling = true;
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
 
         REQUIRE_FALSE(state.jump.active);
         REQUIRE(state.jump.velocity.y == Approx(0.0f));
 
-        state.contacts.hitCeiling = false;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        observed.contacts.hitCeiling = false;
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.jump.velocity.y == Approx(0.0f));
     }
 
     SECTION("Cannot jump if not on ground")
     {
-        state.contacts.onGround = false;
+        observed.contacts.onGround = false;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE_FALSE(state.jump.active);
         REQUIRE(state.jump.velocity.y == Approx(0.0f));
     }
 
     SECTION("Can jump if jump request is buffered")
     {
-        state.contacts.onGround = false;
+        observed.contacts.onGround = false;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
-        state.contacts.onGround = false;
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
+        observed.contacts.onGround = false;
         REQUIRE_FALSE(state.jump.active);
         REQUIRE(state.jump.velocity.y == Approx(0.0f));
-        state.contacts.onGround = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        observed.contacts.onGround = true;
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.jump.active);
         REQUIRE(state.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
     }
 
     SECTION("Can jump during coyote time")
     {
-        state.contacts.onGround = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
-        state.contacts.onGround = false;
+        observed.contacts.onGround = true;
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
+        observed.contacts.onGround = false;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.jump.active);
         REQUIRE(state.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
     }
 
     SECTION("Jump ends after duration")
     {
-        state.contacts.onGround = true;
+        observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(jumpAbilityData.jumpDuration + 0.01f, inputIntentions, state);
+        jumpAbility.applyMovement(
+            jumpAbilityData.jumpDuration + 0.01f, inputIntentions, observed, state);
         REQUIRE_FALSE(state.jump.active);
         REQUIRE(state.jump.velocity.y == Approx(0.0f));
     }
 
     SECTION("Requesting to jump mid-jump should not change jumpHoldTime")
     {
-        state.contacts.onGround = true;
+        observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.jump.velocity.y == Approx(jumpAbilityData.jumpSpeed));
         REQUIRE(state.jump.active);
         REQUIRE(state.jump.holdTime == Approx(0.02f));
@@ -107,19 +110,19 @@ TEST_CASE("JumpAbility basic movement behaviour", "[JumpAbility]")
 
     SECTION("Cannot jump if jumpHeld while landing")
     {
-        state.contacts.onGround = true;
+        observed.contacts.onGround = true;
         inputIntentions.jumpRequested = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
-        state.contacts.onGround = false;
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
+        observed.contacts.onGround = false;
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        jumpAbility.applyMovement(jumpAbilityData.jumpDuration, inputIntentions, state);
+        jumpAbility.applyMovement(jumpAbilityData.jumpDuration, inputIntentions, observed, state);
         REQUIRE_FALSE(state.jump.active);
         REQUIRE(state.jump.velocity.y == Approx(0.0f));
-        state.contacts.onGround = true;
+        observed.contacts.onGround = true;
         inputIntentions = InputIntentions();
         inputIntentions.jumpHeld = true;
-        jumpAbility.applyMovement(0.01f, inputIntentions, state);
+        jumpAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE_FALSE(state.jump.active);
     }
 }

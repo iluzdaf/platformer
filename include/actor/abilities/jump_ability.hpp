@@ -6,6 +6,7 @@
 #include "actor/abilities/coyote_time.hpp"
 
 struct InputIntentions;
+struct Observed;
 struct ActorMotionState;
 
 class JumpAbility : public Ability
@@ -15,6 +16,7 @@ public:
     void applyMovement(
         float deltaTime,
         const InputIntentions &inputIntentions,
+        const Observed &observed,
         ActorMotionState &state) override;
 
 private:

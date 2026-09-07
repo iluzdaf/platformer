@@ -1,16 +1,20 @@
 #include "animations/animation_manager.hpp"
+#include "actor/actor_contact_state.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "actor/actor_motion_state.hpp"
 #include <cstdlib>
 #include "animations/frame_animation.hpp"
 
-void AnimationManager::update(float deltaTime, const ActorMotionState &motionState)
+void AnimationManager::update(
+    float deltaTime,
+    const ActorMotionState &motionState,
+    const ActorContactState &contacts)
 {
     ActorAnimationState newState = currentState;
 
     if (motionState.dash.active)
         newState = ActorAnimationState::Dash;
-    else if (!motionState.contacts.onGround)
+    else if (!contacts.onGround)
     {
         if (motionState.wallSlide.active || motionState.wallHang.active)
             newState = ActorAnimationState::WallSlide;

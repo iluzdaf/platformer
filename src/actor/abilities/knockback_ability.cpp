@@ -4,6 +4,8 @@
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/hit.hpp"
+#include "actor/observed.hpp"
 
 KnockbackAbility::KnockbackAbility(const KnockbackAbilityData &data) : data(data)
 {
@@ -20,21 +22,22 @@ KnockbackAbility::KnockbackAbility(const KnockbackAbilityData &data) : data(data
 void KnockbackAbility::applyMovement(
     float deltaTime,
     const InputIntentions &,
+    const Observed &observed,
     ActorMotionState &state)
 {
     KnockbackAbilityState &knockback = state.knockback;
     knockback.emit = false;
     knockback.velocity = glm::vec2(0.0f);
 
-    if (knockback.pushed)
+    if (!observed.hits.empty())
     {
-        if (knockback.pushed->x != 0.0f)
-            knockback.direction = knockback.pushed->x < 0.0f ? -1.0f : 1.0f;
+        const Hit &last = observed.hits.back();
+        if (last.direction.x != 0.0f)
+            knockback.direction = last.direction.x < 0.0f ? -1.0f : 1.0f;
 
         knockback.timeLeft = data.duration;
         knockback.active = true;
         knockback.emit = true;
-        knockback.pushed.reset();
     }
 
     if (!knockback.active)

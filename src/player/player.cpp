@@ -1,4 +1,5 @@
 #include "player/player.hpp"
+#include "actor/actor_contact_state.hpp"
 #include "player/player_data.hpp"
 #include "input/intention_source.hpp"
 #include "actor/actor.hpp"
@@ -34,6 +35,7 @@ void Player::died()
 void Player::postFixedUpdate()
 {
     const ActorMotionState &motionState = moving().getState();
+    const ActorContactState &contacts = moving().observed().contacts;
     if (motionState.dash.emit)
         onDash();
 
@@ -43,10 +45,10 @@ void Player::postFixedUpdate()
     if (motionState.wallSlide.emit)
         onWallSliding();
 
-    if (!motionState.contacts.wasOnGround && motionState.contacts.onGround &&
+    if (!contacts.wasOnGround && contacts.onGround &&
         motionState.previousVelocity.y > data.fallFromHeightThreshold)
         onFallFromHeight();
 
-    if (!motionState.contacts.wasHitCeiling && motionState.contacts.hitCeiling)
+    if (!contacts.wasHitCeiling && contacts.hitCeiling)
         onHitCeiling();
 }

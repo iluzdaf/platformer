@@ -197,6 +197,7 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
 
 #include "actor/abilities/ability_system.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 #include "timing/fixed_time_step.hpp"
 
@@ -208,11 +209,12 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
 
     AbilitySystem abilitySystem(motionData);
     ActorMotionState state;
+    Observed observed;
     InputIntentions holding;
     holding.direction.x = 1.0f;
     holding.jumpRequested = true;
     holding.jumpHeld = true;
-    state.contacts.onGround = true;
+    observed.contacts.onGround = true;
 
     std::vector<glm::vec2> walked{glm::vec2(0.0f)};
     FixedTimeStep timestepper;
@@ -220,9 +222,9 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
         PhysicsStep * static_cast<float>(arc.size() - 1),
         [&](float dt)
         {
-            abilitySystem.applyMovement(dt, holding, state);
+            abilitySystem.applyMovement(dt, holding, observed, state);
             walked.push_back(walked.back() + state.targetVelocity * dt);
-            state.contacts.onGround = false;
+            observed.contacts.onGround = false;
         });
 
     REQUIRE(walked.size() == arc.size());

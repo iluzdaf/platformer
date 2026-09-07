@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "actor/abilities/dash_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/dash_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -10,6 +11,7 @@ using Catch::Approx;
 TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
 {
     ActorMotionState state;
+    Observed observed;
     InputIntentions inputIntentions;
     DashAbilityData dashAbilityData;
     DashAbility dashAbility(dashAbilityData);
@@ -18,12 +20,12 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.dash.velocity.x == Approx(-dashAbilityData.dashSpeed));
         REQUIRE(state.dash.active);
         REQUIRE(state.dash.direction == -1);
         inputIntentions = InputIntentions();
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.dash.velocity.x == Approx(-dashAbilityData.dashSpeed));
         REQUIRE(state.dash.active);
         REQUIRE(state.dash.direction == -1);
@@ -33,12 +35,12 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
         REQUIRE(state.dash.active);
         REQUIRE(state.dash.direction == 1);
         inputIntentions = InputIntentions();
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
         REQUIRE(state.dash.active);
         REQUIRE(state.dash.direction == 1);
@@ -47,7 +49,7 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     SECTION("Cannot dash if no direction given")
     {
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE_FALSE(state.dash.active);
         REQUIRE(state.dash.velocity.x == Approx(0.0f));
     }
@@ -56,7 +58,8 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(dashAbilityData.dashDuration + 0.01f, inputIntentions, state);
+        dashAbility.applyMovement(
+            dashAbilityData.dashDuration + 0.01f, inputIntentions, observed, state);
         REQUIRE_FALSE(state.dash.active);
         REQUIRE(state.dash.velocity.x == Approx(0.0f));
     }
@@ -65,10 +68,10 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         inputIntentions = InputIntentions();
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.dash.velocity.x == Approx(dashAbilityData.dashSpeed));
         REQUIRE(state.dash.active);
         REQUIRE(state.dash.timeLeft == Approx(dashAbilityData.dashDuration - 0.02f));
@@ -78,20 +81,20 @@ TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
     {
         inputIntentions.direction.x = -1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
-        state.contacts.touchingLeftWall = true;
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
+        observed.contacts.touchingLeftWall = true;
         inputIntentions = InputIntentions();
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.dash.velocity.x == Approx(0.0f));
         REQUIRE_FALSE(state.dash.active);
     }
 
     SECTION("Cannot dash while touching wall")
     {
-        state.contacts.touchingLeftWall = true;
+        observed.contacts.touchingLeftWall = true;
         inputIntentions.direction.x = 1;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.dash.velocity.x == Approx(0.0f));
         REQUIRE_FALSE(state.dash.active);
     }
@@ -101,23 +104,24 @@ namespace
     float dashRunsFor(const DashAbilityData &data, bool onGround)
     {
         ActorMotionState state;
+        Observed observed;
         DashAbility dashAbility(data);
 
-        state.contacts.onGround = true;
-        dashAbility.applyMovement(0.01f, InputIntentions(), state);
-        state.contacts.onGround = onGround;
+        observed.contacts.onGround = true;
+        dashAbility.applyMovement(0.01f, InputIntentions(), observed, state);
+        observed.contacts.onGround = onGround;
 
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1.0f;
         inputIntentions.dashRequested = true;
-        dashAbility.applyMovement(0.01f, inputIntentions, state);
+        dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.dash.active);
 
         float lasted = 0.01f;
         inputIntentions = InputIntentions();
         while (state.dash.active && lasted < 2.0f)
         {
-            dashAbility.applyMovement(0.01f, inputIntentions, state);
+            dashAbility.applyMovement(0.01f, inputIntentions, observed, state);
             lasted += 0.01f;
         }
         return lasted;

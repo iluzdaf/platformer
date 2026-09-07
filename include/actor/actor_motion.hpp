@@ -2,6 +2,7 @@
 
 #include "actor/actor_motion_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/ability_system.hpp"
 
 class TileMap;
@@ -19,8 +20,10 @@ public:
     void beginFrame();
     void pushedBy(const Hit &hit);
     const ActorMotionState &getState() const;
+    const Observed &observed() const;
 
 private:
     ActorMotionState state;
+    Observed observations;
     AbilitySystem abilitySystem;
 };

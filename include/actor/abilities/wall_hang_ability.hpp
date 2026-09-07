@@ -4,6 +4,7 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
 
 struct InputIntentions;
+struct Observed;
 struct ActorMotionState;
 
 class WallHangAbility : public Ability
@@ -13,5 +14,6 @@ public:
     void applyMovement(
         float deltaTime,
         const InputIntentions &inputIntentions,
+        const Observed &observed,
         ActorMotionState &state) override;
 };

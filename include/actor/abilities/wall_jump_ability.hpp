@@ -7,6 +7,7 @@
 #include "actor/abilities/direction_buffer.hpp"
 
 struct InputIntentions;
+struct Observed;
 struct ActorMotionState;
 
 class WallJumpAbility : public Ability
@@ -16,6 +17,7 @@ public:
     void applyMovement(
         float deltaTime,
         const InputIntentions &inputIntentions,
+        const Observed &observed,
         ActorMotionState &state) override;
 
 private:

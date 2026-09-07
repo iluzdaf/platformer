@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/move_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -13,6 +14,7 @@ MoveAbility::MoveAbility(const MoveAbilityData &data) : data(data)
 void MoveAbility::applyMovement(
     float,
     const InputIntentions &inputIntentions,
+    const Observed &,
     ActorMotionState &state)
 {
     state.move.velocity = glm::vec2(0.0f);

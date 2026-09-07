@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/move_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -10,6 +11,7 @@ using Catch::Approx;
 TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
 {
     ActorMotionState state;
+    Observed observed;
     InputIntentions inputIntentions;
     MoveAbilityData moveAbilityData;
     MoveAbility moveAbility(moveAbilityData);
@@ -17,20 +19,20 @@ TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
     SECTION("Can move left")
     {
         inputIntentions.direction.x = -1;
-        moveAbility.applyMovement(0.01f, inputIntentions, state);
+        moveAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.move.velocity.x == Approx(-moveAbilityData.moveSpeed));
     }
 
     SECTION("Can move right")
     {
         inputIntentions.direction.x = 1;
-        moveAbility.applyMovement(0.01f, inputIntentions, state);
+        moveAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.move.velocity.x == Approx(moveAbilityData.moveSpeed));
     }
 
     SECTION("If no direction requested, no movement applied")
     {
-        moveAbility.applyMovement(0.01f, inputIntentions, state);
+        moveAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.move.velocity.x == Approx(0.0f));
     }
 }

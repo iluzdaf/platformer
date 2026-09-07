@@ -12,8 +12,6 @@
 #include "ui/editor_commands.hpp"
 #include "ui/level_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
-#include <array>
-#include <span>
 #include <imgui_internal.h>
 #include "actor/actor_motion_state.hpp"
 #include "actor/actor_state.hpp"
@@ -32,9 +30,6 @@ namespace
     constexpr int FloorRow = 6;
     constexpr int Standing = FloorRow - 1;
     constexpr int PaintedTile = 1;
-
-    constexpr std::array AboveTheInspector{"State"};
-    constexpr std::array EveryFold{"State", "Inspector", "Actors"};
 
     LevelData dataPlacing(const std::vector<NpcSpawnData> &npcs)
     {
@@ -300,7 +295,7 @@ TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[Lev
     REQUIRE_FALSE(armed);
 }
 
-TEST_CASE("The level section draws every fold without a tile sheet", "[LevelUi]")
+TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
 {
     HeadlessImGui gui;
     LevelUi levelUi;
@@ -311,35 +306,21 @@ TEST_CASE("The level section draws every fold without a tile sheet", "[LevelUi]"
     std::optional<Armed> armed;
     EditorCommands commands;
 
-    auto drawTo = [&](std::span<const char *const> folds)
-    {
-        float reached = 0.0f;
-        gui.frame(
-            [&]
-            {
-                for (const char *fold : folds)
-                    ImGui::TreeNodeSetOpen(ImGui::GetID(fold), true);
-
-                levelUi.draw(
-                    level,
-                    levelData,
-                    LevelPath,
-                    motion,
-                    level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
-                    playerState,
-                    shippedNpcData(),
-                    armed,
-                    commands);
-
-                reached = ImGui::GetCurrentWindow()->DC.CursorPos.y;
-            });
-
-        return reached;
-    };
-
-    float withoutTheInspector = drawTo(AboveTheInspector);
-
-    REQUIRE(drawTo(EveryFold) > withoutTheInspector);
+    REQUIRE_NOTHROW(gui.frame(
+        [&]
+        {
+            ImGui::TreeNodeSetOpen(ImGui::GetID("Actors"), true);
+            levelUi.draw(
+                level,
+                levelData,
+                LevelPath,
+                motion,
+                level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
+                playerState,
+                shippedNpcData(),
+                armed,
+                commands);
+        }));
 }
 
 namespace

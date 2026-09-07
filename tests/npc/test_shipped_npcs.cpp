@@ -66,7 +66,7 @@ TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "
         npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
 
-        if (!npc.moving().observed().contacts.onGround)
+        if (!npc.observed().contacts.onGround)
             continue;
 
         float foot = npc.body().position().y + 16.0f;

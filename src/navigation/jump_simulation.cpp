@@ -115,7 +115,7 @@ JumpAttempt simulateJumpAgainst(
         observed.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
         observed.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
         observed.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
-        state.velocity = physicsBody.velocity();
+        observed.velocity = physicsBody.velocity();
 
         attempt.path.push_back(feet());
         attempt.steps = step + 1;

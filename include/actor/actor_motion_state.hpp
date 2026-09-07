@@ -15,8 +15,7 @@
 struct ActorMotionState
 {
 
-    glm::vec2 previousVelocity = glm::vec2(0.0f), velocity = glm::vec2(0.0f),
-              targetVelocity = glm::vec2(0.0f);
+    glm::vec2 targetVelocity = glm::vec2(0.0f);
 
     MoveAbilityState move;
     DashAbilityState dash;

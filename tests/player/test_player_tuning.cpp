@@ -124,7 +124,7 @@ namespace
                     if (kind == Pit::StepUp)
                     {
                         float ledgeY = static_cast<float>(PitFloorRow - tiles) * 16.0f;
-                        if (player.moving().observed().contacts.onGround &&
+                        if (player.observed().contacts.onGround &&
                             position.y + 16.0f <= ledgeY + 0.5f)
                             return true;
                         if (position.y > floorY)
@@ -139,8 +139,7 @@ namespace
                     if (onSpikes || position.y > floorY)
                         break;
 
-                    if (player.moving().observed().contacts.onGround &&
-                        position.x + 4.0f > pitRight)
+                    if (player.observed().contacts.onGround && position.x + 4.0f > pitRight)
                         return true;
                 }
             }
@@ -264,7 +263,7 @@ TEST_CASE("The shipped player can climb three stepped platforms", "[Player][Tuni
                 runFor(player, level, 1.0f / 60.0f, timestepper);
 
                 glm::vec2 feet = player.body().aabb().bottomCenter();
-                if (player.moving().observed().contacts.onGround &&
+                if (player.observed().contacts.onGround &&
                     tileMap.tileStoodOnAt(feet).y == step.landOnRow - 1)
                 {
                     ++takeOffPointsThatWork;

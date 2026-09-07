@@ -24,12 +24,12 @@ namespace
         AbilitySystem &abilitySystem,
         float deltaTime,
         const InputIntentions &inputIntentions,
-        const Observed &observed,
+        Observed &observed,
         ActorMotionState &state)
     {
         abilitySystem.applyMovement(deltaTime, inputIntentions, observed, state);
 
-        state.velocity = state.targetVelocity;
+        observed.velocity = state.targetVelocity;
     }
 }
 
@@ -204,8 +204,8 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         simulateMovement(abilitySystem, 0.01f, dashing, observed, state);
 
         REQUIRE(state.knockback.active);
-        REQUIRE(state.velocity == state.knockback.velocity);
-        REQUIRE(state.velocity.x < 0.0f);
+        REQUIRE(observed.velocity == state.knockback.velocity);
+        REQUIRE(observed.velocity.x < 0.0f);
     }
 
     SECTION("Gravity is not applied when dashing")

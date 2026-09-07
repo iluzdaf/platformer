@@ -2,6 +2,9 @@
 #include <string_view>
 #include "actor/actor.hpp"
 #include "actor/hit.hpp"
+#include "actor/observing.hpp"
+#include "actor/observed.hpp"
+#include "actor/actor_motion_state.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "animations/frame_animation.hpp"
@@ -17,7 +20,7 @@
 #include <utility>
 
 Actor::Actor(const ActorData &data)
-    : motion(data.motionData), physicsBody(data.physicsBodyData),
+    : abilities(data.motionData), physicsBody(data.physicsBodyData),
       navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
 {
     sheet = data.sheet;
@@ -49,7 +52,7 @@ void Actor::postFixedUpdate()
 
 void Actor::beginFrame()
 {
-    motion.beginFrame();
+    observations.contacts = contactsForANewFrame(observations.contacts);
 }
 
 void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::vec2> threatFeet)
@@ -60,21 +63,22 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
-    motion.applyMovement(deltaTime, inputIntentions);
+    abilities.applyMovement(deltaTime, inputIntentions, observations, decided);
+    observations.hits.clear();
 
-    physicsBody.setVelocity(motion.getState().targetVelocity);
+    physicsBody.setVelocity(decided.targetVelocity);
     physicsBody.stepPhysics(deltaTime, tileMap);
 
-    motion.readContacts(physicsBody, tileMap);
-    motion.readMotion(physicsBody);
+    observations.contacts = contactsAfterStep(observations.contacts, physicsBody, tileMap);
+    observations.previousVelocity = observations.velocity;
+    observations.velocity = physicsBody.velocity();
 
-    animationManager.update(deltaTime, motion.getState(), motion.observed().contacts);
+    animationManager.update(deltaTime, decided, observations);
 
-    const ActorMotionState &motionState = motion.getState();
-    if (!motionState.knockback.active)
-        actorState.facingLeft = motionState.velocity.x > 0
+    if (!decided.knockback.active)
+        actorState.facingLeft = observations.velocity.x > 0
                                     ? false
-                                    : (motionState.velocity.x < 0 ? true : actorState.facingLeft);
+                                    : (observations.velocity.x < 0 ? true : actorState.facingLeft);
     actorState.currentFrame = animationManager.getCurrentAnimation().getCurrentFrame();
     actorState.currentAnimationState = animationManager.getCurrentState();
 }
@@ -89,9 +93,14 @@ const ActorState &Actor::state() const
     return actorState;
 }
 
-const ActorMotion &Actor::moving() const
+const ActorMotionState &Actor::motion() const
 {
-    return motion;
+    return decided;
+}
+
+const Observed &Actor::observed() const
+{
+    return observations;
 }
 
 const PhysicsBody &Actor::body() const
@@ -149,7 +158,7 @@ bool Actor::takeHit(const Hit &hit)
 
     if (hp.alive())
     {
-        motion.pushedBy(hit);
+        observations.hits.push_back(hit);
         hurt();
     }
     else
@@ -176,9 +185,5 @@ ActorBehaviorContext Actor::behaviorContext(
     std::optional<glm::vec2> threatFeet) const
 {
     return ActorBehaviorContext{
-        navigationGraph,
-        feet(),
-        physicsBody.colliderSize(),
-        threatFeet,
-        motion.observed().contacts};
+        navigationGraph, feet(), physicsBody.colliderSize(), threatFeet, observations.contacts};
 }

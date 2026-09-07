@@ -64,7 +64,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
                 glm::vec2 position = player.body().position();
                 if (position.y + 16.0f > 7 * 16.0f)
                     break;
-                if (player.moving().observed().contacts.onGround && position.x + 4.0f > GapRight)
+                if (player.observed().contacts.onGround && position.x + 4.0f > GapRight)
                 {
                     ++takeOffPointsThatWork;
                     break;

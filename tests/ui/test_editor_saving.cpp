@@ -10,6 +10,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
@@ -58,6 +59,7 @@ namespace
             gameData.pickupData};
         TextureCache textures;
         ActorMotionState motion;
+        Observed observed;
         ActorState playerState;
         Camera2D camera{gameData.cameraData, 800, 600};
 
@@ -71,6 +73,7 @@ namespace
                 textures,
                 levels,
                 motion,
+                observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, 1)),
                 playerState,
                 camera,

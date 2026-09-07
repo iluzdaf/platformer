@@ -7,7 +7,6 @@
 #include "actor/actor_motion_state.hpp"
 #include "actor/observed.hpp"
 #include "actor/hit.hpp"
-#include "actor/actor_motion.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/palettes.hpp"
@@ -135,13 +134,13 @@ TEST_CASE("A hit that lands pushes the actor on its next step", "[KnockbackAbili
     player.standAt(feetOf(glm::ivec2(4, FloorLevelStanding)));
     FixedTimeStep timestepper;
     runFor(player, level, 0.1f, timestepper);
-    REQUIRE(player.moving().getState().velocity.x == 0.0f);
+    REQUIRE(player.observed().velocity.x == 0.0f);
 
     player.takeHit(aHitPushing(1.0f));
     runFor(player, level, Step, timestepper);
 
-    REQUIRE(player.moving().getState().velocity.x > 0.0f);
-    REQUIRE(player.moving().getState().velocity.y < 0.0f);
+    REQUIRE(player.observed().velocity.x > 0.0f);
+    REQUIRE(player.observed().velocity.y < 0.0f);
 }
 
 TEST_CASE("A hit is observed for one step, so it pushes once", "[KnockbackAbility]")
@@ -162,7 +161,7 @@ TEST_CASE("A hit is observed for one step, so it pushes once", "[KnockbackAbilit
     for (int step = 0; step < 10; ++step)
     {
         runFor(player, level, Step, timestepper);
-        if (player.moving().getState().knockback.emit)
+        if (player.motion().knockback.emit)
             ++starts;
     }
 
@@ -185,7 +184,7 @@ TEST_CASE("A lethal hit does not push a corpse", "[KnockbackAbility]")
     player.takeHit(lethalHit());
     runFor(player, level, Step, timestepper);
 
-    REQUIRE_FALSE(player.moving().getState().knockback.active);
+    REQUIRE_FALSE(player.motion().knockback.active);
 }
 
 TEST_CASE("A knocked back actor keeps facing the way it was", "[KnockbackAbility]")

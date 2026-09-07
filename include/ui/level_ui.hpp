@@ -20,6 +20,7 @@ class Level;
 class Camera2D;
 struct NpcData;
 struct ActorMotionState;
+struct Observed;
 struct ActorState;
 class Npc;
 
@@ -40,6 +41,7 @@ public:
         const LevelData &levelData,
         const std::string &levelPath,
         const ActorMotionState &playerMotionState,
+        const Observed &playerObserved,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
         const std::map<std::string, NpcData> &npcData,
@@ -76,6 +78,7 @@ private:
         const Level &level,
         const LevelData &levelData,
         const ActorMotionState &playerMotionState,
+        const Observed &playerObserved,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
         const std::map<std::string, NpcData> &npcData,

@@ -103,7 +103,7 @@ void drawPlayerCollider(
 
 void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs)
 {
-    const ActorContactState &contacts = player.moving().observed().contacts;
+    const ActorContactState &contacts = player.observed().contacts;
     fadingAABBs.add(contacts.collisionAABBX, PlayerCollisionColor, 0.1f);
     fadingAABBs.add(contacts.collisionAABBY, PlayerCollisionColor, 0.1f);
 }
@@ -236,7 +236,7 @@ void drawContactProbes(
 {
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
     const PhysicsBody &physicsBody = player.body();
-    ActorContactState contacts = player.moving().observed().contacts;
+    ActorContactState contacts = player.observed().contacts;
 
     AABB overhead = thickEnoughToSee(physicsBody.overheadProbe(), false);
     drawProbe(

@@ -22,6 +22,7 @@
 #include "ui/tile_palettes_ui.hpp"
 
 struct ActorMotionState;
+struct Observed;
 struct ActorState;
 struct GameData;
 class Camera2D;
@@ -52,6 +53,7 @@ struct EditorSubject
     const TextureCache &textures;
     LevelsData &levels;
     const ActorMotionState &playerMotionState;
+    const Observed &playerObserved;
     glm::vec2 playerFeet;
     const ActorState &playerState;
     const Camera2D &camera;

@@ -123,6 +123,7 @@ void EditorUi::draw(
                 subject.levelData,
                 subject.levelPath,
                 subject.playerMotionState,
+                subject.playerObserved,
                 subject.playerFeet,
                 subject.playerState,
                 subject.gameData.npcData,

@@ -34,8 +34,8 @@ void Player::died()
 
 void Player::postFixedUpdate()
 {
-    const ActorMotionState &motionState = moving().getState();
-    const ActorContactState &contacts = moving().observed().contacts;
+    const ActorMotionState &motionState = motion();
+    const ActorContactState &contacts = observed().contacts;
     if (motionState.dash.emit)
         onDash();
 
@@ -46,7 +46,7 @@ void Player::postFixedUpdate()
         onWallSliding();
 
     if (!contacts.wasOnGround && contacts.onGround &&
-        motionState.previousVelocity.y > data.fallFromHeightThreshold)
+        observed().previousVelocity.y > data.fallFromHeightThreshold)
         onFallFromHeight();
 
     if (!contacts.wasHitCeiling && contacts.hitCeiling)

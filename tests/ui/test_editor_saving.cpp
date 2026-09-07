@@ -84,7 +84,7 @@ TEST_CASE("A section with nothing changed offers no save", "[EditorSaving]")
     EditorUi editorUi;
     Editing editing;
 
-    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Camera, editing.subject()).unsaved);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, editing.subject()).unsaved);
 }
 
 TEST_CASE("Every section that saves a file has a save to press", "[EditorSaving]")
@@ -94,7 +94,7 @@ TEST_CASE("Every section that saves a file has a save to press", "[EditorSaving]
 
     for (EditorSection listed :
          {EditorSection::Game,
-          EditorSection::Camera,
+          EditorSection::Runtime,
           EditorSection::Player,
           EditorSection::Level,
           EditorSection::Types})
@@ -165,7 +165,7 @@ TEST_CASE(
     Editing editing;
     EditorSubject subject = editing.subject();
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
-    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Camera, subject).unsaved);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
 
     editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
     float edited = editing.gameData.playerData.fallFromHeightThreshold;
@@ -177,7 +177,7 @@ TEST_CASE(
     REQUIRE(editing.gameData.playerData.fallFromHeightThreshold == edited);
     REQUIRE(editing.gameData.cameraData.zoom == onDisk.cameraData.zoom);
     REQUIRE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
-    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Camera, subject).unsaved);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
 }
 
 TEST_CASE("Reverting a section kept through a reload takes what is on disk now", "[EditorSaving]")
@@ -215,15 +215,37 @@ TEST_CASE("The level being played follows the disk only while it is clean", "[Ed
     REQUIRE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
 }
 
-TEST_CASE("Playing back is not a thing that saves", "[EditorSaving]")
+TEST_CASE("The runtime section saves the camera, which playback has no part in", "[EditorSaving]")
 {
     EditorUi editorUi;
     Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
 
-    SectionSaving saving = editorUi.savingIn(EditorSection::Playback, editing.subject());
+    editing.gameData.cameraData.zoom += 1.0f;
 
-    REQUIRE_FALSE(saving.unsaved);
-    REQUIRE(saving.save == nullptr);
+    REQUIRE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
+    REQUIRE(editorUi.savingIn(EditorSection::Runtime, subject).save != nullptr);
+}
+
+TEST_CASE(
+    "Reverting the runtime section puts the camera back and says the camera changed",
+    "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    bool cameraChanged = false;
+    std::ignore = editorUi.commands.onCameraChanged.connect([&] { cameraChanged = true; });
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
+    float zoomWas = editing.gameData.cameraData.zoom;
+    editing.gameData.cameraData.zoom += 1.0f;
+
+    editorUi.savingIn(EditorSection::Runtime, subject).revert();
+    editorUi.commands.drain();
+
+    REQUIRE(editing.gameData.cameraData.zoom == zoomWas);
+    REQUIRE(cameraChanged);
 }
 
 TEST_CASE("A level that strands an npc says so where its save would be", "[EditorSaving]")

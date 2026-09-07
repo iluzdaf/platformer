@@ -86,7 +86,7 @@ private:
     void drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving);
 
 private:
-    EditorSection section = EditorSection::Playback;
+    EditorSection section = EditorSection::Runtime;
     PlaybackUi playbackUi;
     GameSettingsUi gameSettingsUi;
     CameraUi cameraUi;

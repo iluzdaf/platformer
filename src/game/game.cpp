@@ -123,7 +123,7 @@ void Game::frame(float deltaTime)
         },
         [this](float dt) { world.update(dt); });
 
-    camera.follow(world.getPlayer().body().position());
+    camera.follow(world.getPlayer().body().aabb().center());
 
     render();
 }

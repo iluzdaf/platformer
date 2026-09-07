@@ -195,7 +195,7 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
     REQUIRE(landedSomewhere);
 }
 
-#include "actor/abilities/ability_system.hpp"
+#include "actor/abilities/abilities.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
@@ -207,7 +207,7 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
     std::vector<glm::vec2> arc = simulateJumpArc(motionData).offsets;
     REQUIRE(arc.size() > 2);
 
-    AbilitySystem abilitySystem(motionData);
+    Abilities abilities(motionData);
     Decided decided;
     Observed observed;
     InputIntentions holding;
@@ -222,7 +222,7 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
         PhysicsStep * static_cast<float>(arc.size() - 1),
         [&](float dt)
         {
-            abilitySystem.applyMovement(dt, holding, observed, decided);
+            abilities.decide(dt, holding, observed, decided);
             walked.push_back(walked.back() + decided.targetVelocity * dt);
             observed.contacts.onGround = false;
         });

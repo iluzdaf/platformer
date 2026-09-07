@@ -1,7 +1,7 @@
 #include "actor/actor_motion_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
-#include "actor/abilities/ability_system.hpp"
+#include "actor/abilities/abilities.hpp"
 #include "actor/abilities/move_ability.hpp"
 #include "actor/abilities/jump_ability.hpp"
 #include "actor/abilities/dash_ability.hpp"
@@ -14,7 +14,7 @@
 #include "actor/abilities/knockback_ability.hpp"
 #include <memory>
 
-AbilitySystem::AbilitySystem(const ActorMotionData &data)
+Abilities::Abilities(const ActorMotionData &data)
 {
     if (data.moveAbilityData)
         abilities.push_back(std::make_unique<MoveAbility>(data.moveAbilityData.value()));
@@ -38,14 +38,14 @@ AbilitySystem::AbilitySystem(const ActorMotionData &data)
         abilities.push_back(std::make_unique<KnockbackAbility>(data.knockbackAbilityData.value()));
 }
 
-void AbilitySystem::applyMovement(
+void Abilities::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
     Decided &decided)
 {
     for (auto &ability : abilities)
-        ability->applyMovement(deltaTime, inputIntentions, observed, decided);
+        ability->decide(deltaTime, inputIntentions, observed, decided);
 
     glm::vec2 finalVelocity = decided.gravity.velocity;
     if (decided.knockback.active)

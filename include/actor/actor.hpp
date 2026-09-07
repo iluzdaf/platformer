@@ -6,11 +6,11 @@
 #include "actor/actor_state.hpp"
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/abilities/ability_system.hpp"
+#include "actor/abilities/abilities.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_behavior.hpp"
-#include "animations/animation_manager.hpp"
+#include "animations/animator.hpp"
 #include "physics/physics_body.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
@@ -56,11 +56,11 @@ protected:
         std::optional<glm::vec2> threatFeet) const;
 
 private:
-    AbilitySystem abilities;
+    Abilities abilities;
     Decided decisions;
     Observed observations;
     PhysicsBody physicsBody;
-    AnimationManager animationManager;
+    Animator animator;
     ActorState actorState;
     SheetData sheet;
     NavigationProfile navigationProfile;

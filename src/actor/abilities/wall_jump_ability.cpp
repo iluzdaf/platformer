@@ -15,7 +15,7 @@ WallJumpAbility::WallJumpAbility(const WallJumpAbilityData &data)
         throw std::runtime_error("wallJumpHorizontalSpeed must be greater than 0");
 }
 
-void WallJumpAbility::applyMovement(
+void WallJumpAbility::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,

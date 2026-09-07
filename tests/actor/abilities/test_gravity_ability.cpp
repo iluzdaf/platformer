@@ -22,9 +22,9 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
         observed.contacts.onGround = false;
         decided.wallHang.active = false;
         decided.wallSlide.active = false;
-        ability.applyMovement(0.01f, inputIntentions, observed, decided);
+        ability.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.gravity.velocity.y == Approx(data.gravity * 0.01f));
-        ability.applyMovement(0.01f, inputIntentions, observed, decided);
+        ability.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.gravity.velocity.y == Approx(2 * data.gravity * 0.01f));
     }
 
@@ -38,7 +38,7 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
             static_cast<int>(std::ceil(data.maxFallSpeed / (data.gravity * 0.01f)));
         for (int i = 0; i < iterationsToMaxFallSpeed + 10; ++i)
         {
-            ability.applyMovement(0.01f, inputIntentions, observed, decided);
+            ability.decide(0.01f, inputIntentions, observed, decided);
         }
 
         REQUIRE(decided.gravity.velocity.y == Approx(data.maxFallSpeed));
@@ -47,11 +47,11 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
     SECTION("Gravity holds still during a knockback")
     {
         observed.contacts.onGround = false;
-        ability.applyMovement(0.01f, inputIntentions, observed, decided);
+        ability.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.gravity.velocity.y > 0.0f);
 
         decided.knockback.active = true;
-        ability.applyMovement(0.01f, inputIntentions, observed, decided);
+        ability.decide(0.01f, inputIntentions, observed, decided);
 
         REQUIRE(decided.gravity.velocity.y == 0.0f);
     }
@@ -59,21 +59,21 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
     SECTION("Gravity resets to 0 if onGround, climbing or wallSliding")
     {
         observed.contacts.onGround = false;
-        ability.applyMovement(0.01f, inputIntentions, observed, decided);
+        ability.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.gravity.velocity.y > 0.0f);
 
         observed.contacts.onGround = true;
-        ability.applyMovement(0.01f, inputIntentions, observed, decided);
+        ability.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.gravity.velocity.y == 0.0f);
 
         observed.contacts.onGround = false;
         decided.wallHang.active = true;
-        ability.applyMovement(0.01f, inputIntentions, observed, decided);
+        ability.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.gravity.velocity.y == 0.0f);
 
         decided.wallHang.active = false;
         decided.wallSlide.active = true;
-        ability.applyMovement(0.01f, inputIntentions, observed, decided);
+        ability.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.gravity.velocity.y == 0.0f);
     }
 }

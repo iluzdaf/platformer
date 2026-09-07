@@ -8,7 +8,7 @@ WallHangAbility::WallHangAbility(const WallHangAbilityData &)
 {
 }
 
-void WallHangAbility::applyMovement(
+void WallHangAbility::decide(
     float,
     const InputIntentions &inputIntentions,
     const Observed &observed,

@@ -11,7 +11,7 @@ class WallClimbAbility : public Ability
 {
 public:
     explicit WallClimbAbility(const WallClimbAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

@@ -11,7 +11,7 @@ class MoveAbility : public Ability
 {
 public:
     explicit MoveAbility(const MoveAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

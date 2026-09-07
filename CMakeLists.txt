@@ -174,7 +174,7 @@ add_library(platformer_lib OBJECT
     src/input/keyboard_intentions.cpp
     src/input/keys_unless_captured.cpp
     src/animations/frame_animation.cpp
-    src/animations/animation_manager.cpp
+    src/animations/animator.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
     src/navigation/navigation_graph_builder.cpp
@@ -210,7 +210,7 @@ add_library(platformer_lib OBJECT
     src/actor/abilities/action_buffer.cpp
     src/actor/abilities/coyote_time.cpp
     src/actor/abilities/direction_buffer.cpp
-    src/actor/abilities/ability_system.cpp
+    src/actor/abilities/abilities.cpp
     src/actor/abilities/gravity_ability.cpp
 )
 
@@ -342,7 +342,7 @@ add_executable(tests
     tests/input/test_key_tracker.cpp
     tests/input/test_keyboard_intentions.cpp
     tests/input/test_keys_unless_captured.cpp
-    tests/animations/test_animation_manager.cpp
+    tests/animations/test_animator.cpp
     tests/animations/test_frame_animation.cpp
     tests/navigation/test_navigation_graph.cpp
     tests/scripting/test_lua_script_system.cpp
@@ -398,7 +398,7 @@ add_executable(tests
     tests/actor/abilities/test_coyote_time.cpp
     tests/actor/abilities/test_action_buffer.cpp
     tests/actor/abilities/test_direction_buffer.cpp
-    tests/actor/abilities/test_ability_system.cpp
+    tests/actor/abilities/test_abilities.cpp
     tests/actor/abilities/test_gravity_ability.cpp
 )
 

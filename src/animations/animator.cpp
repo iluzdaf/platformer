@@ -1,11 +1,11 @@
-#include "animations/animation_manager.hpp"
+#include "animations/animator.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "actor/decided.hpp"
 #include <cstdlib>
 #include "animations/frame_animation.hpp"
 
-void AnimationManager::update(float deltaTime, const Decided &decided, const Observed &observed)
+void Animator::animate(float deltaTime, const Decided &decided, const Observed &observed)
 {
     ActorAnimationState newState = currentState;
 
@@ -37,17 +37,17 @@ void AnimationManager::update(float deltaTime, const Decided &decided, const Obs
     animations.at(currentState).update(deltaTime);
 }
 
-const FrameAnimation &AnimationManager::getCurrentAnimation()
+const FrameAnimation &Animator::playing() const
 {
     return animations.at(currentState);
 }
 
-ActorAnimationState AnimationManager::getCurrentState() const
+ActorAnimationState Animator::state() const
 {
     return currentState;
 }
 
-void AnimationManager::addAnimation(ActorAnimationState state, const FrameAnimation &animation)
+void Animator::add(ActorAnimationState state, const FrameAnimation &animation)
 {
     animations.insert_or_assign(state, animation);
 }

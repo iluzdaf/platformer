@@ -9,11 +9,11 @@ struct Decided;
 struct InputIntentions;
 struct Observed;
 
-class AbilitySystem
+class Abilities
 {
 public:
-    explicit AbilitySystem(const ActorMotionData &motionData);
-    void applyMovement(
+    explicit Abilities(const ActorMotionData &motionData);
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

@@ -20,7 +20,7 @@ TEST_CASE("WallClimbAbility basic movement behaviour", "[WallClimbAbility]")
     {
         decided.wallHang.active = true;
         inputIntentions.direction.y = -1;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallClimbAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.wallClimb.velocity.y == Approx(-wallClimbAbilityData.climbSpeed));
     }
 
@@ -28,28 +28,28 @@ TEST_CASE("WallClimbAbility basic movement behaviour", "[WallClimbAbility]")
     {
         decided.wallHang.active = true;
         inputIntentions.direction.y = 1;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallClimbAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.wallClimb.velocity.y == Approx(wallClimbAbilityData.climbSpeed));
     }
 
     SECTION("Cannot climb up if not climbing")
     {
         inputIntentions.direction.y = -1;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallClimbAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.wallClimb.velocity.y == Approx(0.0f));
     }
 
     SECTION("Cannot climb down if not climbing")
     {
         inputIntentions.direction.y = 1;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallClimbAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.wallClimb.velocity.y == Approx(0.0f));
     }
 
     SECTION("If no direction requested, no movement applied")
     {
         decided.wallHang.active = true;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        wallClimbAbility.decide(0.01f, inputIntentions, observed, decided);
         REQUIRE(decided.wallClimb.velocity.y == Approx(0.0f));
     }
 }

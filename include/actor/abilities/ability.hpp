@@ -8,7 +8,7 @@ class Ability
 {
 public:
     virtual ~Ability() = default;
-    virtual void applyMovement(
+    virtual void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

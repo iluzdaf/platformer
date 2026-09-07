@@ -8,7 +8,7 @@ public:
     FrameAnimation() = default;
     FrameAnimation(const FrameAnimationData &frameAnimationData);
     void update(float deltaTime);
-    int getCurrentFrame() const;
+    int frame() const;
     void reset();
 
 private:

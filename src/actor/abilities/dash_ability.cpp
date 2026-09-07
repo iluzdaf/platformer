@@ -16,7 +16,7 @@ DashAbility::DashAbility(const DashAbilityData &data) : data(data)
         throw std::runtime_error("airborneFraction must be within (0, 1]");
 }
 
-void DashAbility::applyMovement(
+void DashAbility::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,

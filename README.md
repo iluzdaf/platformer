@@ -272,9 +272,9 @@ motion state.**
   flag, and an `emit` flag for the tick it started. It may read contacts, the velocity
   physics produced, and other abilities' slots. Gravity is zero while hanging, sliding
   or mantling; a mantle starts from `wallHang.active` at a ledge.
-- Abilities do not fight over velocity. `AbilitySystem` runs them all, then picks with
-  a fixed ladder: a dash, a mantle or a wall jump owns the whole vector; otherwise move
-  gives x, and a jump, a hang's climb or a slide gives y over gravity.
+- Abilities do not fight over velocity. `Abilities` runs them all, then picks with
+  a fixed ladder: a knockback, a dash, a mantle or a wall jump owns the whole vector;
+  otherwise move gives x, and a jump, a hang's climb or a slide gives y over gravity.
 - They run in a fixed order, move first and gravity last. A later ability sees what an
   earlier one decided this tick; an earlier one sees a later one's from the last tick.
   Contacts are what physics found at the end of the previous tick.

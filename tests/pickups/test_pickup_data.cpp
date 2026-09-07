@@ -116,11 +116,11 @@ TEST_CASE("A level advances the pickups it holds", "[Pickups]")
         spinning);
 
     REQUIRE(level.getPickups().size() == 1);
-    REQUIRE(level.getPickups().front().getCurrentFrame() == 0);
+    REQUIRE(level.getPickups().front().frame() == 0);
 
     level.update(0.15f);
 
-    REQUIRE(level.getPickups().front().getCurrentFrame() == 1);
+    REQUIRE(level.getPickups().front().frame() == 1);
 }
 
 TEST_CASE("A pickup sits centred on where it was placed", "[Pickups]")

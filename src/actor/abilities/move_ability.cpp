@@ -11,7 +11,7 @@ MoveAbility::MoveAbility(const MoveAbilityData &data) : data(data)
         throw std::runtime_error("moveSpeed must be greater than 0");
 }
 
-void MoveAbility::applyMovement(
+void MoveAbility::decide(
     float,
     const InputIntentions &inputIntentions,
     const Observed &,

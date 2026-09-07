@@ -11,7 +11,7 @@ class GravityAbility : public Ability
 {
 public:
     explicit GravityAbility(const GravityAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

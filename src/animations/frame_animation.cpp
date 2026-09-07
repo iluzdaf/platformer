@@ -21,7 +21,7 @@ void FrameAnimation::update(float deltaTime)
     }
 }
 
-int FrameAnimation::getCurrentFrame() const
+int FrameAnimation::frame() const
 {
     return frames.empty() ? 0 : frames[currentFrame];
 }

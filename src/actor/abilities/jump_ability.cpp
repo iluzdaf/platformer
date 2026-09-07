@@ -12,7 +12,7 @@ JumpAbility::JumpAbility(const JumpAbilityData &data)
         throw std::runtime_error("jumpSpeed must be negative");
 }
 
-void JumpAbility::applyMovement(
+void JumpAbility::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,

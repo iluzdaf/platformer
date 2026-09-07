@@ -11,7 +11,7 @@ class KnockbackAbility : public Ability
 {
 public:
     explicit KnockbackAbility(const KnockbackAbilityData &data);
-    void applyMovement(
+    void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,

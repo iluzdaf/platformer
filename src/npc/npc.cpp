@@ -20,7 +20,7 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
             std::make_unique<StateMachineBehavior>(npcData.stateMachineBehaviorData.value(), walk));
     }
 
-    setPosition(this->spawn.position - body().bottomCenterOffset());
+    standAt(this->spawn.position);
 }
 
 const NpcSpawnData &Npc::getSpawn() const

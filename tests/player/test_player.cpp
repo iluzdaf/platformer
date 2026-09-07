@@ -77,7 +77,7 @@ TEST_CASE("A player knows when it is on the ground and when it has walked off", 
     SECTION("Player walks off a ledge and is no longer onGround")
     {
         TileMap tileMap = aTileMap({{{1, 5}, 1}, {{2, 5}, 1}});
-        player.setPosition({2 * 16, 4 * 16});
+        player.standAt(feetOf(glm::ivec2(2, 4)));
         simulatePlayer(player, input, tileMap, 0.1f);
         const ActorMotionState &state = player.moving().getState();
         REQUIRE(state.contacts.onGround);
@@ -93,7 +93,7 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
     TileMap tileMap = aTileMap();
     ScriptedIntentions input;
     Player player = aPlayerWithEveryAbility(input);
-    player.setPosition({5 * 16, 9 * 16});
+    player.standAt(feetOf(glm::ivec2(5, 9)));
 
     SECTION("Player is idle by default")
     {
@@ -170,7 +170,7 @@ TEST_CASE("A player is kept inside the map", "[Player]")
 
     SECTION("Player stays within bounds")
     {
-        player.setPosition(glm::vec2(16, 32));
+        player.standAt(feetOf(glm::ivec2(1, 2)));
 
         SECTION("While falling")
         {
@@ -212,7 +212,7 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
             wall.push_back({glm::ivec2(6, y), 1});
 
         TileMap tileMap = aTileMap(wall);
-        player.setPosition(glm::vec2(5 * 16.0f, 16.0f));
+        player.standAt(feetOf(glm::ivec2(5, 1)));
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
@@ -227,7 +227,7 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
             wall.push_back({glm::ivec2(3, y), 1});
 
         TileMap tileMap = aTileMap(wall);
-        player.setPosition(glm::vec2(4 * 16.0f, 16.0f));
+        player.standAt(feetOf(glm::ivec2(4, 1)));
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
@@ -248,7 +248,7 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
 
     SECTION("onFallFromHeight")
     {
-        player.setPosition(glm::vec2(0, 0));
+        player.standAt(feetOf(glm::ivec2(0, 0)));
         bool fallFromHeightTriggered = false;
         player.onFallFromHeight.connect([&] { fallFromHeightTriggered = true; });
         simulatePlayer(player, input, tileMap, 1.5f);
@@ -258,7 +258,7 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
     SECTION("onHitCeiling")
     {
         TileMap ceiling = aTileMap({{{2, 2}, 1}, {{2, 5}, 1}});
-        player.setPosition({2 * 16, 4 * 16});
+        player.standAt(feetOf(glm::ivec2(2, 4)));
         simulatePlayer(player, input, ceiling, 0.01f);
         bool hitCeilingTriggered = false;
         player.onHitCeiling.connect([&] { hitCeilingTriggered = true; });
@@ -270,7 +270,7 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
 
     SECTION("onDash")
     {
-        player.setPosition(glm::vec2(16, 19 * 16 - 16));
+        player.standAt(feetOf(glm::ivec2(1, 18)));
         simulatePlayer(player, input, tileMap, 0.1f);
         bool dashTriggered = false;
         player.onDash.connect([&] { dashTriggered = true; });
@@ -291,7 +291,7 @@ TEST_CASE("A player cannot move or jump into a solid tile", "[Player]")
     SECTION("Player cannot move into solid tile")
     {
         TileMap tileMap = aTileMap({{{3, 5}, 1}, {{2, 4}, 1}, {{1, 4}, 1}, {{1, 5}, 1}});
-        player.setPosition(glm::vec2(2 * tileMap.getTileSize(), 5 * tileMap.getTileSize()));
+        player.standAt(tileMap.feetOnTile(glm::ivec2(2, 5)));
 
         SECTION("Moving right into solid tile")
         {
@@ -313,7 +313,7 @@ TEST_CASE("A player cannot move or jump into a solid tile", "[Player]")
         int ceilingTileX = 2;
         int ceilingTileY = 2;
         TileMap tileMap = aTileMap({{{ceilingTileX, ceilingTileY}, 1}, {{2, 5}, 1}});
-        player.setPosition({2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()});
+        player.standAt(tileMap.feetOnTile(glm::ivec2(2, 4)));
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
         float playerTopY = player.body().position().y;
@@ -346,7 +346,8 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
 
     float ledgeRight = static_cast<float>(LedgeLastTile + 1) * 16.0f;
     float ledgeTop = static_cast<float>(LedgeRow) * 16.0f;
-    player.setPosition(glm::vec2(ledgeRight - player.body().colliderOffset().x, ledgeTop - 2.0f));
+    glm::vec2 collider = player.body().colliderSize();
+    player.standAt(glm::vec2(ledgeRight + collider.x * 0.5f, ledgeTop - 2.0f + collider.y));
 
     InputIntentions intentions;
     intentions.direction.x = -1.0f;
@@ -379,7 +380,7 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
     Player player = aPlayerWithEveryAbility(input);
     const ActorMotionState &state = player.moving().getState();
 
-    player.setPosition(glm::vec2(4 * 16.0f + 4.0f, 8 * 16.0f - 16.0f));
+    player.standAt(glm::vec2(5 * 16.0f - 4.0f, 8 * 16.0f));
 
     InputIntentions holdingTheWallAndPressingUp;
     holdingTheWallAndPressingUp.climbRequested = true;
@@ -408,7 +409,7 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
     ScriptedIntentions input;
     Player player = aPlayerWithEveryAbility(input);
     const ActorMotionState &state = player.moving().getState();
-    player.setPosition(glm::vec2(4 * 16.0f + 4.0f, 16.0f));
+    player.standAt(glm::vec2(5 * 16.0f - 4.0f, 2 * 16.0f));
 
     InputIntentions holdingTheWall;
     holdingTheWall.climbRequested = true;
@@ -441,7 +442,7 @@ TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in
 
     ScriptedIntentions input;
     Player player(playerDataWithEveryAbility(), input);
-    player.setPosition(glm::vec2(5 * 16.0f, 10 * 16.0f - 16.0f));
+    player.standAt(feetOf(glm::ivec2(5, 9)));
 
     FixedTimeStep timestepper;
     int stepsTouchingCeiling = 0;

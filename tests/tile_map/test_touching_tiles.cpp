@@ -21,7 +21,7 @@ TEST_CASE("Spikes", "[TouchingTiles]")
     spikeTileData.deadly = true;
     TileMap tileMap = aTileMap({{{1, 1}, 3}}, 10, 10, 16, paletteOf({{3, spikeTileData}}));
     Player player = aPlayerWithEveryAbility();
-    player.setPosition(glm::vec2(1 * 16, 1 * 16));
+    player.standAt(feetOf(glm::ivec2(1, 1)));
 
     SECTION("Triggers onDeath")
     {
@@ -43,7 +43,7 @@ TEST_CASE("Empty", "[TouchingTiles]")
     TileData emptyTileData;
     TileMap tileMap = aTileMap({{{1, 1}, 0}}, 10, 10, 16, paletteOf({{0, emptyTileData}}));
     Player player = aPlayerWithEveryAbility();
-    player.setPosition(glm::vec2(1 * 16, 1 * 16));
+    player.standAt(feetOf(glm::ivec2(1, 1)));
 
     SECTION("Does not replace")
     {
@@ -58,7 +58,7 @@ TEST_CASE("Portal", "[TouchingTiles]")
     portalTileData.portal = true;
     TileMap tileMap = aTileMap({{{1, 1}, 4}}, 10, 10, 16, paletteOf({{4, portalTileData}}));
     Player player = aPlayerWithEveryAbility();
-    player.setPosition(glm::vec2(1 * 16, 1 * 16));
+    player.standAt(feetOf(glm::ivec2(1, 1)));
 
     SECTION("Triggers onLevelComplete")
     {
@@ -90,9 +90,9 @@ namespace
 
     void restAgainst(Player &player, glm::ivec2 tile, glm::vec2 towards)
     {
-        const PhysicsBody &body = player.body();
-        glm::vec2 colliderTopLeft = topLeftOf(tile) - towards * body.colliderSize();
-        player.setPosition(colliderTopLeft - body.colliderOffset());
+        glm::vec2 collider = player.body().colliderSize();
+        glm::vec2 colliderTopLeft = topLeftOf(tile) - towards * collider;
+        player.standAt(colliderTopLeft + glm::vec2(collider.x * 0.5f, collider.y));
     }
 
     bool diesTouching(Player &player, const TileMap &tileMap)
@@ -138,7 +138,7 @@ TEST_CASE("A player half a pixel short of an electrified wall lives", "[Touching
     TileMap tileMap = aTileMap({{{2, 4}, Electrified}}, 10, 10, 16, wallsThatMayKill());
     Player player = aPlayerWithEveryAbility();
     restAgainst(player, glm::ivec2(2, 4), glm::vec2(1.0f, 0.0f));
-    player.setPosition(player.body().position() - glm::vec2(0.5f, 0.0f));
+    player.standAt(player.feet() - glm::vec2(0.5f, 0.0f));
 
     REQUIRE_FALSE(diesTouching(player, tileMap));
 }
@@ -151,7 +151,7 @@ TEST_CASE(
     Level level(
         levelData, theOnlyPalette(wallsThatMayKill()), playerDataWithEveryAbility(), {}, {});
     Player player = aPlayerWithEveryAbility();
-    player.setPosition(levelData.playerStart - glm::vec2(4.0f, 40.0f));
+    player.standAt(levelData.playerStart - glm::vec2(0.0f, 40.0f));
     FixedTimeStep timestepper;
 
     runFor(player, level, 1.0f, timestepper);

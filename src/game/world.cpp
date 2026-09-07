@@ -46,7 +46,7 @@ void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePla
     level = std::move(built);
     luaScriptSystem.bindLevel(level.get());
     if (player)
-        player->setPosition(player->body().position() + movingThePlayerBy);
+        player->standAt(player->feet() + movingThePlayerBy);
 
     onLevelBuilt();
 }
@@ -64,7 +64,7 @@ void World::respawnPlayer()
     std::unique_ptr<Player> newPlayer =
         std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
-    player->setPosition(level->getPlayerStart() - player->body().bottomCenterOffset());
+    player->standAt(level->getPlayerStart());
     player->onDeath.connect([this] { luaScriptSystem.triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect(
         [this]()
@@ -88,7 +88,7 @@ void World::preFixedUpdate()
 
 void World::fixedUpdate(float deltaTime)
 {
-    level->fixedUpdate(deltaTime, player->body().aabb().bottomCenter());
+    level->fixedUpdate(deltaTime, player->feet());
     player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
 
     touchTiles(*player.get(), level->getTileMap());

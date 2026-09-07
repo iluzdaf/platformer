@@ -104,7 +104,7 @@ namespace
 
     void standIn(Npc &npc, const TileMap &tileMap, glm::ivec2 tilePosition)
     {
-        npc.setPosition(tileMap.feetOnTile(tilePosition) - npc.body().bottomCenterOffset());
+        npc.standAt(tileMap.feetOnTile(tilePosition));
     }
 
     float footX(const Npc &npc)
@@ -201,10 +201,10 @@ TEST_CASE("Stands still in a level with nothing to walk on", "[Npc]")
     Level level = levelOf(tiles, glm::ivec2(3, 4));
 
     Npc npc(spawnAt("villager", SpawnTile), setupNpcData());
-    npc.setPosition(glm::vec2(48.0f, 64.0f));
+    npc.standAt(feetOf(glm::ivec2(3, 4)));
     stepNpc(npc, level, 100);
 
-    REQUIRE(npc.body().position().x == 48.0f);
+    REQUIRE(npc.feet().x == feetOf(glm::ivec2(3, 4)).x);
 }
 TEST_CASE("Patrolling is deterministic, so where you place them is what differs", "[Npc]")
 {

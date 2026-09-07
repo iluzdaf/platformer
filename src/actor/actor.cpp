@@ -120,9 +120,14 @@ std::optional<int> Actor::targetNodeId() const
     return behavior ? behavior->getTargetNodeId() : std::nullopt;
 }
 
-void Actor::setPosition(const glm::vec2 &position)
+glm::vec2 Actor::feet() const
 {
-    physicsBody.setPosition(position);
+    return physicsBody.aabb().bottomCenter();
+}
+
+void Actor::standAt(const glm::vec2 &newFeet)
+{
+    physicsBody.setPosition(newFeet - physicsBody.bottomCenterOffset());
 
     if (behavior)
         behavior->reset();
@@ -139,7 +144,7 @@ ActorBehaviorContext Actor::behaviorContext(
 {
     return ActorBehaviorContext{
         navigationGraph,
-        physicsBody.aabb().bottomCenter(),
+        feet(),
         physicsBody.colliderSize(),
         threatPosition,
         motion.getState().contacts};

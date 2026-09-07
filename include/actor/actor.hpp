@@ -35,7 +35,8 @@ public:
     const SheetData &drawnFrom() const;
     std::optional<int> currentNodeId() const;
     std::optional<int> targetNodeId() const;
-    void setPosition(const glm::vec2 &position);
+    glm::vec2 feet() const;
+    void standAt(const glm::vec2 &feet);
 
 protected:
     explicit Actor(const ActorData &data);

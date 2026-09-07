@@ -92,7 +92,7 @@ namespace
             {
                 ScriptedIntentions input;
                 Player player(gameData.playerData, input);
-                player.setPosition(glm::vec2(4.0f * 16.0f, floorY - 16.0f));
+                player.standAt(glm::vec2(4.0f * 16.0f + 8.0f, floorY));
 
                 FixedTimeStep timestepper;
                 float triggered = -1.0f;
@@ -250,8 +250,7 @@ TEST_CASE("The shipped player can climb three stepped platforms", "[Player][Tuni
         {
             ScriptedIntentions input;
             Player player(gameData.playerData, input);
-            player.setPosition(
-                glm::vec2(step.edgeX + step.intoPlatform * back - 8.0f, step.standOn - 16.0f));
+            player.standAt(glm::vec2(step.edgeX + step.intoPlatform * back, step.standOn));
 
             FixedTimeStep timestepper;
             for (int frame = 0; frame < 150; ++frame)

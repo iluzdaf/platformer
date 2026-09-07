@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assets/asset_paths.hpp"
+#include <optional>
 #include <string>
 #include <string_view>
 #include <sol/sol.hpp>
@@ -20,7 +21,7 @@ public:
     struct WaitingCoroutine
     {
         sol::thread thread;
-        sol::function co;
+        sol::protected_function co;
         float remainingTime;
     };
 
@@ -41,5 +42,6 @@ public:
 private:
     std::string scriptPath;
     sol::state lua;
+    std::optional<float> resume(sol::protected_function &co, std::string_view what);
     std::vector<WaitingCoroutine> waitingCoroutines;
 };

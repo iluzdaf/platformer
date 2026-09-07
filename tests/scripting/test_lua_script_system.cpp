@@ -32,6 +32,54 @@ TEST_CASE("A script that loads gives the game its handlers", "[LuaScriptSystem]"
     REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 1);
 }
 
+TEST_CASE("A hook that fails is printed, and the next hook still runs", "[LuaScriptSystem]")
+{
+    std::filesystem::path path = writeScript(
+        "platformer_lua_failing_hook.lua",
+        "hurts = 0\n"
+        "function onDeath() error('boom') end\n"
+        "function onHurt() hurts = hurts + 1 end\n");
+    LuaScriptSystem luaScriptSystem(path.string());
+
+    REQUIRE_NOTHROW(luaScriptSystem.emit("onDeath"));
+    luaScriptSystem.emit("onHurt");
+
+    REQUIRE(luaScriptSystem.getLua()["hurts"].get<int>() == 1);
+}
+
+TEST_CASE("A coroutine that fails is printed and dropped, not fatal", "[LuaScriptSystem]")
+{
+    std::filesystem::path path = writeScript(
+        "platformer_lua_failing_coroutine.lua",
+        "waitSeconds = coroutine.yield\n"
+        "resumed = 0\n"
+        "function onDeath()\n"
+        "    startCoroutine(function()\n"
+        "        waitSeconds(0.1)\n"
+        "        resumed = resumed + 1\n"
+        "        error('boom')\n"
+        "    end)\n"
+        "end\n");
+    LuaScriptSystem luaScriptSystem(path.string());
+    luaScriptSystem.emit("onDeath");
+
+    REQUIRE_NOTHROW(luaScriptSystem.update(0.2f));
+    REQUIRE_NOTHROW(luaScriptSystem.update(0.2f));
+
+    REQUIRE(luaScriptSystem.getLua()["resumed"].get<int>() == 1);
+}
+
+TEST_CASE("A coroutine that fails before its first wait is not kept either", "[LuaScriptSystem]")
+{
+    std::filesystem::path path = writeScript(
+        "platformer_lua_failing_start.lua",
+        "function onDeath() startCoroutine(function() error('boom') end) end\n");
+    LuaScriptSystem luaScriptSystem(path.string());
+
+    REQUIRE_NOTHROW(luaScriptSystem.emit("onDeath"));
+    REQUIRE_NOTHROW(luaScriptSystem.update(1.0f));
+}
+
 TEST_CASE("A hook nobody wrote is nothing to do", "[LuaScriptSystem]")
 {
     std::filesystem::path path = writeScript("platformer_lua_quiet.lua", CountingDeath);

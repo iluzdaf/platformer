@@ -1,6 +1,8 @@
 #include <stdexcept>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
+#include <optional>
+#include <iostream>
 #include <string_view>
 #include <vector>
 #include "scripting/lua_script_system.hpp"
@@ -39,13 +41,9 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
             sol::thread thread = sol::thread::create(lua.lua_state());
             sol::state_view threadState = thread.state();
             threadState["f"] = func;
-            sol::function co = threadState.load("return coroutine.wrap(f)")();
-            sol::object result = co();
-            if (result.valid() && result.is<float>())
-            {
-                float wait = result.as<float>();
-                waitingCoroutines.push_back({thread, co, wait});
-            }
+            sol::protected_function co = threadState.load("return coroutine.wrap(f)")();
+            if (std::optional<float> wait = resume(co, "a coroutine"))
+                waitingCoroutines.push_back({thread, co, *wait});
         });
 
     loadScripts();
@@ -58,17 +56,13 @@ void LuaScriptSystem::update(float deltaTime)
         it->remainingTime -= deltaTime;
         if (it->remainingTime <= 0.0f)
         {
-            sol::object result = it->co();
-
-            if (result.valid() && result.is<float>())
+            if (std::optional<float> wait = resume(it->co, "a coroutine"))
             {
-                it->remainingTime = result.as<float>();
+                it->remainingTime = *wait;
                 ++it;
             }
             else
-            {
                 it = waitingCoroutines.erase(it);
-            }
         }
         else
         {
@@ -89,11 +83,31 @@ void LuaScriptSystem::bindGameObjects(
     lua["world"] = world;
 }
 
+std::optional<float> LuaScriptSystem::resume(sol::protected_function &co, std::string_view what)
+{
+    sol::protected_function_result result = co();
+    if (!result.valid())
+    {
+        sol::error error = result;
+        std::cerr << "Lua error in " << what << ": " << error.what() << '\n';
+        return std::nullopt;
+    }
+
+    sol::object yielded = result;
+    if (yielded.is<float>())
+        return yielded.as<float>();
+
+    return std::nullopt;
+}
+
 void LuaScriptSystem::emit(std::string_view hook)
 {
     sol::object handler = lua[hook];
-    if (handler.is<sol::function>())
-        handler.as<sol::function>()();
+    if (!handler.is<sol::function>())
+        return;
+
+    sol::protected_function call = handler.as<sol::protected_function>();
+    resume(call, hook);
 }
 
 void LuaScriptSystem::bindLevel(const Level *level)

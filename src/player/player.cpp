@@ -5,7 +5,7 @@
 #include "actor/actor.hpp"
 #include <memory>
 #include "actor/behaviors/input_behavior.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 
 Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
     : Actor(data.actorData), data(data)
@@ -34,15 +34,15 @@ void Player::died()
 
 void Player::postFixedUpdate()
 {
-    const ActorMotionState &motionState = motion();
+    const Decided &decisions = decided();
     const ActorContactState &contacts = observed().contacts;
-    if (motionState.dash.emit)
+    if (decisions.dash.emit)
         onDash();
 
-    if (motionState.wallJump.emit)
+    if (decisions.wallJump.emit)
         onWallJump();
 
-    if (motionState.wallSlide.emit)
+    if (decisions.wallSlide.emit)
         onWallSliding();
 
     if (!contacts.wasOnGround && contacts.onGround &&

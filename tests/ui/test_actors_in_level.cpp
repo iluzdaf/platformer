@@ -2,7 +2,7 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
@@ -66,7 +66,7 @@ namespace
         ActorShown showing,
         std::optional<Armed> &armed)
     {
-        ActorMotionState motion;
+        Decided motion;
         Observed observed;
         ActorState playerState;
         ActorAsked asked;

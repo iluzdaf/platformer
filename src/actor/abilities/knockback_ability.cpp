@@ -3,7 +3,7 @@
 #include "actor/abilities/knockback_ability.hpp"
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/hit.hpp"
 #include "actor/observed.hpp"
 
@@ -23,7 +23,7 @@ void KnockbackAbility::applyMovement(
     float deltaTime,
     const InputIntentions &,
     const Observed &observed,
-    ActorMotionState &state)
+    Decided &state)
 {
     KnockbackAbilityState &knockback = state.knockback;
     knockback.emit = false;

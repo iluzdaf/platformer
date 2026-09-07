@@ -3,14 +3,14 @@
 #include "actor/abilities/wall_slide_ability.hpp"
 #include "actor/abilities/wall_slide_ability_data.hpp"
 #include "input/input_intentions.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 
 using Catch::Approx;
 
 TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions inputIntentions;
     WallSlideAbilityData wallSlideAbilityData;

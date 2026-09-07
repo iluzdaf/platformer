@@ -19,7 +19,7 @@ class TileMap;
 class Level;
 class Camera2D;
 struct NpcData;
-struct ActorMotionState;
+struct Decided;
 struct Observed;
 struct ActorState;
 class Npc;
@@ -40,7 +40,7 @@ public:
         const Level &level,
         const LevelData &levelData,
         const std::string &levelPath,
-        const ActorMotionState &playerMotionState,
+        const Decided &playerDecided,
         const Observed &playerObserved,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
@@ -77,7 +77,7 @@ private:
     void drawActors(
         const Level &level,
         const LevelData &levelData,
-        const ActorMotionState &playerMotionState,
+        const Decided &playerDecided,
         const Observed &playerObserved,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,

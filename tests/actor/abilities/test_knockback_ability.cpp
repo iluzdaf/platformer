@@ -4,7 +4,7 @@
 #include "actor/abilities/knockback_ability.hpp"
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/hit.hpp"
 #include "helpers/actors.hpp"
@@ -31,7 +31,7 @@ namespace
 
 TEST_CASE("A push starts a knockback away from the hit, up and along", "[KnockbackAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
@@ -48,7 +48,7 @@ TEST_CASE("A push starts a knockback away from the hit, up and along", "[Knockba
 
 TEST_CASE("A knockback says so once and lasts its duration", "[KnockbackAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
@@ -69,7 +69,7 @@ TEST_CASE("A knockback says so once and lasts its duration", "[KnockbackAbility]
 
 TEST_CASE("Nothing pushed, nothing moves", "[KnockbackAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbility ability{KnockbackAbilityData{}};
@@ -82,7 +82,7 @@ TEST_CASE("Nothing pushed, nothing moves", "[KnockbackAbility]")
 
 TEST_CASE("A push with no side to it keeps the last direction", "[KnockbackAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
@@ -99,7 +99,7 @@ TEST_CASE("A push with no side to it keeps the last direction", "[KnockbackAbili
 
 TEST_CASE("A second push restarts the knockback", "[KnockbackAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
@@ -161,7 +161,7 @@ TEST_CASE("A hit is observed for one step, so it pushes once", "[KnockbackAbilit
     for (int step = 0; step < 10; ++step)
     {
         runFor(player, level, Step, timestepper);
-        if (player.motion().knockback.emit)
+        if (player.decided().knockback.emit)
             ++starts;
     }
 
@@ -184,7 +184,7 @@ TEST_CASE("A lethal hit does not push a corpse", "[KnockbackAbility]")
     player.takeHit(lethalHit());
     runFor(player, level, Step, timestepper);
 
-    REQUIRE_FALSE(player.motion().knockback.active);
+    REQUIRE_FALSE(player.decided().knockback.active);
 }
 
 TEST_CASE("A knocked back actor keeps facing the way it was", "[KnockbackAbility]")

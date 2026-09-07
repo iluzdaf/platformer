@@ -1,13 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include "actor/abilities/wall_hang_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/wall_hang_ability.hpp"
 #include "input/input_intentions.hpp"
 
 TEST_CASE("WallHangAbility basic movement behaviour", "[WallHangAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions inputIntentions;
     WallHangAbilityData wallHangAbilityData;

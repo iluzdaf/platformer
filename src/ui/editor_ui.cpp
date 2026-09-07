@@ -122,7 +122,7 @@ void EditorUi::draw(
                 subject.level,
                 subject.levelData,
                 subject.levelPath,
-                subject.playerMotionState,
+                subject.playerDecided,
                 subject.playerObserved,
                 subject.playerFeet,
                 subject.playerState,

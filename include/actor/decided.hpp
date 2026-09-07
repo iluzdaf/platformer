@@ -12,7 +12,7 @@
 #include "actor/abilities/gravity_ability_state.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
 
-struct ActorMotionState
+struct Decided
 {
 
     glm::vec2 targetVelocity = glm::vec2(0.0f);

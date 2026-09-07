@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "actor/abilities/dash_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/dash_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -10,7 +10,7 @@ using Catch::Approx;
 
 TEST_CASE("DashAbility basic movement behavior", "[DashAbility]")
 {
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     InputIntentions inputIntentions;
     DashAbilityData dashAbilityData;
@@ -103,7 +103,7 @@ namespace
 {
     float dashRunsFor(const DashAbilityData &data, bool onGround)
     {
-        ActorMotionState state;
+        Decided state;
         Observed observed;
         DashAbility dashAbility(data);
 

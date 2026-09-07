@@ -34,7 +34,7 @@ void LevelUi::draw(
     const Level &level,
     const LevelData &levelData,
     const std::string &levelPath,
-    const ActorMotionState &playerMotionState,
+    const Decided &playerDecided,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -47,7 +47,7 @@ void LevelUi::draw(
     drawActors(
         level,
         levelData,
-        playerMotionState,
+        playerDecided,
         playerObserved,
         playerFeet,
         playerState,
@@ -59,7 +59,7 @@ void LevelUi::draw(
 void LevelUi::drawActors(
     const Level &level,
     const LevelData &levelData,
-    const ActorMotionState &playerMotionState,
+    const Decided &playerDecided,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -73,7 +73,7 @@ void LevelUi::drawActors(
     ActorShown wasShowing = showingActor;
     ActorAsked asked = drawActorsInLevel(
         level,
-        playerMotionState,
+        playerDecided,
         playerObserved,
         playerFeet,
         playerState,

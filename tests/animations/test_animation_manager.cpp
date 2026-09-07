@@ -4,7 +4,7 @@
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 
 namespace
@@ -29,7 +29,7 @@ TEST_CASE("Plays the animation for the state it is in", "[AnimationManager]")
     animationManager.addAnimation(ActorAnimationState::Idle, animationOfFrame(1));
     animationManager.addAnimation(ActorAnimationState::Walk, animationOfFrame(2));
 
-    animationManager.update(0.01f, ActorMotionState{}, walkingOnGround());
+    animationManager.update(0.01f, Decided{}, walkingOnGround());
 
     REQUIRE(animationManager.getCurrentState() == ActorAnimationState::Walk);
 }
@@ -39,7 +39,7 @@ TEST_CASE("Falls back to idle for a state it has no animation for", "[AnimationM
     AnimationManager animationManager;
     animationManager.addAnimation(ActorAnimationState::Idle, animationOfFrame(1));
 
-    REQUIRE_NOTHROW(animationManager.update(0.01f, ActorMotionState{}, walkingOnGround()));
+    REQUIRE_NOTHROW(animationManager.update(0.01f, Decided{}, walkingOnGround()));
     REQUIRE(animationManager.getCurrentState() == ActorAnimationState::Idle);
 }
 
@@ -48,7 +48,7 @@ TEST_CASE("An actor without airborne animations survives being airborne", "[Anim
     AnimationManager animationManager;
     animationManager.addAnimation(ActorAnimationState::Idle, animationOfFrame(1));
 
-    ActorMotionState state;
+    Decided state;
 
     Observed observed;
     observed.contacts.onGround = false;
@@ -74,10 +74,10 @@ TEST_CASE(
     airborne.contacts.onGround = false;
 
     airborne.velocity = glm::vec2(0.0f, -40.0f);
-    animationManager.update(0.01f, ActorMotionState{}, airborne);
+    animationManager.update(0.01f, Decided{}, airborne);
     REQUIRE(animationManager.getCurrentState() == ActorAnimationState::Jump);
 
     airborne.velocity = glm::vec2(0.0f, 40.0f);
-    animationManager.update(0.01f, ActorMotionState{}, airborne);
+    animationManager.update(0.01f, Decided{}, airborne);
     REQUIRE(animationManager.getCurrentState() == ActorAnimationState::Fall);
 }

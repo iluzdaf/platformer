@@ -5,7 +5,7 @@
 #include "actor/abilities/ability.hpp"
 
 struct ActorMotionData;
-struct ActorMotionState;
+struct Decided;
 struct InputIntentions;
 struct Observed;
 
@@ -17,7 +17,7 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        ActorMotionState &state);
+        Decided &state);
 
 private:
     std::vector<std::unique_ptr<Ability>> abilities;

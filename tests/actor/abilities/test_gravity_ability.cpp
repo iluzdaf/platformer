@@ -2,7 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include <cmath>
 #include "actor/abilities/gravity_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -12,7 +12,7 @@ using Catch::Approx;
 TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
 {
     InputIntentions inputIntentions;
-    ActorMotionState state;
+    Decided state;
     Observed observed;
     GravityAbilityData data;
     GravityAbility ability(data);

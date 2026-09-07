@@ -1,5 +1,5 @@
 #include "actor/abilities/gravity_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -13,7 +13,7 @@ void GravityAbility::applyMovement(
     float deltaTime,
     const InputIntentions &,
     const Observed &observed,
-    ActorMotionState &state)
+    Decided &state)
 {
     if (observed.contacts.onGround || state.wallHang.active || state.wallSlide.active ||
         state.mantle.active || state.knockback.active)

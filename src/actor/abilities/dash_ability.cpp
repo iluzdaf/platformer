@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include "actor/abilities/dash_ability_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/dash_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -20,7 +20,7 @@ void DashAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    ActorMotionState &state)
+    Decided &state)
 {
     state.dash.emit = false;
     state.dash.velocity = glm::vec2(0.0f);

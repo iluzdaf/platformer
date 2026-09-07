@@ -5,7 +5,7 @@
 
 struct InputIntentions;
 struct Observed;
-struct ActorMotionState;
+struct Decided;
 
 class DashAbility : public Ability
 {
@@ -15,7 +15,7 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        ActorMotionState &state) override;
+        Decided &state) override;
 
 private:
     DashAbilityData data;

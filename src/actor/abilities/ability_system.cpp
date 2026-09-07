@@ -1,5 +1,5 @@
 #include "actor/actor_motion_data.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/ability_system.hpp"
 #include "actor/abilities/move_ability.hpp"
@@ -42,7 +42,7 @@ void AbilitySystem::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    ActorMotionState &state)
+    Decided &state)
 {
     for (auto &ability : abilities)
         ability->applyMovement(deltaTime, inputIntentions, observed, state);

@@ -13,7 +13,7 @@
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
 #include "actor/actor_animation_state.hpp"
-#include "actor/actor_motion_state.hpp"
+#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
@@ -73,7 +73,7 @@ namespace
     }
 
     void drawThePlayer(
-        const ActorMotionState &motion,
+        const Decided &motion,
         const Observed &observed,
         const glm::vec2 &feet,
         const ActorState &state)
@@ -221,7 +221,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
 
 ActorAsked drawActorsInLevel(
     const Level &level,
-    const ActorMotionState &playerMotionState,
+    const Decided &playerDecided,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -284,7 +284,7 @@ ActorAsked drawActorsInLevel(
         {
             nameThenValue();
             drawPlayerEditing(level.getTileMap().tileUnderFeet(level.getPlayerStart()), armed);
-            drawThePlayer(playerMotionState, playerObserved, playerFeet, playerState);
+            drawThePlayer(playerDecided, playerObserved, playerFeet, playerState);
             ImGui::EndTable();
         }
         break;

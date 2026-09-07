@@ -46,7 +46,7 @@ void Actor::postFixedUpdate()
 {
 }
 
-void Actor::preFixedUpdate()
+void Actor::beginFrame()
 {
     motion.beginFrame();
 }

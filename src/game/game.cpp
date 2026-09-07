@@ -114,7 +114,7 @@ void Game::frame(float deltaTime)
         [this, &keysDown]
         {
             keyboardIntentions.process(keysDown);
-            world.preFixedUpdate();
+            world.beginFrame();
         },
         [this](float dt)
         {

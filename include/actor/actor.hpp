@@ -23,7 +23,7 @@ class Actor
 {
 public:
     virtual ~Actor() = default;
-    void preFixedUpdate();
+    void beginFrame();
     void fixedUpdate(
         float deltaTime,
         const Level &level,

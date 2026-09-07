@@ -456,7 +456,7 @@ TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in
         intentions.jumpHeld = frame >= 30 && frame < 45;
         input.set(intentions);
 
-        player.preFixedUpdate();
+        player.beginFrame();
         timestepper.run(
             1.0f / 60.0f,
             [&](float dt)

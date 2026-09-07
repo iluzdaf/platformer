@@ -6,7 +6,7 @@
 
 inline void runFor(Player &player, const Level &level, float seconds, FixedTimeStep &timestepper)
 {
-    player.preFixedUpdate();
+    player.beginFrame();
     timestepper.run(
         seconds,
         [&](float dt)

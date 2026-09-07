@@ -63,7 +63,7 @@ TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "
 
     for (int step = 0; step < 4000; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
 
         if (!npc.moving().getState().contacts.onGround)
@@ -105,7 +105,7 @@ TEST_CASE("The shipped villager runs from the player and settles once it is gone
 
     for (int step = 0; step < 300; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, crowding);
     }
 
@@ -115,7 +115,7 @@ TEST_CASE("The shipped villager runs from the player and settles once it is gone
     float ranTo = footOf(npc).x;
     for (int step = 0; step < 600; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
     }
 
@@ -139,7 +139,7 @@ TEST_CASE("The shipped villager never freezes out in the open on its platform", 
 
     for (int step = 0; step < 500; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, chasing);
 
         chasing.x = std::max(16.0f, chasing.x - 1.1f);
@@ -165,7 +165,7 @@ TEST_CASE(
     glm::vec2 cornering(112.0f, 96.0f);
     for (int step = 0; step < 600; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, cornering);
     }
 
@@ -175,7 +175,7 @@ TEST_CASE(
     float wandered = cowering;
     for (int step = 0; step < 400; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, cornering);
         wandered = std::max(wandered, footOf(npc).x);
     }
@@ -184,7 +184,7 @@ TEST_CASE(
 
     for (int step = 0; step < 600; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, glm::vec2(112.0f, 192.0f));
     }
 
@@ -204,7 +204,7 @@ TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered
 
     for (int step = 0; step < 600; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, driving);
 
         if (npc.state().facingLeft != wasFacingLeft)
@@ -226,7 +226,7 @@ TEST_CASE("The shipped villager pays no mind to a player on the platform below",
     float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
     for (int step = 0; step < 1200; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, glm::vec2(footOf(npc).x, 128.0f));
 
         leftMost = std::min(leftMost, footOf(npc).x);
@@ -251,7 +251,7 @@ TEST_CASE("The shipped explorer climbs the wall above the ledge", "[Npc][Level][
     bool cameBackDown = false;
     for (int step = 0; step < 4000; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
         highest = std::min(highest, footOf(npc).y);
         if (reachedTheTopAt < 0 && highest <= topOfTheFace + 1.0f)

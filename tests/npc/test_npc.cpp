@@ -344,7 +344,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
 
     for (int step = 0; step < 20; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, footOf(npc) + glm::vec2(8.0f, 0.0f));
     }
 
@@ -352,7 +352,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
 
     for (int step = 0; step < 400; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level, glm::vec2(112.0f, 192.0f));
     }
 
@@ -401,7 +401,7 @@ TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level
     float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
     for (int step = 0; step < 3000; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
         leftMost = std::min(leftMost, footOf(npc).x);
         rightMost = std::max(rightMost, footOf(npc).x);
@@ -425,7 +425,7 @@ TEST_CASE("A beat ending partway up a wall is climbed to and no further", "[Npc]
     float highest = footOf(npc).y;
     for (int step = 0; step < 4000; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
         highest = std::min(highest, footOf(npc).y);
     }
@@ -451,7 +451,7 @@ TEST_CASE("An npc drops off a platform to a beat end below its edge", "[Npc]")
     bool cameDown = false;
     for (int step = 0; step < 2000 && !cameDown; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
         cameDown = std::abs(footOf(npc).y - theFloor) < 2.0f;
     }
@@ -471,7 +471,7 @@ TEST_CASE("A patrolling npc says which node it set off from and where it is head
     std::set<std::pair<int, int>> legsWalked;
     for (int step = 0; step < 4000; ++step)
     {
-        npc.preFixedUpdate();
+        npc.beginFrame();
         npc.fixedUpdate(0.01f, level);
 
         std::optional<int> setOffAt = npc.currentNodeId();
@@ -496,7 +496,7 @@ TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
 
     for (int step = 0; step < 20; ++step)
     {
-        level.preFixedUpdate();
+        level.beginFrame();
         level.fixedUpdate(0.01f, footOf(npc) + glm::vec2(8.0f, 0.0f));
     }
 
@@ -513,7 +513,7 @@ TEST_CASE("A level drives the npcs it holds", "[Npc][Level]")
 
     for (int step = 0; step < 200; ++step)
     {
-        level.preFixedUpdate();
+        level.beginFrame();
         level.fixedUpdate(0.01f, glm::vec2(112.0f, 192.0f));
         level.postFixedUpdate();
     }
@@ -530,7 +530,7 @@ namespace
 
         for (int step = 0; step < steps; ++step)
         {
-            level.preFixedUpdate();
+            level.beginFrame();
             level.fixedUpdate(0.01f, glm::vec2(1000.0f, 1000.0f));
             level.postFixedUpdate();
             leftmost = std::min(leftmost, footOf(npc).x);

@@ -166,10 +166,10 @@ const std::vector<Pickup> &Level::getPickups() const
     return pickups;
 }
 
-void Level::preFixedUpdate()
+void Level::beginFrame()
 {
     for (const std::unique_ptr<Npc> &npc : npcs)
-        npc->preFixedUpdate();
+        npc->beginFrame();
 }
 
 void Level::fixedUpdate(float deltaTime, const glm::vec2 &playerPosition)

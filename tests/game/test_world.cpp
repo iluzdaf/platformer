@@ -17,9 +17,27 @@
 #include "tile_map/tile_map.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "timing/fixed_time_step.hpp"
+#include "game/score.hpp"
+#include "pickups/pickup_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
+#include "helpers/levels.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/temporary_levels.hpp"
 
 namespace
 {
+    GameData aFloorWorldWithCoins()
+    {
+        GameData gameData;
+        gameData.tilePalettes = theOnlyPalette(aPaletteWithASolidTile());
+        gameData.playerData = playerDataWithEveryAbility();
+        PickupData coin;
+        coin.size = glm::vec2(16.0f);
+        coin.scoreDelta = 1;
+        gameData.pickupData = {{"coin", coin}};
+        return gameData;
+    }
+
     void walkFor(World &world, int frames)
     {
         FixedTimeStep timestepper;
@@ -34,6 +52,22 @@ namespace
                     world.postFixedUpdate();
                 });
         }
+    }
+
+    int scoreStandingBesideACoinAt(glm::vec2 position)
+    {
+        GameData gameData = aFloorWorldWithCoins();
+        LevelData levelData = aFloorLevelPlacing({});
+        levelData.pickups.push_back(PickupSpawnData{"coin", position});
+        TemporaryLevels levels("world_coins");
+        levels.write("floor.json", levelData);
+
+        LuaScriptSystem luaScriptSystem;
+        World world(gameData, noIntentions(), luaScriptSystem);
+        world.loadLevel(levels.pathOf("floor.json"));
+        walkFor(world, 10);
+
+        return world.getScore().total();
     }
 }
 
@@ -267,4 +301,21 @@ TEST_CASE("A rebuild that cannot be built leaves the world as it was", "[World]"
     REQUIRE(&world.getLevel() == before);
     REQUIRE(world.getLevelData().npcs.size() == wasPlaying.npcs.size());
     REQUIRE(world.getPlayer().getPosition() == stoodAt);
+}
+
+TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
+{
+    GameData gameData = aFloorWorldWithCoins();
+    LevelData levelData = aFloorLevelPlacing({});
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_reach");
+    levels.write("floor.json", levelData);
+    world.loadLevel(levels.pathOf("floor.json"));
+    AABB collider = world.getPlayer().getPhysicsBody().getAABB();
+    glm::vec2 halfACoin = gameData.pickupData.at("coin").size * 0.5f;
+    auto coinWhoseLeftEdgeIsAt = [&](float x) { return glm::vec2(x, collider.top()) + halfACoin; };
+
+    REQUIRE(scoreStandingBesideACoinAt(coinWhoseLeftEdgeIsAt(collider.right())) == 1);
+    REQUIRE(scoreStandingBesideACoinAt(coinWhoseLeftEdgeIsAt(collider.right() + 1.0f)) == 0);
 }

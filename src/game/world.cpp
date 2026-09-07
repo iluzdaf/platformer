@@ -93,7 +93,7 @@ void World::fixedUpdate(float deltaTime)
 
     touchTiles(*player.get(), level->getTileMap());
 
-    for (const Pickup &taken : level->takePickupsTouching(player->getPhysicsBody().getAABB()))
+    for (const Pickup &taken : level->takePickupsTouching(player->getPhysicsBody().touchBox()))
         score.add(taken.getScoreDelta());
 }
 

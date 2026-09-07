@@ -17,6 +17,11 @@
 
 constexpr float TestTileSize = 16.0f;
 
+inline glm::vec2 topLeftOf(glm::ivec2 tile, float tileSize = TestTileSize)
+{
+    return topLeftOfTile(tile, static_cast<int>(tileSize));
+}
+
 inline glm::vec2 feetOf(glm::ivec2 tile, float tileSize = TestTileSize)
 {
     return feetOnTile(tile, static_cast<int>(tileSize));

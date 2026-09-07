@@ -23,9 +23,8 @@ Tile::Tile(const TileData &tileData, glm::vec2 cellSize)
                 "A collider reaching outside its cell is never looked for out there");
     }
 
-    if (solid && (deadly || portal))
-        throw std::runtime_error(
-            "A solid tile is never touched, so it cannot be deadly or a portal");
+    if (solid && portal)
+        throw std::runtime_error("A portal is walked into, so it cannot be solid");
 
     if (deadly && portal)
         throw std::runtime_error("A deadly tile kills on touch, so it cannot also be a portal");

@@ -56,6 +56,12 @@ AABB PhysicsBody::getAABB() const
     return AABB(position + getColliderOffset(), getColliderSize());
 }
 
+AABB PhysicsBody::touchBox() const
+{
+    glm::vec2 skin(ContactProbeDepth);
+    return AABB(position + getColliderOffset() - skin, getColliderSize() + skin * 2.0f);
+}
+
 glm::vec2 PhysicsBody::getBottomCenterOffset() const
 {
     return getColliderOffset() + glm::vec2(getColliderSize().x * 0.5f, getColliderSize().y);

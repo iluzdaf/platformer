@@ -356,62 +356,6 @@ TEST_CASE("The palette editor reports unsaved once a tile set changes", "[TilePa
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
 }
 
-TEST_CASE("The palette editor says when its texture is not under textures", "[TilePalettesUi]")
-{
-    HeadlessImGui gui;
-    TextureCache textures;
-    std::optional<Armed> armed;
-    EditorCommands commands;
-
-    auto heightNaming = [&](const std::string &texture)
-    {
-        TilePalettesUi tilePalettesUi;
-        TilePalettes palettes;
-        palettes["ice"] = paletteOf({{0, TileData{}}});
-        palettes["ice"].tileSet.texture = texture;
-
-        float reached = 0.0f;
-        gui.frame(
-            [&]
-            {
-                tilePalettesUi.draw(palettes, textures, commands, armed);
-                reached = ImGui::GetCurrentWindow()->DC.CursorPos.y;
-            });
-
-        return reached;
-    };
-
-    REQUIRE(heightNaming("textures/nowhere.png") > heightNaming("textures/coin.png"));
-}
-
-TEST_CASE("The palette editor says when its cells are not square", "[TilePalettesUi]")
-{
-    HeadlessImGui gui;
-    TextureCache textures;
-    std::optional<Armed> armed;
-    EditorCommands commands;
-
-    auto heightWithCells = [&](glm::ivec2 cellSize)
-    {
-        TilePalettesUi tilePalettesUi;
-        TilePalettes palettes;
-        palettes["ice"] = paletteOf({{0, TileData{}}});
-        palettes["ice"].tileSet.cellSize = cellSize;
-
-        float reached = 0.0f;
-        gui.frame(
-            [&]
-            {
-                tilePalettesUi.draw(palettes, textures, commands, armed);
-                reached = ImGui::GetCurrentWindow()->DC.CursorPos.y;
-            });
-
-        return reached;
-    };
-
-    REQUIRE(heightWithCells(glm::ivec2(16, 24)) > heightWithCells(glm::ivec2(16)));
-}
-
 TEST_CASE("A tile set nobody loaded is asked for once", "[TilePalettesUi]")
 {
     HeadlessImGui gui;

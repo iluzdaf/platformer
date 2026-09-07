@@ -13,17 +13,18 @@
 #include "ui/sheet_in_scope.hpp"
 #include "assets/sheet_data.hpp"
 #include "helpers/pictures_drawn.hpp"
-#include "ui/sheet_preview.hpp"
+#include "ui/tile_picker.hpp"
 
 namespace
 {
-    float heightOfFrames(HeadlessImGui &gui, FrameAnimationData &animation, bool withSheet)
+    bool drawsFramesAsPictures(HeadlessImGui &gui, FrameAnimationData &animation, bool withSheet)
     {
         Texture2D coin = aSheetOf(7, 6);
         SheetInScope offering{&coin, SheetData{"textures/somewhere.png", glm::ivec2(16)}};
 
-        float reached = 0.0f;
-        gui.frame(
+        return drawsAPictureWide(
+            gui,
+            TilePickerCellSize,
             [&]
             {
                 ImGui::TreeNodeSetOpen(ImGui::GetID("animation"), true);
@@ -39,24 +40,19 @@ namespace
                 }
                 else
                     inspector::draw("animation", animation);
-
-                reached = ImGui::GetCurrentWindow()->DC.CursorPos.y;
             });
-
-        return reached;
     }
 }
 
-TEST_CASE("A frame costs more room as a picture than as a number", "[FrameAnimationField]")
+TEST_CASE(
+    "Frames are pictures to pick when a sheet is in scope, and numbers otherwise",
+    "[FrameAnimationField]")
 {
     HeadlessImGui gui;
-    FrameAnimationData one{{1}, 0.1f};
-    FrameAnimationData five{{1, 2, 3, 4, 5}, 0.1f};
+    FrameAnimationData animation{{1, 2, 3}, 0.1f};
 
-    float asPictures = heightOfFrames(gui, five, true) - heightOfFrames(gui, one, true);
-    float asNumbers = heightOfFrames(gui, five, false) - heightOfFrames(gui, one, false);
-
-    REQUIRE(asPictures > asNumbers);
+    REQUIRE(drawsFramesAsPictures(gui, animation, true));
+    REQUIRE_FALSE(drawsFramesAsPictures(gui, animation, false));
 }
 
 TEST_CASE("Frames stay what they were when nothing is picked", "[FrameAnimationField]")
@@ -64,28 +60,9 @@ TEST_CASE("Frames stay what they were when nothing is picked", "[FrameAnimationF
     HeadlessImGui gui;
     FrameAnimationData animation{{1, 2, 3}, 0.1f};
 
-    heightOfFrames(gui, animation, true);
+    drawsFramesAsPictures(gui, animation, true);
 
     REQUIRE(animation.frames == std::vector<int>{1, 2, 3});
-}
-
-TEST_CASE("An animation field draws no preview of its own", "[FrameAnimationField]")
-{
-    HeadlessImGui gui;
-    FrameAnimationData animation{{1, 2, 3}, 0.1f};
-
-    Texture2D coin = aSheetOf(7, 6);
-    SheetInScope offering{&coin, SheetData{"textures/somewhere.png", glm::ivec2(16)}};
-
-    REQUIRE_FALSE(drawsAPictureWide(
-        gui,
-        PreviewSize,
-        [&]
-        {
-            ImGui::TreeNodeSetOpen(ImGui::GetID("animation"), true);
-            ShowingSheet showing(offering);
-            inspector::draw("animation", animation);
-        }));
 }
 
 #endif

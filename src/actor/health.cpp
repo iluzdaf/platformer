@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <optional>
 #include <stdexcept>
 #include "actor/health.hpp"
 #include "actor/health_data.hpp"
@@ -21,6 +22,7 @@ bool Health::takeHit(const Hit &hit)
     if (hit.lethal)
     {
         left = 0;
+        taken = hit;
         return true;
     }
 
@@ -29,6 +31,7 @@ bool Health::takeHit(const Hit &hit)
 
     left = std::max(0, left - hit.damage);
     invulnerableLeft = data.invulnerableFor;
+    taken = hit;
     return true;
 }
 
@@ -55,4 +58,9 @@ bool Health::alive() const
 bool Health::invulnerable() const
 {
     return invulnerableLeft > 0.0f;
+}
+
+const std::optional<Hit> &Health::lastHit() const
+{
+    return taken;
 }

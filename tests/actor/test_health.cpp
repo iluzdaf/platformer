@@ -6,7 +6,6 @@
 #include "helpers/actors.hpp"
 #include "player/player.hpp"
 #include "player/player_data.hpp"
-#include "actor/actor_data.hpp"
 #include "game/level.hpp"
 #include "timing/fixed_time_step.hpp"
 #include "helpers/player_fixtures.hpp"
@@ -116,6 +115,18 @@ TEST_CASE("Without a window every hit lands", "[Health]")
     REQUIRE(health.points() == 1);
 }
 
+TEST_CASE("Health remembers the last hit that landed, not the ones refused", "[Health]")
+{
+    Health health = threePoints(1.0f);
+    REQUIRE_FALSE(health.lastHit());
+
+    health.takeHit(Hit{1, glm::vec2(-1.0f, 0.0f), false});
+    health.takeHit(Hit{1, glm::vec2(1.0f, 0.0f), false});
+
+    REQUIRE(health.lastHit());
+    REQUIRE(health.lastHit()->direction.x == -1.0f);
+}
+
 TEST_CASE("Health of less than a point, or a negative window, is refused", "[Health]")
 {
     REQUIRE_THROWS(Health(HealthData{0, 0.0f}));
@@ -136,9 +147,7 @@ TEST_CASE("An actor is alive with one point until a hit says otherwise", "[Healt
 
 TEST_CASE("A player says hurt while alive and dead once, whatever keeps hitting", "[Health]")
 {
-    PlayerData playerData = playerDataWithEveryAbility();
-    playerData.actorData.healthData = HealthData{2, 0.0f};
-    Player player(playerData, noIntentions());
+    Player player(playerDataWithHealth(2, 0.0f), noIntentions());
     int hurts = 0, deaths = 0;
     player.onHurt.connect([&] { ++hurts; });
     player.onDeath.connect([&] { ++deaths; });
@@ -154,8 +163,7 @@ TEST_CASE("A player says hurt while alive and dead once, whatever keeps hitting"
 
 TEST_CASE("A player's invulnerable window runs on the fixed step", "[Health]")
 {
-    PlayerData playerData = playerDataWithEveryAbility();
-    playerData.actorData.healthData = HealthData{3, 0.2f};
+    PlayerData playerData = playerDataWithHealth(3, 0.2f);
     Player player(playerData, noIntentions());
     player.takeHit(aHitOf(1));
     REQUIRE(player.health().invulnerable());

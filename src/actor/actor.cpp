@@ -1,6 +1,7 @@
 #include <optional>
 #include <string_view>
 #include "actor/actor.hpp"
+#include "actor/hit.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "animations/frame_animation.hpp"
@@ -70,9 +71,10 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     animationManager.update(deltaTime, motion.getState());
 
     const ActorMotionState &motionState = motion.getState();
-    actorState.facingLeft = motionState.velocity.x > 0
-                                ? false
-                                : (motionState.velocity.x < 0 ? true : actorState.facingLeft);
+    if (!motionState.knockback.active)
+        actorState.facingLeft = motionState.velocity.x > 0
+                                    ? false
+                                    : (motionState.velocity.x < 0 ? true : actorState.facingLeft);
     actorState.currentFrame = animationManager.getCurrentAnimation().getCurrentFrame();
     actorState.currentAnimationState = animationManager.getCurrentState();
 }
@@ -146,7 +148,10 @@ bool Actor::takeHit(const Hit &hit)
         return false;
 
     if (hp.alive())
+    {
+        motion.pushedBy(hit);
         hurt();
+    }
     else
         died();
 

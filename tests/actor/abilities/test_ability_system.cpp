@@ -11,6 +11,7 @@
 #include "actor/abilities/wall_hang_ability.hpp"
 #include "actor/abilities/wall_climb_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
+#include "actor/abilities/knockback_ability_data.hpp"
 #include "input/input_intentions.hpp"
 
 using Catch::Approx;
@@ -35,6 +36,7 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
     ActorMotionData motionData;
     motionData.moveAbilityData = MoveAbilityData();
     motionData.jumpAbilityData = JumpAbilityData();
+    motionData.knockbackAbilityData = KnockbackAbilityData();
     motionData.dashAbilityData = DashAbilityData();
     motionData.wallSlideAbilityData = WallSlideAbilityData();
     motionData.wallJumpAbilityData = WallJumpAbilityData();
@@ -175,6 +177,23 @@ TEST_CASE("AbilitySystem basic functionality", "[AbilitySystem]")
         simulateMovement(abilitySystem, 0.01f, inputIntentions, state);
         REQUIRE(state.dash.active);
         REQUIRE(state.targetVelocity.x == Approx(-motionData.dashAbilityData->dashSpeed));
+    }
+
+    SECTION("A knockback owns the velocity over everything else")
+    {
+        InputIntentions dashing;
+        dashing.direction.x = 1;
+        dashing.dashRequested = true;
+        state.contacts.onGround = true;
+        simulateMovement(abilitySystem, 0.01f, dashing, state);
+        REQUIRE(state.dash.active);
+
+        state.knockback.pushed = glm::vec2(-1.0f, 0.0f);
+        simulateMovement(abilitySystem, 0.01f, dashing, state);
+
+        REQUIRE(state.knockback.active);
+        REQUIRE(state.velocity == state.knockback.velocity);
+        REQUIRE(state.velocity.x < 0.0f);
     }
 
     SECTION("Gravity is not applied when dashing")

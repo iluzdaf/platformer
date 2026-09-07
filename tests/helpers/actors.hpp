@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/dash_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
+#include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/abilities/move_ability_data.hpp"
@@ -63,6 +64,7 @@ inline PlayerData playerDataWithEveryAbility()
     playerData.actorData.motionData.wallClimbAbilityData = WallClimbAbilityData();
     playerData.actorData.motionData.mantleAbilityData = MantleAbilityData();
     playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
+    playerData.actorData.motionData.knockbackAbilityData = KnockbackAbilityData();
     return playerData;
 }
 

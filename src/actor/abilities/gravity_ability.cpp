@@ -14,7 +14,7 @@ void GravityAbility::applyMovement(
     ActorMotionState &state)
 {
     if (state.contacts.onGround || state.wallHang.active || state.wallSlide.active ||
-        state.mantle.active)
+        state.mantle.active || state.knockback.active)
         state.gravity.velocity.y = 0.0f;
     else
     {

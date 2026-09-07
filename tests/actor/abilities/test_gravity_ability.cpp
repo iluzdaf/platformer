@@ -42,6 +42,18 @@ TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
         REQUIRE(state.gravity.velocity.y == Approx(data.maxFallSpeed));
     }
 
+    SECTION("Gravity holds still during a knockback")
+    {
+        state.contacts.onGround = false;
+        ability.applyMovement(0.01f, inputIntentions, state);
+        REQUIRE(state.gravity.velocity.y > 0.0f);
+
+        state.knockback.active = true;
+        ability.applyMovement(0.01f, inputIntentions, state);
+
+        REQUIRE(state.gravity.velocity.y == 0.0f);
+    }
+
     SECTION("Gravity resets to 0 if onGround, climbing or wallSliding")
     {
         state.contacts.onGround = false;

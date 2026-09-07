@@ -199,6 +199,8 @@ add_library(platformer_lib OBJECT
     src/actor/actor_motion.cpp
     src/actor/abilities/jump_ability.cpp
     src/actor/abilities/dash_ability.cpp
+    src/actor/abilities/knockback_ability.cpp
+
     src/actor/abilities/move_ability.cpp
     src/actor/abilities/wall_slide_ability.cpp
     src/actor/abilities/wall_jump_ability.cpp
@@ -381,6 +383,8 @@ add_executable(tests
     tests/tile_map/test_tile_map_navigation.cpp
     tests/actor/abilities/test_jump_ability.cpp
     tests/actor/abilities/test_dash_ability.cpp
+    tests/actor/abilities/test_knockback_ability.cpp
+
     tests/actor/abilities/test_move_ability.cpp
     tests/actor/abilities/test_wall_slide_ability.cpp
     tests/actor/abilities/test_wall_jump_ability.cpp

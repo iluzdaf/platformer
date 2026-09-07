@@ -10,6 +10,7 @@
 #include "actor/abilities/wall_climb_ability.hpp"
 #include "actor/abilities/mantle_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
+#include "actor/abilities/knockback_ability.hpp"
 #include <memory>
 
 AbilitySystem::AbilitySystem(const ActorMotionData &data)
@@ -32,6 +33,8 @@ AbilitySystem::AbilitySystem(const ActorMotionData &data)
         abilities.push_back(std::make_unique<MantleAbility>(data.mantleAbilityData.value()));
     if (data.gravityAbilityData)
         abilities.push_back(std::make_unique<GravityAbility>(data.gravityAbilityData.value()));
+    if (data.knockbackAbilityData)
+        abilities.push_back(std::make_unique<KnockbackAbility>(data.knockbackAbilityData.value()));
 }
 
 void AbilitySystem::applyMovement(
@@ -43,8 +46,9 @@ void AbilitySystem::applyMovement(
         ability->applyMovement(deltaTime, inputIntentions, state);
 
     glm::vec2 finalVelocity = state.gravity.velocity;
-
-    if (state.dash.active)
+    if (state.knockback.active)
+        finalVelocity = state.knockback.velocity;
+    else if (state.dash.active)
         finalVelocity = state.dash.velocity;
     else if (state.mantle.active)
         finalVelocity = state.mantle.velocity;

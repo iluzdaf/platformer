@@ -9,4 +9,5 @@ struct NpcData
     ActorData actorData;
 
     std::optional<StateMachineBehaviorData> stateMachineBehaviorData;
+    int contactDamage = 0;
 };

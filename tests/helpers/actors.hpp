@@ -13,6 +13,7 @@
 #include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/abilities/wall_slide_ability_data.hpp"
 #include "actor/actor_data.hpp"
+#include "actor/health_data.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_profile_builder.hpp"
@@ -62,6 +63,13 @@ inline PlayerData playerDataWithEveryAbility()
     playerData.actorData.motionData.wallClimbAbilityData = WallClimbAbilityData();
     playerData.actorData.motionData.mantleAbilityData = MantleAbilityData();
     playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
+    return playerData;
+}
+
+inline PlayerData playerDataWithHealth(int points, float invulnerableFor)
+{
+    PlayerData playerData = playerDataWithEveryAbility();
+    playerData.actorData.healthData = HealthData{points, invulnerableFor};
     return playerData;
 }
 

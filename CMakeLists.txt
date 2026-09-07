@@ -141,6 +141,8 @@ add_library(platformer_lib OBJECT
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/touching_tiles.cpp
+    src/npc/touching_npcs.cpp
+
     src/player/player.cpp
     src/actor/actor.cpp
     src/actor/health.cpp
@@ -356,6 +358,8 @@ add_executable(tests
     tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
+    tests/npc/test_touching_npcs.cpp
+
     tests/npc/test_shipped_npcs.cpp
     tests/pickups/test_pickup_data.cpp
     tests/pickups/test_pickup.cpp

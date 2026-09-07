@@ -14,6 +14,7 @@
 #include "pickups/pickup.hpp"
 #include "actor/actor.hpp"
 #include "tile_map/touching_tiles.hpp"
+#include "npc/touching_npcs.hpp"
 #include "player/player.hpp"
 #include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
@@ -93,6 +94,7 @@ void World::fixedUpdate(float deltaTime)
     player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
 
     touchTiles(*player.get(), level->getTileMap());
+    touchNpcs(*player.get(), level->getNpcs());
 
     for (const Pickup &taken : level->takePickupsTouching(player->body().touchBox()))
         score.add(taken.getScoreDelta());

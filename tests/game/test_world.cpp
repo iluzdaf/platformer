@@ -23,9 +23,10 @@
 #include "helpers/levels.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/temporary_levels.hpp"
+#include "helpers/npc_fixtures.hpp"
+#include "actor/health.hpp"
+#include "npc/npc_data.hpp"
 #include "actor/hit.hpp"
-#include "actor/health_data.hpp"
-#include "actor/actor_data.hpp"
 #include "player/player_data.hpp"
 #include <filesystem>
 #include <fstream>
@@ -334,7 +335,7 @@ TEST_CASE("A hurt player reaches the script's onHurt, and a dead one its onDeath
                              "function onHurt() hurts = hurts + 1 end\n"
                              "function onDeath() deaths = deaths + 1 end\n";
     GameData gameData = aFloorWorldWithCoins();
-    gameData.playerData.actorData.healthData = HealthData{2, 0.0f};
+    gameData.playerData = playerDataWithHealth(2, 0.0f);
     LuaScriptSystem luaScriptSystem(script.string());
     World world(gameData, noIntentions(), luaScriptSystem);
     TemporaryLevels levels("world_hurt");
@@ -346,4 +347,26 @@ TEST_CASE("A hurt player reaches the script's onHurt, and a dead one its onDeath
 
     REQUIRE(luaScriptSystem.getLua()["hurts"].get<int>() == 1);
     REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 1);
+}
+
+TEST_CASE("Bumping into an npc that bites costs the player a point", "[World]")
+{
+    GameData gameData = aFloorWorldWithCoins();
+    gameData.playerData = playerDataWithHealth(3, 1.0f);
+    NpcData biter = setupNpcData();
+    biter.contactDamage = 1;
+    gameData.npcData = {{"biter", biter}};
+    LevelData levelData = aFloorLevelPlacing({spawnAt("biter", glm::ivec2(1, FloorLevelStanding))});
+    std::filesystem::path quiet =
+        std::filesystem::temp_directory_path() / "platformer_world_quiet.lua";
+    std::ofstream(quiet) << "";
+    LuaScriptSystem luaScriptSystem(quiet.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_bite");
+    levels.write("floor.json", levelData);
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    walkFor(world, 3);
+
+    REQUIRE(world.getPlayer().health().points() == 2);
 }

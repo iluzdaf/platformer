@@ -11,6 +11,7 @@ public:
     Npc(const NpcSpawnData &spawn, const NpcData &npcData);
 
     const NpcSpawnData &getSpawn() const;
+    int contactDamage() const;
 
 private:
     NpcSpawnData spawn;

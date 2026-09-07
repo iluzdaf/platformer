@@ -17,7 +17,8 @@
                 "fall":{"frames":[0],"frameDuration":1}
             }
         },
-        "stateMachineBehaviorData":{"states":[{"name":"patrol","patrolBehaviorData":{}}]}
+        "stateMachineBehaviorData":{"states":[{"name":"patrol","patrolBehaviorData":{}}]},
+        "contactDamage":1
     },
     "villager":{
         "actorData":{

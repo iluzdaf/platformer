@@ -5,9 +5,6 @@
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/actors.hpp"
-#include "actor/health_data.hpp"
-#include "actor/actor_data.hpp"
-#include "player/player_data.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/player_fixtures.hpp"
 #include "game/level.hpp"
@@ -51,9 +48,7 @@ TEST_CASE("Spikes", "[TouchingTiles]")
 
     SECTION("Kill through health to spare")
     {
-        PlayerData tough = playerDataWithEveryAbility();
-        tough.actorData.healthData = HealthData{3, 1.0f};
-        Player toughPlayer(tough, noIntentions());
+        Player toughPlayer(playerDataWithHealth(3, 1.0f), noIntentions());
         toughPlayer.standAt(player.feet());
         touchTiles(toughPlayer, tileMap);
         REQUIRE_FALSE(toughPlayer.alive());

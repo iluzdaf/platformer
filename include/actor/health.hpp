@@ -1,8 +1,8 @@
 #pragma once
 
+#include <optional>
 #include "actor/health_data.hpp"
-
-struct Hit;
+#include "actor/hit.hpp"
 
 class Health
 {
@@ -14,9 +14,11 @@ public:
     int maximum() const;
     bool alive() const;
     bool invulnerable() const;
+    const std::optional<Hit> &lastHit() const;
 
 private:
     HealthData data;
     int left;
     float invulnerableLeft = 0.0f;
+    std::optional<Hit> taken;
 };

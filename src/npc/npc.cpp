@@ -27,3 +27,8 @@ const NpcSpawnData &Npc::getSpawn() const
 {
     return spawn;
 }
+
+int Npc::contactDamage() const
+{
+    return npcData.contactDamage;
+}

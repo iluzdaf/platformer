@@ -22,7 +22,7 @@ void WallSlideAbility::applyMovement(
     state.wallSlide.active = false;
 
     if (observed.contacts.onGround || !observed.contacts.grippableWall() ||
-        state.velocity.y <= 0.0f)
+        observed.velocity.y <= 0.0f)
         return;
 
     state.wallSlide.velocity.y = data.slideSpeed;

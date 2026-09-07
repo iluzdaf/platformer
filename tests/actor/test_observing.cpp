@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/glm.hpp>
-#include "actor/actor_motion.hpp"
-#include "actor/actor_motion_data.hpp"
+#include "actor/observing.hpp"
+#include "actor/actor_contact_state.hpp"
 #include "physics/physics_body.hpp"
 #include "physics/physics_body_data.hpp"
 #include "helpers/palettes.hpp"
@@ -41,30 +41,29 @@ namespace
     }
 }
 
-TEST_CASE("ActorMotion remembers which side a grippable wall was on", "[ActorMotion]")
+TEST_CASE("Contacts remember which side a grippable wall was on", "[Observing]")
 {
     TileMap tileMap = aTileMap({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
 
-    ActorMotion motion{ActorMotionData()};
-    motion.readContacts(bodyBesideWalls(), tileMap);
+    ActorContactState contacts = contactsAfterStep(ActorContactState{}, bodyBesideWalls(), tileMap);
 
-    REQUIRE(motion.observed().contacts.grippableLeftWall);
-    REQUIRE(motion.observed().contacts.wasLastWallLeft);
+    REQUIRE(contacts.grippableLeftWall);
+    REQUIRE(contacts.wasLastWallLeft);
 }
 
-TEST_CASE("ActorMotion does not remember a wall it could not grip", "[ActorMotion]")
+TEST_CASE("Contacts do not remember a wall that could not be gripped", "[Observing]")
 {
     TileMap grippableOnTheLeft = aTileMap({{{0, 3}, Grippable}}, 10, 10, 16, wallsOfBothKinds());
 
     TileMap slipperyOnTheRight = aTileMap({{{2, 3}, Slippery}}, 10, 10, 16, wallsOfBothKinds());
 
-    ActorMotion motion{ActorMotionData()};
-    motion.readContacts(bodyBesideWalls(), grippableOnTheLeft);
-    REQUIRE(motion.observed().contacts.wasLastWallLeft);
+    ActorContactState contacts =
+        contactsAfterStep(ActorContactState{}, bodyBesideWalls(), grippableOnTheLeft);
+    REQUIRE(contacts.wasLastWallLeft);
 
-    motion.readContacts(bodyBesideWalls(), slipperyOnTheRight);
+    contacts = contactsAfterStep(contacts, bodyBesideWalls(), slipperyOnTheRight);
 
-    REQUIRE(motion.observed().contacts.touchingRightWall);
-    REQUIRE_FALSE(motion.observed().contacts.grippableRightWall);
-    REQUIRE(motion.observed().contacts.wasLastWallLeft);
+    REQUIRE(contacts.touchingRightWall);
+    REQUIRE_FALSE(contacts.grippableRightWall);
+    REQUIRE(contacts.wasLastWallLeft);
 }

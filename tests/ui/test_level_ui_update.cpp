@@ -14,6 +14,7 @@
 #include "ui/mouse_on_the_map.hpp"
 #include <imgui_internal.h>
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "helpers/headless_imgui.hpp"
 #include "helpers/palettes.hpp"
@@ -302,6 +303,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
     LevelData levelData = dataPlacing({aVillagerAt(glm::ivec2(3, Standing))});
     Level level = levelOf(levelData);
     ActorMotionState motion;
+    Observed observed;
     ActorState playerState;
     std::optional<Armed> armed;
     EditorCommands commands;
@@ -315,6 +317,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
                 levelData,
                 LevelPath,
                 motion,
+                observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
                 playerState,
                 shippedNpcData(),

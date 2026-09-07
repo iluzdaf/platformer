@@ -20,7 +20,7 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
     {
         observed.contacts.touchingLeftWall = observed.contacts.grippableLeftWall = true;
         observed.contacts.onGround = false;
-        state.velocity.y = 980.0f;
+        observed.velocity.y = 980.0f;
         slideAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE(state.wallSlide.active);
         REQUIRE(state.wallSlide.velocity.y == Approx(wallSlideAbilityData.slideSpeed));
@@ -47,7 +47,7 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
     {
         observed.contacts.touchingLeftWall = observed.contacts.grippableLeftWall = true;
         observed.contacts.onGround = false;
-        state.velocity.y = 0.0f;
+        observed.velocity.y = 0.0f;
         slideAbility.applyMovement(0.01f, inputIntentions, observed, state);
         REQUIRE_FALSE(state.wallSlide.active);
         REQUIRE(state.wallSlide.velocity.y == Approx(0.0f));

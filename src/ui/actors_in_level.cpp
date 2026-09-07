@@ -14,6 +14,7 @@
 #include "ui/armed.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
 #include "navigation/navigation_place.hpp"
@@ -73,10 +74,12 @@ namespace
 
     void drawThePlayer(
         const ActorMotionState &motion,
+        const Observed &observed,
         const glm::vec2 &feet,
         const ActorState &state)
     {
-        drawRow("Velocity", std::format("{:.2f}, {:.2f}", motion.velocity.x, motion.velocity.y));
+        drawRow(
+            "Velocity", std::format("{:.2f}, {:.2f}", observed.velocity.x, observed.velocity.y));
         drawRow("Feet", std::format("{:.2f}, {:.2f}", feet.x, feet.y));
         drawRow("Facing Left", state.facingLeft ? "true" : "false");
         drawRow("Wall Sliding", motion.wallSlide.active ? "true" : "false");
@@ -219,6 +222,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
 ActorAsked drawActorsInLevel(
     const Level &level,
     const ActorMotionState &playerMotionState,
+    const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcTypes,
@@ -280,7 +284,7 @@ ActorAsked drawActorsInLevel(
         {
             nameThenValue();
             drawPlayerEditing(level.getTileMap().tileUnderFeet(level.getPlayerStart()), armed);
-            drawThePlayer(playerMotionState, playerFeet, playerState);
+            drawThePlayer(playerMotionState, playerObserved, playerFeet, playerState);
             ImGui::EndTable();
         }
         break;

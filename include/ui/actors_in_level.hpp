@@ -8,6 +8,7 @@
 #include "ui/armed.hpp"
 
 struct ActorMotionState;
+struct Observed;
 struct ActorState;
 struct NpcData;
 class Level;
@@ -41,6 +42,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level);
 ActorAsked drawActorsInLevel(
     const Level &level,
     const ActorMotionState &playerMotionState,
+    const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcTypes,

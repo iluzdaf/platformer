@@ -53,8 +53,7 @@ TEST_CASE("A player with nothing under it falls at its gravity", "[Player]")
     const float gravity = GravityAbilityData().gravity;
     TileMap tileMap = aTileMap({}, 1, static_cast<int>(gravity / 16.0f) + 2);
     simulatePlayer(player, input, tileMap, 1.0f);
-    const ActorMotionState &state = player.moving().getState();
-    REQUIRE(state.velocity.y == Approx(gravity));
+    REQUIRE(player.observed().velocity.y == Approx(gravity));
     REQUIRE(player.body().position().y == Approx(0.5f * gravity).margin(5));
 }
 
@@ -68,10 +67,9 @@ TEST_CASE("A player knows when it is on the ground and when it has walked off", 
         TileMap tileMap = aTileMap({{{0, 5}, 1}});
         simulatePlayer(player, input, tileMap, 1.0f);
         float expectedY = static_cast<float>(4 * tileMap.getTileSize());
-        const ActorMotionState &state = player.moving().getState();
         REQUIRE(player.body().position().y == Approx(expectedY));
-        REQUIRE(player.moving().observed().contacts.onGround);
-        REQUIRE(state.velocity.y == Approx(0.0f).margin(0.01f));
+        REQUIRE(player.observed().contacts.onGround);
+        REQUIRE(player.observed().velocity.y == Approx(0.0f).margin(0.01f));
     }
 
     SECTION("Player walks off a ledge and is no longer onGround")
@@ -79,11 +77,11 @@ TEST_CASE("A player knows when it is on the ground and when it has walked off", 
         TileMap tileMap = aTileMap({{{1, 5}, 1}, {{2, 5}, 1}});
         player.standAt(feetOf(glm::ivec2(2, 4)));
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE(player.moving().observed().contacts.onGround);
+        REQUIRE(player.observed().contacts.onGround);
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.2f, inputIntentions);
-        REQUIRE_FALSE(player.moving().observed().contacts.onGround);
+        REQUIRE_FALSE(player.observed().contacts.onGround);
     }
 }
 
@@ -214,8 +212,8 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.moving().observed().contacts.touchingRightWall);
-        REQUIRE_FALSE(player.moving().observed().contacts.touchingLeftWall);
+        REQUIRE(player.observed().contacts.touchingRightWall);
+        REQUIRE_FALSE(player.observed().contacts.touchingLeftWall);
     }
 
     SECTION("Touching left wall")
@@ -229,8 +227,8 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.moving().observed().contacts.touchingLeftWall);
-        REQUIRE_FALSE(player.moving().observed().contacts.touchingRightWall);
+        REQUIRE(player.observed().contacts.touchingLeftWall);
+        REQUIRE_FALSE(player.observed().contacts.touchingRightWall);
     }
 }
 
@@ -385,7 +383,7 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
     simulatePlayer(player, input, tileMap, 0.8f, holdingTheWallAndPressingUp);
     simulatePlayer(player, input, tileMap, 0.5f);
 
-    REQUIRE(player.moving().observed().contacts.onGround);
+    REQUIRE(player.observed().contacts.onGround);
     REQUIRE(player.body().aabb().bottomCenter().y == Approx(5 * 16.0f));
 }
 
@@ -405,7 +403,7 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
 
     ScriptedIntentions input;
     Player player = aPlayerWithEveryAbility(input);
-    const ActorMotionState &state = player.moving().getState();
+    const ActorMotionState &state = player.motion();
     player.standAt(glm::vec2(5 * 16.0f - 4.0f, 2 * 16.0f));
 
     InputIntentions holdingTheWall;
@@ -413,10 +411,10 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
     holdingTheWall.direction = glm::vec2(1.0f, -1.0f);
     simulatePlayer(player, input, tileMap, 0.5f, holdingTheWall, 0.01f, palette);
 
-    REQUIRE(player.moving().observed().contacts.touchingRightWall);
-    REQUIRE_FALSE(player.moving().observed().contacts.grippableRightWall);
+    REQUIRE(player.observed().contacts.touchingRightWall);
+    REQUIRE_FALSE(player.observed().contacts.grippableRightWall);
     REQUIRE_FALSE(state.wallHang.active);
-    REQUIRE(state.velocity.y > 0.0f);
+    REQUIRE(player.observed().velocity.y > 0.0f);
 }
 
 TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in", "[Player]")
@@ -460,11 +458,11 @@ TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in
             {
                 player.fixedUpdate(dt, level);
                 player.postFixedUpdate();
-                if (player.moving().observed().contacts.hitCeiling)
+                if (player.observed().contacts.hitCeiling)
                     ++stepsTouchingCeiling;
             });
 
-        const ActorContactState &contacts = player.moving().observed().contacts;
+        const ActorContactState &contacts = player.observed().contacts;
         if (contacts.hitCeiling)
             ++framesEndingWithHitCeiling;
         if (contacts.bumpedCeiling)

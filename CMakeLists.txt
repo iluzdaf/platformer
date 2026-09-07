@@ -196,7 +196,7 @@ add_library(platformer_lib OBJECT
     src/npc/npc.cpp
     src/pickups/pickup.cpp
     src/pickups/collecting.cpp
-    src/actor/actor_motion.cpp
+    src/actor/observing.cpp
     src/actor/abilities/jump_ability.cpp
     src/actor/abilities/dash_ability.cpp
     src/actor/abilities/knockback_ability.cpp
@@ -388,7 +388,7 @@ add_executable(tests
     tests/actor/abilities/test_move_ability.cpp
     tests/actor/abilities/test_wall_slide_ability.cpp
     tests/actor/abilities/test_wall_jump_ability.cpp
-    tests/actor/test_actor_motion.cpp
+    tests/actor/test_observing.cpp
     tests/actor/test_health.cpp
 
     tests/actor/test_actor_animation_state.cpp

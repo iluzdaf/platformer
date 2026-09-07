@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
@@ -66,6 +67,7 @@ namespace
         std::optional<Armed> &armed)
     {
         ActorMotionState motion;
+        Observed observed;
         ActorState playerState;
         ActorAsked asked;
 
@@ -75,6 +77,7 @@ namespace
                 asked = drawActorsInLevel(
                     level,
                     motion,
+                    observed,
                     level.getTileMap().feetOnTile(
                         level.getTileMap().tileUnderFeet(level.getPlayerStart())),
                     playerState,

@@ -6,7 +6,9 @@
 #include "actor/actor_state.hpp"
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/actor_motion.hpp"
+#include "actor/abilities/ability_system.hpp"
+#include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/actor_behavior.hpp"
 #include "animations/animation_manager.hpp"
 #include "physics/physics_body.hpp"
@@ -30,7 +32,8 @@ public:
         std::optional<glm::vec2> threatFeet = std::nullopt);
     virtual void postFixedUpdate();
     const ActorState &state() const;
-    const ActorMotion &moving() const;
+    const ActorMotionState &motion() const;
+    const Observed &observed() const;
     const PhysicsBody &body() const;
     const NavigationProfile &profile() const;
     std::string_view stateName() const;
@@ -53,7 +56,9 @@ protected:
         std::optional<glm::vec2> threatFeet) const;
 
 private:
-    ActorMotion motion;
+    AbilitySystem abilities;
+    ActorMotionState decided;
+    Observed observations;
     PhysicsBody physicsBody;
     AnimationManager animationManager;
     ActorState actorState;

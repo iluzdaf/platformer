@@ -35,6 +35,7 @@ void LevelUi::draw(
     const LevelData &levelData,
     const std::string &levelPath,
     const ActorMotionState &playerMotionState,
+    const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcData,
@@ -44,13 +45,22 @@ void LevelUi::draw(
     drawLevel(level, levelData, levelPath, commands);
     navigationUi.draw(level);
     drawActors(
-        level, levelData, playerMotionState, playerFeet, playerState, npcData, armed, commands);
+        level,
+        levelData,
+        playerMotionState,
+        playerObserved,
+        playerFeet,
+        playerState,
+        npcData,
+        armed,
+        commands);
 }
 
 void LevelUi::drawActors(
     const Level &level,
     const LevelData &levelData,
     const ActorMotionState &playerMotionState,
+    const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcData,
@@ -62,7 +72,14 @@ void LevelUi::drawActors(
 
     ActorShown wasShowing = showingActor;
     ActorAsked asked = drawActorsInLevel(
-        level, playerMotionState, playerFeet, playerState, npcData, showingActor, armed);
+        level,
+        playerMotionState,
+        playerObserved,
+        playerFeet,
+        playerState,
+        npcData,
+        showingActor,
+        armed);
 
     if (asked.addNpcOfType)
     {

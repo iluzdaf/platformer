@@ -1,5 +1,5 @@
 #include "animations/animation_manager.hpp"
-#include "actor/actor_contact_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "actor/actor_motion_state.hpp"
 #include <cstdlib>
@@ -8,22 +8,22 @@
 void AnimationManager::update(
     float deltaTime,
     const ActorMotionState &motionState,
-    const ActorContactState &contacts)
+    const Observed &observed)
 {
     ActorAnimationState newState = currentState;
 
     if (motionState.dash.active)
         newState = ActorAnimationState::Dash;
-    else if (!contacts.onGround)
+    else if (!observed.contacts.onGround)
     {
         if (motionState.wallSlide.active || motionState.wallHang.active)
             newState = ActorAnimationState::WallSlide;
-        else if (motionState.velocity.y < 0.0f)
+        else if (observed.velocity.y < 0.0f)
             newState = ActorAnimationState::Jump;
-        else if (motionState.velocity.y > 0.0f)
+        else if (observed.velocity.y > 0.0f)
             newState = ActorAnimationState::Fall;
     }
-    else if (std::abs(motionState.velocity.x) > 0.1f)
+    else if (std::abs(observed.velocity.x) > 0.1f)
         newState = ActorAnimationState::Walk;
     else
         newState = ActorAnimationState::Idle;

@@ -11,6 +11,7 @@
 #include "actor/abilities/wall_climb_ability_state.hpp"
 #include "actor/abilities/mantle_ability_state.hpp"
 #include "actor/abilities/gravity_ability_state.hpp"
+#include "actor/abilities/knockback_ability_state.hpp"
 
 struct ActorMotionState
 {
@@ -28,4 +29,5 @@ struct ActorMotionState
     WallClimbAbilityState wallClimb;
     MantleAbilityState mantle;
     GravityAbilityState gravity;
+    KnockbackAbilityState knockback;
 };

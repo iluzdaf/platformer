@@ -1,5 +1,6 @@
 #include "actor/actor_motion.hpp"
 #include "actor/actor_motion_data.hpp"
+#include "actor/hit.hpp"
 #include "physics/physics_body.hpp"
 #include "tile_map/tile_map.hpp"
 
@@ -40,6 +41,11 @@ void ActorMotion::readMotion(const PhysicsBody &physicsBody)
 {
     state.previousVelocity = state.velocity;
     state.velocity = physicsBody.velocity();
+}
+
+void ActorMotion::pushedBy(const Hit &hit)
+{
+    state.knockback.pushed = hit.direction;
 }
 
 void ActorMotion::beginFrame()

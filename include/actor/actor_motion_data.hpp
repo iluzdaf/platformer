@@ -10,6 +10,7 @@
 #include "actor/abilities/wall_climb_ability_data.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
+#include "actor/abilities/knockback_ability_data.hpp"
 
 struct ActorMotionData
 {
@@ -22,6 +23,7 @@ struct ActorMotionData
     std::optional<WallClimbAbilityData> wallClimbAbilityData;
     std::optional<MantleAbilityData> mantleAbilityData;
     std::optional<GravityAbilityData> gravityAbilityData;
+    std::optional<KnockbackAbilityData> knockbackAbilityData;
 
     bool operator==(const ActorMotionData &) const = default;
 };

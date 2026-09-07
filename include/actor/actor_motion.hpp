@@ -7,6 +7,7 @@
 class TileMap;
 class PhysicsBody;
 struct InputIntentions;
+struct Hit;
 
 class ActorMotion
 {
@@ -16,6 +17,7 @@ public:
     void readContacts(const PhysicsBody &physicsBody, const TileMap &tileMap);
     void readMotion(const PhysicsBody &physicsBody);
     void beginFrame();
+    void pushedBy(const Hit &hit);
     const ActorMotionState &getState() const;
 
 private:

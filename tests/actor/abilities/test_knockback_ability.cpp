@@ -1,0 +1,178 @@
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include "actor/abilities/knockback_ability.hpp"
+#include "actor/abilities/knockback_ability_data.hpp"
+#include "actor/abilities/knockback_ability_state.hpp"
+#include "actor/actor_motion_state.hpp"
+#include "actor/hit.hpp"
+#include "actor/actor_motion.hpp"
+#include "helpers/actors.hpp"
+#include "helpers/levels.hpp"
+#include "helpers/palettes.hpp"
+#include "helpers/player_fixtures.hpp"
+#include "helpers/tiles.hpp"
+#include "game/level.hpp"
+#include "input/input_intentions.hpp"
+#include "player/player.hpp"
+#include "timing/fixed_time_step.hpp"
+
+using Catch::Approx;
+
+namespace
+{
+    constexpr float Step = 0.01f;
+
+    Hit aHitPushing(float x)
+    {
+        return Hit{1, glm::vec2(x, 0.0f), false};
+    }
+}
+
+TEST_CASE("A push starts a knockback away from the hit, up and along", "[KnockbackAbility]")
+{
+    ActorMotionState state;
+    InputIntentions nothing;
+    KnockbackAbilityData data;
+    KnockbackAbility ability(data);
+    state.knockback.pushed = glm::vec2(-1.0f, 0.0f);
+
+    ability.applyMovement(Step, nothing, state);
+
+    REQUIRE(state.knockback.active);
+    REQUIRE(state.knockback.emit);
+    REQUIRE(state.knockback.velocity.x == Approx(-data.speed));
+    REQUIRE(state.knockback.velocity.y == Approx(data.lift));
+    REQUIRE_FALSE(state.knockback.pushed);
+}
+
+TEST_CASE("A knockback says so once and lasts its duration", "[KnockbackAbility]")
+{
+    ActorMotionState state;
+    InputIntentions nothing;
+    KnockbackAbilityData data;
+    KnockbackAbility ability(data);
+    state.knockback.pushed = glm::vec2(1.0f, 0.0f);
+
+    ability.applyMovement(Step, nothing, state);
+    ability.applyMovement(Step, nothing, state);
+    REQUIRE_FALSE(state.knockback.emit);
+    REQUIRE(state.knockback.active);
+
+    ability.applyMovement(data.duration, nothing, state);
+
+    REQUIRE_FALSE(state.knockback.active);
+    REQUIRE(state.knockback.velocity == glm::vec2(0.0f));
+}
+
+TEST_CASE("Nothing pushed, nothing moves", "[KnockbackAbility]")
+{
+    ActorMotionState state;
+    InputIntentions nothing;
+    KnockbackAbility ability{KnockbackAbilityData{}};
+
+    ability.applyMovement(Step, nothing, state);
+
+    REQUIRE_FALSE(state.knockback.active);
+    REQUIRE(state.knockback.velocity == glm::vec2(0.0f));
+}
+
+TEST_CASE("A push with no side to it keeps the last direction", "[KnockbackAbility]")
+{
+    ActorMotionState state;
+    InputIntentions nothing;
+    KnockbackAbilityData data;
+    KnockbackAbility ability(data);
+    state.knockback.pushed = glm::vec2(-1.0f, 0.0f);
+    ability.applyMovement(Step, nothing, state);
+    ability.applyMovement(data.duration, nothing, state);
+
+    state.knockback.pushed = glm::vec2(0.0f, 0.0f);
+    ability.applyMovement(Step, nothing, state);
+
+    REQUIRE(state.knockback.velocity.x == Approx(-data.speed));
+}
+
+TEST_CASE("A second push restarts the knockback", "[KnockbackAbility]")
+{
+    ActorMotionState state;
+    InputIntentions nothing;
+    KnockbackAbilityData data;
+    KnockbackAbility ability(data);
+    state.knockback.pushed = glm::vec2(1.0f, 0.0f);
+    ability.applyMovement(data.duration * 0.5f, nothing, state);
+
+    state.knockback.pushed = glm::vec2(-1.0f, 0.0f);
+    ability.applyMovement(Step, nothing, state);
+
+    REQUIRE(state.knockback.velocity.x == Approx(-data.speed));
+    REQUIRE(state.knockback.timeLeft == Approx(data.duration - Step));
+}
+
+TEST_CASE("Knockback data that cannot push is refused", "[KnockbackAbility]")
+{
+    REQUIRE_THROWS(KnockbackAbility(KnockbackAbilityData{0.0f, -100.0f, 0.1f}));
+    REQUIRE_THROWS(KnockbackAbility(KnockbackAbilityData{100.0f, 10.0f, 0.1f}));
+    REQUIRE_THROWS(KnockbackAbility(KnockbackAbilityData{100.0f, -100.0f, 0.0f}));
+    REQUIRE_NOTHROW(KnockbackAbility(KnockbackAbilityData{100.0f, 0.0f, 0.1f}));
+}
+
+TEST_CASE("A hit that lands pushes the actor on its next step", "[KnockbackAbility]")
+{
+    Player player(playerDataWithHealth(3, 1.0f), noIntentions());
+    Level level(
+        aFloorLevelPlacing({}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerDataWithHealth(3, 1.0f),
+        {},
+        {});
+    player.standAt(feetOf(glm::ivec2(4, FloorLevelStanding)));
+    FixedTimeStep timestepper;
+    runFor(player, level, 0.1f, timestepper);
+    REQUIRE(player.moving().getState().velocity.x == 0.0f);
+
+    player.takeHit(aHitPushing(1.0f));
+    runFor(player, level, Step, timestepper);
+
+    REQUIRE(player.moving().getState().velocity.x > 0.0f);
+    REQUIRE(player.moving().getState().velocity.y < 0.0f);
+}
+
+TEST_CASE("A lethal hit does not push a corpse", "[KnockbackAbility]")
+{
+    Player player(playerDataWithHealth(3, 1.0f), noIntentions());
+    Level level(
+        aFloorLevelPlacing({}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerDataWithHealth(3, 1.0f),
+        {},
+        {});
+    player.standAt(feetOf(glm::ivec2(4, FloorLevelStanding)));
+    FixedTimeStep timestepper;
+    runFor(player, level, 0.1f, timestepper);
+
+    player.takeHit(lethalHit());
+    runFor(player, level, Step, timestepper);
+
+    REQUIRE_FALSE(player.moving().getState().knockback.active);
+}
+
+TEST_CASE("A knocked back actor keeps facing the way it was", "[KnockbackAbility]")
+{
+    Player player(playerDataWithHealth(3, 1.0f), noIntentions());
+    Level level(
+        aFloorLevelPlacing({}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerDataWithHealth(3, 1.0f),
+        {},
+        {});
+    player.standAt(feetOf(glm::ivec2(4, FloorLevelStanding)));
+    FixedTimeStep timestepper;
+    runFor(player, level, 0.1f, timestepper);
+    bool facedLeft = player.state().facingLeft;
+
+    player.takeHit(aHitPushing(facedLeft ? 1.0f : -1.0f));
+    runFor(player, level, 0.05f, timestepper);
+
+    REQUIRE(player.state().facingLeft == facedLeft);
+}

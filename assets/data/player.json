@@ -11,7 +11,8 @@
             "wallHangAbilityData":{},
             "wallClimbAbilityData":{},
             "mantleAbilityData":{},
-            "gravityAbilityData":{}
+            "gravityAbilityData":{},
+            "knockbackAbilityData":{}
         },
         "animationData":{
             "idle":{"frames":[5],"frameDuration":1},

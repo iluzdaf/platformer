@@ -286,6 +286,7 @@ add_executable(tests
     tests/ui/test_editor_command.cpp
     tests/ui/test_armed.cpp
     tests/ui/test_tile_map_shown.cpp
+    tests/ui/test_overlay_toggles.cpp
     tests/ui/test_size_buttons.cpp
     tests/ui/test_tile_picker.cpp
     tests/ui/test_level_ui_update.cpp

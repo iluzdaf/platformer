@@ -86,7 +86,7 @@ Game::Game(Window &window, Reloader &reloader)
 
     luaScriptSystem.bindGameObjects(&playback, &camera, &screenTransition, &world);
 
-    luaScriptSystem.triggerGameLoaded();
+    luaScriptSystem.emit("onGameLoaded");
 }
 
 Game::~Game() = default;

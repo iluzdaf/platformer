@@ -3,6 +3,8 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <signals.hpp>
+#include <string_view>
 #include <utility>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/world.hpp"
@@ -65,19 +67,23 @@ void World::respawnPlayer()
         std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
     player->standAt(level->getPlayerStart());
-    player->onDeath.connect([this] { luaScriptSystem.triggerDeath(); });
-    player->onHurt.connect([this] { luaScriptSystem.triggerHurt(); });
     onLevelCompleteConnection = player->onLevelComplete.connect(
         [this]()
         {
             onLevelCompleteConnection.block();
-            luaScriptSystem.triggerLevelComplete();
+            luaScriptSystem.emit("onLevelComplete");
         });
-    player->onWallJump.connect([this] { luaScriptSystem.triggerWallJump(); });
-    player->onDash.connect([this] { luaScriptSystem.triggerDash(); });
-    player->onWallSliding.connect([this] { luaScriptSystem.triggerWallSliding(); });
-    player->onFallFromHeight.connect([this] { luaScriptSystem.triggerFallFromHeight(); });
-    player->onHitCeiling.connect([this] { luaScriptSystem.triggerHitCeiling(); });
+
+    const std::pair<fteng::signal<void()> &, std::string_view> hooks[] = {
+        {player->onDeath, "onDeath"},
+        {player->onHurt, "onHurt"},
+        {player->onWallJump, "onWallJump"},
+        {player->onDash, "onDash"},
+        {player->onWallSliding, "onWallSliding"},
+        {player->onFallFromHeight, "onFallFromHeight"},
+        {player->onHitCeiling, "onHitCeiling"}};
+    for (auto &[signal, hook] : hooks)
+        signal.connect([this, hook] { luaScriptSystem.emit(hook); });
     luaScriptSystem.bindPlayer(player.get());
 }
 

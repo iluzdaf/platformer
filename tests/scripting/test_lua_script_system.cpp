@@ -27,9 +27,26 @@ TEST_CASE("A script that loads gives the game its handlers", "[LuaScriptSystem]"
     std::filesystem::path path = writeScript("platformer_lua_ok.lua", CountingDeath);
 
     LuaScriptSystem luaScriptSystem(path.string());
-    luaScriptSystem.triggerDeath();
+    luaScriptSystem.emit("onDeath");
 
     REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 1);
+}
+
+TEST_CASE("A hook nobody wrote is nothing to do", "[LuaScriptSystem]")
+{
+    std::filesystem::path path = writeScript("platformer_lua_quiet.lua", CountingDeath);
+    LuaScriptSystem luaScriptSystem(path.string());
+
+    REQUIRE_NOTHROW(luaScriptSystem.emit("onSomethingNobodyHandles"));
+    REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 0);
+}
+
+TEST_CASE("A hook that is not a function is nothing to do either", "[LuaScriptSystem]")
+{
+    std::filesystem::path path = writeScript("platformer_lua_notfn.lua", "onDeath = 42\n");
+    LuaScriptSystem luaScriptSystem(path.string());
+
+    REQUIRE_NOTHROW(luaScriptSystem.emit("onDeath"));
 }
 
 TEST_CASE("A script with a syntax error is reported, not swallowed", "[LuaScriptSystem]")
@@ -54,12 +71,12 @@ TEST_CASE("A reload that fails leaves the handlers that were working", "[LuaScri
     std::filesystem::path path = writeScript("platformer_lua_reload.lua", CountingDeath);
     LuaScriptSystem luaScriptSystem(path.string());
 
-    luaScriptSystem.triggerDeath();
+    luaScriptSystem.emit("onDeath");
     REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 1);
 
     writeScript("platformer_lua_reload.lua", "this is not lua ===\n");
     REQUIRE_THROWS_AS(luaScriptSystem.loadScripts(), std::exception);
 
-    luaScriptSystem.triggerDeath();
+    luaScriptSystem.emit("onDeath");
     REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 2);
 }

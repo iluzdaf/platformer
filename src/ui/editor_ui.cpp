@@ -104,15 +104,13 @@ void EditorUi::draw(
         typesUi.draw(subject.gameData, subject.textures, commands);
         break;
 
-    case EditorSection::Levels:
+    case EditorSection::Level:
         levelsUi.draw(
             subject.levels,
             subject.levelPath,
             commands,
             levelUi.unsavedSince(subject.levelData, subject.levelPath));
-        break;
-
-    case EditorSection::Level:
+        ImGui::Separator();
         levelUi.draw(
             subject.level,
             subject.levelData,
@@ -123,10 +121,9 @@ void EditorUi::draw(
             subject.gameData.npcData,
             armed,
             commands);
-        break;
-
-    case EditorSection::TilePalettes:
-        tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
+        ImGui::Separator();
+        if (ImGui::CollapsingHeader("Tile palettes"))
+            tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
         break;
     }
 
@@ -242,19 +239,27 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
             [this, &subject] { playerUi.save(subject.gameData); },
             [this, &subject] { playerUi.revert(subject.gameData); }};
 
-    case EditorSection::Levels:
-        return {
-            levelsUi.unsavedSince(subject.levels),
-            std::nullopt,
-            [this, &subject] { levelsUi.save(subject.levels); },
-            [this, &subject] { levelsUi.revert(subject.levels); }};
-
     case EditorSection::Level:
         return {
-            levelUi.unsavedSince(subject.levelData, subject.levelPath),
-            npcsThatCannotGetBack(subject.level),
-            [this, &subject] { levelUi.save(subject.levelData, subject.levelPath); },
-            [this, &subject] { commands.onLoadLevel(subject.levelPath); }};
+            levelUi.unsavedSince(subject.levelData, subject.levelPath) ||
+                tilePalettesUi.unsavedSince(subject.gameData.tilePalettes) ||
+                levelsUi.unsavedSince(subject.levels),
+            npcsThatCannotGetBack(subject.level).has_value() ? npcsThatCannotGetBack(subject.level)
+                                                             : tilePalettesUi.cannotSaveBecause(),
+            [this, &subject]
+            {
+                levelUi.save(subject.levelData, subject.levelPath);
+                LevelData playing = subject.levelData;
+                if (tilePalettesUi.save(subject.gameData.tilePalettes, playing))
+                    commands.onLevelEdited(playing);
+                levelsUi.save(subject.levels);
+            },
+            [this, &subject]
+            {
+                commands.onLoadLevel(subject.levelPath);
+                tilePalettesUi.revert(subject.gameData.tilePalettes);
+                levelsUi.revert(subject.levels);
+            }};
 
     case EditorSection::Types:
         return {
@@ -267,18 +272,6 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
                     commands.onLevelEdited(playing);
             },
             [this, &subject] { typesUi.revert(subject.gameData); }};
-
-    case EditorSection::TilePalettes:
-        return {
-            tilePalettesUi.unsavedSince(subject.gameData.tilePalettes),
-            tilePalettesUi.cannotSaveBecause(),
-            [this, &subject]
-            {
-                LevelData playing = subject.levelData;
-                if (tilePalettesUi.save(subject.gameData.tilePalettes, playing))
-                    commands.onLevelEdited(playing);
-            },
-            [this, &subject] { tilePalettesUi.revert(subject.gameData.tilePalettes); }};
 
     case EditorSection::Playback:
         break;

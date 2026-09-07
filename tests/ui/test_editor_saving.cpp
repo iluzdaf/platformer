@@ -3,6 +3,7 @@
 #include "game/level_data.hpp"
 #include <cstddef>
 #include <optional>
+#include <tuple>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -95,10 +96,8 @@ TEST_CASE("Every section that saves a file has a save to press", "[EditorSaving]
          {EditorSection::Game,
           EditorSection::Camera,
           EditorSection::Player,
-          EditorSection::Levels,
           EditorSection::Level,
-          EditorSection::Types,
-          EditorSection::TilePalettes})
+          EditorSection::Types})
         REQUIRE(editorUi.savingIn(listed, editing.subject()).save != nullptr);
 }
 
@@ -107,7 +106,55 @@ TEST_CASE("Palettes with every level readable have nothing said against a save",
     EditorUi editorUi;
     Editing editing;
 
-    REQUIRE_FALSE(editorUi.savingIn(EditorSection::TilePalettes, editing.subject()).cannotBecause);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, editing.subject()).cannotBecause);
+}
+
+TEST_CASE("The level section is unsaved when its palettes are", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
+
+    editing.gameData.tilePalettes.begin()->second.tiles[0].solid = true;
+
+    REQUIRE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
+}
+
+TEST_CASE("The level section is unsaved when its level list is", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
+
+    editing.levels.first = "levels/level6.json";
+
+    REQUIRE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
+}
+
+TEST_CASE(
+    "Reverting the level section puts back its palettes and list and reloads the level",
+    "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    std::optional<std::string> reloaded;
+    std::ignore =
+        editorUi.commands.onLoadLevel.connect([&](const std::string &path) { reloaded = path; });
+    std::string firstWas = editing.levels.first;
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
+    editing.gameData.tilePalettes.begin()->second.tiles[0].solid = true;
+    editing.levels.first = "levels/level6.json";
+
+    editorUi.savingIn(EditorSection::Level, subject).revert();
+    editorUi.commands.drain();
+
+    REQUIRE_FALSE(editing.gameData.tilePalettes.begin()->second.tiles[0].solid);
+    REQUIRE(editing.levels.first == firstWas);
+    REQUIRE(reloaded == editing.levelPath);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
 }
 
 TEST_CASE(

@@ -82,33 +82,33 @@ TEST_CASE("Draining the editor commands delivers all of them", "[EditorCommand]"
 {
     EditorCommands commands;
     std::vector<std::string> handled;
-    commands.onRespawn.connect([&] { handled.emplace_back("respawn"); });
+    commands.onPlay.connect([&] { handled.emplace_back("play"); });
     commands.onLoadLevel.connect([&](const std::string &path) { handled.push_back(path); });
 
-    commands.onRespawn();
+    commands.onPlay();
     commands.onLoadLevel("levels/level2.json");
 
     REQUIRE(handled.empty());
 
     commands.drain();
 
-    REQUIRE(handled == std::vector<std::string>{"respawn", "levels/level2.json"});
+    REQUIRE(handled == std::vector<std::string>{"play", "levels/level2.json"});
 }
 
 TEST_CASE("An editor command stays connected when the caller keeps nothing", "[EditorCommand]")
 {
     EditorCommands commands;
-    int respawns = 0;
+    int plays = 0;
     std::vector<std::string> loaded;
 
-    commands.onRespawn.connect([&respawns] { ++respawns; });
+    commands.onPlay.connect([&plays] { ++plays; });
     commands.onLoadLevel.connect([&loaded](const std::string &path) { loaded.push_back(path); });
 
-    commands.onRespawn();
+    commands.onPlay();
     commands.onLoadLevel("levels/level2.json");
     commands.drain();
 
-    REQUIRE(respawns == 1);
+    REQUIRE(plays == 1);
     REQUIRE(loaded == std::vector<std::string>{"levels/level2.json"});
 }
 

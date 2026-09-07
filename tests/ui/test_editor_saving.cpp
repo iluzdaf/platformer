@@ -93,11 +93,7 @@ TEST_CASE("Every section that saves a file has a save to press", "[EditorSaving]
     Editing editing;
 
     for (EditorSection listed :
-         {EditorSection::Game,
-          EditorSection::Runtime,
-          EditorSection::Player,
-          EditorSection::Level,
-          EditorSection::Types})
+         {EditorSection::Game, EditorSection::Runtime, EditorSection::Cast, EditorSection::Level})
         REQUIRE(editorUi.savingIn(listed, editing.subject()).save != nullptr);
 }
 
@@ -164,7 +160,7 @@ TEST_CASE(
     EditorUi editorUi;
     Editing editing;
     EditorSubject subject = editing.subject();
-    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
 
     editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
@@ -176,7 +172,7 @@ TEST_CASE(
 
     REQUIRE(editing.gameData.playerData.fallFromHeightThreshold == edited);
     REQUIRE(editing.gameData.cameraData.zoom == onDisk.cameraData.zoom);
-    REQUIRE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
+    REQUIRE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
 }
 
@@ -185,19 +181,19 @@ TEST_CASE("Reverting a section kept through a reload takes what is on disk now",
     EditorUi editorUi;
     Editing editing;
     EditorSubject subject = editing.subject();
-    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
 
     editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
 
     GameData onDisk = loadGameData();
     onDisk.playerData.fallFromHeightThreshold += 50.0f;
     editorUi.reloaded(editing.gameData, onDisk);
-    editorUi.savingIn(EditorSection::Player, subject).revert();
+    editorUi.savingIn(EditorSection::Cast, subject).revert();
 
     REQUIRE(
         editing.gameData.playerData.fallFromHeightThreshold ==
         onDisk.playerData.fallFromHeightThreshold);
-    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Player, subject).unsaved);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
 }
 
 TEST_CASE("The level being played follows the disk only while it is clean", "[EditorSaving]")
@@ -257,4 +253,34 @@ TEST_CASE("A level that strands an npc says so where its save would be", "[Edito
 
     REQUIRE(saving.cannotBecause.has_value());
     REQUIRE_THAT(*saving.cannotBecause, Catch::Matchers::ContainsSubstring("cannot get back"));
+}
+
+TEST_CASE("The cast section is unsaved when its types are", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
+
+    editing.gameData.pickupData.begin()->second.scoreDelta += 1;
+
+    REQUIRE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
+}
+
+TEST_CASE("Reverting the cast section puts back the player and the types", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
+    float thresholdWas = editing.gameData.playerData.fallFromHeightThreshold;
+    int scoreWas = editing.gameData.pickupData.begin()->second.scoreDelta;
+    editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
+    editing.gameData.pickupData.begin()->second.scoreDelta += 1;
+
+    editorUi.savingIn(EditorSection::Cast, subject).revert();
+
+    REQUIRE(editing.gameData.playerData.fallFromHeightThreshold == thresholdWas);
+    REQUIRE(editing.gameData.pickupData.begin()->second.scoreDelta == scoreWas);
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
 }

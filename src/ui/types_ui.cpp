@@ -15,6 +15,7 @@
 #include "actor/actor_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
+#include "player/player_data.hpp"
 #include "ui/editor_commands.hpp"
 #include "rendering/texture_cache.hpp"
 #include "rendering/texture2d.hpp"
@@ -33,38 +34,47 @@ namespace
 
     std::string labelOf(const TypeShown &showing)
     {
+        if (showing.what == TypeShown::What::Player)
+            return showing.name;
+
         if (showing.name.empty())
             return "none";
 
         return (showing.what == TypeShown::What::Npc ? "npc " : "pickup ") + showing.name;
     }
 
+    void offer(const GameData &gameData, const TypeShown &listed, TypeShown &showing)
+    {
+        bool cannot = whyATypeCannotBeSaved(gameData, listed).has_value();
+        if (cannot)
+            ImGui::PushStyleColor(ImGuiCol_Text, CannotSaveColour);
+
+        if (ImGui::Selectable(labelOf(listed).c_str(), showing == listed))
+            showing = listed;
+
+        if (cannot)
+            ImGui::PopStyleColor();
+    }
+
     template <class T>
-    void offer(
+    void offerEach(
         const GameData &gameData,
         const std::map<std::string, T> &types,
         TypeShown::What what,
         TypeShown &showing)
     {
         for (const auto &[name, type] : types)
-        {
-            TypeShown listed{what, name};
-            bool cannot = whyATypeCannotBeSaved(gameData, listed).has_value();
-            if (cannot)
-                ImGui::PushStyleColor(ImGuiCol_Text, CannotSaveColour);
-
-            if (ImGui::Selectable(labelOf(listed).c_str(), showing == listed))
-                showing = listed;
-
-            if (cannot)
-                ImGui::PopStyleColor();
-        }
+            offer(gameData, TypeShown{what, name}, showing);
     }
 }
 
-TypesUi::TypesUi(std::string levelsDirectory, WriteNpcs writeNpcs, WritePickups writePickups)
+TypesUi::TypesUi(
+    std::string levelsDirectory,
+    WriteNpcs writeNpcs,
+    WritePickups writePickups,
+    WritePlayer writePlayer)
     : levelsDirectory(std::move(levelsDirectory)), writeNpcs(std::move(writeNpcs)),
-      writePickups(std::move(writePickups))
+      writePickups(std::move(writePickups)), writePlayer(std::move(writePlayer))
 {
 }
 
@@ -73,8 +83,9 @@ void TypesUi::drawChooser(GameData &gameData)
     ImGui::SetNextItemWidth(-ButtonsWidth);
     if (ImGui::BeginCombo("##type", labelOf(showing).c_str()))
     {
-        offer(gameData, gameData.npcData, TypeShown::What::Npc, showing);
-        offer(gameData, gameData.pickupData, TypeShown::What::Pickup, showing);
+        offer(gameData, thePlayer(), showing);
+        offerEach(gameData, gameData.npcData, TypeShown::What::Npc, showing);
+        offerEach(gameData, gameData.pickupData, TypeShown::What::Pickup, showing);
         ImGui::EndCombo();
     }
 
@@ -83,11 +94,11 @@ void TypesUi::drawChooser(GameData &gameData)
         ImGui::OpenPopup("##addType");
 
     ImGui::SameLine();
-    ImGui::BeginDisabled(showing.name.empty());
+    ImGui::BeginDisabled(showing.what == TypeShown::What::Player || showing.name.empty());
     if (ImGui::Button("remove", ImVec2(-FLT_MIN, 0.0f)))
     {
         removeTypeFrom(gameData, showing);
-        showing = TypeShown{};
+        showing = thePlayer();
     }
 
     ImGui::EndDisabled();
@@ -149,17 +160,26 @@ void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, Editor
     SheetInScope scope{texture, *sheet};
     ShowingSheet offering(scope);
 
-    if (showing.what == TypeShown::What::Npc)
+    switch (showing.what)
     {
+    case TypeShown::What::Npc: {
         NpcData &npc = gameData.npcData.at(showing.name);
         drawActorPreview(scope, npc.actorData.animationData);
         inspector::drawFields(npc);
+        break;
     }
-    else
-    {
+
+    case TypeShown::What::Pickup: {
         PickupData &pickup = gameData.pickupData.at(showing.name);
         drawAnimationPreview(scope, pickup.animationData);
         inspector::drawFields(pickup);
+        break;
+    }
+
+    case TypeShown::What::Player:
+        drawActorPreview(scope, gameData.playerData.actorData.animationData);
+        inspector::drawFields(gameData.playerData);
+        break;
     }
 }
 
@@ -190,7 +210,7 @@ void TypesUi::draw(GameData &gameData, const TextureCache &textures, EditorComma
 
     ImGui::Separator();
 
-    if (!showing.name.empty())
+    if (showing.what != TypeShown::What::Player && !showing.name.empty())
     {
         drawRename(gameData);
         ImGui::Separator();
@@ -201,6 +221,7 @@ void TypesUi::draw(GameData &gameData, const TextureCache &textures, EditorComma
 
 void TypesUi::revert(GameData &gameData)
 {
+    revertTo(saveable, "player", gameData.playerData);
     revertTo(saveable, "npcs", gameData.npcData, npcRenaming);
     revertTo(saveable, "pickups", gameData.pickupData, pickupRenaming);
 }
@@ -229,6 +250,12 @@ bool TypesUi::save(GameData &gameData, LevelData &playing)
     showing.name =
         nameAfterRenames(showing.what == TypeShown::What::Npc ? npcs : pickups, showing.name);
 
+    if (saveable.unsaved("player", asJson(gameData.playerData)))
+    {
+        writePlayer(gameData.playerData);
+        saveable.saved("player", asJson(gameData.playerData));
+    }
+
     if (saveable.unsaved("npcs", asJson(gameData.npcData)))
     {
         writeNpcs(gameData.npcData);
@@ -249,10 +276,11 @@ bool TypesUi::save(GameData &gameData, LevelData &playing)
 
 bool TypesUi::unsavedSince(const GameData &gameData)
 {
+    bool player = saveable.unsavedSince("player", asJson(gameData.playerData));
     bool npcs = saveable.unsavedSince("npcs", asJson(gameData.npcData));
     bool pickups = saveable.unsavedSince("pickups", asJson(gameData.pickupData));
 
-    return npcs || pickups || npcRenaming.pending() || pickupRenaming.pending();
+    return player || npcs || pickups || npcRenaming.pending() || pickupRenaming.pending();
 }
 
 std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData) const
@@ -273,6 +301,7 @@ void TypesUi::show(const TypeShown &type)
 
 void TypesUi::reloaded(GameData &current, const GameData &onDisk)
 {
+    reload(saveable, "player", current.playerData, onDisk.playerData);
     reload(saveable, "npcs", current.npcData, onDisk.npcData);
     reload(saveable, "pickups", current.pickupData, onDisk.pickupData);
 }

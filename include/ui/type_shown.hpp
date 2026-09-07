@@ -9,7 +9,8 @@ struct TypeShown
     enum class What
     {
         Npc,
-        Pickup
+        Pickup,
+        Player
     };
 
     What what = What::Npc;
@@ -17,6 +18,8 @@ struct TypeShown
 
     bool operator==(const TypeShown &) const = default;
 };
+
+TypeShown thePlayer();
 
 struct GameData;
 

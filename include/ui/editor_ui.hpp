@@ -15,7 +15,7 @@
 #include "ui/game_settings_ui.hpp"
 #include "ui/types_ui.hpp"
 #include "ui/playback_ui.hpp"
-#include "ui/player_ui.hpp"
+#include "ui/player_overlay_ui.hpp"
 #include "ui/armed.hpp"
 #include "ui/level_ui.hpp"
 #include "ui/levels_ui.hpp"
@@ -90,7 +90,7 @@ private:
     PlaybackUi playbackUi;
     GameSettingsUi gameSettingsUi;
     CameraUi cameraUi;
-    PlayerUi playerUi;
+    PlayerOverlayUi playerOverlayUi;
     TypesUi typesUi;
     LevelUi levelUi;
     TilePalettesUi tilePalettesUi;

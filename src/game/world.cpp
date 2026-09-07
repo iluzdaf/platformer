@@ -66,6 +66,7 @@ void World::respawnPlayer()
     player = std::move(newPlayer);
     player->standAt(level->getPlayerStart());
     player->onDeath.connect([this] { luaScriptSystem.triggerDeath(); });
+    player->onHurt.connect([this] { luaScriptSystem.triggerHurt(); });
     onLevelCompleteConnection = player->onLevelComplete.connect(
         [this]()
         {
@@ -121,6 +122,11 @@ const Level &World::getLevel() const
 const Player &World::getPlayer() const
 {
     return *player.get();
+}
+
+Player &World::getPlayer()
+{
+    return *player;
 }
 
 const Score &World::getScore() const

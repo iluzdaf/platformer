@@ -20,7 +20,8 @@
             "jump":{"frames":[4],"frameDuration":1},
             "fall":{"frames":[2],"frameDuration":1},
             "wallSlide":{"frames":[0],"frameDuration":1}
-        }
+        },
+        "healthData":{"maximum":3,"invulnerableFor":1}
     },
     "fallFromHeightThreshold":599
 }

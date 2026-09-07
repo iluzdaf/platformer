@@ -5,6 +5,9 @@
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/actors.hpp"
+#include "actor/health_data.hpp"
+#include "actor/actor_data.hpp"
+#include "player/player_data.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/player_fixtures.hpp"
 #include "game/level.hpp"
@@ -35,6 +38,25 @@ TEST_CASE("Spikes", "[TouchingTiles]")
     {
         touchTiles(player, tileMap);
         REQUIRE(tileMap.tilePositionToTileIndex(glm::ivec2(1, 1)) == 3);
+    }
+
+    SECTION("Kill once, however long the player lies on them")
+    {
+        int deaths = 0;
+        player.onDeath.connect([&] { ++deaths; });
+        touchTiles(player, tileMap);
+        touchTiles(player, tileMap);
+        REQUIRE(deaths == 1);
+    }
+
+    SECTION("Kill through health to spare")
+    {
+        PlayerData tough = playerDataWithEveryAbility();
+        tough.actorData.healthData = HealthData{3, 1.0f};
+        Player toughPlayer(tough, noIntentions());
+        toughPlayer.standAt(player.feet());
+        touchTiles(toughPlayer, tileMap);
+        REQUIRE_FALSE(toughPlayer.alive());
     }
 }
 

@@ -1,0 +1,58 @@
+#include <algorithm>
+#include <stdexcept>
+#include "actor/health.hpp"
+#include "actor/health_data.hpp"
+#include "actor/hit.hpp"
+
+Health::Health(const HealthData &data) : data(data), left(data.maximum)
+{
+    if (data.maximum < 1)
+        throw std::runtime_error("A health of less than one point is nobody alive");
+
+    if (data.invulnerableFor < 0.0f)
+        throw std::runtime_error("An invulnerable window cannot be negative");
+}
+
+bool Health::takeHit(const Hit &hit)
+{
+    if (!alive())
+        return false;
+
+    if (hit.lethal)
+    {
+        left = 0;
+        return true;
+    }
+
+    if (invulnerable())
+        return false;
+
+    left = std::max(0, left - hit.damage);
+    invulnerableLeft = data.invulnerableFor;
+    return true;
+}
+
+void Health::update(float deltaTime)
+{
+    invulnerableLeft = std::max(0.0f, invulnerableLeft - deltaTime);
+}
+
+int Health::points() const
+{
+    return left;
+}
+
+int Health::maximum() const
+{
+    return data.maximum;
+}
+
+bool Health::alive() const
+{
+    return left > 0;
+}
+
+bool Health::invulnerable() const
+{
+    return invulnerableLeft > 0.0f;
+}

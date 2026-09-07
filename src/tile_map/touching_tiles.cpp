@@ -2,6 +2,7 @@
 #include "tile_map/touching_tiles.hpp"
 #include "physics/aabb.hpp"
 #include "player/player.hpp"
+#include "actor/hit.hpp"
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
 
@@ -20,7 +21,7 @@ void touchTiles(Player &player, const TileMap &tileMap)
 
         if (tile.isDeadly())
         {
-            player.onDeath();
+            player.takeHit(lethalHit());
             break;
         }
 

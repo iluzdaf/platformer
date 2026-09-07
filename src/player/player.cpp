@@ -12,6 +12,16 @@ Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
     setBehavior(std::make_unique<InputBehavior>(intentionSource));
 }
 
+void Player::hurt()
+{
+    onHurt();
+}
+
+void Player::died()
+{
+    onDeath();
+}
+
 void Player::postFixedUpdate()
 {
     const ActorMotionState &motionState = moving().getState();

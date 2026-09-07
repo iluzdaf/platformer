@@ -12,6 +12,10 @@ function deathCoroutine()
     playback:play()
 end
 
+function onHurt()
+    camera:startShake(0.15, 2)
+end
+
 function onLevelComplete()    
     startCoroutine(levelCompleteCoroutine)
 end

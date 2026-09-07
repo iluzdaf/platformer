@@ -143,6 +143,9 @@ add_library(platformer_lib OBJECT
     src/tile_map/touching_tiles.cpp
     src/player/player.cpp
     src/actor/actor.cpp
+    src/actor/health.cpp
+    src/ui/health_ui.cpp
+
     src/assets/asset_paths.cpp
     src/reloading/hot_reload.cpp
     src/reloading/reloader.cpp
@@ -377,6 +380,8 @@ add_executable(tests
     tests/actor/abilities/test_wall_slide_ability.cpp
     tests/actor/abilities/test_wall_jump_ability.cpp
     tests/actor/test_actor_motion.cpp
+    tests/actor/test_health.cpp
+
     tests/actor/test_actor_animation_state.cpp
     tests/actor/abilities/test_wall_hang_ability.cpp
     tests/actor/abilities/test_wall_climb_ability.cpp

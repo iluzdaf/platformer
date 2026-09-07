@@ -12,10 +12,12 @@
 #include "physics/physics_body.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
+#include "actor/health.hpp"
 
 class TileMap;
 class Level;
 class NavigationGraph;
+struct Hit;
 
 class Actor
 {
@@ -37,10 +39,15 @@ public:
     std::optional<int> targetNodeId() const;
     glm::vec2 feet() const;
     void standAt(const glm::vec2 &feet);
+    const Health &health() const;
+    bool alive() const;
+    bool takeHit(const Hit &hit);
 
 protected:
     explicit Actor(const ActorData &data);
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
+    virtual void hurt();
+    virtual void died();
     ActorBehaviorContext behaviorContext(
         const NavigationGraph &navigationGraph,
         std::optional<glm::vec2> threatFeet) const;
@@ -52,5 +59,6 @@ private:
     ActorState actorState;
     SheetData sheet;
     NavigationProfile navigationProfile;
+    Health hp;
     std::unique_ptr<ActorBehavior> behavior;
 };

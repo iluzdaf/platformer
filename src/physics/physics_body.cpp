@@ -31,7 +31,7 @@ void PhysicsBody::setPosition(const glm::vec2 &newPosition)
     now.position = newPosition;
 }
 
-const glm::vec2 &PhysicsBody::position() const
+glm::vec2 PhysicsBody::position() const
 {
     return now.position;
 }
@@ -41,12 +41,12 @@ void PhysicsBody::setVelocity(const glm::vec2 &newVelocity)
     now.velocity = newVelocity;
 }
 
-const glm::vec2 &PhysicsBody::velocity() const
+glm::vec2 PhysicsBody::velocity() const
 {
     return now.velocity;
 }
 
-const glm::vec2 &PhysicsBody::colliderSize() const
+glm::vec2 PhysicsBody::colliderSize() const
 {
     return data.colliderSize;
 }
@@ -391,17 +391,17 @@ void PhysicsBody::stepPhysics(float deltaTime, const TileMap &tileMap)
     now.velocity = next.velocity;
 }
 
-const glm::vec2 &PhysicsBody::colliderOffset() const
+glm::vec2 PhysicsBody::colliderOffset() const
 {
     return data.colliderOffset;
 }
 
-const AABB &PhysicsBody::collisionAABBX() const
+AABB PhysicsBody::collisionAABBX() const
 {
     return collisionX;
 }
 
-const AABB &PhysicsBody::collisionAABBY() const
+AABB PhysicsBody::collisionAABBY() const
 {
     return collisionY;
 }

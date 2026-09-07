@@ -12,10 +12,10 @@ public:
     explicit PhysicsBody(const PhysicsBodyData &data);
     void setPosition(const glm::vec2 &newPosition);
     void setVelocity(const glm::vec2 &newVelocity);
-    const glm::vec2 &position() const;
-    const glm::vec2 &velocity() const;
-    const glm::vec2 &colliderSize() const;
-    const glm::vec2 &colliderOffset() const;
+    glm::vec2 position() const;
+    glm::vec2 velocity() const;
+    glm::vec2 colliderSize() const;
+    glm::vec2 colliderOffset() const;
     AABB aabb() const;
     AABB touchBox() const;
     glm::vec2 bottomCenterOffset() const;
@@ -32,8 +32,8 @@ public:
     bool contactWithGround(const TileMap &tileMap) const;
     bool contactWithCeiling(const TileMap &tileMap) const;
     void stepPhysics(float deltaTime, const TileMap &tileMap);
-    const AABB &collisionAABBX() const;
-    const AABB &collisionAABBY() const;
+    AABB collisionAABBX() const;
+    AABB collisionAABBY() const;
 
 private:
     PhysicsBodyData data;

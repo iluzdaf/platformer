@@ -3,8 +3,6 @@
 #include <string>
 #include "rendering/texture_cache.hpp"
 #include "assets/sheet_data.hpp"
-#include "physics/aabb.hpp"
-#include "physics/physics_body.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/editor_ui.hpp"
 #include "ui/score_ui.hpp"
@@ -37,7 +35,7 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.textures,
             subject.levels,
             subject.player.moving().getState(),
-            subject.player.body().aabb().bottomCenter(),
+            subject.player.feet(),
             subject.player.state(),
             subject.camera,
             subject.paused},

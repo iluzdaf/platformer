@@ -28,7 +28,7 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         "Playback", "pause", &Playback::pause, "play", &Playback::play, "step", &Playback::step);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
     lua.new_usertype<Level>("Level", "getNextLevel", &Level::getNextLevel);
-    lua.new_usertype<Player>("Player", "setPosition", &Player::setPosition);
+    lua.new_usertype<Player>("Player", "standAt", &Player::standAt);
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
 
     lua.set_function(

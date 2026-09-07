@@ -18,7 +18,6 @@
 #include "game/level.hpp"
 #include "navigation/navigation_place.hpp"
 #include "npc/npc.hpp"
-#include "physics/aabb.hpp"
 #include "physics/physics_body.hpp"
 #include "tile_map/tile_map.hpp"
 #include "npc/npc_data.hpp"
@@ -107,7 +106,7 @@ namespace
         if (!state.empty())
             drawRow("State", std::string(state));
 
-        glm::ivec2 on = level.getTileMap().tileStoodOnAt(npc->body().aabb().bottomCenter());
+        glm::ivec2 on = level.getTileMap().tileStoodOnAt(npc->feet());
         drawRow("Stands On", std::format("{}, {}", on.x, on.y));
 
         std::optional<int> setOffAt = npc->currentNodeId();

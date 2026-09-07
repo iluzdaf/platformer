@@ -347,7 +347,7 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
     float ledgeRight = static_cast<float>(LedgeLastTile + 1) * 16.0f;
     float ledgeTop = static_cast<float>(LedgeRow) * 16.0f;
     player.setPosition(
-        glm::vec2(ledgeRight - player.getPhysicsBody().getColliderOffset().x, ledgeTop - 2.0f));
+        glm::vec2(ledgeRight - player.getPhysicsBody().colliderOffset().x, ledgeTop - 2.0f));
 
     InputIntentions intentions;
     intentions.direction.x = -1.0f;
@@ -358,7 +358,7 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
         player.postFixedUpdate();
     }
 
-    float colliderTop = player.getPosition().y + player.getPhysicsBody().getColliderOffset().y;
+    float colliderTop = player.getPosition().y + player.getPhysicsBody().colliderOffset().y;
     INFO(
         "collider top ended at " << colliderTop << ", the ledge spans " << ledgeTop << " to "
                                  << ledgeTop + 16.0f);
@@ -389,7 +389,7 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
     simulatePlayer(player, input, tileMap, 0.5f);
 
     REQUIRE(state.contacts.onGround);
-    REQUIRE(player.getPhysicsBody().getAABB().bottomCenter().y == Approx(5 * 16.0f));
+    REQUIRE(player.getPhysicsBody().aabb().bottomCenter().y == Approx(5 * 16.0f));
 }
 
 TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")

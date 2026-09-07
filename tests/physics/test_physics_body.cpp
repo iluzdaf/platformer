@@ -80,7 +80,7 @@ TEST_CASE("A body over two tiles is lifted once, not once per tile", "[PhysicsBo
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f));
+    REQUIRE(body.position().y == Approx(4 * 16.0f));
 }
 
 TEST_CASE("A body shifted into a wall is pushed out the shortest way", "[PhysicsBody]")
@@ -90,10 +90,10 @@ TEST_CASE("A body shifted into a wall is pushed out the shortest way", "[Physics
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().x == Approx(2 * 16.0f));
-    REQUIRE(body.getPosition().y == Approx(3 * 16.0f));
-    REQUIRE(body.getVelocity().x == Approx(0.0f));
-    REQUIRE_FALSE(body.getCollisionAABBX().isEmpty());
+    REQUIRE(body.position().x == Approx(2 * 16.0f));
+    REQUIRE(body.position().y == Approx(3 * 16.0f));
+    REQUIRE(body.velocity().x == Approx(0.0f));
+    REQUIRE_FALSE(body.collisionAABBX().isEmpty());
 }
 
 TEST_CASE("A body with its head in a ceiling is pushed down out of it", "[PhysicsBody]")
@@ -103,8 +103,8 @@ TEST_CASE("A body with its head in a ceiling is pushed down out of it", "[Physic
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().y == Approx(3 * 16.0f));
-    REQUIRE(body.getVelocity().y == Approx(0.0f));
+    REQUIRE(body.position().y == Approx(3 * 16.0f));
+    REQUIRE(body.velocity().y == Approx(0.0f));
 }
 
 TEST_CASE("A body deeper across than down is pushed up, not sideways", "[PhysicsBody]")
@@ -114,8 +114,8 @@ TEST_CASE("A body deeper across than down is pushed up, not sideways", "[Physics
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().x == Approx(3 * 16.0f + 4.0f));
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f));
+    REQUIRE(body.position().x == Approx(3 * 16.0f + 4.0f));
+    REQUIRE(body.position().y == Approx(4 * 16.0f));
 }
 
 TEST_CASE(
@@ -132,7 +132,7 @@ TEST_CASE(
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f + 1.0f));
+    REQUIRE(body.position().y == Approx(4 * 16.0f + 1.0f));
     REQUIRE(body.contactWithGround(tileMap));
 }
 
@@ -145,8 +145,8 @@ TEST_CASE(
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().y == Approx(16.0f));
-    REQUIRE(body.getPosition().x == Approx(3 * 16.0f));
+    REQUIRE(body.position().y == Approx(16.0f));
+    REQUIRE(body.position().x == Approx(3 * 16.0f));
 }
 
 TEST_CASE("A body inside a tile on the bottom row is pushed up", "[PhysicsBody]")
@@ -156,7 +156,7 @@ TEST_CASE("A body inside a tile on the bottom row is pushed up", "[PhysicsBody]"
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().y == Approx(8 * 16.0f));
+    REQUIRE(body.position().y == Approx(8 * 16.0f));
 }
 
 TEST_CASE("A body inside a tile in the left column is pushed right", "[PhysicsBody]")
@@ -166,8 +166,8 @@ TEST_CASE("A body inside a tile in the left column is pushed right", "[PhysicsBo
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().x == Approx(16.0f));
-    REQUIRE(body.getPosition().y == Approx(3 * 16.0f));
+    REQUIRE(body.position().x == Approx(16.0f));
+    REQUIRE(body.position().y == Approx(3 * 16.0f));
 }
 
 TEST_CASE("A body found resting inside a surface is lifted onto it", "[PhysicsBody]")
@@ -177,9 +177,9 @@ TEST_CASE("A body found resting inside a surface is lifted onto it", "[PhysicsBo
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f));
-    REQUIRE(body.getVelocity().y == Approx(0.0f));
-    REQUIRE_FALSE(body.getCollisionAABBY().isEmpty());
+    REQUIRE(body.position().y == Approx(4 * 16.0f));
+    REQUIRE(body.velocity().y == Approx(0.0f));
+    REQUIRE_FALSE(body.collisionAABBY().isEmpty());
 }
 
 TEST_CASE("A body resting on a surface is left where it is", "[PhysicsBody]")
@@ -189,8 +189,8 @@ TEST_CASE("A body resting on a surface is left where it is", "[PhysicsBody]")
 
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f));
-    REQUIRE(body.getCollisionAABBY().isEmpty());
+    REQUIRE(body.position().y == Approx(4 * 16.0f));
+    REQUIRE(body.collisionAABBY().isEmpty());
 }
 
 TEST_CASE("A lip no taller than the step height is walked over", "[PhysicsBody]")
@@ -200,8 +200,8 @@ TEST_CASE("A lip no taller than the step height is walked over", "[PhysicsBody]"
 
     walkRight(body, tileMap);
 
-    REQUIRE(body.getPosition().x == Approx(38.0f));
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f));
+    REQUIRE(body.position().x == Approx(38.0f));
+    REQUIRE(body.position().y == Approx(4 * 16.0f));
 }
 
 TEST_CASE("A lip taller than the step height is a wall", "[PhysicsBody]")
@@ -211,14 +211,14 @@ TEST_CASE("A lip taller than the step height is a wall", "[PhysicsBody]")
 
     walkRight(body, tileMap);
 
-    REQUIRE(body.getPosition().x == Approx(16.0f));
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f + 5.0f));
+    REQUIRE(body.position().x == Approx(16.0f));
+    REQUIRE(body.position().y == Approx(4 * 16.0f + 5.0f));
 
     body.setVelocity({60.0f, 0.0f});
     body.stepPhysics(0.01f, tileMap);
 
-    REQUIRE(body.getPosition().x == Approx(16.0f));
-    REQUIRE_FALSE(body.getCollisionAABBX().isEmpty());
+    REQUIRE(body.position().x == Approx(16.0f));
+    REQUIRE_FALSE(body.collisionAABBX().isEmpty());
 }
 
 TEST_CASE("The step height is the body's to say", "[PhysicsBody]")
@@ -228,8 +228,8 @@ TEST_CASE("The step height is the body's to say", "[PhysicsBody]")
 
     walkRight(body, tileMap);
 
-    REQUIRE(body.getPosition().x == Approx(38.0f));
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f));
+    REQUIRE(body.position().x == Approx(38.0f));
+    REQUIRE(body.position().y == Approx(4 * 16.0f));
 }
 
 TEST_CASE("Stepping down onto a lower surface still drops", "[PhysicsBody]")
@@ -244,8 +244,8 @@ TEST_CASE("Stepping down onto a lower surface still drops", "[PhysicsBody]")
 
     walkRight(body, tileMap, 20.0f);
 
-    REQUIRE(body.getPosition().x == Approx(38.0f));
-    REQUIRE(body.getPosition().y == Approx(4 * 16.0f + 1.0f));
+    REQUIRE(body.position().x == Approx(38.0f));
+    REQUIRE(body.position().y == Approx(4 * 16.0f + 1.0f));
 }
 
 TEST_CASE("A step height that leaves no body to collide with is refused", "[PhysicsBody]")
@@ -266,8 +266,8 @@ TEST_CASE("PhysicsBody resolves collisions with solid tiles", "[PhysicsBody]")
     FixedTimeStep timeStepper;
     timeStepper.run(1.0f, [&](float deltaTime) { body.stepPhysics(deltaTime, tileMap); });
     float expectedY = 4 * 16.0f;
-    REQUIRE(body.getPosition().y == Approx(expectedY));
-    REQUIRE(body.getVelocity().y == Approx(0.0f).margin(0.01f));
+    REQUIRE(body.position().y == Approx(expectedY));
+    REQUIRE(body.velocity().y == Approx(0.0f).margin(0.01f));
 }
 
 TEST_CASE("PhysicsBody clamps to map bounds", "[PhysicsBody]")
@@ -275,8 +275,8 @@ TEST_CASE("PhysicsBody clamps to map bounds", "[PhysicsBody]")
     TileMap tileMap = aTileMap();
     PhysicsBody body = setupBody({-5, -5}, {0, 0});
     body.stepPhysics(1.0f, tileMap);
-    REQUIRE(body.getPosition().x == Approx(0.0f));
-    REQUIRE(body.getPosition().y == Approx(0.0f));
+    REQUIRE(body.position().x == Approx(0.0f));
+    REQUIRE(body.position().y == Approx(0.0f));
 }
 
 TEST_CASE("PhysicsBody detects contact with ground", "[PhysicsBody]")
@@ -344,17 +344,17 @@ TEST_CASE("PhysicsBody knows how far its feet sit from its position", "[PhysicsB
 {
     PhysicsBody body = setupBody({0, 0}, {0, 0}, {6, 10}, {2, 5});
 
-    body.setPosition(glm::vec2(100, 200) - body.getBottomCenterOffset());
+    body.setPosition(glm::vec2(100, 200) - body.bottomCenterOffset());
 
-    REQUIRE(body.getAABB().left() == Approx(97.0f));
-    REQUIRE(body.getAABB().right() == Approx(103.0f));
-    REQUIRE(body.getAABB().bottom() == Approx(200.0f));
+    REQUIRE(body.aabb().left() == Approx(97.0f));
+    REQUIRE(body.aabb().right() == Approx(103.0f));
+    REQUIRE(body.aabb().bottom() == Approx(200.0f));
 }
 
 TEST_CASE("The touch box reaches a hair past the collider on every side", "[PhysicsBody]")
 {
     PhysicsBody body = setupBody({10, 20}, {0, 0}, {8, 16}, {4, 0});
-    AABB collider = body.getAABB();
+    AABB collider = body.aabb();
     AABB touch = body.touchBox();
 
     REQUIRE(touch.left() < collider.left());

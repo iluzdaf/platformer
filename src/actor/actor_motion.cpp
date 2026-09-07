@@ -32,14 +32,14 @@ void ActorMotion::readContacts(const PhysicsBody &physicsBody, const TileMap &ti
         state.contacts.wasLastWallLeft = true;
     else if (state.contacts.grippableRightWall)
         state.contacts.wasLastWallLeft = false;
-    state.contacts.collisionAABBX.expandToInclude(physicsBody.getCollisionAABBX());
-    state.contacts.collisionAABBY.expandToInclude(physicsBody.getCollisionAABBY());
+    state.contacts.collisionAABBX.expandToInclude(physicsBody.collisionAABBX());
+    state.contacts.collisionAABBY.expandToInclude(physicsBody.collisionAABBY());
 }
 
 void ActorMotion::readMotion(const PhysicsBody &physicsBody)
 {
     state.previousVelocity = state.velocity;
-    state.velocity = physicsBody.getVelocity();
+    state.velocity = physicsBody.velocity();
 }
 
 void ActorMotion::beginFrame()

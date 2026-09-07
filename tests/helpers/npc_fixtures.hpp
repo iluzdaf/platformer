@@ -152,5 +152,5 @@ inline void stepNpc(Npc &npc, const Level &level, int steps)
 
 inline glm::vec2 footOf(const Npc &npc)
 {
-    return npc.getPhysicsBody().getAABB().bottomCenter();
+    return npc.getPhysicsBody().aabb().bottomCenter();
 }

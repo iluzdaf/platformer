@@ -28,43 +28,43 @@ PhysicsBody::PhysicsBody(const PhysicsBodyData &data) : data(data)
 
 void PhysicsBody::setPosition(const glm::vec2 &newPosition)
 {
-    position = newPosition;
+    now.position = newPosition;
 }
 
-const glm::vec2 &PhysicsBody::getPosition() const
+const glm::vec2 &PhysicsBody::position() const
 {
-    return position;
+    return now.position;
 }
 
 void PhysicsBody::setVelocity(const glm::vec2 &newVelocity)
 {
-    velocity = newVelocity;
+    now.velocity = newVelocity;
 }
 
-const glm::vec2 &PhysicsBody::getVelocity() const
+const glm::vec2 &PhysicsBody::velocity() const
 {
-    return velocity;
+    return now.velocity;
 }
 
-const glm::vec2 &PhysicsBody::getColliderSize() const
+const glm::vec2 &PhysicsBody::colliderSize() const
 {
     return data.colliderSize;
 }
 
-AABB PhysicsBody::getAABB() const
+AABB PhysicsBody::aabb() const
 {
-    return AABB(position + getColliderOffset(), getColliderSize());
+    return AABB(now.position + colliderOffset(), colliderSize());
 }
 
 AABB PhysicsBody::touchBox() const
 {
     glm::vec2 skin(ContactProbeDepth);
-    return AABB(position + getColliderOffset() - skin, getColliderSize() + skin * 2.0f);
+    return AABB(now.position + colliderOffset() - skin, colliderSize() + skin * 2.0f);
 }
 
-glm::vec2 PhysicsBody::getBottomCenterOffset() const
+glm::vec2 PhysicsBody::bottomCenterOffset() const
 {
-    return getColliderOffset() + glm::vec2(getColliderSize().x * 0.5f, getColliderSize().y);
+    return colliderOffset() + glm::vec2(colliderSize().x * 0.5f, colliderSize().y);
 }
 
 void PhysicsBody::resolveCollisionAgainstTile(
@@ -120,8 +120,8 @@ void PhysicsBody::resolveCollisionAgainstTile(
 
 AABB PhysicsBody::horizontalProbeAt(glm::vec2 positionWithOffset) const
 {
-    float headroom = getColliderSize().y * HeadroomFraction;
-    glm::vec2 size = getColliderSize();
+    float headroom = colliderSize().y * HeadroomFraction;
+    glm::vec2 size = colliderSize();
     size.y -= headroom + data.stepHeight;
 
     return AABB(positionWithOffset + glm::vec2(0.0f, headroom), size);
@@ -129,16 +129,16 @@ AABB PhysicsBody::horizontalProbeAt(glm::vec2 positionWithOffset) const
 
 AABB PhysicsBody::verticalProbeAt(glm::vec2 positionWithOffset) const
 {
-    glm::vec2 size = getColliderSize();
+    glm::vec2 size = colliderSize();
     size.x *= 0.5f;
 
-    return AABB(positionWithOffset + glm::vec2((getColliderSize().x - size.x) * 0.5f, 0.0f), size);
+    return AABB(positionWithOffset + glm::vec2((colliderSize().x - size.x) * 0.5f, 0.0f), size);
 }
 
 void PhysicsBody::resolveHorizontalCollision(const TileMap &tileMap)
 {
-    collisionAABBX = AABB();
-    glm::vec2 nextPositionWithOffset = nextPosition + getColliderOffset();
+    collisionX = AABB();
+    glm::vec2 nextPositionWithOffset = next.position + colliderOffset();
 
     tileMap.probeSolidTiles(
         horizontalProbeAt(nextPositionWithOffset),
@@ -148,19 +148,19 @@ void PhysicsBody::resolveHorizontalCollision(const TileMap &tileMap)
                 horizontalProbeAt(nextPositionWithOffset),
                 tileAABB,
                 {1.0f, 0.0f},
-                nextVelocity.x,
+                next.velocity.x,
                 nextPositionWithOffset,
-                collisionAABBX);
+                collisionX);
             return false;
         });
 
-    nextPosition = nextPositionWithOffset - getColliderOffset();
+    next.position = nextPositionWithOffset - colliderOffset();
 }
 
 void PhysicsBody::resolveVerticalCollision(const TileMap &tileMap)
 {
-    collisionAABBY = AABB();
-    glm::vec2 nextPositionWithOffset = nextPosition + getColliderOffset();
+    collisionY = AABB();
+    glm::vec2 nextPositionWithOffset = next.position + colliderOffset();
 
     tileMap.probeSolidTiles(
         verticalProbeAt(nextPositionWithOffset),
@@ -170,23 +170,23 @@ void PhysicsBody::resolveVerticalCollision(const TileMap &tileMap)
                 verticalProbeAt(nextPositionWithOffset),
                 tileAABB,
                 {0.0f, 1.0f},
-                nextVelocity.y,
+                next.velocity.y,
                 nextPositionWithOffset,
-                collisionAABBY);
+                collisionY);
             return false;
         });
 
-    nextPosition = nextPositionWithOffset - getColliderOffset();
+    next.position = nextPositionWithOffset - colliderOffset();
 }
 
 void PhysicsBody::pushOutOfSolids(const TileMap &tileMap)
 {
-    glm::vec2 nextPositionWithOffset = nextPosition + getColliderOffset();
+    glm::vec2 nextPositionWithOffset = next.position + colliderOffset();
     const float epsilon = 0.001f;
 
     auto insideTheMap = [&](glm::vec2 moved)
     {
-        AABB body(nextPositionWithOffset + moved, getColliderSize());
+        AABB body(nextPositionWithOffset + moved, colliderSize());
         return body.left() >= 0.0f && body.top() >= 0.0f &&
                body.right() <= static_cast<float>(tileMap.getWorldWidth()) &&
                body.bottom() <= static_cast<float>(tileMap.getWorldHeight());
@@ -201,7 +201,7 @@ void PhysicsBody::pushOutOfSolids(const TileMap &tileMap)
 
     auto waysOutOf = [&](const AABB &tileAABB, std::vector<WayOut> &ways)
     {
-        auto along = [&](const AABB &probe, glm::vec2 axis, float &velocity, AABB &box)
+        auto along = [&](const AABB &probe, glm::vec2 axis, float &speed, AABB &box)
         {
             glm::vec2 delta = probe.center() - tileAABB.center();
             glm::vec2 overlap = (tileAABB.size + probe.size) * 0.5f - glm::abs(delta);
@@ -209,22 +209,17 @@ void PhysicsBody::pushOutOfSolids(const TileMap &tileMap)
                 return;
 
             ways.push_back(
-                {-axis * (probe.position + probe.size - tileAABB.position), &velocity, &box});
+                {-axis * (probe.position + probe.size - tileAABB.position), &speed, &box});
             ways.push_back(
-                {axis * (tileAABB.position + tileAABB.size - probe.position), &velocity, &box});
+                {axis * (tileAABB.position + tileAABB.size - probe.position), &speed, &box});
         };
 
-        along(
-            verticalProbeAt(nextPositionWithOffset), {0.0f, 1.0f}, nextVelocity.y, collisionAABBY);
-        along(
-            horizontalProbeAt(nextPositionWithOffset),
-            {1.0f, 0.0f},
-            nextVelocity.x,
-            collisionAABBX);
+        along(verticalProbeAt(nextPositionWithOffset), {0.0f, 1.0f}, next.velocity.y, collisionY);
+        along(horizontalProbeAt(nextPositionWithOffset), {1.0f, 0.0f}, next.velocity.x, collisionX);
     };
 
     tileMap.probeSolidTiles(
-        AABB(nextPositionWithOffset, getColliderSize()),
+        AABB(nextPositionWithOffset, colliderSize()),
         [&](const Tile &, const AABB &tileAABB)
         {
             std::vector<WayOut> ways;
@@ -247,7 +242,7 @@ void PhysicsBody::pushOutOfSolids(const TileMap &tileMap)
             return false;
         });
 
-    nextPosition = nextPositionWithOffset - getColliderOffset();
+    next.position = nextPositionWithOffset - colliderOffset();
 }
 
 void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
@@ -255,11 +250,11 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
     const int mapWidth = tileMap.getWorldWidth();
     const int mapHeight = tileMap.getWorldHeight();
 
-    glm::vec2 clampedPosition = nextPosition + getColliderOffset();
-    glm::vec2 clampedVelocity = nextVelocity;
+    glm::vec2 clampedPosition = next.position + colliderOffset();
+    glm::vec2 clampedVelocity = next.velocity;
     bool clamped = false;
 
-    AABB playerAABB(clampedPosition, getColliderSize());
+    AABB playerAABB(clampedPosition, colliderSize());
 
     if (playerAABB.left() < 0.0f)
     {
@@ -269,7 +264,7 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
     }
     else if (playerAABB.right() > mapWidth)
     {
-        clampedPosition.x = mapWidth - getColliderSize().x;
+        clampedPosition.x = mapWidth - colliderSize().x;
         clampedVelocity.x = 0.0f;
         clamped = true;
     }
@@ -282,24 +277,24 @@ void PhysicsBody::clampToTileMapBounds(const TileMap &tileMap)
     }
     else if (playerAABB.bottom() > mapHeight)
     {
-        clampedPosition.y = mapHeight - getColliderSize().y;
+        clampedPosition.y = mapHeight - colliderSize().y;
         clampedVelocity.y = 0.0f;
         clamped = true;
     }
 
     if (clamped)
     {
-        nextPosition = clampedPosition - getColliderOffset();
-        nextVelocity = clampedVelocity;
+        next.position = clampedPosition - colliderOffset();
+        next.velocity = clampedVelocity;
     }
 }
 
 AABB PhysicsBody::wallProbe(float side) const
 {
-    glm::vec2 probeSize = getColliderSize();
+    glm::vec2 probeSize = colliderSize();
     probeSize.y *= 0.5f;
-    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(side * 0.1f, 0.0f);
-    probePosition.y += (getColliderSize().y - probeSize.y) * 0.5f;
+    glm::vec2 probePosition = now.position + colliderOffset() + glm::vec2(side * 0.1f, 0.0f);
+    probePosition.y += (colliderSize().y - probeSize.y) * 0.5f;
     return AABB(probePosition, probeSize);
 }
 
@@ -329,9 +324,9 @@ bool PhysicsBody::gripOnRightWall(const TileMap &tileMap) const
 
 AABB PhysicsBody::wallProbeAtHead(float side) const
 {
-    glm::vec2 probeSize = getColliderSize();
+    glm::vec2 probeSize = colliderSize();
     probeSize.y *= 0.25f;
-    glm::vec2 probePosition = position + getColliderOffset() + glm::vec2(side * 0.1f, 0.0f);
+    glm::vec2 probePosition = now.position + colliderOffset() + glm::vec2(side * 0.1f, 0.0f);
     return AABB(probePosition, probeSize);
 }
 bool PhysicsBody::contactWithLeftWallAtHead(const TileMap &tileMap) const
@@ -348,18 +343,18 @@ bool PhysicsBody::contactWithRightWallAtHead(const TileMap &tileMap) const
 
 AABB PhysicsBody::underfootProbe() const
 {
-    glm::vec2 probeSize(getColliderSize().x * 0.5f, ContactProbeDepth);
-    glm::vec2 probePosition = position + getColliderOffset();
-    probePosition.x += getColliderSize().x * 0.25f;
-    probePosition.y += getColliderSize().y;
+    glm::vec2 probeSize(colliderSize().x * 0.5f, ContactProbeDepth);
+    glm::vec2 probePosition = now.position + colliderOffset();
+    probePosition.x += colliderSize().x * 0.25f;
+    probePosition.y += colliderSize().y;
     return AABB(probePosition, probeSize);
 }
 
 AABB PhysicsBody::overheadProbe() const
 {
-    glm::vec2 probeSize(getColliderSize().x * 0.5f, ContactProbeDepth);
-    glm::vec2 probePosition = position + getColliderOffset();
-    probePosition.x += getColliderSize().x * 0.25f;
+    glm::vec2 probeSize(colliderSize().x * 0.5f, ContactProbeDepth);
+    glm::vec2 probePosition = now.position + colliderOffset();
+    probePosition.x += colliderSize().x * 0.25f;
     probePosition.y -= ContactProbeDepth;
     return AABB(probePosition, probeSize);
 }
@@ -368,7 +363,7 @@ bool PhysicsBody::contactWithGround(const TileMap &tileMap) const
 {
     return tileMap.probeSolidTiles(
                underfootProbe(), [](const Tile &, const AABB &) { return true; }) ||
-           AABB(position + getColliderOffset(), getColliderSize()).bottom() >=
+           AABB(now.position + colliderOffset(), colliderSize()).bottom() >=
                tileMap.getWorldHeight();
 }
 
@@ -380,33 +375,33 @@ bool PhysicsBody::contactWithCeiling(const TileMap &tileMap) const
 
 void PhysicsBody::stepPhysics(float deltaTime, const TileMap &tileMap)
 {
-    nextPosition = position;
-    nextVelocity = velocity;
+    next.position = now.position;
+    next.velocity = now.velocity;
 
-    nextPosition += glm::vec2(nextVelocity.x, 0) * deltaTime;
+    next.position += glm::vec2(next.velocity.x, 0) * deltaTime;
     resolveHorizontalCollision(tileMap);
 
-    nextPosition += glm::vec2(0, nextVelocity.y) * deltaTime;
+    next.position += glm::vec2(0, next.velocity.y) * deltaTime;
     resolveVerticalCollision(tileMap);
 
     pushOutOfSolids(tileMap);
     clampToTileMapBounds(tileMap);
 
-    position = nextPosition;
-    velocity = nextVelocity;
+    now.position = next.position;
+    now.velocity = next.velocity;
 }
 
-const glm::vec2 &PhysicsBody::getColliderOffset() const
+const glm::vec2 &PhysicsBody::colliderOffset() const
 {
     return data.colliderOffset;
 }
 
-const AABB &PhysicsBody::getCollisionAABBX() const
+const AABB &PhysicsBody::collisionAABBX() const
 {
-    return collisionAABBX;
+    return collisionX;
 }
 
-const AABB &PhysicsBody::getCollisionAABBY() const
+const AABB &PhysicsBody::collisionAABBY() const
 {
-    return collisionAABBY;
+    return collisionY;
 }

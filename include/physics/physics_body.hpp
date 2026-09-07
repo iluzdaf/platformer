@@ -10,15 +10,15 @@ class PhysicsBody
 {
 public:
     explicit PhysicsBody(const PhysicsBodyData &data);
-    void setPosition(const glm::vec2 &position);
-    void setVelocity(const glm::vec2 &velocity);
-    const glm::vec2 &getPosition() const;
-    const glm::vec2 &getVelocity() const;
-    const glm::vec2 &getColliderSize() const;
-    const glm::vec2 &getColliderOffset() const;
-    AABB getAABB() const;
+    void setPosition(const glm::vec2 &newPosition);
+    void setVelocity(const glm::vec2 &newVelocity);
+    const glm::vec2 &position() const;
+    const glm::vec2 &velocity() const;
+    const glm::vec2 &colliderSize() const;
+    const glm::vec2 &colliderOffset() const;
+    AABB aabb() const;
     AABB touchBox() const;
-    glm::vec2 getBottomCenterOffset() const;
+    glm::vec2 bottomCenterOffset() const;
     bool contactWithLeftWall(const TileMap &tileMap) const;
     bool contactWithRightWall(const TileMap &tileMap) const;
     bool gripOnLeftWall(const TileMap &tileMap) const;
@@ -32,14 +32,17 @@ public:
     bool contactWithGround(const TileMap &tileMap) const;
     bool contactWithCeiling(const TileMap &tileMap) const;
     void stepPhysics(float deltaTime, const TileMap &tileMap);
-    const AABB &getCollisionAABBX() const;
-    const AABB &getCollisionAABBY() const;
+    const AABB &collisionAABBX() const;
+    const AABB &collisionAABBY() const;
 
 private:
     PhysicsBodyData data;
-    glm::vec2 position = glm::vec2(0, 0), nextPosition = glm::vec2(0, 0),
-              velocity = glm::vec2(0, 0), nextVelocity = glm::vec2(0, 0);
-    AABB collisionAABBX, collisionAABBY;
+    struct Motion
+    {
+        glm::vec2 position = glm::vec2(0, 0), velocity = glm::vec2(0, 0);
+    };
+    Motion now, next;
+    AABB collisionX, collisionY;
 
     void resolveHorizontalCollision(const TileMap &tileMap);
     void resolveVerticalCollision(const TileMap &tileMap);

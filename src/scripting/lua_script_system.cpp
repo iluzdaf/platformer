@@ -13,6 +13,11 @@
 #include "game/playback.hpp"
 #include "game/level.hpp"
 
+namespace
+{
+    constexpr float WaitSlack = 1e-6f;
+}
+
 LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scriptPath)
 {
     lua.open_libraries(
@@ -54,7 +59,7 @@ void LuaScriptSystem::update(float deltaTime)
     for (auto it = waitingCoroutines.begin(); it != waitingCoroutines.end();)
     {
         it->remainingTime -= deltaTime;
-        if (it->remainingTime <= 0.0f)
+        if (it->remainingTime <= WaitSlack)
         {
             if (std::optional<float> wait = resume(it->co, "a coroutine"))
             {

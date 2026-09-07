@@ -53,9 +53,6 @@ void LevelUi::draw(
     }
 
     ImGui::Separator();
-    drawOverlayToggles();
-
-    ImGui::Separator();
     if (!ImGui::CollapsingHeader("Inspector"))
         return;
 
@@ -164,9 +161,6 @@ void LevelUi::drawLevel(
 
 void LevelUi::drawOverlayToggles()
 {
-    if (!ImGui::CollapsingHeader("Overlays"))
-        return;
-
     ImGui::Checkbox("Tile map", &tileMapShown.showing);
     navigationUi.drawOverlayToggles();
 }

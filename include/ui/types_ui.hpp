@@ -11,6 +11,7 @@
 #include "game/game_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
+#include "player/player_data.hpp"
 
 struct LevelData;
 class TextureCache;
@@ -23,11 +24,13 @@ class TypesUi
 public:
     using WriteNpcs = std::function<void(const std::map<std::string, NpcData> &)>;
     using WritePickups = std::function<void(const std::map<std::string, PickupData> &)>;
+    using WritePlayer = std::function<void(const PlayerData &)>;
 
     explicit TypesUi(
         std::string levelsDirectory = std::string(assets::Levels),
         WriteNpcs writeNpcs = saveNpcData,
-        WritePickups writePickups = savePickupData);
+        WritePickups writePickups = savePickupData,
+        WritePlayer writePlayer = savePlayerData);
 
     void draw(GameData &gameData, const TextureCache &textures, EditorCommands &commands);
     bool save(GameData &gameData, LevelData &playing);
@@ -46,9 +49,10 @@ private:
     std::string levelsDirectory;
     WriteNpcs writeNpcs;
     WritePickups writePickups;
+    WritePlayer writePlayer;
     Saveable saveable;
     Renaming npcRenaming, pickupRenaming;
-    TypeShown showing;
+    TypeShown showing = thePlayer();
     std::string previewing = "idle";
     std::string askedToWarm;
 };

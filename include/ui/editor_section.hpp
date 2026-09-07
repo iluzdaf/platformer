@@ -8,15 +8,13 @@ enum class EditorSection
 {
     Runtime,
     Game,
-    Player,
-    Level,
-    Types
+    Cast,
+    Level
 };
 
-inline constexpr std::array<std::pair<EditorSection, std::string_view>, 5> EditorSections{{
+inline constexpr std::array<std::pair<EditorSection, std::string_view>, 4> EditorSections{{
     {EditorSection::Runtime, "Runtime"},
     {EditorSection::Game, "Game"},
-    {EditorSection::Player, "Player"},
+    {EditorSection::Cast, "Cast"},
     {EditorSection::Level, "Level"},
-    {EditorSection::Types, "Types"},
 }};

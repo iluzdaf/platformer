@@ -11,6 +11,7 @@
 #include "actor/actor_data.hpp"
 #include "assets/asset_paths.hpp"
 #include "pickups/pickup_data.hpp"
+#include "player/player_data.hpp"
 #include "helpers/headless_imgui.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/types_ui.hpp"
@@ -292,6 +293,123 @@ TEST_CASE("Reverting puts back a type that was removed", "[TypesUi]")
     typesUi.revert(gameData);
 
     REQUIRE(gameData.pickupData.contains("coin"));
+}
+
+TEST_CASE("The player is in the cast and hands back their own sheet", "[TypesUi]")
+{
+    GameData gameData = twoOfEach();
+    gameData.playerData.actorData.sheet.texture = "textures/hero.png";
+
+    REQUIRE(sheetOf(gameData, thePlayer()) == &gameData.playerData.actorData.sheet);
+    REQUIRE(sheetOf(gameData, thePlayer())->texture == "textures/hero.png");
+}
+
+TEST_CASE("The player cannot leave the cast", "[TypesUi]")
+{
+    GameData gameData = twoOfEach();
+
+    REQUIRE_THROWS(removeTypeFrom(gameData, thePlayer()));
+    REQUIRE_THROWS(addTypeTo(gameData, TypeShown::What::Player));
+}
+
+TEST_CASE("The player naming no sheet is named as the reason a save cannot happen", "[TypesUi]")
+{
+    GameData gameData = loadGameData();
+    gameData.playerData.actorData.sheet.texture.clear();
+
+    std::optional<std::string> why = typesNamingNoSheet(gameData);
+
+    REQUIRE(why);
+    REQUIRE(why->contains("player"));
+}
+
+TEST_CASE("The player that changes leaves the cast unsaved", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+    gameData.playerData.fallFromHeightThreshold += 1.0f;
+
+    REQUIRE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("Reverting puts the player back", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    float was = gameData.playerData.fallFromHeightThreshold;
+
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+    gameData.playerData.fallFromHeightThreshold += 1.0f;
+
+    typesUi.revert(gameData);
+
+    REQUIRE(gameData.playerData.fallFromHeightThreshold == was);
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("Saving the cast writes the player only when they changed", "[TypesUi]")
+{
+    std::unique_ptr<TemporaryLevels> levels = levelsPlacingTypes();
+    std::optional<PlayerData> written;
+    TypesUi typesUi(
+        levels->directory.string(),
+        [](const std::map<std::string, NpcData> &) {},
+        [](const std::map<std::string, PickupData> &) {},
+        [&](const PlayerData &player) { written = player; });
+    GameData gameData = twoOfEach();
+    LevelData playing = readLevelData((levels->directory / "level6.json").string());
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    typesUi.save(gameData, playing);
+    REQUIRE_FALSE(written.has_value());
+
+    gameData.playerData.fallFromHeightThreshold += 1.0f;
+    typesUi.save(gameData, playing);
+
+    REQUIRE(written.has_value());
+    REQUIRE(written->fallFromHeightThreshold == gameData.playerData.fallFromHeightThreshold);
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("A reload keeps an unsaved player edit and follows the disk otherwise", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    GameData onDisk = gameData;
+    onDisk.playerData.fallFromHeightThreshold += 50.0f;
+
+    typesUi.reloaded(gameData, onDisk);
+    REQUIRE(
+        gameData.playerData.fallFromHeightThreshold == onDisk.playerData.fallFromHeightThreshold);
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    gameData.playerData.fallFromHeightThreshold += 1.0f;
+    float edited = gameData.playerData.fallFromHeightThreshold;
+    onDisk.playerData.fallFromHeightThreshold += 50.0f;
+
+    typesUi.reloaded(gameData, onDisk);
+
+    REQUIRE(gameData.playerData.fallFromHeightThreshold == edited);
+    REQUIRE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("The cast starts on the player", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    TextureCache textures;
+    EditorCommands commands;
+    gameData.playerData.actorData.sheet.texture = "textures/hero.png";
+
+    std::string asked;
+    commands.onWarmTexture.connect([&](const std::string &texture) { asked = texture; });
+    gui.frame([&] { typesUi.draw(gameData, textures, commands); });
+    commands.drain();
+
+    REQUIRE(asked == "textures/hero.png");
 }
 
 TEST_CASE("A type hands back the sheet it draws from", "[TypesUi]")
@@ -584,6 +702,7 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
         npc.actorData.sheet.texture = std::string(assets::PlayerTexture);
     for (auto &[name, pickup] : gameData.pickupData)
         pickup.sheet.texture = std::string(assets::PlayerTexture);
+    gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
     typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 
@@ -625,6 +744,21 @@ TEST_CASE("The types section previews an npc above its fields", "[TypesUi]")
     textures.warm(std::string(assets::PlayerTexture));
 
     REQUIRE(drawsAPictureWide(gui, PreviewSize, drawing));
+}
+
+TEST_CASE("The types section previews the player above their fields", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    TextureCache textures;
+    EditorCommands commands;
+    gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
+    textures.warm(std::string(assets::PlayerTexture));
+    typesUi.show(thePlayer());
+
+    REQUIRE(
+        drawsAPictureWide(gui, PreviewSize, [&] { typesUi.draw(gameData, textures, commands); }));
 }
 
 TEST_CASE("The types section previews a pickup above its fields", "[TypesUi]")

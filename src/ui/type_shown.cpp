@@ -1,11 +1,18 @@
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include "ui/type_shown.hpp"
 #include "game/game_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
+#include "player/player_data.hpp"
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
+
+TypeShown thePlayer()
+{
+    return TypeShown{TypeShown::What::Player, "player"};
+}
 
 TypeShown addTypeTo(GameData &gameData, TypeShown::What what)
 {
@@ -13,22 +20,32 @@ TypeShown addTypeTo(GameData &gameData, TypeShown::What what)
     {
         std::string name = aTypeNameNobodyHasTaken(gameData.npcData);
         gameData.npcData.insert({name, NpcData{}});
-
         return TypeShown{what, name};
     }
 
+    if (what == TypeShown::What::Player)
+        throw std::runtime_error("There is one player, and the cast already has them");
+
     std::string name = aTypeNameNobodyHasTaken(gameData.pickupData);
     gameData.pickupData.insert({name, PickupData{}});
-
     return TypeShown{what, name};
 }
 
 void removeTypeFrom(GameData &gameData, const TypeShown &showing)
 {
-    if (showing.what == TypeShown::What::Npc)
+    switch (showing.what)
+    {
+    case TypeShown::What::Npc:
         gameData.npcData.erase(showing.name);
-    else
+        break;
+
+    case TypeShown::What::Pickup:
         gameData.pickupData.erase(showing.name);
+        break;
+
+    case TypeShown::What::Player:
+        throw std::runtime_error("The player cannot leave the cast");
+    }
 }
 
 namespace
@@ -44,33 +61,25 @@ namespace
 
 std::optional<std::string> whyATypeCannotBeSaved(const GameData &gameData, const TypeShown &type)
 {
-    if (type.what == TypeShown::What::Npc)
-    {
-        auto known = gameData.npcData.find(type.name);
+    const SheetData *sheet = sheetOf(gameData, type);
 
-        return known == gameData.npcData.end() ? std::nullopt
-                                               : whyNot(known->second.actorData.sheet);
-    }
-
-    auto known = gameData.pickupData.find(type.name);
-
-    return known == gameData.pickupData.end() ? std::nullopt : whyNot(known->second.sheet);
+    return sheet ? whyNot(*sheet) : std::nullopt;
 }
 
 std::optional<std::string> typesNamingNoSheet(const GameData &gameData)
 {
     std::string names;
-    auto nameIfCannot = [&](TypeShown::What what, const std::string &name)
+    auto nameIfCannot = [&](const TypeShown &type)
     {
-        if (whyATypeCannotBeSaved(gameData, TypeShown{what, name}))
-            names += (names.empty() ? "" : ", ") + name;
+        if (whyATypeCannotBeSaved(gameData, type))
+            names += (names.empty() ? "" : ", ") + type.name;
     };
 
+    nameIfCannot(thePlayer());
     for (const auto &[name, npc] : gameData.npcData)
-        nameIfCannot(TypeShown::What::Npc, name);
-
+        nameIfCannot(TypeShown{TypeShown::What::Npc, name});
     for (const auto &[name, pickup] : gameData.pickupData)
-        nameIfCannot(TypeShown::What::Pickup, name);
+        nameIfCannot(TypeShown{TypeShown::What::Pickup, name});
 
     if (names.empty())
         return std::nullopt;
@@ -80,14 +89,21 @@ std::optional<std::string> typesNamingNoSheet(const GameData &gameData)
 
 const SheetData *sheetOf(const GameData &gameData, const TypeShown &showing)
 {
-    if (showing.what == TypeShown::What::Npc)
+    switch (showing.what)
     {
+    case TypeShown::What::Npc: {
         auto known = gameData.npcData.find(showing.name);
-
         return known == gameData.npcData.end() ? nullptr : &known->second.actorData.sheet;
     }
 
-    auto known = gameData.pickupData.find(showing.name);
+    case TypeShown::What::Pickup: {
+        auto known = gameData.pickupData.find(showing.name);
+        return known == gameData.pickupData.end() ? nullptr : &known->second.sheet;
+    }
 
-    return known == gameData.pickupData.end() ? nullptr : &known->second.sheet;
+    case TypeShown::What::Player:
+        return &gameData.playerData.actorData.sheet;
+    }
+
+    return nullptr;
 }

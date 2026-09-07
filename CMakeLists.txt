@@ -121,7 +121,7 @@ add_library(platformer_lib OBJECT
     src/ui/type_shown.cpp
     src/ui/types_ui.cpp
     src/ui/camera_ui.cpp
-    src/ui/player_ui.cpp
+    src/ui/player_overlay_ui.cpp
     src/ui/levels_ui.cpp
     src/ui/switching_level.cpp
     src/ui/renaming.cpp

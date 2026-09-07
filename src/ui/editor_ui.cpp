@@ -94,7 +94,7 @@ void EditorUi::draw(
         if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
         {
             levelUi.drawOverlayToggles();
-            playerUi.drawOverlayToggles();
+            playerOverlayUi.drawToggles();
         }
         break;
 
@@ -102,11 +102,7 @@ void EditorUi::draw(
         gameSettingsUi.draw(subject.gameData, subject.textures, commands);
         break;
 
-    case EditorSection::Player:
-        playerUi.draw(subject.gameData, commands);
-        break;
-
-    case EditorSection::Types:
+    case EditorSection::Cast:
         typesUi.draw(subject.gameData, subject.textures, commands);
         break;
 
@@ -149,7 +145,7 @@ void EditorUi::drawOverlays(
     const Player &player)
 {
     levelUi.drawOverlay(imGuiManager, camera, level);
-    playerUi.drawOverlay(imGuiManager, camera, player);
+    playerOverlayUi.draw(imGuiManager, camera, player);
 }
 
 void EditorUi::update(
@@ -160,7 +156,7 @@ void EditorUi::update(
     const LevelData &levelData,
     const std::string &levelPath)
 {
-    playerUi.update(deltaTime);
+    playerOverlayUi.update(deltaTime);
     MouseOnTheMap mouse{
         imGuiManager.getIO().WantCaptureMouse,
         imGuiManager.screenToWorld(
@@ -244,12 +240,17 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
                 commands.onCameraChanged();
             }};
 
-    case EditorSection::Player:
+    case EditorSection::Cast:
         return {
-            playerUi.unsavedSince(subject.gameData),
-            std::nullopt,
-            [this, &subject] { playerUi.save(subject.gameData); },
-            [this, &subject] { playerUi.revert(subject.gameData); }};
+            typesUi.unsavedSince(subject.gameData),
+            typesUi.cannotSaveBecause(subject.gameData),
+            [this, &subject]
+            {
+                LevelData playing = subject.levelData;
+                if (typesUi.save(subject.gameData, playing))
+                    commands.onLevelEdited(playing);
+            },
+            [this, &subject] { typesUi.revert(subject.gameData); }};
 
     case EditorSection::Level:
         return {
@@ -272,18 +273,6 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
                 tilePalettesUi.revert(subject.gameData.tilePalettes);
                 levelsUi.revert(subject.levels);
             }};
-
-    case EditorSection::Types:
-        return {
-            typesUi.unsavedSince(subject.gameData),
-            typesUi.cannotSaveBecause(subject.gameData),
-            [this, &subject]
-            {
-                LevelData playing = subject.levelData;
-                if (typesUi.save(subject.gameData, playing))
-                    commands.onLevelEdited(playing);
-            },
-            [this, &subject] { typesUi.revert(subject.gameData); }};
     }
 
     return {};
@@ -293,7 +282,7 @@ void EditorUi::reloaded(GameData &current, const GameData &onDisk)
 {
     gameSettingsUi.reloaded(current, onDisk);
     cameraUi.reloaded(current, onDisk);
-    playerUi.reloaded(current, onDisk);
+
     typesUi.reloaded(current, onDisk);
     tilePalettesUi.reloaded(current.tilePalettes, onDisk.tilePalettes);
     levelsUi.reloaded(current.levels, onDisk.levels);

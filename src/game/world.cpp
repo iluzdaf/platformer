@@ -64,7 +64,7 @@ void World::respawnPlayer()
     std::unique_ptr<Player> newPlayer =
         std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
-    player->setPosition(level->getPlayerStart() - player->getPhysicsBody().getBottomCenterOffset());
+    player->setPosition(level->getPlayerStart() - player->getPhysicsBody().bottomCenterOffset());
     player->onDeath.connect([this] { luaScriptSystem.triggerDeath(); });
     onLevelCompleteConnection = player->onLevelComplete.connect(
         [this]()
@@ -88,7 +88,7 @@ void World::preFixedUpdate()
 
 void World::fixedUpdate(float deltaTime)
 {
-    level->fixedUpdate(deltaTime, player->getPhysicsBody().getAABB().bottomCenter());
+    level->fixedUpdate(deltaTime, player->getPhysicsBody().aabb().bottomCenter());
     player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
 
     touchTiles(*player.get(), level->getTileMap());

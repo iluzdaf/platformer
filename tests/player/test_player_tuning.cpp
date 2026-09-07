@@ -264,7 +264,7 @@ TEST_CASE("The shipped player can climb three stepped platforms", "[Player][Tuni
 
                 runFor(player, level, 1.0f / 60.0f, timestepper);
 
-                glm::vec2 feet = player.getPhysicsBody().getAABB().bottomCenter();
+                glm::vec2 feet = player.getPhysicsBody().aabb().bottomCenter();
                 if (player.getMotion().getState().contacts.onGround &&
                     tileMap.tileStoodOnAt(feet).y == step.landOnRow - 1)
                 {

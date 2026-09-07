@@ -91,12 +91,12 @@ JumpAttempt simulateJumpAgainst(
     ActorMotionState state;
 
     PhysicsBody physicsBody(physicsBodyData);
-    physicsBody.setPosition(takeOffFeet - physicsBody.getBottomCenterOffset());
+    physicsBody.setPosition(takeOffFeet - physicsBody.bottomCenterOffset());
 
     InputIntentions inputIntentions = holdingJumpAndRunning();
     inputIntentions.direction.x = direction;
 
-    auto feet = [&] { return physicsBody.getAABB().bottomCenter(); };
+    auto feet = [&] { return physicsBody.aabb().bottomCenter(); };
 
     JumpAttempt attempt;
     attempt.path.push_back(feet());
@@ -112,7 +112,7 @@ JumpAttempt simulateJumpAgainst(
         state.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
         state.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
         state.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
-        state.velocity = physicsBody.getVelocity();
+        state.velocity = physicsBody.velocity();
 
         attempt.path.push_back(feet());
         attempt.steps = step + 1;

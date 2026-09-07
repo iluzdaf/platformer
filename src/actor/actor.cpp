@@ -107,7 +107,7 @@ const NavigationProfile &Actor::getNavigationProfile() const
 
 const glm::vec2 &Actor::getPosition() const
 {
-    return physicsBody.getPosition();
+    return physicsBody.position();
 }
 
 std::string_view Actor::getStateName() const
@@ -144,8 +144,8 @@ ActorBehaviorContext Actor::behaviorContext(
 {
     return ActorBehaviorContext{
         navigationGraph,
-        physicsBody.getAABB().bottomCenter(),
-        physicsBody.getColliderSize(),
+        physicsBody.aabb().bottomCenter(),
+        physicsBody.colliderSize(),
         threatPosition,
         motion.getState().contacts};
 }

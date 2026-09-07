@@ -91,8 +91,8 @@ namespace
     void restAgainst(Player &player, glm::ivec2 tile, glm::vec2 towards)
     {
         const PhysicsBody &body = player.getPhysicsBody();
-        glm::vec2 colliderTopLeft = topLeftOf(tile) - towards * body.getColliderSize();
-        player.setPosition(colliderTopLeft - body.getColliderOffset());
+        glm::vec2 colliderTopLeft = topLeftOf(tile) - towards * body.colliderSize();
+        player.setPosition(colliderTopLeft - body.colliderOffset());
     }
 
     bool diesTouching(Player &player, const TileMap &tileMap)
@@ -110,7 +110,7 @@ TEST_CASE("A player standing on an electrified floor dies", "[TouchingTiles]")
     Player player = aPlayerWithEveryAbility();
     restAgainst(player, glm::ivec2(1, 5), glm::vec2(0.0f, 1.0f));
 
-    REQUIRE(player.getPhysicsBody().getAABB().bottom() == topLeftOf({1, 5}).y);
+    REQUIRE(player.getPhysicsBody().aabb().bottom() == topLeftOf({1, 5}).y);
     REQUIRE(diesTouching(player, tileMap));
 }
 
@@ -129,7 +129,7 @@ TEST_CASE("A player pressed against an electrified wall dies", "[TouchingTiles]"
     Player player = aPlayerWithEveryAbility();
     restAgainst(player, glm::ivec2(2, 4), glm::vec2(1.0f, 0.0f));
 
-    REQUIRE(player.getPhysicsBody().getAABB().right() == topLeftOf({2, 4}).x);
+    REQUIRE(player.getPhysicsBody().aabb().right() == topLeftOf({2, 4}).x);
     REQUIRE(diesTouching(player, tileMap));
 }
 
@@ -138,7 +138,7 @@ TEST_CASE("A player half a pixel short of an electrified wall lives", "[Touching
     TileMap tileMap = aTileMap({{{2, 4}, Electrified}}, 10, 10, 16, wallsThatMayKill());
     Player player = aPlayerWithEveryAbility();
     restAgainst(player, glm::ivec2(2, 4), glm::vec2(1.0f, 0.0f));
-    player.setPosition(player.getPhysicsBody().getPosition() - glm::vec2(0.5f, 0.0f));
+    player.setPosition(player.getPhysicsBody().position() - glm::vec2(0.5f, 0.0f));
 
     REQUIRE_FALSE(diesTouching(player, tileMap));
 }
@@ -156,6 +156,6 @@ TEST_CASE(
 
     runFor(player, level, 1.0f, timestepper);
 
-    REQUIRE(player.getPhysicsBody().getAABB().bottom() == topLeftOf({1, FloorLevelRow}).y);
+    REQUIRE(player.getPhysicsBody().aabb().bottom() == topLeftOf({1, FloorLevelRow}).y);
     REQUIRE(diesTouching(player, level.getTileMap()));
 }

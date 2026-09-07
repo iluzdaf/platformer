@@ -93,7 +93,7 @@ TEST_CASE("The player starts standing where the level says", "[World]")
 
     world.loadLevel("levels/level6.json");
 
-    glm::vec2 feet = world.getPlayer().getPhysicsBody().getAABB().bottomCenter();
+    glm::vec2 feet = world.getPlayer().getPhysicsBody().aabb().bottomCenter();
 
     REQUIRE(
         feet ==
@@ -214,7 +214,7 @@ TEST_CASE("A spawn moved in the level data is where the npc stands", "[World]")
     edited.npcs[1].position = movedTo;
     world.rebuildFrom(edited);
 
-    glm::vec2 feet = world.getLevel().getNpcs()[1]->getPhysicsBody().getAABB().bottomCenter();
+    glm::vec2 feet = world.getLevel().getNpcs()[1]->getPhysicsBody().aabb().bottomCenter();
 
     REQUIRE(feet == movedTo);
 }
@@ -262,7 +262,7 @@ TEST_CASE("A moved player start does not move the player until it respawns", "[W
 
     const TileMap &tileMap = world.getLevel().getTileMap();
     REQUIRE(
-        world.getPlayer().getPhysicsBody().getAABB().bottomCenter() ==
+        world.getPlayer().getPhysicsBody().aabb().bottomCenter() ==
         tileMap.feetOnTile(tileMap.tileUnderFeet(world.getLevel().getPlayerStart())));
 }
 
@@ -312,7 +312,7 @@ TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
     TemporaryLevels levels("world_reach");
     levels.write("floor.json", levelData);
     world.loadLevel(levels.pathOf("floor.json"));
-    AABB collider = world.getPlayer().getPhysicsBody().getAABB();
+    AABB collider = world.getPlayer().getPhysicsBody().aabb();
     glm::vec2 halfACoin = gameData.pickupData.at("coin").size * 0.5f;
     auto coinWhoseLeftEdgeIsAt = [&](float x) { return glm::vec2(x, collider.top()) + halfACoin; };
 

@@ -109,7 +109,7 @@ namespace
             drawRow("State", std::string(state));
 
         glm::ivec2 on =
-            level.getTileMap().tileStoodOnAt(npc->getPhysicsBody().getAABB().bottomCenter());
+            level.getTileMap().tileStoodOnAt(npc->getPhysicsBody().aabb().bottomCenter());
         drawRow("Stands On", std::format("{}, {}", on.x, on.y));
 
         std::optional<int> setOffAt = npc->getCurrentNodeId();

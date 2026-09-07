@@ -105,7 +105,7 @@ namespace
     void standIn(Npc &npc, const TileMap &tileMap, glm::ivec2 tilePosition)
     {
         npc.setPosition(
-            tileMap.feetOnTile(tilePosition) - npc.getPhysicsBody().getBottomCenterOffset());
+            tileMap.feetOnTile(tilePosition) - npc.getPhysicsBody().bottomCenterOffset());
     }
 
     float footX(const Npc &npc)
@@ -115,8 +115,7 @@ namespace
 
     float reachOf(const Npc &npc)
     {
-        return npc.getPhysicsBody().getColliderSize().x * 0.5f +
-               PatrolBehaviorData().arrivalThreshold;
+        return npc.getPhysicsBody().colliderSize().x * 0.5f + PatrolBehaviorData().arrivalThreshold;
     }
 
     std::vector<float> patrolFootXs(Npc &npc, const Level &level, int steps)
@@ -409,7 +408,7 @@ TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level
         rightMost = std::max(rightMost, footOf(npc).x);
     }
 
-    float half = npc.getPhysicsBody().getAABB().size.x * 0.5f;
+    float half = npc.getPhysicsBody().aabb().size.x * 0.5f;
     float ledgeLeft = static_cast<float>(LedgeLeftEnd.x * 16);
     float ledgeRight = static_cast<float>((LedgeLastTile + 1) * 16);
 

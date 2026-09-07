@@ -97,7 +97,7 @@ void drawPlayerCollider(
     drawAABB(
         ImGui::GetBackgroundDrawList(),
         imGuiManager,
-        player.getPhysicsBody().getAABB(),
+        player.getPhysicsBody().aabb(),
         camera,
         PlayerColliderColor);
 }

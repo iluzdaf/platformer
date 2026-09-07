@@ -88,6 +88,12 @@ void EditorUi::draw(
         playbackUi.draw(subject.paused, commands);
         ImGui::Separator();
         cameraUi.draw(subject.gameData, subject.camera, commands);
+        ImGui::Separator();
+        if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            levelUi.drawOverlayToggles();
+            playerUi.drawOverlayToggles();
+        }
         break;
 
     case EditorSection::Game:

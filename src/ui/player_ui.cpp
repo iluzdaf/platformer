@@ -9,20 +9,16 @@
 
 void PlayerUi::draw(GameData &gameData, EditorCommands &commands)
 {
-    if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::Checkbox("Collider", &drawPlayerCollider);
-        ImGui::SameLine();
-        ImGui::Checkbox("Collisions", &drawPlayerCollisions);
-        ImGui::SameLine();
-        ImGui::Checkbox("Probes", &drawContactProbes);
-    }
-
     if (ImGui::Button("Respawn"))
         commands.onRespawn();
 
     ImGui::Separator();
     inspector::drawFields(gameData.playerData);
+}
+
+void PlayerUi::drawOverlayToggles()
+{
+    ImGui::Checkbox("Player", &playerShown);
 }
 
 void PlayerUi::update(float deltaTime)
@@ -35,14 +31,12 @@ void PlayerUi::drawOverlay(
     const Camera2D &camera,
     const Player &player)
 {
-    if (drawPlayerCollider)
-        ::drawPlayerCollider(imGuiManager, camera, player);
-
-    if (drawPlayerCollisions)
-        ::drawPlayerCollisions(player, fadingAABBs);
-
-    if (drawContactProbes)
-        ::drawContactProbes(imGuiManager, camera, player, fadingAABBs);
+    if (playerShown)
+    {
+        drawPlayerCollider(imGuiManager, camera, player);
+        drawPlayerCollisions(player, fadingAABBs);
+        drawContactProbes(imGuiManager, camera, player, fadingAABBs);
+    }
 
     drawFadingAABBs(imGuiManager, camera, fadingAABBs);
 }

@@ -344,6 +344,7 @@ add_executable(tests
     tests/animations/test_frame_animation.cpp
     tests/navigation/test_navigation_graph.cpp
     tests/scripting/test_lua_script_system.cpp
+    tests/scripting/test_script_coroutines.cpp
     tests/navigation/test_navigation_climb_edges.cpp
     tests/navigation/test_navigation_fall_edges.cpp
     tests/navigation/test_navigation_jump_edges.cpp

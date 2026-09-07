@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/mantle_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -15,17 +16,18 @@ MantleAbility::MantleAbility(const MantleAbilityData &data) : data(data)
 void MantleAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
+    const Observed &observed,
     ActorMotionState &state)
 {
     state.mantle.velocity = glm::vec2(0.0f);
 
     if (!state.mantle.active)
     {
-        bool atLedge = state.contacts.ledgeOnLeft || state.contacts.ledgeOnRight;
+        bool atLedge = observed.contacts.ledgeOnLeft || observed.contacts.ledgeOnRight;
         if (!state.wallHang.active || !atLedge || inputIntentions.direction.y >= 0.0f)
             return;
 
-        state.mantle.direction = state.contacts.ledgeOnLeft ? -1.0f : 1.0f;
+        state.mantle.direction = observed.contacts.ledgeOnLeft ? -1.0f : 1.0f;
         state.mantle.timeLeft = data.mantleDuration;
         state.mantle.active = true;
     }

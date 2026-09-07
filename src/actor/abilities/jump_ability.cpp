@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include "actor/abilities/jump_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/jump_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -14,19 +15,21 @@ JumpAbility::JumpAbility(const JumpAbilityData &data)
 void JumpAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
+    const Observed &observed,
     ActorMotionState &state)
 {
     state.jump.velocity = glm::vec2(0.0f);
 
     jumpBuffer.update(deltaTime);
-    coyoteTime.update(state.contacts.onGround, deltaTime);
+    coyoteTime.update(observed.contacts.onGround, deltaTime);
 
     if (!state.jump.active)
     {
         if (inputIntentions.jumpRequested)
             jumpBuffer.press();
 
-        if (jumpBuffer.isBuffered() && (state.contacts.onGround || coyoteTime.isCoyoteAvailable()))
+        if (jumpBuffer.isBuffered() &&
+            (observed.contacts.onGround || coyoteTime.isCoyoteAvailable()))
         {
             state.jump.active = true;
             state.jump.holdTime = 0.0f;
@@ -41,7 +44,7 @@ void JumpAbility::applyMovement(
 
         bool stillGoingUp = state.jump.holdTime <= data.jumpDuration &&
                             (inputIntentions.jumpHeld || inputIntentions.jumpRequested) &&
-                            !state.contacts.hitCeiling;
+                            !observed.contacts.hitCeiling;
 
         if (stillGoingUp)
             state.jump.velocity.y = data.jumpSpeed;

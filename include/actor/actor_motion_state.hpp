@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/actor_contact_state.hpp"
 #include "actor/abilities/move_ability_state.hpp"
 #include "actor/abilities/dash_ability_state.hpp"
 #include "actor/abilities/jump_ability_state.hpp"
@@ -15,7 +14,6 @@
 
 struct ActorMotionState
 {
-    ActorContactState contacts;
 
     glm::vec2 previousVelocity = glm::vec2(0.0f), velocity = glm::vec2(0.0f),
               targetVelocity = glm::vec2(0.0f);

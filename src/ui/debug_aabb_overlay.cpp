@@ -4,7 +4,6 @@
 #include "ui/fading_aabbs.hpp"
 #include "ui/imgui_manager.hpp"
 #include "game/level.hpp"
-#include "actor/actor_motion_state.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
@@ -104,9 +103,9 @@ void drawPlayerCollider(
 
 void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs)
 {
-    ActorMotionState state = player.moving().getState();
-    fadingAABBs.add(state.contacts.collisionAABBX, PlayerCollisionColor, 0.1f);
-    fadingAABBs.add(state.contacts.collisionAABBY, PlayerCollisionColor, 0.1f);
+    const ActorContactState &contacts = player.moving().observed().contacts;
+    fadingAABBs.add(contacts.collisionAABBX, PlayerCollisionColor, 0.1f);
+    fadingAABBs.add(contacts.collisionAABBY, PlayerCollisionColor, 0.1f);
 }
 
 void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
@@ -237,7 +236,7 @@ void drawContactProbes(
 {
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
     const PhysicsBody &physicsBody = player.body();
-    ActorContactState contacts = player.moving().getState().contacts;
+    ActorContactState contacts = player.moving().observed().contacts;
 
     AABB overhead = thickEnoughToSee(physicsBody.overheadProbe(), false);
     drawProbe(

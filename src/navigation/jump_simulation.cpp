@@ -3,6 +3,7 @@
 #include "navigation/jump_simulation.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/ability_system.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/jump_arc.hpp"
@@ -39,10 +40,11 @@ JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
     float holdDuration = shortened.jumpAbilityData ? shortened.jumpAbilityData->jumpDuration : 0.0f;
     AbilitySystem abilitySystem(shortened);
     ActorMotionState state;
+    Observed observed;
     InputIntentions inputIntentions = holdingJumpAndRunning();
 
-    state.contacts.onGround = true;
-    abilitySystem.applyMovement(PhysicsStep, inputIntentions, state);
+    observed.contacts.onGround = true;
+    abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, state);
     if (state.targetVelocity.y >= 0.0f)
         return {};
 
@@ -50,10 +52,10 @@ JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
     glm::vec2 offset = state.targetVelocity * PhysicsStep;
     offsets.push_back(offset);
 
-    state.contacts.onGround = false;
+    observed.contacts.onGround = false;
     for (int step = 1; step < MaximumSteps; ++step)
     {
-        abilitySystem.applyMovement(PhysicsStep, inputIntentions, state);
+        abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, state);
         offset += state.targetVelocity * PhysicsStep;
         offsets.push_back(offset);
 
@@ -89,6 +91,7 @@ JumpAttempt simulateJumpAgainst(
     ActorMotionData shortened = releasedAfter(motionData, holdFraction);
     AbilitySystem abilitySystem(shortened);
     ActorMotionState state;
+    Observed observed;
 
     PhysicsBody physicsBody(physicsBodyData);
     physicsBody.setPosition(takeOffFeet - physicsBody.bottomCenterOffset());
@@ -101,23 +104,23 @@ JumpAttempt simulateJumpAgainst(
     JumpAttempt attempt;
     attempt.path.push_back(feet());
 
-    state.contacts.onGround = true;
+    observed.contacts.onGround = true;
     for (int step = 0; step < MaximumSteps; ++step)
     {
-        abilitySystem.applyMovement(PhysicsStep, inputIntentions, state);
+        abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, state);
         physicsBody.setVelocity(state.targetVelocity);
         physicsBody.stepPhysics(PhysicsStep, tileMap);
 
-        state.contacts.onGround = physicsBody.contactWithGround(tileMap);
-        state.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
-        state.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
-        state.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
+        observed.contacts.onGround = physicsBody.contactWithGround(tileMap);
+        observed.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
+        observed.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+        observed.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
         state.velocity = physicsBody.velocity();
 
         attempt.path.push_back(feet());
         attempt.steps = step + 1;
 
-        if (step > 0 && state.contacts.onGround)
+        if (step > 0 && observed.contacts.onGround)
         {
             float tileSize = static_cast<float>(tileMap.getTileSize());
             attempt.path.back().y = std::round(attempt.path.back().y / tileSize) * tileSize;

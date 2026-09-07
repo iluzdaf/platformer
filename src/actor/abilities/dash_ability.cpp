@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "actor/abilities/dash_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/dash_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -18,21 +19,23 @@ DashAbility::DashAbility(const DashAbilityData &data) : data(data)
 void DashAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
+    const Observed &observed,
     ActorMotionState &state)
 {
     state.dash.emit = false;
     state.dash.velocity = glm::vec2(0.0f);
 
-    if (state.contacts.onGround && state.dash.timeLeft <= 0.0f)
+    if (observed.contacts.onGround && state.dash.timeLeft <= 0.0f)
         state.dash.available = true;
 
     if (inputIntentions.dashRequested && std::abs(inputIntentions.direction.x) > 0.0f &&
-        state.dash.available && !state.contacts.touchingLeftWall &&
-        !state.contacts.touchingRightWall)
+        state.dash.available && !observed.contacts.touchingLeftWall &&
+        !observed.contacts.touchingRightWall)
     {
         state.dash.direction = inputIntentions.direction.x;
-        state.dash.timeLeft =
-            state.contacts.onGround ? data.dashDuration : data.dashDuration * data.airborneFraction;
+        state.dash.timeLeft = observed.contacts.onGround
+                                  ? data.dashDuration
+                                  : data.dashDuration * data.airborneFraction;
         state.dash.available = false;
         state.dash.emit = true;
         state.dash.active = true;
@@ -40,7 +43,7 @@ void DashAbility::applyMovement(
 
     if (state.dash.timeLeft > 0.0f && state.dash.active)
     {
-        if (state.contacts.touchingWall())
+        if (observed.contacts.touchingWall())
         {
             state.dash.timeLeft = 0.0f;
             state.dash.active = false;

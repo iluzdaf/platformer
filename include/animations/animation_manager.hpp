@@ -5,11 +5,15 @@
 #include "animations/frame_animation.hpp"
 
 struct ActorMotionState;
+struct ActorContactState;
 
 class AnimationManager
 {
 public:
-    void update(float deltaTime, const ActorMotionState &motionState);
+    void update(
+        float deltaTime,
+        const ActorMotionState &motionState,
+        const ActorContactState &contacts);
     const FrameAnimation &getCurrentAnimation();
     void addAnimation(ActorAnimationState state, const FrameAnimation &anim);
     ActorAnimationState getCurrentState() const;

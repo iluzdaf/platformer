@@ -7,6 +7,7 @@
 struct ActorMotionData;
 struct ActorMotionState;
 struct InputIntentions;
+struct Observed;
 
 class AbilitySystem
 {
@@ -15,6 +16,7 @@ public:
     void applyMovement(
         float deltaTime,
         const InputIntentions &inputIntentions,
+        const Observed &observed,
         ActorMotionState &state);
 
 private:

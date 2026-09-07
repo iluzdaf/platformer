@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/wall_jump_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -17,15 +18,16 @@ WallJumpAbility::WallJumpAbility(const WallJumpAbilityData &data)
 void WallJumpAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
+    const Observed &observed,
     ActorMotionState &state)
 {
     state.wallJump.emit = false;
     state.wallJump.velocity = glm::vec2(0.0f);
 
     wallJumpBuffer.update(deltaTime);
-    wallJumpCoyote.update(state.contacts.grippableWall(), deltaTime);
+    wallJumpCoyote.update(observed.contacts.grippableWall(), deltaTime);
 
-    if (state.contacts.onGround)
+    if (observed.contacts.onGround)
     {
         wallJumpCoyote.consume();
         return;
@@ -42,16 +44,16 @@ void WallJumpAbility::applyMovement(
         if (wallJumpBuffer.isBuffered())
         {
             int desiredDirection = 0;
-            if (state.contacts.grippableLeftWall)
+            if (observed.contacts.grippableLeftWall)
                 desiredDirection = 1;
-            else if (state.contacts.grippableRightWall)
+            else if (observed.contacts.grippableRightWall)
                 desiredDirection = -1;
             else
-                desiredDirection = state.contacts.wasLastWallLeft ? 1 : -1;
+                desiredDirection = observed.contacts.wasLastWallLeft ? 1 : -1;
 
             float bufferedDirection = wallJumpDirectionBuffer.getBufferedDirectionX();
             bool jumpInputCorrect = desiredDirection * bufferedDirection > 0;
-            bool grippableWallNow = state.contacts.grippableWall();
+            bool grippableWallNow = observed.contacts.grippableWall();
             if (jumpInputCorrect && (grippableWallNow || wallJumpCoyote.isCoyoteAvailable()))
                 startWallJump(state, desiredDirection);
         }
@@ -59,8 +61,9 @@ void WallJumpAbility::applyMovement(
 
     if (state.wallJump.active)
     {
-        bool switchedSides = (state.contacts.touchingLeftWall && state.wallJump.direction == -1) ||
-                             (state.contacts.touchingRightWall && state.wallJump.direction == 1);
+        bool switchedSides =
+            (observed.contacts.touchingLeftWall && state.wallJump.direction == -1) ||
+            (observed.contacts.touchingRightWall && state.wallJump.direction == 1);
 
         if (switchedSides)
         {

@@ -2,7 +2,6 @@
 #include <glm/glm.hpp>
 #include "actor/actor_motion.hpp"
 #include "actor/actor_motion_data.hpp"
-#include "actor/actor_motion_state.hpp"
 #include "physics/physics_body.hpp"
 #include "physics/physics_body_data.hpp"
 #include "helpers/palettes.hpp"
@@ -49,8 +48,8 @@ TEST_CASE("ActorMotion remembers which side a grippable wall was on", "[ActorMot
     ActorMotion motion{ActorMotionData()};
     motion.readContacts(bodyBesideWalls(), tileMap);
 
-    REQUIRE(motion.getState().contacts.grippableLeftWall);
-    REQUIRE(motion.getState().contacts.wasLastWallLeft);
+    REQUIRE(motion.observed().contacts.grippableLeftWall);
+    REQUIRE(motion.observed().contacts.wasLastWallLeft);
 }
 
 TEST_CASE("ActorMotion does not remember a wall it could not grip", "[ActorMotion]")
@@ -61,11 +60,11 @@ TEST_CASE("ActorMotion does not remember a wall it could not grip", "[ActorMotio
 
     ActorMotion motion{ActorMotionData()};
     motion.readContacts(bodyBesideWalls(), grippableOnTheLeft);
-    REQUIRE(motion.getState().contacts.wasLastWallLeft);
+    REQUIRE(motion.observed().contacts.wasLastWallLeft);
 
     motion.readContacts(bodyBesideWalls(), slipperyOnTheRight);
 
-    REQUIRE(motion.getState().contacts.touchingRightWall);
-    REQUIRE_FALSE(motion.getState().contacts.grippableRightWall);
-    REQUIRE(motion.getState().contacts.wasLastWallLeft);
+    REQUIRE(motion.observed().contacts.touchingRightWall);
+    REQUIRE_FALSE(motion.observed().contacts.grippableRightWall);
+    REQUIRE(motion.observed().contacts.wasLastWallLeft);
 }

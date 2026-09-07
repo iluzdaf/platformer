@@ -1,5 +1,6 @@
 #include "actor/actor_motion_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/ability_system.hpp"
 #include "actor/abilities/move_ability.hpp"
 #include "actor/abilities/jump_ability.hpp"
@@ -40,10 +41,11 @@ AbilitySystem::AbilitySystem(const ActorMotionData &data)
 void AbilitySystem::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
+    const Observed &observed,
     ActorMotionState &state)
 {
     for (auto &ability : abilities)
-        ability->applyMovement(deltaTime, inputIntentions, state);
+        ability->applyMovement(deltaTime, inputIntentions, observed, state);
 
     glm::vec2 finalVelocity = state.gravity.velocity;
     if (state.knockback.active)

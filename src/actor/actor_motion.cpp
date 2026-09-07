@@ -10,31 +10,32 @@ ActorMotion::ActorMotion(const ActorMotionData &data) : abilitySystem(data)
 
 void ActorMotion::applyMovement(float deltaTime, const InputIntentions &inputIntentions)
 {
-    abilitySystem.applyMovement(deltaTime, inputIntentions, state);
+    abilitySystem.applyMovement(deltaTime, inputIntentions, observations, state);
+    observations.hits.clear();
 }
 
 void ActorMotion::readContacts(const PhysicsBody &physicsBody, const TileMap &tileMap)
 {
-    state.contacts.wasOnGround = state.contacts.onGround;
-    state.contacts.onGround = physicsBody.contactWithGround(tileMap);
-    state.contacts.wasHitCeiling = state.contacts.hitCeiling;
-    state.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
-    if (state.contacts.hitCeiling)
-        state.contacts.bumpedCeiling = true;
-    state.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
-    state.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
-    state.contacts.grippableLeftWall = physicsBody.gripOnLeftWall(tileMap);
-    state.contacts.grippableRightWall = physicsBody.gripOnRightWall(tileMap);
-    state.contacts.ledgeOnLeft =
-        state.contacts.touchingLeftWall && !physicsBody.contactWithLeftWallAtHead(tileMap);
-    state.contacts.ledgeOnRight =
-        state.contacts.touchingRightWall && !physicsBody.contactWithRightWallAtHead(tileMap);
-    if (state.contacts.grippableLeftWall)
-        state.contacts.wasLastWallLeft = true;
-    else if (state.contacts.grippableRightWall)
-        state.contacts.wasLastWallLeft = false;
-    state.contacts.collisionAABBX.expandToInclude(physicsBody.collisionAABBX());
-    state.contacts.collisionAABBY.expandToInclude(physicsBody.collisionAABBY());
+    observations.contacts.wasOnGround = observations.contacts.onGround;
+    observations.contacts.onGround = physicsBody.contactWithGround(tileMap);
+    observations.contacts.wasHitCeiling = observations.contacts.hitCeiling;
+    observations.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
+    if (observations.contacts.hitCeiling)
+        observations.contacts.bumpedCeiling = true;
+    observations.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
+    observations.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+    observations.contacts.grippableLeftWall = physicsBody.gripOnLeftWall(tileMap);
+    observations.contacts.grippableRightWall = physicsBody.gripOnRightWall(tileMap);
+    observations.contacts.ledgeOnLeft =
+        observations.contacts.touchingLeftWall && !physicsBody.contactWithLeftWallAtHead(tileMap);
+    observations.contacts.ledgeOnRight =
+        observations.contacts.touchingRightWall && !physicsBody.contactWithRightWallAtHead(tileMap);
+    if (observations.contacts.grippableLeftWall)
+        observations.contacts.wasLastWallLeft = true;
+    else if (observations.contacts.grippableRightWall)
+        observations.contacts.wasLastWallLeft = false;
+    observations.contacts.collisionAABBX.expandToInclude(physicsBody.collisionAABBX());
+    observations.contacts.collisionAABBY.expandToInclude(physicsBody.collisionAABBY());
 }
 
 void ActorMotion::readMotion(const PhysicsBody &physicsBody)
@@ -45,17 +46,22 @@ void ActorMotion::readMotion(const PhysicsBody &physicsBody)
 
 void ActorMotion::pushedBy(const Hit &hit)
 {
-    state.knockback.pushed = hit.direction;
+    observations.hits.push_back(hit);
 }
 
 void ActorMotion::beginFrame()
 {
-    state.contacts.collisionAABBX = AABB();
-    state.contacts.collisionAABBY = AABB();
-    state.contacts.bumpedCeiling = false;
+    observations.contacts.collisionAABBX = AABB();
+    observations.contacts.collisionAABBY = AABB();
+    observations.contacts.bumpedCeiling = false;
 }
 
 const ActorMotionState &ActorMotion::getState() const
 {
     return state;
+}
+
+const Observed &ActorMotion::observed() const
+{
+    return observations;
 }

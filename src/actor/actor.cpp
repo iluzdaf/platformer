@@ -68,7 +68,7 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     motion.readContacts(physicsBody, tileMap);
     motion.readMotion(physicsBody);
 
-    animationManager.update(deltaTime, motion.getState());
+    animationManager.update(deltaTime, motion.getState(), motion.observed().contacts);
 
     const ActorMotionState &motionState = motion.getState();
     if (!motionState.knockback.active)
@@ -180,5 +180,5 @@ ActorBehaviorContext Actor::behaviorContext(
         feet(),
         physicsBody.colliderSize(),
         threatFeet,
-        motion.getState().contacts};
+        motion.observed().contacts};
 }

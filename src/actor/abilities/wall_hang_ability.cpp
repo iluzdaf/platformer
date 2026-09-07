@@ -1,5 +1,6 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/actor_motion_state.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/wall_hang_ability.hpp"
 #include "input/input_intentions.hpp"
 
@@ -10,6 +11,7 @@ WallHangAbility::WallHangAbility(const WallHangAbilityData &)
 void WallHangAbility::applyMovement(
     float,
     const InputIntentions &inputIntentions,
+    const Observed &observed,
     ActorMotionState &state)
 {
     state.wallHang.active = false;
@@ -17,7 +19,7 @@ void WallHangAbility::applyMovement(
     if (!inputIntentions.climbRequested)
         return;
 
-    if (!state.contacts.grippableWall())
+    if (!observed.contacts.grippableWall())
         return;
 
     state.wallHang.active = true;

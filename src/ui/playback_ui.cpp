@@ -4,6 +4,8 @@
 
 void PlaybackUi::draw(bool paused, EditorCommands &commands) const
 {
+    ImGui::TextDisabled("%s", paused ? "stopped" : "running");
+
     if (ImGui::Button(paused ? "play" : "pause", ImVec2(60.0f, 0.0f)))
     {
         if (paused)
@@ -15,6 +17,4 @@ void PlaybackUi::draw(bool paused, EditorCommands &commands) const
     ImGui::SameLine();
     if (ImGui::Button("step", ImVec2(60.0f, 0.0f)))
         commands.onStep();
-
-    ImGui::TextDisabled("%s", paused ? "stopped" : "running");
 }

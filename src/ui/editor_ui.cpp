@@ -85,9 +85,11 @@ void EditorUi::draw(
     switch (section)
     {
     case EditorSection::Runtime:
-        playbackUi.draw(subject.paused, commands);
+        if (ImGui::CollapsingHeader("Playback", ImGuiTreeNodeFlags_DefaultOpen))
+            playbackUi.draw(subject.paused, commands);
         ImGui::Separator();
-        cameraUi.draw(subject.gameData, subject.camera, commands);
+        if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+            cameraUi.draw(subject.gameData, subject.camera, commands);
         ImGui::Separator();
         if (ImGui::CollapsingHeader("Overlays", ImGuiTreeNodeFlags_DefaultOpen))
         {

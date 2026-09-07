@@ -12,5 +12,5 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        Decided &state) = 0;
+        Decided &decided) = 0;
 };

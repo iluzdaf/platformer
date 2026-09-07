@@ -302,7 +302,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
     LevelUi levelUi;
     LevelData levelData = dataPlacing({aVillagerAt(glm::ivec2(3, Standing))});
     Level level = levelOf(levelData);
-    Decided motion;
+    Decided decided;
     Observed observed;
     ActorState playerState;
     std::optional<Armed> armed;
@@ -316,7 +316,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
                 level,
                 levelData,
                 LevelPath,
-                motion,
+                decided,
                 observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
                 playerState,

@@ -16,14 +16,14 @@ void JumpAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &state)
+    Decided &decided)
 {
-    state.jump.velocity = glm::vec2(0.0f);
+    decided.jump.velocity = glm::vec2(0.0f);
 
     jumpBuffer.update(deltaTime);
     coyoteTime.update(observed.contacts.onGround, deltaTime);
 
-    if (!state.jump.active)
+    if (!decided.jump.active)
     {
         if (inputIntentions.jumpRequested)
             jumpBuffer.press();
@@ -31,24 +31,24 @@ void JumpAbility::applyMovement(
         if (jumpBuffer.isBuffered() &&
             (observed.contacts.onGround || coyoteTime.isCoyoteAvailable()))
         {
-            state.jump.active = true;
-            state.jump.holdTime = 0.0f;
+            decided.jump.active = true;
+            decided.jump.holdTime = 0.0f;
             jumpBuffer.consume();
             coyoteTime.consume();
         }
     }
 
-    if (state.jump.active)
+    if (decided.jump.active)
     {
-        state.jump.holdTime += deltaTime;
+        decided.jump.holdTime += deltaTime;
 
-        bool stillGoingUp = state.jump.holdTime <= data.jumpDuration &&
+        bool stillGoingUp = decided.jump.holdTime <= data.jumpDuration &&
                             (inputIntentions.jumpHeld || inputIntentions.jumpRequested) &&
                             !observed.contacts.hitCeiling;
 
         if (stillGoingUp)
-            state.jump.velocity.y = data.jumpSpeed;
+            decided.jump.velocity.y = data.jumpSpeed;
         else
-            state.jump.active = false;
+            decided.jump.active = false;
     }
 }

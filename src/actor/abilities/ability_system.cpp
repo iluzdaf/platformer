@@ -42,31 +42,31 @@ void AbilitySystem::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &state)
+    Decided &decided)
 {
     for (auto &ability : abilities)
-        ability->applyMovement(deltaTime, inputIntentions, observed, state);
+        ability->applyMovement(deltaTime, inputIntentions, observed, decided);
 
-    glm::vec2 finalVelocity = state.gravity.velocity;
-    if (state.knockback.active)
-        finalVelocity = state.knockback.velocity;
-    else if (state.dash.active)
-        finalVelocity = state.dash.velocity;
-    else if (state.mantle.active)
-        finalVelocity = state.mantle.velocity;
+    glm::vec2 finalVelocity = decided.gravity.velocity;
+    if (decided.knockback.active)
+        finalVelocity = decided.knockback.velocity;
+    else if (decided.dash.active)
+        finalVelocity = decided.dash.velocity;
+    else if (decided.mantle.active)
+        finalVelocity = decided.mantle.velocity;
     else
     {
-        finalVelocity.x = state.move.velocity.x;
+        finalVelocity.x = decided.move.velocity.x;
 
-        if (state.jump.active)
-            finalVelocity.y = state.jump.velocity.y;
-        else if (state.wallJump.active)
-            finalVelocity = state.wallJump.velocity;
-        else if (state.wallHang.active)
-            finalVelocity.y = state.wallClimb.velocity.y;
-        else if (state.wallSlide.active)
-            finalVelocity.y = state.wallSlide.velocity.y;
+        if (decided.jump.active)
+            finalVelocity.y = decided.jump.velocity.y;
+        else if (decided.wallJump.active)
+            finalVelocity = decided.wallJump.velocity;
+        else if (decided.wallHang.active)
+            finalVelocity.y = decided.wallClimb.velocity.y;
+        else if (decided.wallSlide.active)
+            finalVelocity.y = decided.wallSlide.velocity.y;
     }
 
-    state.targetVelocity = finalVelocity;
+    decided.targetVelocity = finalVelocity;
 }

@@ -10,7 +10,7 @@ using Catch::Approx;
 
 TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
 {
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions inputIntentions;
     WallSlideAbilityData wallSlideAbilityData;
@@ -21,26 +21,26 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
         observed.contacts.touchingLeftWall = observed.contacts.grippableLeftWall = true;
         observed.contacts.onGround = false;
         observed.velocity.y = 980.0f;
-        slideAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE(state.wallSlide.active);
-        REQUIRE(state.wallSlide.velocity.y == Approx(wallSlideAbilityData.slideSpeed));
+        slideAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE(decided.wallSlide.active);
+        REQUIRE(decided.wallSlide.velocity.y == Approx(wallSlideAbilityData.slideSpeed));
     }
 
     SECTION("Cannot wall slide if not touching wall")
     {
         observed.contacts.onGround = false;
-        slideAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE_FALSE(state.wallSlide.active);
-        REQUIRE(state.wallSlide.velocity.y == Approx(0.0f));
+        slideAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE_FALSE(decided.wallSlide.active);
+        REQUIRE(decided.wallSlide.velocity.y == Approx(0.0f));
     }
 
     SECTION("Cannot wall slide when on ground")
     {
         observed.contacts.touchingLeftWall = observed.contacts.grippableLeftWall = true;
         observed.contacts.onGround = true;
-        slideAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE_FALSE(state.wallSlide.active);
-        REQUIRE(state.wallSlide.velocity.y == Approx(0.0f));
+        slideAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE_FALSE(decided.wallSlide.active);
+        REQUIRE(decided.wallSlide.velocity.y == Approx(0.0f));
     }
 
     SECTION("Cannot wall slide if not falling")
@@ -48,9 +48,9 @@ TEST_CASE("WallSlideAbility basic movement behaviour", "[WallSlideAbility]")
         observed.contacts.touchingLeftWall = observed.contacts.grippableLeftWall = true;
         observed.contacts.onGround = false;
         observed.velocity.y = 0.0f;
-        slideAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE_FALSE(state.wallSlide.active);
-        REQUIRE(state.wallSlide.velocity.y == Approx(0.0f));
+        slideAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE_FALSE(decided.wallSlide.active);
+        REQUIRE(decided.wallSlide.velocity.y == Approx(0.0f));
     }
 }
 

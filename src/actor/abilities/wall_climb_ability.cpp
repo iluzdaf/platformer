@@ -15,15 +15,15 @@ void WallClimbAbility::applyMovement(
     float,
     const InputIntentions &inputIntentions,
     const Observed &,
-    Decided &state)
+    Decided &decided)
 {
-    state.wallClimb.velocity = glm::vec2(0.0f);
+    decided.wallClimb.velocity = glm::vec2(0.0f);
 
-    if (!state.wallHang.active)
+    if (!decided.wallHang.active)
         return;
 
     if (inputIntentions.direction.y < 0)
-        state.wallClimb.velocity.y = -data.climbSpeed;
+        decided.wallClimb.velocity.y = -data.climbSpeed;
     else if (inputIntentions.direction.y > 0)
-        state.wallClimb.velocity.y = data.climbSpeed;
+        decided.wallClimb.velocity.y = data.climbSpeed;
 }

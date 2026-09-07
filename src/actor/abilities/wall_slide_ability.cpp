@@ -15,17 +15,17 @@ void WallSlideAbility::applyMovement(
     float,
     const InputIntentions &,
     const Observed &observed,
-    Decided &state)
+    Decided &decided)
 {
-    state.wallSlide.emit = false;
-    state.wallSlide.velocity = glm::vec2(0.0f);
-    state.wallSlide.active = false;
+    decided.wallSlide.emit = false;
+    decided.wallSlide.velocity = glm::vec2(0.0f);
+    decided.wallSlide.active = false;
 
     if (observed.contacts.onGround || !observed.contacts.grippableWall() ||
         observed.velocity.y <= 0.0f)
         return;
 
-    state.wallSlide.velocity.y = data.slideSpeed;
-    state.wallSlide.active = true;
-    state.wallSlide.emit = true;
+    decided.wallSlide.velocity.y = data.slideSpeed;
+    decided.wallSlide.active = true;
+    decided.wallSlide.emit = true;
 }

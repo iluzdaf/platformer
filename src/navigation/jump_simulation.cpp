@@ -39,24 +39,24 @@ JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
     ActorMotionData shortened = releasedAfter(motionData, holdFraction);
     float holdDuration = shortened.jumpAbilityData ? shortened.jumpAbilityData->jumpDuration : 0.0f;
     AbilitySystem abilitySystem(shortened);
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions inputIntentions = holdingJumpAndRunning();
 
     observed.contacts.onGround = true;
-    abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, state);
-    if (state.targetVelocity.y >= 0.0f)
+    abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, decided);
+    if (decided.targetVelocity.y >= 0.0f)
         return {};
 
     std::vector<glm::vec2> offsets{glm::vec2(0.0f)};
-    glm::vec2 offset = state.targetVelocity * PhysicsStep;
+    glm::vec2 offset = decided.targetVelocity * PhysicsStep;
     offsets.push_back(offset);
 
     observed.contacts.onGround = false;
     for (int step = 1; step < MaximumSteps; ++step)
     {
-        abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, state);
-        offset += state.targetVelocity * PhysicsStep;
+        abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, decided);
+        offset += decided.targetVelocity * PhysicsStep;
         offsets.push_back(offset);
 
         if (offset.y >= 0.0f)
@@ -90,7 +90,7 @@ JumpAttempt simulateJumpAgainst(
 {
     ActorMotionData shortened = releasedAfter(motionData, holdFraction);
     AbilitySystem abilitySystem(shortened);
-    Decided state;
+    Decided decided;
     Observed observed;
 
     PhysicsBody physicsBody(physicsBodyData);
@@ -107,8 +107,8 @@ JumpAttempt simulateJumpAgainst(
     observed.contacts.onGround = true;
     for (int step = 0; step < MaximumSteps; ++step)
     {
-        abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, state);
-        physicsBody.setVelocity(state.targetVelocity);
+        abilitySystem.applyMovement(PhysicsStep, inputIntentions, observed, decided);
+        physicsBody.setVelocity(decided.targetVelocity);
         physicsBody.stepPhysics(PhysicsStep, tileMap);
 
         observed.contacts.onGround = physicsBody.contactWithGround(tileMap);

@@ -19,10 +19,10 @@ void WallJumpAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &state)
+    Decided &decided)
 {
-    state.wallJump.emit = false;
-    state.wallJump.velocity = glm::vec2(0.0f);
+    decided.wallJump.emit = false;
+    decided.wallJump.velocity = glm::vec2(0.0f);
 
     wallJumpBuffer.update(deltaTime);
     wallJumpCoyote.update(observed.contacts.grippableWall(), deltaTime);
@@ -33,7 +33,7 @@ void WallJumpAbility::applyMovement(
         return;
     }
 
-    if (!state.wallJump.active)
+    if (!decided.wallJump.active)
     {
         if (inputIntentions.jumpHeld)
         {
@@ -55,41 +55,41 @@ void WallJumpAbility::applyMovement(
             bool jumpInputCorrect = desiredDirection * bufferedDirection > 0;
             bool grippableWallNow = observed.contacts.grippableWall();
             if (jumpInputCorrect && (grippableWallNow || wallJumpCoyote.isCoyoteAvailable()))
-                startWallJump(state, desiredDirection);
+                startWallJump(decided, desiredDirection);
         }
     }
 
-    if (state.wallJump.active)
+    if (decided.wallJump.active)
     {
         bool switchedSides =
-            (observed.contacts.touchingLeftWall && state.wallJump.direction == -1) ||
-            (observed.contacts.touchingRightWall && state.wallJump.direction == 1);
+            (observed.contacts.touchingLeftWall && decided.wallJump.direction == -1) ||
+            (observed.contacts.touchingRightWall && decided.wallJump.direction == 1);
 
         if (switchedSides)
         {
-            state.wallJump.timeLeft = 0.0f;
-            state.wallJump.active = false;
+            decided.wallJump.timeLeft = 0.0f;
+            decided.wallJump.active = false;
             return;
         }
 
-        state.wallJump.timeLeft -= deltaTime;
-        if (state.wallJump.timeLeft <= 0.0f)
+        decided.wallJump.timeLeft -= deltaTime;
+        if (decided.wallJump.timeLeft <= 0.0f)
         {
-            state.wallJump.active = false;
+            decided.wallJump.active = false;
             return;
         }
 
-        state.wallJump.velocity = {
-            data.wallJumpHorizontalSpeed * state.wallJump.direction, data.wallJumpSpeed};
+        decided.wallJump.velocity = {
+            data.wallJumpHorizontalSpeed * decided.wallJump.direction, data.wallJumpSpeed};
     }
 }
 
-void WallJumpAbility::startWallJump(Decided &state, int direction)
+void WallJumpAbility::startWallJump(Decided &decided, int direction)
 {
-    state.wallJump.direction = static_cast<float>(direction);
-    state.wallJump.timeLeft = data.wallJumpDuration;
-    state.wallJump.active = true;
-    state.wallJump.emit = true;
+    decided.wallJump.direction = static_cast<float>(direction);
+    decided.wallJump.timeLeft = data.wallJumpDuration;
+    decided.wallJump.active = true;
+    decided.wallJump.emit = true;
     wallJumpBuffer.consume();
     wallJumpDirectionBuffer.consume();
     wallJumpCoyote.consume();

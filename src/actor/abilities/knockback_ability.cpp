@@ -23,9 +23,9 @@ void KnockbackAbility::applyMovement(
     float deltaTime,
     const InputIntentions &,
     const Observed &observed,
-    Decided &state)
+    Decided &decided)
 {
-    KnockbackAbilityState &knockback = state.knockback;
+    KnockbackAbilityState &knockback = decided.knockback;
     knockback.emit = false;
     knockback.velocity = glm::vec2(0.0f);
 

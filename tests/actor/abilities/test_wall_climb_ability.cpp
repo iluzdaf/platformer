@@ -10,7 +10,7 @@ using Catch::Approx;
 
 TEST_CASE("WallClimbAbility basic movement behaviour", "[WallClimbAbility]")
 {
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions inputIntentions;
     WallClimbAbilityData wallClimbAbilityData;
@@ -18,39 +18,39 @@ TEST_CASE("WallClimbAbility basic movement behaviour", "[WallClimbAbility]")
 
     SECTION("Can climb up")
     {
-        state.wallHang.active = true;
+        decided.wallHang.active = true;
         inputIntentions.direction.y = -1;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE(state.wallClimb.velocity.y == Approx(-wallClimbAbilityData.climbSpeed));
+        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE(decided.wallClimb.velocity.y == Approx(-wallClimbAbilityData.climbSpeed));
     }
 
     SECTION("Can climb down")
     {
-        state.wallHang.active = true;
+        decided.wallHang.active = true;
         inputIntentions.direction.y = 1;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE(state.wallClimb.velocity.y == Approx(wallClimbAbilityData.climbSpeed));
+        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE(decided.wallClimb.velocity.y == Approx(wallClimbAbilityData.climbSpeed));
     }
 
     SECTION("Cannot climb up if not climbing")
     {
         inputIntentions.direction.y = -1;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE(state.wallClimb.velocity.y == Approx(0.0f));
+        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE(decided.wallClimb.velocity.y == Approx(0.0f));
     }
 
     SECTION("Cannot climb down if not climbing")
     {
         inputIntentions.direction.y = 1;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE(state.wallClimb.velocity.y == Approx(0.0f));
+        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE(decided.wallClimb.velocity.y == Approx(0.0f));
     }
 
     SECTION("If no direction requested, no movement applied")
     {
-        state.wallHang.active = true;
-        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, state);
-        REQUIRE(state.wallClimb.velocity.y == Approx(0.0f));
+        decided.wallHang.active = true;
+        wallClimbAbility.applyMovement(0.01f, inputIntentions, observed, decided);
+        REQUIRE(decided.wallClimb.velocity.y == Approx(0.0f));
     }
 }
 

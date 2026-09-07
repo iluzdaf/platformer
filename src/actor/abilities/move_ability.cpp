@@ -15,12 +15,12 @@ void MoveAbility::applyMovement(
     float,
     const InputIntentions &inputIntentions,
     const Observed &,
-    Decided &state)
+    Decided &decided)
 {
-    state.move.velocity = glm::vec2(0.0f);
+    decided.move.velocity = glm::vec2(0.0f);
 
     if (inputIntentions.direction.x > 0)
-        state.move.velocity.x = data.moveSpeed;
+        decided.move.velocity.x = data.moveSpeed;
     else if (inputIntentions.direction.x < 0)
-        state.move.velocity.x = -data.moveSpeed;
+        decided.move.velocity.x = -data.moveSpeed;
 }

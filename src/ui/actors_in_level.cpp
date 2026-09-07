@@ -73,7 +73,7 @@ namespace
     }
 
     void drawThePlayer(
-        const Decided &motion,
+        const Decided &decided,
         const Observed &observed,
         const glm::vec2 &feet,
         const ActorState &state)
@@ -82,10 +82,10 @@ namespace
             "Velocity", std::format("{:.2f}, {:.2f}", observed.velocity.x, observed.velocity.y));
         drawRow("Feet", std::format("{:.2f}, {:.2f}", feet.x, feet.y));
         drawRow("Facing Left", state.facingLeft ? "true" : "false");
-        drawRow("Wall Sliding", motion.wallSlide.active ? "true" : "false");
-        drawRow("Wall Jumping", motion.wallJump.active ? "true" : "false");
-        drawRow("Dashing", motion.dash.active ? "true" : "false");
-        drawRow("Hanging", motion.wallHang.active ? "true" : "false");
+        drawRow("Wall Sliding", decided.wallSlide.active ? "true" : "false");
+        drawRow("Wall Jumping", decided.wallJump.active ? "true" : "false");
+        drawRow("Dashing", decided.dash.active ? "true" : "false");
+        drawRow("Hanging", decided.wallHang.active ? "true" : "false");
         drawRow("Animation", toString(state.currentAnimationState));
     }
 

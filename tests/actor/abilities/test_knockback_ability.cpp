@@ -31,87 +31,87 @@ namespace
 
 TEST_CASE("A push starts a knockback away from the hit, up and along", "[KnockbackAbility]")
 {
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
     KnockbackAbility ability(data);
     observed.hits.push_back(Hit{1, glm::vec2(-1.0f, 0.0f), false});
 
-    ability.applyMovement(Step, nothing, observed, state);
+    ability.applyMovement(Step, nothing, observed, decided);
 
-    REQUIRE(state.knockback.active);
-    REQUIRE(state.knockback.emit);
-    REQUIRE(state.knockback.velocity.x == Approx(-data.speed));
-    REQUIRE(state.knockback.velocity.y == Approx(data.lift));
+    REQUIRE(decided.knockback.active);
+    REQUIRE(decided.knockback.emit);
+    REQUIRE(decided.knockback.velocity.x == Approx(-data.speed));
+    REQUIRE(decided.knockback.velocity.y == Approx(data.lift));
 }
 
 TEST_CASE("A knockback says so once and lasts its duration", "[KnockbackAbility]")
 {
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
     KnockbackAbility ability(data);
     observed.hits = {aHitPushing(1.0f)};
 
-    ability.applyMovement(Step, nothing, observed, state);
+    ability.applyMovement(Step, nothing, observed, decided);
     observed.hits.clear();
-    ability.applyMovement(Step, nothing, observed, state);
-    REQUIRE_FALSE(state.knockback.emit);
-    REQUIRE(state.knockback.active);
+    ability.applyMovement(Step, nothing, observed, decided);
+    REQUIRE_FALSE(decided.knockback.emit);
+    REQUIRE(decided.knockback.active);
 
-    ability.applyMovement(data.duration, nothing, observed, state);
+    ability.applyMovement(data.duration, nothing, observed, decided);
 
-    REQUIRE_FALSE(state.knockback.active);
-    REQUIRE(state.knockback.velocity == glm::vec2(0.0f));
+    REQUIRE_FALSE(decided.knockback.active);
+    REQUIRE(decided.knockback.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE("Nothing pushed, nothing moves", "[KnockbackAbility]")
 {
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbility ability{KnockbackAbilityData{}};
 
-    ability.applyMovement(Step, nothing, observed, state);
+    ability.applyMovement(Step, nothing, observed, decided);
 
-    REQUIRE_FALSE(state.knockback.active);
-    REQUIRE(state.knockback.velocity == glm::vec2(0.0f));
+    REQUIRE_FALSE(decided.knockback.active);
+    REQUIRE(decided.knockback.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE("A push with no side to it keeps the last direction", "[KnockbackAbility]")
 {
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
     KnockbackAbility ability(data);
     observed.hits.push_back(Hit{1, glm::vec2(-1.0f, 0.0f), false});
-    ability.applyMovement(Step, nothing, observed, state);
-    ability.applyMovement(data.duration, nothing, observed, state);
+    ability.applyMovement(Step, nothing, observed, decided);
+    ability.applyMovement(data.duration, nothing, observed, decided);
 
     observed.hits = {aHitPushing(0.0f)};
-    ability.applyMovement(Step, nothing, observed, state);
+    ability.applyMovement(Step, nothing, observed, decided);
 
-    REQUIRE(state.knockback.velocity.x == Approx(-data.speed));
+    REQUIRE(decided.knockback.velocity.x == Approx(-data.speed));
 }
 
 TEST_CASE("A second push restarts the knockback", "[KnockbackAbility]")
 {
-    Decided state;
+    Decided decided;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
     KnockbackAbility ability(data);
     observed.hits = {aHitPushing(1.0f)};
-    ability.applyMovement(data.duration * 0.5f, nothing, observed, state);
+    ability.applyMovement(data.duration * 0.5f, nothing, observed, decided);
 
     observed.hits.push_back(Hit{1, glm::vec2(-1.0f, 0.0f), false});
-    ability.applyMovement(Step, nothing, observed, state);
+    ability.applyMovement(Step, nothing, observed, decided);
 
-    REQUIRE(state.knockback.velocity.x == Approx(-data.speed));
-    REQUIRE(state.knockback.timeLeft == Approx(data.duration - Step));
+    REQUIRE(decided.knockback.velocity.x == Approx(-data.speed));
+    REQUIRE(decided.knockback.timeLeft == Approx(data.duration - Step));
 }
 
 TEST_CASE("Knockback data that cannot push is refused", "[KnockbackAbility]")

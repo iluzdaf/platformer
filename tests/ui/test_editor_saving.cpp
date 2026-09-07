@@ -58,7 +58,7 @@ namespace
             gameData.npcData,
             gameData.pickupData};
         TextureCache textures;
-        Decided motion;
+        Decided decided;
         Observed observed;
         ActorState playerState;
         Camera2D camera{gameData.cameraData, 800, 600};
@@ -72,7 +72,7 @@ namespace
                 levelPath,
                 textures,
                 levels,
-                motion,
+                decided,
                 observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, 1)),
                 playerState,

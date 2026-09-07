@@ -17,30 +17,31 @@ void MantleAbility::applyMovement(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &state)
+    Decided &decided)
 {
-    state.mantle.velocity = glm::vec2(0.0f);
+    decided.mantle.velocity = glm::vec2(0.0f);
 
-    if (!state.mantle.active)
+    if (!decided.mantle.active)
     {
         bool atLedge = observed.contacts.ledgeOnLeft || observed.contacts.ledgeOnRight;
-        if (!state.wallHang.active || !atLedge || inputIntentions.direction.y >= 0.0f)
+        if (!decided.wallHang.active || !atLedge || inputIntentions.direction.y >= 0.0f)
             return;
 
-        state.mantle.direction = observed.contacts.ledgeOnLeft ? -1.0f : 1.0f;
-        state.mantle.timeLeft = data.mantleDuration;
-        state.mantle.active = true;
+        decided.mantle.direction = observed.contacts.ledgeOnLeft ? -1.0f : 1.0f;
+        decided.mantle.timeLeft = data.mantleDuration;
+        decided.mantle.active = true;
     }
 
-    state.mantle.timeLeft -= deltaTime;
-    if (state.mantle.timeLeft <= 0.0f)
+    decided.mantle.timeLeft -= deltaTime;
+    if (decided.mantle.timeLeft <= 0.0f)
     {
-        state.mantle.timeLeft = 0.0f;
-        state.mantle.active = false;
+        decided.mantle.timeLeft = 0.0f;
+        decided.mantle.active = false;
         return;
     }
 
-    bool pullingUp = state.mantle.timeLeft > data.mantleDuration * 0.5f;
-    state.mantle.velocity = pullingUp ? glm::vec2(0.0f, -data.mantleSpeed)
-                                      : glm::vec2(data.mantleSpeed * state.mantle.direction, 0.0f);
+    bool pullingUp = decided.mantle.timeLeft > data.mantleDuration * 0.5f;
+    decided.mantle.velocity = pullingUp
+                                  ? glm::vec2(0.0f, -data.mantleSpeed)
+                                  : glm::vec2(data.mantleSpeed * decided.mantle.direction, 0.0f);
 }

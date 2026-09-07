@@ -13,14 +13,14 @@ void GravityAbility::applyMovement(
     float deltaTime,
     const InputIntentions &,
     const Observed &observed,
-    Decided &state)
+    Decided &decided)
 {
-    if (observed.contacts.onGround || state.wallHang.active || state.wallSlide.active ||
-        state.mantle.active || state.knockback.active)
-        state.gravity.velocity.y = 0.0f;
+    if (observed.contacts.onGround || decided.wallHang.active || decided.wallSlide.active ||
+        decided.mantle.active || decided.knockback.active)
+        decided.gravity.velocity.y = 0.0f;
     else
     {
-        state.gravity.velocity.y += data.gravity * deltaTime;
-        state.gravity.velocity.y = std::min(state.gravity.velocity.y, data.maxFallSpeed);
+        decided.gravity.velocity.y += data.gravity * deltaTime;
+        decided.gravity.velocity.y = std::min(decided.gravity.velocity.y, data.maxFallSpeed);
     }
 }

@@ -18,7 +18,7 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        Decided &state) override;
+        Decided &decided) override;
 
 private:
     WallJumpAbilityData data;
@@ -26,5 +26,5 @@ private:
     DirectionBuffer wallJumpDirectionBuffer;
     CoyoteTime wallJumpCoyote;
 
-    void startWallJump(Decided &state, int direction);
+    void startWallJump(Decided &decided, int direction);
 };

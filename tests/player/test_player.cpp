@@ -53,9 +53,9 @@ TEST_CASE("A player with nothing under it falls at its gravity", "[Player]")
     const float gravity = GravityAbilityData().gravity;
     TileMap tileMap = aTileMap({}, 1, static_cast<int>(gravity / 16.0f) + 2);
     simulatePlayer(player, input, tileMap, 1.0f);
-    const ActorMotionState &state = player.getMotion().getState();
+    const ActorMotionState &state = player.moving().getState();
     REQUIRE(state.velocity.y == Approx(gravity));
-    REQUIRE(player.getPosition().y == Approx(0.5f * gravity).margin(5));
+    REQUIRE(player.body().position().y == Approx(0.5f * gravity).margin(5));
 }
 
 TEST_CASE("A player knows when it is on the ground and when it has walked off", "[Player]")
@@ -68,8 +68,8 @@ TEST_CASE("A player knows when it is on the ground and when it has walked off", 
         TileMap tileMap = aTileMap({{{0, 5}, 1}});
         simulatePlayer(player, input, tileMap, 1.0f);
         float expectedY = static_cast<float>(4 * tileMap.getTileSize());
-        const ActorMotionState &state = player.getMotion().getState();
-        REQUIRE(player.getPosition().y == Approx(expectedY));
+        const ActorMotionState &state = player.moving().getState();
+        REQUIRE(player.body().position().y == Approx(expectedY));
         REQUIRE(state.contacts.onGround);
         REQUIRE(state.velocity.y == Approx(0.0f).margin(0.01f));
     }
@@ -79,7 +79,7 @@ TEST_CASE("A player knows when it is on the ground and when it has walked off", 
         TileMap tileMap = aTileMap({{{1, 5}, 1}, {{2, 5}, 1}});
         player.setPosition({2 * 16, 4 * 16});
         simulatePlayer(player, input, tileMap, 0.1f);
-        const ActorMotionState &state = player.getMotion().getState();
+        const ActorMotionState &state = player.moving().getState();
         REQUIRE(state.contacts.onGround);
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
@@ -98,7 +98,7 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
     SECTION("Player is idle by default")
     {
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Idle);
+        REQUIRE(player.state().currentAnimationState == ActorAnimationState::Idle);
     }
 
     SECTION("Player walking triggers walk animation")
@@ -106,13 +106,13 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Walk);
+        REQUIRE(player.state().currentAnimationState == ActorAnimationState::Walk);
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Idle);
+        REQUIRE(player.state().currentAnimationState == ActorAnimationState::Idle);
         inputIntentions = InputIntentions();
         inputIntentions.direction.x = -1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.getState().currentAnimationState == ActorAnimationState::Walk);
+        REQUIRE(player.state().currentAnimationState == ActorAnimationState::Walk);
     }
 
     SECTION("Animation frame advances over time")
@@ -120,9 +120,9 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        int frameBefore = player.getState().currentFrame;
+        int frameBefore = player.state().currentFrame;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        int frameAfter = player.getState().currentFrame;
+        int frameAfter = player.state().currentFrame;
         REQUIRE(frameBefore != frameAfter);
     }
 }
@@ -135,7 +135,7 @@ TEST_CASE("A player faces the way it last moved", "[Player]")
 
     SECTION("Starts facing right")
     {
-        const ActorState &playerState = player.getState();
+        const ActorState &playerState = player.state();
         REQUIRE_FALSE(playerState.facingLeft);
     }
 
@@ -144,7 +144,7 @@ TEST_CASE("A player faces the way it last moved", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        const ActorState &playerState = player.getState();
+        const ActorState &playerState = player.state();
         REQUIRE(playerState.facingLeft);
         simulatePlayer(player, input, tileMap, 0.1f);
         REQUIRE(playerState.facingLeft);
@@ -155,7 +155,7 @@ TEST_CASE("A player faces the way it last moved", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        const ActorState &playerState = player.getState();
+        const ActorState &playerState = player.state();
         REQUIRE_FALSE(playerState.facingLeft);
         simulatePlayer(player, input, tileMap, 0.1f);
         REQUIRE_FALSE(playerState.facingLeft);
@@ -175,8 +175,8 @@ TEST_CASE("A player is kept inside the map", "[Player]")
         SECTION("While falling")
         {
             simulatePlayer(player, input, tileMap, 10.0f);
-            REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
-            REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
+            REQUIRE(player.body().position().x <= tileMap.getWorldWidth());
+            REQUIRE(player.body().position().y <= tileMap.getWorldHeight());
         }
 
         SECTION("While moving left")
@@ -184,8 +184,8 @@ TEST_CASE("A player is kept inside the map", "[Player]")
             InputIntentions inputIntentions;
             inputIntentions.direction.x = -1;
             simulatePlayer(player, input, tileMap, 10.0f, inputIntentions);
-            REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
-            REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
+            REQUIRE(player.body().position().x <= tileMap.getWorldWidth());
+            REQUIRE(player.body().position().y <= tileMap.getWorldHeight());
         }
 
         SECTION("While moving right")
@@ -193,8 +193,8 @@ TEST_CASE("A player is kept inside the map", "[Player]")
             InputIntentions inputIntentions;
             inputIntentions.direction.x = 1;
             simulatePlayer(player, input, tileMap, 10.0f, inputIntentions);
-            REQUIRE(player.getPosition().x <= tileMap.getWorldWidth());
-            REQUIRE(player.getPosition().y <= tileMap.getWorldHeight());
+            REQUIRE(player.body().position().x <= tileMap.getWorldWidth());
+            REQUIRE(player.body().position().y <= tileMap.getWorldHeight());
         }
     }
 }
@@ -203,7 +203,7 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
 {
     ScriptedIntentions input;
     Player player = aPlayerWithEveryAbility(input);
-    const ActorMotionState &state = player.getMotion().getState();
+    const ActorMotionState &state = player.moving().getState();
 
     SECTION("Touching right wall")
     {
@@ -297,14 +297,14 @@ TEST_CASE("A player cannot move or jump into a solid tile", "[Player]")
         {
             inputIntentions.direction.x = 1;
             simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-            REQUIRE(player.getPosition().x <= Approx(3 * tileMap.getTileSize()));
+            REQUIRE(player.body().position().x <= Approx(3 * tileMap.getTileSize()));
         }
 
         SECTION("Moving left into solid tile")
         {
             inputIntentions.direction.x = -1;
             simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-            REQUIRE(player.getPosition().x >= Approx(1 * tileMap.getTileSize()));
+            REQUIRE(player.body().position().x >= Approx(1 * tileMap.getTileSize()));
         }
     }
 
@@ -316,7 +316,7 @@ TEST_CASE("A player cannot move or jump into a solid tile", "[Player]")
         player.setPosition({2 * tileMap.getTileSize(), 4 * tileMap.getTileSize()});
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        float playerTopY = player.getPosition().y;
+        float playerTopY = player.body().position().y;
         float ceilingBottomY = static_cast<float>(ceilingTileY + 1);
         REQUIRE(playerTopY >= Approx(ceilingBottomY).margin(0.1f));
     }
@@ -346,8 +346,7 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
 
     float ledgeRight = static_cast<float>(LedgeLastTile + 1) * 16.0f;
     float ledgeTop = static_cast<float>(LedgeRow) * 16.0f;
-    player.setPosition(
-        glm::vec2(ledgeRight - player.getPhysicsBody().colliderOffset().x, ledgeTop - 2.0f));
+    player.setPosition(glm::vec2(ledgeRight - player.body().colliderOffset().x, ledgeTop - 2.0f));
 
     InputIntentions intentions;
     intentions.direction.x = -1.0f;
@@ -358,7 +357,7 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
         player.postFixedUpdate();
     }
 
-    float colliderTop = player.getPosition().y + player.getPhysicsBody().colliderOffset().y;
+    float colliderTop = player.body().position().y + player.body().colliderOffset().y;
     INFO(
         "collider top ended at " << colliderTop << ", the ledge spans " << ledgeTop << " to "
                                  << ledgeTop + 16.0f);
@@ -378,7 +377,7 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
 
     ScriptedIntentions input;
     Player player = aPlayerWithEveryAbility(input);
-    const ActorMotionState &state = player.getMotion().getState();
+    const ActorMotionState &state = player.moving().getState();
 
     player.setPosition(glm::vec2(4 * 16.0f + 4.0f, 8 * 16.0f - 16.0f));
 
@@ -389,7 +388,7 @@ TEST_CASE("A player can climb a wall and get onto the ledge", "[Player][Mantle]"
     simulatePlayer(player, input, tileMap, 0.5f);
 
     REQUIRE(state.contacts.onGround);
-    REQUIRE(player.getPhysicsBody().aabb().bottomCenter().y == Approx(5 * 16.0f));
+    REQUIRE(player.body().aabb().bottomCenter().y == Approx(5 * 16.0f));
 }
 
 TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
@@ -408,7 +407,7 @@ TEST_CASE("A player cannot hang on a wall it cannot grip", "[Player][Grip]")
 
     ScriptedIntentions input;
     Player player = aPlayerWithEveryAbility(input);
-    const ActorMotionState &state = player.getMotion().getState();
+    const ActorMotionState &state = player.moving().getState();
     player.setPosition(glm::vec2(4 * 16.0f + 4.0f, 16.0f));
 
     InputIntentions holdingTheWall;
@@ -463,11 +462,11 @@ TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in
             {
                 player.fixedUpdate(dt, level);
                 player.postFixedUpdate();
-                if (player.getMotion().getState().contacts.hitCeiling)
+                if (player.moving().getState().contacts.hitCeiling)
                     ++stepsTouchingCeiling;
             });
 
-        const ActorContactState &contacts = player.getMotion().getState().contacts;
+        const ActorContactState &contacts = player.moving().getState().contacts;
         if (contacts.hitCeiling)
             ++framesEndingWithHitCeiling;
         if (contacts.bumpedCeiling)
@@ -483,7 +482,7 @@ TEST_CASE("A player has no state name and stands on no node", "[Player]")
 {
     Player player = aPlayerWithEveryAbility();
 
-    REQUIRE(player.getStateName().empty());
-    REQUIRE_FALSE(player.getCurrentNodeId());
-    REQUIRE_FALSE(player.getTargetNodeId());
+    REQUIRE(player.stateName().empty());
+    REQUIRE_FALSE(player.currentNodeId());
+    REQUIRE_FALSE(player.targetNodeId());
 }

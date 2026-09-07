@@ -14,7 +14,7 @@ Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
 
 void Player::postFixedUpdate()
 {
-    const ActorMotionState &motionState = motion.getState();
+    const ActorMotionState &motionState = moving().getState();
     if (motionState.dash.emit)
         onDash();
 

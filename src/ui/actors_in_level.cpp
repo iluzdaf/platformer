@@ -90,8 +90,7 @@ namespace
     void drawCannotGetBack(const Level &level, const Npc *npc)
     {
         const std::optional<PatrolData> &beat = npc ? npc->getSpawn().patrol : std::nullopt;
-        if (npc && beat &&
-            !canPatrolBetween(level.graphFor(npc->getNavigationProfile()), beat->from, beat->to))
+        if (npc && beat && !canPatrolBetween(level.graphFor(npc->profile()), beat->from, beat->to))
             ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "it cannot get back from there");
     }
 
@@ -104,16 +103,15 @@ namespace
             return;
         }
 
-        std::string_view state = npc->getStateName();
+        std::string_view state = npc->stateName();
         if (!state.empty())
             drawRow("State", std::string(state));
 
-        glm::ivec2 on =
-            level.getTileMap().tileStoodOnAt(npc->getPhysicsBody().aabb().bottomCenter());
+        glm::ivec2 on = level.getTileMap().tileStoodOnAt(npc->body().aabb().bottomCenter());
         drawRow("Stands On", std::format("{}, {}", on.x, on.y));
 
-        std::optional<int> setOffAt = npc->getCurrentNodeId();
-        std::optional<int> headingFor = npc->getTargetNodeId();
+        std::optional<int> setOffAt = npc->currentNodeId();
+        std::optional<int> headingFor = npc->targetNodeId();
         if (!setOffAt)
         {
             beginRow("Route");
@@ -207,8 +205,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
     {
         const std::optional<PatrolData> &beat = placed[index]->getSpawn().patrol;
         if (!beat ||
-            canPatrolBetween(
-                level.graphFor(placed[index]->getNavigationProfile()), beat->from, beat->to))
+            canPatrolBetween(level.graphFor(placed[index]->profile()), beat->from, beat->to))
             continue;
 
         names += (names.empty() ? "" : ", ") + labelOf(placed[index]->getSpawn(), index);

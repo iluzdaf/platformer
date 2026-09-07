@@ -38,7 +38,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
         {
             ScriptedIntentions input;
             Player player(gameData.playerData, input);
-            player.setPosition(start - player.getPhysicsBody().bottomCenterOffset());
+            player.setPosition(start - player.body().bottomCenterOffset());
 
             FixedTimeStep timestepper;
             bool triggered = false;
@@ -48,7 +48,7 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
             {
                 InputIntentions intentions;
                 intentions.direction.x = 1.0f;
-                if (!triggered && player.getPosition().x + 8.0f >= triggerAt)
+                if (!triggered && player.body().position().x + 8.0f >= triggerAt)
                 {
                     triggered = true;
                     frameTriggered = frame;
@@ -61,10 +61,10 @@ TEST_CASE("Level4's gap is a dash, and only a dash", "[Player][Tuning]")
 
                 runFor(player, level, 1.0f / 60.0f, timestepper);
 
-                glm::vec2 position = player.getPosition();
+                glm::vec2 position = player.body().position();
                 if (position.y + 16.0f > 7 * 16.0f)
                     break;
-                if (player.getMotion().getState().contacts.onGround && position.x + 4.0f > GapRight)
+                if (player.moving().getState().contacts.onGround && position.x + 4.0f > GapRight)
                 {
                     ++takeOffPointsThatWork;
                     break;

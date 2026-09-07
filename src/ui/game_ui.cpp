@@ -36,9 +36,9 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.levelPath,
             subject.textures,
             subject.levels,
-            subject.player.getMotion().getState(),
-            subject.player.getPhysicsBody().aabb().bottomCenter(),
-            subject.player.getState(),
+            subject.player.moving().getState(),
+            subject.player.body().aabb().bottomCenter(),
+            subject.player.state(),
             subject.camera,
             subject.paused},
         subject.showEditors);

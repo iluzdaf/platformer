@@ -80,47 +80,42 @@ void Actor::fixedUpdate(
     actorState.currentAnimationState = animationManager.getCurrentState();
 }
 
-const SheetData &Actor::getSheet() const
+const SheetData &Actor::drawnFrom() const
 {
     return sheet;
 }
 
-const ActorState &Actor::getState() const
+const ActorState &Actor::state() const
 {
     return actorState;
 }
 
-const ActorMotion &Actor::getMotion() const
+const ActorMotion &Actor::moving() const
 {
     return motion;
 }
 
-const PhysicsBody &Actor::getPhysicsBody() const
+const PhysicsBody &Actor::body() const
 {
     return physicsBody;
 }
 
-const NavigationProfile &Actor::getNavigationProfile() const
+const NavigationProfile &Actor::profile() const
 {
     return navigationProfile;
 }
 
-glm::vec2 Actor::getPosition() const
-{
-    return physicsBody.position();
-}
-
-std::string_view Actor::getStateName() const
+std::string_view Actor::stateName() const
 {
     return behavior ? behavior->getStateName() : std::string_view{};
 }
 
-std::optional<int> Actor::getCurrentNodeId() const
+std::optional<int> Actor::currentNodeId() const
 {
     return behavior ? behavior->getCurrentNodeId() : std::nullopt;
 }
 
-std::optional<int> Actor::getTargetNodeId() const
+std::optional<int> Actor::targetNodeId() const
 {
     return behavior ? behavior->getTargetNodeId() : std::nullopt;
 }

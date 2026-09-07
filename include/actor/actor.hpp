@@ -27,15 +27,14 @@ public:
         const Level &level,
         std::optional<glm::vec2> threatPosition = std::nullopt);
     virtual void postFixedUpdate();
-    const ActorState &getState() const;
-    const ActorMotion &getMotion() const;
-    const PhysicsBody &getPhysicsBody() const;
-    glm::vec2 getPosition() const;
-    const NavigationProfile &getNavigationProfile() const;
-    std::string_view getStateName() const;
-    const SheetData &getSheet() const;
-    std::optional<int> getCurrentNodeId() const;
-    std::optional<int> getTargetNodeId() const;
+    const ActorState &state() const;
+    const ActorMotion &moving() const;
+    const PhysicsBody &body() const;
+    const NavigationProfile &profile() const;
+    std::string_view stateName() const;
+    const SheetData &drawnFrom() const;
+    std::optional<int> currentNodeId() const;
+    std::optional<int> targetNodeId() const;
     void setPosition(const glm::vec2 &position);
 
 protected:
@@ -45,6 +44,7 @@ protected:
         const NavigationGraph &navigationGraph,
         std::optional<glm::vec2> threatPosition) const;
 
+private:
     ActorMotion motion;
     PhysicsBody physicsBody;
     AnimationManager animationManager;

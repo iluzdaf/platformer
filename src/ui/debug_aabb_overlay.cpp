@@ -97,14 +97,14 @@ void drawPlayerCollider(
     drawAABB(
         ImGui::GetBackgroundDrawList(),
         imGuiManager,
-        player.getPhysicsBody().aabb(),
+        player.body().aabb(),
         camera,
         PlayerColliderColor);
 }
 
 void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs)
 {
-    ActorMotionState state = player.getMotion().getState();
+    ActorMotionState state = player.moving().getState();
     fadingAABBs.add(state.contacts.collisionAABBX, PlayerCollisionColor, 0.1f);
     fadingAABBs.add(state.contacts.collisionAABBY, PlayerCollisionColor, 0.1f);
 }
@@ -187,7 +187,7 @@ void drawSpawnOf(
     if (!beat)
         return;
 
-    const NavigationGraph &graph = level.graphFor(npc.getNavigationProfile());
+    const NavigationGraph &graph = level.graphFor(npc.profile());
     std::optional<PlaceOnThePath> setsOff = placeOnThePath(graph, beat->from);
     std::optional<PlaceOnThePath> turnsRound = placeOnThePath(graph, beat->to);
     if (!setsOff || !turnsRound)
@@ -236,8 +236,8 @@ void drawContactProbes(
     FadingAABBs &fadingAABBs)
 {
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
-    const PhysicsBody &physicsBody = player.getPhysicsBody();
-    ActorContactState contacts = player.getMotion().getState().contacts;
+    const PhysicsBody &physicsBody = player.body();
+    ActorContactState contacts = player.moving().getState().contacts;
 
     AABB overhead = thickEnoughToSee(physicsBody.overheadProbe(), false);
     drawProbe(

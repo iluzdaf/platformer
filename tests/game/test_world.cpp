@@ -93,7 +93,7 @@ TEST_CASE("The player starts standing where the level says", "[World]")
 
     world.loadLevel("levels/level6.json");
 
-    glm::vec2 feet = world.getPlayer().getPhysicsBody().aabb().bottomCenter();
+    glm::vec2 feet = world.getPlayer().body().aabb().bottomCenter();
 
     REQUIRE(
         feet ==
@@ -157,7 +157,7 @@ TEST_CASE("The player acts on the intentions the world was given", "[World]")
     World world(gameData, intentions, luaScriptSystem);
 
     world.loadLevel("levels/level6.json");
-    float startX = world.getPlayer().getPosition().x;
+    float startX = world.getPlayer().body().position().x;
 
     InputIntentions moveRight;
     moveRight.direction = {1.0f, 0.0f};
@@ -165,7 +165,7 @@ TEST_CASE("The player acts on the intentions the world was given", "[World]")
 
     walkFor(world, 30);
 
-    REQUIRE(world.getPlayer().getPosition().x > startX);
+    REQUIRE(world.getPlayer().body().position().x > startX);
 }
 
 TEST_CASE("An npc added to the level data is standing in the world it rebuilds", "[World]")
@@ -214,7 +214,7 @@ TEST_CASE("A spawn moved in the level data is where the npc stands", "[World]")
     edited.npcs[1].position = movedTo;
     world.rebuildFrom(edited);
 
-    glm::vec2 feet = world.getLevel().getNpcs()[1]->getPhysicsBody().aabb().bottomCenter();
+    glm::vec2 feet = world.getLevel().getNpcs()[1]->body().aabb().bottomCenter();
 
     REQUIRE(feet == movedTo);
 }
@@ -232,7 +232,7 @@ TEST_CASE("Rebuilding from edited data leaves the player where it walked to", "[
     intentions.set(moveRight);
     walkFor(world, 30);
     const Player *before = &world.getPlayer();
-    glm::vec2 walkedTo = world.getPlayer().getPosition();
+    glm::vec2 walkedTo = world.getPlayer().body().position();
     REQUIRE(walkedTo != world.getLevel().getPlayerStart());
 
     LevelData edited = world.getLevelData();
@@ -240,7 +240,7 @@ TEST_CASE("Rebuilding from edited data leaves the player where it walked to", "[
     world.rebuildFrom(edited);
 
     REQUIRE(&world.getPlayer() == before);
-    REQUIRE(world.getPlayer().getPosition() == walkedTo);
+    REQUIRE(world.getPlayer().body().position() == walkedTo);
 }
 
 TEST_CASE("A moved player start does not move the player until it respawns", "[World]")
@@ -249,20 +249,20 @@ TEST_CASE("A moved player start does not move the player until it respawns", "[W
     LuaScriptSystem luaScriptSystem;
     World world(gameData, noIntentions(), luaScriptSystem);
     world.loadLevel("levels/level6.json");
-    glm::vec2 stoodAt = world.getPlayer().getPosition();
+    glm::vec2 stoodAt = world.getPlayer().body().position();
 
     LevelData edited = world.getLevelData();
     edited.playerStart = spawnsIn(world.getLevel())[0].position;
     REQUIRE(edited.playerStart != world.getLevel().getPlayerStart());
     world.rebuildFrom(edited);
 
-    REQUIRE(world.getPlayer().getPosition() == stoodAt);
+    REQUIRE(world.getPlayer().body().position() == stoodAt);
 
     world.respawnPlayer();
 
     const TileMap &tileMap = world.getLevel().getTileMap();
     REQUIRE(
-        world.getPlayer().getPhysicsBody().aabb().bottomCenter() ==
+        world.getPlayer().body().aabb().bottomCenter() ==
         tileMap.feetOnTile(tileMap.tileUnderFeet(world.getLevel().getPlayerStart())));
 }
 
@@ -274,13 +274,13 @@ TEST_CASE("A rebuild with a shift moves the player once the level stands", "[Wor
     World world(gameData, intentions, luaScriptSystem);
     world.loadLevel("levels/level6.json");
 
-    glm::vec2 stoodAt = world.getPlayer().getPosition();
-    glm::vec2 npcAt = world.getLevel().getNpcs().front()->getPosition();
+    glm::vec2 stoodAt = world.getPlayer().body().position();
+    glm::vec2 npcAt = world.getLevel().getNpcs().front()->body().position();
 
     world.rebuildFrom(world.getLevelData(), glm::vec2(16.0f, 0.0f));
 
-    REQUIRE(world.getPlayer().getPosition() == stoodAt + glm::vec2(16.0f, 0.0f));
-    REQUIRE(world.getLevel().getNpcs().front()->getPosition() == npcAt);
+    REQUIRE(world.getPlayer().body().position() == stoodAt + glm::vec2(16.0f, 0.0f));
+    REQUIRE(world.getLevel().getNpcs().front()->body().position() == npcAt);
 }
 
 TEST_CASE("A rebuild that cannot be built leaves the world as it was", "[World]")
@@ -292,7 +292,7 @@ TEST_CASE("A rebuild that cannot be built leaves the world as it was", "[World]"
     world.loadLevel("levels/level6.json");
     const Level *before = &world.getLevel();
     LevelData wasPlaying = world.getLevelData();
-    glm::vec2 stoodAt = world.getPlayer().getPosition();
+    glm::vec2 stoodAt = world.getPlayer().body().position();
 
     LevelData broken = wasPlaying;
     broken.npcs.push_back(NpcSpawnData{"villager", glm::vec2(-100.0f, -100.0f), std::nullopt});
@@ -300,7 +300,7 @@ TEST_CASE("A rebuild that cannot be built leaves the world as it was", "[World]"
     REQUIRE_THROWS(world.rebuildFrom(broken, glm::vec2(16.0f, 0.0f)));
     REQUIRE(&world.getLevel() == before);
     REQUIRE(world.getLevelData().npcs.size() == wasPlaying.npcs.size());
-    REQUIRE(world.getPlayer().getPosition() == stoodAt);
+    REQUIRE(world.getPlayer().body().position() == stoodAt);
 }
 
 TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
@@ -312,7 +312,7 @@ TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
     TemporaryLevels levels("world_reach");
     levels.write("floor.json", levelData);
     world.loadLevel(levels.pathOf("floor.json"));
-    AABB collider = world.getPlayer().getPhysicsBody().aabb();
+    AABB collider = world.getPlayer().body().aabb();
     glm::vec2 halfACoin = gameData.pickupData.at("coin").size * 0.5f;
     auto coinWhoseLeftEdgeIsAt = [&](float x) { return glm::vec2(x, collider.top()) + halfACoin; };
 

@@ -53,5 +53,4 @@ private:
     std::unique_ptr<Level> level;
     std::unique_ptr<Player> player;
     Score score;
-    fteng::connection onLevelCompleteConnection;
 };

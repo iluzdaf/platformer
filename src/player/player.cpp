@@ -12,6 +12,15 @@ Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
     setBehavior(std::make_unique<InputBehavior>(intentionSource));
 }
 
+void Player::completeLevel()
+{
+    if (levelCompleted)
+        return;
+
+    levelCompleted = true;
+    onLevelComplete();
+}
+
 void Player::hurt()
 {
     onHurt();

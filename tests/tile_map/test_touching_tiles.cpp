@@ -90,6 +90,16 @@ TEST_CASE("Portal", "[TouchingTiles]")
         REQUIRE(completed);
     }
 
+    SECTION("Completes the level once, however long the player stands in it")
+    {
+        int completions = 0;
+        player.onLevelComplete.connect([&] { ++completions; });
+        touchTiles(player, tileMap);
+        touchTiles(player, tileMap);
+        touchTiles(player, tileMap);
+        REQUIRE(completions == 1);
+    }
+
     SECTION("Does not replace")
     {
         touchTiles(player, tileMap);

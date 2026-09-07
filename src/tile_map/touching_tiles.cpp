@@ -27,7 +27,7 @@ void touchTiles(Player &player, const TileMap &tileMap)
 
         if (tile.isPortal())
         {
-            player.onLevelComplete();
+            player.completeLevel();
             break;
         }
     }

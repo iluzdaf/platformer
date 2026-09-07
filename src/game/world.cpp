@@ -67,14 +67,8 @@ void World::respawnPlayer()
         std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
     player->standAt(level->getPlayerStart());
-    onLevelCompleteConnection = player->onLevelComplete.connect(
-        [this]()
-        {
-            onLevelCompleteConnection.block();
-            luaScriptSystem.emit("onLevelComplete");
-        });
-
     const std::pair<fteng::signal<void()> &, std::string_view> hooks[] = {
+        {player->onLevelComplete, "onLevelComplete"},
         {player->onDeath, "onDeath"},
         {player->onHurt, "onHurt"},
         {player->onWallJump, "onWallJump"},

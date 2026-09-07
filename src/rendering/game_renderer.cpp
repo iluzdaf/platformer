@@ -113,8 +113,8 @@ void GameRenderer::draw(
 
     auto drawActor = [&](const Actor &actor)
     {
-        const ActorState &actorState = actor.getState();
-        const SheetData &sheet = actor.getSheet();
+        const ActorState &actorState = actor.state();
+        const SheetData &sheet = actor.drawnFrom();
         const Texture2D &texture = textures.get(sheet.texture);
         auto [uvStart, uvEnd] = frameUvRangeIn(
             static_cast<int>(texture.getWidth()),
@@ -127,7 +127,7 @@ void GameRenderer::draw(
             *tileSetShader.get(),
             texture,
             projection,
-            actor.getPosition(),
+            actor.body().position(),
             actorState.size,
             uvStart,
             uvEnd,

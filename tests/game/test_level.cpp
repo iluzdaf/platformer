@@ -232,11 +232,10 @@ TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
         levelPlacing({spawnAt("short", StandingTile), spawnAt("alsoShort", StandingTile)});
 
     REQUIRE(
-        &level.graphFor(level.getNpcs()[0]->getNavigationProfile()) ==
-        &level.graphFor(level.getNpcs()[1]->getNavigationProfile()));
+        &level.graphFor(level.getNpcs()[0]->profile()) ==
+        &level.graphFor(level.getNpcs()[1]->profile()));
     REQUIRE(
-        &level.graphFor(level.getNpcs()[0]->getNavigationProfile()) !=
-        &level.graphFor(profileOfHeight(20.0f)));
+        &level.graphFor(level.getNpcs()[0]->profile()) != &level.graphFor(profileOfHeight(20.0f)));
 
     std::vector<std::string> names;
     for (const NamedNavigationGraph &graph : level.getGraphs())
@@ -275,7 +274,7 @@ TEST_CASE("An npc is built from the catalogue entry its type names", "[Level]")
 {
     Level level = levelPlacing({spawnAt("tall", StandingTile)});
 
-    REQUIRE(level.getNpcs().front()->getNavigationProfile() == profileOfHeight(20.0f));
+    REQUIRE(level.getNpcs().front()->profile() == profileOfHeight(20.0f));
 }
 
 TEST_CASE("A tile off the map has no feet to stand on", "[Level]")

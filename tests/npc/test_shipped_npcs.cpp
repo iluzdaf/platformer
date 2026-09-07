@@ -37,10 +37,10 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
 
             Npc npc(spawnAt("villager", SpawnTile), setupNpcData());
 
-            float startX = npc.getPosition().x;
+            float startX = npc.body().position().x;
             stepNpc(npc, level, 400);
 
-            REQUIRE(std::abs(npc.getPosition().x - startX) > 1.0f);
+            REQUIRE(std::abs(npc.body().position().x - startX) > 1.0f);
         }
     }
 
@@ -58,7 +58,7 @@ TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "
     const float theGround = surfaceOf(GroundRow);
 
     bool startedOnTheFloor = false, reachedTheTop = false, cameBackDown = false;
-    float previousX = npc.getPosition().x;
+    float previousX = npc.body().position().x;
     int standingStill = 0, longestStandingStill = 0;
 
     for (int step = 0; step < 4000; ++step)
@@ -66,10 +66,10 @@ TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "
         npc.preFixedUpdate();
         npc.fixedUpdate(0.01f, level);
 
-        if (!npc.getMotion().getState().contacts.onGround)
+        if (!npc.moving().getState().contacts.onGround)
             continue;
 
-        float foot = npc.getPosition().y + 16.0f;
+        float foot = npc.body().position().y + 16.0f;
         if (!reachedTheTop)
             startedOnTheFloor = startedOnTheFloor || foot >= theGround;
         if (startedOnTheFloor && std::abs(foot - topOfTheLedge) < 1.0f)
@@ -77,9 +77,10 @@ TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "
         if (reachedTheTop && foot >= theGround)
             cameBackDown = true;
 
-        standingStill = std::abs(npc.getPosition().x - previousX) < 0.01f ? standingStill + 1 : 0;
+        standingStill =
+            std::abs(npc.body().position().x - previousX) < 0.01f ? standingStill + 1 : 0;
         longestStandingStill = std::max(longestStandingStill, standingStill);
-        previousX = npc.getPosition().x;
+        previousX = npc.body().position().x;
     }
 
     REQUIRE(startedOnTheFloor);
@@ -199,16 +200,16 @@ TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered
 
     glm::vec2 driving(8.0f, 96.0f);
     int flips = 0;
-    bool wasFacingLeft = npc.getState().facingLeft;
+    bool wasFacingLeft = npc.state().facingLeft;
 
     for (int step = 0; step < 600; ++step)
     {
         npc.preFixedUpdate();
         npc.fixedUpdate(0.01f, level, driving);
 
-        if (npc.getState().facingLeft != wasFacingLeft)
+        if (npc.state().facingLeft != wasFacingLeft)
             ++flips;
-        wasFacingLeft = npc.getState().facingLeft;
+        wasFacingLeft = npc.state().facingLeft;
     }
 
     REQUIRE(footOf(npc).x > 96.0f);

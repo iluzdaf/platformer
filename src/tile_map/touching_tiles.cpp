@@ -7,7 +7,7 @@
 
 void touchTiles(Player &player, const TileMap &tileMap)
 {
-    AABB touching = player.getPhysicsBody().touchBox();
+    AABB touching = player.body().touchBox();
     auto tilePositions = tileMap.tilesOverlapping(touching.position, touching.size);
 
     for (const auto &tilePosition : tilePositions)

@@ -104,8 +104,7 @@ namespace
 
     void standIn(Npc &npc, const TileMap &tileMap, glm::ivec2 tilePosition)
     {
-        npc.setPosition(
-            tileMap.feetOnTile(tilePosition) - npc.getPhysicsBody().bottomCenterOffset());
+        npc.setPosition(tileMap.feetOnTile(tilePosition) - npc.body().bottomCenterOffset());
     }
 
     float footX(const Npc &npc)
@@ -115,7 +114,7 @@ namespace
 
     float reachOf(const Npc &npc)
     {
-        return npc.getPhysicsBody().colliderSize().x * 0.5f + PatrolBehaviorData().arrivalThreshold;
+        return npc.body().colliderSize().x * 0.5f + PatrolBehaviorData().arrivalThreshold;
     }
 
     std::vector<float> patrolFootXs(Npc &npc, const Level &level, int steps)
@@ -186,12 +185,12 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
         lowestFootY = std::max(lowestFootY, footOf(npc).y);
     }
 
-    for (const auto &[id, node] : level.graphFor(npc.getNavigationProfile()).getNodes())
+    for (const auto &[id, node] : level.graphFor(npc.profile()).getNodes())
         REQUIRE(cameWithin(footXs, node.position.x, reachOf(npc)));
 
     REQUIRE(lowestFootY <= 6.0f * tileMap.getTileSize());
 
-    glm::vec2 position = npc.getPosition();
+    glm::vec2 position = npc.body().position();
     REQUIRE(position.x >= -static_cast<float>(tileMap.getTileSize()));
     REQUIRE(position.x <= static_cast<float>(tileMap.getWorldWidth()));
 }
@@ -205,7 +204,7 @@ TEST_CASE("Stands still in a level with nothing to walk on", "[Npc]")
     npc.setPosition(glm::vec2(48.0f, 64.0f));
     stepNpc(npc, level, 100);
 
-    REQUIRE(npc.getPosition().x == 48.0f);
+    REQUIRE(npc.body().position().x == 48.0f);
 }
 TEST_CASE("Patrolling is deterministic, so where you place them is what differs", "[Npc]")
 {
@@ -220,7 +219,7 @@ TEST_CASE("Patrolling is deterministic, so where you place them is what differs"
     stepNpc(first, level, 600);
     stepNpc(second, level, 600);
 
-    REQUIRE(first.getPosition() == second.getPosition());
+    REQUIRE(first.body().position() == second.body().position());
 }
 
 TEST_CASE("A level names the npcs it is populated with", "[Npc][Level]")
@@ -306,7 +305,7 @@ TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
     std::vector<float> footXs = patrolFootXs(npc, level, 4000);
 
     int floorNodes = 0;
-    for (const auto &[id, node] : level.graphFor(npc.getNavigationProfile()).getNodes())
+    for (const auto &[id, node] : level.graphFor(npc.profile()).getNodes())
     {
         if (node.position.y != floorTopY(tileMap))
             continue;
@@ -341,7 +340,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
 
     Npc npc(spawn, shippedNpcData().at("villager"));
 
-    REQUIRE(npc.getStateName() == "patrol");
+    REQUIRE(npc.stateName() == "patrol");
 
     for (int step = 0; step < 20; ++step)
     {
@@ -349,7 +348,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
         npc.fixedUpdate(0.01f, level, footOf(npc) + glm::vec2(8.0f, 0.0f));
     }
 
-    REQUIRE(npc.getStateName() == "flee");
+    REQUIRE(npc.stateName() == "flee");
 
     for (int step = 0; step < 400; ++step)
     {
@@ -357,7 +356,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
         npc.fixedUpdate(0.01f, level, glm::vec2(112.0f, 192.0f));
     }
 
-    REQUIRE(npc.getStateName() == "patrol");
+    REQUIRE(npc.stateName() == "patrol");
 }
 
 TEST_CASE("An npc with no behavior names no state", "[Npc]")
@@ -367,7 +366,7 @@ TEST_CASE("An npc with no behavior names no state", "[Npc]")
 
     Npc npc(spawnAt("villager", SpawnTile), npcData);
 
-    REQUIRE(npc.getStateName().empty());
+    REQUIRE(npc.stateName().empty());
 }
 
 TEST_CASE("A beat a villager cannot make a round trip of is not walkable", "[Npc][Level]")
@@ -380,7 +379,7 @@ TEST_CASE("A beat a villager cannot make a round trip of is not walkable", "[Npc
     Level level = levelWithALedgeAndAWall({onTheGround});
 
     Npc villager(onTheGround, shippedNpcData().at("villager"));
-    const NavigationGraph &graph = level.graphFor(villager.getNavigationProfile());
+    const NavigationGraph &graph = level.graphFor(villager.profile());
 
     const std::optional<PatrolData> &authored = onTheGround.patrol;
     REQUIRE(authored);
@@ -408,7 +407,7 @@ TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level
         rightMost = std::max(rightMost, footOf(npc).x);
     }
 
-    float half = npc.getPhysicsBody().aabb().size.x * 0.5f;
+    float half = npc.body().aabb().size.x * 0.5f;
     float ledgeLeft = static_cast<float>(LedgeLeftEnd.x * 16);
     float ledgeRight = static_cast<float>((LedgeLastTile + 1) * 16);
 
@@ -467,7 +466,7 @@ TEST_CASE("A patrolling npc says which node it set off from and where it is head
 
     Npc npc(spawn, shippedNpcData().at(spawn.type));
 
-    REQUIRE_FALSE(npc.getCurrentNodeId());
+    REQUIRE_FALSE(npc.currentNodeId());
 
     std::set<std::pair<int, int>> legsWalked;
     for (int step = 0; step < 4000; ++step)
@@ -475,8 +474,8 @@ TEST_CASE("A patrolling npc says which node it set off from and where it is head
         npc.preFixedUpdate();
         npc.fixedUpdate(0.01f, level);
 
-        std::optional<int> setOffAt = npc.getCurrentNodeId();
-        std::optional<int> headingFor = npc.getTargetNodeId();
+        std::optional<int> setOffAt = npc.currentNodeId();
+        std::optional<int> headingFor = npc.targetNodeId();
         if (setOffAt && headingFor)
             legsWalked.insert({*setOffAt, *headingFor});
     }
@@ -493,7 +492,7 @@ TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
 
     REQUIRE(level.getNpcs().size() == 1);
     const Npc &npc = *level.getNpcs().front();
-    REQUIRE(npc.getStateName() == "patrol");
+    REQUIRE(npc.stateName() == "patrol");
 
     for (int step = 0; step < 20; ++step)
     {
@@ -501,7 +500,7 @@ TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
         level.fixedUpdate(0.01f, footOf(npc) + glm::vec2(8.0f, 0.0f));
     }
 
-    REQUIRE(npc.getStateName() == "flee");
+    REQUIRE(npc.stateName() == "flee");
 }
 
 TEST_CASE("A level drives the npcs it holds", "[Npc][Level]")

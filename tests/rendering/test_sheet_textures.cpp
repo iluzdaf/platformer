@@ -15,7 +15,7 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 
     Player player(playerData, noIntentions());
 
-    REQUIRE(player.getSheet().texture == "textures/somewhere_else.png");
+    REQUIRE(player.drawnFrom().texture == "textures/somewhere_else.png");
 }
 
 #ifndef SKIP_OPENGL_TESTS

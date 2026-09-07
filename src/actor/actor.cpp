@@ -17,7 +17,7 @@
 
 Actor::Actor(const ActorData &data)
     : motion(data.motionData), physicsBody(data.physicsBodyData),
-      navigationProfile(buildNavigationProfile(data))
+      navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
 {
     sheet = data.sheet;
     actorState.size = data.size;
@@ -54,6 +54,7 @@ void Actor::preFixedUpdate()
 void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::vec2> threatFeet)
 {
     const TileMap &tileMap = level.getTileMap();
+    hp.update(deltaTime);
     ActorBehaviorContext context = behaviorContext(level.graphFor(navigationProfile), threatFeet);
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
@@ -127,6 +128,37 @@ void Actor::standAt(const glm::vec2 &newFeet)
 
     if (behavior)
         behavior->reset();
+}
+
+const Health &Actor::health() const
+{
+    return hp;
+}
+
+bool Actor::alive() const
+{
+    return hp.alive();
+}
+
+bool Actor::takeHit(const Hit &hit)
+{
+    if (!hp.takeHit(hit))
+        return false;
+
+    if (hp.alive())
+        hurt();
+    else
+        died();
+
+    return true;
+}
+
+void Actor::hurt()
+{
+}
+
+void Actor::died()
+{
 }
 
 void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)

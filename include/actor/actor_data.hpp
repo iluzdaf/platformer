@@ -6,6 +6,7 @@
 #include "actor/actor_motion_data.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "physics/physics_body_data.hpp"
+#include "actor/health_data.hpp"
 
 struct ActorData
 {
@@ -14,4 +15,5 @@ struct ActorData
     PhysicsBodyData physicsBodyData;
     ActorMotionData motionData;
     ActorAnimationData animationData;
+    HealthData healthData;
 };

@@ -39,6 +39,7 @@ public:
 
     const Level &getLevel() const;
     const Player &getPlayer() const;
+    Player &getPlayer();
     const Score &getScore() const;
 
 private:

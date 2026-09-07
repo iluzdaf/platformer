@@ -10,10 +10,11 @@ class Player : public Actor
 public:
     Player(const PlayerData &data, const IntentionSource &intentionSource);
     void postFixedUpdate() override;
-
-    fteng::signal<void()> onLevelComplete, onDeath, onFallFromHeight, onHitCeiling, onWallJump,
-        onDash, onWallSliding;
+    fteng::signal<void()> onLevelComplete, onDeath, onHurt, onFallFromHeight, onHitCeiling,
+        onWallJump, onDash, onWallSliding;
 
 private:
+    void hurt() override;
+    void died() override;
     PlayerData data;
 };

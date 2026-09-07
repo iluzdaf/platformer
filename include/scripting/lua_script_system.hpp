@@ -37,6 +37,7 @@ public:
     sol::state &getLua();
     void triggerWallJump();
     void triggerDash();
+    void triggerHurt();
     void triggerFallFromHeight();
     void triggerHitCeiling();
     void triggerWallSliding();
@@ -47,7 +48,7 @@ public:
 private:
     std::string scriptPath;
     sol::state lua;
-    sol::function onDeath, onLevelComplete, onWallJump, onDash, onFallFromHeight, onHitCeiling,
-        onWallSliding, onGameLoaded;
+    sol::function onDeath, onHurt, onLevelComplete, onWallJump, onDash, onFallFromHeight,
+        onHitCeiling, onWallSliding, onGameLoaded;
     std::vector<WaitingCoroutine> waitingCoroutines;
 };

@@ -100,6 +100,12 @@ void LuaScriptSystem::triggerDeath()
         onDeath();
 }
 
+void LuaScriptSystem::triggerHurt()
+{
+    if (onHurt.valid())
+        onHurt();
+}
+
 void LuaScriptSystem::bindLevel(const Level *level)
 {
     lua["level"] = level;
@@ -152,6 +158,7 @@ void LuaScriptSystem::loadScripts()
     }
 
     onDeath = lua["onDeath"];
+    onHurt = lua["onHurt"];
     onLevelComplete = lua["onLevelComplete"];
     onWallJump = lua["onWallJump"];
     onDash = lua["onDash"];

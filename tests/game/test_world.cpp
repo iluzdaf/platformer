@@ -23,6 +23,12 @@
 #include "helpers/levels.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/temporary_levels.hpp"
+#include "actor/hit.hpp"
+#include "actor/health_data.hpp"
+#include "actor/actor_data.hpp"
+#include "player/player_data.hpp"
+#include <filesystem>
+#include <fstream>
 
 namespace
 {
@@ -318,4 +324,26 @@ TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
 
     REQUIRE(scoreStandingBesideACoinAt(coinWhoseLeftEdgeIsAt(collider.right())) == 1);
     REQUIRE(scoreStandingBesideACoinAt(coinWhoseLeftEdgeIsAt(collider.right() + 1.0f)) == 0);
+}
+
+TEST_CASE("A hurt player reaches the script's onHurt, and a dead one its onDeath", "[World]")
+{
+    std::filesystem::path script =
+        std::filesystem::temp_directory_path() / "platformer_world_hurt.lua";
+    std::ofstream(script) << "hurts = 0\ndeaths = 0\n"
+                             "function onHurt() hurts = hurts + 1 end\n"
+                             "function onDeath() deaths = deaths + 1 end\n";
+    GameData gameData = aFloorWorldWithCoins();
+    gameData.playerData.actorData.healthData = HealthData{2, 0.0f};
+    LuaScriptSystem luaScriptSystem(script.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_hurt");
+    levels.write("floor.json", aFloorLevelPlacing({}));
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    world.getPlayer().takeHit(Hit{1, glm::vec2(0.0f), false});
+    world.getPlayer().takeHit(Hit{1, glm::vec2(0.0f), false});
+
+    REQUIRE(luaScriptSystem.getLua()["hurts"].get<int>() == 1);
+    REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 1);
 }

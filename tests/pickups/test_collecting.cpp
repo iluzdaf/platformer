@@ -1,4 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "animations/frame_animation_data.hpp"
@@ -89,4 +91,47 @@ TEST_CASE("A pickup is as big a box as its kind is", "[Collecting]")
 
     REQUIRE(pickup.getAABB().position == glm::vec2(20.0f, 30.0f));
     REQUIRE(pickup.getAABB().size == glm::vec2(4.0f, 6.0f));
+}
+
+TEST_CASE("A pickup with a collider is taken by that, not by what is drawn", "[Collecting]")
+{
+    PickupData glowing = worth(1);
+    glowing.size = glm::vec2(32.0f);
+    glowing.colliderSize = glm::vec2(8.0f);
+    glowing.colliderOffset = glm::vec2(12.0f);
+
+    Pickup pickup(glowing, glm::vec2(0.0f));
+
+    REQUIRE(pickup.getSize() == glm::vec2(32.0f));
+    REQUIRE(pickup.getAABB().position == glm::vec2(12.0f));
+    REQUIRE(pickup.getAABB().size == glm::vec2(8.0f));
+
+    std::vector<Pickup> glow;
+    glow.push_back(pickup);
+    REQUIRE(takeWhatTouches(glow, AABB{glm::vec2(0.0f), glm::vec2(8.0f)}).empty());
+
+    std::vector<Pickup> heart;
+    heart.push_back(Pickup(glowing, glm::vec2(0.0f)));
+    REQUIRE(takeWhatTouches(heart, AABB{glm::vec2(16.0f), glm::vec2(8.0f)}).size() == 1);
+}
+
+TEST_CASE("A pickup said nothing about is taken by the whole of what is drawn", "[Collecting]")
+{
+    PickupData plain = worth(1);
+    plain.size = glm::vec2(24.0f, 10.0f);
+
+    Pickup pickup(plain, glm::vec2(5.0f, 7.0f));
+
+    REQUIRE(pickup.getAABB().position == glm::vec2(5.0f, 7.0f));
+    REQUIRE(pickup.getAABB().size == glm::vec2(24.0f, 10.0f));
+}
+
+TEST_CASE("A pickup nothing can reach is refused", "[Collecting]")
+{
+    PickupData unreachable = worth(1);
+    unreachable.colliderSize = glm::vec2(0.0f, 8.0f);
+
+    REQUIRE_THROWS_WITH(
+        Pickup(unreachable, glm::vec2(0.0f)),
+        Catch::Matchers::ContainsSubstring("nobody can take"));
 }

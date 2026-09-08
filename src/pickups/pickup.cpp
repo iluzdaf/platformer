@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <glm/gtc/matrix_transform.hpp>
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
@@ -5,8 +6,11 @@
 
 Pickup::Pickup(const PickupData &pickupData, glm::vec2 position)
     : sheet(pickupData.sheet), animation(pickupData.animationData), position(position),
-      size(pickupData.size), scoreDelta(pickupData.scoreDelta)
+      size(pickupData.size), colliderSize(pickupData.colliderSize.value_or(pickupData.size)),
+      colliderOffset(pickupData.colliderOffset), scoreDelta(pickupData.scoreDelta)
 {
+    if (colliderSize.x <= 0.0f || colliderSize.y <= 0.0f)
+        throw std::runtime_error("A pickup nothing can reach is one nobody can take");
 }
 
 void Pickup::update(float deltaTime)
@@ -41,5 +45,5 @@ int Pickup::getScoreDelta() const
 
 AABB Pickup::getAABB() const
 {
-    return AABB{position, size};
+    return AABB{position + colliderOffset, colliderSize};
 }

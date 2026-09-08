@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <string>
 #include "tile_map/tile_data.hpp"
 #include "assets/sheet_data.hpp"
@@ -8,6 +9,7 @@
 struct TilePaletteData
 {
     SheetData tileSet;
+    std::optional<int> tileSize;
     std::map<int, TileData> tiles;
 };
 

@@ -13,6 +13,7 @@
 #include "ui/renames.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
+#include "ui/tile_size_field.hpp"
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
 #include "ui/sheet_in_scope.hpp"
@@ -174,6 +175,7 @@ void TilePalettesUi::draw(
 
     TilePaletteData &palette = tilePalettes.at(selectedPalette);
     drawSquareSheetFields(palette.tileSet);
+    drawTileSizeField(palette);
     ImGui::Separator();
 
     const Texture2D *tileSet = textures.find(palette.tileSet.texture);

@@ -118,6 +118,7 @@ add_library(platformer_lib OBJECT
     src/ui/game_settings_ui.cpp
     src/ui/section_mark.cpp
     src/ui/sheet_field.cpp
+    src/ui/tile_size_field.cpp
     src/ui/type_shown.cpp
     src/ui/types_ui.cpp
     src/ui/camera_ui.cpp
@@ -311,6 +312,7 @@ add_executable(tests
     tests/ui/test_renaming.cpp
     tests/ui/test_section_mark.cpp
     tests/ui/test_sheet_field.cpp
+    tests/ui/test_tile_size_field.cpp
     tests/ui/test_score_icon_field.cpp
     tests/ui/test_data_inspector.cpp
     tests/ui/test_frame_animation_field.cpp

@@ -9,7 +9,7 @@
 class Tile
 {
 public:
-    Tile(const TileData &tileData, glm::vec2 cellSize);
+    Tile(const TileData &tileData, glm::vec2 tileSize);
     void update(float deltaTime);
     std::optional<int> animatingTo() const;
     bool isSolid() const;

@@ -6,10 +6,10 @@
 #include "animations/frame_animation.hpp"
 #include "physics/aabb.hpp"
 
-Tile::Tile(const TileData &tileData, glm::vec2 cellSize)
+Tile::Tile(const TileData &tileData, glm::vec2 tileSize)
     : solid(tileData.solid), deadly(tileData.deadly), portal(tileData.portal),
       grippable(tileData.grippable),
-      collider(tileData.collider.value_or(TileColliderData{glm::vec2(0.0f), cellSize}))
+      collider(tileData.collider.value_or(TileColliderData{glm::vec2(0.0f), tileSize}))
 {
     if (tileData.collider)
     {
@@ -17,10 +17,10 @@ Tile::Tile(const TileData &tileData, glm::vec2 cellSize)
             throw std::runtime_error("A collider of no size is not one anything can touch");
 
         glm::vec2 far = collider.offset + collider.size;
-        if (collider.offset.x < 0.0f || collider.offset.y < 0.0f || far.x > cellSize.x ||
-            far.y > cellSize.y)
+        if (collider.offset.x < 0.0f || collider.offset.y < 0.0f || far.x > tileSize.x ||
+            far.y > tileSize.y)
             throw std::runtime_error(
-                "A collider reaching outside its cell is never looked for out there");
+                "A collider reaching outside its tile is never looked for out there");
     }
 
     if (solid && portal)

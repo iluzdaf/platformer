@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "game/game_data.hpp"
 #include "helpers/asset_path.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/maps.hpp"
@@ -16,7 +15,6 @@
 #include "navigation/navigation_graph_builder.hpp"
 #include "navigation/navigation_graph_steps.hpp"
 #include "navigation/navigation_node.hpp"
-#include "navigation/navigation_profile_builder.hpp"
 #include "tile_map/tile_map.hpp"
 
 TEST_CASE("A floor gives a profile somewhere to walk", "[NavigationGraphBuilder]")
@@ -309,15 +307,18 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     }
 }
 
-TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Level]")
+TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder]")
 {
-    GameData gameData = loadGameData();
-    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+    Placed laid;
+    layRow(laid, 12, 1, 18);
+    layRow(laid, 8, 3, 8);
+    layRow(laid, 8, 12, 17);
+    TileMap tileMap = aTileMap(laid, 20, 16);
 
-    NavigationGraph graph = buildNavigationGraph(
-        tileMap, buildNavigationProfile(gameData.npcData.at("spider").actorData));
+    NavigationGraph graph = buildNavigationGraph(tileMap, climberProfile());
 
     float tileSize = static_cast<float>(tileMap.getTileSize());
+    REQUIRE_FALSE(graph.getNodes().empty());
     for (const auto &[id, node] : graph.getNodes())
     {
         if (node.kind == NodeKind::OnWall)

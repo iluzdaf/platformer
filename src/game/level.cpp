@@ -82,7 +82,8 @@ Level::Level(
     for (const PickupSpawnData &spawn : levelData.pickups)
     {
         const PickupData &kind = oneNamed(pickupData, "pickup", spawn.type);
-        pickups.push_back(Pickup(kind, spawn.feet - glm::vec2(kind.size.x * 0.5f, kind.size.y)));
+        glm::vec2 drawn = drawnSizeOf(kind);
+        pickups.push_back(Pickup(kind, spawn.feet - glm::vec2(drawn.x * 0.5f, drawn.y)));
     }
 }
 

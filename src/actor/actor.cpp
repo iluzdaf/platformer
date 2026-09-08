@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <stdexcept>
 #include <optional>
 #include <string_view>
 #include "actor/actor.hpp"
@@ -27,7 +28,9 @@ Actor::Actor(const ActorData &data)
       navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
 {
     sheet = data.sheet;
-    actorState.size = data.size;
+    actorState.size = data.size.value_or(glm::vec2(data.sheet.cellSize));
+    if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
+        throw std::runtime_error("An actor drawn as nothing is one nobody can see");
 
     const ActorAnimationData &animationData = data.animationData;
 

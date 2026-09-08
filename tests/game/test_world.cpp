@@ -321,7 +321,7 @@ TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
     levels.write("floor.json", levelData);
     world.loadLevel(levels.pathOf("floor.json"));
     AABB collider = world.getPlayer().body().aabb();
-    glm::vec2 halfACoin = gameData.pickupData.at("coin").size * 0.5f;
+    glm::vec2 halfACoin = drawnSizeOf(gameData.pickupData.at("coin")) * 0.5f;
     auto coinWhoseLeftEdgeIsAt = [&](float x) { return glm::vec2(x, collider.top()) + halfACoin; };
 
     REQUIRE(scoreStandingBesideACoinAt(coinWhoseLeftEdgeIsAt(collider.right())) == 1);

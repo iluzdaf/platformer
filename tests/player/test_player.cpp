@@ -2,6 +2,8 @@
 #include <vector>
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/actor_animation_state.hpp"
@@ -16,6 +18,7 @@
 #include "helpers/tiles.hpp"
 #include "input/input_intentions.hpp"
 #include "player/player.hpp"
+#include "player/player_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
@@ -230,6 +233,34 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
         REQUIRE(player.observed().contacts.touchingLeftWall);
         REQUIRE_FALSE(player.observed().contacts.touchingRightWall);
     }
+}
+
+TEST_CASE("An actor said nothing about is drawn as big as its cell", "[Player]")
+{
+    PlayerData playerData = playerDataWithEveryAbility();
+    playerData.actorData.sheet.cellSize = glm::ivec2(32, 24);
+    Player player(playerData, noIntentions());
+
+    REQUIRE(player.state().size == glm::vec2(32.0f, 24.0f));
+}
+
+TEST_CASE("An actor given a size is drawn at it, whatever its cell", "[Player]")
+{
+    PlayerData playerData = playerDataWithEveryAbility();
+    playerData.actorData.sheet.cellSize = glm::ivec2(32);
+    playerData.actorData.size = glm::vec2(16.0f);
+    Player player(playerData, noIntentions());
+
+    REQUIRE(player.state().size == glm::vec2(16.0f));
+}
+
+TEST_CASE("An actor drawn as nothing is refused", "[Player]")
+{
+    PlayerData playerData = playerDataWithEveryAbility();
+    playerData.actorData.sheet.cellSize = glm::ivec2(0);
+
+    REQUIRE_THROWS_WITH(
+        Player(playerData, noIntentions()), Catch::Matchers::ContainsSubstring("nobody can see"));
 }
 
 TEST_CASE("A player raises the events for what it does", "[Player]")

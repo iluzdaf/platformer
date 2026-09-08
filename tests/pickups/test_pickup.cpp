@@ -1,4 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "animations/frame_animation_data.hpp"
 #include "assets/sheet_data.hpp"
@@ -16,6 +18,37 @@ namespace
         pickupData.animationData = FrameAnimationData{{3, 8, 11}, 0.2f};
         return pickupData;
     }
+}
+
+TEST_CASE("A pickup said nothing about is drawn as big as its cell", "[Pickup]")
+{
+    PickupData wide = spinning();
+    wide.sheet.cellSize = glm::ivec2(32, 24);
+
+    Pickup pickup(wide, glm::vec2(0.0f));
+
+    REQUIRE(pickup.getSize() == glm::vec2(32.0f, 24.0f));
+    REQUIRE(pickup.getAABB().size == glm::vec2(32.0f, 24.0f));
+}
+
+TEST_CASE("A pickup given a size is drawn at it, whatever its cell", "[Pickup]")
+{
+    PickupData shrunk = spinning();
+    shrunk.sheet.cellSize = glm::ivec2(32);
+    shrunk.size = glm::vec2(16.0f);
+
+    Pickup pickup(shrunk, glm::vec2(0.0f));
+
+    REQUIRE(pickup.getSize() == glm::vec2(16.0f));
+}
+
+TEST_CASE("A pickup drawn as nothing is refused", "[Pickup]")
+{
+    PickupData nothing = spinning();
+    nothing.sheet.cellSize = glm::ivec2(0);
+
+    REQUIRE_THROWS_WITH(
+        Pickup(nothing, glm::vec2(0.0f)), Catch::Matchers::ContainsSubstring("nobody can see"));
 }
 
 TEST_CASE("A pickup shows the frame its animation is on", "[Pickup]")

@@ -3,7 +3,6 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <signals.hpp>
 #include <string_view>
 #include <utility>
 #include <glm/gtc/matrix_transform.hpp>
@@ -74,17 +73,16 @@ void World::respawnPlayer()
         std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
     player->standAt(level->getPlayerStart());
-    const std::pair<fteng::signal<void()> &, std::string_view> hooks[] = {
-        {player->onLevelComplete, "onLevelComplete"},
-        {player->onDeath, "onDeath"},
-        {player->onHurt, "onHurt"},
-        {player->onWallJump, "onWallJump"},
-        {player->onDash, "onDash"},
-        {player->onWallSliding, "onWallSliding"},
-        {player->onFallFromHeight, "onFallFromHeight"},
-        {player->onHitCeiling, "onHitCeiling"}};
-    for (auto &[signal, hook] : hooks)
-        signal.connect([this, hook, who = player.get()] { luaScriptSystem.emit(hook, who); });
+    auto hear = [this, who = player.get()](const auto &event, std::string_view hook)
+    { event.connect([this, hook, who] { luaScriptSystem.emit(hook, who); }); };
+    hear(player->onLevelComplete, "onLevelComplete");
+    hear(player->onDeath, "onDeath");
+    hear(player->onHurt, "onHurt");
+    hear(player->onWallJump, "onWallJump");
+    hear(player->onDash, "onDash");
+    hear(player->onWallSliding, "onWallSliding");
+    hear(player->onFallFromHeight, "onFallFromHeight");
+    hear(player->onHitCeiling, "onHitCeiling");
     luaScriptSystem.bindPlayer(player.get());
 }
 

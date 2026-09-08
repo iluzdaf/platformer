@@ -2,7 +2,7 @@
 
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
-#include <signals.hpp>
+#include "events/event.hpp"
 #include "input/keys_down.hpp"
 
 struct GLFWwindow;
@@ -23,7 +23,7 @@ public:
     GLFWwindow *getHandle() const;
     KeysDown keysDown() const;
 
-    fteng::signal<void(int, int)> onResize;
+    Event<Window, int, int> onResize;
 
 private:
     GLFWwindow *handle = nullptr;

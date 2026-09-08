@@ -24,6 +24,6 @@ public:
 private:
     SheetData sheet;
     FrameAnimation animation;
-    glm::vec2 position, size;
+    glm::vec2 position, size, colliderSize, colliderOffset;
     int scoreDelta = 0;
 };

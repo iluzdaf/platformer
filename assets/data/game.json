@@ -1,6 +1,6 @@
 {
     "debug":true,
     "scoreIcon":{
-        "sheet":{"texture":"textures/coin.png"}
+        "sheet":{"texture":"textures/coin.png","cellSize":[32,32]}
     }
 }

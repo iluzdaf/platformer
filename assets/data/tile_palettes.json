@@ -8,7 +8,11 @@
             "2":{"deadly":true,"collider":{"size":[4,16]}},
             "3":{"deadly":true,"collider":{"offset":[12,0],"size":[4,16]}},
             "4":{"deadly":true,"collider":{"size":[16,4]}},
-            "5":{"portal":true,"collider":{"offset":[4,4],"size":[8,8]}},
+            "5":{
+                "portal":true,
+                "animationData":{"frames":[5,44,45,46,47,48],"frameDuration":0.11},
+                "collider":{"offset":[4,4],"size":[8,8]}
+            },
             "6":{"solid":true,"grippable":true,"collider":{"offset":[2,0],"size":[14,15]}},
             "7":{"solid":true,"collider":{"size":[16,15]}},
             "8":{"solid":true,"grippable":true,"collider":{"size":[14,15]}},
@@ -46,7 +50,12 @@
             "40":{"solid":true,"grippable":true,"collider":{}},
             "41":{"solid":true,"grippable":true,"collider":{}},
             "42":{"solid":true,"grippable":true,"collider":{}},
-            "43":{"solid":true,"grippable":true,"collider":{}}
+            "43":{"solid":true,"grippable":true,"collider":{}},
+            "44":{},
+            "45":{},
+            "46":{},
+            "47":{},
+            "48":{}
         }
     }
 }

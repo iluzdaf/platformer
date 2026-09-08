@@ -7,6 +7,6 @@ int tilesInSheet(int textureWidth, int textureHeight, int tileSize);
 
 void checkTileSetFits(
     const TilePaletteData &palette,
-    const std::string &paletteName,
+    const std::string &whose,
     int textureWidth,
     int textureHeight);

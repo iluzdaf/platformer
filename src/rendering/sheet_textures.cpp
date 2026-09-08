@@ -1,74 +1,51 @@
-#include <map>
-#include <stdexcept>
 #include <string>
+#include <vector>
 #include "rendering/sheet_textures.hpp"
 #include "rendering/texture_cache.hpp"
-#include "rendering/texture2d.hpp"
 #include "rendering/tile_set_fit.hpp"
 #include "rendering/frames_fit.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "actor/actor_data.hpp"
-#include "player/player_data.hpp"
-#include "npc/npc_data.hpp"
+#include "actor/actor_animations.hpp"
 #include "pickups/pickup_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/score_icon_data.hpp"
 #include "game/health_icon_data.hpp"
-#include "actor/actor_data.hpp"
-#include "actor/actor_animation_data.hpp"
-#include <optional>
-#include <vector>
+#include "game/game_data.hpp"
 #include "assets/sheet_data.hpp"
 #include "assets/every_sheet_in.hpp"
-#include "game/game_data.hpp"
+#include "assets/every_sheet_fitting_in.hpp"
 
-namespace
+void checkFits(const ActorData &actor, const std::string &whose, int width, int height)
 {
-    std::string quoted(const std::string &name)
+    for (const ActorAnimationSlot &slot : ActorAnimationSlots)
     {
-        return "\"" + name + "\"";
+        const FrameAnimationData *said = saidFor(actor.animationData, slot);
+        if (!said)
+            continue;
+
+        checkFramesFit(said->frames, actor.sheet, whose + " " + slot.name, width, height);
     }
+}
 
-    void framesFitting(
-        TextureCache &textures,
-        const SheetData &sheet,
-        const std::vector<int> &frames,
-        const std::string &whose)
-    {
-        const Texture2D &texture = textures.get(sheet.texture);
-        checkFramesFit(
-            frames,
-            sheet,
-            whose,
-            static_cast<int>(texture.getWidth()),
-            static_cast<int>(texture.getHeight()));
-    }
+void checkFits(const PickupData &pickup, const std::string &whose, int width, int height)
+{
+    checkFramesFit(pickup.animationData.frames, pickup.sheet, whose, width, height);
+}
 
-    void everyAnimationOf(
-        TextureCache &textures,
-        const ActorData &actorData,
-        const std::string &whose)
-    {
-        const ActorAnimationData &animations = actorData.animationData;
-        framesFitting(textures, actorData.sheet, animations.idle.frames, whose);
+void checkFits(const TilePaletteData &palette, const std::string &whose, int width, int height)
+{
+    checkTileSetFits(palette, whose, width, height);
+}
 
-        for (const std::optional<FrameAnimationData> &animation :
-             {animations.walk,
-              animations.dash,
-              animations.jump,
-              animations.fall,
-              animations.wallSlide})
-            if (animation)
-                framesFitting(textures, actorData.sheet, animation->frames, whose);
-    }
+void checkFits(const ScoreIconData &icon, const std::string &whose, int width, int height)
+{
+    checkFramesFit({icon.frame}, icon.sheet, whose, width, height);
+}
 
-    void warmOne(TextureCache &textures, const SheetData &sheet, const std::string &whose)
-    {
-        if (sheet.texture.empty())
-            throw std::runtime_error("No sheet is named for " + whose);
-
-        textures.warm(sheet.texture);
-    }
+void checkFits(const HealthIconData &icon, const std::string &whose, int width, int height)
+{
+    checkFramesFit({icon.full, icon.spent}, icon.sheet, whose, width, height);
 }
 
 void warmEverySheetIn(TextureCache &textures, const GameData &gameData)
@@ -82,56 +59,11 @@ void warmEverySheetIn(TextureCache &textures, const GameData &gameData)
         });
 }
 
-void warmActorTextures(
-    TextureCache &textures,
-    const PlayerData &playerData,
-    const std::map<std::string, NpcData> &npcData)
+void checkEverythingFits(TextureCache &textures, const GameData &gameData)
 {
-    warmOne(textures, playerData.actorData.sheet, "the player");
-    everyAnimationOf(textures, playerData.actorData, "the player");
-
-    for (const auto &[name, data] : npcData)
-    {
-        warmOne(textures, data.actorData.sheet, quoted(name));
-        everyAnimationOf(textures, data.actorData, quoted(name));
-    }
-}
-
-void warmPickupTextures(TextureCache &textures, const std::map<std::string, PickupData> &pickupData)
-{
-    for (const auto &[name, data] : pickupData)
-    {
-        warmOne(textures, data.sheet, quoted(name));
-
-        framesFitting(textures, data.sheet, data.animationData.frames, quoted(name));
-    }
-}
-
-void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes)
-{
-    for (const auto &[paletteName, palette] : tilePalettes)
-    {
-        warmOne(textures, palette.tileSet, quoted(paletteName));
-
-        const Texture2D &texture = textures.get(palette.tileSet.texture);
-        checkTileSetFits(
-            palette,
-            paletteName,
-            static_cast<int>(texture.getWidth()),
-            static_cast<int>(texture.getHeight()));
-    }
-}
-
-void warmScoreIcon(TextureCache &textures, const ScoreIconData &scoreIcon)
-{
-    warmOne(textures, scoreIcon.sheet, "the score");
-
-    framesFitting(textures, scoreIcon.sheet, {scoreIcon.frame}, "the score");
-}
-
-void warmHealthIcon(TextureCache &textures, const HealthIconData &healthIcon)
-{
-    warmOne(textures, healthIcon.sheet, "health");
-
-    framesFitting(textures, healthIcon.sheet, {healthIcon.full, healthIcon.spent}, "health");
+    everySheetFittingIn(
+        gameData,
+        std::string{},
+        [&textures](const auto &value, const std::string &whose)
+        { warmAndCheck(textures, value, whose); });
 }

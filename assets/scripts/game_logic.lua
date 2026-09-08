@@ -16,6 +16,14 @@ function onHurt()
     camera:startShake(0.15, 2)
 end
 
+function onNpcHurt(npc)
+    camera:startShake(0.1, 1)
+end
+
+function onNpcDeath(npc)
+    camera:startShake(0.25, 2)
+end
+
 function onLevelComplete()    
     startCoroutine(levelCompleteCoroutine)
 end

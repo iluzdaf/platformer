@@ -21,15 +21,28 @@
 #include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
 
+namespace
+{
+    constexpr std::string_view PlayerScript = "player";
+
+    std::string scriptOf(const std::string &npcType)
+    {
+        return "npc:" + npcType;
+    }
+}
+
 World::World(
     const GameData &gameData,
     const IntentionSource &intentionSource,
     LuaScriptSystem &luaScriptSystem)
     : gameData(gameData), intentionSource(intentionSource), luaScriptSystem(luaScriptSystem)
 {
+    if (!gameData.playerData.script.empty())
+        luaScriptSystem.use(PlayerScript, assets::pathTo(gameData.playerData.script));
+
     for (const auto &[type, npcData] : gameData.npcData)
         if (!npcData.script.empty())
-            luaScriptSystem.use(type, assets::pathTo(npcData.script));
+            luaScriptSystem.use(scriptOf(type), assets::pathTo(npcData.script));
 }
 
 World::~World() = default;
@@ -57,8 +70,10 @@ void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePla
     for (const std::unique_ptr<Npc> &npc : built->getNpcs())
     {
         Npc *it = npc.get();
-        it->onHurt.connect([this, it] { luaScriptSystem.emitTo(it->type(), "onHurt", it, it); });
-        it->onDeath.connect([this, it] { luaScriptSystem.emitTo(it->type(), "onDied", it, it); });
+        it->onHurt.connect([this, it]
+                           { luaScriptSystem.emitTo(scriptOf(it->type()), "onHurt", it, it); });
+        it->onDeath.connect([this, it]
+                            { luaScriptSystem.emitTo(scriptOf(it->type()), "onDied", it, it); });
     }
 
     levelData = fromData;
@@ -86,7 +101,10 @@ void World::respawnPlayer()
     player = std::move(newPlayer);
     player->standAt(level->getPlayerStart());
     auto hear = [this, who = player.get()](const auto &event, std::string_view hook)
-    { event.connect([this, hook, who] { luaScriptSystem.emit(hook, who); }); };
+    {
+        event.connect([this, hook, who]
+                      { luaScriptSystem.emitTo(PlayerScript, hook, nullptr, who); });
+    };
     hear(player->onLevelComplete, "onLevelComplete");
     hear(player->onDeath, "onDeath");
     hear(player->onHurt, "onHurt");

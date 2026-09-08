@@ -52,11 +52,11 @@ public:
         sol::protected_function call = handler.as<sol::protected_function>();
         settle(call(std::forward<Args>(args)...), hook);
     }
-    void use(const std::string &name, const std::string &path);
+    void use(std::string_view name, const std::string &path);
     template <typename... Args>
-    void emitTo(const std::string &name, std::string_view hook, const void *owner, Args &&...args)
+    void emitTo(std::string_view name, std::string_view hook, const void *owner, Args &&...args)
     {
-        auto found = scripts.find(name);
+        auto found = scripts.find(std::string(name));
         if (found == scripts.end() || !found->second.handlers.valid())
             return;
 
@@ -79,7 +79,7 @@ private:
     sol::state lua;
     std::map<std::string, NamedScript> scripts;
     const void *startedBy = nullptr;
-    void reload(NamedScript &script, const std::string &name);
+    void reload(NamedScript &script, std::string_view name);
     std::optional<float> resume(sol::protected_function &co, std::string_view what);
     std::optional<float> settle(sol::protected_function_result result, std::string_view what);
     std::vector<WaitingCoroutine> waitingCoroutines;

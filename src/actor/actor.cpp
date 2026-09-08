@@ -3,6 +3,7 @@
 #include <optional>
 #include <string_view>
 #include "actor/actor.hpp"
+#include "actor/actor_data.hpp"
 #include "actor/hit.hpp"
 #include "actor/abilities/melee_ability_state.hpp"
 #include "physics/aabb.hpp"
@@ -28,7 +29,7 @@ Actor::Actor(const ActorData &data)
       navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
 {
     sheet = data.sheet;
-    actorState.size = data.size.value_or(glm::vec2(data.sheet.cellSize));
+    actorState.size = drawnSizeOf(data);
     if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
 

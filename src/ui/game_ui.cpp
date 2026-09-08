@@ -8,6 +8,7 @@
 #include "ui/score_ui.hpp"
 #include "ui/health_ui.hpp"
 #include "game/score_icon_data.hpp"
+#include "game/health_icon_data.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "player/player.hpp"
@@ -25,7 +26,13 @@ void GameUi::draw(const GameUiSubject &subject)
     const ScoreIconData &scoreIcon = subject.gameData.settings.scoreIcon;
     drawScore(
         imGuiManager, subject.score, subject.textures.get(scoreIcon.sheet.texture), scoreIcon);
-    drawHealth(imGuiManager, subject.player.health());
+
+    const HealthIconData &healthIcon = subject.gameData.settings.healthIcon;
+    drawHealth(
+        imGuiManager,
+        subject.player.health(),
+        subject.textures.get(healthIcon.sheet.texture),
+        healthIcon);
 
     editorUi.draw(
         imGuiManager,

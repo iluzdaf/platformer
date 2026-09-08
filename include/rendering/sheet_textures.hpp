@@ -9,6 +9,7 @@ struct PlayerData;
 struct NpcData;
 struct PickupData;
 struct ScoreIconData;
+struct HealthIconData;
 
 void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes);
 
@@ -22,3 +23,5 @@ void warmPickupTextures(
     const std::map<std::string, PickupData> &pickupData);
 
 void warmScoreIcon(TextureCache &textures, const ScoreIconData &scoreIcon);
+
+void warmHealthIcon(TextureCache &textures, const HealthIconData &healthIcon);

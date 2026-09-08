@@ -2,5 +2,8 @@
     "debug":true,
     "scoreIcon":{
         "sheet":{"texture":"textures/coin.png","cellSize":[32,32]}
+    },
+    "healthIcon":{
+        "sheet":{"texture":"textures/heart.png","cellSize":[32,32]}
     }
 }

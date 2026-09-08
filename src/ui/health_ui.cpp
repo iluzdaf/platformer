@@ -1,16 +1,21 @@
+#include <cstdint>
 #include <imgui.h>
 #include "ui/health_ui.hpp"
 #include "actor/health.hpp"
+#include "game/health_icon_data.hpp"
+#include "rendering/texture2d.hpp"
 
 namespace
 {
-    constexpr float MarkSize = 14.0f;
-    constexpr float MarkGap = 4.0f;
-    constexpr ImU32 FullMark = IM_COL32(220, 60, 60, 255);
-    constexpr ImU32 EmptyMark = IM_COL32(220, 60, 60, 90);
+    constexpr float MarkSize = 24.0f;
+    constexpr float MarkGap = 2.0f;
 }
 
-void drawHealth(const ImGuiManager &, const Health &health)
+void drawHealth(
+    const ImGuiManager &,
+    const Health &health,
+    const Texture2D &icon,
+    const HealthIconData &healthIcon)
 {
     ImGui::SetNextWindowPos(ImVec2(10, 52), ImGuiCond_Always);
     ImGui::Begin(
@@ -21,17 +26,25 @@ void drawHealth(const ImGuiManager &, const Health &health)
             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground);
 
-    ImDrawList *drawList = ImGui::GetWindowDrawList();
-    ImVec2 at = ImGui::GetCursorScreenPos();
     for (int mark = 0; mark < health.maximum(); ++mark)
     {
-        ImVec2 topLeft(at.x + static_cast<float>(mark) * (MarkSize + MarkGap), at.y);
-        ImVec2 bottomRight(topLeft.x + MarkSize, topLeft.y + MarkSize);
-        drawList->AddRectFilled(
-            topLeft, bottomRight, mark < health.points() ? FullMark : EmptyMark);
+        if (mark > 0)
+            ImGui::SameLine(0.0f, MarkGap);
+
+        auto [uvStart, uvEnd] = frameUvRangeIn(
+            static_cast<int>(icon.getWidth()),
+            static_cast<int>(icon.getHeight()),
+            mark < health.points() ? healthIcon.full : healthIcon.spent,
+            healthIcon.sheet.cellSize.x,
+            healthIcon.sheet.cellSize.y,
+            false);
+
+        ImGui::Image(
+            (ImTextureID)(intptr_t)icon.getTextureID(),
+            ImVec2(MarkSize, MarkSize),
+            ImVec2(uvStart.x, uvStart.y),
+            ImVec2(uvEnd.x, uvEnd.y));
     }
 
-    ImGui::Dummy(
-        ImVec2(static_cast<float>(health.maximum()) * (MarkSize + MarkGap) - MarkGap, MarkSize));
     ImGui::End();
 }

@@ -17,11 +17,9 @@ function onHurt()
 end
 
 function onNpcHurt(npc)
-    camera:startShake(0.1, 1)
 end
 
 function onNpcDeath(npc)
-    camera:startShake(0.25, 2)
 end
 
 function onLevelComplete()    

@@ -35,7 +35,7 @@ namespace
 
     NpcSpawnData strandedVillager()
     {
-        NpcSpawnData stranded{"villager", feetOf(glm::ivec2(2, 8)), std::nullopt};
+        NpcSpawnData stranded{"rat", feetOf(glm::ivec2(2, 8)), std::nullopt};
         stranded.patrol = beatOf(glm::ivec2(2, 8), glm::ivec2(2, 1));
         return stranded;
     }

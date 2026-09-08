@@ -8,9 +8,15 @@
 #include "helpers/actors.hpp"
 #include "helpers/asset_path.hpp"
 #include "helpers/levels.hpp"
+#include "helpers/tiles.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/shipped.hpp"
 #include "npc/npc.hpp"
+#include "player/player.hpp"
+#include "npc/touching_npcs.hpp"
+#include "actor/health.hpp"
+#include <vector>
+#include <memory>
 #include "npc/npc_spawn_data.hpp"
 #include "player/player_data.hpp"
 
@@ -35,7 +41,7 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
                 "npc \"" << spawn.type << "\" at " << spawn.feet.x << "," << spawn.feet.y << " in "
                          << entry.path().filename().string() << " has nowhere to walk");
 
-            Npc npc(spawnAt("villager", SpawnTile), setupNpcData());
+            Npc npc(spawn, shippedNpcData().at(spawn.type));
 
             float startX = npc.body().position().x;
             stepNpc(npc, level, 400);
@@ -45,6 +51,19 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
     }
 
     REQUIRE(placed > 0);
+}
+
+TEST_CASE("The shipped rat bites whoever stands in it", "[Npc]")
+{
+    Player player(playerDataWithHealth(3, 1.0f), noIntentions());
+    player.standAt(feetOf(SpawnTile));
+    std::vector<std::unique_ptr<Npc>> rats;
+    rats.push_back(std::make_unique<Npc>(spawnAt("rat", SpawnTile), shippedNpcData().at("rat")));
+
+    touchNpcs(player, rats);
+
+    REQUIRE(player.health().points() == 2);
+    REQUIRE(player.health().lastHit()->direction.x != 0.0f);
 }
 
 TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "[Npc][Level]")
@@ -89,16 +108,16 @@ TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "
     REQUIRE(longestStandingStill < 100);
 }
 
-TEST_CASE("The shipped villager runs from the player and settles once it is gone", "[Npc][Level]")
+TEST_CASE("The shipped rat runs from the player and settles once it is gone", "[Npc][Level]")
 {
     NpcSpawnData spawn = patrolling(
-        "villager",
+        "rat",
         glm::ivec2(6, GroundRow - 1),
         glm::ivec2(2, GroundRow - 1),
         glm::ivec2(17, GroundRow - 1));
     Level level = levelWithALedgeAndAWall({spawn});
 
-    Npc npc(spawn, shippedNpcData().at("villager"));
+    Npc npc(spawn, shippedNpcData().at("rat"));
 
     glm::vec2 crowding = footOf(npc) + glm::vec2(12.0f, 0.0f);
     float startedAt = footOf(npc).x;
@@ -122,12 +141,12 @@ TEST_CASE("The shipped villager runs from the player and settles once it is gone
     REQUIRE(footOf(npc).x != ranTo);
 }
 
-TEST_CASE("The shipped villager never freezes out in the open on its platform", "[Npc][Level]")
+TEST_CASE("The shipped rat never freezes out in the open on its platform", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
     Level level = levelWithALedgeAndAWall({spawn});
 
-    Npc npc(spawn, shippedNpcData().at("villager"));
+    Npc npc(spawn, shippedNpcData().at("rat"));
 
     constexpr float LeftEnd = 16.0f, RightEnd = 112.0f;
     auto outInTheOpen = [](float x)
@@ -153,14 +172,12 @@ TEST_CASE("The shipped villager never freezes out in the open on its platform", 
     REQUIRE(longestOutInTheOpen < 100);
 }
 
-TEST_CASE(
-    "The shipped villager holds its ground while the player shares its platform",
-    "[Npc][Level]")
+TEST_CASE("The shipped rat holds its ground while the player shares its platform", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
     Level level = levelWithALedgeAndAWall({spawn});
 
-    Npc npc(spawn, shippedNpcData().at("villager"));
+    Npc npc(spawn, shippedNpcData().at("rat"));
 
     glm::vec2 cornering(112.0f, 96.0f);
     for (int step = 0; step < 600; ++step)
@@ -191,12 +208,12 @@ TEST_CASE(
     REQUIRE(footOf(npc).x > cowering + 16.0f);
 }
 
-TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered", "[Npc][Level]")
+TEST_CASE("The shipped rat does not shuffle on the spot once it is cornered", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
     Level level = levelWithALedgeAndAWall({spawn});
 
-    Npc npc(spawn, shippedNpcData().at("villager"));
+    Npc npc(spawn, shippedNpcData().at("rat"));
 
     glm::vec2 driving(8.0f, 96.0f);
     int flips = 0;
@@ -216,12 +233,12 @@ TEST_CASE("The shipped villager does not shuffle on the spot once it is cornered
     REQUIRE(flips < 6);
 }
 
-TEST_CASE("The shipped villager pays no mind to a player on the platform below", "[Npc][Level]")
+TEST_CASE("The shipped rat pays no mind to a player on the platform below", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("villager", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
     Level level = levelWithALedgeAndAWall({spawn});
 
-    Npc npc(spawn, shippedNpcData().at("villager"));
+    Npc npc(spawn, shippedNpcData().at("rat"));
 
     float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
     for (int step = 0; step < 1200; ++step)

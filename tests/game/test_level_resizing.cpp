@@ -27,7 +27,7 @@ namespace
         level.tileMapData.indices = {{1, 2}, {3, 4}};
         level.playerFeet = glm::vec2(8.0f, 32.0f);
         level.npcs = {NpcSpawnData{
-            "villager",
+            "rat",
             glm::vec2(24.0f, 32.0f),
             PatrolData{glm::vec2(8.0f, 32.0f), glm::vec2(24.0f, 32.0f)}}};
         level.pickups = {PickupSpawnData{"coin", glm::vec2(24.0f, 8.0f)}};
@@ -41,7 +41,7 @@ namespace
         level.tileMapData.indices = {{0, 0, 0, 0}, {0, 0, 0, 0}, {1, 1, 1, 1}};
         level.playerFeet = glm::vec2(8.0f, 32.0f);
         level.npcs = {
-            NpcSpawnData{"villager", glm::vec2(8.0f, 32.0f), std::nullopt},
+            NpcSpawnData{"rat", glm::vec2(8.0f, 32.0f), std::nullopt},
             NpcSpawnData{
                 "explorer",
                 glm::vec2(24.0f, 32.0f),

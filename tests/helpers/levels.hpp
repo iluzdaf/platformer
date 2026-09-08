@@ -23,7 +23,7 @@ inline NpcSpawnData spawnAt(std::string type, glm::ivec2 tilePosition)
 
 inline NpcSpawnData aVillagerAt(glm::ivec2 tilePosition)
 {
-    return spawnAt("villager", tilePosition);
+    return spawnAt("rat", tilePosition);
 }
 
 inline LevelData aFloorLevelPlacing(const std::vector<NpcSpawnData> &npcs, int floorTile = 1)

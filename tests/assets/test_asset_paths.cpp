@@ -52,6 +52,6 @@ TEST_CASE("Files under a directory are listed by extension in order", "[AssetPat
                     "textures/coin.png",
                     "textures/explorer.png",
                     "textures/player.png",
-                    "textures/villager.png"});
+                    "textures/rat.png"});
     REQUIRE(assets::filesIn(assets::Textures, ".json").empty());
 }

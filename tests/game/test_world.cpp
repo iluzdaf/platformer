@@ -186,7 +186,7 @@ TEST_CASE("An npc added to the level data is standing in the world it rebuilds",
     std::size_t before = world.getLevel().getNpcs().size();
 
     LevelData edited = world.getLevelData();
-    edited.npcs.push_back(NpcSpawnData{"villager", edited.playerFeet, {}});
+    edited.npcs.push_back(NpcSpawnData{"rat", edited.playerFeet, {}});
     world.rebuildFrom(edited);
 
     REQUIRE(world.getLevel().getNpcs().size() == before + 1);
@@ -244,7 +244,7 @@ TEST_CASE("Rebuilding from edited data leaves the player where it walked to", "[
     REQUIRE(walkedTo != world.getLevel().getPlayerStart());
 
     LevelData edited = world.getLevelData();
-    edited.npcs.push_back(NpcSpawnData{"villager", edited.playerFeet, {}});
+    edited.npcs.push_back(NpcSpawnData{"rat", edited.playerFeet, {}});
     world.rebuildFrom(edited);
 
     REQUIRE(&world.getPlayer() == before);
@@ -303,7 +303,7 @@ TEST_CASE("A rebuild that cannot be built leaves the world as it was", "[World]"
     glm::vec2 stoodAt = world.getPlayer().body().position();
 
     LevelData broken = wasPlaying;
-    broken.npcs.push_back(NpcSpawnData{"villager", glm::vec2(-100.0f, -100.0f), std::nullopt});
+    broken.npcs.push_back(NpcSpawnData{"rat", glm::vec2(-100.0f, -100.0f), std::nullopt});
 
     REQUIRE_THROWS(world.rebuildFrom(broken, glm::vec2(16.0f, 0.0f)));
     REQUIRE(&world.getLevel() == before);
@@ -363,23 +363,23 @@ TEST_CASE(
         << "function onNpcHurt(npc) hurt = npc:type() end\n"
            "function onNpcDeath(npc) dead = npc:type(); deadAt = npc:feet() end\n";
     GameData gameData = aFloorWorldWithCoins();
-    NpcData villager = setupNpcData();
-    villager.actorData.healthData = HealthData{2, 0.0f};
-    gameData.npcData = {{"villager", villager}};
+    NpcData rat = setupNpcData();
+    rat.actorData.healthData = HealthData{2, 0.0f};
+    gameData.npcData = {{"rat", rat}};
     LuaScriptSystem luaScriptSystem(script.string());
     World world(gameData, noIntentions(), luaScriptSystem);
     TemporaryLevels levels("world_npc_hurt");
     levels.write(
-        "floor.json", aFloorLevelPlacing({spawnAt("villager", glm::ivec2(3, FloorLevelStanding))}));
+        "floor.json", aFloorLevelPlacing({spawnAt("rat", glm::ivec2(3, FloorLevelStanding))}));
     world.loadLevel(levels.pathOf("floor.json"));
     Npc &npc = *world.getLevel().getNpcs().front();
 
     npc.takeHit(Hit{1, glm::vec2(0.0f), false});
-    REQUIRE(luaScriptSystem.getLua()["hurt"].get<std::string>() == "villager");
+    REQUIRE(luaScriptSystem.getLua()["hurt"].get<std::string>() == "rat");
     REQUIRE(luaScriptSystem.getLua()["dead"].valid() == false);
 
     npc.takeHit(Hit{1, glm::vec2(0.0f), false});
-    REQUIRE(luaScriptSystem.getLua()["dead"].get<std::string>() == "villager");
+    REQUIRE(luaScriptSystem.getLua()["dead"].get<std::string>() == "rat");
     REQUIRE(luaScriptSystem.getLua()["deadAt"].get<glm::vec2>() == npc.feet());
 }
 
@@ -389,8 +389,8 @@ TEST_CASE("A swing that kills an npc reaches the script's onNpcDeath", "[World]"
         std::filesystem::temp_directory_path() / "platformer_world_swing.lua";
     std::ofstream(script) << "function onNpcDeath(npc) dead = npc:type() end\n";
     GameData gameData = aFloorWorldWithCoins();
-    NpcData villager = setupNpcData();
-    gameData.npcData = {{"villager", villager}};
+    NpcData rat = setupNpcData();
+    gameData.npcData = {{"rat", rat}};
     ScriptedIntentions intentions;
     InputIntentions attacking;
     attacking.attackRequested = true;
@@ -399,13 +399,13 @@ TEST_CASE("A swing that kills an npc reaches the script's onNpcDeath", "[World]"
     World world(gameData, intentions, luaScriptSystem);
     TemporaryLevels levels("world_swing");
     levels.write(
-        "floor.json", aFloorLevelPlacing({spawnAt("villager", glm::ivec2(2, FloorLevelStanding))}));
+        "floor.json", aFloorLevelPlacing({spawnAt("rat", glm::ivec2(2, FloorLevelStanding))}));
     world.loadLevel(levels.pathOf("floor.json"));
 
     walkFor(world, 12);
 
     REQUIRE_FALSE(world.getLevel().getNpcs().front()->alive());
-    REQUIRE(luaScriptSystem.getLua()["dead"].get<std::string>() == "villager");
+    REQUIRE(luaScriptSystem.getLua()["dead"].get<std::string>() == "rat");
 }
 
 TEST_CASE("Bumping into an npc that bites costs the player a point", "[World]")

@@ -728,6 +728,42 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
 #include "helpers/pictures_drawn.hpp"
 #include "ui/sheet_preview.hpp"
 
+TEST_CASE("An actor's preview shows the collider its body will have", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    TextureCache textures;
+    EditorCommands commands;
+    gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
+    gameData.playerData.actorData.sheet.cellSize = glm::ivec2(32);
+    gameData.playerData.actorData.size = glm::vec2(16.0f);
+    gameData.playerData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
+    textures.warm(std::string(assets::PlayerTexture));
+    typesUi.show(thePlayer());
+    auto drawing = [&] { typesUi.draw(gameData, textures, commands); };
+
+    REQUIRE(drawsAPictureWide(gui, PreviewSize * 8.0f / 16.0f, drawing));
+}
+
+TEST_CASE("A pickup's preview shows the reach that collects it", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    TextureCache textures;
+    EditorCommands commands;
+    PickupData &coin = gameData.pickupData["coin"];
+    coin.sheet.texture = std::string(assets::PlayerTexture);
+    coin.size = glm::vec2(16.0f);
+    coin.colliderSize = glm::vec2(6.0f);
+    textures.warm(std::string(assets::PlayerTexture));
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+    auto drawing = [&] { typesUi.draw(gameData, textures, commands); };
+
+    REQUIRE(drawsAPictureWide(gui, PreviewSize * 6.0f / 16.0f, drawing));
+}
+
 TEST_CASE("The types section previews an npc above its fields", "[TypesUi]")
 {
     HeadlessImGui gui;

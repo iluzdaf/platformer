@@ -18,3 +18,8 @@ struct ActorData
     ActorAnimationData animationData;
     HealthData healthData;
 };
+
+inline glm::vec2 drawnSizeOf(const ActorData &actorData)
+{
+    return actorData.size.value_or(glm::vec2(actorData.sheet.cellSize));
+}

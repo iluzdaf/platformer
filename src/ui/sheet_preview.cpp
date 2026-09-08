@@ -85,12 +85,19 @@ namespace
     }
 }
 
-void drawAnimationPreview(const SheetInScope &offering, const FrameAnimationData &animation)
+ImVec2 drawAnimationPreview(const SheetInScope &offering, const FrameAnimationData &animation)
 {
     if (!offering.texture)
-        return;
+        return ImGui::GetCursorScreenPos();
 
-    drawFrame(offering, previewFrameAt(animation, ImGui::GetTime(), 0));
+    return drawFrame(offering, previewFrameAt(animation, ImGui::GetTime(), 0));
+}
+
+void drawColliderOver(ImVec2 at, float scale, glm::vec2 offset, glm::vec2 size)
+{
+    auto [low, high] = colliderRect(at, scale, offset, size);
+    ImGui::GetWindowDrawList()->AddRectFilled(low, high, IM_COL32(0, 255, 255, 40));
+    ImGui::GetWindowDrawList()->AddRect(low, high, IM_COL32(0, 255, 255, 255));
 }
 
 void drawTilePreview(const SheetInScope &offering, int tileIndex, const TileData &tile)
@@ -106,7 +113,5 @@ void drawTilePreview(const SheetInScope &offering, int tileIndex, const TileData
     glm::vec2 cell(offering.sheet.cellSize);
     TileColliderData collider = tile.collider.value_or(TileColliderData{glm::vec2(0.0f), cell});
     float scale = cell.x > 0.0f ? PreviewSize / cell.x : 0.0f;
-    auto [low, high] = colliderRect(at, scale, collider.offset, collider.size);
-    ImGui::GetWindowDrawList()->AddRectFilled(low, high, IM_COL32(0, 255, 255, 40));
-    ImGui::GetWindowDrawList()->AddRect(low, high, IM_COL32(0, 255, 255, 255));
+    drawColliderOver(at, scale, collider.offset, collider.size);
 }

@@ -33,6 +33,8 @@ const NamedAnimation &animationNamed(
     const std::vector<NamedAnimation> &offered,
     std::string_view name);
 
-void drawAnimationPreview(const SheetInScope &offering, const FrameAnimationData &animation);
+ImVec2 drawAnimationPreview(const SheetInScope &offering, const FrameAnimationData &animation);
+
+void drawColliderOver(ImVec2 at, float scale, glm::vec2 offset, glm::vec2 size);
 
 void drawTilePreview(const SheetInScope &offering, int tileIndex, const TileData &tile);

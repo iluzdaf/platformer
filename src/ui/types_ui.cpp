@@ -164,33 +164,48 @@ void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, Editor
     {
     case TypeShown::What::Npc: {
         NpcData &npc = gameData.npcData.at(showing.name);
-        drawActorPreview(scope, npc.actorData.animationData);
+        drawActorPreview(scope, npc.actorData);
         inspector::drawFields(npc);
         break;
     }
 
     case TypeShown::What::Pickup: {
         PickupData &pickup = gameData.pickupData.at(showing.name);
-        drawAnimationPreview(scope, pickup.animationData);
+        ImVec2 at = drawAnimationPreview(scope, pickup.animationData);
+        glm::vec2 drawn = drawnSizeOf(pickup);
+        if (drawn.x > 0.0f)
+            drawColliderOver(
+                at,
+                PreviewSize / drawn.x,
+                pickup.colliderOffset,
+                pickup.colliderSize.value_or(drawn));
         inspector::drawFields(pickup);
         break;
     }
 
     case TypeShown::What::Player:
-        drawActorPreview(scope, gameData.playerData.actorData.animationData);
+        drawActorPreview(scope, gameData.playerData.actorData);
         inspector::drawFields(gameData.playerData);
         break;
     }
 }
 
-void TypesUi::drawActorPreview(const SheetInScope &scope, const ActorAnimationData &animations)
+void TypesUi::drawActorPreview(const SheetInScope &scope, const ActorData &actorData)
 {
     if (!scope.texture)
         return;
 
-    std::vector<NamedAnimation> offered = animationsOf(animations);
+    std::vector<NamedAnimation> offered = animationsOf(actorData.animationData);
     const NamedAnimation &shown = animationNamed(offered, previewing);
-    drawAnimationPreview(scope, *shown.animation);
+    ImVec2 at = drawAnimationPreview(scope, *shown.animation);
+
+    glm::vec2 drawn = drawnSizeOf(actorData);
+    if (drawn.x > 0.0f)
+        drawColliderOver(
+            at,
+            PreviewSize / drawn.x,
+            actorData.physicsBodyData.colliderOffset,
+            actorData.physicsBodyData.colliderSize);
 
     ImGui::SameLine();
     ImGui::SetNextItemWidth(PreviewChooserWidth);

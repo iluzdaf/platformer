@@ -40,9 +40,9 @@ TEST_CASE("Every actor's sheet is loaded before anything draws", "[SheetTextures
     PlayerData playerData = playerDataWithEveryAbility();
     playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
 
-    NpcData villager;
-    villager.actorData.sheet.texture = std::string(assets::TileSetTexture);
-    std::map<std::string, NpcData> npcData{{"villager", villager}};
+    NpcData rat;
+    rat.actorData.sheet.texture = std::string(assets::TileSetTexture);
+    std::map<std::string, NpcData> npcData{{"rat", rat}};
 
     TextureCache textures;
     warmActorTextures(textures, playerData, npcData);
@@ -56,13 +56,13 @@ TEST_CASE("An actor that names no sheet is refused by name", "[SheetTextures]")
     PlayerData playerData = playerDataWithEveryAbility();
     playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
 
-    std::map<std::string, NpcData> npcData{{"villager", NpcData{}}};
+    std::map<std::string, NpcData> npcData{{"rat", NpcData{}}};
 
     TextureCache textures;
 
     REQUIRE_THROWS_WITH(
         warmActorTextures(textures, playerData, npcData),
-        Catch::Matchers::ContainsSubstring("\"villager\""));
+        Catch::Matchers::ContainsSubstring("\"rat\""));
 }
 
 TEST_CASE("Two palettes naming two tile sets get two textures", "[SheetTextures]")
@@ -160,13 +160,13 @@ TEST_CASE("Every shipped actor animates on frames its sheet holds", "[SheetTextu
 TEST_CASE("An actor animating past the end of its sheet says so", "[SheetTextures]")
 {
     GameData gameData = loadGameData();
-    gameData.npcData.at("villager").actorData.animationData.idle.frames.push_back(99);
+    gameData.npcData.at("rat").actorData.animationData.idle.frames.push_back(99);
 
     TextureCache textures;
 
     REQUIRE_THROWS_WITH(
         warmActorTextures(textures, gameData.playerData, gameData.npcData),
-        Catch::Matchers::ContainsSubstring("villager") &&
+        Catch::Matchers::ContainsSubstring("rat") &&
             Catch::Matchers::ContainsSubstring("frame 99"));
 }
 

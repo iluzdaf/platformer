@@ -26,5 +26,5 @@ TEST_CASE("An empty catalogue names nothing at all", "[Catalogue]")
     std::map<std::string, int> catalogue;
 
     REQUIRE_THROWS_WITH(
-        oneNamed(catalogue, "npc", "villager"), Catch::Matchers::ContainsSubstring("villager"));
+        oneNamed(catalogue, "npc", "rat"), Catch::Matchers::ContainsSubstring("rat"));
 }

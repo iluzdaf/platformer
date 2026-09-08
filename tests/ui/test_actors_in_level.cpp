@@ -191,7 +191,7 @@ TEST_CASE("A beat that cannot be walked names the npc it belongs to", "[ActorsIn
     std::optional<std::string> fault = npcsThatCannotGetBack(levelWithAnIsland({strandedHalfway}));
 
     REQUIRE(fault);
-    REQUIRE(*fault == "villager 1 cannot get back from there");
+    REQUIRE(*fault == "rat 1 cannot get back from there");
 }
 
 TEST_CASE("Every npc that cannot get back is named", "[ActorsInLevel]")
@@ -211,7 +211,7 @@ TEST_CASE("Every npc that cannot get back is named", "[ActorsInLevel]")
         npcsThatCannotGetBack(levelWithAnIsland({walkable, stranded, alsoStranded}));
 
     REQUIRE(fault);
-    REQUIRE(*fault == "villager 2, villager 3 cannot get back from there");
+    REQUIRE(*fault == "rat 2, rat 3 cannot get back from there");
 }
 
 TEST_CASE("A beat whose ends share a tile still draws both", "[ActorsInLevel]")

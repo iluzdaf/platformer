@@ -62,7 +62,7 @@ namespace
     struct ALevelOfItsOwn
     {
         TilePalettes palettes = theOnlyPalette(aPaletteWithASolidTile());
-        std::map<std::string, NpcData> npcs = {{"villager", NpcData{}}};
+        std::map<std::string, NpcData> npcs = {{"rat", NpcData{}}};
         std::map<std::string, PickupData> pickups = {{"coin", PickupData{}}};
 
         LevelData levelData() const
@@ -74,7 +74,7 @@ namespace
                 data.tileMapData.indices[2][x] = 1;
             data.playerFeet = feetOf(glm::ivec2(0, 1));
             data.nextLevel = "levels/somewhere.json";
-            data.npcs = {NpcSpawnData{"villager", feetOf(glm::ivec2(2, 1)), std::nullopt}};
+            data.npcs = {NpcSpawnData{"rat", feetOf(glm::ivec2(2, 1)), std::nullopt}};
             data.pickups = {PickupSpawnData{"coin", feetOf(glm::ivec2(3, 1))}};
             return data;
         }

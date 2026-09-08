@@ -43,27 +43,27 @@ namespace
 
     NpcData aVillagerWith(int points)
     {
-        NpcData villager = setupNpcData();
-        villager.actorData.healthData = HealthData{points, 0.0f};
-        villager.actorData.animationData.dead = FrameAnimationData({7}, 1.0f);
-        return villager;
+        NpcData rat = setupNpcData();
+        rat.actorData.healthData = HealthData{points, 0.0f};
+        rat.actorData.animationData.dead = FrameAnimationData({7}, 1.0f);
+        return rat;
     }
 
     struct Duel
     {
-        Duel(int villagerPoints, glm::ivec2 villagerTile)
+        Duel(int ratPoints, glm::ivec2 ratTile)
             : playerData(aSwordsman()), level(
-                                            aFloorLevelPlacing({spawnAt("villager", villagerTile)}),
+                                            aFloorLevelPlacing({spawnAt("rat", ratTile)}),
                                             theOnlyPalette(aPaletteWithASolidTile()),
                                             playerData,
-                                            {{"villager", aVillagerWith(villagerPoints)}},
+                                            {{"rat", aVillagerWith(ratPoints)}},
                                             {}),
               player(playerData, input)
         {
             player.standAt(feetOf(PlayerTile));
         }
 
-        Npc &villager()
+        Npc &rat()
         {
             return *level.getNpcs().front();
         }
@@ -93,8 +93,8 @@ TEST_CASE("A swing in front of the player costs the npc the swing's damage", "[S
 
     strikeNpcs(duel.player, duel.level.getNpcs());
 
-    REQUIRE(duel.villager().health().points() == 2);
-    REQUIRE(duel.villager().health().lastHit()->direction == glm::vec2(1.0f, 0.0f));
+    REQUIRE(duel.rat().health().points() == 2);
+    REQUIRE(duel.rat().health().lastHit()->direction == glm::vec2(1.0f, 0.0f));
 }
 
 TEST_CASE("A swing lands once, however long the npc stays in reach", "[StrikingNpcs]")
@@ -107,7 +107,7 @@ TEST_CASE("A swing lands once, however long the npc stays in reach", "[StrikingN
     REQUIRE(duel.player.decided().melee.striking());
     strikeNpcs(duel.player, duel.level.getNpcs());
 
-    REQUIRE(duel.villager().health().points() == 2);
+    REQUIRE(duel.rat().health().points() == 2);
 }
 
 TEST_CASE("A swing behind the player misses", "[StrikingNpcs]")
@@ -117,7 +117,7 @@ TEST_CASE("A swing behind the player misses", "[StrikingNpcs]")
 
     strikeNpcs(duel.player, duel.level.getNpcs());
 
-    REQUIRE(duel.villager().health().points() == 3);
+    REQUIRE(duel.rat().health().points() == 3);
 }
 
 TEST_CASE("Between swings, nothing lands", "[StrikingNpcs]")
@@ -128,7 +128,7 @@ TEST_CASE("Between swings, nothing lands", "[StrikingNpcs]")
 
     strikeNpcs(duel.player, duel.level.getNpcs());
 
-    REQUIRE(duel.villager().health().points() == 3);
+    REQUIRE(duel.rat().health().points() == 3);
 }
 
 TEST_CASE("A swing reaches out from the collider on the side it faces", "[StrikingNpcs]")
@@ -149,12 +149,12 @@ TEST_CASE("A corpse stops deciding, shows it, and takes no more hits", "[Strikin
     Duel duel(1, PlayerTile + glm::ivec2(1, 0));
     duel.swingFor(0.1f);
     strikeNpcs(duel.player, duel.level.getNpcs());
-    REQUIRE_FALSE(duel.villager().alive());
+    REQUIRE_FALSE(duel.rat().alive());
 
-    duel.villager().beginFrame();
-    duel.villager().fixedUpdate(0.01f, duel.level, duel.player.feet());
+    duel.rat().beginFrame();
+    duel.rat().fixedUpdate(0.01f, duel.level, duel.player.feet());
 
-    REQUIRE(duel.villager().stateName() == std::string_view{});
-    REQUIRE(duel.villager().state().currentAnimationState == ActorAnimationState::Dead);
-    REQUIRE_FALSE(duel.player.strike(duel.villager()));
+    REQUIRE(duel.rat().stateName() == std::string_view{});
+    REQUIRE(duel.rat().state().currentAnimationState == ActorAnimationState::Dead);
+    REQUIRE_FALSE(duel.player.strike(duel.rat()));
 }

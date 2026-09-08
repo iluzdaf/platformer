@@ -281,17 +281,15 @@ TEST_CASE(
     }
 }
 
-TEST_CASE(
-    "The shipped villager is offered no jumps at all",
-    "[NavigationGraphBuilder][Jump][Level]")
+TEST_CASE("The shipped rat is offered no jumps at all", "[NavigationGraphBuilder][Jump][Level]")
 {
     GameData gameData = loadGameData();
 
-    NavigationProfile villager = buildNavigationProfile(gameData.npcData.at("villager").actorData);
+    NavigationProfile rat = buildNavigationProfile(gameData.npcData.at("rat").actorData);
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
-    REQUIRE(villager.jumpArcs.empty());
-    REQUIRE(countEdgesOfType(buildNavigationGraph(tileMap, villager), EdgeType::Jump) == 0);
+    REQUIRE(rat.jumpArcs.empty());
+    REQUIRE(countEdgesOfType(buildNavigationGraph(tileMap, rat), EdgeType::Jump) == 0);
 }
 
 TEST_CASE("A jump edge records the hold that made it", "[NavigationGraphBuilder][Jump]")

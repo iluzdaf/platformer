@@ -44,5 +44,5 @@ TEST_CASE("Who climbs, of the things shipped with the game", "[NavigationProfile
 
     REQUIRE(buildNavigationProfile(gameData.playerData.actorData).climbs());
     REQUIRE(buildNavigationProfile(gameData.npcData.at("explorer").actorData).climbs());
-    REQUIRE_FALSE(buildNavigationProfile(gameData.npcData.at("villager").actorData).climbs());
+    REQUIRE_FALSE(buildNavigationProfile(gameData.npcData.at("rat").actorData).climbs());
 }

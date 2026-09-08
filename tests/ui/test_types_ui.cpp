@@ -30,7 +30,7 @@ namespace
     GameData twoOfEach()
     {
         GameData gameData;
-        gameData.npcData = {{"villager", NpcData{}}, {"explorer", NpcData{}}};
+        gameData.npcData = {{"rat", NpcData{}}, {"explorer", NpcData{}}};
         gameData.pickupData = {{"coin", PickupData{}}, {"gem", PickupData{}}};
         return gameData;
     }
@@ -104,7 +104,7 @@ TEST_CASE("An npc that changes leaves the section unsaved", "[TypesUi]")
     GameData gameData = twoOfEach();
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-    gameData.npcData["villager"].actorData.size = glm::vec2(24.0f);
+    gameData.npcData["rat"].actorData.size = glm::vec2(24.0f);
 
     REQUIRE(typesUi.unsavedSince(gameData));
 }
@@ -126,12 +126,12 @@ TEST_CASE("Reverting puts both kinds back", "[TypesUi]")
     GameData gameData = twoOfEach();
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-    gameData.npcData["villager"].actorData.size = glm::vec2(24.0f);
+    gameData.npcData["rat"].actorData.size = glm::vec2(24.0f);
     gameData.pickupData["coin"].scoreDelta = 99;
 
     typesUi.revert(gameData);
 
-    REQUIRE(gameData.npcData["villager"].actorData.size == NpcData{}.actorData.size);
+    REQUIRE(gameData.npcData["rat"].actorData.size == NpcData{}.actorData.size);
     REQUIRE(gameData.pickupData["coin"].scoreDelta == 0);
 }
 
@@ -416,13 +416,13 @@ TEST_CASE("A type hands back the sheet it draws from", "[TypesUi]")
 {
     GameData gameData = twoOfEach();
     gameData.pickupData["coin"].sheet.texture = "textures/coin.png";
-    gameData.npcData["villager"].actorData.sheet.texture = "textures/player.png";
+    gameData.npcData["rat"].actorData.sheet.texture = "textures/player.png";
 
     REQUIRE(
         sheetOf(gameData, TypeShown{TypeShown::What::Pickup, "coin"})->texture ==
         "textures/coin.png");
     REQUIRE(
-        sheetOf(gameData, TypeShown{TypeShown::What::Npc, "villager"})->texture ==
+        sheetOf(gameData, TypeShown{TypeShown::What::Npc, "rat"})->texture ==
         "textures/player.png");
 }
 
@@ -473,7 +473,7 @@ TEST_CASE("A name typed and entered leaves the types unsaved", "[TypesUi]")
     HeadlessImGui gui;
     TypesUi typesUi;
     GameData gameData = twoOfEach();
-    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 
@@ -491,7 +491,7 @@ TEST_CASE("A type keeps the name the levels know until it is saved", "[TypesUi]"
     HeadlessImGui gui;
     TypesUi typesUi;
     GameData gameData = twoOfEach();
-    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
 
     TypeRenaming renaming;
     auto drawing = renaming.drawing(typesUi, gameData);
@@ -499,7 +499,7 @@ TEST_CASE("A type keeps the name the levels know until it is saved", "[TypesUi]"
     gui.type("##name", "farmer", drawing);
     gui.pressEnter(drawing);
 
-    REQUIRE(gameData.npcData.contains("villager"));
+    REQUIRE(gameData.npcData.contains("rat"));
     REQUIRE_FALSE(gameData.npcData.contains("farmer"));
 }
 
@@ -508,7 +508,7 @@ TEST_CASE("A type cannot take the name of another of its kind", "[TypesUi]")
     HeadlessImGui gui;
     TypesUi typesUi;
     GameData gameData = twoOfEach();
-    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 
@@ -526,7 +526,7 @@ TEST_CASE("An npc may take a name a pickup has", "[TypesUi]")
     HeadlessImGui gui;
     TypesUi typesUi;
     GameData gameData = twoOfEach();
-    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 
@@ -566,7 +566,7 @@ TEST_CASE("A level still loads while a type rename waits to be saved", "[TypesUi
     HeadlessImGui gui;
     TypesUi typesUi;
     GameData gameData = loadGameData();
-    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
 
     TypeRenaming renaming;
     auto drawing = renaming.drawing(typesUi, gameData);
@@ -619,7 +619,7 @@ TEST_CASE("Saving a type rename re-points the levels before the types are writte
         },
         [](const std::map<std::string, PickupData> &) {});
     GameData gameData = twoOfEach();
-    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 
     TypeRenaming renaming;
@@ -632,7 +632,7 @@ TEST_CASE("Saving a type rename re-points the levels before the types are writte
 
     REQUIRE(written.has_value());
     REQUIRE(written->contains("farmer"));
-    REQUIRE_FALSE(written->contains("villager"));
+    REQUIRE_FALSE(written->contains("rat"));
     REQUIRE(playing.npcs.front().type == "farmer");
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 }
@@ -703,7 +703,7 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
     for (auto &[name, pickup] : gameData.pickupData)
         pickup.sheet.texture = std::string(assets::PlayerTexture);
     gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
-    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 
     TypeRenaming renaming;
@@ -717,9 +717,9 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
     REQUIRE_FALSE(typesUi.save(gameData, playing));
 
     REQUIRE_FALSE(wrote);
-    REQUIRE(gameData.npcData.contains("villager"));
-    REQUIRE(playing.npcs.front().type == "villager");
-    REQUIRE(firstNpcTypeIn(directory) == "villager");
+    REQUIRE(gameData.npcData.contains("rat"));
+    REQUIRE(playing.npcs.front().type == "rat");
+    REQUIRE(firstNpcTypeIn(directory) == "rat");
     REQUIRE(typesUi.unsavedSince(gameData));
 }
 
@@ -735,8 +735,8 @@ TEST_CASE("The types section previews an npc above its fields", "[TypesUi]")
     GameData gameData = twoOfEach();
     TextureCache textures;
     EditorCommands commands;
-    gameData.npcData["villager"].actorData.sheet.texture = std::string(assets::PlayerTexture);
-    typesUi.show(TypeShown{TypeShown::What::Npc, "villager"});
+    gameData.npcData["rat"].actorData.sheet.texture = std::string(assets::PlayerTexture);
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
     auto drawing = [&] { typesUi.draw(gameData, textures, commands); };
 
     REQUIRE_FALSE(drawsAPictureWide(gui, PreviewSize, drawing));

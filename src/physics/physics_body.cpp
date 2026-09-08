@@ -17,6 +17,9 @@ namespace
 
 PhysicsBody::PhysicsBody(const PhysicsBodyData &data) : data(data)
 {
+    if (data.colliderSize.x <= 0.0f || data.colliderSize.y <= 0.0f)
+        throw std::runtime_error("A collider of no size is not one anything can touch");
+
     if (data.stepHeight < 0.0f)
         throw std::runtime_error("A step height below 0 is not a height");
 

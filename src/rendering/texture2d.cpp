@@ -64,11 +64,12 @@ std::pair<glm::vec2, glm::vec2> frameUvRangeIn(
     bool flipY)
 {
     int across = frameWidth > 0 ? textureWidth / frameWidth : 0;
-    if (across <= 0 || frameHeight <= 0 || textureHeight <= 0)
+    int down = frameHeight > 0 ? textureHeight / frameHeight : 0;
+    if (across <= 0 || down <= 0)
         return {glm::vec2(0.0f), glm::vec2(1.0f)};
 
     int tileX = frameIndex % across;
-    int tileY = frameIndex / across;
+    int tileY = down - 1 - frameIndex / across;
     float uvWidth = static_cast<float>(frameWidth) / static_cast<float>(textureWidth);
     float uvHeight = static_cast<float>(frameHeight) / static_cast<float>(textureHeight);
 

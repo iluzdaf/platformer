@@ -1,6 +1,7 @@
 #include <cmath>
 #include <string>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include "rendering/texture2d.hpp"
@@ -86,7 +87,7 @@ TEST_CASE("A wider sheet holds more tiles", "[TileSet]")
     REQUIRE_NOTHROW(checkTileSetFits(palette, "default", 128, 128));
 }
 
-TEST_CASE("A tile keeps its cell when the sheet grows taller", "[TileSet]")
+TEST_CASE("A tile stays where it is when the sheet grows a row taller", "[TileSet]")
 {
     for (int index : {0, 6, 7, 13, 48})
     {
@@ -95,21 +96,22 @@ TEST_CASE("A tile keeps its cell when the sheet grows taller", "[TileSet]")
 
         REQUIRE(wasStart.x == nowStart.x);
         REQUIRE(wasEnd.x == nowEnd.x);
-        REQUIRE(std::lround(nowStart.y * 128.0f) == std::lround(wasStart.y * 112.0f));
+        REQUIRE(std::lround(128.0f - nowEnd.y * 128.0f) == std::lround(112.0f - wasEnd.y * 112.0f));
     }
 }
 
-TEST_CASE("A square sheet reads exactly as it did", "[TileSet]")
+TEST_CASE("A square sheet counts its rows down from the top", "[TileSet]")
 {
     for (int index : {0, 1, 7, 42, 48})
     {
         auto [start, end] = uvRangeIn(112, 112, index, 16);
         float cell = 16.0f / 112.0f;
+        int rowFromTheTop = index / 7;
 
         REQUIRE(start.x == (index % 7) * cell);
-        REQUIRE(start.y == (index / 7) * cell);
         REQUIRE(end.x == ((index % 7) + 1) * cell);
-        REQUIRE(end.y == ((index / 7) + 1) * cell);
+        REQUIRE(start.y == (7 - 1 - rowFromTheTop) * cell);
+        REQUIRE(end.y == (7 - rowFromTheTop) * cell);
     }
 }
 
@@ -119,6 +121,6 @@ TEST_CASE("A tall sheet divides each axis by its own size", "[TileSet]")
 
     REQUIRE(start.x == 0.0f);
     REQUIRE(end.x == 16.0f / 112.0f);
-    REQUIRE(start.y == 16.0f / 224.0f);
-    REQUIRE(end.y == 32.0f / 224.0f);
+    REQUIRE(start.y == Catch::Approx(192.0f / 224.0f));
+    REQUIRE(end.y == Catch::Approx(208.0f / 224.0f));
 }

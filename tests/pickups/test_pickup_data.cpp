@@ -133,3 +133,20 @@ TEST_CASE("A pickup sits centred on where it was placed", "[Pickups]")
 
     REQUIRE(coin.getPosition() + glm::vec2(coin.getSize().x * 0.5f, coin.getSize().y) == placedAt);
 }
+
+TEST_CASE("A pickup is centred by the size it is drawn at, not by a guess", "[Pickups]")
+{
+    PickupData wide;
+    wide.sheet.cellSize = glm::ivec2(32, 24);
+    std::map<std::string, PickupData> kinds{{"banner", wide}};
+
+    glm::vec2 placedAt = middleOf(glm::ivec2(2, 3));
+    LevelData levelData = levelPlacing({{"banner", placedAt}});
+    Level level(
+        levelData, theOnlyPalette(aPaletteWithASolidTile()), PlayerData(), shippedNpcData(), kinds);
+
+    const Pickup &banner = level.getPickups().front();
+
+    REQUIRE(banner.getSize() == glm::vec2(32.0f, 24.0f));
+    REQUIRE(banner.getPosition() == placedAt - glm::vec2(16.0f, 24.0f));
+}

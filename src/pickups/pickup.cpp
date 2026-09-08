@@ -6,9 +6,13 @@
 
 Pickup::Pickup(const PickupData &pickupData, glm::vec2 position)
     : sheet(pickupData.sheet), animation(pickupData.animationData), position(position),
-      size(pickupData.size), colliderSize(pickupData.colliderSize.value_or(pickupData.size)),
+      size(drawnSizeOf(pickupData)),
+      colliderSize(pickupData.colliderSize.value_or(drawnSizeOf(pickupData))),
       colliderOffset(pickupData.colliderOffset), scoreDelta(pickupData.scoreDelta)
 {
+    if (size.x <= 0.0f || size.y <= 0.0f)
+        throw std::runtime_error("A pickup drawn as nothing is one nobody can see");
+
     if (colliderSize.x <= 0.0f || colliderSize.y <= 0.0f)
         throw std::runtime_error("A pickup nothing can reach is one nobody can take");
 }

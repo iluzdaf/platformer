@@ -104,7 +104,7 @@ TEST_CASE("An npc that changes leaves the section unsaved", "[TypesUi]")
     GameData gameData = twoOfEach();
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-    gameData.npcData["villager"].actorData.size.x += 1.0f;
+    gameData.npcData["villager"].actorData.size = glm::vec2(24.0f);
 
     REQUIRE(typesUi.unsavedSince(gameData));
 }
@@ -126,12 +126,12 @@ TEST_CASE("Reverting puts both kinds back", "[TypesUi]")
     GameData gameData = twoOfEach();
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-    gameData.npcData["villager"].actorData.size.x += 1.0f;
+    gameData.npcData["villager"].actorData.size = glm::vec2(24.0f);
     gameData.pickupData["coin"].scoreDelta = 99;
 
     typesUi.revert(gameData);
 
-    REQUIRE(gameData.npcData["villager"].actorData.size.x == NpcData{}.actorData.size.x);
+    REQUIRE(gameData.npcData["villager"].actorData.size == NpcData{}.actorData.size);
     REQUIRE(gameData.pickupData["coin"].scoreDelta == 0);
 }
 

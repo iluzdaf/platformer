@@ -19,6 +19,8 @@
 #include <optional>
 #include <vector>
 #include "assets/sheet_data.hpp"
+#include "assets/every_sheet_in.hpp"
+#include "game/game_data.hpp"
 
 namespace
 {
@@ -67,6 +69,17 @@ namespace
 
         textures.warm(sheet.texture);
     }
+}
+
+void warmEverySheetIn(TextureCache &textures, const GameData &gameData)
+{
+    everySheetIn(
+        gameData,
+        [&textures](const SheetData &sheet)
+        {
+            if (!sheet.texture.empty())
+                textures.warm(sheet.texture);
+        });
 }
 
 void warmActorTextures(

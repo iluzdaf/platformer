@@ -10,6 +10,9 @@ struct NpcData;
 struct PickupData;
 struct ScoreIconData;
 struct HealthIconData;
+struct GameData;
+
+void warmEverySheetIn(TextureCache &textures, const GameData &gameData);
 
 void warmTileSets(TextureCache &textures, const TilePalettes &tilePalettes);
 

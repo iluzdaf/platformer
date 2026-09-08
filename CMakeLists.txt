@@ -374,6 +374,7 @@ add_executable(tests
     tests/pickups/test_pickup.cpp
     tests/pickups/test_collecting.cpp
     tests/assets/test_asset_paths.cpp
+    tests/assets/test_every_sheet_in.cpp
     tests/reloading/test_reloader.cpp
     tests/reloading/test_file_watcher_listener.cpp
     tests/game/test_game.cpp

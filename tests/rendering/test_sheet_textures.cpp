@@ -34,6 +34,7 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 #include "actor/actor_animation_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "rendering/texture2d.hpp"
+#include "assets/sheet_data.hpp"
 
 TEST_CASE("Every actor's sheet is loaded before anything draws", "[SheetTextures]")
 {
@@ -176,6 +177,26 @@ TEST_CASE("The shipped health icon holds both hearts it names", "[SheetTextures]
     TextureCache textures;
 
     REQUIRE_NOTHROW(warmHealthIcon(textures, gameData.settings.healthIcon));
+}
+
+TEST_CASE("Warming the data loads every texture it names", "[SheetTextures]")
+{
+    GameData gameData;
+    gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
+    gameData.settings.healthIcon.sheet.texture = std::string(assets::TileSetTexture);
+    TextureCache textures;
+
+    warmEverySheetIn(textures, gameData);
+
+    REQUIRE(textures.find(std::string(assets::PlayerTexture)));
+    REQUIRE(textures.find(std::string(assets::TileSetTexture)));
+}
+
+TEST_CASE("Data naming no sheet at all is warmed without complaint", "[SheetTextures]")
+{
+    TextureCache textures;
+
+    REQUIRE_NOTHROW(warmEverySheetIn(textures, GameData{}));
 }
 
 TEST_CASE("A health icon naming a heart its sheet has not got says so", "[SheetTextures]")

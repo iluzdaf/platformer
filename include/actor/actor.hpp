@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <signals.hpp>
 #include "actor/actor_state.hpp"
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
@@ -45,6 +46,7 @@ public:
     const Health &health() const;
     bool alive() const;
     bool takeHit(const Hit &hit);
+    fteng::signal<void()> onHurt, onDeath;
 
 protected:
     explicit Actor(const ActorData &data);

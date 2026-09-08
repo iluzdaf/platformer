@@ -1,5 +1,6 @@
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include "npc/npc.hpp"
 #include "actor/actor.hpp"
@@ -26,6 +27,11 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
 const NpcSpawnData &Npc::getSpawn() const
 {
     return spawn;
+}
+
+const std::string &Npc::type() const
+{
+    return spawn.type;
 }
 
 int Npc::contactDamage() const

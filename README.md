@@ -286,6 +286,11 @@ motion state.**
   depend on an owner, of which there are two and one has no signals. A flag is state: a
   test reads it, and an npc ignores it. And by then the tick is over, so whoever hears
   sees the actor where physics left it.
+- Being hurt and dying are `Actor` signals, so an npc raises them the way the player
+  does. The world connects them to Lua hooks named for who was hit, `onHurt(player)`
+  and `onNpcHurt(npc)`, and passes the actor, so one function serves thirty villagers
+  by asking `npc:type()` or `npc:feet()`. A handler that runs and returns is safe; the
+  signal dies with its actor, so nothing outlives a rebuilt level.
 - `Player` and `Npc` share the pipeline, and differ only in where `InputIntentions`
   come from: the keyboard, or a behaviour walking a navigation graph. What an npc can
   traverse is a profile derived from the same ability data.

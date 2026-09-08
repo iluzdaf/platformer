@@ -15,6 +15,7 @@
 #include "actor/actor.hpp"
 #include "tile_map/touching_tiles.hpp"
 #include "npc/touching_npcs.hpp"
+#include "npc/npc.hpp"
 #include "player/player.hpp"
 #include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
@@ -48,6 +49,11 @@ void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePla
     levelData = fromData;
     level = std::move(built);
     luaScriptSystem.bindLevel(level.get());
+    for (const std::unique_ptr<Npc> &npc : level->getNpcs())
+    {
+        npc->onHurt.connect([this, npc = npc.get()] { luaScriptSystem.emit("onNpcHurt", npc); });
+        npc->onDeath.connect([this, npc = npc.get()] { luaScriptSystem.emit("onNpcDeath", npc); });
+    }
     if (player)
         player->standAt(player->feet() + movingThePlayerBy);
 
@@ -78,7 +84,7 @@ void World::respawnPlayer()
         {player->onFallFromHeight, "onFallFromHeight"},
         {player->onHitCeiling, "onHitCeiling"}};
     for (auto &[signal, hook] : hooks)
-        signal.connect([this, hook] { luaScriptSystem.emit(hook); });
+        signal.connect([this, hook, who = player.get()] { luaScriptSystem.emit(hook, who); });
     luaScriptSystem.bindPlayer(player.get());
 }
 

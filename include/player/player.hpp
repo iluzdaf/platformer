@@ -11,12 +11,10 @@ public:
     Player(const PlayerData &data, const IntentionSource &intentionSource);
     void postFixedUpdate() override;
     void completeLevel();
-    fteng::signal<void()> onLevelComplete, onDeath, onHurt, onFallFromHeight, onHitCeiling,
-        onWallJump, onDash, onWallSliding;
+    fteng::signal<void()> onLevelComplete, onFallFromHeight, onHitCeiling, onWallJump, onDash,
+        onWallSliding;
 
 private:
-    void hurt() override;
-    void died() override;
     PlayerData data;
     bool levelCompleted = false;
 };

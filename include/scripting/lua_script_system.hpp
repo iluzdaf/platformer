@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <sol/sol.hpp>
 #include <vector>
 
@@ -33,7 +34,15 @@ public:
         Camera2D *camera,
         ScreenTransition *screenTransition,
         World *world);
-    void emit(std::string_view hook);
+    template <typename... Args> void emit(std::string_view hook, Args &&...args)
+    {
+        sol::object handler = lua[hook];
+        if (!handler.is<sol::function>())
+            return;
+
+        sol::protected_function call = handler.as<sol::protected_function>();
+        settle(call(std::forward<Args>(args)...), hook);
+    }
     void bindLevel(const Level *level);
     sol::state &getLua();
     void loadScripts();
@@ -43,5 +52,6 @@ private:
     std::string scriptPath;
     sol::state lua;
     std::optional<float> resume(sol::protected_function &co, std::string_view what);
+    std::optional<float> settle(sol::protected_function_result result, std::string_view what);
     std::vector<WaitingCoroutine> waitingCoroutines;
 };

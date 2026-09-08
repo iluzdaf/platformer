@@ -156,9 +156,13 @@ bool Actor::takeHit(const Hit &hit)
     {
         observations.hits.push_back(hit);
         hurt();
+        onHurt();
     }
     else
+    {
         died();
+        onDeath();
+    }
 
     return true;
 }

@@ -22,6 +22,7 @@ void PlayerOverlayUi::draw(
         drawPlayerCollider(imGuiManager, camera, player);
         drawPlayerCollisions(player, fadingAABBs);
         drawContactProbes(imGuiManager, camera, player, fadingAABBs);
+        drawPlayerSwing(imGuiManager, camera, player, fadingAABBs);
     }
 
     drawFadingAABBs(imGuiManager, camera, fadingAABBs);

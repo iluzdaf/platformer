@@ -43,7 +43,9 @@ std::vector<NamedAnimation> animationsOf(const ActorAnimationData &animations)
              {"dash", &animations.dash},
              {"jump", &animations.jump},
              {"fall", &animations.fall},
-             {"wallSlide", &animations.wallSlide}})
+             {"wallSlide", &animations.wallSlide},
+             {"attack", &animations.attack},
+             {"dead", &animations.dead}})
         if (animation->has_value())
             offered.push_back({name, &animation->value()});
 

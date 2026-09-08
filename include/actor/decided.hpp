@@ -11,6 +11,7 @@
 #include "actor/abilities/mantle_ability_state.hpp"
 #include "actor/abilities/gravity_ability_state.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
+#include "actor/abilities/melee_ability_state.hpp"
 
 struct Decided
 {
@@ -27,4 +28,5 @@ struct Decided
     MantleAbilityState mantle;
     GravityAbilityState gravity;
     KnockbackAbilityState knockback;
+    MeleeAbilityState melee;
 };

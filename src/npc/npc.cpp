@@ -34,6 +34,11 @@ const std::string &Npc::type() const
     return spawn.type;
 }
 
+void Npc::died()
+{
+    setBehavior(nullptr);
+}
+
 int Npc::contactDamage() const
 {
     return npcData.contactDamage;

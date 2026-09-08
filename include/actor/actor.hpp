@@ -21,6 +21,7 @@ class TileMap;
 class Level;
 class NavigationGraph;
 struct Hit;
+struct AABB;
 
 class Actor
 {
@@ -46,6 +47,8 @@ public:
     const Health &health() const;
     bool alive() const;
     bool takeHit(const Hit &hit);
+    std::optional<AABB> swing() const;
+    bool strike(Actor &target);
     Event<Actor> onHurt, onDeath;
 
 protected:

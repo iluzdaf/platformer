@@ -5,5 +5,6 @@
 struct InputIntentions
 {
     glm::vec2 direction = {0, 0};
-    bool jumpRequested = false, jumpHeld = false, dashRequested = false, climbRequested = false;
+    bool jumpRequested = false, jumpHeld = false, dashRequested = false, climbRequested = false,
+         attackRequested = false;
 };

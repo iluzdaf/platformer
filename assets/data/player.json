@@ -12,7 +12,8 @@
             "wallClimbAbilityData":{},
             "mantleAbilityData":{},
             "gravityAbilityData":{},
-            "knockbackAbilityData":{}
+            "knockbackAbilityData":{},
+            "meleeAbilityData":{}
         },
         "animationData":{
             "idle":{"frames":[5],"frameDuration":1},
@@ -20,7 +21,8 @@
             "dash":{"frames":[1],"frameDuration":1},
             "jump":{"frames":[4],"frameDuration":1},
             "fall":{"frames":[2],"frameDuration":1},
-            "wallSlide":{"frames":[0],"frameDuration":1}
+            "wallSlide":{"frames":[0],"frameDuration":1},
+            "attack":{"frames":[1],"frameDuration":1}
         },
         "healthData":{"maximum":3,"invulnerableFor":1}
     },

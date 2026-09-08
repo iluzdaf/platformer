@@ -9,7 +9,11 @@ void Animator::animate(float deltaTime, const Decided &decided, const Observed &
 {
     ActorAnimationState newState = currentState;
 
-    if (decided.dash.active)
+    if (!observed.alive)
+        newState = ActorAnimationState::Dead;
+    else if (decided.melee.swinging())
+        newState = ActorAnimationState::Attack;
+    else if (decided.dash.active)
         newState = ActorAnimationState::Dash;
     else if (!observed.contacts.onGround)
     {

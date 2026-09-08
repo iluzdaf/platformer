@@ -12,7 +12,7 @@ public:
     void postFixedUpdate() override;
     void completeLevel();
     Event<Player> onLevelComplete, onFallFromHeight, onHitCeiling, onWallJump, onDash,
-        onWallSliding;
+        onWallSliding, onAttack;
 
 private:
     PlayerData data;

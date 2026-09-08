@@ -57,18 +57,38 @@ TEST_CASE("A swing winds up, strikes, recovers and rests", "[MeleeAbility]")
     REQUIRE_FALSE(decided.melee.swinging());
 }
 
-TEST_CASE("A long step carries a swing through more than one phase", "[MeleeAbility]")
+TEST_CASE("A phase shorter than a step still gets a step, so the strike is seen", "[MeleeAbility]")
 {
     Decided decided;
     Observed observed;
     InputIntentions nothing;
-    MeleeAbility ability(aSwingOf(0.01f, 0.01f, 0.01f));
+    MeleeAbility ability(aSwingOf(0.0f, 0.001f, 0.0f));
 
     ability.decide(Step, pressingAttack(), observed, decided);
-    ability.decide(0.025f, nothing, observed, decided);
+    REQUIRE(decided.melee.phase == MeleePhase::Windup);
 
+    ability.decide(Step, nothing, observed, decided);
+    REQUIRE(decided.melee.striking());
+
+    ability.decide(Step, nothing, observed, decided);
     REQUIRE(decided.melee.phase == MeleePhase::Recovery);
-    REQUIRE(decided.melee.timeLeft == Approx(0.005f));
+
+    ability.decide(Step, nothing, observed, decided);
+    REQUIRE(decided.melee.phase == MeleePhase::Idle);
+}
+
+TEST_CASE("A long phase keeps exact time, and the remainder feeds the next", "[MeleeAbility]")
+{
+    Decided decided;
+    Observed observed;
+    InputIntentions nothing;
+    MeleeAbility ability(aSwingOf(0.05f, 0.1f, 0.05f));
+
+    ability.decide(Step, pressingAttack(), observed, decided);
+    ability.decide(0.06f, nothing, observed, decided);
+
+    REQUIRE(decided.melee.phase == MeleePhase::Active);
+    REQUIRE(decided.melee.timeLeft == Approx(0.09f));
 }
 
 TEST_CASE("A swing says so once, and pressing again mid-swing starts nothing", "[MeleeAbility]")

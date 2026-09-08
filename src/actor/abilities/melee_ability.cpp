@@ -56,22 +56,22 @@ void MeleeAbility::decide(
     }
 
     melee.timeLeft -= deltaTime;
-    while (melee.timeLeft <= 0.0f && melee.phase != MeleePhase::Idle)
+    if (melee.timeLeft > 0.0f)
+        return;
+
+    if (melee.phase == MeleePhase::Windup)
     {
-        if (melee.phase == MeleePhase::Windup)
-        {
-            melee.phase = MeleePhase::Active;
-            melee.timeLeft += data.active;
-        }
-        else if (melee.phase == MeleePhase::Active)
-        {
-            melee.phase = MeleePhase::Recovery;
-            melee.timeLeft += data.recovery;
-        }
-        else
-        {
-            melee.phase = MeleePhase::Idle;
-            melee.timeLeft = 0.0f;
-        }
+        melee.phase = MeleePhase::Active;
+        melee.timeLeft += data.active;
+    }
+    else if (melee.phase == MeleePhase::Active)
+    {
+        melee.phase = MeleePhase::Recovery;
+        melee.timeLeft += data.recovery;
+    }
+    else
+    {
+        melee.phase = MeleePhase::Idle;
+        melee.timeLeft = 0.0f;
     }
 }

@@ -104,10 +104,7 @@ void Game::frame(float deltaTime)
     if (keys.isPressed(GLFW_KEY_S))
         playback.step();
 
-    luaScriptSystem.update(deltaTime);
-    camera.update(deltaTime);
-    screenTransition.update(deltaTime);
-    gameUi.update(deltaTime, world.getLevel(), world.getLevelData(), world.getLevelPath(), camera);
+    advanceOutsidePlayback(deltaTime);
 
     playback.advance(
         deltaTime,
@@ -126,6 +123,14 @@ void Game::frame(float deltaTime)
     camera.follow(world.getPlayer().body().aabb().center());
 
     render();
+}
+
+void Game::advanceOutsidePlayback(float deltaTime)
+{
+    luaScriptSystem.update(deltaTime);
+    camera.update(deltaTime);
+    screenTransition.update(deltaTime);
+    gameUi.update(deltaTime, world.getLevel(), world.getLevelData(), world.getLevelPath(), camera);
 }
 
 void Game::render()

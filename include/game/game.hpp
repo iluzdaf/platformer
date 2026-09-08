@@ -24,6 +24,7 @@ public:
     void frame(float deltaTime);
 
 private:
+    void advanceOutsidePlayback(float deltaTime);
     void render();
 
     Window &window;

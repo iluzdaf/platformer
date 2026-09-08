@@ -15,6 +15,8 @@
 #include "helpers/headless_imgui.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/types_ui.hpp"
+#include "physics/physics_body.hpp"
+#include "physics/physics_body_data.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "assets/sheet_data.hpp"
 #include "ui/editor_commands.hpp"
@@ -211,7 +213,7 @@ TEST_CASE("Types that all name a sheet stop no save", "[TypesUi]")
 {
     GameData gameData = loadGameData();
 
-    REQUIRE_FALSE(typesNamingNoSheet(gameData));
+    REQUIRE_FALSE(aTypeThatCannotBeSaved(gameData));
 }
 
 TEST_CASE("A type naming no sheet is named as the reason a save cannot happen", "[TypesUi]")
@@ -219,7 +221,7 @@ TEST_CASE("A type naming no sheet is named as the reason a save cannot happen", 
     GameData gameData = loadGameData();
     gameData.pickupData.insert({"unfinished", PickupData{}});
 
-    std::optional<std::string> why = typesNamingNoSheet(gameData);
+    std::optional<std::string> why = aTypeThatCannotBeSaved(gameData);
 
     REQUIRE(why);
     REQUIRE(why->contains("unfinished"));
@@ -230,10 +232,60 @@ TEST_CASE("An npc naming no sheet is caught the same way", "[TypesUi]")
     GameData gameData = loadGameData();
     gameData.npcData.insert({"faceless", NpcData{}});
 
-    std::optional<std::string> why = typesNamingNoSheet(gameData);
+    std::optional<std::string> why = aTypeThatCannotBeSaved(gameData);
 
     REQUIRE(why);
     REQUIRE(why->contains("faceless"));
+}
+
+TEST_CASE("An npc whose body nothing can build is the reason a save cannot happen", "[TypesUi]")
+{
+    GameData gameData = loadGameData();
+    PhysicsBodyData &body = gameData.npcData.at("rat").actorData.physicsBodyData;
+    body.colliderSize = glm::vec2(5.0f, 4.0f);
+    body.stepHeight = 3.0f;
+
+    std::optional<std::string> why = aTypeThatCannotBeSaved(gameData);
+
+    REQUIRE(why);
+    REQUIRE(why->contains("rat"));
+    REQUIRE(why->contains("leaves nothing of the body"));
+}
+
+TEST_CASE("The player whose body nothing can build stops the save too", "[TypesUi]")
+{
+    GameData gameData = loadGameData();
+    gameData.playerData.actorData.physicsBodyData.colliderSize = glm::vec2(0.0f, 13.0f);
+
+    std::optional<std::string> why = aTypeThatCannotBeSaved(gameData);
+
+    REQUIRE(why);
+    REQUIRE(why->contains("player"));
+    REQUIRE(why->contains("not one anything can touch"));
+}
+
+TEST_CASE("A body the editor refuses is one the game would refuse too", "[TypesUi]")
+{
+    PhysicsBodyData body;
+    body.colliderSize = glm::vec2(5.0f, 4.0f);
+    body.stepHeight = 3.0f;
+
+    REQUIRE(whyNotABody(body));
+    REQUIRE_THROWS(PhysicsBody(body));
+
+    body.stepHeight = 1.0f;
+
+    REQUIRE_FALSE(whyNotABody(body));
+    REQUIRE_NOTHROW(PhysicsBody(body));
+}
+
+TEST_CASE("A pickup has no body to refuse, not even somebody else's", "[TypesUi]")
+{
+    GameData gameData = loadGameData();
+    gameData.playerData.actorData.physicsBodyData.colliderSize = glm::vec2(0.0f);
+
+    REQUIRE(whyATypeCannotBeSaved(gameData, thePlayer()));
+    REQUIRE_FALSE(whyATypeCannotBeSaved(gameData, TypeShown{TypeShown::What::Pickup, "coin"}));
 }
 
 TEST_CASE("A type just added names no sheet, so it cannot be saved yet", "[TypesUi]")
@@ -242,7 +294,7 @@ TEST_CASE("A type just added names no sheet, so it cannot be saved yet", "[Types
 
     TypeShown added = addTypeTo(gameData, TypeShown::What::Pickup);
 
-    REQUIRE(typesNamingNoSheet(gameData)->contains(added.name));
+    REQUIRE(aTypeThatCannotBeSaved(gameData)->contains(added.name));
 }
 
 TEST_CASE("A type that names a sheet has nothing said against it", "[TypesUi]")
@@ -317,7 +369,7 @@ TEST_CASE("The player naming no sheet is named as the reason a save cannot happe
     GameData gameData = loadGameData();
     gameData.playerData.actorData.sheet.texture.clear();
 
-    std::optional<std::string> why = typesNamingNoSheet(gameData);
+    std::optional<std::string> why = aTypeThatCannotBeSaved(gameData);
 
     REQUIRE(why);
     REQUIRE(why->contains("player"));

@@ -33,7 +33,7 @@ const SheetData *sheetOf(const GameData &gameData, const TypeShown &showing);
 
 std::optional<std::string> whyATypeCannotBeSaved(const GameData &gameData, const TypeShown &type);
 
-std::optional<std::string> typesNamingNoSheet(const GameData &gameData);
+std::optional<std::string> aTypeThatCannotBeSaved(const GameData &gameData);
 
 template <class T> std::string aTypeNameNobodyHasTaken(const std::map<std::string, T> &types)
 {

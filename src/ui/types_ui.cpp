@@ -300,8 +300,8 @@ bool TypesUi::unsavedSince(const GameData &gameData)
 
 std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData) const
 {
-    if (std::optional<std::string> noSheet = typesNamingNoSheet(gameData))
-        return noSheet;
+    if (std::optional<std::string> cannot = aTypeThatCannotBeSaved(gameData))
+        return cannot;
 
     if (std::optional<std::string> npcs = npcRenaming.cannotSaveBecause())
         return npcs;

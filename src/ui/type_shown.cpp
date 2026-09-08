@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include "ui/type_shown.hpp"
+#include "physics/physics_body_data.hpp"
 #include "game/game_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
@@ -57,34 +58,62 @@ namespace
 
         return std::nullopt;
     }
+
+    const PhysicsBodyData *bodyOf(const GameData &gameData, const TypeShown &type)
+    {
+        switch (type.what)
+        {
+        case TypeShown::What::Npc: {
+            auto known = gameData.npcData.find(type.name);
+            return known == gameData.npcData.end() ? nullptr
+                                                   : &known->second.actorData.physicsBodyData;
+        }
+
+        case TypeShown::What::Player:
+            return &gameData.playerData.actorData.physicsBodyData;
+
+        case TypeShown::What::Pickup:
+            break;
+        }
+
+        return nullptr;
+    }
 }
 
 std::optional<std::string> whyATypeCannotBeSaved(const GameData &gameData, const TypeShown &type)
 {
     const SheetData *sheet = sheetOf(gameData, type);
+    if (std::optional<std::string> noSheet = sheet ? whyNot(*sheet) : std::nullopt)
+        return noSheet;
 
-    return sheet ? whyNot(*sheet) : std::nullopt;
+    if (const PhysicsBodyData *body = bodyOf(gameData, type))
+        return whyNotABody(*body);
+
+    return std::nullopt;
 }
 
-std::optional<std::string> typesNamingNoSheet(const GameData &gameData)
+std::optional<std::string> aTypeThatCannotBeSaved(const GameData &gameData)
 {
-    std::string names;
-    auto nameIfCannot = [&](const TypeShown &type)
+    auto reason = [&](const TypeShown &type) -> std::optional<std::string>
     {
-        if (whyATypeCannotBeSaved(gameData, type))
-            names += (names.empty() ? "" : ", ") + type.name;
+        if (std::optional<std::string> why = whyATypeCannotBeSaved(gameData, type))
+            return type.name + " " + *why;
+
+        return std::nullopt;
     };
 
-    nameIfCannot(thePlayer());
+    if (std::optional<std::string> why = reason(thePlayer()))
+        return why;
+
     for (const auto &[name, npc] : gameData.npcData)
-        nameIfCannot(TypeShown{TypeShown::What::Npc, name});
+        if (std::optional<std::string> why = reason(TypeShown{TypeShown::What::Npc, name}))
+            return why;
+
     for (const auto &[name, pickup] : gameData.pickupData)
-        nameIfCannot(TypeShown{TypeShown::What::Pickup, name});
+        if (std::optional<std::string> why = reason(TypeShown{TypeShown::What::Pickup, name}))
+            return why;
 
-    if (names.empty())
-        return std::nullopt;
-
-    return names + " name no sheet to draw from";
+    return std::nullopt;
 }
 
 const SheetData *sheetOf(const GameData &gameData, const TypeShown &showing)

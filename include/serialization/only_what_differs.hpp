@@ -1,39 +1,16 @@
 #pragma once
 
 #include <cstddef>
-#include <map>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
-#include <vector>
 #include <glaze/glaze.hpp>
+#include "serialization/data_shapes.hpp"
 
 namespace differs
 {
-    template <class T> struct IsOptional : std::false_type
-    {
-    };
-    template <class T> struct IsOptional<std::optional<T>> : std::true_type
-    {
-    };
-
-    template <class T> struct IsVector : std::false_type
-    {
-    };
-    template <class T> struct IsVector<std::vector<T>> : std::true_type
-    {
-    };
-
-    template <class T> struct IsMap : std::false_type
-    {
-    };
-    template <class K, class V> struct IsMap<std::map<K, V>> : std::true_type
-    {
-    };
-
     template <class T> std::string compact(const T &value)
     {
         std::string json;
@@ -69,7 +46,7 @@ namespace differs
 
     template <class T> std::string onlyWhatDiffers(const T &value, const T &fromDefault)
     {
-        if constexpr (IsOptional<T>::value)
+        if constexpr (shapes::IsOptional<T>::value)
         {
             if (!value)
                 return "null";
@@ -77,7 +54,7 @@ namespace differs
             using Held = typename T::value_type;
             return onlyWhatDiffers(*value, fromDefault ? *fromDefault : Held{});
         }
-        else if constexpr (IsVector<T>::value)
+        else if constexpr (shapes::IsVector<T>::value)
         {
             using Held = typename T::value_type;
             std::string out = "[";
@@ -86,7 +63,7 @@ namespace differs
 
             return out + "]";
         }
-        else if constexpr (IsMap<T>::value)
+        else if constexpr (shapes::IsMap<T>::value)
         {
             using Held = typename T::mapped_type;
             std::string out = "{";

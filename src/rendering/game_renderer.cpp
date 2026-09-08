@@ -33,6 +33,8 @@ GameRenderer::GameRenderer()
 
 void GameRenderer::warm(const GameData &gameData)
 {
+    warmEverySheetIn(textures, gameData);
+
     warmTileSets(textures, gameData.tilePalettes);
     warmActorTextures(textures, gameData.playerData, gameData.npcData);
     warmPickupTextures(textures, gameData.pickupData);

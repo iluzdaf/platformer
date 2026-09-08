@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include "physics/physics_body.hpp"
@@ -12,21 +13,13 @@
 namespace
 {
     constexpr float ContactProbeDepth = 0.1f;
-    constexpr float HeadroomFraction = 0.25f;
+    constexpr float HeadroomFraction = BodyHeadroomFraction;
 }
 
 PhysicsBody::PhysicsBody(const PhysicsBodyData &data) : data(data)
 {
-    if (data.colliderSize.x <= 0.0f || data.colliderSize.y <= 0.0f)
-        throw std::runtime_error("A collider of no size is not one anything can touch");
-
-    if (data.stepHeight < 0.0f)
-        throw std::runtime_error("A step height below 0 is not a height");
-
-    if (data.stepHeight >= data.colliderSize.y * (1.0f - HeadroomFraction))
-        throw std::runtime_error(
-            "A step height of " + std::to_string(data.stepHeight) +
-            " leaves nothing of the body to walk into a wall with");
+    if (std::optional<std::string> why = whyNotABody(data))
+        throw std::runtime_error("A body " + *why);
 }
 
 void PhysicsBody::setPosition(const glm::vec2 &newPosition)

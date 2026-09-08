@@ -1,7 +1,8 @@
 {
     "coin":{
-        "sheet":{"texture":"textures/coin.png"},
-        "animationData":{"frames":[0,1,2,3,4,5,6,7,8,9],"frameDuration":0.075},
+        "sheet":{"texture":"textures/coin.png","cellSize":[32,32]},
+        "animationData":{"frames":[0,1,2,3,4,5,6,7],"frameDuration":0.08},
+        "size":[16,16],
         "scoreDelta":10
     }
 }

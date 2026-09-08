@@ -162,30 +162,28 @@ TEST_CASE("A walk edge is drawn straight", "[NavigationGraphBuilder][Jump]")
             REQUIRE(edge.path.empty());
 }
 
-TEST_CASE(
-    "The shipped explorer can cross the gap in level6",
-    "[NavigationGraphBuilder][Jump][Level]")
+TEST_CASE("The shipped spider can cross the gap in level6", "[NavigationGraphBuilder][Jump][Level]")
 {
     GameData gameData = loadGameData();
 
-    NavigationProfile explorer = buildNavigationProfile(gameData.npcData.at("explorer").actorData);
+    NavigationProfile spider = buildNavigationProfile(gameData.npcData.at("spider").actorData);
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
-    NavigationGraph graph = buildNavigationGraph(tileMap, explorer);
+    NavigationGraph graph = buildNavigationGraph(tileMap, spider);
 
     REQUIRE(countEdgesOfType(graph, EdgeType::Jump) > 0);
 }
 
 TEST_CASE(
-    "The shipped explorer can get up to level6's top platform and back",
+    "The shipped spider can get up to level6's top platform and back",
     "[NavigationGraphBuilder][Jump][Level]")
 {
     GameData gameData = loadGameData();
 
-    NavigationProfile explorer = buildNavigationProfile(gameData.npcData.at("explorer").actorData);
+    NavigationProfile spider = buildNavigationProfile(gameData.npcData.at("spider").actorData);
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
-    NavigationGraph graph = buildNavigationGraph(tileMap, explorer);
+    NavigationGraph graph = buildNavigationGraph(tileMap, spider);
 
     int topPlatformId = -1;
     for (const auto &[id, node] : graph.getNodes())
@@ -224,7 +222,7 @@ TEST_CASE(
         return false;
     };
 
-    REQUIRE(reachesEverySurface(gameData.npcData.at("explorer").actorData));
+    REQUIRE(reachesEverySurface(gameData.npcData.at("spider").actorData));
     REQUIRE(reachesEverySurface(gameData.playerData.actorData));
 }
 
@@ -236,7 +234,7 @@ TEST_CASE(
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
     NavigationGraph graph = buildNavigationGraph(
-        tileMap, buildNavigationProfile(gameData.npcData.at("explorer").actorData));
+        tileMap, buildNavigationProfile(gameData.npcData.at("spider").actorData));
 
     float floorY = 192.0f;
     bool getsOffTheFloor = false;

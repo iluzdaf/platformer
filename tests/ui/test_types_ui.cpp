@@ -30,7 +30,7 @@ namespace
     GameData twoOfEach()
     {
         GameData gameData;
-        gameData.npcData = {{"rat", NpcData{}}, {"explorer", NpcData{}}};
+        gameData.npcData = {{"rat", NpcData{}}, {"spider", NpcData{}}};
         gameData.pickupData = {{"coin", PickupData{}}, {"gem", PickupData{}}};
         return gameData;
     }
@@ -515,7 +515,7 @@ TEST_CASE("A type cannot take the name of another of its kind", "[TypesUi]")
     TypeRenaming renaming;
     auto drawing = renaming.drawing(typesUi, gameData);
 
-    gui.type("##name", "explorer", drawing);
+    gui.type("##name", "spider", drawing);
     gui.pressEnter(drawing);
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));

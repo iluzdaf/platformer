@@ -11,6 +11,8 @@
 #include "helpers/tiles.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/shipped.hpp"
+#include "actor/actor_animation_state.hpp"
+#include "actor/actor_state.hpp"
 #include "npc/npc.hpp"
 #include "player/player.hpp"
 #include "npc/touching_npcs.hpp"
@@ -66,12 +68,12 @@ TEST_CASE("The shipped rat bites whoever stands in it", "[Npc]")
     REQUIRE(player.health().lastHit()->direction.x != 0.0f);
 }
 
-TEST_CASE("The shipped explorer walks up from the ground to a ledge and back", "[Npc][Level]")
+TEST_CASE("The shipped spider walks up from the ground to a ledge and back", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("explorer", OnTheGround, OnTheGround, LedgeLeftEnd);
+    NpcSpawnData spawn = patrolling("spider", OnTheGround, OnTheGround, LedgeLeftEnd);
     Level level = levelWithALedgeAndAWall({spawn});
 
-    Npc npc(spawn, shippedNpcData().at("explorer"));
+    Npc npc(spawn, shippedNpcData().at("spider"));
 
     const float topOfTheLedge = surfaceOf(LedgeRow);
     const float theGround = surfaceOf(GroundRow);
@@ -253,19 +255,19 @@ TEST_CASE("The shipped rat pays no mind to a player on the platform below", "[Np
     REQUIRE(rightMost - leftMost > 64.0f);
 }
 
-TEST_CASE("The shipped explorer climbs the wall above the ledge", "[Npc][Level][Climb]")
+TEST_CASE("The shipped spider climbs the wall above the ledge", "[Npc][Level][Climb]")
 {
-    NpcSpawnData spawn = patrolling("explorer", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
     Level level = levelWithALedgeAndAWall({spawn});
 
-    Npc npc(spawn, shippedNpcData().at("explorer"));
+    Npc npc(spawn, shippedNpcData().at("spider"));
 
     const float theLedge = surfaceOf(LedgeRow);
     const float topOfTheFace = surfaceOf(1);
 
     float highest = footOf(npc).y;
     int reachedTheTopAt = -1;
-    bool cameBackDown = false;
+    bool cameBackDown = false, showedTheClimb = false;
     for (int step = 0; step < 4000; ++step)
     {
         npc.beginFrame();
@@ -275,10 +277,13 @@ TEST_CASE("The shipped explorer climbs the wall above the ledge", "[Npc][Level][
             reachedTheTopAt = step;
         if (reachedTheTopAt >= 0 && footOf(npc).y >= theLedge - 1.0f)
             cameBackDown = true;
+        if (npc.state().currentAnimationState == ActorAnimationState::Climb)
+            showedTheClimb = true;
     }
 
     INFO("highest foot reached " << highest << " at step " << reachedTheTopAt);
     REQUIRE(highest <= topOfTheFace + 1.0f);
     REQUIRE(cameBackDown);
     REQUIRE(reachedTheTopAt < 270);
+    REQUIRE(showedTheClimb);
 }

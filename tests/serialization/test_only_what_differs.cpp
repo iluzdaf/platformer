@@ -101,9 +101,9 @@ TEST_CASE("An item in a list keeps only what differs from a new one", "[OnlyWhat
 {
     std::vector<NpcSpawnData> npcs{
         NpcSpawnData{"rat", glm::vec2(8.0f, 32.0f), std::nullopt},
-        NpcSpawnData{"explorer", glm::vec2(0.0f), std::nullopt}};
+        NpcSpawnData{"spider", glm::vec2(0.0f), std::nullopt}};
 
-    REQUIRE(onlyWhatDiffers(npcs) == R"([{"type":"rat","feet":[8,32]},{"type":"explorer"}])");
+    REQUIRE(onlyWhatDiffers(npcs) == R"([{"type":"rat","feet":[8,32]},{"type":"spider"}])");
 }
 
 TEST_CASE("What was left out reads back as the default it was", "[OnlyWhatDiffers]")
@@ -111,7 +111,7 @@ TEST_CASE("What was left out reads back as the default it was", "[OnlyWhatDiffer
     LevelData level;
     level.tileMapData.indices = {{0, 1}};
     level.tileMapData.tilePalette = "cave";
-    level.npcs = {NpcSpawnData{"explorer", glm::vec2(0.0f), std::nullopt}};
+    level.npcs = {NpcSpawnData{"spider", glm::vec2(0.0f), std::nullopt}};
 
     LevelData back;
     REQUIRE_FALSE(glz::read_json(back, onlyWhatDiffers(level)));

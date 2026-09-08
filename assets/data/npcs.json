@@ -1,26 +1,4 @@
 {
-    "explorer":{
-        "actorData":{
-            "sheet":{"texture":"textures/explorer.png"},
-            "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
-            "motionData":{
-                "moveAbilityData":{"moveSpeed":90},
-                "jumpAbilityData":{"jumpSpeed":-320},
-                "wallHangAbilityData":{},
-                "wallClimbAbilityData":{"climbSpeed":70},
-                "mantleAbilityData":{},
-                "gravityAbilityData":{}
-            },
-            "animationData":{
-                "idle":{"frames":[2],"frameDuration":1},
-                "walk":{"frames":[3,1],"frameDuration":0.15},
-                "fall":{"frames":[0],"frameDuration":1},
-                "dead":{"frames":[0],"frameDuration":1}
-            }
-        },
-        "stateMachineBehaviorData":{"states":[{"name":"patrol","patrolBehaviorData":{}}]},
-        "contactDamage":1
-    },
     "rat":{
         "actorData":{
             "sheet":{"texture":"textures/rat.png","cellSize":[32,32]},
@@ -44,6 +22,32 @@
                 {"from":"flee","to":"patrol","threatOnMySurface":false,"after":1.5}
             ]
         },
+        "contactDamage":1
+    },
+    "spider":{
+        "actorData":{
+            "sheet":{"texture":"textures/spider.png","cellSize":[32,32]},
+            "size":[16,16],
+            "physicsBodyData":{"colliderSize":[8,8],"colliderOffset":[4,8]},
+            "motionData":{
+                "moveAbilityData":{"moveSpeed":90},
+                "jumpAbilityData":{"jumpSpeed":-320},
+                "wallHangAbilityData":{},
+                "wallClimbAbilityData":{"climbSpeed":70},
+                "mantleAbilityData":{},
+                "gravityAbilityData":{}
+            },
+            "animationData":{
+                "idle":{"frames":[0,1],"frameDuration":0.5},
+                "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
+                "jump":{"frames":[6],"frameDuration":1},
+                "fall":{"frames":[6],"frameDuration":1},
+                "wallSlide":{"frames":[7],"frameDuration":1},
+                "climb":{"frames":[8,9],"frameDuration":0.15},
+                "dead":{"frames":[10],"frameDuration":1}
+            }
+        },
+        "stateMachineBehaviorData":{"states":[{"name":"patrol","patrolBehaviorData":{}}]},
         "contactDamage":1
     }
 }

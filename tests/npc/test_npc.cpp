@@ -418,9 +418,9 @@ TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level
 TEST_CASE("A beat ending partway up a wall is climbed to and no further", "[Npc][Level][Climb]")
 {
     NpcSpawnData spawn =
-        patrolling("explorer", LedgeRightEnd, LedgeRightEnd, glm::ivec2(1, LedgeRow - 3));
+        patrolling("spider", LedgeRightEnd, LedgeRightEnd, glm::ivec2(1, LedgeRow - 3));
     Level level = levelWithALedgeAndAWall({spawn});
-    Npc npc(spawn, shippedNpcData().at("explorer"));
+    Npc npc(spawn, shippedNpcData().at("spider"));
 
     float highest = footOf(npc).y;
     for (int step = 0; step < 4000; ++step)
@@ -461,7 +461,7 @@ TEST_CASE("An npc drops off a platform to a beat end below its edge", "[Npc]")
 
 TEST_CASE("A patrolling npc says which node it set off from and where it is headed", "[Npc]")
 {
-    NpcSpawnData spawn = patrolling("explorer", OnTheGround, OnTheGround, LedgeLeftEnd);
+    NpcSpawnData spawn = patrolling("spider", OnTheGround, OnTheGround, LedgeLeftEnd);
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at(spawn.type));

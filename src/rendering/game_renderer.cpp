@@ -34,12 +34,7 @@ GameRenderer::GameRenderer()
 void GameRenderer::warm(const GameData &gameData)
 {
     warmEverySheetIn(textures, gameData);
-
-    warmTileSets(textures, gameData.tilePalettes);
-    warmActorTextures(textures, gameData.playerData, gameData.npcData);
-    warmPickupTextures(textures, gameData.pickupData);
-    warmScoreIcon(textures, gameData.settings.scoreIcon);
-    warmHealthIcon(textures, gameData.settings.healthIcon);
+    checkEverythingFits(textures, gameData);
 }
 
 void GameRenderer::warmTexture(const std::string &texturePath)

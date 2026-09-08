@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <type_traits>
 #include <utility>
 #include <glaze/glaze.hpp>
 #include "serialization/data_shapes.hpp"
@@ -18,14 +17,6 @@ namespace differs
             throw std::runtime_error("Failed to serialise for the file");
 
         return json;
-    }
-
-    template <class K> std::string keyText(const K &key)
-    {
-        if constexpr (std::is_arithmetic_v<K>)
-            return std::to_string(key);
-        else
-            return std::string(key);
     }
 
     template <class T> std::string onlyWhatDiffers(const T &value, const T &fromDefault);
@@ -70,7 +61,7 @@ namespace differs
             bool first = true;
             for (const auto &[key, held] : value)
             {
-                out += (first ? "" : ",") + compact(keyText(key)) + ":" +
+                out += (first ? "" : ",") + compact(shapes::keyText(key)) + ":" +
                        onlyWhatDiffers(held, Held{});
                 first = false;
             }

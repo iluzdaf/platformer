@@ -2,6 +2,7 @@
 
 #include <map>
 #include <optional>
+#include <string>
 #include <type_traits>
 #include <vector>
 
@@ -27,4 +28,12 @@ namespace shapes
     template <class K, class V> struct IsMap<std::map<K, V>> : std::true_type
     {
     };
+
+    template <class K> std::string keyText(const K &key)
+    {
+        if constexpr (std::is_arithmetic_v<K>)
+            return std::to_string(key);
+        else
+            return std::string(key);
+    }
 }

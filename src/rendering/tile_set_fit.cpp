@@ -8,9 +8,9 @@
 
 namespace
 {
-    std::string named(const std::string &paletteName)
+    std::string named(const std::string &whose)
     {
-        return " for palette \"" + paletteName + "\"";
+        return " for " + whose;
     }
 }
 
@@ -24,31 +24,31 @@ int tilesInSheet(int textureWidth, int textureHeight, int tileSize)
 
 void checkTileSetFits(
     const TilePaletteData &palette,
-    const std::string &paletteName,
+    const std::string &whose,
     int textureWidth,
     int textureHeight)
 {
     const SheetData &tileSet = palette.tileSet;
     if (tileSet.cellSize.x <= 0)
-        throw std::runtime_error("A tile set cell must be wider than 0" + named(paletteName));
+        throw std::runtime_error("A tile set cell must be wider than 0" + named(whose));
 
     int cells = tilesInSheet(textureWidth, textureHeight, tileSet.cellSize.x);
     if (cells <= 0)
         throw std::runtime_error(
             "Tile set \"" + tileSet.texture + "\" holds no whole tiles at " +
-            std::to_string(tileSet.cellSize.x) + " across" + named(paletteName));
+            std::to_string(tileSet.cellSize.x) + " across" + named(whose));
     for (const auto &[tileIndex, tileData] : palette.tiles)
     {
         if (tileIndex >= cells)
             throw std::runtime_error(
                 "Tile " + std::to_string(tileIndex) + " is past the " + std::to_string(cells) +
-                " tiles of \"" + tileSet.texture + "\"" + named(paletteName));
+                " tiles of \"" + tileSet.texture + "\"" + named(whose));
 
         if (tileData.animationData)
             checkFramesFit(
                 tileData.animationData->frames,
                 tileSet,
-                "Tile " + std::to_string(tileIndex) + named(paletteName),
+                "Tile " + std::to_string(tileIndex) + named(whose),
                 textureWidth,
                 textureHeight);
     }

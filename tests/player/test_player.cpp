@@ -276,6 +276,18 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
         simulatePlayer(player, input, tileMap, 0.01f, inputIntentions);
         REQUIRE(dashTriggered);
     }
+
+    SECTION("onAttack, once per swing")
+    {
+        player.standAt(feetOf(glm::ivec2(1, 18)));
+        simulatePlayer(player, input, tileMap, 0.1f);
+        int attacks = 0;
+        player.onAttack.connect([&] { ++attacks; });
+        InputIntentions inputIntentions;
+        inputIntentions.attackRequested = true;
+        simulatePlayer(player, input, tileMap, 0.05f, inputIntentions);
+        REQUIRE(attacks == 1);
+    }
 }
 
 TEST_CASE("A player cannot move or jump into a solid tile", "[Player]")

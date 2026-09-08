@@ -16,6 +16,7 @@ public:
     int contactDamage() const;
 
 private:
+    void died() override;
     NpcSpawnData spawn;
     NpcData npcData;
 };

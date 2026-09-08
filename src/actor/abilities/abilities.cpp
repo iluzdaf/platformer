@@ -12,6 +12,7 @@
 #include "actor/abilities/mantle_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "actor/abilities/knockback_ability.hpp"
+#include "actor/abilities/melee_ability.hpp"
 #include <memory>
 
 Abilities::Abilities(const ActorMotionData &data)
@@ -36,6 +37,8 @@ Abilities::Abilities(const ActorMotionData &data)
         abilities.push_back(std::make_unique<GravityAbility>(data.gravityAbilityData.value()));
     if (data.knockbackAbilityData)
         abilities.push_back(std::make_unique<KnockbackAbility>(data.knockbackAbilityData.value()));
+    if (data.meleeAbilityData)
+        abilities.push_back(std::make_unique<MeleeAbility>(data.meleeAbilityData.value()));
 }
 
 void Abilities::decide(

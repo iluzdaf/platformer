@@ -14,6 +14,7 @@
 #include "actor/actor.hpp"
 #include "tile_map/touching_tiles.hpp"
 #include "npc/touching_npcs.hpp"
+#include "npc/striking_npcs.hpp"
 #include "npc/npc.hpp"
 #include "player/player.hpp"
 #include "input/intention_source.hpp"
@@ -80,6 +81,7 @@ void World::respawnPlayer()
     hear(player->onHurt, "onHurt");
     hear(player->onWallJump, "onWallJump");
     hear(player->onDash, "onDash");
+    hear(player->onAttack, "onAttack");
     hear(player->onWallSliding, "onWallSliding");
     hear(player->onFallFromHeight, "onFallFromHeight");
     hear(player->onHitCeiling, "onHitCeiling");
@@ -97,6 +99,7 @@ void World::fixedUpdate(float deltaTime)
     level->fixedUpdate(deltaTime, player->feet());
     player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
 
+    strikeNpcs(*player.get(), level->getNpcs());
     touchTiles(*player.get(), level->getTileMap());
     touchNpcs(*player.get(), level->getNpcs());
 

@@ -14,7 +14,8 @@
             "animationData":{
                 "idle":{"frames":[2],"frameDuration":1},
                 "walk":{"frames":[3,1],"frameDuration":0.15},
-                "fall":{"frames":[0],"frameDuration":1}
+                "fall":{"frames":[0],"frameDuration":1},
+                "dead":{"frames":[0],"frameDuration":1}
             }
         },
         "stateMachineBehaviorData":{"states":[{"name":"patrol","patrolBehaviorData":{}}]},
@@ -28,7 +29,8 @@
             "animationData":{
                 "idle":{"frames":[2],"frameDuration":1},
                 "walk":{"frames":[3,1],"frameDuration":0.15},
-                "fall":{"frames":[0],"frameDuration":1}
+                "fall":{"frames":[0],"frameDuration":1},
+                "dead":{"frames":[0],"frameDuration":1}
             }
         },
         "stateMachineBehaviorData":{

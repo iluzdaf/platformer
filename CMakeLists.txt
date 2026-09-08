@@ -142,6 +142,7 @@ add_library(platformer_lib OBJECT
     src/tile_map/tile.cpp
     src/tile_map/touching_tiles.cpp
     src/npc/touching_npcs.cpp
+    src/npc/striking_npcs.cpp
 
     src/player/player.cpp
     src/actor/actor.cpp
@@ -200,6 +201,7 @@ add_library(platformer_lib OBJECT
     src/actor/abilities/jump_ability.cpp
     src/actor/abilities/dash_ability.cpp
     src/actor/abilities/knockback_ability.cpp
+    src/actor/abilities/melee_ability.cpp
 
     src/actor/abilities/move_ability.cpp
     src/actor/abilities/wall_slide_ability.cpp
@@ -363,6 +365,7 @@ add_executable(tests
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/npc/test_touching_npcs.cpp
+    tests/npc/test_striking_npcs.cpp
 
     tests/npc/test_shipped_npcs.cpp
     tests/pickups/test_pickup_data.cpp
@@ -385,6 +388,7 @@ add_executable(tests
     tests/actor/abilities/test_jump_ability.cpp
     tests/actor/abilities/test_dash_ability.cpp
     tests/actor/abilities/test_knockback_ability.cpp
+    tests/actor/abilities/test_melee_ability.cpp
 
     tests/actor/abilities/test_move_ability.cpp
     tests/actor/abilities/test_wall_slide_ability.cpp

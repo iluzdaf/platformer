@@ -28,6 +28,9 @@ void Player::postFixedUpdate()
     if (decided().dash.emit)
         onDash();
 
+    if (decided().melee.emit)
+        onAttack();
+
     if (decided().wallJump.emit)
         onWallJump();
 

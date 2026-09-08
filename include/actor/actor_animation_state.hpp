@@ -7,7 +7,9 @@ enum class ActorAnimationState
     Dash,
     Jump,
     Fall,
-    WallSlide
+    WallSlide,
+    Attack,
+    Dead
 };
 
 inline const char *toString(ActorAnimationState state)
@@ -26,6 +28,10 @@ inline const char *toString(ActorAnimationState state)
         return "WallSlide";
     case ActorAnimationState::Dash:
         return "Dash";
+    case ActorAnimationState::Attack:
+        return "Attack";
+    case ActorAnimationState::Dead:
+        return "Dead";
     default:
         return "Unknown";
     }

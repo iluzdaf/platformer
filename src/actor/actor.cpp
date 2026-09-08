@@ -1,7 +1,10 @@
+#include <algorithm>
 #include <optional>
 #include <string_view>
 #include "actor/actor.hpp"
 #include "actor/hit.hpp"
+#include "actor/abilities/melee_ability_state.hpp"
+#include "physics/aabb.hpp"
 #include "actor/observing.hpp"
 #include "actor/observed.hpp"
 #include "actor/decided.hpp"
@@ -40,6 +43,10 @@ Actor::Actor(const ActorData &data)
     if (animationData.wallSlide)
         animator.add(
             ActorAnimationState::WallSlide, FrameAnimation(animationData.wallSlide.value()));
+    if (animationData.attack)
+        animator.add(ActorAnimationState::Attack, FrameAnimation(animationData.attack.value()));
+    if (animationData.dead)
+        animator.add(ActorAnimationState::Dead, FrameAnimation(animationData.dead.value()));
 }
 
 void Actor::postFixedUpdate()
@@ -55,6 +62,7 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
 {
     const TileMap &tileMap = level.getTileMap();
     hp.update(deltaTime);
+    observations.alive = hp.alive();
     ActorBehaviorContext context = behaviorContext(level.graphFor(navigationProfile), threatFeet);
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
@@ -75,6 +83,7 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
         actorState.facingLeft = observations.velocity.x > 0
                                     ? false
                                     : (observations.velocity.x < 0 ? true : actorState.facingLeft);
+    observations.facingLeft = actorState.facingLeft;
     actorState.currentFrame = animator.playing().frame();
     actorState.currentAnimationState = animator.state();
 }
@@ -164,6 +173,37 @@ bool Actor::takeHit(const Hit &hit)
         onDeath();
     }
 
+    return true;
+}
+
+std::optional<AABB> Actor::swing() const
+{
+    const MeleeAbilityState &melee = decisions.melee;
+    if (!melee.striking())
+        return std::nullopt;
+
+    AABB collider = physicsBody.aabb();
+    float x = melee.direction < 0.0f ? collider.left() - melee.reach.x : collider.right();
+    return AABB{glm::vec2(x, collider.center().y - melee.reach.y * 0.5f), melee.reach};
+}
+
+bool Actor::strike(Actor &target)
+{
+    std::optional<AABB> reach = swing();
+    if (!reach || &target == this)
+        return false;
+
+    MeleeAbilityState &melee = decisions.melee;
+    if (std::ranges::find(melee.struck, &target) != melee.struck.end())
+        return false;
+
+    if (!reach->intersects(target.body().touchBox()))
+        return false;
+
+    if (!target.takeHit(Hit{melee.damage, glm::vec2(melee.direction, 0.0f), false}))
+        return false;
+
+    melee.struck.push_back(&target);
     return true;
 }
 

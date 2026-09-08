@@ -383,6 +383,31 @@ TEST_CASE(
     REQUIRE(luaScriptSystem.getLua()["deadAt"].get<glm::vec2>() == npc.feet());
 }
 
+TEST_CASE("A swing that kills an npc reaches the script's onNpcDeath", "[World]")
+{
+    std::filesystem::path script =
+        std::filesystem::temp_directory_path() / "platformer_world_swing.lua";
+    std::ofstream(script) << "function onNpcDeath(npc) dead = npc:type() end\n";
+    GameData gameData = aFloorWorldWithCoins();
+    NpcData villager = setupNpcData();
+    gameData.npcData = {{"villager", villager}};
+    ScriptedIntentions intentions;
+    InputIntentions attacking;
+    attacking.attackRequested = true;
+    intentions.set(attacking);
+    LuaScriptSystem luaScriptSystem(script.string());
+    World world(gameData, intentions, luaScriptSystem);
+    TemporaryLevels levels("world_swing");
+    levels.write(
+        "floor.json", aFloorLevelPlacing({spawnAt("villager", glm::ivec2(2, FloorLevelStanding))}));
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    walkFor(world, 12);
+
+    REQUIRE_FALSE(world.getLevel().getNpcs().front()->alive());
+    REQUIRE(luaScriptSystem.getLua()["dead"].get<std::string>() == "villager");
+}
+
 TEST_CASE("Bumping into an npc that bites costs the player a point", "[World]")
 {
     GameData gameData = aFloorWorldWithCoins();

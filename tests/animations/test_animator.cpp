@@ -5,6 +5,7 @@
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "actor/decided.hpp"
+#include "actor/abilities/melee_ability_state.hpp"
 #include "actor/observed.hpp"
 
 namespace
@@ -78,4 +79,24 @@ TEST_CASE("Off the ground, the observed velocity says whether it is a jump or a 
     airborne.velocity = glm::vec2(0.0f, 40.0f);
     animator.animate(0.01f, Decided{}, airborne);
     REQUIRE(animator.state() == ActorAnimationState::Fall);
+}
+
+TEST_CASE("A swing shows the attack, and a corpse shows dead, over everything else", "[Animator]")
+{
+    Animator animator;
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(ActorAnimationState::Dash, animationOfFrame(2));
+    animator.add(ActorAnimationState::Attack, animationOfFrame(3));
+    animator.add(ActorAnimationState::Dead, animationOfFrame(4));
+    Decided swingingWhileDashing;
+    swingingWhileDashing.dash.active = true;
+    swingingWhileDashing.melee.phase = MeleePhase::Windup;
+
+    animator.animate(0.01f, swingingWhileDashing, walkingOnGround());
+    REQUIRE(animator.state() == ActorAnimationState::Attack);
+
+    Observed dead = walkingOnGround();
+    dead.alive = false;
+    animator.animate(0.01f, swingingWhileDashing, dead);
+    REQUIRE(animator.state() == ActorAnimationState::Dead);
 }

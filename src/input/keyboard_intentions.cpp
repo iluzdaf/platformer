@@ -11,6 +11,7 @@ KeyboardIntentions::KeyboardIntentions()
     keys.registerKey(GLFW_KEY_Z);
     keys.registerKey(GLFW_KEY_X);
     keys.registerKey(GLFW_KEY_C);
+    keys.registerKey(GLFW_KEY_V);
 }
 
 void KeyboardIntentions::process(const KeysDown &keysDown)
@@ -20,6 +21,7 @@ void KeyboardIntentions::process(const KeysDown &keysDown)
     intentions.jumpRequested = keys.isPressed(GLFW_KEY_C);
     intentions.jumpHeld = keys.isDown(GLFW_KEY_C);
     intentions.dashRequested = keys.isPressed(GLFW_KEY_X);
+    intentions.attackRequested = keys.isPressed(GLFW_KEY_V);
     intentions.climbRequested = keys.isDown(GLFW_KEY_Z);
     intentions.direction = {
         keys.isDown(GLFW_KEY_LEFT) ? -1.0f : (keys.isDown(GLFW_KEY_RIGHT) ? 1.0f : 0.0f),

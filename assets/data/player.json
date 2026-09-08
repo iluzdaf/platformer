@@ -1,6 +1,7 @@
 {
     "actorData":{
-        "sheet":{"texture":"textures/player.png"},
+        "sheet":{"texture":"textures/player.png","cellSize":[32,32]},
+        "size":[16,16],
         "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
         "motionData":{
             "moveAbilityData":{"moveSpeed":110},
@@ -16,13 +17,16 @@
             "meleeAbilityData":{}
         },
         "animationData":{
-            "idle":{"frames":[5],"frameDuration":1},
-            "walk":{"frames":[6,3],"frameDuration":0.15},
-            "dash":{"frames":[1],"frameDuration":1},
-            "jump":{"frames":[4],"frameDuration":1},
-            "fall":{"frames":[2],"frameDuration":1},
-            "wallSlide":{"frames":[0],"frameDuration":1},
-            "attack":{"frames":[1],"frameDuration":1}
+            "idle":{"frames":[0,1],"frameDuration":0.6},
+            "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
+            "dash":{"frames":[8],"frameDuration":1},
+            "jump":{"frames":[6],"frameDuration":1},
+            "fall":{"frames":[7],"frameDuration":1},
+            "wallSlide":{"frames":[9],"frameDuration":1},
+            "climb":{"frames":[10,11],"frameDuration":0.15},
+            "attack":{"frames":[12,13,14]},
+            "knockback":{"frames":[15],"frameDuration":1},
+            "dead":{"frames":[16],"frameDuration":1}
         },
         "healthData":{"maximum":3,"invulnerableFor":1}
     },

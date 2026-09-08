@@ -11,6 +11,11 @@
 #include "helpers/player_fixtures.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/palettes.hpp"
+#include "helpers/npc_fixtures.hpp"
+#include "npc/npc.hpp"
+#include "npc/npc_data.hpp"
+#include "npc/npc_spawn_data.hpp"
+#include <optional>
 
 namespace
 {
@@ -156,6 +161,23 @@ TEST_CASE("A player says hurt while alive and dead once, whatever keeps hitting"
     player.takeHit(aHitOf(1));
     player.takeHit(aHitOf(1));
     player.takeHit(lethalHit());
+
+    REQUIRE(hurts == 1);
+    REQUIRE(deaths == 1);
+}
+
+TEST_CASE("An npc says hurt and dead the same way the player does", "[Health]")
+{
+    NpcData npcData = setupNpcData();
+    npcData.actorData.healthData = HealthData{2, 0.0f};
+    Npc npc(NpcSpawnData{"villager", glm::vec2(0.0f), std::nullopt}, npcData);
+    int hurts = 0, deaths = 0;
+    npc.onHurt.connect([&] { ++hurts; });
+    npc.onDeath.connect([&] { ++deaths; });
+
+    npc.takeHit(aHitOf(1));
+    npc.takeHit(aHitOf(1));
+    npc.takeHit(aHitOf(1));
 
     REQUIRE(hurts == 1);
     REQUIRE(deaths == 1);

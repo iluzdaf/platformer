@@ -10,6 +10,8 @@
 #include "cameras/camera2d.hpp"
 #include "rendering/screen_transition.hpp"
 #include "player/player.hpp"
+#include "npc/npc.hpp"
+#include "actor/actor.hpp"
 #include "game/playback.hpp"
 #include "game/level.hpp"
 
@@ -36,7 +38,10 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         "Playback", "pause", &Playback::pause, "play", &Playback::play, "step", &Playback::step);
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
     lua.new_usertype<Level>("Level", "getNextLevel", &Level::getNextLevel);
-    lua.new_usertype<Player>("Player", "standAt", &Player::standAt);
+    lua.new_usertype<Actor>(
+        "Actor", "feet", &Actor::feet, "standAt", &Actor::standAt, "alive", &Actor::alive);
+    lua.new_usertype<Player>("Player", sol::base_classes, sol::bases<Actor>());
+    lua.new_usertype<Npc>("Npc", "type", &Npc::type, sol::base_classes, sol::bases<Actor>());
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
 
     lua.set_function(
@@ -90,7 +95,13 @@ void LuaScriptSystem::bindGameObjects(
 
 std::optional<float> LuaScriptSystem::resume(sol::protected_function &co, std::string_view what)
 {
-    sol::protected_function_result result = co();
+    return settle(co(), what);
+}
+
+std::optional<float> LuaScriptSystem::settle(
+    sol::protected_function_result result,
+    std::string_view what)
+{
     if (!result.valid())
     {
         sol::error error = result;
@@ -103,16 +114,6 @@ std::optional<float> LuaScriptSystem::resume(sol::protected_function &co, std::s
         return yielded.as<float>();
 
     return std::nullopt;
-}
-
-void LuaScriptSystem::emit(std::string_view hook)
-{
-    sol::object handler = lua[hook];
-    if (!handler.is<sol::function>())
-        return;
-
-    sol::protected_function call = handler.as<sol::protected_function>();
-    resume(call, hook);
 }
 
 void LuaScriptSystem::bindLevel(const Level *level)

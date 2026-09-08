@@ -25,6 +25,7 @@
 #include "helpers/temporary_levels.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "actor/health.hpp"
+#include "actor/health_data.hpp"
 #include "npc/npc_data.hpp"
 #include "actor/hit.hpp"
 #include "player/player_data.hpp"
@@ -331,9 +332,10 @@ TEST_CASE("A hurt player reaches the script's onHurt, and a dead one its onDeath
 {
     std::filesystem::path script =
         std::filesystem::temp_directory_path() / "platformer_world_hurt.lua";
-    std::ofstream(script) << "hurts = 0\ndeaths = 0\n"
-                             "function onHurt() hurts = hurts + 1 end\n"
-                             "function onDeath() deaths = deaths + 1 end\n";
+    std::ofstream(script)
+        << "hurts = 0\ndeaths = 0\n"
+           "function onHurt(who) hurts = hurts + 1; stillAlive = who:alive() end\n"
+           "function onDeath(who) deaths = deaths + 1; nowAlive = who:alive() end\n";
     GameData gameData = aFloorWorldWithCoins();
     gameData.playerData = playerDataWithHealth(2, 0.0f);
     LuaScriptSystem luaScriptSystem(script.string());
@@ -347,6 +349,38 @@ TEST_CASE("A hurt player reaches the script's onHurt, and a dead one its onDeath
 
     REQUIRE(luaScriptSystem.getLua()["hurts"].get<int>() == 1);
     REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 1);
+    REQUIRE(luaScriptSystem.getLua()["stillAlive"].get<bool>());
+    REQUIRE_FALSE(luaScriptSystem.getLua()["nowAlive"].get<bool>());
+}
+
+TEST_CASE(
+    "A hurt npc reaches the script's onNpcHurt as itself, and a dead one onNpcDeath",
+    "[World]")
+{
+    std::filesystem::path script =
+        std::filesystem::temp_directory_path() / "platformer_world_npc_hurt.lua";
+    std::ofstream(script)
+        << "function onNpcHurt(npc) hurt = npc:type() end\n"
+           "function onNpcDeath(npc) dead = npc:type(); deadAt = npc:feet() end\n";
+    GameData gameData = aFloorWorldWithCoins();
+    NpcData villager = setupNpcData();
+    villager.actorData.healthData = HealthData{2, 0.0f};
+    gameData.npcData = {{"villager", villager}};
+    LuaScriptSystem luaScriptSystem(script.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_npc_hurt");
+    levels.write(
+        "floor.json", aFloorLevelPlacing({spawnAt("villager", glm::ivec2(3, FloorLevelStanding))}));
+    world.loadLevel(levels.pathOf("floor.json"));
+    Npc &npc = *world.getLevel().getNpcs().front();
+
+    npc.takeHit(Hit{1, glm::vec2(0.0f), false});
+    REQUIRE(luaScriptSystem.getLua()["hurt"].get<std::string>() == "villager");
+    REQUIRE(luaScriptSystem.getLua()["dead"].valid() == false);
+
+    npc.takeHit(Hit{1, glm::vec2(0.0f), false});
+    REQUIRE(luaScriptSystem.getLua()["dead"].get<std::string>() == "villager");
+    REQUIRE(luaScriptSystem.getLua()["deadAt"].get<glm::vec2>() == npc.feet());
 }
 
 TEST_CASE("Bumping into an npc that bites costs the player a point", "[World]")

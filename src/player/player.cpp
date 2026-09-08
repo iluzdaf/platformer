@@ -22,16 +22,6 @@ void Player::completeLevel()
     onLevelComplete();
 }
 
-void Player::hurt()
-{
-    onHurt();
-}
-
-void Player::died()
-{
-    onDeath();
-}
-
 void Player::postFixedUpdate()
 {
     const ActorContactState &contacts = observed().contacts;

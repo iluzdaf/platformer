@@ -32,6 +32,19 @@ TEST_CASE("A script that loads gives the game its handlers", "[LuaScriptSystem]"
     REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 1);
 }
 
+TEST_CASE("A hook is handed whatever emit was given", "[LuaScriptSystem]")
+{
+    std::filesystem::path path = writeScript(
+        "platformer_lua_args.lua",
+        "function onScored(points, by) scored = points; scorer = by end\n");
+    LuaScriptSystem luaScriptSystem(path.string());
+
+    luaScriptSystem.emit("onScored", 3, "coin");
+
+    REQUIRE(luaScriptSystem.getLua()["scored"].get<int>() == 3);
+    REQUIRE(luaScriptSystem.getLua()["scorer"].get<std::string>() == "coin");
+}
+
 TEST_CASE("A hook that fails is printed, and the next hook still runs", "[LuaScriptSystem]")
 {
     std::filesystem::path path = writeScript(

@@ -328,7 +328,7 @@ TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
     REQUIRE(scoreStandingBesideACoinAt(coinWhoseLeftEdgeIsAt(collider.right() + 1.0f)) == 0);
 }
 
-TEST_CASE("A hurt player reaches its own script, and a dead one too", "[World]")
+TEST_CASE("The player's signals reach the script by their hook names", "[World]")
 {
     std::filesystem::path script =
         std::filesystem::temp_directory_path() / "platformer_world_hurt.lua";

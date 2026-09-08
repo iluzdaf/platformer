@@ -248,6 +248,31 @@ TEST_CASE("Stepping down onto a lower surface still drops", "[PhysicsBody]")
     REQUIRE(body.position().y == Approx(4 * 16.0f + 1.0f));
 }
 
+TEST_CASE("A collider of no size is refused", "[PhysicsBody]")
+{
+    for (glm::vec2 size :
+         {glm::vec2(0.0f, 16.0f),
+          glm::vec2(16.0f, 0.0f),
+          glm::vec2(0.0f),
+          glm::vec2(-8.0f, 16.0f),
+          glm::vec2(16.0f, -8.0f)})
+    {
+        INFO("collider " << size.x << " by " << size.y);
+        REQUIRE_THROWS_WITH(
+            PhysicsBody(PhysicsBodyData{size, {0, 0}, 0.0f}),
+            Catch::Matchers::ContainsSubstring("not one anything can touch"));
+    }
+
+    REQUIRE_NOTHROW(PhysicsBody(PhysicsBodyData{{1.0f, 1.0f}, {0, 0}, 0.0f}));
+}
+
+TEST_CASE("A collider of no size is refused before its step height is weighed", "[PhysicsBody]")
+{
+    REQUIRE_THROWS_WITH(
+        PhysicsBody(PhysicsBodyData{{16.0f, 0.0f}, {0, 0}, 3.0f}),
+        Catch::Matchers::ContainsSubstring("not one anything can touch"));
+}
+
 TEST_CASE("A step height that leaves no body to collide with is refused", "[PhysicsBody]")
 {
     REQUIRE_THROWS_WITH(

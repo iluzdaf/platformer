@@ -2,8 +2,8 @@
     "rat":{
         "actorData":{
             "sheet":{"texture":"textures/rat.png","cellSize":[32,32]},
-            "size":[16,16],
-            "physicsBodyData":{"colliderSize":[10,8],"colliderOffset":[3,8]},
+            "size":[8,8],
+            "physicsBodyData":{"colliderSize":[5,4],"colliderOffset":[2,4],"stepHeight":1},
             "motionData":{"moveAbilityData":{"moveSpeed":60},"gravityAbilityData":{}},
             "animationData":{
                 "idle":{"frames":[0,1],"frameDuration":0.5},

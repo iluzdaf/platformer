@@ -1,6 +1,7 @@
 {
     "cavern":{
-        "tileSet":{"texture":"textures/cavern.png"},
+        "tileSet":{"texture":"textures/cavern.png","cellSize":[32,32]},
+        "tileSize":16,
         "tiles":{
             "0":{},
             "1":{"deadly":true,"collider":{"offset":[0,12],"size":[16,4]}},

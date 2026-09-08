@@ -170,4 +170,25 @@ TEST_CASE("An actor animating past the end of its sheet says so", "[SheetTexture
             Catch::Matchers::ContainsSubstring("frame 99"));
 }
 
+TEST_CASE("The shipped health icon holds both hearts it names", "[SheetTextures]")
+{
+    GameData gameData = loadGameData();
+    TextureCache textures;
+
+    REQUIRE_NOTHROW(warmHealthIcon(textures, gameData.settings.healthIcon));
+}
+
+TEST_CASE("A health icon naming a heart its sheet has not got says so", "[SheetTextures]")
+{
+    GameData gameData = loadGameData();
+    gameData.settings.healthIcon.spent = 99;
+
+    TextureCache textures;
+
+    REQUIRE_THROWS_WITH(
+        warmHealthIcon(textures, gameData.settings.healthIcon),
+        Catch::Matchers::ContainsSubstring("health") &&
+            Catch::Matchers::ContainsSubstring("frame 99"));
+}
+
 #endif

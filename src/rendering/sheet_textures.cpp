@@ -13,6 +13,7 @@
 #include "pickups/pickup_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/score_icon_data.hpp"
+#include "game/health_icon_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/actor_animation_data.hpp"
 #include <optional>
@@ -113,4 +114,11 @@ void warmScoreIcon(TextureCache &textures, const ScoreIconData &scoreIcon)
     warmOne(textures, scoreIcon.sheet, "the score");
 
     framesFitting(textures, scoreIcon.sheet, {scoreIcon.frame}, "the score");
+}
+
+void warmHealthIcon(TextureCache &textures, const HealthIconData &healthIcon)
+{
+    warmOne(textures, healthIcon.sheet, "health");
+
+    framesFitting(textures, healthIcon.sheet, {healthIcon.full, healthIcon.spent}, "health");
 }

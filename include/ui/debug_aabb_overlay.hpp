@@ -15,6 +15,12 @@ void drawPlayerCollider(
 
 void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs);
 
+void drawPlayerSwing(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Player &player,
+    FadingAABBs &fadingAABBs);
+
 void drawTileColliders(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,

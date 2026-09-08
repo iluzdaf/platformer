@@ -32,6 +32,9 @@ namespace
     constexpr ImU32 ProbeGripColor = IM_COL32(0, 220, 255, 70);
     constexpr ImU32 PlayerColliderColor = IM_COL32(0, 255, 0, 255);
     constexpr ImU32 PlayerCollisionColor = IM_COL32(255, 127, 0, 255);
+    constexpr ImU32 PlayerSwingColor = IM_COL32(255, 40, 40, 255);
+    constexpr ImU32 PlayerSwingFillColor = IM_COL32(255, 40, 40, 60);
+    constexpr float SwingLingersFor = 0.2f;
     constexpr ImU32 TileColliderColor = IM_COL32(230, 230, 230, 255);
     constexpr ImU32 DeadlyTileColliderColor = IM_COL32(255, 0, 0, 255);
     constexpr ImU32 LevelBoundsColor = IM_COL32(255, 255, 0, 255);
@@ -106,6 +109,25 @@ void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs)
     const ActorContactState &contacts = player.observed().contacts;
     fadingAABBs.add(contacts.collisionAABBX, PlayerCollisionColor, 0.1f);
     fadingAABBs.add(contacts.collisionAABBY, PlayerCollisionColor, 0.1f);
+}
+
+void drawPlayerSwing(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Player &player,
+    FadingAABBs &fadingAABBs)
+{
+    std::optional<AABB> reach = player.swing();
+    if (!reach)
+        return;
+
+    ImVec2 topLeft =
+        imGuiManager.worldToScreen(reach->position, camera.getZoom(), camera.getTopLeftPosition());
+    ImVec2 bottomRight = imGuiManager.worldToScreen(
+        reach->position + reach->size, camera.getZoom(), camera.getTopLeftPosition());
+    ImGui::GetBackgroundDrawList()->AddRectFilled(topLeft, bottomRight, PlayerSwingFillColor);
+
+    fadingAABBs.add(*reach, PlayerSwingColor, SwingLingersFor);
 }
 
 void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)

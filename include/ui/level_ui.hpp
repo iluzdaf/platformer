@@ -67,6 +67,7 @@ private:
     NavigationUi navigationUi;
     ActorShown showingActor;
     TileMapShown tileMapShown;
+    bool npcsShown = false;
 
     std::string asItWouldBeSaved(const LevelData &levelData) const;
     void drawLevel(

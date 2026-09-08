@@ -165,6 +165,7 @@ void LevelUi::drawLevel(
 void LevelUi::drawOverlayToggles()
 {
     ImGui::Checkbox("Tile map", &tileMapShown.showing);
+    ImGui::Checkbox("Npcs", &npcsShown);
     navigationUi.drawOverlayToggles();
 }
 
@@ -180,6 +181,9 @@ void LevelUi::drawOverlay(
         drawTileColliders(imGuiManager, camera, level);
         drawLevelBounds(imGuiManager, camera, level);
     }
+
+    if (npcsShown)
+        drawNpcColliders(imGuiManager, camera, level);
 
     drawSpawnOf(imGuiManager, camera, level, showingActor);
 

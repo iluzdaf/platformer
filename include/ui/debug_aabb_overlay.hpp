@@ -26,6 +26,8 @@ void drawTileColliders(
     const Camera2D &camera,
     const Level &level);
 
+void drawNpcColliders(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
+
 void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level);
 
 void drawSpawnOf(

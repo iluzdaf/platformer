@@ -8,6 +8,7 @@
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 #include <utility>
@@ -35,6 +36,7 @@ namespace
     constexpr ImU32 PlayerSwingColor = IM_COL32(255, 40, 40, 255);
     constexpr ImU32 PlayerSwingFillColor = IM_COL32(255, 40, 40, 60);
     constexpr float SwingLingersFor = 0.2f;
+    constexpr ImU32 NpcColliderColor = IM_COL32(130, 160, 255, 255);
     constexpr ImU32 TileColliderColor = IM_COL32(230, 230, 230, 255);
     constexpr ImU32 DeadlyTileColliderColor = IM_COL32(255, 0, 0, 255);
     constexpr ImU32 LevelBoundsColor = IM_COL32(255, 255, 0, 255);
@@ -157,6 +159,13 @@ void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera,
             camera,
             tile.isDeadly() ? DeadlyTileColliderColor : TileColliderColor);
     }
+}
+
+void drawNpcColliders(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
+{
+    ImDrawList *drawList = ImGui::GetBackgroundDrawList();
+    for (const std::unique_ptr<Npc> &npc : level.getNpcs())
+        drawAABB(drawList, imGuiManager, npc->body().aabb(), camera, NpcColliderColor);
 }
 
 void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)

@@ -11,6 +11,8 @@ struct ActorAnimationData
     std::optional<FrameAnimationData> jump;
     std::optional<FrameAnimationData> fall;
     std::optional<FrameAnimationData> wallSlide;
+    std::optional<FrameAnimationData> climb;
     std::optional<FrameAnimationData> attack;
+    std::optional<FrameAnimationData> knockback;
     std::optional<FrameAnimationData> dead;
 };

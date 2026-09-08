@@ -118,6 +118,19 @@ TEST_CASE("An actor offers idle and whichever animations it has", "[SheetPreview
     REQUIRE(offered[2].animation == &*animations.fall);
 }
 
+TEST_CASE("An actor offers a climb and a knockback the same way", "[SheetPreview]")
+{
+    ActorAnimationData animations;
+    animations.climb = FrameAnimationData{{4}, 0.1f};
+    animations.knockback = FrameAnimationData{{5}, 0.1f};
+
+    std::vector<NamedAnimation> offered = animationsOf(animations);
+
+    REQUIRE(namesOf(offered) == std::vector<std::string>{"idle", "climb", "knockback"});
+    REQUIRE(animationNamed(offered, "climb").animation == &*animations.climb);
+    REQUIRE(animationNamed(offered, "knockback").animation == &*animations.knockback);
+}
+
 TEST_CASE("An animation asked for by name is the one offered under it", "[SheetPreview]")
 {
     ActorAnimationData animations;

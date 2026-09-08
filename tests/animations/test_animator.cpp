@@ -100,3 +100,74 @@ TEST_CASE("A swing shows the attack, and a corpse shows dead, over everything el
     animator.animate(0.01f, swingingWhileDashing, dead);
     REQUIRE(animator.state() == ActorAnimationState::Dead);
 }
+
+TEST_CASE("A knockback shows over a swing, a dash and the ground", "[Animator]")
+{
+    Animator animator;
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(ActorAnimationState::Dash, animationOfFrame(2));
+    animator.add(ActorAnimationState::Attack, animationOfFrame(3));
+    animator.add(ActorAnimationState::Knockback, animationOfFrame(5));
+    Decided pushedWhileSwinging;
+    pushedWhileSwinging.dash.active = true;
+    pushedWhileSwinging.melee.phase = MeleePhase::Windup;
+    pushedWhileSwinging.knockback.active = true;
+
+    animator.animate(0.01f, pushedWhileSwinging, walkingOnGround());
+
+    REQUIRE(animator.state() == ActorAnimationState::Knockback);
+}
+
+TEST_CASE("A corpse shows dead even while it is still being pushed", "[Animator]")
+{
+    Animator animator;
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(ActorAnimationState::Knockback, animationOfFrame(5));
+    animator.add(ActorAnimationState::Dead, animationOfFrame(4));
+    Decided pushed;
+    pushed.knockback.active = true;
+    Observed dead = walkingOnGround();
+    dead.alive = false;
+
+    animator.animate(0.01f, pushed, dead);
+
+    REQUIRE(animator.state() == ActorAnimationState::Dead);
+}
+
+TEST_CASE("Hanging shows the climb only while it is moving", "[Animator]")
+{
+    Animator animator;
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(ActorAnimationState::WallSlide, animationOfFrame(2));
+    animator.add(ActorAnimationState::Climb, animationOfFrame(6));
+    Observed offTheGround;
+    Decided hanging;
+    hanging.wallHang.active = true;
+
+    animator.animate(0.01f, hanging, offTheGround);
+    REQUIRE(animator.state() == ActorAnimationState::WallSlide);
+
+    hanging.wallClimb.velocity.y = -40.0f;
+    animator.animate(0.01f, hanging, offTheGround);
+    REQUIRE(animator.state() == ActorAnimationState::Climb);
+
+    hanging.wallClimb.velocity.y = 40.0f;
+    animator.animate(0.01f, hanging, offTheGround);
+    REQUIRE(animator.state() == ActorAnimationState::Climb);
+}
+
+TEST_CASE("A slide that is not a hang never shows the climb", "[Animator]")
+{
+    Animator animator;
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(ActorAnimationState::WallSlide, animationOfFrame(2));
+    animator.add(ActorAnimationState::Climb, animationOfFrame(6));
+    Observed offTheGround;
+    Decided sliding;
+    sliding.wallSlide.active = true;
+    sliding.wallClimb.velocity.y = -40.0f;
+
+    animator.animate(0.01f, sliding, offTheGround);
+
+    REQUIRE(animator.state() == ActorAnimationState::WallSlide);
+}

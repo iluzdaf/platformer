@@ -9,6 +9,7 @@
 #include "game/world.hpp"
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
+#include "assets/asset_paths.hpp"
 #include "game/level.hpp"
 #include "pickups/pickup.hpp"
 #include "actor/actor.hpp"
@@ -26,6 +27,9 @@ World::World(
     LuaScriptSystem &luaScriptSystem)
     : gameData(gameData), intentionSource(intentionSource), luaScriptSystem(luaScriptSystem)
 {
+    for (const auto &[type, npcData] : gameData.npcData)
+        if (!npcData.script.empty())
+            luaScriptSystem.use(type, assets::pathTo(npcData.script));
 }
 
 World::~World() = default;
@@ -46,14 +50,21 @@ void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePla
         gameData.npcData,
         gameData.pickupData);
 
+    if (level)
+        for (const std::unique_ptr<Npc> &npc : level->getNpcs())
+            luaScriptSystem.forget(npc.get());
+
+    for (const std::unique_ptr<Npc> &npc : built->getNpcs())
+    {
+        Npc *it = npc.get();
+        it->onHurt.connect([this, it] { luaScriptSystem.emitTo(it->type(), "onHurt", it, it); });
+        it->onDeath.connect([this, it] { luaScriptSystem.emitTo(it->type(), "onDied", it, it); });
+    }
+
     levelData = fromData;
     level = std::move(built);
     luaScriptSystem.bindLevel(level.get());
-    for (const std::unique_ptr<Npc> &npc : level->getNpcs())
-    {
-        npc->onHurt.connect([this, npc = npc.get()] { luaScriptSystem.emit("onNpcHurt", npc); });
-        npc->onDeath.connect([this, npc = npc.get()] { luaScriptSystem.emit("onNpcDeath", npc); });
-    }
+
     if (player)
         player->standAt(player->feet() + movingThePlayerBy);
 

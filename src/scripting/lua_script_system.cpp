@@ -53,7 +53,7 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
             threadState["f"] = func;
             sol::protected_function co = threadState.load("return coroutine.wrap(f)")();
             if (std::optional<float> wait = resume(co, "a coroutine"))
-                waitingCoroutines.push_back({thread, co, *wait});
+                waitingCoroutines.push_back({thread, co, *wait, startedBy});
         });
 
     loadScripts();
@@ -116,6 +116,44 @@ std::optional<float> LuaScriptSystem::settle(
     return std::nullopt;
 }
 
+void LuaScriptSystem::use(const std::string &name, const std::string &path)
+{
+    NamedScript &script = scripts[name];
+    script.path = path;
+    reload(script, name);
+}
+
+void LuaScriptSystem::reload(NamedScript &script, const std::string &name)
+{
+    sol::environment fresh(lua, sol::create, lua.globals());
+    sol::protected_function_result result =
+        lua.safe_script_file(script.path, fresh, sol::script_pass_on_error);
+
+    if (!result.valid())
+    {
+        sol::error scriptError = result;
+        std::cerr << "Lua error in " << name << ": " << scriptError.what() << '\n';
+        return;
+    }
+
+    sol::object handlers = result;
+    if (!handlers.is<sol::table>())
+    {
+        std::cerr << "Lua error in " << name << ": a script names no handlers to call\n";
+        return;
+    }
+
+    script.environment = fresh;
+    script.handlers = handlers.as<sol::table>();
+}
+
+void LuaScriptSystem::forget(const void *owner)
+{
+    std::erase_if(
+        waitingCoroutines,
+        [owner](const WaitingCoroutine &waiting) { return waiting.startedBy == owner; });
+}
+
 void LuaScriptSystem::bindLevel(const Level *level)
 {
     lua["level"] = level;
@@ -136,6 +174,9 @@ void LuaScriptSystem::loadScripts()
         sol::error scriptError = result;
         throw std::runtime_error(scriptError.what());
     }
+
+    for (auto &[name, script] : scripts)
+        reload(script, name);
 }
 
 void LuaScriptSystem::bindPlayer(Player *player)

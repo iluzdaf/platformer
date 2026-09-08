@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assets/asset_paths.hpp"
+#include <map>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -24,6 +25,14 @@ public:
         sol::thread thread;
         sol::protected_function co;
         float remainingTime;
+        const void *startedBy = nullptr;
+    };
+
+    struct NamedScript
+    {
+        std::string path;
+        sol::environment environment;
+        sol::table handlers;
     };
 
     explicit LuaScriptSystem(
@@ -43,6 +52,23 @@ public:
         sol::protected_function call = handler.as<sol::protected_function>();
         settle(call(std::forward<Args>(args)...), hook);
     }
+    void use(const std::string &name, const std::string &path);
+    template <typename... Args>
+    void emitTo(const std::string &name, std::string_view hook, const void *owner, Args &&...args)
+    {
+        auto found = scripts.find(name);
+        if (found == scripts.end() || !found->second.handlers.valid())
+            return;
+
+        sol::object handler = found->second.handlers[hook];
+        if (!handler.is<sol::function>())
+            return;
+
+        startedBy = owner;
+        settle(handler.as<sol::protected_function>()(std::forward<Args>(args)...), hook);
+        startedBy = nullptr;
+    }
+    void forget(const void *owner);
     void bindLevel(const Level *level);
     sol::state &getLua();
     void loadScripts();
@@ -51,6 +77,9 @@ public:
 private:
     std::string scriptPath;
     sol::state lua;
+    std::map<std::string, NamedScript> scripts;
+    const void *startedBy = nullptr;
+    void reload(NamedScript &script, const std::string &name);
     std::optional<float> resume(sol::protected_function &co, std::string_view what);
     std::optional<float> settle(sol::protected_function_result result, std::string_view what);
     std::vector<WaitingCoroutine> waitingCoroutines;

@@ -353,43 +353,94 @@ TEST_CASE("A hurt player reaches the script's onHurt, and a dead one its onDeath
     REQUIRE_FALSE(luaScriptSystem.getLua()["nowAlive"].get<bool>());
 }
 
-TEST_CASE(
-    "A hurt npc reaches the script's onNpcHurt as itself, and a dead one onNpcDeath",
-    "[World]")
+TEST_CASE("An npc's own script hears it hurt and killed, and no other npc's does", "[World]")
 {
-    std::filesystem::path script =
-        std::filesystem::temp_directory_path() / "platformer_world_npc_hurt.lua";
-    std::ofstream(script)
-        << "function onNpcHurt(npc) hurt = npc:type() end\n"
-           "function onNpcDeath(npc) dead = npc:type(); deadAt = npc:feet() end\n";
+    std::filesystem::path shared =
+        std::filesystem::temp_directory_path() / "platformer_world_shared.lua";
+    std::ofstream(shared) << "seen = {}\n";
+
+    std::filesystem::path ratScript =
+        std::filesystem::temp_directory_path() / "platformer_world_rat.lua";
+    std::ofstream(ratScript) << "return {\n"
+                                "  onHurt = function(rat) seen.hurt = rat:type() end,\n"
+                                "  onDied = function(rat) seen.dead = rat:type() end,\n"
+                                "}\n";
+
+    std::filesystem::path spiderScript =
+        std::filesystem::temp_directory_path() / "platformer_world_spider.lua";
+    std::ofstream(spiderScript) << "return { onHurt = function(s) seen.wrong = true end }\n";
+
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
     rat.actorData.healthData = HealthData{2, 0.0f};
-    gameData.npcData = {{"rat", rat}};
-    LuaScriptSystem luaScriptSystem(script.string());
+    rat.script = ratScript.string();
+    NpcData spider = setupNpcData();
+    spider.script = spiderScript.string();
+    gameData.npcData = {{"rat", rat}, {"spider", spider}};
+
+    LuaScriptSystem luaScriptSystem(shared.string());
     World world(gameData, noIntentions(), luaScriptSystem);
     TemporaryLevels levels("world_npc_hurt");
     levels.write(
         "floor.json", aFloorLevelPlacing({spawnAt("rat", glm::ivec2(3, FloorLevelStanding))}));
     world.loadLevel(levels.pathOf("floor.json"));
     Npc &npc = *world.getLevel().getNpcs().front();
+    sol::table seen = luaScriptSystem.getLua()["seen"];
 
     npc.takeHit(Hit{1, glm::vec2(0.0f), false});
-    REQUIRE(luaScriptSystem.getLua()["hurt"].get<std::string>() == "rat");
-    REQUIRE(luaScriptSystem.getLua()["dead"].valid() == false);
+    REQUIRE(seen["hurt"].get<std::string>() == "rat");
+    REQUIRE_FALSE(seen["dead"].valid());
 
     npc.takeHit(Hit{1, glm::vec2(0.0f), false});
-    REQUIRE(luaScriptSystem.getLua()["dead"].get<std::string>() == "rat");
-    REQUIRE(luaScriptSystem.getLua()["deadAt"].get<glm::vec2>() == npc.feet());
+    REQUIRE(seen["dead"].get<std::string>() == "rat");
+    REQUIRE_FALSE(seen["wrong"].valid());
 }
 
-TEST_CASE("A swing that kills an npc reaches the script's onNpcDeath", "[World]")
+TEST_CASE("A coroutine an npc started is dropped when its level is rebuilt", "[World]")
+{
+    std::filesystem::path shared =
+        std::filesystem::temp_directory_path() / "platformer_world_outlive.lua";
+    std::ofstream(shared) << "waitSeconds = coroutine.yield\nseen = {}\n";
+    std::filesystem::path ratScript =
+        std::filesystem::temp_directory_path() / "platformer_world_outlive_rat.lua";
+    std::ofstream(ratScript) << "return { onHurt = function(rat)\n"
+                                "  startCoroutine(function()\n"
+                                "    waitSeconds(0.1)\n"
+                                "    seen.woke = rat:type()\n"
+                                "  end)\n"
+                                "end }\n";
+
+    GameData gameData = aFloorWorldWithCoins();
+    NpcData rat = setupNpcData();
+    rat.actorData.healthData = HealthData{3, 0.0f};
+    rat.script = ratScript.string();
+    gameData.npcData = {{"rat", rat}};
+
+    LuaScriptSystem luaScriptSystem(shared.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_outlive");
+    LevelData levelData = aFloorLevelPlacing({spawnAt("rat", glm::ivec2(3, FloorLevelStanding))});
+    levels.write("floor.json", levelData);
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    world.getLevel().getNpcs().front()->takeHit(Hit{1, glm::vec2(0.0f), false});
+    world.rebuildFrom(levelData);
+    luaScriptSystem.update(0.2f);
+
+    REQUIRE_FALSE(luaScriptSystem.getLua()["seen"]["woke"].valid());
+}
+
+TEST_CASE("A swing that kills an npc reaches that npc's own script", "[World]")
 {
     std::filesystem::path script =
         std::filesystem::temp_directory_path() / "platformer_world_swing.lua";
-    std::ofstream(script) << "function onNpcDeath(npc) dead = npc:type() end\n";
+    std::ofstream(script) << "seen = {}\n";
+    std::filesystem::path ratScript =
+        std::filesystem::temp_directory_path() / "platformer_world_swing_rat.lua";
+    std::ofstream(ratScript) << "return { onDied = function(rat) seen.dead = rat:type() end }\n";
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
+    rat.script = ratScript.string();
     gameData.npcData = {{"rat", rat}};
     ScriptedIntentions intentions;
     InputIntentions attacking;
@@ -405,7 +456,7 @@ TEST_CASE("A swing that kills an npc reaches the script's onNpcDeath", "[World]"
     walkFor(world, 12);
 
     REQUIRE_FALSE(world.getLevel().getNpcs().front()->alive());
-    REQUIRE(luaScriptSystem.getLua()["dead"].get<std::string>() == "rat");
+    REQUIRE(luaScriptSystem.getLua()["seen"]["dead"].get<std::string>() == "rat");
 }
 
 TEST_CASE("Bumping into an npc that bites costs the player a point", "[World]")

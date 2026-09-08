@@ -22,7 +22,8 @@
                 {"from":"flee","to":"patrol","threatOnMySurface":false,"after":1.5}
             ]
         },
-        "contactDamage":1
+        "contactDamage":1,
+        "script":"scripts/npcs/rat.lua"
     },
     "spider":{
         "actorData":{
@@ -48,6 +49,7 @@
             }
         },
         "stateMachineBehaviorData":{"states":[{"name":"patrol","patrolBehaviorData":{}}]},
-        "contactDamage":1
+        "contactDamage":1,
+        "script":"scripts/npcs/spider.lua"
     }
 }

@@ -110,6 +110,123 @@ TEST_CASE("A hook that is not a function is nothing to do either", "[LuaScriptSy
     REQUIRE_NOTHROW(luaScriptSystem.emit("onDeath"));
 }
 
+TEST_CASE("A named script keeps its helpers to itself", "[LuaScriptSystem]")
+{
+    std::filesystem::path shared = writeScript("platformer_lua_shared.lua", "seen = {}\n");
+    writeScript(
+        "platformer_lua_one.lua",
+        "local function mine() return \"one\" end\n"
+        "helper = mine\n"
+        "return { onAsked = function() seen.one = mine() end }\n");
+    writeScript(
+        "platformer_lua_two.lua",
+        "return { onAsked = function() seen.two = (helper == nil) end }\n");
+
+    LuaScriptSystem luaScriptSystem(shared.string());
+    luaScriptSystem.use(
+        "one", (std::filesystem::temp_directory_path() / "platformer_lua_one.lua").string());
+    luaScriptSystem.use(
+        "two", (std::filesystem::temp_directory_path() / "platformer_lua_two.lua").string());
+
+    luaScriptSystem.emitTo("one", "onAsked", nullptr);
+    luaScriptSystem.emitTo("two", "onAsked", nullptr);
+
+    sol::table seen = luaScriptSystem.getLua()["seen"];
+    REQUIRE(seen["one"].get<std::string>() == "one");
+    REQUIRE(seen["two"].get<bool>());
+    REQUIRE_FALSE(luaScriptSystem.getLua()["helper"].valid());
+}
+
+TEST_CASE("A named script reads what the game put in front of everyone", "[LuaScriptSystem]")
+{
+    std::filesystem::path shared =
+        writeScript("platformer_lua_bound.lua", "greeting = \"hello\"\nseen = {}\n");
+    writeScript(
+        "platformer_lua_reader.lua", "return { onAsked = function() seen.said = greeting end }\n");
+
+    LuaScriptSystem luaScriptSystem(shared.string());
+    luaScriptSystem.use(
+        "reader", (std::filesystem::temp_directory_path() / "platformer_lua_reader.lua").string());
+
+    luaScriptSystem.emitTo("reader", "onAsked", nullptr);
+
+    REQUIRE(luaScriptSystem.getLua()["seen"]["said"].get<std::string>() == "hello");
+}
+
+TEST_CASE("A script that names no handlers is reported, not fatal", "[LuaScriptSystem]")
+{
+    std::filesystem::path shared = writeScript("platformer_lua_nothandlers.lua", "\n");
+    writeScript("platformer_lua_returnsnothing.lua", "local x = 1\n");
+
+    LuaScriptSystem luaScriptSystem(shared.string());
+
+    REQUIRE_NOTHROW(luaScriptSystem.use(
+        "quiet",
+        (std::filesystem::temp_directory_path() / "platformer_lua_returnsnothing.lua").string()));
+    REQUIRE_NOTHROW(luaScriptSystem.emitTo("quiet", "onAsked", nullptr));
+}
+
+TEST_CASE("A hook nobody named on a script nobody used is nothing to do", "[LuaScriptSystem]")
+{
+    std::filesystem::path shared = writeScript("platformer_lua_nouse.lua", "\n");
+    LuaScriptSystem luaScriptSystem(shared.string());
+
+    REQUIRE_NOTHROW(luaScriptSystem.emitTo("nobody", "onAsked", nullptr));
+}
+
+TEST_CASE("A coroutine is forgotten along with whoever started it", "[LuaScriptSystem]")
+{
+    std::filesystem::path shared =
+        writeScript("platformer_lua_owned.lua", "waitSeconds = coroutine.yield\nseen = {}\n");
+    writeScript(
+        "platformer_lua_owner.lua",
+        "return { onAsked = function()\n"
+        "    startCoroutine(function()\n"
+        "        waitSeconds(0.1)\n"
+        "        seen.woke = true\n"
+        "    end)\n"
+        "end }\n");
+
+    LuaScriptSystem luaScriptSystem(shared.string());
+    luaScriptSystem.use(
+        "owner", (std::filesystem::temp_directory_path() / "platformer_lua_owner.lua").string());
+
+    int mine = 0;
+    luaScriptSystem.emitTo("owner", "onAsked", &mine);
+    luaScriptSystem.forget(&mine);
+    luaScriptSystem.update(0.2f);
+
+    REQUIRE_FALSE(luaScriptSystem.getLua()["seen"]["woke"].valid());
+}
+
+TEST_CASE("Forgetting one owner leaves another's coroutine running", "[LuaScriptSystem]")
+{
+    std::filesystem::path shared =
+        writeScript("platformer_lua_two_owners.lua", "waitSeconds = coroutine.yield\nseen = {}\n");
+    writeScript(
+        "platformer_lua_owner2.lua",
+        "return { onAsked = function(who)\n"
+        "    startCoroutine(function()\n"
+        "        waitSeconds(0.1)\n"
+        "        seen[who] = true\n"
+        "    end)\n"
+        "end }\n");
+
+    LuaScriptSystem luaScriptSystem(shared.string());
+    luaScriptSystem.use(
+        "owner", (std::filesystem::temp_directory_path() / "platformer_lua_owner2.lua").string());
+
+    int first = 0, second = 0;
+    luaScriptSystem.emitTo("owner", "onAsked", &first, "first");
+    luaScriptSystem.emitTo("owner", "onAsked", &second, "second");
+    luaScriptSystem.forget(&first);
+    luaScriptSystem.update(0.2f);
+
+    sol::table seen = luaScriptSystem.getLua()["seen"];
+    REQUIRE_FALSE(seen["first"].valid());
+    REQUIRE(seen["second"].get<bool>());
+}
+
 TEST_CASE("A script with a syntax error is reported, not swallowed", "[LuaScriptSystem]")
 {
     std::filesystem::path path = writeScript("platformer_lua_broken.lua", "this is not lua ===\n");

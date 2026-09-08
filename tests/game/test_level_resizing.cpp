@@ -27,10 +27,10 @@ namespace
         level.tileMapData.indices = {{1, 2}, {3, 4}};
         level.playerFeet = glm::vec2(8.0f, 32.0f);
         level.npcs = {NpcSpawnData{
-            "rat",
+            "someKindOfNpc",
             glm::vec2(24.0f, 32.0f),
             PatrolData{glm::vec2(8.0f, 32.0f), glm::vec2(24.0f, 32.0f)}}};
-        level.pickups = {PickupSpawnData{"coin", glm::vec2(24.0f, 8.0f)}};
+        level.pickups = {PickupSpawnData{"someKindOfPickup", glm::vec2(24.0f, 8.0f)}};
         return level;
     }
 
@@ -41,14 +41,14 @@ namespace
         level.tileMapData.indices = {{0, 0, 0, 0}, {0, 0, 0, 0}, {1, 1, 1, 1}};
         level.playerFeet = glm::vec2(8.0f, 32.0f);
         level.npcs = {
-            NpcSpawnData{"rat", glm::vec2(8.0f, 32.0f), std::nullopt},
+            NpcSpawnData{"someKindOfNpc", glm::vec2(8.0f, 32.0f), std::nullopt},
             NpcSpawnData{
-                "spider",
+                "anotherKindOfNpc",
                 glm::vec2(24.0f, 32.0f),
                 PatrolData{glm::vec2(24.0f, 32.0f), glm::vec2(56.0f, 32.0f)}}};
         level.pickups = {
-            PickupSpawnData{"coin", glm::vec2(56.0f, 24.0f)},
-            PickupSpawnData{"gem", glm::vec2(24.0f, 8.0f)}};
+            PickupSpawnData{"someKindOfPickup", glm::vec2(56.0f, 24.0f)},
+            PickupSpawnData{"anotherKindOfPickup", glm::vec2(24.0f, 8.0f)}};
         return level;
     }
 }
@@ -130,7 +130,7 @@ TEST_CASE("Shrinking on the left moves what is left one tile back", "[LevelResiz
 
     REQUIRE(shrunk.playerFeet == glm::vec2(-8.0f, 32.0f));
     REQUIRE(shrunk.npcs.size() == 1);
-    REQUIRE(shrunk.npcs[0].type == "spider");
+    REQUIRE(shrunk.npcs[0].type == "anotherKindOfNpc");
     REQUIRE(shrunk.npcs[0].feet == glm::vec2(8.0f, 32.0f));
     REQUIRE(shrunk.npcs[0].patrol->from == glm::vec2(8.0f, 32.0f));
     REQUIRE(shrunk.npcs[0].patrol->to == glm::vec2(40.0f, 32.0f));
@@ -142,7 +142,7 @@ TEST_CASE("Whatever stood in the column taken goes with it", "[LevelResizing]")
 
     REQUIRE(shrunk.npcs.size() == 2);
     REQUIRE(shrunk.pickups.size() == 1);
-    REQUIRE(shrunk.pickups[0].type == "gem");
+    REQUIRE(shrunk.pickups[0].type == "anotherKindOfPickup");
 }
 
 TEST_CASE(
@@ -151,7 +151,7 @@ TEST_CASE(
 {
     LevelData shrunk = resizedBy(ShrinkRight, aWiderLevel(), TileSize);
 
-    REQUIRE(shrunk.npcs[1].type == "spider");
+    REQUIRE(shrunk.npcs[1].type == "anotherKindOfNpc");
     REQUIRE_FALSE(shrunk.npcs[1].patrol.has_value());
     REQUIRE(shrunk.npcs[0].patrol == std::nullopt);
 }
@@ -161,7 +161,7 @@ TEST_CASE("Whatever stood in the row taken goes with it", "[LevelResizing]")
     LevelData shrunk = resizedBy(ShrinkAbove, aWiderLevel(), TileSize);
 
     REQUIRE(shrunk.pickups.size() == 1);
-    REQUIRE(shrunk.pickups[0].type == "coin");
+    REQUIRE(shrunk.pickups[0].type == "someKindOfPickup");
     REQUIRE(shrunk.pickups[0].feet == glm::vec2(56.0f, 8.0f));
     REQUIRE(shrunk.npcs.size() == 2);
 }

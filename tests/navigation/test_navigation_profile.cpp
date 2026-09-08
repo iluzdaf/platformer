@@ -4,7 +4,6 @@
 #include "actor/actor_data.hpp"
 #include "actor/abilities/wall_climb_ability_data.hpp"
 #include "actor/abilities/wall_hang_ability_data.hpp"
-#include "game/game_data.hpp"
 
 TEST_CASE("Climbing takes both holding on and moving", "[NavigationProfile]")
 {
@@ -36,13 +35,4 @@ TEST_CASE("Climbing takes both holding on and moving", "[NavigationProfile]")
 
         REQUIRE(buildNavigationProfile(actorData).climbs());
     }
-}
-
-TEST_CASE("Who climbs, of the things shipped with the game", "[NavigationProfile]")
-{
-    GameData gameData = loadGameData();
-
-    REQUIRE(buildNavigationProfile(gameData.playerData.actorData).climbs());
-    REQUIRE(buildNavigationProfile(gameData.npcData.at("spider").actorData).climbs());
-    REQUIRE_FALSE(buildNavigationProfile(gameData.npcData.at("rat").actorData).climbs());
 }

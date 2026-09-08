@@ -1,6 +1,6 @@
 #pragma once
 
-#include <signals.hpp>
+#include "events/event.hpp"
 #include "player/player_data.hpp"
 #include "actor/actor.hpp"
 #include "input/intention_source.hpp"
@@ -11,7 +11,7 @@ public:
     Player(const PlayerData &data, const IntentionSource &intentionSource);
     void postFixedUpdate() override;
     void completeLevel();
-    fteng::signal<void()> onLevelComplete, onFallFromHeight, onHitCeiling, onWallJump, onDash,
+    Event<Player> onLevelComplete, onFallFromHeight, onHitCeiling, onWallJump, onDash,
         onWallSliding;
 
 private:

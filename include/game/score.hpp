@@ -1,11 +1,11 @@
 #pragma once
-#include <signals.hpp>
+#include "events/event.hpp"
 
 class Score
 {
 public:
     void add(int delta);
-    fteng::signal<void(int)> onChanged;
+    Event<Score, int> onChanged;
     int total() const;
 
 private:

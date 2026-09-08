@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <string>
-#include <signals.hpp>
+#include "events/event.hpp"
 #include "game/score.hpp"
 #include "game/level_data.hpp"
 
@@ -26,7 +26,7 @@ public:
         const LevelData &fromData,
         const glm::vec2 &movingThePlayerBy = glm::vec2(0.0f));
 
-    fteng::signal<void()> onLevelBuilt;
+    Event<World> onLevelBuilt;
     void respawnPlayer();
 
     void beginFrame();

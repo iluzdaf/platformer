@@ -294,6 +294,7 @@ add_executable(tests
     tests/serialization/test_json_format.cpp
     tests/serialization/test_only_what_differs.cpp
     tests/ui/test_editor_command.cpp
+    tests/events/test_event.cpp
     tests/ui/test_armed.cpp
     tests/ui/test_tile_map_shown.cpp
     tests/ui/test_size_buttons.cpp

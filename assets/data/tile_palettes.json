@@ -39,7 +39,13 @@
             "34":{"solid":true,"collider":{"offset":[2,1],"size":[12,14]}},
             "35":{"solid":true,"collider":{"offset":[2,1],"size":[14,14]}},
             "36":{"solid":true,"collider":{"offset":[0,1],"size":[16,14]}},
-            "37":{"solid":true,"collider":{"offset":[0,1],"size":[14,14]}}
+            "37":{"solid":true,"collider":{"offset":[0,1],"size":[14,14]}},
+            "38":{"solid":true,"grippable":true,"collider":{}},
+            "39":{"solid":true,"grippable":true,"collider":{}},
+            "40":{"solid":true,"grippable":true,"collider":{}},
+            "41":{"solid":true,"grippable":true,"collider":{}},
+            "42":{"solid":true,"grippable":true,"collider":{}},
+            "43":{"solid":true,"grippable":true,"collider":{}}
         }
     }
 }

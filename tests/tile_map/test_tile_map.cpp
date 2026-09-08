@@ -113,6 +113,56 @@ TEST_CASE("A tile map refuses cells that are not square", "[TileMap]")
         Catch::Matchers::ContainsSubstring("lays out squares"));
 }
 
+TEST_CASE("Without a tile size, a cell is a tile", "[TileMap]")
+{
+    TilePaletteData palette = paletteOf({{0, TileData{}}});
+    palette.tileSet.cellSize = glm::ivec2(32);
+
+    TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
+    tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
+    TileMap tileMap(tileMapData, theOnlyPalette(palette));
+
+    REQUIRE(tileMap.getTileSize() == 32);
+}
+
+TEST_CASE("A palette can measure its tiles smaller than its cells", "[TileMap]")
+{
+    TileData solid;
+    solid.solid = true;
+    TilePaletteData palette = paletteOf({{0, TileData{}}, {1, solid}});
+    palette.tileSet.cellSize = glm::ivec2(32);
+    palette.tileSize = 16;
+
+    TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
+    tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 1));
+    TileMap tileMap(tileMapData, theOnlyPalette(palette));
+
+    REQUIRE(tileMap.getTileSize() == 16);
+    REQUIRE(tileMap.topLeftOfTile(glm::ivec2(1, 1)) == glm::vec2(16.0f, 16.0f));
+    REQUIRE(tileMap.getWorldWidth() == 32);
+
+    std::optional<AABB> stands =
+        tileMap.getTile(1).getAABBAt(tileMap.topLeftOfTile(glm::ivec2(0, 0)));
+    REQUIRE(stands);
+    REQUIRE(stands->size == glm::vec2(16.0f, 16.0f));
+}
+
+TEST_CASE("A palette that measures its tiles at nothing is refused", "[TileMap]")
+{
+    TilePaletteData palette = paletteOf({{0, TileData{}}});
+    palette.tileSize = 0;
+
+    TileMapData tileMapData;
+    tileMapData.tilePalette = "default";
+    tileMapData.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));
+
+    REQUIRE_THROWS_WITH(
+        TileMap(tileMapData, theOnlyPalette(palette)),
+        Catch::Matchers::ContainsSubstring("wider than nothing"));
+}
+
 TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
 {
     TilePaletteData palette = paletteOf({{0, TileData{}}});

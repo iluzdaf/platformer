@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "assets/asset_paths.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"

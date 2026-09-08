@@ -58,14 +58,18 @@ TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalette
             "Palette \"" + tilePalette + "\" has cells " + std::to_string(tileSet.cellSize.x) +
             " by " + std::to_string(tileSet.cellSize.y) + ", and a tile map lays out squares");
 
-    tileSize = tileSet.cellSize.x;
+    tileSize = palette->second.tileSize.value_or(tileSet.cellSize.x);
+    if (tileSize <= 0)
+        throw std::runtime_error(
+            "Palette \"" + tilePalette + "\" measures its tiles at " + std::to_string(tileSize) +
+            ", and a tile is wider than nothing");
 
     for (const auto &[tileIndex, tileData] : palette->second.tiles)
     {
         if (tileIndex < 0)
             throw std::runtime_error("Palette \"" + tilePalette + "\" names a tile below 0");
 
-        tiles.insert_or_assign(tileIndex, Tile(tileData, glm::vec2(tileSet.cellSize)));
+        tiles.insert_or_assign(tileIndex, Tile(tileData, glm::vec2(static_cast<float>(tileSize))));
     }
 }
 

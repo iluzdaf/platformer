@@ -13,6 +13,29 @@ namespace
     constexpr glm::vec2 Cell{16.0f, 16.0f};
 }
 
+TEST_CASE("A collider is measured against the tile, not the cell it is drawn from", "[Tile]")
+{
+    TileData wholeTile;
+    wholeTile.collider = TileColliderData{glm::vec2(0.0f), glm::vec2(16.0f)};
+
+    REQUIRE_NOTHROW(Tile(wholeTile, glm::vec2(16.0f)));
+    REQUIRE_THROWS_WITH(
+        Tile(wholeTile, glm::vec2(8.0f)), Catch::Matchers::ContainsSubstring("outside its tile"));
+}
+
+TEST_CASE("A tile with no collider of its own fills the tile", "[Tile]")
+{
+    TileData solid;
+    solid.solid = true;
+    Tile tile(solid, glm::vec2(16.0f));
+
+    std::optional<AABB> box = tile.getAABBAt(glm::vec2(32.0f, 48.0f));
+
+    REQUIRE(box);
+    REQUIRE(box->position == glm::vec2(32.0f, 48.0f));
+    REQUIRE(box->size == glm::vec2(16.0f));
+}
+
 TEST_CASE("A tile says what it does", "[Tile]")
 {
     TileData solidTileData, emptyTileData;
@@ -188,16 +211,16 @@ TEST_CASE("A collider facing backwards is refused", "[Tile]")
     REQUIRE_THROWS(Tile(said, Cell));
 }
 
-TEST_CASE("A collider reaching past its cell is refused", "[Tile]")
+TEST_CASE("A collider reaching past its tile is refused", "[Tile]")
 {
     TileData wide;
     wide.solid = true;
     wide.collider = TileColliderData{glm::vec2(0.0f), glm::vec2(32.0f, 16.0f)};
 
-    REQUIRE_THROWS_WITH(Tile(wide, Cell), Catch::Matchers::ContainsSubstring("outside its cell"));
+    REQUIRE_THROWS_WITH(Tile(wide, Cell), Catch::Matchers::ContainsSubstring("outside its tile"));
 }
 
-TEST_CASE("A collider starting before its cell is refused", "[Tile]")
+TEST_CASE("A collider starting before its tile is refused", "[Tile]")
 {
     TileData shifted;
     shifted.solid = true;
@@ -206,7 +229,7 @@ TEST_CASE("A collider starting before its cell is refused", "[Tile]")
     REQUIRE_THROWS(Tile(shifted, Cell));
 }
 
-TEST_CASE("A collider filling its cell exactly is allowed", "[Tile]")
+TEST_CASE("A collider filling its tile exactly is allowed", "[Tile]")
 {
     TileData exact;
     exact.solid = true;

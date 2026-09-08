@@ -10,6 +10,8 @@
 #include "actor/actor_contact_state.hpp"
 #include "actor/decided.hpp"
 #include "actor/actor_state.hpp"
+#include "animations/frame_animation_data.hpp"
+#include "actor/hit.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "helpers/actors.hpp"
@@ -233,6 +235,23 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
         REQUIRE(player.observed().contacts.touchingLeftWall);
         REQUIRE_FALSE(player.observed().contacts.touchingRightWall);
     }
+}
+
+TEST_CASE("An actor plays each animation under the state it was given for", "[Player]")
+{
+    PlayerData playerData = playerDataWithEveryAbility();
+    playerData.actorData.animationData.idle = FrameAnimationData({5}, 1.0f);
+    playerData.actorData.animationData.dead = FrameAnimationData({9}, 1.0f);
+    ScriptedIntentions input;
+    Player player(playerData, input);
+    TileMap tileMap = aTileMap({{{0, 1}, 1}});
+    player.standAt(feetOf(glm::ivec2(0, 0)));
+    player.takeHit(lethalHit());
+
+    simulatePlayer(player, input, tileMap, 0.05f);
+
+    REQUIRE(player.state().currentAnimationState == ActorAnimationState::Dead);
+    REQUIRE(player.state().currentFrame == 9);
 }
 
 TEST_CASE("An actor said nothing about is drawn as big as its cell", "[Player]")

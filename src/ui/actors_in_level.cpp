@@ -12,7 +12,7 @@
 #include <imgui.h>
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
-#include "actor/actor_animation_state.hpp"
+#include "actor/actor_animations.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"

@@ -11,13 +11,17 @@ void Animator::animate(float deltaTime, const Decided &decided, const Observed &
 
     if (!observed.alive)
         newState = ActorAnimationState::Dead;
+    else if (decided.knockback.active)
+        newState = ActorAnimationState::Knockback;
     else if (decided.melee.swinging())
         newState = ActorAnimationState::Attack;
     else if (decided.dash.active)
         newState = ActorAnimationState::Dash;
     else if (!observed.contacts.onGround)
     {
-        if (decided.wallSlide.active || decided.wallHang.active)
+        if (decided.wallHang.active && decided.wallClimb.velocity.y != 0.0f)
+            newState = ActorAnimationState::Climb;
+        else if (decided.wallSlide.active || decided.wallHang.active)
             newState = ActorAnimationState::WallSlide;
         else if (observed.velocity.y < 0.0f)
             newState = ActorAnimationState::Jump;

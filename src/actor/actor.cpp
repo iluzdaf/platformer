@@ -9,8 +9,8 @@
 #include "actor/observing.hpp"
 #include "actor/observed.hpp"
 #include "actor/decided.hpp"
-#include "actor/actor_animation_data.hpp"
-#include "actor/actor_animation_state.hpp"
+#include "actor/actor_animations.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -32,24 +32,9 @@ Actor::Actor(const ActorData &data)
     if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
 
-    const ActorAnimationData &animationData = data.animationData;
-
-    animator.add(ActorAnimationState::Idle, FrameAnimation(animationData.idle));
-    if (animationData.walk)
-        animator.add(ActorAnimationState::Walk, FrameAnimation(animationData.walk.value()));
-    if (animationData.dash)
-        animator.add(ActorAnimationState::Dash, FrameAnimation(animationData.dash.value()));
-    if (animationData.jump)
-        animator.add(ActorAnimationState::Jump, FrameAnimation(animationData.jump.value()));
-    if (animationData.fall)
-        animator.add(ActorAnimationState::Fall, FrameAnimation(animationData.fall.value()));
-    if (animationData.wallSlide)
-        animator.add(
-            ActorAnimationState::WallSlide, FrameAnimation(animationData.wallSlide.value()));
-    if (animationData.attack)
-        animator.add(ActorAnimationState::Attack, FrameAnimation(animationData.attack.value()));
-    if (animationData.dead)
-        animator.add(ActorAnimationState::Dead, FrameAnimation(animationData.dead.value()));
+    for (const ActorAnimationSlot &slot : ActorAnimationSlots)
+        if (const FrameAnimationData *said = saidFor(data.animationData, slot))
+            animator.add(slot.state, FrameAnimation(*said));
 }
 
 void Actor::postFixedUpdate()

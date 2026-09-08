@@ -1,6 +1,5 @@
 #include <cstddef>
 #include <cstdint>
-#include <initializer_list>
 #include <optional>
 #include <stdexcept>
 #include <string_view>
@@ -10,7 +9,7 @@
 #include <imgui.h>
 #include "ui/sheet_preview.hpp"
 #include "ui/sheet_in_scope.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "actor/actor_animations.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "assets/sheet_data.hpp"
 #include "rendering/texture2d.hpp"
@@ -36,18 +35,10 @@ std::pair<ImVec2, ImVec2> colliderRect(ImVec2 tileAt, float scale, glm::vec2 off
 
 std::vector<NamedAnimation> animationsOf(const ActorAnimationData &animations)
 {
-    std::vector<NamedAnimation> offered{{"idle", &animations.idle}};
-    for (const auto &[name, animation] :
-         std::initializer_list<std::pair<const char *, const std::optional<FrameAnimationData> *>>{
-             {"walk", &animations.walk},
-             {"dash", &animations.dash},
-             {"jump", &animations.jump},
-             {"fall", &animations.fall},
-             {"wallSlide", &animations.wallSlide},
-             {"attack", &animations.attack},
-             {"dead", &animations.dead}})
-        if (animation->has_value())
-            offered.push_back({name, &animation->value()});
+    std::vector<NamedAnimation> offered;
+    for (const ActorAnimationSlot &slot : ActorAnimationSlots)
+        if (const FrameAnimationData *said = saidFor(animations, slot))
+            offered.push_back({slot.name, said});
 
     return offered;
 }

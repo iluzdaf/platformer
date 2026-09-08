@@ -398,7 +398,7 @@ add_executable(tests
     tests/actor/test_observing.cpp
     tests/actor/test_health.cpp
 
-    tests/actor/test_actor_animation_state.cpp
+    tests/actor/test_actor_animations.cpp
     tests/actor/abilities/test_wall_hang_ability.cpp
     tests/actor/abilities/test_wall_climb_ability.cpp
     tests/actor/abilities/test_mantle_ability.cpp

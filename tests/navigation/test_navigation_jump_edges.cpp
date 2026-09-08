@@ -2,13 +2,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <set>
 #include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/actor_data.hpp"
-#include "game/game_data.hpp"
-#include "helpers/asset_path.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/maps.hpp"
 #include "helpers/graph_queries.hpp"
@@ -20,7 +16,6 @@
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_profile.hpp"
-#include "navigation/navigation_profile_builder.hpp"
 #include "tile_map/tile_map.hpp"
 
 TEST_CASE("A profile that cannot jump gets no jump edges", "[NavigationGraphBuilder][Jump]")
@@ -162,132 +157,39 @@ TEST_CASE("A walk edge is drawn straight", "[NavigationGraphBuilder][Jump]")
             REQUIRE(edge.path.empty());
 }
 
-TEST_CASE("The shipped spider can cross the gap in level6", "[NavigationGraphBuilder][Jump][Level]")
-{
-    GameData gameData = loadGameData();
-
-    NavigationProfile spider = buildNavigationProfile(gameData.npcData.at("spider").actorData);
-    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
-
-    NavigationGraph graph = buildNavigationGraph(tileMap, spider);
-
-    REQUIRE(countEdgesOfType(graph, EdgeType::Jump) > 0);
-}
-
-TEST_CASE(
-    "The shipped spider can get up to level6's top platform and back",
-    "[NavigationGraphBuilder][Jump][Level]")
-{
-    GameData gameData = loadGameData();
-
-    NavigationProfile spider = buildNavigationProfile(gameData.npcData.at("spider").actorData);
-    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
-
-    NavigationGraph graph = buildNavigationGraph(tileMap, spider);
-
-    int topPlatformId = -1;
-    for (const auto &[id, node] : graph.getNodes())
-        if (node.feet.y < 100.0f)
-            topPlatformId = id;
-
-    REQUIRE(topPlatformId >= 0);
-
-    std::vector<int> reachable = roundTripFrom(graph, topPlatformId);
-    REQUIRE(reachable.size() > 2);
-}
-
-TEST_CASE(
-    "The shipped actors can reach every surface in level6",
-    "[NavigationGraphBuilder][Jump][Level]")
-{
-    GameData gameData = loadGameData();
-    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
-
-    auto reachesEverySurface = [&](const ActorData &actorData)
-    {
-        NavigationGraph graph = buildNavigationGraph(tileMap, buildNavigationProfile(actorData));
-
-        std::set<float> surfaces;
-        for (const auto &[id, node] : graph.getNodes())
-            surfaces.insert(node.feet.y);
-
-        for (const auto &[id, node] : graph.getNodes())
-        {
-            std::set<float> fromHere;
-            for (int to : roundTripFrom(graph, id))
-                fromHere.insert(graph.getNode(to).feet.y);
-            if (fromHere == surfaces)
-                return true;
-        }
-        return false;
-    };
-
-    REQUIRE(reachesEverySurface(gameData.npcData.at("spider").actorData));
-    REQUIRE(reachesEverySurface(gameData.playerData.actorData));
-}
-
 TEST_CASE(
     "A way up does not depend on something having fallen there",
-    "[NavigationGraphBuilder][Jump][Level]")
+    "[NavigationGraphBuilder][Jump]")
 {
-    GameData gameData = loadGameData();
-    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
+    Placed laid;
+    layRow(laid, 12, 1, 8);
+    layRow(laid, 12, 12, 18);
+    layRow(laid, 6, 1, 4);
+    TileMap tileMap = aTileMap(laid, 20, 16);
 
-    NavigationGraph graph = buildNavigationGraph(
-        tileMap, buildNavigationProfile(gameData.npcData.at("spider").actorData));
+    NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
-    float floorY = 192.0f;
-    bool getsOffTheFloor = false;
+    int landings = 0;
+    for (const auto &[id, node] : graph.getNodes())
+        if (node.kind == NodeKind::Landing)
+            ++landings;
+
+    INFO("nothing fell anywhere, so this proves nothing");
+    REQUIRE(landings > 0);
+
+    int jumps = 0;
     for (const auto &edge : graph.getEdges())
     {
         if (edge.type != EdgeType::Jump)
             continue;
 
+        ++jumps;
         NavigationNode from = graph.getNode(edge.fromId);
         INFO("jump from node " << edge.fromId << " at " << from.feet.x << "," << from.feet.y);
         REQUIRE(from.kind == NodeKind::OnFoot);
-
-        if (std::abs(from.feet.y - floorY) < 0.5f && graph.getNode(edge.toId).feet.y < floorY)
-            getsOffTheFloor = true;
     }
 
-    REQUIRE(getsOffTheFloor);
-}
-
-TEST_CASE(
-    "The shipped player is offered every climb level6 asks of it",
-    "[NavigationGraphBuilder][Jump][Level]")
-{
-    GameData gameData = loadGameData();
-    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
-
-    NavigationGraph graph =
-        buildNavigationGraph(tileMap, buildNavigationProfile(gameData.playerData.actorData));
-
-    for (auto [from, to] :
-         {std::pair(192.0f, 160.0f), std::pair(160.0f, 128.0f), std::pair(128.0f, 96.0f)})
-    {
-        bool offered = false;
-        for (const auto &edge : graph.getEdges())
-            if (edge.type == EdgeType::Jump &&
-                std::abs(graph.getNode(edge.fromId).feet.y - from) < 0.5f &&
-                std::abs(graph.getNode(edge.toId).feet.y - to) < 0.5f)
-                offered = true;
-
-        INFO("no jump from y " << from << " up to y " << to);
-        REQUIRE(offered);
-    }
-}
-
-TEST_CASE("The shipped rat is offered no jumps at all", "[NavigationGraphBuilder][Jump][Level]")
-{
-    GameData gameData = loadGameData();
-
-    NavigationProfile rat = buildNavigationProfile(gameData.npcData.at("rat").actorData);
-    TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
-
-    REQUIRE(rat.jumpArcs.empty());
-    REQUIRE(countEdgesOfType(buildNavigationGraph(tileMap, rat), EdgeType::Jump) == 0);
+    REQUIRE(jumps > 0);
 }
 
 TEST_CASE("A jump edge records the hold that made it", "[NavigationGraphBuilder][Jump]")

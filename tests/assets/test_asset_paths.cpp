@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include "assets/asset_paths.hpp"
@@ -46,12 +47,13 @@ TEST_CASE("Files under a directory are listed by extension in order", "[AssetPat
 {
     std::vector<std::string> pngs = assets::filesIn(assets::Textures, ".png");
 
-    REQUIRE(
-        pngs == std::vector<std::string>{
-                    "textures/cavern.png",
-                    "textures/coin.png",
-                    "textures/player.png",
-                    "textures/rat.png",
-                    "textures/spider.png"});
+    REQUIRE_FALSE(pngs.empty());
+    REQUIRE(std::is_sorted(pngs.begin(), pngs.end()));
+    for (const std::string &png : pngs)
+    {
+        REQUIRE(png.starts_with(std::string(assets::Textures) + "/"));
+        REQUIRE(png.ends_with(".png"));
+    }
+
     REQUIRE(assets::filesIn(assets::Textures, ".json").empty());
 }

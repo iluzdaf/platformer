@@ -101,7 +101,7 @@ TEST_CASE("A rename cannot take a name already taken", "[Renaming]")
 
 TEST_CASE("What cannot be renamed is named in the reason", "[Renaming]")
 {
-    REQUIRE(*whyNotARename("an npc", "rat", "", false) == "an npc needs a name");
+    REQUIRE(*whyNotARename("an npc", "anOldName", "", false) == "an npc needs a name");
 }
 
 TEST_CASE("Renaming twice remembers the name that is on disk", "[Renaming]")
@@ -199,23 +199,23 @@ TEST_CASE("A palette no level names is left alone", "[Renaming]")
 TEST_CASE("Every spawn of a renamed npc type is re-pointed", "[Renaming]")
 {
     std::vector<NpcSpawnData> npcs{
-        NpcSpawnData{"rat", glm::ivec2(1, 1), std::nullopt},
-        NpcSpawnData{"spider", glm::ivec2(2, 2), std::nullopt},
-        NpcSpawnData{"rat", glm::ivec2(3, 3), std::nullopt}};
+        NpcSpawnData{"anOldName", glm::ivec2(1, 1), std::nullopt},
+        NpcSpawnData{"anotherName", glm::ivec2(2, 2), std::nullopt},
+        NpcSpawnData{"anOldName", glm::ivec2(3, 3), std::nullopt}};
 
-    REQUIRE(rewriting::typeIn(npcs, {{"rat", "farmer"}}));
+    REQUIRE(rewriting::typeIn(npcs, {{"anOldName", "aNewName"}}));
 
-    REQUIRE(npcs[0].type == "farmer");
-    REQUIRE(npcs[1].type == "spider");
-    REQUIRE(npcs[2].type == "farmer");
+    REQUIRE(npcs[0].type == "aNewName");
+    REQUIRE(npcs[1].type == "anotherName");
+    REQUIRE(npcs[2].type == "aNewName");
 }
 
 TEST_CASE("Spawns of a type nobody renamed are left alone", "[Renaming]")
 {
-    std::vector<NpcSpawnData> npcs{NpcSpawnData{"rat", glm::ivec2(1, 1), std::nullopt}};
+    std::vector<NpcSpawnData> npcs{NpcSpawnData{"anOldName", glm::ivec2(1, 1), std::nullopt}};
 
-    REQUIRE_FALSE(rewriting::typeIn(npcs, {{"spider", "scout"}}));
-    REQUIRE(npcs[0].type == "rat");
+    REQUIRE_FALSE(rewriting::typeIn(npcs, {{"anotherName", "unusedName"}}));
+    REQUIRE(npcs[0].type == "anOldName");
 }
 
 TEST_CASE("Every spawn of a renamed pickup type is re-pointed", "[Renaming]")
@@ -353,26 +353,26 @@ TEST_CASE("Nothing is said once the levels are rewritten", "[Renaming]")
 
 TEST_CASE("Renames that take effect move the keys they name", "[Renaming]")
 {
-    std::map<std::string, int> catalogue{{"rat", 1}, {"spider", 2}};
+    std::map<std::string, int> catalogue{{"anOldName", 1}, {"anotherName", 2}};
 
-    renamesTakeEffect({{"rat", "farmer"}}, catalogue);
+    renamesTakeEffect({{"anOldName", "aNewName"}}, catalogue);
 
-    REQUIRE(catalogue == std::map<std::string, int>{{"farmer", 1}, {"spider", 2}});
+    REQUIRE(catalogue == std::map<std::string, int>{{"aNewName", 1}, {"anotherName", 2}});
 }
 
 TEST_CASE("A rename naming nothing in the catalogue moves nothing", "[Renaming]")
 {
-    std::map<std::string, int> catalogue{{"rat", 1}};
+    std::map<std::string, int> catalogue{{"anOldName", 1}};
 
     renamesTakeEffect({{"nobody", "somebody"}}, catalogue);
 
-    REQUIRE(catalogue == std::map<std::string, int>{{"rat", 1}});
+    REQUIRE(catalogue == std::map<std::string, int>{{"anOldName", 1}});
 }
 
 TEST_CASE("A name is what the renames make of it", "[Renaming]")
 {
-    REQUIRE(nameAfterRenames({{"rat", "farmer"}}, "rat") == "farmer");
-    REQUIRE(nameAfterRenames({{"rat", "farmer"}}, "spider") == "spider");
+    REQUIRE(nameAfterRenames({{"anOldName", "aNewName"}}, "anOldName") == "aNewName");
+    REQUIRE(nameAfterRenames({{"anOldName", "aNewName"}}, "anotherName") == "anotherName");
 }
 
 TEST_CASE("The levels a rename will reach are named before it is saved", "[Renaming]")

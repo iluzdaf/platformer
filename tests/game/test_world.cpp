@@ -328,16 +328,21 @@ TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
     REQUIRE(scoreStandingBesideACoinAt(coinWhoseLeftEdgeIsAt(collider.right() + 1.0f)) == 0);
 }
 
-TEST_CASE("A hurt player reaches the script's onHurt, and a dead one its onDeath", "[World]")
+TEST_CASE("A hurt player reaches its own script, and a dead one too", "[World]")
 {
     std::filesystem::path script =
         std::filesystem::temp_directory_path() / "platformer_world_hurt.lua";
-    std::ofstream(script)
-        << "hurts = 0\ndeaths = 0\n"
-           "function onHurt(who) hurts = hurts + 1; stillAlive = who:alive() end\n"
-           "function onDeath(who) deaths = deaths + 1; nowAlive = who:alive() end\n";
+    std::ofstream(script) << "seen = {hurts = 0, deaths = 0}\n";
+    std::filesystem::path playerScript =
+        std::filesystem::temp_directory_path() / "platformer_world_hurt_player.lua";
+    std::ofstream(playerScript)
+        << "return {\n"
+           "  onHurt = function(who) seen.hurts = seen.hurts + 1; seen.alive = who:alive() end,\n"
+           "  onDeath = function(who) seen.deaths = seen.deaths + 1; seen.dead = who:alive() end,\n"
+           "}\n";
     GameData gameData = aFloorWorldWithCoins();
     gameData.playerData = playerDataWithHealth(2, 0.0f);
+    gameData.playerData.script = playerScript.string();
     LuaScriptSystem luaScriptSystem(script.string());
     World world(gameData, noIntentions(), luaScriptSystem);
     TemporaryLevels levels("world_hurt");
@@ -347,10 +352,42 @@ TEST_CASE("A hurt player reaches the script's onHurt, and a dead one its onDeath
     world.getPlayer().takeHit(Hit{1, glm::vec2(0.0f), false});
     world.getPlayer().takeHit(Hit{1, glm::vec2(0.0f), false});
 
-    REQUIRE(luaScriptSystem.getLua()["hurts"].get<int>() == 1);
-    REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 1);
-    REQUIRE(luaScriptSystem.getLua()["stillAlive"].get<bool>());
-    REQUIRE_FALSE(luaScriptSystem.getLua()["nowAlive"].get<bool>());
+    sol::table seen = luaScriptSystem.getLua()["seen"];
+    REQUIRE(seen["hurts"].get<int>() == 1);
+    REQUIRE(seen["deaths"].get<int>() == 1);
+    REQUIRE(seen["alive"].get<bool>());
+    REQUIRE_FALSE(seen["dead"].get<bool>());
+}
+
+TEST_CASE("A creature named like the player does not answer for it", "[World]")
+{
+    std::filesystem::path shared =
+        std::filesystem::temp_directory_path() / "platformer_world_clash.lua";
+    std::ofstream(shared) << "seen = {}\n";
+    std::filesystem::path playerScript =
+        std::filesystem::temp_directory_path() / "platformer_world_clash_player.lua";
+    std::ofstream(playerScript) << "return { onHurt = function(who) seen.who = \"player\" end }\n";
+    std::filesystem::path npcScript =
+        std::filesystem::temp_directory_path() / "platformer_world_clash_npc.lua";
+    std::ofstream(npcScript) << "return { onHurt = function(who) seen.who = \"npc\" end }\n";
+
+    GameData gameData = aFloorWorldWithCoins();
+    gameData.playerData = playerDataWithHealth(3, 0.0f);
+    gameData.playerData.script = playerScript.string();
+    NpcData impostor = setupNpcData();
+    impostor.script = npcScript.string();
+    gameData.npcData = {{"player", impostor}};
+
+    LuaScriptSystem luaScriptSystem(shared.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_clash");
+    levels.write(
+        "floor.json", aFloorLevelPlacing({spawnAt("player", glm::ivec2(3, FloorLevelStanding))}));
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    world.getPlayer().takeHit(Hit{1, glm::vec2(0.0f), false});
+
+    REQUIRE(luaScriptSystem.getLua()["seen"]["who"].get<std::string>() == "player");
 }
 
 TEST_CASE("An npc's own script hears it hurt and killed, and no other npc's does", "[World]")

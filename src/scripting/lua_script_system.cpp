@@ -116,14 +116,14 @@ std::optional<float> LuaScriptSystem::settle(
     return std::nullopt;
 }
 
-void LuaScriptSystem::use(const std::string &name, const std::string &path)
+void LuaScriptSystem::use(std::string_view name, const std::string &path)
 {
-    NamedScript &script = scripts[name];
+    NamedScript &script = scripts[std::string(name)];
     script.path = path;
     reload(script, name);
 }
 
-void LuaScriptSystem::reload(NamedScript &script, const std::string &name)
+void LuaScriptSystem::reload(NamedScript &script, std::string_view name)
 {
     sol::environment fresh(lua, sol::create, lua.globals());
     sol::protected_function_result result =

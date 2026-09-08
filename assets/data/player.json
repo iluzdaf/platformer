@@ -30,5 +30,6 @@
         },
         "healthData":{"maximum":3,"invulnerableFor":1}
     },
-    "fallFromHeightThreshold":599
+    "fallFromHeightThreshold":599,
+    "script":"scripts/player.lua"
 }

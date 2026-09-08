@@ -200,13 +200,13 @@ TEST_CASE("Every spawn of a renamed npc type is re-pointed", "[Renaming]")
 {
     std::vector<NpcSpawnData> npcs{
         NpcSpawnData{"rat", glm::ivec2(1, 1), std::nullopt},
-        NpcSpawnData{"explorer", glm::ivec2(2, 2), std::nullopt},
+        NpcSpawnData{"spider", glm::ivec2(2, 2), std::nullopt},
         NpcSpawnData{"rat", glm::ivec2(3, 3), std::nullopt}};
 
     REQUIRE(rewriting::typeIn(npcs, {{"rat", "farmer"}}));
 
     REQUIRE(npcs[0].type == "farmer");
-    REQUIRE(npcs[1].type == "explorer");
+    REQUIRE(npcs[1].type == "spider");
     REQUIRE(npcs[2].type == "farmer");
 }
 
@@ -214,7 +214,7 @@ TEST_CASE("Spawns of a type nobody renamed are left alone", "[Renaming]")
 {
     std::vector<NpcSpawnData> npcs{NpcSpawnData{"rat", glm::ivec2(1, 1), std::nullopt}};
 
-    REQUIRE_FALSE(rewriting::typeIn(npcs, {{"explorer", "scout"}}));
+    REQUIRE_FALSE(rewriting::typeIn(npcs, {{"spider", "scout"}}));
     REQUIRE(npcs[0].type == "rat");
 }
 
@@ -353,11 +353,11 @@ TEST_CASE("Nothing is said once the levels are rewritten", "[Renaming]")
 
 TEST_CASE("Renames that take effect move the keys they name", "[Renaming]")
 {
-    std::map<std::string, int> catalogue{{"rat", 1}, {"explorer", 2}};
+    std::map<std::string, int> catalogue{{"rat", 1}, {"spider", 2}};
 
     renamesTakeEffect({{"rat", "farmer"}}, catalogue);
 
-    REQUIRE(catalogue == std::map<std::string, int>{{"farmer", 1}, {"explorer", 2}});
+    REQUIRE(catalogue == std::map<std::string, int>{{"farmer", 1}, {"spider", 2}});
 }
 
 TEST_CASE("A rename naming nothing in the catalogue moves nothing", "[Renaming]")
@@ -372,7 +372,7 @@ TEST_CASE("A rename naming nothing in the catalogue moves nothing", "[Renaming]"
 TEST_CASE("A name is what the renames make of it", "[Renaming]")
 {
     REQUIRE(nameAfterRenames({{"rat", "farmer"}}, "rat") == "farmer");
-    REQUIRE(nameAfterRenames({{"rat", "farmer"}}, "explorer") == "explorer");
+    REQUIRE(nameAfterRenames({{"rat", "farmer"}}, "spider") == "spider");
 }
 
 TEST_CASE("The levels a rename will reach are named before it is saved", "[Renaming]")

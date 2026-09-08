@@ -50,8 +50,8 @@ TEST_CASE("Files under a directory are listed by extension in order", "[AssetPat
         pngs == std::vector<std::string>{
                     "textures/cavern.png",
                     "textures/coin.png",
-                    "textures/explorer.png",
                     "textures/player.png",
-                    "textures/rat.png"});
+                    "textures/rat.png",
+                    "textures/spider.png"});
     REQUIRE(assets::filesIn(assets::Textures, ".json").empty());
 }

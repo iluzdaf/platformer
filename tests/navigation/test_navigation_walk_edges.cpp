@@ -315,7 +315,7 @@ TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder][Le
     TileMap tileMap = tilesOfLevel(assetPath("levels/level6.json"));
 
     NavigationGraph graph = buildNavigationGraph(
-        tileMap, buildNavigationProfile(gameData.npcData.at("explorer").actorData));
+        tileMap, buildNavigationProfile(gameData.npcData.at("spider").actorData));
 
     float tileSize = static_cast<float>(tileMap.getTileSize());
     for (const auto &[id, node] : graph.getNodes())

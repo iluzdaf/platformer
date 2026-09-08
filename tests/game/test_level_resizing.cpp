@@ -43,7 +43,7 @@ namespace
         level.npcs = {
             NpcSpawnData{"rat", glm::vec2(8.0f, 32.0f), std::nullopt},
             NpcSpawnData{
-                "explorer",
+                "spider",
                 glm::vec2(24.0f, 32.0f),
                 PatrolData{glm::vec2(24.0f, 32.0f), glm::vec2(56.0f, 32.0f)}}};
         level.pickups = {
@@ -130,7 +130,7 @@ TEST_CASE("Shrinking on the left moves what is left one tile back", "[LevelResiz
 
     REQUIRE(shrunk.playerFeet == glm::vec2(-8.0f, 32.0f));
     REQUIRE(shrunk.npcs.size() == 1);
-    REQUIRE(shrunk.npcs[0].type == "explorer");
+    REQUIRE(shrunk.npcs[0].type == "spider");
     REQUIRE(shrunk.npcs[0].feet == glm::vec2(8.0f, 32.0f));
     REQUIRE(shrunk.npcs[0].patrol->from == glm::vec2(8.0f, 32.0f));
     REQUIRE(shrunk.npcs[0].patrol->to == glm::vec2(40.0f, 32.0f));
@@ -151,7 +151,7 @@ TEST_CASE(
 {
     LevelData shrunk = resizedBy(ShrinkRight, aWiderLevel(), TileSize);
 
-    REQUIRE(shrunk.npcs[1].type == "explorer");
+    REQUIRE(shrunk.npcs[1].type == "spider");
     REQUIRE_FALSE(shrunk.npcs[1].patrol.has_value());
     REQUIRE(shrunk.npcs[0].patrol == std::nullopt);
 }

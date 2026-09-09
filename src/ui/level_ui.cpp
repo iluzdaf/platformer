@@ -9,6 +9,7 @@
 #include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "actor/actor_animation_data.hpp"
 #include "game/level_data_file.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "ui/debug_aabb_overlay.hpp"
@@ -34,7 +35,7 @@ void LevelUi::draw(
     const Level &level,
     const LevelData &levelData,
     const std::string &levelPath,
-    const Decided &playerDecided,
+    const ActorAnimationData &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -47,7 +48,7 @@ void LevelUi::draw(
     drawActors(
         level,
         levelData,
-        playerDecided,
+        playerAnimations,
         playerObserved,
         playerFeet,
         playerState,
@@ -59,7 +60,7 @@ void LevelUi::draw(
 void LevelUi::drawActors(
     const Level &level,
     const LevelData &levelData,
-    const Decided &playerDecided,
+    const ActorAnimationData &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -73,7 +74,7 @@ void LevelUi::drawActors(
     ActorShown wasShowing = showingActor;
     ActorAsked asked = drawActorsInLevel(
         level,
-        playerDecided,
+        playerAnimations,
         playerObserved,
         playerFeet,
         playerState,

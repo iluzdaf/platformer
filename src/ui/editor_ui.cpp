@@ -7,6 +7,8 @@
 #include <string_view>
 #include <optional>
 #include "ui/editor_ui.hpp"
+#include "actor/actor_data.hpp"
+#include "player/player_data.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
@@ -122,7 +124,7 @@ void EditorUi::draw(
                 subject.level,
                 subject.levelData,
                 subject.levelPath,
-                subject.playerDecided,
+                subject.gameData.playerData.actorData.animationData,
                 subject.playerObserved,
                 subject.playerFeet,
                 subject.playerState,

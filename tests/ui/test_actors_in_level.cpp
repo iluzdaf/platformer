@@ -2,7 +2,7 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include "actor/decided.hpp"
+#include "actor/actor_animation_data.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
@@ -66,7 +66,7 @@ namespace
         ActorShown showing,
         std::optional<Armed> &armed)
     {
-        Decided decided;
+        ActorAnimationData animations;
         Observed observed;
         ActorState playerState;
         ActorAsked asked;
@@ -76,7 +76,7 @@ namespace
             {
                 asked = drawActorsInLevel(
                     level,
-                    decided,
+                    animations,
                     observed,
                     level.getTileMap().feetOnTile(
                         level.getTileMap().tileUnderFeet(level.getPlayerStart())),

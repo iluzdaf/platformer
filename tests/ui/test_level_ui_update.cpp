@@ -13,7 +13,7 @@
 #include "ui/level_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include <imgui_internal.h>
-#include "actor/decided.hpp"
+#include "actor/actor_animation_data.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "helpers/headless_imgui.hpp"
@@ -302,7 +302,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
     LevelUi levelUi;
     LevelData levelData = dataPlacing({aVillagerAt(glm::ivec2(3, Standing))});
     Level level = levelOf(levelData);
-    Decided decided;
+    ActorAnimationData animations;
     Observed observed;
     ActorState playerState;
     std::optional<Armed> armed;
@@ -316,7 +316,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
                 level,
                 levelData,
                 LevelPath,
-                decided,
+                animations,
                 observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
                 playerState,

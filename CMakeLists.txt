@@ -145,6 +145,7 @@ add_library(platformer_lib OBJECT
     src/ui/graph_shown.cpp
     src/ui/graph_view.cpp
     src/ui/animator_field.cpp
+    src/ui/when_field.cpp
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/touching_tiles.cpp

@@ -23,6 +23,7 @@
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "animations/animator_data.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "conditions/asked.hpp"
 
 namespace
@@ -268,4 +269,30 @@ TEST_CASE("An actor's animation data draws as a graph of its clips and rungs", "
 
     REQUIRE_NOTHROW(gui.frame([&] { inspector::draw("animationData", animations); }));
     REQUIRE(animations.clips.size() == 2);
+}
+
+TEST_CASE(
+    "A condition draws as the facts it asks about, with a widget for each kind",
+    "[DataInspector]")
+{
+    HeadlessImGui gui;
+    AnimationTransitionData rung;
+    rung.to = "pounce";
+    rung.when["onGround"] = false;
+    rung.when["inState"] = std::string("pounce");
+    BehaviorTransitionData transition;
+    transition.from = "chase";
+    transition.to = "pounce";
+    transition.when["threatWithin"] = 40.0f;
+    transition.when["threatOnMySurface"] = true;
+
+    REQUIRE_NOTHROW(gui.frame(
+        [&]
+        {
+            ImGui::TreeNodeSetOpen(ImGui::GetID("when"), true);
+            inspector::drawFields(rung);
+            inspector::drawFields(transition);
+        }));
+    REQUIRE(rung.when.size() == 2);
+    REQUIRE(transition.when.size() == 2);
 }

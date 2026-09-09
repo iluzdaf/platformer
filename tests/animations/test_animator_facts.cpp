@@ -1,5 +1,12 @@
 #include <string>
+#include <vector>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
+#include <map>
+#include <concepts>
+#include <string_view>
+#include <utility>
+#include <glaze/glaze.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/decided.hpp"
@@ -43,6 +50,11 @@ TEST_CASE("Each fact follows the one thing it watches", "[AnimatorFacts]")
     decided.dash.active = true;
     REQUIRE(fact("dashing", true, decided, observed));
     decided.dash.active = false;
+
+    decided.pounce.active = true;
+    REQUIRE(fact("pouncing", true, decided, observed));
+    REQUIRE(fact("dashing", false, decided, observed));
+    decided.pounce.active = false;
 
     observed.velocity = glm::vec2(0.0f, -40.0f);
     REQUIRE(fact("rising", true, decided, observed));
@@ -92,8 +104,60 @@ TEST_CASE(
         names += std::string(row.name) + " ";
 
     REQUIRE(
-        names == "alive knockback swinging dashing onGround climbing onWall rising falling moving "
-                 "finished inState ");
+        names ==
+        "alive knockback swinging dashing pouncing onGround climbing onWall rising falling "
+        "moving finished inState ");
     REQUIRE(rowNamed(animatorRows(), "inState")->kind == AskedKind::Name);
     REQUIRE(rowNamed(animatorRows(), "somersault") == nullptr);
+}
+
+namespace
+{
+    template <class T>
+    concept CanBeActive = requires(const T &state) {
+        { state.active } -> std::convertible_to<bool>;
+    };
+
+    template <std::size_t... I>
+    std::vector<std::string_view> abilitiesThatCanBeActive(std::index_sequence<I...>)
+    {
+        std::vector<std::string_view> names;
+        (
+            [&]
+            {
+                if constexpr (CanBeActive<typename glz::reflect<Decided>::template type<I>>)
+                    names.push_back(glz::reflect<Decided>::keys[I]);
+            }(),
+            ...);
+        return names;
+    }
+}
+
+TEST_CASE("Every ability that can be active is a fact, or says why it is not", "[AnimatorFacts]")
+{
+    const std::map<std::string_view, std::string_view> rowFor{
+        {"dash", "dashing"},
+        {"knockback", "knockback"},
+        {"wallSlide", "onWall"},
+        {"wallHang", "onWall"},
+        {"pounce", "pouncing"}};
+    const std::map<std::string_view, std::string_view> notAFactBecause{
+        {"jump", "rising already says it; a jump is not a picture of its own"},
+        {"wallJump", "it is a jump"},
+        {"mantle", "there is no mantle picture yet; add a row when there is"}};
+
+    std::vector<std::string_view> flagged =
+        abilitiesThatCanBeActive(std::make_index_sequence<glz::reflect<Decided>::size>{});
+    REQUIRE_FALSE(flagged.empty());
+
+    for (std::string_view ability : flagged)
+    {
+        INFO(
+            "ability \"" << ability
+                         << "\" can be active, and nobody has said whether it is a fact");
+        bool decided = rowFor.contains(ability) || notAFactBecause.contains(ability);
+        REQUIRE(decided);
+        if (rowFor.contains(ability))
+            REQUIRE(rowNamed(animatorRows(), rowFor.at(ability)) != nullptr);
+    }
 }

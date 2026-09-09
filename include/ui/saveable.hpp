@@ -2,10 +2,10 @@
 
 #include <iostream>
 #include <map>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <glaze/glaze.hpp>
+#include "serialization/only_what_differs.hpp"
 #include <utility>
 
 class Saveable
@@ -65,11 +65,7 @@ template <class T> void revertTo(const Saveable &saveable, std::string_view name
 
 template <class T> std::string asJson(const T &value)
 {
-    std::string json;
-    if (glz::write_json(value, json))
-        throw std::runtime_error("Failed to serialise for comparison");
-
-    return json;
+    return onlyWhatDiffers(value);
 }
 
 template <class T>

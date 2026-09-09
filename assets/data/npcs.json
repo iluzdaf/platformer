@@ -48,7 +48,16 @@
                 "dead":{"frames":[10],"frameDuration":1}
             }
         },
-        "stateMachineBehaviorData":{"states":[{"name":"patrol","patrolBehaviorData":{}}]},
+        "stateMachineBehaviorData":{
+            "states":[
+                {"name":"patrol","patrolBehaviorData":{}},
+                {"name":"chase","chaseBehaviorData":{}}
+            ],
+            "transitions":[
+                {"from":"patrol","to":"chase","threatWithin":64,"threatOnMySurface":true},
+                {"from":"chase","to":"patrol","threatOnMySurface":false,"after":2}
+            ]
+        },
         "contactDamage":1,
         "script":"scripts/npcs/spider.lua"
     }

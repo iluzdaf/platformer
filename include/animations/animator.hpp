@@ -1,6 +1,8 @@
 #pragma once
 
+#include <string>
 #include <unordered_map>
+#include <vector>
 #include "actor/actor_animation_state.hpp"
 #include "animations/frame_animation.hpp"
 
@@ -14,6 +16,7 @@ public:
     const FrameAnimation &playing() const;
     void add(ActorAnimationState state, const FrameAnimation &anim);
     ActorAnimationState state() const;
+    std::vector<std::string> takeCues();
 
 private:
     ActorAnimationState currentState = ActorAnimationState::Idle;

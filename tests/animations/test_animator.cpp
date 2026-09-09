@@ -1,4 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
+#include <vector>
+#include <string>
 #include "actor/actor_animation_state.hpp"
 #include "animations/animator.hpp"
 #include "animations/frame_animation_data.hpp"
@@ -170,4 +172,32 @@ TEST_CASE("A slide that is not a hang never shows the climb", "[Animator]")
     animator.animate(0.01f, sliding, offTheGround);
 
     REQUIRE(animator.state() == ActorAnimationState::WallSlide);
+}
+
+TEST_CASE("Entering a state says its clip's opening cue", "[Animator]")
+{
+    Animator animator;
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(
+        ActorAnimationState::Walk,
+        FrameAnimation(FrameAnimationData{{2}, 1.0f, {{0, "onFootstep"}}}));
+
+    animator.animate(0.01f, Decided{}, walkingOnGround());
+
+    REQUIRE(animator.takeCues() == std::vector<std::string>{"onFootstep"});
+}
+
+TEST_CASE("Staying in a state does not repeat its opening cue", "[Animator]")
+{
+    Animator animator;
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(
+        ActorAnimationState::Walk,
+        FrameAnimation(FrameAnimationData{{2}, 1.0f, {{0, "onFootstep"}}}));
+    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.takeCues();
+
+    animator.animate(0.01f, Decided{}, walkingOnGround());
+
+    REQUIRE(animator.takeCues().empty());
 }

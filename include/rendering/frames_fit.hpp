@@ -4,6 +4,7 @@
 #include <vector>
 
 struct SheetData;
+struct FrameAnimationData;
 
 void checkFramesFit(
     const std::vector<int> &frames,
@@ -11,3 +12,5 @@ void checkFramesFit(
     const std::string &whose,
     int textureWidth,
     int textureHeight);
+
+void checkCuesFit(const FrameAnimationData &clip, const std::string &whose);

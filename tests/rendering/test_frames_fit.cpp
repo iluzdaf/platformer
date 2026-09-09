@@ -3,6 +3,7 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include "animations/frame_animation_data.hpp"
 #include "assets/sheet_data.hpp"
 #include "rendering/frames_fit.hpp"
 
@@ -61,4 +62,23 @@ TEST_CASE("Taller cells mean fewer of them in the same sheet", "[FramesFit]")
 
     REQUIRE_NOTHROW(checkFramesFit(animation, cells(16, 16), "\"short\"", 32, 64));
     REQUIRE_THROWS(checkFramesFit(animation, cells(16, 32), "\"tall\"", 32, 64));
+}
+
+TEST_CASE("A cue on a frame the clip has fits", "[FramesFit]")
+{
+    FrameAnimationData clip{{0, 5, 9}, 0.1f, {{2, "onSwing"}}};
+
+    REQUIRE_NOTHROW(checkCuesFit(clip, "\"coin\""));
+}
+
+TEST_CASE("A cue past the end of its clip says so", "[FramesFit]")
+{
+    FrameAnimationData clip{{0, 5, 9}, 0.1f, {{3, "onSwing"}}};
+
+    REQUIRE_THROWS_WITH(
+        checkCuesFit(clip, "\"coin\""),
+        Catch::Matchers::ContainsSubstring("coin") &&
+            Catch::Matchers::ContainsSubstring("onSwing") &&
+            Catch::Matchers::ContainsSubstring("frame 3") &&
+            Catch::Matchers::ContainsSubstring("3 frames long"));
 }

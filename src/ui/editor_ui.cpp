@@ -103,7 +103,7 @@ void EditorUi::draw(
         break;
 
     case EditorSection::Cast:
-        typesUi.draw(subject.gameData, subject.textures, commands);
+        typesUi.draw(subject.gameData, subject.textures, commands, &subject.level);
         break;
 
     case EditorSection::Level:

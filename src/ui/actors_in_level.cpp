@@ -24,6 +24,7 @@
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "game/beat_between.hpp"
+#include "ui/state_machine_graph.hpp"
 #include "tile_map/tile_map.hpp"
 
 namespace
@@ -124,6 +125,21 @@ namespace
             drawRow("Route", std::format("waiting at {}", *setOffAt));
         else
             drawRow("Route", std::format("{} heading for {}", *setOffAt, *headingFor));
+    }
+
+    void drawMachineOf(const std::map<std::string, NpcData> &npcTypes, const Npc &npc)
+    {
+        auto type = npcTypes.find(npc.type());
+        if (type == npcTypes.end())
+            return;
+
+        const std::optional<StateMachineBehaviorData> &machine =
+            type->second.stateMachineBehaviorData;
+        if (!machine.has_value())
+            return;
+
+        if (ImGui::CollapsingHeader("Machine", ImGuiTreeNodeFlags_DefaultOpen))
+            drawStateMachineGraph(machine.value(), {std::string(npc.stateName())});
     }
 
     void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)
@@ -305,6 +321,8 @@ ActorAsked drawActorsInLevel(
             drawNpcState(level, npc);
             ImGui::EndTable();
         }
+
+        drawMachineOf(npcTypes, *npc);
         break;
     }
 

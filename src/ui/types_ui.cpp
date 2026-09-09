@@ -26,6 +26,11 @@
 #include "ui/renaming.hpp"
 #include "ui/level_rewriting.hpp"
 #include "ui/renames.hpp"
+#include "ui/state_machine_graph.hpp"
+#include "game/level.hpp"
+#include "npc/npc.hpp"
+#include <memory>
+#include <set>
 
 namespace
 {
@@ -54,6 +59,19 @@ namespace
 
         if (cannot)
             ImGui::PopStyleColor();
+    }
+
+    std::set<std::string> statesLitBy(const Level *live, const std::string &type)
+    {
+        std::set<std::string> lit;
+        if (!live)
+            return lit;
+
+        for (const std::unique_ptr<Npc> &npc : live->getNpcs())
+            if (npc->type() == type && npc->alive())
+                lit.emplace(npc->stateName());
+
+        return lit;
     }
 
     template <class T>
@@ -141,7 +159,11 @@ void TypesUi::drawRename(const GameData &gameData)
         });
 }
 
-void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
+void TypesUi::drawShown(
+    GameData &gameData,
+    const TextureCache &textures,
+    EditorCommands &commands,
+    const Level *live)
 {
     const SheetData *sheet = sheetOf(gameData, showing);
     if (!sheet)
@@ -165,6 +187,10 @@ void TypesUi::drawShown(GameData &gameData, const TextureCache &textures, Editor
     case TypeShown::What::Npc: {
         NpcData &npc = gameData.npcData.at(showing.name);
         drawActorPreview(scope, npc.actorData);
+        if (npc.stateMachineBehaviorData &&
+            ImGui::CollapsingHeader("Machine", ImGuiTreeNodeFlags_DefaultOpen))
+            drawStateMachineGraph(*npc.stateMachineBehaviorData, statesLitBy(live, showing.name));
+
         inspector::drawFields(npc);
         break;
     }
@@ -219,7 +245,11 @@ void TypesUi::drawActorPreview(const SheetInScope &scope, const ActorData &actor
     ImGui::EndCombo();
 }
 
-void TypesUi::draw(GameData &gameData, const TextureCache &textures, EditorCommands &commands)
+void TypesUi::draw(
+    GameData &gameData,
+    const TextureCache &textures,
+    EditorCommands &commands,
+    const Level *live)
 {
     drawChooser(gameData);
 
@@ -231,7 +261,7 @@ void TypesUi::draw(GameData &gameData, const TextureCache &textures, EditorComma
         ImGui::Separator();
     }
 
-    drawShown(gameData, textures, commands);
+    drawShown(gameData, textures, commands, live);
 }
 
 void TypesUi::revert(GameData &gameData)

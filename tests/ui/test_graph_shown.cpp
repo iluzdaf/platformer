@@ -1,7 +1,9 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "actor/actor_animation_data.hpp"
@@ -134,4 +136,40 @@ TEST_CASE("A selection past the end of the graph is no selection", "[GraphShown]
     REQUIRE(stillAmong(showingState(0), graph) == showingState(0));
     REQUIRE(stillAmong(showingState(1), graph) == MachineShown{});
     REQUIRE(stillAmong(showingTransition(1), graph) == MachineShown{});
+}
+
+TEST_CASE("A hub sits in the middle and the rest go round it on an ellipse", "[GraphShown]")
+{
+    GraphShown graph{
+        {{"idle", ""}, {"walk", ""}, {"any", "", true}, {"jump", ""}, {"fall", ""}}, {}};
+
+    std::vector<glm::vec2> placed =
+        placedAround(graph, glm::vec2(100.0f, 200.0f), glm::vec2(80.0f, 40.0f));
+
+    REQUIRE(placed.size() == 5);
+    REQUIRE(placed[2] == glm::vec2(100.0f, 200.0f));
+    REQUIRE(placed[0].x == Catch::Approx(100.0f).margin(0.001f));
+    REQUIRE(placed[0].y == Catch::Approx(160.0f).margin(0.001f));
+    REQUIRE(placed[1].x == Catch::Approx(180.0f).margin(0.001f));
+    REQUIRE(placed[1].y == Catch::Approx(200.0f).margin(0.001f));
+    REQUIRE(placed[3].y == Catch::Approx(240.0f).margin(0.001f));
+    REQUIRE(placed[4].x == Catch::Approx(20.0f).margin(0.001f));
+    REQUIRE(nodesAroundIn(graph) == 4);
+}
+
+TEST_CASE("The any node of an animator is its hub", "[GraphShown]")
+{
+    GraphShown graph = graphOf(aWalkerWithADeath());
+
+    REQUIRE(graph.nodes.back().name == "any");
+    REQUIRE(graph.nodes.back().hub);
+    REQUIRE_FALSE(graph.nodes.front().hub);
+}
+
+TEST_CASE("A graph grows taller as more nodes go round", "[GraphShown]")
+{
+    REQUIRE(graphHeightFor(3) == 220.0f);
+    REQUIRE(graphHeightFor(5) == 220.0f);
+    REQUIRE(graphHeightFor(10) == 440.0f);
+    REQUIRE(graphHeightFor(11) > graphHeightFor(10));
 }

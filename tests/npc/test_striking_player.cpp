@@ -21,6 +21,7 @@
 #include "helpers/tiles.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
+#include "animations/animator_data.hpp"
 #include "npc/striking_player.hpp"
 #include "player/player.hpp"
 
@@ -190,6 +191,9 @@ TEST_CASE("A creature with a swing strikes the player with it", "[StrikingPlayer
     NpcData swinger = setupNpcData();
     swinger.actorData.motionData.swingAbilityData = SwingAbilityData{};
     swinger.actorData.animationData.attack = anAttackClip();
+    AnimationWhen whileSwinging;
+    whileSwinging.swinging = true;
+    swinger.actorData.animationData.ladder = AnimatorData{{{"", "attack", whileSwinging}}};
     BehaviorStateData swinging;
     swinging.name = "swing";
     swinging.does = AttackBehaviorData{std::string(SwingAttack)};

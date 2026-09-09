@@ -16,6 +16,7 @@
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "helpers/actors.hpp"
+#include "helpers/ladders.hpp"
 #include "helpers/player_fixtures.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
@@ -243,6 +244,7 @@ TEST_CASE("An actor plays each animation under the state it was given for", "[Pl
     PlayerData playerData = playerDataWithEveryAbility();
     playerData.actorData.animationData.idle = FrameAnimationData({5}, 1.0f);
     playerData.actorData.animationData.dead = FrameAnimationData({9}, 1.0f);
+    playerData.actorData.animationData.ladder = everyPictureLadder();
     ScriptedIntentions input;
     Player player(playerData, input);
     TileMap tileMap = aTileMap({{{0, 1}, 1}});

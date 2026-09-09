@@ -21,6 +21,7 @@
 #include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "animations/frame_animation_data.hpp"
+#include "helpers/ladders.hpp"
 #include "game/level.hpp"
 #include "input/input_intentions.hpp"
 #include "input/intention_source.hpp"
@@ -82,6 +83,7 @@ inline PlayerData playerDataWithEveryAbility()
     playerData.actorData.motionData.knockbackAbilityData = KnockbackAbilityData();
     playerData.actorData.motionData.swingAbilityData = SwingAbilityData();
     playerData.actorData.animationData.attack = anAttackClip();
+    playerData.actorData.animationData.ladder = everyPictureLadder();
     return playerData;
 }
 

@@ -35,10 +35,6 @@ namespace
     }
 }
 
-Animator::Animator() : Animator(theUsualLadder())
-{
-}
-
 Animator::Animator(const AnimatorData &ladder) : data(ladder)
 {
     rungs.reserve(data.transitions.size());

@@ -13,7 +13,6 @@ struct Observed;
 class Animator
 {
 public:
-    Animator();
     explicit Animator(const AnimatorData &ladder);
 
     void animate(float deltaTime, const Decided &decided, const Observed &observed);

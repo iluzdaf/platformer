@@ -40,5 +40,3 @@ struct AnimatorData
 };
 
 bool holds(const AnimationWhen &when, const AnimationParameters &parameters);
-
-AnimatorData theUsualLadder();

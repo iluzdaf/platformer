@@ -7,7 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/armed.hpp"
 
-struct Decided;
+struct ActorAnimationData;
 struct Observed;
 struct ActorState;
 struct NpcData;
@@ -41,7 +41,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level);
 
 ActorAsked drawActorsInLevel(
     const Level &level,
-    const Decided &playerDecided,
+    const ActorAnimationData &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,

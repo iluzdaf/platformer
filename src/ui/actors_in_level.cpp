@@ -11,7 +11,6 @@
 #include <imgui.h>
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
-#include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
@@ -25,6 +24,7 @@
 #include "ui/state_machine_graph.hpp"
 #include "ui/animator_field.hpp"
 #include "actor/actor_data.hpp"
+#include "actor/actor_animation_data.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "tile_map/tile_map.hpp"
 
@@ -74,22 +74,18 @@ namespace
         ImGui::TextUnformatted(value.c_str());
     }
 
-    void drawThePlayer(
-        const Decided &decided,
-        const Observed &observed,
-        const glm::vec2 &feet,
-        const ActorState &state)
+    void drawThePlayer(const Observed &observed, const glm::vec2 &feet, const ActorState &state)
     {
         drawRow(
             "Velocity", std::format("{:.2f}, {:.2f}", observed.velocity.x, observed.velocity.y));
         drawRow("Feet", std::format("{:.2f}, {:.2f}", feet.x, feet.y));
         drawRow("Facing Left", state.facingLeft ? "true" : "false");
-        drawRow("Wall Sliding", decided.wallSlide.active ? "true" : "false");
-        drawRow("Wall Jumping", decided.wallJump.active ? "true" : "false");
-        drawRow("Dashing", decided.dash.active ? "true" : "false");
-        drawRow("Hanging", decided.wallHang.active ? "true" : "false");
-        drawRow("Swinging", decided.swing.swinging() ? "true" : "false");
-        drawRow("Animation", state.currentAnimation);
+    }
+
+    void drawAnimatorOfThePlayer(const ActorAnimationData &animations, const ActorState &state)
+    {
+        if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
+            drawAnimatorGraph(animations, {state.currentAnimation}, MachineShown{});
     }
 
     void drawCannotGetBack(const Level &level, const Npc *npc)
@@ -248,7 +244,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
 
 ActorAsked drawActorsInLevel(
     const Level &level,
-    const Decided &playerDecided,
+    const ActorAnimationData &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -311,9 +307,11 @@ ActorAsked drawActorsInLevel(
         {
             nameThenValue();
             drawPlayerEditing(level.getTileMap().tileUnderFeet(level.getPlayerStart()), armed);
-            drawThePlayer(playerDecided, playerObserved, playerFeet, playerState);
+            drawThePlayer(playerObserved, playerFeet, playerState);
             ImGui::EndTable();
         }
+
+        drawAnimatorOfThePlayer(playerAnimations, playerState);
         break;
 
     case ActorShown::What::Npc: {

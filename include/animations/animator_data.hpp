@@ -19,6 +19,7 @@ struct AnimationWhen
     std::optional<bool> falling;
     std::optional<bool> moving;
     std::optional<bool> finished;
+    std::optional<std::string> inState;
 
     bool operator==(const AnimationWhen &) const = default;
 };

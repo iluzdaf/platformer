@@ -258,3 +258,24 @@ TEST_CASE("The animator can say the ladder it walks", "[Animator]")
 
     REQUIRE(animator.ladder() == everyPictureLadder());
 }
+
+TEST_CASE("A rung may ask which state the machine is in", "[Animator]")
+{
+    AnimationWhen asleep;
+    asleep.inState = "sleep";
+    AnimationWhen otherwise;
+    otherwise.onGround = true;
+    AnimatorData ladder{{{"", "sleep", asleep}, {"", "idle", otherwise}}};
+    Animator animator(ladder);
+    animator.add("idle", animationOfFrame(1));
+    animator.add("sleep", animationOfFrame(2));
+
+    animator.animate(0.01f, Decided{}, walkingOnGround(), "sleep");
+    REQUIRE(animator.state() == "sleep");
+
+    animator.animate(0.01f, Decided{}, walkingOnGround(), "charge");
+    REQUIRE(animator.state() == "idle");
+
+    animator.animate(0.01f, Decided{}, walkingOnGround());
+    REQUIRE(animator.state() == "idle");
+}

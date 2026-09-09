@@ -68,12 +68,14 @@
                     "fall":{"frames":[6],"frameDuration":1},
                     "idle":{"frames":[0,1],"frameDuration":0.5},
                     "jump":{"frames":[6],"frameDuration":1},
+                    "pounce":{"frames":[11,12],"loops":false},
                     "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
                     "wallSlide":{"frames":[7],"frameDuration":1}
                 },
                 "ladder":{
                     "transitions":[
                         {"to":"dead","when":{"alive":false}},
+                        {"to":"pounce","when":{"inState":"pounce"}},
                         {"to":"climb","when":{"onGround":false,"climbing":true}},
                         {"to":"wallSlide","when":{"onGround":false,"onWall":true}},
                         {"to":"jump","when":{"onGround":false,"rising":true}},

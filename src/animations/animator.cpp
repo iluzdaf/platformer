@@ -1,4 +1,5 @@
 #include <string>
+#include <string_view>
 #include <vector>
 #include "animations/animator.hpp"
 #include "animations/animation_parameters.hpp"
@@ -12,9 +13,12 @@ Animator::Animator(const AnimatorData &ladder) : data(ladder)
 {
 }
 
-const std::string &Animator::wanted(const Decided &decided, const Observed &observed) const
+const std::string &Animator::wanted(
+    const Decided &decided,
+    const Observed &observed,
+    std::string_view inState) const
 {
-    AnimationParameters parameters = parametersFrom(decided, observed, finished());
+    AnimationParameters parameters = parametersFrom(decided, observed, finished(), inState);
     for (const AnimationTransitionData &rung : data.transitions)
     {
         if (!rung.from.empty() && rung.from != currentState)
@@ -27,9 +31,13 @@ const std::string &Animator::wanted(const Decided &decided, const Observed &obse
     return currentState;
 }
 
-void Animator::animate(float deltaTime, const Decided &decided, const Observed &observed)
+void Animator::animate(
+    float deltaTime,
+    const Decided &decided,
+    const Observed &observed,
+    std::string_view inState)
 {
-    std::string newState = wanted(decided, observed);
+    std::string newState = wanted(decided, observed, inState);
     if (!animations.contains(newState))
         newState = std::string(IdleClip);
 

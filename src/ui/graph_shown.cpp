@@ -142,6 +142,8 @@ std::string whenOf(const AnimationWhen &when)
     say(parts, when.falling, "falling", "not falling");
     say(parts, when.moving, "moving", "still");
     say(parts, when.finished, "clip finished", "clip playing");
+    if (when.inState)
+        parts.push_back("in state \"" + *when.inState + "\"");
     return joined(parts, "always");
 }
 

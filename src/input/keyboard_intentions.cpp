@@ -23,8 +23,7 @@ void KeyboardIntentions::process(const KeysDown &keysDown)
     intentions.jumpRequested = keys.isPressed(GLFW_KEY_C);
     intentions.jumpHeld = keys.isDown(GLFW_KEY_C);
     intentions.dashRequested = keys.isPressed(GLFW_KEY_X);
-    if (keys.isPressed(GLFW_KEY_V))
-        intentions.attack = std::string(SwingAttack);
+    intentions.attack = keys.isPressed(GLFW_KEY_V) ? std::string(SwingAttack) : std::string();
     intentions.climbRequested = keys.isDown(GLFW_KEY_Z);
     intentions.direction = {
         keys.isDown(GLFW_KEY_LEFT) ? -1.0f : (keys.isDown(GLFW_KEY_RIGHT) ? 1.0f : 0.0f),

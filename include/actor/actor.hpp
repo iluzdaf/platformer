@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include "events/event.hpp"
@@ -16,6 +17,7 @@
 #include "physics/physics_body.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
+#include "game/noise.hpp"
 #include "actor/health.hpp"
 #include "actor/hurting.hpp"
 #include "physics/aabb.hpp"
@@ -33,7 +35,8 @@ public:
     void fixedUpdate(
         float deltaTime,
         const Level &level,
-        std::optional<glm::vec2> threatFeet = std::nullopt);
+        std::optional<glm::vec2> threatFeet = std::nullopt,
+        std::span<const Noise> noises = {});
     virtual void postFixedUpdate();
     const ActorState &state() const;
     const Decided &decided() const;
@@ -61,7 +64,8 @@ protected:
     virtual void died();
     ActorBehaviorContext behaviorContext(
         const NavigationGraph &navigationGraph,
-        std::optional<glm::vec2> threatFeet) const;
+        std::optional<glm::vec2> threatFeet,
+        std::span<const Noise> noises) const;
 
 private:
     std::optional<AABB> swingBox() const;

@@ -33,7 +33,7 @@ inline ActorBehaviorContext standingAt(
     glm::vec2 worldPosition,
     std::optional<glm::vec2> threatFeet = std::nullopt)
 {
-    return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), threatFeet, standing()};
+    return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), threatFeet, standing(), {}};
 }
 
 inline ActorBehaviorContext airborneAt(

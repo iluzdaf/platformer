@@ -1,8 +1,10 @@
 #pragma once
 
 #include <optional>
+#include <span>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_contact_state.hpp"
+#include "game/noise.hpp"
 
 class NavigationGraph;
 
@@ -14,4 +16,5 @@ struct ActorBehaviorContext
     std::optional<glm::vec2> threatFeet;
 
     ActorContactState contacts;
+    std::span<const Noise> noises = {};
 };

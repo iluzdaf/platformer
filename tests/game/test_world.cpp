@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <string>
 #include "game/world.hpp"
+#include "game/noise.hpp"
 #include "input/input_intentions.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/game_data.hpp"
@@ -588,4 +589,46 @@ TEST_CASE("A cue reaches the creature's own script, not the player's", "[World][
     sol::table seen = luaScriptSystem.getLua()["seen"];
     REQUIRE(seen["who"].get<std::string>() == "rat");
     REQUIRE_FALSE(seen["wrong"].valid());
+}
+
+TEST_CASE("The world hears the player land once, and the noise is gone the tick after", "[World]")
+{
+    GameData gameData = aFloorWorldWithCoins();
+    TemporaryLevels levels("world_landing");
+    levels.write("floor.json", aFloorLevelPlacing({}));
+    LuaScriptSystem luaScriptSystem;
+    ScriptedIntentions input;
+    World world(gameData, input, luaScriptSystem);
+    world.loadLevel(levels.pathOf("floor.json"));
+    walkFor(world, 5);
+    REQUIRE(world.noises().empty());
+
+    InputIntentions jump;
+    jump.jumpRequested = true;
+    jump.jumpHeld = true;
+    input.set(jump);
+    walkFor(world, 1);
+    input.set(InputIntentions{});
+
+    int heardOn = -1;
+    int heardAgain = 0;
+    for (int frame = 0; frame < 120; ++frame)
+    {
+        walkFor(world, 1);
+        if (world.noises().empty())
+            continue;
+
+        if (heardOn < 0)
+        {
+            heardOn = frame;
+            REQUIRE(world.noises().size() == 1);
+            REQUIRE(world.noises().front().kind == LandingNoise);
+            REQUIRE(world.noises().front().at == world.getPlayer().feet());
+        }
+        else
+            ++heardAgain;
+    }
+
+    REQUIRE(heardOn >= 0);
+    REQUIRE(heardAgain == 0);
 }

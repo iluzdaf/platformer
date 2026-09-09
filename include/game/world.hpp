@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include "game/noise.hpp"
 #include <string>
 #include "events/event.hpp"
 #include "game/score.hpp"
@@ -39,6 +41,7 @@ public:
 
     const Level &getLevel() const;
     const Player &getPlayer() const;
+    const std::vector<Noise> &noises() const;
     Player &getPlayer();
     const Score &getScore() const;
 
@@ -51,6 +54,7 @@ private:
     LuaScriptSystem &luaScriptSystem;
 
     std::unique_ptr<Level> level;
+    std::vector<Noise> heardThisTick;
     std::unique_ptr<Player> player;
     Score score;
 };

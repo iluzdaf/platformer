@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include "actor/actor.hpp"
@@ -28,6 +29,7 @@
 #include "input/input_intentions.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
+#include "game/noise.hpp"
 #include <optional>
 #include <memory>
 #include <utility>
@@ -107,12 +109,17 @@ void Actor::beginFrame()
     observations.contacts = contactsForANewFrame(observations.contacts);
 }
 
-void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::vec2> threatFeet)
+void Actor::fixedUpdate(
+    float deltaTime,
+    const Level &level,
+    std::optional<glm::vec2> threatFeet,
+    std::span<const Noise> noises)
 {
     const TileMap &tileMap = level.getTileMap();
     hp.update(deltaTime);
     observations.alive = hp.alive();
-    ActorBehaviorContext context = behaviorContext(level.graphFor(navigationProfile), threatFeet);
+    ActorBehaviorContext context =
+        behaviorContext(level.graphFor(navigationProfile), threatFeet, noises);
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
@@ -295,8 +302,14 @@ void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
 
 ActorBehaviorContext Actor::behaviorContext(
     const NavigationGraph &navigationGraph,
-    std::optional<glm::vec2> threatFeet) const
+    std::optional<glm::vec2> threatFeet,
+    std::span<const Noise> noises) const
 {
     return ActorBehaviorContext{
-        navigationGraph, feet(), physicsBody.colliderSize(), threatFeet, observations.contacts};
+        navigationGraph,
+        feet(),
+        physicsBody.colliderSize(),
+        threatFeet,
+        observations.contacts,
+        noises};
 }

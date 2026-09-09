@@ -5,6 +5,7 @@
 #include "actor/actor_behavior_context.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "conditions/asked.hpp"
+#include "game/noise.hpp"
 #include "conditions/fact_rows.hpp"
 #include "navigation/navigation_place.hpp"
 
@@ -67,6 +68,35 @@ namespace
                                                                       *context.threatFeet,
                                                                       context.colliderSize.x);
                 return yes(asked) == cornered;
+            },
+            ""},
+        Row{"landingWithin",
+            AskedKind::Number,
+            "landing within",
+            "",
+            [](const Asked &asked, const ActorBehaviorContext &context)
+            {
+                for (const Noise &noise : context.noises)
+                    if (noise.kind == LandingNoise &&
+                        glm::distance(context.feet, noise.at) <= number(asked))
+                        return true;
+
+                return false;
+            },
+            ""},
+        Row{"landingOnMySurface",
+            AskedKind::YesOrNo,
+            "landing on my surface",
+            "no landing on my surface",
+            [](const Asked &asked, const ActorBehaviorContext &context)
+            {
+                bool heard = false;
+                for (const Noise &noise : context.noises)
+                    heard =
+                        heard || (noise.kind == LandingNoise &&
+                                  onTheSameRun(context.navigationGraph, context.feet, noise.at));
+
+                return yes(asked) == heard;
             },
             ""},
         Row{"onGround",

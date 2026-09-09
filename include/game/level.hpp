@@ -17,6 +17,8 @@
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
 #include <memory>
+#include <span>
+#include "game/noise.hpp"
 
 class Npc;
 struct AABB;
@@ -44,7 +46,10 @@ public:
     const std::vector<Pickup> &getPickups() const;
 
     void beginFrame();
-    void fixedUpdate(float deltaTime, const glm::vec2 &playerPosition);
+    void fixedUpdate(
+        float deltaTime,
+        const glm::vec2 &playerPosition,
+        std::span<const Noise> noises = {});
     void postFixedUpdate();
     void update(float deltaTime);
     std::vector<Pickup> takePickupsTouching(const AABB &reach);

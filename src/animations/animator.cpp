@@ -67,3 +67,9 @@ std::vector<std::string> Animator::takeCues()
     return playingNow == animations.end() ? std::vector<std::string>{}
                                           : playingNow->second.takeCues();
 }
+
+bool Animator::finished() const
+{
+    auto playingNow = animations.find(currentState);
+    return playingNow != animations.end() && playingNow->second.finished();
+}

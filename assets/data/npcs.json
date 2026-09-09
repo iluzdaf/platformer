@@ -9,7 +9,7 @@
                 "idle":{"frames":[0,1],"frameDuration":0.5},
                 "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
                 "fall":{"frames":[6],"frameDuration":1},
-                "dead":{"frames":[7],"frameDuration":1}
+                "dead":{"frames":[7],"frameDuration":1,"loops":false}
             }
         },
         "stateMachineBehaviorData":{
@@ -45,7 +45,7 @@
                 "fall":{"frames":[6],"frameDuration":1},
                 "wallSlide":{"frames":[7],"frameDuration":1},
                 "climb":{"frames":[8,9],"frameDuration":0.15},
-                "dead":{"frames":[10],"frameDuration":1}
+                "dead":{"frames":[10],"frameDuration":1,"loops":false}
             }
         },
         "stateMachineBehaviorData":{

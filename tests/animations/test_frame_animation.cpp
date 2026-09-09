@@ -144,3 +144,77 @@ TEST_CASE("A clip with no frames has no cue to say", "[FrameAnimation]")
 
     REQUIRE(animation.takeCues().empty());
 }
+
+namespace
+{
+    FrameAnimationData aClipPlayedOnce(int frameCount = 3)
+    {
+        FrameAnimationData data = aClipCueing({}, frameCount);
+        data.loops = false;
+        return data;
+    }
+}
+
+TEST_CASE("A clip that does not loop holds its last frame", "[FrameAnimation]")
+{
+    FrameAnimation animation(aClipPlayedOnce());
+
+    animation.update(1.0f);
+
+    REQUIRE(animation.frame() == 2);
+}
+
+TEST_CASE(
+    "A clip that does not loop is finished once its last frame has played out",
+    "[FrameAnimation]")
+{
+    FrameAnimation animation(aClipPlayedOnce());
+
+    animation.update(0.3f);
+
+    REQUIRE(animation.finished());
+}
+
+TEST_CASE(
+    "A clip that does not loop is not finished while its last frame still shows",
+    "[FrameAnimation]")
+{
+    FrameAnimation animation(aClipPlayedOnce());
+
+    animation.update(0.25f);
+
+    REQUIRE(animation.frame() == 2);
+    REQUIRE_FALSE(animation.finished());
+}
+
+TEST_CASE("A looping clip is never finished", "[FrameAnimation]")
+{
+    FrameAnimation animation(aClipCueing({}));
+
+    animation.update(5.0f);
+
+    REQUIRE_FALSE(animation.finished());
+}
+
+TEST_CASE("Resetting a finished clip starts it again", "[FrameAnimation]")
+{
+    FrameAnimation animation(aClipPlayedOnce());
+    animation.update(1.0f);
+
+    animation.reset();
+
+    REQUIRE_FALSE(animation.finished());
+    REQUIRE(animation.frame() == 0);
+}
+
+TEST_CASE("A clip that does not loop says its last cue once and no more", "[FrameAnimation]")
+{
+    FrameAnimationData data = aClipCueing({{2, "onRecover"}});
+    data.loops = false;
+    FrameAnimation animation(data);
+    animation.takeCues();
+
+    animation.update(1.0f);
+
+    REQUIRE(animation.takeCues() == std::vector<std::string>{"onRecover"});
+}

@@ -15,4 +15,5 @@ struct FrameAnimationData
     std::vector<int> frames;
     float frameDuration = 0.1f;
     std::vector<FrameCueData> cues = {};
+    bool loops = true;
 };

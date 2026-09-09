@@ -11,12 +11,15 @@ public:
     void update(float deltaTime);
     int frame() const;
     void reset();
+    bool finished() const;
     std::vector<std::string> takeCues();
 
 private:
     std::vector<int> frames;
     float frameDuration = 0.1f;
     std::vector<FrameCueData> cues;
+    bool loops = true;
+    bool playedOut = false;
     float timer = 0.0f;
     int currentFrame = 0;
     std::vector<int> entered;

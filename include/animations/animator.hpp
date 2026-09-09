@@ -17,6 +17,7 @@ public:
     void add(ActorAnimationState state, const FrameAnimation &anim);
     ActorAnimationState state() const;
     std::vector<std::string> takeCues();
+    bool finished() const;
 
 private:
     ActorAnimationState currentState = ActorAnimationState::Idle;

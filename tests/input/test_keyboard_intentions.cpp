@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <initializer_list>
 #include <set>
+#include "actor/abilities/swing_ability_data.hpp"
 #include "input/input_intentions.hpp"
 #include "input/keyboard_intentions.hpp"
 #include "input/keys_down.hpp"
@@ -27,6 +28,7 @@ TEST_CASE("Nothing pressed asks for nothing", "[KeyboardIntentions]")
     REQUIRE_FALSE(asked.jumpHeld);
     REQUIRE_FALSE(asked.dashRequested);
     REQUIRE_FALSE(asked.climbRequested);
+    REQUIRE(asked.attack.empty());
 }
 
 TEST_CASE("The arrows say which way", "[KeyboardIntentions]")
@@ -91,4 +93,20 @@ TEST_CASE("Z asks to climb for as long as it is held", "[KeyboardIntentions]")
 
     keyboard.process(holding({}));
     REQUIRE_FALSE(keyboard.getIntentions().climbRequested);
+}
+
+TEST_CASE(
+    "V asks for a swing only the frame it is pressed, and for nothing once released",
+    "[KeyboardIntentions]")
+{
+    KeyboardIntentions keyboard;
+
+    keyboard.process(holding({GLFW_KEY_V}));
+    REQUIRE(keyboard.getIntentions().attack == SwingAttack);
+
+    keyboard.process(holding({GLFW_KEY_V}));
+    REQUIRE(keyboard.getIntentions().attack.empty());
+
+    keyboard.process(holding({}));
+    REQUIRE(keyboard.getIntentions().attack.empty());
 }

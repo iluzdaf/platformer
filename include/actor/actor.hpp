@@ -17,12 +17,13 @@
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "actor/health.hpp"
+#include "actor/hurting.hpp"
+#include "physics/aabb.hpp"
 
 class TileMap;
 class Level;
 class NavigationGraph;
 struct Hit;
-struct AABB;
 
 class Actor
 {
@@ -48,7 +49,7 @@ public:
     const Health &health() const;
     bool alive() const;
     bool takeHit(const Hit &hit);
-    std::optional<AABB> swing() const;
+    virtual std::optional<Hurting> hurting() const;
     bool strike(Actor &target);
     Event<Actor> onHurt, onDeath;
     Event<Actor, const std::string &> onCue;
@@ -63,6 +64,7 @@ protected:
         std::optional<glm::vec2> threatFeet) const;
 
 private:
+    std::optional<AABB> swingBox() const;
     Abilities abilities;
     Decided decisions;
     Observed observations;

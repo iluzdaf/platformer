@@ -142,7 +142,7 @@ add_library(platformer_lib OBJECT
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/touching_tiles.cpp
-    src/npc/touching_npcs.cpp
+    src/npc/striking_player.cpp
     src/npc/striking_npcs.cpp
 
     src/player/player.cpp
@@ -372,7 +372,7 @@ add_executable(tests
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/npc/test_patrol_beats.cpp
-    tests/npc/test_touching_npcs.cpp
+    tests/npc/test_striking_player.cpp
     tests/npc/test_striking_npcs.cpp
 
     tests/npc/test_shipped_npcs.cpp

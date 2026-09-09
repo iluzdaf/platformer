@@ -17,7 +17,7 @@
 #include "actor/actor_state.hpp"
 #include "npc/npc.hpp"
 #include "player/player.hpp"
-#include "npc/touching_npcs.hpp"
+#include "npc/striking_player.hpp"
 #include "actor/health.hpp"
 #include <vector>
 #include <memory>
@@ -66,7 +66,7 @@ TEST_CASE("The shipped rat is safe to stand in while it patrols", "[Npc]")
     std::vector<std::unique_ptr<Npc>> rats;
     rats.push_back(std::make_unique<Npc>(spawnAt("rat", SpawnTile), shippedNpcData().at("rat")));
 
-    touchNpcs(player, rats);
+    strikePlayer(player, rats);
 
     REQUIRE(player.health().points() == 3);
 }
@@ -86,7 +86,7 @@ TEST_CASE("The shipped rat, cornered, pounces through you and bites", "[Npc][Lev
     {
         rats.front()->beginFrame();
         rats.front()->fixedUpdate(0.01f, level, player.feet());
-        touchNpcs(player, rats);
+        strikePlayer(player, rats);
         if (player.health().points() < 3)
         {
             bittenAt = step;
@@ -528,17 +528,17 @@ TEST_CASE("The shipped spider bites while pouncing and at no other time", "[Npc]
     Npc npc(spawn, shippedNpcData().at("spider"));
     glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile - 2, LedgeRow - 1));
 
-    REQUIRE(npc.contactDamage() == 0);
+    REQUIRE_FALSE(npc.hurting().has_value());
     stepNpcHunting(npc, level, you, 20);
     REQUIRE(hunting(npc));
-    REQUIRE(npc.contactDamage() == (npc.stateName() == "pounce" ? 1 : 0));
+    REQUIRE(npc.hurting().has_value() == (npc.stateName() == "pounce"));
 
     bool bitWhilePouncing = false, bitOtherwise = false;
     for (int step = 0; step < 300; ++step)
     {
         npc.beginFrame();
         npc.fixedUpdate(0.01f, level, you);
-        if (npc.contactDamage() > 0)
+        if (npc.hurting())
             (npc.stateName() == "pounce" ? bitWhilePouncing : bitOtherwise) = true;
     }
 
@@ -563,7 +563,7 @@ TEST_CASE(
     {
         spiders.front()->beginFrame();
         spiders.front()->fixedUpdate(0.01f, level, player.feet());
-        touchNpcs(player, spiders);
+        strikePlayer(player, spiders);
         if (player.health().points() < 3)
         {
             bittenAt = step;

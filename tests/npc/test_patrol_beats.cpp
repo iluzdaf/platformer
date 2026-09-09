@@ -49,7 +49,7 @@ namespace
         NpcData data = setupNpcData();
         BehaviorStateData chasing;
         chasing.name = "chase";
-        chasing.chaseBehaviorData = ChaseBehaviorData{};
+        chasing.does = ChaseBehaviorData{};
         data.stateMachineBehaviorData->states.push_back(chasing);
         data.stateMachineBehaviorData->transitions = {
             BehaviorTransitionData{"patrol", "chase", 64.0f, std::nullopt, true, 0.0f},

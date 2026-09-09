@@ -19,11 +19,11 @@ namespace
     {
         BehaviorStateData patrolling;
         patrolling.name = "patrol";
-        patrolling.patrolBehaviorData = PatrolBehaviorData{};
+        patrolling.does = PatrolBehaviorData{};
 
         BehaviorStateData fleeing;
         fleeing.name = "flee";
-        fleeing.fleeBehaviorData = FleeBehaviorData{};
+        fleeing.does = FleeBehaviorData{};
 
         BehaviorTransitionData alarmed;
         alarmed.from = "patrol";
@@ -257,7 +257,7 @@ TEST_CASE("A state told to chase closes on the threat", "[StateMachineBehavior]"
 
     BehaviorStateData chasing;
     chasing.name = "chase";
-    chasing.chaseBehaviorData = ChaseBehaviorData{};
+    chasing.does = ChaseBehaviorData{};
     StateMachineBehavior behavior(StateMachineBehaviorData{{chasing}, {}});
 
     InputIntentions closingIn = behavior.decide(
@@ -273,11 +273,11 @@ namespace
     {
         BehaviorStateData chasing;
         chasing.name = "chase";
-        chasing.chaseBehaviorData = ChaseBehaviorData{};
+        chasing.does = ChaseBehaviorData{};
 
         BehaviorStateData pouncing;
         pouncing.name = "pounce";
-        pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+        pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
         pouncing.cooldown = cooldown;
 
         BehaviorTransitionData close;
@@ -347,7 +347,7 @@ TEST_CASE("A state told to pounce leaps at the threat", "[StateMachineBehavior]"
     NavigationGraph navigationGraph = aWalkRun();
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
-    pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+    pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
     StateMachineBehavior behavior(StateMachineBehaviorData{{pouncing}, {}});
 
     InputIntentions leap = behavior.decide(
@@ -364,10 +364,10 @@ TEST_CASE(
     NavigationGraph navigationGraph = aWalkRun();
     BehaviorStateData fleeing;
     fleeing.name = "flee";
-    fleeing.fleeBehaviorData = FleeBehaviorData{};
+    fleeing.does = FleeBehaviorData{};
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
-    pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+    pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
     pouncing.cooldown = 1.0f;
     BehaviorTransitionData tooClose;
     tooClose.from = "flee";
@@ -401,10 +401,10 @@ TEST_CASE("A transition can ask whether the creature is cornered", "[StateMachin
     NavigationGraph navigationGraph = aWalkRun();
     BehaviorStateData fleeing;
     fleeing.name = "flee";
-    fleeing.fleeBehaviorData = FleeBehaviorData{};
+    fleeing.does = FleeBehaviorData{};
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
-    pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+    pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
     BehaviorTransitionData cornered;
     cornered.from = "flee";
     cornered.to = "pounce";
@@ -418,4 +418,19 @@ TEST_CASE("A transition can ask whether the creature is cornered", "[StateMachin
 
     behavior.decide(0.01f, standingAt(navigationGraph, {0.0f, 192.0f}, glm::vec2(16.0f, 192.0f)));
     REQUIRE(behavior.getStateName() == "pounce");
+}
+
+TEST_CASE("A state that does nothing stands still", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    BehaviorStateData idling;
+    idling.name = "idle";
+    StateMachineBehavior behavior(StateMachineBehaviorData{{idling}, {}});
+
+    InputIntentions standing = behavior.decide(
+        0.01f, standingAt(navigationGraph, {96.0f, 192.0f}, glm::vec2(384.0f, 192.0f)));
+
+    REQUIRE(behavior.getStateName() == "idle");
+    REQUIRE(standing.direction.x == 0.0f);
+    REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
 }

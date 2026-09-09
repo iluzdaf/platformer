@@ -34,20 +34,21 @@ namespace
 TEST_CASE("A state says what it does in words", "[StateMachineShown]")
 {
     BehaviorStateData patrolling = aState("patrol");
-    patrolling.patrolBehaviorData = PatrolBehaviorData{};
+    patrolling.does = PatrolBehaviorData{};
     REQUIRE(behaviourOf(patrolling) == "patrol");
 
     BehaviorStateData fleeing = aState("flee");
-    fleeing.fleeBehaviorData = FleeBehaviorData{};
+    fleeing.does = FleeBehaviorData{};
     REQUIRE(behaviourOf(fleeing) == "flee");
 
     BehaviorStateData chasing = aState("chase");
-    chasing.chaseBehaviorData = ChaseBehaviorData{};
-    chasing.chaseBehaviorData->standoff = 28.0f;
+    ChaseBehaviorData chase;
+    chase.standoff = 28.0f;
+    chasing.does = chase;
     REQUIRE(behaviourOf(chasing) == "chase, standoff 28");
 
     BehaviorStateData pouncing = aState("pounce");
-    pouncing.attackBehaviorData = AttackBehaviorData{"pounce"};
+    pouncing.does = AttackBehaviorData{"pounce"};
     pouncing.cooldown = 2.0f;
     REQUIRE(behaviourOf(pouncing) == "attack with pounce, cooldown 2 s");
 

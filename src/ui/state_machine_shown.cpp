@@ -5,6 +5,8 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <variant>
 #include <vector>
 #include <algorithm>
 #include <glm/geometric.hpp>
@@ -12,6 +14,8 @@
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/flee_behavior_data.hpp"
+#include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 
 namespace
@@ -31,26 +35,28 @@ namespace
 
 std::string behaviourOf(const BehaviorStateData &state)
 {
-    std::vector<std::string> parts;
-    if (state.patrolBehaviorData)
-        parts.push_back("patrol");
-
-    if (state.fleeBehaviorData)
-        parts.push_back("flee");
-
-    if (state.chaseBehaviorData)
-        parts.push_back(
-            state.chaseBehaviorData->standoff > 0.0f
-                ? std::format("chase, standoff {}", state.chaseBehaviorData->standoff)
-                : "chase");
-
-    if (state.attackBehaviorData)
-        parts.push_back("attack with " + state.attackBehaviorData->with);
+    std::string does = std::visit(
+        [](const auto &held) -> std::string
+        {
+            using Does = std::remove_cvref_t<decltype(held)>;
+            if constexpr (std::is_same_v<Does, PatrolBehaviorData>)
+                return "patrol";
+            else if constexpr (std::is_same_v<Does, FleeBehaviorData>)
+                return "flee";
+            else if constexpr (std::is_same_v<Does, ChaseBehaviorData>)
+                return held.standoff > 0.0f ? std::format("chase, standoff {}", held.standoff)
+                                            : "chase";
+            else if constexpr (std::is_same_v<Does, AttackBehaviorData>)
+                return "attack with " + held.with;
+            else
+                return "does nothing";
+        },
+        state.does);
 
     if (state.cooldown > 0.0f)
-        parts.push_back(std::format("cooldown {} s", state.cooldown));
+        does += std::format(", cooldown {} s", state.cooldown);
 
-    return joined(parts, "does nothing");
+    return does;
 }
 
 std::string whenOf(const BehaviorTransitionData &transition)

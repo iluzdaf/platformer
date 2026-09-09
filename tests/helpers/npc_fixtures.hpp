@@ -35,7 +35,7 @@ inline NpcData setupNpcData()
     npcData.actorData.physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);
     BehaviorStateData patrolling;
     patrolling.name = "patrol";
-    patrolling.patrolBehaviorData = PatrolBehaviorData();
+    patrolling.does = PatrolBehaviorData();
     npcData.stateMachineBehaviorData = StateMachineBehaviorData{{patrolling}, {}};
     return npcData;
 }

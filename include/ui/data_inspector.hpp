@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
@@ -33,6 +34,22 @@ namespace inspector
     template <class T> struct IsVector<std::vector<T>> : std::true_type
     {
     };
+
+    template <class T> struct IsVariant : std::false_type
+    {
+    };
+    template <class... Alternatives>
+    struct IsVariant<std::variant<Alternatives...>> : std::true_type
+    {
+    };
+
+    template <class Variant, std::size_t... I>
+    Variant alternativeAt(std::size_t chosen, std::index_sequence<I...>)
+    {
+        Variant holding;
+        ((I == chosen ? (holding = std::variant_alternative_t<I, Variant>{}, 0) : 0), ...);
+        return holding;
+    }
 
     template <class T> struct IsMap : std::false_type
     {
@@ -193,6 +210,42 @@ namespace inspector
                 edited |= Edited{true, true};
 
             ImGui::TreePop();
+            return edited;
+        }
+        else if constexpr (IsVariant<T>::value)
+        {
+            constexpr auto &Ids = glz::meta<T>::ids;
+            Edited edited;
+            ImGui::TextUnformatted(name.data(), name.data() + name.size());
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(-FLT_MIN);
+            if (ImGui::BeginCombo(labelled(name).c_str(), Ids[value.index()]))
+            {
+                for (std::size_t alternative = 0; alternative < Ids.size(); ++alternative)
+                    if (ImGui::Selectable(Ids[alternative], alternative == value.index()) &&
+                        alternative != value.index())
+                    {
+                        value = alternativeAt<T>(
+                            alternative, std::make_index_sequence<std::variant_size_v<T>>{});
+                        edited |= Edited{true, true};
+                    }
+
+                ImGui::EndCombo();
+            }
+
+            ImGui::Indent();
+            ImGui::PushID("held");
+            std::visit(
+                [&edited](auto &held)
+                {
+                    forEachNamedField(
+                        held,
+                        [&edited](std::string_view fieldName, auto &field)
+                        { edited |= draw(fieldName, field); });
+                },
+                value);
+            ImGui::PopID();
+            ImGui::Unindent();
             return edited;
         }
         else if constexpr (IsMap<T>::value)

@@ -9,6 +9,10 @@
 #include "game/game_data.hpp"
 #include "game/level_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
+#include "actor/behaviors/patrol_behavior_data.hpp"
 #include "serialization/json_format.hpp"
 #include "serialization/only_what_differs.hpp"
 #include "tile_map/tile_collider_data.hpp"
@@ -163,4 +167,60 @@ TEST_CASE("A clip that does not loop says so, and a looping one says nothing", "
         onlyWhatDiffers(FrameAnimationData{{1, 2}, 0.5f}) ==
         R"({"frames":[1,2],"frameDuration":0.5})");
     REQUIRE(onlyWhatDiffers(once) == R"({"frames":[1,2],"frameDuration":0.5,"loops":false})");
+}
+
+TEST_CASE(
+    "A state is written with the kind of what it does, then only what differs inside",
+    "[OnlyWhatDiffers]")
+{
+    BehaviorStateData chasing;
+    chasing.name = "chase";
+    ChaseBehaviorData chase;
+    chase.standoff = 28.0f;
+    chasing.does = chase;
+
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.does = AttackBehaviorData{"pounce"};
+    pouncing.cooldown = 2.0f;
+
+    BehaviorStateData patrolling;
+    patrolling.name = "patrol";
+    patrolling.does = PatrolBehaviorData{};
+
+    REQUIRE(
+        onlyWhatDiffers(chasing) == R"({"name":"chase","does":{"kind":"chase","standoff":28}})");
+    REQUIRE(
+        onlyWhatDiffers(pouncing) ==
+        R"({"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":2})");
+    REQUIRE(onlyWhatDiffers(patrolling) == R"({"name":"patrol","does":{"kind":"patrol"}})");
+}
+
+TEST_CASE(
+    "A state that does nothing writes no kind, and reads back doing nothing",
+    "[OnlyWhatDiffers]")
+{
+    BehaviorStateData idling;
+    idling.name = "idle";
+
+    REQUIRE(onlyWhatDiffers(idling) == R"({"name":"idle"})");
+
+    BehaviorStateData back;
+    REQUIRE_FALSE(
+        glz::read<glz::opts{.error_on_unknown_keys = true}>(back, onlyWhatDiffers(idling)));
+    REQUIRE(back == idling);
+}
+
+TEST_CASE("What a state does survives a round trip through its kind", "[OnlyWhatDiffers]")
+{
+    BehaviorStateData chasing;
+    chasing.name = "chase";
+    ChaseBehaviorData chase;
+    chase.standoff = 28.0f;
+    chasing.does = chase;
+
+    BehaviorStateData back;
+    REQUIRE_FALSE(
+        glz::read<glz::opts{.error_on_unknown_keys = true}>(back, onlyWhatDiffers(chasing)));
+    REQUIRE(back == chasing);
 }

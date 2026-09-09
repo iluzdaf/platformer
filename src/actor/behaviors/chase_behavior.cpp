@@ -1,0 +1,120 @@
+#include <algorithm>
+#include <cmath>
+#include <glm/geometric.hpp>
+#include <optional>
+#include <vector>
+#include "actor/behaviors/chase_behavior.hpp"
+#include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/actor_behavior_context.hpp"
+#include "input/input_intentions.hpp"
+#include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_node.hpp"
+#include "navigation/navigation_path.hpp"
+#include "navigation/navigation_place.hpp"
+
+namespace
+{
+    constexpr float SurfaceTolerance = 1.0f;
+}
+
+ChaseBehavior::ChaseBehavior(const ChaseBehaviorData &data)
+    : data(data), walker(data.arrivalThreshold)
+{
+}
+
+void ChaseBehavior::reset()
+{
+    walker.reset();
+    lastSeenAt.reset();
+}
+
+bool ChaseBehavior::caughtUp(const ActorBehaviorContext &context) const
+{
+    if (!context.threatFeet)
+        return false;
+
+    if (std::abs(context.threatFeet->y - context.feet.y) > SurfaceTolerance)
+        return false;
+
+    float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
+
+    return std::abs(context.threatFeet->x - context.feet.x) <= reach;
+}
+
+bool ChaseBehavior::threatHasMoved(const ActorBehaviorContext &context) const
+{
+    if (!lastSeenAt || !context.threatFeet)
+        return true;
+
+    return glm::distance(*context.threatFeet, *lastSeenAt) > data.arrivalThreshold;
+}
+
+std::optional<int> ChaseBehavior::whereToCloseIn(const ActorBehaviorContext &context) const
+{
+    std::optional<int> from = walker.getCurrentNodeId();
+    if (!from || !context.threatFeet)
+        return std::nullopt;
+
+    const NavigationGraph &navigationGraph = context.navigationGraph;
+    std::vector<int> reachable = roundTripFrom(navigationGraph, *from);
+
+    if (std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, *context.threatFeet))
+    {
+        int beyond = endOfThePathBeyond(navigationGraph, *place, context.feet);
+        if (std::ranges::find(reachable, beyond) != reachable.end())
+            return beyond;
+    }
+
+    std::optional<int> nearest;
+    float nearestDistance = 0.0f;
+    for (int id : reachable)
+    {
+        float distance = glm::distance(navigationGraph.getNode(id).feet, *context.threatFeet);
+        if (nearest && distance >= nearestDistance)
+            continue;
+
+        nearest = id;
+        nearestDistance = distance;
+    }
+
+    return nearest;
+}
+
+void ChaseBehavior::planRoute(const ActorBehaviorContext &context)
+{
+    lastSeenAt = context.threatFeet;
+    std::optional<int> quarry = whereToCloseIn(context);
+    if (!quarry)
+        return;
+
+    walker.takeRouteTo(context, *quarry, context.threatFeet);
+}
+
+InputIntentions ChaseBehavior::decide(float deltaTime, const ActorBehaviorContext &context)
+{
+    walker.keepInStep(context);
+    if (!walker.isAnchored())
+        return InputIntentions();
+
+    if (!context.threatFeet)
+        return InputIntentions();
+
+    if (caughtUp(context))
+        return InputIntentions();
+
+    walker.advanceOnArrival(context);
+    if (walker.routeFinished() || (context.contacts.onGround && threatHasMoved(context)))
+        planRoute(context);
+
+    return walker.follow(deltaTime, context);
+}
+
+std::optional<int> ChaseBehavior::getCurrentNodeId() const
+{
+    return walker.getCurrentNodeId();
+}
+
+std::optional<int> ChaseBehavior::getTargetNodeId() const
+{
+    return walker.getTargetNodeId();
+}

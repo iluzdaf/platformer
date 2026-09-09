@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 
@@ -11,6 +12,7 @@ struct BehaviorStateData
     std::string name;
     std::optional<PatrolBehaviorData> patrolBehaviorData;
     std::optional<FleeBehaviorData> fleeBehaviorData;
+    std::optional<ChaseBehaviorData> chaseBehaviorData;
 
     bool operator==(const BehaviorStateData &) const = default;
 };

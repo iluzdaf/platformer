@@ -7,6 +7,7 @@
 #include <string>
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/actor_behavior_context.hpp"
+#include "actor/behaviors/chase_behavior.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
@@ -59,6 +60,8 @@ StateMachineBehavior::StateMachineBehavior(
                 std::make_unique<PatrolBehavior>(*state.patrolBehaviorData, patrolBetween));
         else if (state.fleeBehaviorData)
             states.push_back(std::make_unique<FleeBehavior>(*state.fleeBehaviorData));
+        else if (state.chaseBehaviorData)
+            states.push_back(std::make_unique<ChaseBehavior>(*state.chaseBehaviorData));
         else
             states.push_back(nullptr);
     }

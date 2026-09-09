@@ -5,6 +5,7 @@
 #include "animations/animator_facts.hpp"
 #include "actor/abilities/dash_ability_state.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
+#include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/abilities/wall_climb_ability_state.hpp"
 #include "actor/abilities/wall_hang_ability_state.hpp"
@@ -51,6 +52,12 @@ namespace
             "not dashing",
             [](const Asked &asked, const AnimatorFacts &facts)
             { return yes(asked) == facts.decided.dash.active; }},
+        Row{"pouncing",
+            AskedKind::YesOrNo,
+            "pouncing",
+            "not pouncing",
+            [](const Asked &asked, const AnimatorFacts &facts)
+            { return yes(asked) == facts.decided.pounce.active; }},
         Row{"onGround",
             AskedKind::YesOrNo,
             "on ground",

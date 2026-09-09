@@ -234,11 +234,11 @@ void TypesUi::drawActorPreview(const SheetInScope &scope, const ActorData &actor
 
     ImGui::SameLine();
     ImGui::SetNextItemWidth(PreviewChooserWidth);
-    if (!ImGui::BeginCombo("##previewing", shown.name))
+    if (!ImGui::BeginCombo("##previewing", shown.name.c_str()))
         return;
 
     for (const NamedAnimation &animation : offered)
-        if (ImGui::Selectable(animation.name, animation.name == shown.name))
+        if (ImGui::Selectable(animation.name.c_str(), animation.name == shown.name))
             previewing = animation.name;
 
     ImGui::EndCombo();

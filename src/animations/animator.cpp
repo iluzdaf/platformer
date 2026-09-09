@@ -1,59 +1,23 @@
-#include <optional>
-#include <stdexcept>
 #include <string>
-#include <string_view>
 #include <vector>
 #include "animations/animator.hpp"
 #include "animations/animation_parameters.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
-#include "actor/actor_animation_state.hpp"
-#include "actor/actor_animations.hpp"
+#include "actor/actor_animation_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
 
-namespace
-{
-    std::optional<ActorAnimationState> stateNamed(std::string_view name)
-    {
-        for (const ActorAnimationSlot &slot : ActorAnimationSlots)
-            if (slot.name == name)
-                return slot.state;
-
-        return std::nullopt;
-    }
-
-    ActorAnimationState stateNamedOrRefuse(const std::string &name, const std::string &where)
-    {
-        std::optional<ActorAnimationState> state = stateNamed(name);
-        if (!state)
-            throw std::runtime_error(
-                "The animator's ladder " + where + " names \"" + name +
-                "\", and there is no such animation state");
-
-        return *state;
-    }
-}
-
 Animator::Animator(const AnimatorData &ladder) : data(ladder)
 {
-    rungs.reserve(data.transitions.size());
-    for (const AnimationTransitionData &transition : data.transitions)
-        rungs.push_back(
-            Rung{
-                transition.from.empty() ? ActorAnimationState::Idle
-                                        : stateNamedOrRefuse(transition.from, "leaves from"),
-                transition.from.empty(),
-                stateNamedOrRefuse(transition.to, "goes to"),
-                transition.when});
 }
 
-ActorAnimationState Animator::wanted(const Decided &decided, const Observed &observed) const
+const std::string &Animator::wanted(const Decided &decided, const Observed &observed) const
 {
     AnimationParameters parameters = parametersFrom(decided, observed, finished());
-    for (const Rung &rung : rungs)
+    for (const AnimationTransitionData &rung : data.transitions)
     {
-        if (!rung.fromAny && rung.from != currentState)
+        if (!rung.from.empty() && rung.from != currentState)
             continue;
 
         if (holds(rung.when, parameters))
@@ -65,9 +29,9 @@ ActorAnimationState Animator::wanted(const Decided &decided, const Observed &obs
 
 void Animator::animate(float deltaTime, const Decided &decided, const Observed &observed)
 {
-    ActorAnimationState newState = wanted(decided, observed);
+    std::string newState = wanted(decided, observed);
     if (!animations.contains(newState))
-        newState = ActorAnimationState::Idle;
+        newState = std::string(IdleClip);
 
     if (newState != currentState)
     {
@@ -83,14 +47,14 @@ const FrameAnimation &Animator::playing() const
     return animations.at(currentState);
 }
 
-ActorAnimationState Animator::state() const
+const std::string &Animator::state() const
 {
     return currentState;
 }
 
-void Animator::add(ActorAnimationState state, const FrameAnimation &animation)
+void Animator::add(const std::string &name, const FrameAnimation &animation)
 {
-    animations.insert_or_assign(state, animation);
+    animations.insert_or_assign(name, animation);
 }
 
 std::vector<std::string> Animator::takeCues()

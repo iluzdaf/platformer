@@ -6,7 +6,7 @@
 #include "rendering/frames_fit.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/actor_animations.hpp"
+#include "actor/actor_animation_data.hpp"
 #include "pickups/pickup_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/score_icon_data.hpp"
@@ -18,14 +18,13 @@
 
 void checkFits(const ActorData &actor, const std::string &whose, int width, int height)
 {
-    for (const ActorAnimationSlot &slot : ActorAnimationSlots)
+    for (const auto &[name, clip] : actor.animationData.clips)
     {
-        const FrameAnimationData *said = saidFor(actor.animationData, slot);
-        if (!said)
-            continue;
-
-        checkFramesFit(said->frames, actor.sheet, whose + " " + slot.name, width, height);
-        checkCuesFit(*said, whose + " " + slot.name);
+        std::string named = whose;
+        named += " ";
+        named += name;
+        checkFramesFit(clip.frames, actor.sheet, named, width, height);
+        checkCuesFit(clip, named);
     }
 }
 

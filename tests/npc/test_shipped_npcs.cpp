@@ -13,7 +13,6 @@
 #include "helpers/tiles.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/shipped.hpp"
-#include "actor/actor_animation_state.hpp"
 #include "actor/actor_state.hpp"
 #include "npc/npc.hpp"
 #include "player/player.hpp"
@@ -309,7 +308,7 @@ TEST_CASE("The shipped spider climbs the wall above the ledge", "[Npc][Level][Cl
             reachedTheTopAt = step;
         if (reachedTheTopAt >= 0 && footOf(npc).y >= theLedge - 1.0f)
             cameBackDown = true;
-        if (npc.state().currentAnimationState == ActorAnimationState::Climb)
+        if (npc.state().currentAnimation == "climb")
             showedTheClimb = true;
     }
 

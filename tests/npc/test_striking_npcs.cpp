@@ -4,7 +4,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
-#include "actor/actor_animation_state.hpp"
 #include "actor/actor_state.hpp"
 #include "actor/decided.hpp"
 #include "actor/health.hpp"
@@ -34,7 +33,7 @@ namespace
     PlayerData aSwordsman()
     {
         PlayerData playerData = playerDataWithEveryAbility();
-        playerData.actorData.animationData.attack = anAttackClip(4, 0.05f);
+        playerData.actorData.animationData.clips["attack"] = anAttackClip(4, 0.05f);
         return playerData;
     }
 
@@ -42,7 +41,7 @@ namespace
     {
         NpcData rat = setupNpcData();
         rat.actorData.healthData = HealthData{points, 0.0f};
-        rat.actorData.animationData.dead = FrameAnimationData({7}, 1.0f);
+        rat.actorData.animationData.clips["dead"] = FrameAnimationData({7}, 1.0f);
         AnimationWhen dead;
         dead.alive = false;
         rat.actorData.animationData.ladder = AnimatorData{{{"", "dead", dead}}};
@@ -155,6 +154,6 @@ TEST_CASE("A corpse stops deciding, shows it, and takes no more hits", "[Strikin
     duel.rat().fixedUpdate(0.01f, duel.level, duel.player.feet());
 
     REQUIRE(duel.rat().stateName() == std::string_view{});
-    REQUIRE(duel.rat().state().currentAnimationState == ActorAnimationState::Dead);
+    REQUIRE(duel.rat().state().currentAnimation == "dead");
     REQUIRE_FALSE(duel.player.strike(duel.rat()));
 }

@@ -69,8 +69,8 @@ inline FrameAnimationData anAttackClip(int strikeFrames = 1, float frameDuration
 inline PlayerData playerDataWithEveryAbility()
 {
     PlayerData playerData;
-    playerData.actorData.animationData.idle = FrameAnimationData({0}, 1.0f);
-    playerData.actorData.animationData.walk = FrameAnimationData({1, 2, 3}, 0.1f);
+    playerData.actorData.animationData.clips["idle"] = FrameAnimationData({0}, 1.0f);
+    playerData.actorData.animationData.clips["walk"] = FrameAnimationData({1, 2, 3}, 0.1f);
     playerData.actorData.motionData.moveAbilityData = MoveAbilityData();
     playerData.actorData.motionData.jumpAbilityData = JumpAbilityData();
     playerData.actorData.motionData.dashAbilityData = DashAbilityData();
@@ -82,8 +82,9 @@ inline PlayerData playerDataWithEveryAbility()
     playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
     playerData.actorData.motionData.knockbackAbilityData = KnockbackAbilityData();
     playerData.actorData.motionData.swingAbilityData = SwingAbilityData();
-    playerData.actorData.animationData.attack = anAttackClip();
-    playerData.actorData.animationData.ladder = everyPictureLadder();
+    playerData.actorData.animationData.clips["attack"] = anAttackClip();
+    playerData.actorData.animationData.ladder =
+        ladderOfWhatItHas(playerData.actorData.animationData);
     return playerData;
 }
 

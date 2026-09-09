@@ -17,20 +17,22 @@
             "swingAbilityData":{}
         },
         "animationData":{
-            "idle":{"frames":[0,1],"frameDuration":0.6},
-            "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
-            "dash":{"frames":[8],"frameDuration":1},
-            "jump":{"frames":[6],"frameDuration":1},
-            "fall":{"frames":[7],"frameDuration":1},
-            "wallSlide":{"frames":[9],"frameDuration":1},
-            "climb":{"frames":[10,11],"frameDuration":0.15},
-            "attack":{
-                "frames":[12,13,14],
-                "cues":[{"frame":1,"name":"onStrike"},{"frame":2,"name":"onRecover"}],
-                "loops":false
+            "clips":{
+                "attack":{
+                    "frames":[12,13,14],
+                    "cues":[{"frame":1,"name":"onStrike"},{"frame":2,"name":"onRecover"}],
+                    "loops":false
+                },
+                "climb":{"frames":[10,11],"frameDuration":0.15},
+                "dash":{"frames":[8],"frameDuration":1},
+                "dead":{"frames":[16],"frameDuration":1,"loops":false},
+                "fall":{"frames":[7],"frameDuration":1},
+                "idle":{"frames":[0,1],"frameDuration":0.6},
+                "jump":{"frames":[6],"frameDuration":1},
+                "knockback":{"frames":[15],"frameDuration":1,"loops":false},
+                "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
+                "wallSlide":{"frames":[9],"frameDuration":1}
             },
-            "knockback":{"frames":[15],"frameDuration":1,"loops":false},
-            "dead":{"frames":[16],"frameDuration":1,"loops":false},
             "ladder":{
                 "transitions":[
                     {"to":"dead","when":{"alive":false}},

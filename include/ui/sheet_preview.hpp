@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -23,7 +24,7 @@ std::pair<ImVec2, ImVec2> colliderRect(
 
 struct NamedAnimation
 {
-    const char *name;
+    std::string name;
     const FrameAnimationData *animation;
 };
 

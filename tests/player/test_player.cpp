@@ -7,7 +7,6 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/gravity_ability_data.hpp"
-#include "actor/actor_animation_state.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "actor/decided.hpp"
 #include "actor/actor_state.hpp"
@@ -102,7 +101,7 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
     SECTION("Player is idle by default")
     {
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE(player.state().currentAnimationState == ActorAnimationState::Idle);
+        REQUIRE(player.state().currentAnimation == "idle");
     }
 
     SECTION("Player walking triggers walk animation")
@@ -110,13 +109,13 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.state().currentAnimationState == ActorAnimationState::Walk);
+        REQUIRE(player.state().currentAnimation == "walk");
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE(player.state().currentAnimationState == ActorAnimationState::Idle);
+        REQUIRE(player.state().currentAnimation == "idle");
         inputIntentions = InputIntentions();
         inputIntentions.direction.x = -1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.state().currentAnimationState == ActorAnimationState::Walk);
+        REQUIRE(player.state().currentAnimation == "walk");
     }
 
     SECTION("Animation frame advances over time")
@@ -242,9 +241,10 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
 TEST_CASE("An actor plays each animation under the state it was given for", "[Player]")
 {
     PlayerData playerData = playerDataWithEveryAbility();
-    playerData.actorData.animationData.idle = FrameAnimationData({5}, 1.0f);
-    playerData.actorData.animationData.dead = FrameAnimationData({9}, 1.0f);
-    playerData.actorData.animationData.ladder = everyPictureLadder();
+    playerData.actorData.animationData.clips["idle"] = FrameAnimationData({5}, 1.0f);
+    playerData.actorData.animationData.clips["dead"] = FrameAnimationData({9}, 1.0f);
+    playerData.actorData.animationData.ladder =
+        ladderOfWhatItHas(playerData.actorData.animationData);
     ScriptedIntentions input;
     Player player(playerData, input);
     TileMap tileMap = aTileMap({{{0, 1}, 1}});
@@ -253,7 +253,7 @@ TEST_CASE("An actor plays each animation under the state it was given for", "[Pl
 
     simulatePlayer(player, input, tileMap, 0.05f);
 
-    REQUIRE(player.state().currentAnimationState == ActorAnimationState::Dead);
+    REQUIRE(player.state().currentAnimation == "dead");
     REQUIRE(player.state().currentFrame == 9);
 }
 

@@ -1,20 +1,24 @@
 #pragma once
 
-#include <optional>
+#include <map>
+#include <string>
+#include <string_view>
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 
+inline constexpr std::string_view IdleClip = "idle";
+inline constexpr std::string_view AttackClip = "attack";
+
 struct ActorAnimationData
 {
-    FrameAnimationData idle;
-    std::optional<FrameAnimationData> walk;
-    std::optional<FrameAnimationData> dash;
-    std::optional<FrameAnimationData> jump;
-    std::optional<FrameAnimationData> fall;
-    std::optional<FrameAnimationData> wallSlide;
-    std::optional<FrameAnimationData> climb;
-    std::optional<FrameAnimationData> attack;
-    std::optional<FrameAnimationData> knockback;
-    std::optional<FrameAnimationData> dead;
+    std::map<std::string, FrameAnimationData> clips;
     AnimatorData ladder;
 };
+
+inline const FrameAnimationData *clipNamed(
+    const ActorAnimationData &animations,
+    std::string_view name)
+{
+    auto found = animations.clips.find(std::string(name));
+    return found == animations.clips.end() ? nullptr : &found->second;
+}

@@ -254,12 +254,53 @@ namespace inspector
                 return {};
 
             Edited edited;
+            std::optional<typename T::key_type> takeAway;
             for (auto &[key, entry] : value)
             {
                 std::string label = keyLabel(key);
                 ImGui::PushID(label.c_str());
+                if constexpr (std::is_same_v<typename T::key_type, std::string>)
+                {
+                    if (ImGui::SmallButton("-"))
+                        takeAway = key;
+
+                    ImGui::SameLine();
+                }
+
                 edited |= draw(label, entry);
                 ImGui::PopID();
+            }
+
+            if constexpr (std::is_same_v<typename T::key_type, std::string>)
+            {
+                if (ImGui::SmallButton("+"))
+                    ImGui::OpenPopup("##addNamed");
+
+                if (ImGui::BeginPopup("##addNamed"))
+                {
+                    static std::array<char, 64> asked{};
+                    ImGui::SetNextItemWidth(120.0f);
+                    ImGui::InputTextWithHint("##name", "name", asked.data(), asked.size());
+                    std::string wanted = asked.data();
+                    ImGui::SameLine();
+                    ImGui::BeginDisabled(wanted.empty() || value.contains(wanted));
+                    if (ImGui::Button("add"))
+                    {
+                        value.emplace(wanted, typename T::mapped_type{});
+                        asked.fill(0);
+                        edited |= Edited{true, true};
+                        ImGui::CloseCurrentPopup();
+                    }
+
+                    ImGui::EndDisabled();
+                    ImGui::EndPopup();
+                }
+
+                if (takeAway)
+                {
+                    value.erase(*takeAway);
+                    edited |= Edited{true, true};
+                }
             }
 
             ImGui::TreePop();

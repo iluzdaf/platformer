@@ -33,11 +33,7 @@ namespace
     PlayerData aSwordsman()
     {
         PlayerData playerData = playerDataWithEveryAbility();
-        MeleeAbilityData swing;
-        swing.windup = 0.05f;
-        swing.active = 0.2f;
-        swing.recovery = 0.05f;
-        playerData.actorData.motionData.meleeAbilityData = swing;
+        playerData.actorData.animationData.attack = anAttackClip(4, 0.05f);
         return playerData;
     }
 

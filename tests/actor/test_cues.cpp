@@ -1,4 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
+#include "input/input_intentions.hpp"
+#include "input/intention_source.hpp"
+#include "actor/actor_state.hpp"
+#include "actor/decided.hpp"
+#include "actor/abilities/melee_ability_data.hpp"
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -44,4 +50,95 @@ TEST_CASE("An actor whose clips have no cues says nothing", "[Actor][Cues]")
     runFor(player, level, 0.5f, timestepper);
 
     REQUIRE(heard == 0);
+}
+
+namespace
+{
+    PlayerData aPlayerWithAnAttackClip()
+    {
+        PlayerData playerData = playerDataWithEveryAbility();
+        playerData.actorData.animationData.attack = FrameAnimationData{
+            {12, 13, 14}, 0.1f, {{1, std::string(StrikeCue)}, {2, std::string(RecoverCue)}}};
+        playerData.actorData.animationData.attack->loops = false;
+        return playerData;
+    }
+}
+
+TEST_CASE("A swing is refused without a strike cue", "[Actor][Cues]")
+{
+    PlayerData playerData = aPlayerWithAnAttackClip();
+    playerData.actorData.animationData.attack->cues.clear();
+
+    REQUIRE_THROWS_WITH(
+        Player(playerData, noIntentions()), Catch::Matchers::ContainsSubstring("onStrike"));
+}
+
+TEST_CASE("A swing is refused when its clip loops", "[Actor][Cues]")
+{
+    PlayerData playerData = aPlayerWithAnAttackClip();
+    playerData.actorData.animationData.attack->loops = true;
+
+    REQUIRE_THROWS_WITH(
+        Player(playerData, noIntentions()), Catch::Matchers::ContainsSubstring("plays once"));
+}
+
+namespace
+{
+    class PressingAttackOnce : public IntentionSource
+    {
+    public:
+        void arm()
+        {
+            armed = true;
+        }
+
+        InputIntentions getIntentions() const override
+        {
+            InputIntentions intentions;
+            if (armed && !pressed)
+            {
+                intentions.attackRequested = true;
+                pressed = true;
+            }
+            return intentions;
+        }
+
+    private:
+        bool armed = false;
+        mutable bool pressed = false;
+    };
+}
+
+TEST_CASE("A swing strikes one tick behind the frame that shows the blade", "[Actor][Cues]")
+{
+    PlayerData playerData = aPlayerWithAnAttackClip();
+    PressingAttackOnce once;
+    Player player(playerData, once);
+    Level level(
+        aFloorLevelPlacing({}), theOnlyPalette(aPaletteWithASolidTile()), playerData, {}, {});
+    FixedTimeStep timestepper;
+    runFor(player, level, 0.3f, timestepper);
+    once.arm();
+
+    int shownLastTick = player.state().currentFrame;
+    int ticksStriking = 0;
+    bool rested = false;
+    for (int step = 0; step < 60; ++step)
+    {
+        player.beginFrame();
+        player.fixedUpdate(0.01f, level);
+
+        INFO(
+            "step " << step << ": shown last tick " << shownLastTick << ", now "
+                    << player.state().currentFrame);
+        if (player.decided().melee.swinging())
+            REQUIRE(player.decided().melee.striking() == (shownLastTick == 13));
+        ticksStriking += player.decided().melee.striking();
+        if (step > 5 && !player.decided().melee.swinging())
+            rested = true;
+        shownLastTick = player.state().currentFrame;
+    }
+
+    REQUIRE(ticksStriking == 10);
+    REQUIRE(rested);
 }

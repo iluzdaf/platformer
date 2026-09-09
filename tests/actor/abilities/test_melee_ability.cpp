@@ -1,5 +1,7 @@
-#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <string>
+#include <utility>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/melee_ability.hpp"
 #include "actor/abilities/melee_ability_data.hpp"
@@ -8,20 +10,9 @@
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 
-using Catch::Approx;
-
 namespace
 {
     constexpr float Step = 0.01f;
-
-    MeleeAbilityData aSwingOf(float windup, float active, float recovery)
-    {
-        MeleeAbilityData data;
-        data.windup = windup;
-        data.active = active;
-        data.recovery = recovery;
-        return data;
-    }
 
     InputIntentions pressingAttack(float x = 0.0f)
     {
@@ -30,170 +21,159 @@ namespace
         intentions.direction.x = x;
         return intentions;
     }
+
+    Observed clipSaying(std::string cue)
+    {
+        Observed observed;
+        observed.cues.push_back(std::move(cue));
+        return observed;
+    }
+
+    Observed clipFinished()
+    {
+        Observed observed;
+        observed.animationFinished = true;
+        return observed;
+    }
+
+    Observed facingLeft()
+    {
+        Observed observed;
+        observed.facingLeft = true;
+        return observed;
+    }
 }
 
-TEST_CASE("A swing winds up, strikes, recovers and rests", "[MeleeAbility]")
+TEST_CASE(
+    "A swing winds up, strikes on cue, recovers on cue and rests when the clip ends",
+    "[MeleeAbility]")
 {
     Decided decided;
-    Observed observed;
     InputIntentions nothing;
-    MeleeAbility ability(aSwingOf(0.05f, 0.1f, 0.05f));
+    MeleeAbility ability(MeleeAbilityData{});
 
-    ability.decide(Step, pressingAttack(), observed, decided);
+    ability.decide(Step, pressingAttack(), Observed{}, decided);
     REQUIRE(decided.melee.phase == MeleePhase::Windup);
     REQUIRE(decided.melee.swinging());
     REQUIRE_FALSE(decided.melee.striking());
 
-    ability.decide(0.05f, nothing, observed, decided);
-    REQUIRE(decided.melee.phase == MeleePhase::Active);
+    ability.decide(Step, nothing, clipSaying(std::string(StrikeCue)), decided);
     REQUIRE(decided.melee.striking());
 
-    ability.decide(0.1f, nothing, observed, decided);
+    ability.decide(Step, nothing, clipSaying(std::string(RecoverCue)), decided);
     REQUIRE(decided.melee.phase == MeleePhase::Recovery);
-    REQUIRE_FALSE(decided.melee.striking());
+    REQUIRE(decided.melee.swinging());
 
-    ability.decide(0.05f, nothing, observed, decided);
+    ability.decide(Step, nothing, clipFinished(), decided);
     REQUIRE(decided.melee.phase == MeleePhase::Idle);
     REQUIRE_FALSE(decided.melee.swinging());
 }
 
-TEST_CASE("A phase shorter than a step still gets a step, so the strike is seen", "[MeleeAbility]")
+TEST_CASE(
+    "A swing strikes on the strike cue and not before, however long the wait",
+    "[MeleeAbility]")
 {
     Decided decided;
-    Observed observed;
     InputIntentions nothing;
-    MeleeAbility ability(aSwingOf(0.0f, 0.001f, 0.0f));
+    MeleeAbility ability(MeleeAbilityData{});
+    ability.decide(Step, pressingAttack(), Observed{}, decided);
 
-    ability.decide(Step, pressingAttack(), observed, decided);
+    for (int step = 0; step < 100; ++step)
+        ability.decide(Step, nothing, Observed{}, decided);
     REQUIRE(decided.melee.phase == MeleePhase::Windup);
 
-    ability.decide(Step, nothing, observed, decided);
+    ability.decide(Step, nothing, clipSaying(std::string(StrikeCue)), decided);
     REQUIRE(decided.melee.striking());
-
-    ability.decide(Step, nothing, observed, decided);
-    REQUIRE(decided.melee.phase == MeleePhase::Recovery);
-
-    ability.decide(Step, nothing, observed, decided);
-    REQUIRE(decided.melee.phase == MeleePhase::Idle);
 }
 
-TEST_CASE("A long phase keeps exact time, and the remainder feeds the next", "[MeleeAbility]")
+TEST_CASE("A swing ends with its clip even mid-strike", "[MeleeAbility]")
 {
     Decided decided;
-    Observed observed;
     InputIntentions nothing;
-    MeleeAbility ability(aSwingOf(0.05f, 0.1f, 0.05f));
+    MeleeAbility ability(MeleeAbilityData{});
+    ability.decide(Step, pressingAttack(), Observed{}, decided);
+    ability.decide(Step, nothing, clipSaying(std::string(StrikeCue)), decided);
 
-    ability.decide(Step, pressingAttack(), observed, decided);
-    ability.decide(0.06f, nothing, observed, decided);
+    ability.decide(Step, nothing, clipFinished(), decided);
 
-    REQUIRE(decided.melee.phase == MeleePhase::Active);
-    REQUIRE(decided.melee.timeLeft == Approx(0.09f));
+    REQUIRE(decided.melee.phase == MeleePhase::Idle);
 }
 
 TEST_CASE("A swing says so once, and pressing again mid-swing starts nothing", "[MeleeAbility]")
 {
     Decided decided;
-    Observed observed;
-    MeleeAbility ability(aSwingOf(0.05f, 0.1f, 0.05f));
+    MeleeAbility ability(MeleeAbilityData{});
 
-    ability.decide(Step, pressingAttack(), observed, decided);
+    ability.decide(Step, pressingAttack(), Observed{}, decided);
     REQUIRE(decided.melee.emit);
 
-    ability.decide(Step, pressingAttack(), observed, decided);
+    ability.decide(Step, pressingAttack(), clipSaying(std::string(StrikeCue)), decided);
     REQUIRE_FALSE(decided.melee.emit);
-    REQUIRE(decided.melee.phase == MeleePhase::Windup);
-    REQUIRE(decided.melee.timeLeft == Approx(0.04f));
+    REQUIRE(decided.melee.striking());
+
+    ability.decide(Step, pressingAttack(), Observed{}, decided);
+    REQUIRE_FALSE(decided.melee.emit);
+    REQUIRE(decided.melee.striking());
 }
 
 TEST_CASE("A swing goes where it was asked, else where the actor faces", "[MeleeAbility]")
 {
-    MeleeAbility ability{MeleeAbilityData{}};
-    Observed facingLeft;
-    facingLeft.facingLeft = true;
+    MeleeAbility ability(MeleeAbilityData{});
 
-    SECTION("Asked left")
-    {
-        Decided decided;
-        ability.decide(Step, pressingAttack(-1.0f), Observed{}, decided);
-        REQUIRE(decided.melee.direction == -1.0f);
-    }
+    Decided asked;
+    ability.decide(Step, pressingAttack(-1.0f), Observed{}, asked);
+    REQUIRE(asked.melee.direction == -1.0f);
 
-    SECTION("Asked right while facing left")
-    {
-        Decided decided;
-        ability.decide(Step, pressingAttack(1.0f), facingLeft, decided);
-        REQUIRE(decided.melee.direction == 1.0f);
-    }
+    Decided facing;
+    ability.decide(Step, pressingAttack(), facingLeft(), facing);
+    REQUIRE(facing.melee.direction == -1.0f);
 
-    SECTION("Not asked, facing left")
-    {
-        Decided decided;
-        ability.decide(Step, pressingAttack(), facingLeft, decided);
-        REQUIRE(decided.melee.direction == -1.0f);
-    }
-
-    SECTION("Not asked, facing right")
-    {
-        Decided decided;
-        ability.decide(Step, pressingAttack(), Observed{}, decided);
-        REQUIRE(decided.melee.direction == 1.0f);
-    }
+    Decided ahead;
+    ability.decide(Step, pressingAttack(), Observed{}, ahead);
+    REQUIRE(ahead.melee.direction == 1.0f);
 }
 
-TEST_CASE(
-    "A swing carries its reach and damage, and forgets what the last one struck",
-    "[MeleeAbility]")
+TEST_CASE("A swing carries its reach and damage and forgets who it struck", "[MeleeAbility]")
 {
-    Decided decided;
-    Observed observed;
     MeleeAbilityData data;
     data.reach = glm::vec2(20.0f, 6.0f);
-    data.damage = 2;
+    data.damage = 3;
     MeleeAbility ability(data);
+    Decided decided;
     decided.melee.struck.push_back(nullptr);
 
-    ability.decide(Step, pressingAttack(), observed, decided);
+    ability.decide(Step, pressingAttack(), Observed{}, decided);
 
     REQUIRE(decided.melee.reach == glm::vec2(20.0f, 6.0f));
-    REQUIRE(decided.melee.damage == 2);
+    REQUIRE(decided.melee.damage == 3);
     REQUIRE(decided.melee.struck.empty());
 }
 
 TEST_CASE("A swing cannot start while dashing, and a knockback cuts one short", "[MeleeAbility]")
 {
-    Decided decided;
-    Observed observed;
-    InputIntentions nothing;
-    MeleeAbility ability(aSwingOf(0.05f, 0.1f, 0.05f));
+    MeleeAbility ability(MeleeAbilityData{});
 
-    decided.dash.active = true;
-    ability.decide(Step, pressingAttack(), observed, decided);
-    REQUIRE(decided.melee.phase == MeleePhase::Idle);
-    REQUIRE_FALSE(decided.melee.emit);
+    Decided dashing;
+    dashing.dash.active = true;
+    ability.decide(Step, pressingAttack(), Observed{}, dashing);
+    REQUIRE(dashing.melee.phase == MeleePhase::Idle);
 
-    decided.dash.active = false;
-    ability.decide(Step, pressingAttack(), observed, decided);
-    REQUIRE(decided.melee.phase == MeleePhase::Windup);
-
-    decided.knockback.active = true;
-    ability.decide(Step, nothing, observed, decided);
-    REQUIRE(decided.melee.phase == MeleePhase::Idle);
-    REQUIRE(decided.melee.timeLeft == 0.0f);
+    Decided knocked;
+    ability.decide(Step, pressingAttack(), Observed{}, knocked);
+    ability.decide(Step, InputIntentions{}, clipSaying(std::string(StrikeCue)), knocked);
+    REQUIRE(knocked.melee.striking());
+    knocked.knockback.active = true;
+    ability.decide(Step, InputIntentions{}, Observed{}, knocked);
+    REQUIRE(knocked.melee.phase == MeleePhase::Idle);
 }
 
 TEST_CASE("A swing with nothing to it is refused", "[MeleeAbility]")
 {
-    REQUIRE_THROWS(MeleeAbility(aSwingOf(-0.1f, 0.1f, 0.1f)));
-    REQUIRE_THROWS(MeleeAbility(aSwingOf(0.1f, 0.0f, 0.1f)));
-    REQUIRE_THROWS(MeleeAbility(aSwingOf(0.1f, 0.1f, -0.1f)));
-    REQUIRE_NOTHROW(MeleeAbility(aSwingOf(0.0f, 0.1f, 0.0f)));
-
     MeleeAbilityData noReach;
     noReach.reach = glm::vec2(0.0f, 10.0f);
-    REQUIRE_THROWS(MeleeAbility(noReach));
+    REQUIRE_THROWS_WITH(MeleeAbility(noReach), Catch::Matchers::ContainsSubstring("reach"));
 
-    MeleeAbilityData harmless;
-    harmless.damage = 0;
-    REQUIRE_THROWS(MeleeAbility(harmless));
+    MeleeAbilityData noDamage;
+    noDamage.damage = 0;
+    REQUIRE_THROWS_WITH(MeleeAbility(noDamage), Catch::Matchers::ContainsSubstring("damage"));
 }

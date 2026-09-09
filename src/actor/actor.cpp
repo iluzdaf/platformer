@@ -4,6 +4,8 @@
 #include <string>
 #include <string_view>
 #include "actor/actor.hpp"
+#include "actor/actor_animation_data.hpp"
+#include "actor/abilities/melee_ability_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/hit.hpp"
 #include "actor/abilities/melee_ability_state.hpp"
@@ -25,6 +27,19 @@
 #include <memory>
 #include <utility>
 
+namespace
+{
+    bool attackClipSaysWhenToStrike(const ActorAnimationData &animations)
+    {
+        const std::optional<FrameAnimationData> &attack = animations.attack;
+        if (!attack || attack->loops)
+            return false;
+
+        return std::ranges::any_of(
+            attack->cues, [](const FrameCueData &cue) { return cue.name == StrikeCue; });
+    }
+}
+
 Actor::Actor(const ActorData &data)
     : abilities(data.motionData), physicsBody(data.physicsBodyData),
       navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
@@ -37,6 +52,11 @@ Actor::Actor(const ActorData &data)
     for (const ActorAnimationSlot &slot : ActorAnimationSlots)
         if (const FrameAnimationData *said = saidFor(data.animationData, slot))
             animator.add(slot.state, FrameAnimation(*said));
+
+    const std::optional<MeleeAbilityData> &swing = data.motionData.meleeAbilityData;
+    if (swing && !attackClipSaysWhenToStrike(data.animationData))
+        throw std::runtime_error(
+            "A swing needs an attack clip that plays once and cues " + std::string(StrikeCue));
 }
 
 void Actor::postFixedUpdate()
@@ -77,7 +97,9 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     actorState.currentFrame = animator.playing().frame();
     actorState.currentAnimationState = animator.state();
 
-    for (const std::string &cue : animator.takeCues())
+    observations.cues = animator.takeCues();
+    observations.animationFinished = animator.finished();
+    for (const std::string &cue : observations.cues)
         onCue(cue);
 }
 

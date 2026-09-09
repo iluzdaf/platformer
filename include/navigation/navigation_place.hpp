@@ -32,3 +32,15 @@ int endOfThePathBeyond(
 bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there);
 
 bool canPatrolBetween(const NavigationGraph &navigationGraph, glm::vec2 from, glm::vec2 to);
+
+std::optional<int> furthestRefugeFrom(
+    const NavigationGraph &navigationGraph,
+    int from,
+    glm::vec2 threat,
+    float away);
+
+bool corneredBy(
+    const NavigationGraph &navigationGraph,
+    glm::vec2 feet,
+    glm::vec2 threat,
+    float reach);

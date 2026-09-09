@@ -39,6 +39,17 @@ namespace
         if (transition.onGround && context.contacts.onGround != *transition.onGround)
             return false;
 
+        if (transition.cornered)
+        {
+            bool cornered = context.threatFeet && corneredBy(
+                                                      context.navigationGraph,
+                                                      context.feet,
+                                                      *context.threatFeet,
+                                                      context.colliderSize.x);
+            if (cornered != *transition.cornered)
+                return false;
+        }
+
         if (transition.threatOnMySurface)
         {
             bool sharing = context.threatFeet &&

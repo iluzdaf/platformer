@@ -24,19 +24,22 @@ namespace
             "raining",
             "dry",
             [](const Asked &asked, const Weather &weather)
-            { return std::get<bool>(asked) == weather.raining; }},
+            { return std::get<bool>(asked) == weather.raining; },
+            ""},
         Row{"warmerThan",
             AskedKind::Number,
             "warmer than",
             "",
             [](const Asked &asked, const Weather &weather)
-            { return weather.degrees > std::get<float>(asked); }},
+            { return weather.degrees > std::get<float>(asked); },
+            ""},
         Row{"wind",
             AskedKind::Name,
             "wind",
             "",
             [](const Asked &asked, const Weather &weather)
-            { return std::get<std::string>(asked) == weather.wind; }},
+            { return std::get<std::string>(asked) == weather.wind; },
+            ""},
     };
 
     std::span<const Row> rows()

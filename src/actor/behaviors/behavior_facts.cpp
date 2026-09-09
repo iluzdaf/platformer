@@ -31,7 +31,8 @@ namespace
             {
                 return context.threatFeet.has_value() &&
                        glm::distance(context.feet, *context.threatFeet) <= number(asked);
-            }},
+            },
+            ""},
         Row{"threatBeyond",
             AskedKind::Number,
             "threat beyond",
@@ -40,7 +41,8 @@ namespace
             {
                 return !context.threatFeet.has_value() ||
                        glm::distance(context.feet, *context.threatFeet) > number(asked);
-            }},
+            },
+            ""},
         Row{"threatOnMySurface",
             AskedKind::YesOrNo,
             "on my surface",
@@ -51,7 +53,8 @@ namespace
                     context.threatFeet.has_value() &&
                     onTheSameRun(context.navigationGraph, context.feet, *context.threatFeet);
                 return yes(asked) == sharing;
-            }},
+            },
+            ""},
         Row{"cornered",
             AskedKind::YesOrNo,
             "cornered",
@@ -64,13 +67,15 @@ namespace
                                                                       *context.threatFeet,
                                                                       context.colliderSize.x);
                 return yes(asked) == cornered;
-            }},
+            },
+            ""},
         Row{"onGround",
             AskedKind::YesOrNo,
             "on ground",
             "in the air",
             [](const Asked &asked, const ActorBehaviorContext &context)
-            { return yes(asked) == context.contacts.onGround; }},
+            { return yes(asked) == context.contacts.onGround; },
+            ""},
     };
 }
 

@@ -135,12 +135,6 @@ namespace
 
 TEST_CASE("Every ability that can be active is a fact, or says why it is not", "[AnimatorFacts]")
 {
-    const std::map<std::string_view, std::string_view> rowFor{
-        {"dash", "dashing"},
-        {"knockback", "knockback"},
-        {"wallSlide", "onWall"},
-        {"wallHang", "onWall"},
-        {"pounce", "pouncing"}};
     const std::map<std::string_view, std::string_view> notAFactBecause{
         {"jump", "rising already says it; a jump is not a picture of its own"},
         {"wallJump", "it is a jump"},
@@ -152,12 +146,45 @@ TEST_CASE("Every ability that can be active is a fact, or says why it is not", "
 
     for (std::string_view ability : flagged)
     {
-        INFO(
-            "ability \"" << ability
-                         << "\" can be active, and nobody has said whether it is a fact");
-        bool decided = rowFor.contains(ability) || notAFactBecause.contains(ability);
-        REQUIRE(decided);
-        if (rowFor.contains(ability))
-            REQUIRE(rowNamed(animatorRows(), rowFor.at(ability)) != nullptr);
+        bool covered = false;
+        for (const FactRow<AnimatorFacts> &row : animatorRows())
+            covered = covered || row.covers == ability;
+
+        INFO("ability \"" << ability << "\" can be active, and no row watches it nor says why not");
+        REQUIRE((covered || notAFactBecause.contains(ability)));
+    }
+}
+
+TEST_CASE("A row that says it watches a flag really reads it", "[AnimatorFacts]")
+{
+    for (const FactRow<AnimatorFacts> &row : animatorRows())
+    {
+        if (row.covers.empty())
+            continue;
+
+        Decided off;
+        Decided on;
+        if (row.covers == "dash")
+            on.dash.active = true;
+        else if (row.covers == "knockback")
+            on.knockback.active = true;
+        else if (row.covers == "pounce")
+            on.pounce.active = true;
+        else if (row.covers == "wallSlide")
+            on.wallSlide.active = true;
+        else if (row.covers == "wallHang")
+        {
+            on.wallHang.active = true;
+            on.wallClimb.velocity.y = -1.0f;
+        }
+        else
+            FAIL(
+                "row \"" << row.name << "\" covers \"" << row.covers
+                         << "\", which this test does not know how to switch on");
+
+        Observed observed;
+        INFO("row \"" << row.name << "\"");
+        REQUIRE(row.holds(true, AnimatorFacts{on, observed, false, ""}));
+        REQUIRE_FALSE(row.holds(true, AnimatorFacts{off, observed, false, ""}));
     }
 }

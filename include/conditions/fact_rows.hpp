@@ -17,6 +17,7 @@ template <class Context> struct FactRow
     const char *yes;
     const char *no;
     bool (*holds)(const Asked &asked, const Context &context);
+    std::string_view covers = {};
 };
 
 template <class Context>

@@ -3,6 +3,7 @@
 #include "actor/actor_behavior_context.hpp"
 #include "helpers/behaviour_context.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
@@ -245,4 +246,20 @@ TEST_CASE("Given no states at all, resetting is nothing", "[StateMachineBehavior
     REQUIRE(
         behavior.decide(0.016f, standingAt(navigationGraph, {0.0f, 192.0f}, std::nullopt))
             .direction.x == 0.0f);
+}
+
+TEST_CASE("A state told to chase closes on the threat", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+
+    BehaviorStateData chasing;
+    chasing.name = "chase";
+    chasing.chaseBehaviorData = ChaseBehaviorData{};
+    StateMachineBehavior behavior(StateMachineBehaviorData{{chasing}, {}});
+
+    InputIntentions closingIn = behavior.decide(
+        0.01f, standingAt(navigationGraph, {96.0f, 192.0f}, glm::vec2(384.0f, 192.0f)));
+
+    REQUIRE(behavior.getStateName() == "chase");
+    REQUIRE(closingIn.direction.x == 1.0f);
 }

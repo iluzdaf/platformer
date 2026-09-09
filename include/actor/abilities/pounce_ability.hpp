@@ -1,17 +1,16 @@
 #pragma once
 
 #include "actor/abilities/ability.hpp"
-#include "actor/abilities/melee_ability_data.hpp"
+#include "actor/abilities/pounce_ability_data.hpp"
 
 struct InputIntentions;
 struct Observed;
 struct Decided;
-struct MeleeAbilityState;
 
-class MeleeAbility : public Ability
+class PounceAbility : public Ability
 {
 public:
-    explicit MeleeAbility(const MeleeAbilityData &data);
+    explicit PounceAbility(const PounceAbilityData &data);
     void decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
@@ -19,6 +18,5 @@ public:
         Decided &decided) override;
 
 private:
-    MeleeAbilityData data;
-    void followTheClip(const Observed &observed, MeleeAbilityState &melee);
+    PounceAbilityData data;
 };

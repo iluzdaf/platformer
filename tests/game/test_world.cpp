@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "actor/abilities/swing_ability_data.hpp"
 #include <optional>
 #include "game/level_data.hpp"
 #include "helpers/tiles.hpp"
@@ -482,7 +483,7 @@ TEST_CASE("A swing that kills an npc reaches that npc's own script", "[World]")
     gameData.npcData = {{"rat", rat}};
     ScriptedIntentions intentions;
     InputIntentions attacking;
-    attacking.attackRequested = true;
+    attacking.attack = std::string(SwingAttack);
     intentions.set(attacking);
     LuaScriptSystem luaScriptSystem(script.string());
     World world(gameData, intentions, luaScriptSystem);

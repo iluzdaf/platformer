@@ -5,7 +5,7 @@
 
 class Actor;
 
-enum class MeleePhase
+enum class SwingPhase
 {
     Idle,
     Windup,
@@ -13,9 +13,9 @@ enum class MeleePhase
     Recovery
 };
 
-struct MeleeAbilityState
+struct SwingAbilityState
 {
-    MeleePhase phase = MeleePhase::Idle;
+    SwingPhase phase = SwingPhase::Idle;
     float direction = 1;
     bool emit = false;
     glm::vec2 reach = glm::vec2(0.0f);
@@ -24,11 +24,11 @@ struct MeleeAbilityState
 
     bool swinging() const
     {
-        return phase != MeleePhase::Idle;
+        return phase != SwingPhase::Idle;
     }
 
     bool striking() const
     {
-        return phase == MeleePhase::Active;
+        return phase == SwingPhase::Active;
     }
 };

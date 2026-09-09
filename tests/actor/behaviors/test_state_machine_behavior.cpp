@@ -1,9 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
+#include <string>
+#include "actor/abilities/pounce_ability_data.hpp"
 #include <optional>
 #include "actor/actor_behavior_context.hpp"
 #include "helpers/behaviour_context.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
@@ -262,4 +265,94 @@ TEST_CASE("A state told to chase closes on the threat", "[StateMachineBehavior]"
 
     REQUIRE(behavior.getStateName() == "chase");
     REQUIRE(closingIn.direction.x == 1.0f);
+}
+
+namespace
+{
+    StateMachineBehaviorData aChaseThatPounces(float cooldown)
+    {
+        BehaviorStateData chasing;
+        chasing.name = "chase";
+        chasing.chaseBehaviorData = ChaseBehaviorData{};
+
+        BehaviorStateData pouncing;
+        pouncing.name = "pounce";
+        pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+        pouncing.cooldown = cooldown;
+
+        BehaviorTransitionData close;
+        close.from = "chase";
+        close.to = "pounce";
+        close.threatWithin = 48.0f;
+
+        BehaviorTransitionData landed;
+        landed.from = "pounce";
+        landed.to = "chase";
+        landed.onGround = true;
+        landed.after = 0.05f;
+
+        return {{chasing, pouncing}, {close, landed}};
+    }
+}
+
+TEST_CASE("A state on cooldown is not re-entered until it has passed", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    StateMachineBehavior behavior(aChaseThatPounces(1.0f));
+    ActorBehaviorContext close =
+        standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(200.0f, 192.0f));
+    auto pouncesIn = [&](int steps)
+    {
+        int pounces = 0;
+        for (int step = 0; step < steps; ++step)
+        {
+            behavior.decide(0.01f, close);
+            pounces += behavior.getStateName() == "pounce";
+        }
+        return pounces;
+    };
+
+    REQUIRE(pouncesIn(1) == 1);
+    REQUIRE(pouncesIn(10) > 0);
+    REQUIRE(behavior.getStateName() == "chase");
+
+    REQUIRE(pouncesIn(80) == 0);
+    REQUIRE(behavior.secondsSinceLeaving("pounce") < 1.0f);
+
+    REQUIRE(pouncesIn(40) > 0);
+}
+
+TEST_CASE("A transition can wait for the ground", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    StateMachineBehavior behavior(aChaseThatPounces(1.0f));
+    behavior.decide(
+        0.01f, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(200.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "pounce");
+
+    ActorBehaviorContext inTheAir = airborneAt(navigationGraph, {196.0f, 180.0f});
+    inTheAir.threatFeet = glm::vec2(200.0f, 192.0f);
+    for (int step = 0; step < 20; ++step)
+        behavior.decide(0.01f, inTheAir);
+    REQUIRE(behavior.getStateName() == "pounce");
+
+    for (int step = 0; step < 10; ++step)
+        behavior.decide(
+            0.01f, standingAt(navigationGraph, {196.0f, 192.0f}, glm::vec2(200.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "chase");
+}
+
+TEST_CASE("A state told to pounce leaps at the threat", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+    StateMachineBehavior behavior(StateMachineBehaviorData{{pouncing}, {}});
+
+    InputIntentions leap = behavior.decide(
+        0.01f, standingAt(navigationGraph, {96.0f, 192.0f}, glm::vec2(160.0f, 192.0f)));
+
+    REQUIRE(leap.attack == PounceAttack);
+    REQUIRE(leap.direction.x == 1.0f);
 }

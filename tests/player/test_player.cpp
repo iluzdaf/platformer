@@ -2,6 +2,7 @@
 #include <vector>
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include "actor/abilities/swing_ability_data.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -334,7 +335,7 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
         int attacks = 0;
         player.onAttack.connect([&] { ++attacks; });
         InputIntentions inputIntentions;
-        inputIntentions.attackRequested = true;
+        inputIntentions.attack = std::string(SwingAttack);
         simulatePlayer(player, input, tileMap, 0.05f, inputIntentions);
         REQUIRE(attacks == 1);
     }

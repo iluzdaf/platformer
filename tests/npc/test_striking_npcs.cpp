@@ -2,8 +2,8 @@
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/abilities/melee_ability_data.hpp"
-#include "actor/abilities/melee_ability_state.hpp"
+#include "actor/abilities/swing_ability_data.hpp"
+#include "actor/abilities/swing_ability_state.hpp"
 #include "actor/actor_animation_state.hpp"
 #include "actor/actor_state.hpp"
 #include "actor/decided.hpp"
@@ -67,7 +67,7 @@ namespace
         void swingFor(float seconds)
         {
             InputIntentions attack;
-            attack.attackRequested = true;
+            attack.attack = std::string(SwingAttack);
             input.set(attack);
             runFor(player, level, seconds, timestepper);
             input.set(InputIntentions{});
@@ -85,7 +85,7 @@ TEST_CASE("A swing in front of the player costs the npc the swing's damage", "[S
 {
     Duel duel(3, PlayerTile + glm::ivec2(1, 0));
     duel.swingFor(0.1f);
-    REQUIRE(duel.player.decided().melee.striking());
+    REQUIRE(duel.player.decided().swing.striking());
 
     strikeNpcs(duel.player, duel.level.getNpcs());
 
@@ -100,7 +100,7 @@ TEST_CASE("A swing lands once, however long the npc stays in reach", "[StrikingN
 
     strikeNpcs(duel.player, duel.level.getNpcs());
     duel.swingFor(0.05f);
-    REQUIRE(duel.player.decided().melee.striking());
+    REQUIRE(duel.player.decided().swing.striking());
     strikeNpcs(duel.player, duel.level.getNpcs());
 
     REQUIRE(duel.rat().health().points() == 2);
@@ -136,7 +136,7 @@ TEST_CASE("A swing reaches out from the collider on the side it faces", "[Striki
     AABB reach = duel.player.swing().value();
 
     REQUIRE(reach.left() == collider.right());
-    REQUIRE(reach.size == duel.playerData.actorData.motionData.meleeAbilityData->reach);
+    REQUIRE(reach.size == duel.playerData.actorData.motionData.swingAbilityData->reach);
     REQUIRE(reach.center().y == collider.center().y);
 }
 

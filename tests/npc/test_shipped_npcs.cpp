@@ -329,6 +329,11 @@ namespace
 {
     constexpr glm::ivec2 OnTheLedge{3, LedgeRow - 1};
 
+    bool hunting(const Npc &npc)
+    {
+        return npc.stateName() == "chase" || npc.stateName() == "pounce";
+    }
+
     void stepNpcHunting(Npc &npc, const Level &level, glm::vec2 threatFeet, int steps)
     {
         for (int step = 0; step < steps; ++step)
@@ -351,10 +356,10 @@ TEST_CASE("The shipped spider gives chase when you step onto its ledge", "[Npc][
     REQUIRE(npc.stateName() == "patrol");
 
     stepNpcHunting(npc, level, you, 10);
-    REQUIRE(npc.stateName() == "chase");
+    REQUIRE(hunting(npc));
 
     stepNpcHunting(npc, level, you, 150);
-    REQUIRE(std::abs(footOf(npc).x - you.x) < 16.0f);
+    REQUIRE(std::abs(footOf(npc).x - you.x) <= 32.0f);
     REQUIRE(std::abs(footOf(npc).y - surfaceOf(LedgeRow)) <= 1.0f);
 }
 
@@ -364,15 +369,20 @@ TEST_CASE("The shipped spider follows you down off its ledge", "[Npc][Level][Cha
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
 
-    stepNpcHunting(npc, level, feetOf(OnTheLedge), 20);
-    REQUIRE(npc.stateName() == "chase");
+    stepNpcHunting(npc, level, feetOf(glm::ivec2(2, LedgeRow - 1)), 20);
+    REQUIRE(hunting(npc));
 
     glm::vec2 below = feetOf(OnTheGround);
-    stepNpcHunting(npc, level, below, 400);
+    bool reachedTheGroundHunting = false;
+    for (int hunt = 0; hunt < 400 && !reachedTheGroundHunting; ++hunt)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, below);
+        reachedTheGroundHunting =
+            hunting(npc) && std::abs(footOf(npc).y - surfaceOf(GroundRow)) <= 1.0f;
+    }
 
-    INFO("spider foot at " << footOf(npc).x << "," << footOf(npc).y << " in " << npc.stateName());
-    REQUIRE(std::abs(footOf(npc).y - surfaceOf(GroundRow)) <= 1.0f);
-    REQUIRE(npc.stateName() == "chase");
+    REQUIRE(reachedTheGroundHunting);
 }
 
 TEST_CASE(
@@ -396,14 +406,20 @@ TEST_CASE(
     INFO("mid-wall at step " << step << ", foot y " << footOf(npc).y);
     REQUIRE(step < 400);
 
-    glm::vec2 you = feetOf(OnTheLedge);
+    glm::vec2 you = feetOf(glm::ivec2(2, LedgeRow - 1));
     stepNpcHunting(npc, level, you, 10);
-    REQUIRE(npc.stateName() == "chase");
+    REQUIRE(hunting(npc));
 
-    stepNpcHunting(npc, level, you, 300);
-    INFO("spider foot at " << footOf(npc).x << "," << footOf(npc).y << " in " << npc.stateName());
-    REQUIRE(std::abs(footOf(npc).y - surfaceOf(LedgeRow)) <= 1.0f);
-    REQUIRE(std::abs(footOf(npc).x - you.x) < 16.0f);
+    bool cameDownBesideYou = false;
+    for (int hunt = 0; hunt < 300 && !cameDownBesideYou; ++hunt)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, you);
+        cameDownBesideYou = hunting(npc) && std::abs(footOf(npc).y - surfaceOf(LedgeRow)) <= 1.0f &&
+                            std::abs(footOf(npc).x - you.x) <= 40.0f;
+    }
+
+    REQUIRE(cameDownBesideYou);
 }
 
 TEST_CASE("The shipped spider ignores you on the step below its ledge", "[Npc][Level][Chase]")
@@ -443,4 +459,95 @@ TEST_CASE("The shipped spider's patience outlasts its own climb on level 6", "[N
         "climb of " << tallestClimb << " at " << climbSpeed << " takes "
                     << tallestClimb / climbSpeed);
     REQUIRE(givesUpAfter >= tallestClimb / climbSpeed);
+}
+
+TEST_CASE(
+    "The shipped spider pounces when you are close, then waits out its cooldown",
+    "[Npc][Level][Pounce]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("spider"));
+    glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile - 2, LedgeRow - 1));
+
+    int pounces = 0;
+    bool wasPouncing = false;
+    int firstPounceAt = -1, secondPounceAt = -1;
+    for (int step = 0; step < 500; ++step)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, you);
+        bool pouncing = npc.stateName() == "pounce";
+        if (pouncing && !wasPouncing)
+        {
+            ++pounces;
+            (firstPounceAt < 0 ? firstPounceAt : secondPounceAt) = step;
+        }
+        wasPouncing = pouncing;
+    }
+
+    INFO(
+        "pounced " << pounces << " times, first at " << firstPounceAt << ", second at "
+                   << secondPounceAt);
+    REQUIRE(pounces >= 2);
+    REQUIRE(secondPounceAt - firstPounceAt >= 200);
+}
+
+TEST_CASE("The shipped spider bites while pouncing and at no other time", "[Npc][Level][Pounce]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("spider"));
+    glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile - 2, LedgeRow - 1));
+
+    REQUIRE(npc.contactDamage() == 0);
+    stepNpcHunting(npc, level, you, 20);
+    REQUIRE(hunting(npc));
+    REQUIRE(npc.contactDamage() == (npc.stateName() == "pounce" ? 1 : 0));
+
+    bool bitWhilePouncing = false, bitOtherwise = false;
+    for (int step = 0; step < 300; ++step)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, you);
+        if (npc.contactDamage() > 0)
+            (npc.stateName() == "pounce" ? bitWhilePouncing : bitOtherwise) = true;
+    }
+
+    REQUIRE(bitWhilePouncing);
+    REQUIRE_FALSE(bitOtherwise);
+}
+
+TEST_CASE(
+    "The shipped spider's pounce lands on you, first time, at body height",
+    "[Npc][Level][Pounce]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
+    std::vector<std::unique_ptr<Npc>> spiders;
+    spiders.push_back(std::make_unique<Npc>(spawn, shippedNpcData().at("spider")));
+    Player player(playerDataWithHealth(3, 0.0f), noIntentions());
+    player.standAt(feetOf(glm::ivec2(2, LedgeRow - 1)));
+
+    int bittenAt = -1;
+    float footHeightAtTheBite = 0.0f;
+    for (int step = 0; step < 600 && bittenAt < 0; ++step)
+    {
+        spiders.front()->beginFrame();
+        spiders.front()->fixedUpdate(0.01f, level, player.feet());
+        touchNpcs(player, spiders);
+        if (player.health().points() < 3)
+        {
+            bittenAt = step;
+            footHeightAtTheBite = surfaceOf(LedgeRow) - footOf(*spiders.front()).y;
+        }
+    }
+
+    INFO(
+        "bitten at step " << bittenAt << ", spider foot " << footHeightAtTheBite
+                          << " above the ledge");
+    REQUIRE(bittenAt >= 0);
+    REQUIRE(bittenAt < 150);
+    REQUIRE(footHeightAtTheBite <= 8.0f);
+    REQUIRE(spiders.front()->stateName() == "pounce");
 }

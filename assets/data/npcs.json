@@ -36,7 +36,8 @@
                 "wallHangAbilityData":{},
                 "wallClimbAbilityData":{"climbSpeed":70},
                 "mantleAbilityData":{},
-                "gravityAbilityData":{}
+                "gravityAbilityData":{},
+                "pounceAbilityData":{}
             },
             "animationData":{
                 "idle":{"frames":[0,1],"frameDuration":0.5},
@@ -51,14 +52,16 @@
         "stateMachineBehaviorData":{
             "states":[
                 {"name":"patrol","patrolBehaviorData":{}},
-                {"name":"chase","chaseBehaviorData":{}}
+                {"name":"chase","chaseBehaviorData":{"standoff":28}},
+                {"name":"pounce","attackBehaviorData":{"with":"pounce"},"cooldown":2}
             ],
             "transitions":[
                 {"from":"patrol","to":"chase","threatWithin":64,"threatOnMySurface":true},
-                {"from":"chase","to":"patrol","threatOnMySurface":false,"after":2}
+                {"from":"chase","to":"patrol","threatOnMySurface":false,"after":2},
+                {"from":"chase","to":"pounce","threatWithin":40,"threatOnMySurface":true},
+                {"from":"pounce","to":"chase","after":0.1,"onGround":true}
             ]
         },
-        "contactDamage":1,
         "script":"scripts/npcs/spider.lua"
     }
 }

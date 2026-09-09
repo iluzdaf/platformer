@@ -220,3 +220,23 @@ TEST_CASE("Catches up with feet settled a pixel below the run", "[ChaseBehavior]
     REQUIRE(beside(position, threat));
     REQUIRE(holding.direction.x == 0.0f);
 }
+
+TEST_CASE("Holds off at its standoff rather than closing to arm's reach", "[ChaseBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    ChaseBehaviorData data = setupData();
+    data.standoff = 28.0f;
+    ChaseBehavior behavior(data);
+    glm::vec2 threat(200.0f, 192.0f);
+
+    glm::vec2 heldAt = closeIn(behavior, navigationGraph, {96.0f, 192.0f}, threat);
+    InputIntentions holding = behavior.decide(0.01f, standingAt(navigationGraph, heldAt, threat));
+
+    REQUIRE(threat.x - heldAt.x >= 26.0f);
+    REQUIRE(threat.x - heldAt.x <= 30.0f);
+    REQUIRE(holding.direction.x == 0.0f);
+
+    glm::vec2 movedOn(260.0f, 192.0f);
+    InputIntentions setsOff = behavior.decide(0.01f, standingAt(navigationGraph, heldAt, movedOn));
+    REQUIRE(setsOff.direction.x == 1.0f);
+}

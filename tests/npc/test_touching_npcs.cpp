@@ -1,6 +1,14 @@
 #include <memory>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
+#include <string>
+#include "actor/decided.hpp"
+#include "actor/abilities/pounce_ability_state.hpp"
+#include "actor/abilities/pounce_ability_data.hpp"
+#include "helpers/palettes.hpp"
+#include "game/level.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/health.hpp"
 #include "actor/hit.hpp"
@@ -99,6 +107,47 @@ TEST_CASE("A bite lands once per invulnerable window", "[TouchingNpcs]")
 
     touchNpcs(player, npcs);
     touchNpcs(player, npcs);
+    touchNpcs(player, npcs);
+
+    REQUIRE(player.health().points() == 2);
+}
+
+TEST_CASE(
+    "A creature bites while its pounce is in the air, and not on the ground",
+    "[TouchingNpcs]")
+{
+    Player player(playerDataWithHealth(3, 0.0f), noIntentions());
+    player.standAt(feetOf(SpawnTile));
+
+    NpcData pouncer = setupNpcData();
+    pouncer.actorData.motionData.pounceAbilityData = PounceAbilityData{};
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+    pouncer.stateMachineBehaviorData->states = {pouncing};
+    std::vector<std::unique_ptr<Npc>> npcs;
+    npcs.push_back(std::make_unique<Npc>(spawnAt("pouncer", SpawnTile), pouncer));
+    Level level(
+        aFloorLevelPlacing({}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerDataWithHealth(3, 0.0f),
+        {{"pouncer", pouncer}},
+        {});
+    for (int settle = 0; settle < 30; ++settle)
+    {
+        npcs.front()->beginFrame();
+        npcs.front()->fixedUpdate(0.01f, level);
+    }
+
+    touchNpcs(player, npcs);
+    REQUIRE(player.health().points() == 3);
+
+    for (int step = 0; step < 3; ++step)
+    {
+        npcs.front()->beginFrame();
+        npcs.front()->fixedUpdate(0.01f, level, player.feet() + glm::vec2(4.0f, 0.0f));
+    }
+    REQUIRE(npcs.front()->decided().pounce.active);
     touchNpcs(player, npcs);
 
     REQUIRE(player.health().points() == 2);

@@ -15,6 +15,8 @@ namespace
 {
     constexpr float SurfaceTolerance = 1.0f;
 
+    constexpr float SettlingTolerance = 4.0f;
+
     constexpr float TakeOffReach = 1.5f;
 
     float directionTowards(float from, float to)
@@ -61,7 +63,7 @@ void RouteWalker::anchor(const ActorBehaviorContext &context)
             continue;
 
         float drop = node.feet.y - context.feet.y;
-        if (drop < -SurfaceTolerance)
+        if (drop < -SettlingTolerance)
             continue;
 
         float distance = std::abs(node.feet.x - context.feet.x);
@@ -83,7 +85,7 @@ bool RouteWalker::hasLostTheRoute(const ActorBehaviorContext &context) const
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
     NavigationNode node = navigationGraph.getNode(*currentNodeId);
-    if (std::abs(node.feet.y - context.feet.y) > SurfaceTolerance)
+    if (std::abs(node.feet.y - context.feet.y) > SettlingTolerance)
         return true;
 
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -85,7 +86,9 @@ inline TilePaletteData ledgePalette()
     return paletteOf({{0, TileData{}}, {Solid, solid}, {Grippable, grippable}});
 }
 
-inline Level levelWithALedgeAndAWall(const std::vector<NpcSpawnData> &npcs)
+inline Level levelWithALedgeAndAWall(
+    const std::vector<NpcSpawnData> &npcs,
+    const std::map<std::string, NpcData> &npcData)
 {
     TileMapData tileMapData;
     tileMapData.tilePalette = "default";
@@ -132,8 +135,13 @@ inline Level levelWithALedgeAndAWall(const std::vector<NpcSpawnData> &npcs)
         levelData,
         theOnlyPalette(ledgePalette()),
         loadGameData().playerData,
-        shippedNpcData(),
+        npcData,
         shippedPickupData());
+}
+
+inline Level levelWithALedgeAndAWall(const std::vector<NpcSpawnData> &npcs)
+{
+    return levelWithALedgeAndAWall(npcs, shippedNpcData());
 }
 
 inline float surfaceOf(int row)

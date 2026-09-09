@@ -64,3 +64,69 @@ TEST_CASE("A walker above its node has not reached it", "[RouteWalker]")
 
     REQUIRE(walker.getTargetNodeId() == 0);
 }
+
+namespace
+{
+    constexpr float Upper = 160.0f;
+    constexpr float Lower = 192.0f;
+
+    NavigationGraph twoRunsOneAboveTheOther()
+    {
+        NavigationGraph navigationGraph;
+        navigationGraph.addNode(0, {192.0f, Upper});
+        navigationGraph.addNode(1, {304.0f, Upper});
+        navigationGraph.addNode(2, {176.0f, Lower});
+        navigationGraph.addNode(3, {304.0f, Lower});
+        navigationGraph.addEdge(0, 1, EdgeType::Walk);
+        navigationGraph.addEdge(1, 0, EdgeType::Walk);
+        navigationGraph.addEdge(2, 3, EdgeType::Walk);
+        navigationGraph.addEdge(3, 2, EdgeType::Walk);
+        navigationGraph.addEdge(0, 2, EdgeType::Fall);
+        navigationGraph.addEdge(2, 0, EdgeType::Jump);
+        return navigationGraph;
+    }
+
+    bool onTheUpperRun(std::optional<int> nodeId)
+    {
+        return nodeId == 0 || nodeId == 1;
+    }
+}
+
+TEST_CASE("Feet settled just below a run anchor to that run, not the one beneath", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = twoRunsOneAboveTheOther();
+    RouteWalker walker(ArrivalThreshold);
+
+    walker.keepInStep(at(navigationGraph, {250.0f, Upper + 1.5f}));
+
+    INFO("anchored to node " << walker.getCurrentNodeId().value_or(-1));
+    REQUIRE(onTheUpperRun(walker.getCurrentNodeId()));
+}
+
+TEST_CASE("A route is not lost to feet settling a pixel or two below the run", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = twoRunsOneAboveTheOther();
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {250.0f, Upper}));
+    REQUIRE(onTheUpperRun(walker.getCurrentNodeId()));
+    walker.takeRouteTo(at(navigationGraph, {250.0f, Upper}), 0);
+    REQUIRE(walker.getTargetNodeId() == 0);
+
+    walker.keepInStep(at(navigationGraph, {250.0f, Upper + 1.5f}));
+
+    REQUIRE(onTheUpperRun(walker.getCurrentNodeId()));
+    REQUIRE(walker.getTargetNodeId() == 0);
+}
+
+TEST_CASE("Feet a whole drop below a run have left it", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = twoRunsOneAboveTheOther();
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {250.0f, Upper}));
+    walker.takeRouteTo(at(navigationGraph, {250.0f, Upper}), 0);
+
+    walker.keepInStep(at(navigationGraph, {250.0f, Lower}));
+
+    REQUIRE_FALSE(onTheUpperRun(walker.getCurrentNodeId()));
+    REQUIRE_FALSE(walker.getTargetNodeId().has_value());
+}

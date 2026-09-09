@@ -5,7 +5,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
@@ -107,10 +106,6 @@ namespace
             ImGui::TextDisabled("not spawned");
             return;
         }
-
-        std::string_view state = npc->stateName();
-        if (!state.empty())
-            drawRow("State", std::string(state));
 
         glm::ivec2 on = level.getTileMap().tileStoodOnAt(npc->feet());
         drawRow("Stands On", std::format("{}, {}", on.x, on.y));

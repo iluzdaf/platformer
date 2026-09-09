@@ -10,10 +10,12 @@
                 "pounceAbilityData":{"leap":[120,-60]}
             },
             "animationData":{
-                "idle":{"frames":[0,1],"frameDuration":0.5},
-                "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
-                "fall":{"frames":[6],"frameDuration":1},
-                "dead":{"frames":[7],"frameDuration":1,"loops":false},
+                "clips":{
+                    "dead":{"frames":[7],"frameDuration":1,"loops":false},
+                    "fall":{"frames":[6],"frameDuration":1},
+                    "idle":{"frames":[0,1],"frameDuration":0.5},
+                    "walk":{"frames":[2,3,4,5],"frameDuration":0.12}
+                },
                 "ladder":{
                     "transitions":[
                         {"to":"dead","when":{"alive":false}},
@@ -60,13 +62,15 @@
                 "pounceAbilityData":{}
             },
             "animationData":{
-                "idle":{"frames":[0,1],"frameDuration":0.5},
-                "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
-                "jump":{"frames":[6],"frameDuration":1},
-                "fall":{"frames":[6],"frameDuration":1},
-                "wallSlide":{"frames":[7],"frameDuration":1},
-                "climb":{"frames":[8,9],"frameDuration":0.15},
-                "dead":{"frames":[10],"frameDuration":1,"loops":false},
+                "clips":{
+                    "climb":{"frames":[8,9],"frameDuration":0.15},
+                    "dead":{"frames":[10],"frameDuration":1,"loops":false},
+                    "fall":{"frames":[6],"frameDuration":1},
+                    "idle":{"frames":[0,1],"frameDuration":0.5},
+                    "jump":{"frames":[6],"frameDuration":1},
+                    "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
+                    "wallSlide":{"frames":[7],"frameDuration":1}
+                },
                 "ladder":{
                     "transitions":[
                         {"to":"dead","when":{"alive":false}},

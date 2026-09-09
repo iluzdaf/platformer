@@ -5,6 +5,7 @@
 #include <string_view>
 #include "actor/actor.hpp"
 #include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/hit.hpp"
@@ -15,8 +16,6 @@
 #include "actor/observing.hpp"
 #include "actor/observed.hpp"
 #include "actor/decided.hpp"
-#include "actor/actor_animations.hpp"
-#include "actor/actor_animation_state.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
@@ -35,24 +34,35 @@ namespace
 {
     bool attackClipSaysWhenToStrike(const ActorAnimationData &animations)
     {
-        const std::optional<FrameAnimationData> &attack = animations.attack;
+        const FrameAnimationData *attack = clipNamed(animations, AttackClip);
         if (!attack || attack->loops)
             return false;
 
         return std::ranges::any_of(
             attack->cues, [](const FrameCueData &cue) { return cue.name == StrikeCue; });
     }
-}
 
-namespace
-{
     bool hasPicturesToChooseFrom(const ActorAnimationData &animations)
     {
-        for (const ActorAnimationSlot &slot : ActorAnimationSlots)
-            if (slot.state != ActorAnimationState::Idle && saidFor(animations, slot) != nullptr)
+        for (const auto &[name, clip] : animations.clips)
+            if (name != IdleClip)
                 return true;
 
         return false;
+    }
+
+    void refuseALadderToNowhere(const ActorAnimationData &animations)
+    {
+        for (const AnimationTransitionData &rung : animations.ladder.transitions)
+        {
+            if (!rung.from.empty() && !clipNamed(animations, rung.from))
+                throw std::runtime_error(
+                    "The ladder leaves from \"" + rung.from + "\", and there is no such clip");
+
+            if (!clipNamed(animations, rung.to))
+                throw std::runtime_error(
+                    "The ladder goes to \"" + rung.to + "\", and there is no such clip");
+        }
     }
 }
 
@@ -66,9 +76,11 @@ Actor::Actor(const ActorData &data)
     if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
 
-    for (const ActorAnimationSlot &slot : ActorAnimationSlots)
-        if (const FrameAnimationData *said = saidFor(data.animationData, slot))
-            animator.add(slot.state, FrameAnimation(*said));
+    animator.add(std::string(IdleClip), FrameAnimation(FrameAnimationData{}));
+    for (const auto &[name, clip] : data.animationData.clips)
+        animator.add(name, FrameAnimation(clip));
+
+    refuseALadderToNowhere(data.animationData);
 
     if (hasPicturesToChooseFrom(data.animationData) &&
         data.animationData.ladder.transitions.empty())
@@ -117,7 +129,7 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
                                     : (observations.velocity.x < 0 ? true : actorState.facingLeft);
     observations.facingLeft = actorState.facingLeft;
     actorState.currentFrame = animator.playing().frame();
-    actorState.currentAnimationState = animator.state();
+    actorState.currentAnimation = animator.state();
 
     observations.cues = animator.takeCues();
     observations.animationFinished = animator.finished();

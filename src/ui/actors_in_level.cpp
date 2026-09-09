@@ -11,7 +11,6 @@
 #include <imgui.h>
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
-#include "actor/actor_animations.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
@@ -88,7 +87,7 @@ namespace
         drawRow("Dashing", decided.dash.active ? "true" : "false");
         drawRow("Hanging", decided.wallHang.active ? "true" : "false");
         drawRow("Swinging", decided.swing.swinging() ? "true" : "false");
-        drawRow("Animation", toString(state.currentAnimationState));
+        drawRow("Animation", state.currentAnimation);
     }
 
     void drawCannotGetBack(const Level &level, const Npc *npc)

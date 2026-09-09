@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -9,7 +10,7 @@
 #include <imgui.h>
 #include "ui/sheet_preview.hpp"
 #include "ui/sheet_in_scope.hpp"
-#include "actor/actor_animations.hpp"
+#include "actor/actor_animation_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "assets/sheet_data.hpp"
 #include "rendering/texture2d.hpp"
@@ -35,10 +36,14 @@ std::pair<ImVec2, ImVec2> colliderRect(ImVec2 tileAt, float scale, glm::vec2 off
 
 std::vector<NamedAnimation> animationsOf(const ActorAnimationData &animations)
 {
+    static const FrameAnimationData noIdleDrawnYet{};
     std::vector<NamedAnimation> offered;
-    for (const ActorAnimationSlot &slot : ActorAnimationSlots)
-        if (const FrameAnimationData *said = saidFor(animations, slot))
-            offered.push_back({slot.name, said});
+    const FrameAnimationData *idle = clipNamed(animations, IdleClip);
+    offered.push_back({std::string(IdleClip), idle ? idle : &noIdleDrawnYet});
+
+    for (const auto &[name, clip] : animations.clips)
+        if (name != IdleClip)
+            offered.push_back({name, &clip});
 
     return offered;
 }

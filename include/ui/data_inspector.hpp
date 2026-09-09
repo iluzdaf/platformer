@@ -231,4 +231,18 @@ namespace inspector
 
         return edited;
     }
+
+    template <class T> Edited drawFieldsExcept(T &value, std::string_view leftOut)
+    {
+        Edited edited;
+        forEachNamedField(
+            value,
+            [&edited, leftOut](std::string_view fieldName, auto &field)
+            {
+                if (fieldName != leftOut)
+                    edited |= draw(fieldName, field);
+            });
+
+        return edited;
+    }
 }

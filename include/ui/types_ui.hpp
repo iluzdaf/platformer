@@ -7,6 +7,7 @@
 #include "ui/saveable.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/renaming.hpp"
+#include "ui/state_machine_shown.hpp"
 #include "assets/asset_paths.hpp"
 #include "game/game_data.hpp"
 #include "npc/npc_data.hpp"
@@ -64,5 +65,6 @@ private:
     Renaming npcRenaming, pickupRenaming;
     TypeShown showing = thePlayer();
     std::string previewing = "idle";
+    MachineShown machineShown;
     std::string askedToWarm;
 };

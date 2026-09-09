@@ -25,6 +25,7 @@
 #include "npc/npc_spawn_data.hpp"
 #include "game/beat_between.hpp"
 #include "ui/state_machine_graph.hpp"
+#include "ui/state_machine_shown.hpp"
 #include "tile_map/tile_map.hpp"
 
 namespace
@@ -139,7 +140,7 @@ namespace
             return;
 
         if (ImGui::CollapsingHeader("Machine", ImGuiTreeNodeFlags_DefaultOpen))
-            drawStateMachineGraph(machine.value(), {std::string(npc.stateName())});
+            drawStateMachineGraph(machine.value(), {std::string(npc.stateName())}, MachineShown{});
     }
 
     void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)

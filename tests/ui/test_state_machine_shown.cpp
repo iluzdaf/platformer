@@ -122,3 +122,31 @@ TEST_CASE("A transition knows whether its reverse exists", "[StateMachineShown]"
     REQUIRE(goesBothWays(machine, machine.transitions[1]));
     REQUIRE_FALSE(goesBothWays(machine, machine.transitions[2]));
 }
+
+TEST_CASE("A selection past the end of the machine is no selection", "[StateMachineShown]")
+{
+    StateMachineBehaviorData machine{
+        {aState("patrol"), aState("chase")}, {aTransition("patrol", "chase")}};
+
+    REQUIRE(stillAmong(showingState(1), machine) == showingState(1));
+    REQUIRE(stillAmong(showingState(2), machine) == MachineShown{});
+    REQUIRE(stillAmong(showingTransition(0), machine) == showingTransition(0));
+    REQUIRE(stillAmong(showingTransition(1), machine) == MachineShown{});
+    REQUIRE(stillAmong(MachineShown{}, machine) == MachineShown{});
+}
+
+TEST_CASE(
+    "A point on the curve is no distance from it, one beside it is as far as it sits",
+    "[StateMachineShown]")
+{
+    glm::vec2 start(0.0f, 0.0f), control(50.0f, 40.0f), end(100.0f, 0.0f);
+
+    REQUIRE(onCurve(0.5f, start, control, end) == glm::vec2(50.0f, 20.0f));
+    REQUIRE(
+        distanceToCurve(glm::vec2(50.0f, 20.0f), start, control, end) ==
+        Catch::Approx(0.0f).margin(0.01f));
+    REQUIRE(
+        distanceToCurve(glm::vec2(50.0f, 60.0f), start, control, end) ==
+        Catch::Approx(40.0f).margin(0.5f));
+    REQUIRE(distanceToCurve(start, start, control, end) == Catch::Approx(0.0f).margin(0.01f));
+}

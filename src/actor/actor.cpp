@@ -16,10 +16,10 @@
 #include "actor/observed.hpp"
 #include "actor/decided.hpp"
 #include "actor/actor_animations.hpp"
+#include "actor/actor_animation_state.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
-#include "animations/animator_data.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -44,19 +44,36 @@ namespace
     }
 }
 
+namespace
+{
+    bool hasPicturesToChooseFrom(const ActorAnimationData &animations)
+    {
+        for (const ActorAnimationSlot &slot : ActorAnimationSlots)
+            if (slot.state != ActorAnimationState::Idle && saidFor(animations, slot) != nullptr)
+                return true;
+
+        return false;
+    }
+}
+
 Actor::Actor(const ActorData &data)
     : abilities(data.motionData), physicsBody(data.physicsBodyData),
-      navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
+      animator(data.animationData.ladder), navigationProfile(buildNavigationProfile(data)),
+      hp(data.healthData)
 {
     sheet = data.sheet;
     actorState.size = drawnSizeOf(data);
     if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
 
-    animator = Animator(data.animationData.ladder.value_or(theUsualLadder()));
     for (const ActorAnimationSlot &slot : ActorAnimationSlots)
         if (const FrameAnimationData *said = saidFor(data.animationData, slot))
             animator.add(slot.state, FrameAnimation(*said));
+
+    if (hasPicturesToChooseFrom(data.animationData) &&
+        data.animationData.ladder.transitions.empty())
+        throw std::runtime_error(
+            "An actor with pictures to choose from must have a ladder to choose them by");
 
     const std::optional<SwingAbilityData> &swing = data.motionData.swingAbilityData;
     if (swing && !attackClipSaysWhenToStrike(data.animationData))

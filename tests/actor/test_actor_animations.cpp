@@ -1,4 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
+#include "player/player_data.hpp"
+#include "player/player.hpp"
+#include "helpers/actors.hpp"
+#include <stdexcept>
 #include <set>
 #include <string>
 #include <string_view>
@@ -57,4 +61,21 @@ TEST_CASE("A slot reaches the field its name spells", "[ActorAnimations]")
         if (std::string_view(slot.name) == "wallSlide")
             REQUIRE(saidFor(animations, slot) == &animations.wallSlide.value());
     }
+}
+
+TEST_CASE("An actor with pictures to choose from and no ladder is refused", "[ActorAnimations]")
+{
+    PlayerData playerData;
+    playerData.actorData.animationData.idle = FrameAnimationData({0}, 1.0f);
+    playerData.actorData.animationData.walk = FrameAnimationData({1}, 1.0f);
+
+    REQUIRE_THROWS_AS(Player(playerData, noIntentions()), std::runtime_error);
+}
+
+TEST_CASE("An actor with only an idle picture needs no ladder", "[ActorAnimations]")
+{
+    PlayerData playerData;
+    playerData.actorData.animationData.idle = FrameAnimationData({0}, 1.0f);
+
+    REQUIRE_NOTHROW(Player(playerData, noIntentions()));
 }

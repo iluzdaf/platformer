@@ -16,5 +16,5 @@ struct ActorAnimationData
     std::optional<FrameAnimationData> attack;
     std::optional<FrameAnimationData> knockback;
     std::optional<FrameAnimationData> dead;
-    std::optional<AnimatorData> ladder;
+    AnimatorData ladder;
 };

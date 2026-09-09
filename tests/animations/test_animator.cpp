@@ -10,6 +10,7 @@
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
 #include "animations/animator_data.hpp"
+#include "helpers/ladders.hpp"
 #include <stdexcept>
 
 namespace
@@ -30,7 +31,7 @@ namespace
 
 TEST_CASE("Plays the animation for the state it is in", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(ActorAnimationState::Walk, animationOfFrame(2));
 
@@ -41,7 +42,7 @@ TEST_CASE("Plays the animation for the state it is in", "[Animator]")
 
 TEST_CASE("Falls back to idle for a state it has no animation for", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
 
     REQUIRE_NOTHROW(animator.animate(0.01f, Decided{}, walkingOnGround()));
@@ -50,7 +51,7 @@ TEST_CASE("Falls back to idle for a state it has no animation for", "[Animator]"
 
 TEST_CASE("An actor without airborne animations survives being airborne", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
 
     Decided decided;
@@ -69,7 +70,7 @@ TEST_CASE("An actor without airborne animations survives being airborne", "[Anim
 
 TEST_CASE("Off the ground, the observed velocity says whether it is a jump or a fall", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(ActorAnimationState::Jump, animationOfFrame(2));
     animator.add(ActorAnimationState::Fall, animationOfFrame(3));
@@ -87,7 +88,7 @@ TEST_CASE("Off the ground, the observed velocity says whether it is a jump or a 
 
 TEST_CASE("A swing shows the attack, and a corpse shows dead, over everything else", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(ActorAnimationState::Dash, animationOfFrame(2));
     animator.add(ActorAnimationState::Attack, animationOfFrame(3));
@@ -107,7 +108,7 @@ TEST_CASE("A swing shows the attack, and a corpse shows dead, over everything el
 
 TEST_CASE("A knockback shows over a swing, a dash and the ground", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(ActorAnimationState::Dash, animationOfFrame(2));
     animator.add(ActorAnimationState::Attack, animationOfFrame(3));
@@ -124,7 +125,7 @@ TEST_CASE("A knockback shows over a swing, a dash and the ground", "[Animator]")
 
 TEST_CASE("A corpse shows dead even while it is still being pushed", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(ActorAnimationState::Knockback, animationOfFrame(5));
     animator.add(ActorAnimationState::Dead, animationOfFrame(4));
@@ -140,7 +141,7 @@ TEST_CASE("A corpse shows dead even while it is still being pushed", "[Animator]
 
 TEST_CASE("Hanging shows the climb only while it is moving", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(ActorAnimationState::WallSlide, animationOfFrame(2));
     animator.add(ActorAnimationState::Climb, animationOfFrame(6));
@@ -162,7 +163,7 @@ TEST_CASE("Hanging shows the climb only while it is moving", "[Animator]")
 
 TEST_CASE("A slide that is not a hang never shows the climb", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(ActorAnimationState::WallSlide, animationOfFrame(2));
     animator.add(ActorAnimationState::Climb, animationOfFrame(6));
@@ -178,7 +179,7 @@ TEST_CASE("A slide that is not a hang never shows the climb", "[Animator]")
 
 TEST_CASE("Entering a state says its clip's opening cue", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(
         ActorAnimationState::Walk,
@@ -191,7 +192,7 @@ TEST_CASE("Entering a state says its clip's opening cue", "[Animator]")
 
 TEST_CASE("Staying in a state does not repeat its opening cue", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     animator.add(
         ActorAnimationState::Walk,
@@ -206,7 +207,7 @@ TEST_CASE("Staying in a state does not repeat its opening cue", "[Animator]")
 
 TEST_CASE("The animator says when the clip it is playing has finished", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
     animator.add(ActorAnimationState::Idle, animationOfFrame(1));
     FrameAnimationData once{{2, 3}, 0.1f};
     once.loops = false;
@@ -266,7 +267,7 @@ TEST_CASE("A rung naming a state that does not exist is refused", "[Animator]")
 
 TEST_CASE("The animator can say the ladder it walks", "[Animator]")
 {
-    Animator animator;
+    Animator animator(everyPictureLadder());
 
-    REQUIRE(animator.ladder() == theUsualLadder());
+    REQUIRE(animator.ladder() == everyPictureLadder());
 }

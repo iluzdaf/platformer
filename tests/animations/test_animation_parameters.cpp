@@ -12,10 +12,9 @@ TEST_CASE("Standing on the ground, nothing much is happening", "[AnimationParame
 
     AnimationParameters parameters = parametersFrom(Decided{}, observed, false);
 
-    REQUIRE(
-        parameters ==
-        AnimationParameters{
-            true, false, false, false, true, false, false, false, false, false, false});
+    AnimationParameters standing;
+    standing.onGround = true;
+    REQUIRE(parameters == standing);
 }
 
 TEST_CASE("Each parameter follows the one thing it watches", "[AnimationParameters]")
@@ -77,4 +76,10 @@ TEST_CASE(
     decided.wallHang.active = false;
     decided.wallSlide.active = true;
     REQUIRE_FALSE(parametersFrom(decided, observed, false).climbing);
+}
+
+TEST_CASE("The parameters carry the state the machine is in", "[AnimationParameters]")
+{
+    REQUIRE(parametersFrom(Decided{}, Observed{}, false, "sleep").inState == "sleep");
+    REQUIRE(parametersFrom(Decided{}, Observed{}, false).inState.empty());
 }

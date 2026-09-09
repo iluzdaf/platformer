@@ -112,6 +112,10 @@ TEST_CASE("A rung's words say every parameter it asks about", "[GraphShown]")
     REQUIRE(
         whenOf(when) == "alive, not knocked back, in the air, off the wall, rising, clip playing");
     REQUIRE(whenOf(AnimationWhen{}) == "always");
+
+    AnimationWhen asleep;
+    asleep.inState = "sleep";
+    REQUIRE(whenOf(asleep) == "in state \"sleep\"");
 }
 
 TEST_CASE(

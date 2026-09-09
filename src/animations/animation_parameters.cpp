@@ -1,4 +1,6 @@
 #include <cmath>
+#include <string>
+#include <string_view>
 #include "animations/animation_parameters.hpp"
 #include "actor/abilities/dash_ability_state.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
@@ -15,7 +17,11 @@ namespace
     constexpr float StandingStill = 0.1f;
 }
 
-AnimationParameters parametersFrom(const Decided &decided, const Observed &observed, bool finished)
+AnimationParameters parametersFrom(
+    const Decided &decided,
+    const Observed &observed,
+    bool finished,
+    std::string_view inState)
 {
     AnimationParameters parameters;
     parameters.alive = observed.alive;
@@ -29,5 +35,6 @@ AnimationParameters parametersFrom(const Decided &decided, const Observed &obser
     parameters.falling = observed.velocity.y > 0.0f;
     parameters.moving = std::abs(observed.velocity.x) > StandingStill;
     parameters.finished = finished;
+    parameters.inState = std::string(inState);
     return parameters;
 }

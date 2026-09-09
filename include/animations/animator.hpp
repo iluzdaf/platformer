@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 #include "animations/animator_data.hpp"
@@ -14,7 +15,11 @@ class Animator
 public:
     explicit Animator(const AnimatorData &ladder);
 
-    void animate(float deltaTime, const Decided &decided, const Observed &observed);
+    void animate(
+        float deltaTime,
+        const Decided &decided,
+        const Observed &observed,
+        std::string_view inState = {});
     const FrameAnimation &playing() const;
     void add(const std::string &name, const FrameAnimation &anim);
     const std::string &state() const;
@@ -23,7 +28,10 @@ public:
     const AnimatorData &ladder() const;
 
 private:
-    const std::string &wanted(const Decided &decided, const Observed &observed) const;
+    const std::string &wanted(
+        const Decided &decided,
+        const Observed &observed,
+        std::string_view inState) const;
 
     AnimatorData data;
     std::string currentState = "idle";

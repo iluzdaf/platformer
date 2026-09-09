@@ -121,7 +121,7 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     observations.previousVelocity = observations.velocity;
     observations.velocity = physicsBody.velocity();
 
-    animator.animate(deltaTime, decisions, observations);
+    animator.animate(deltaTime, decisions, observations, stateName());
 
     if (!decisions.knockback.active)
         actorState.facingLeft = observations.velocity.x > 0

@@ -578,3 +578,30 @@ TEST_CASE(
     REQUIRE(footHeightAtTheBite <= 8.0f);
     REQUIRE(spiders.front()->stateName() == "pounce");
 }
+
+TEST_CASE("The spider shows its pounce clip while its pounce state is on", "[ShippedNpcs]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("spider"));
+    glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile - 2, LedgeRow - 1));
+
+    bool pouncedOnFilm = false, pouncedOffFilm = false, filmedElsewhere = false;
+    for (int step = 0; step < 400; ++step)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, you);
+        bool inPounce = npc.stateName() == "pounce";
+        bool onFilm = npc.state().currentAnimation == "pounce";
+        if (inPounce && onFilm)
+            pouncedOnFilm = true;
+        if (inPounce && !onFilm)
+            pouncedOffFilm = true;
+        if (!inPounce && onFilm)
+            filmedElsewhere = true;
+    }
+
+    REQUIRE(pouncedOnFilm);
+    REQUIRE_FALSE(pouncedOffFilm);
+    REQUIRE_FALSE(filmedElsewhere);
+}

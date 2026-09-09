@@ -141,6 +141,7 @@ add_library(platformer_lib OBJECT
     src/ui/actors_in_level.cpp
     src/ui/state_machine_shown.cpp
     src/ui/state_machine_graph.cpp
+    src/ui/state_machine_field.cpp
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/touching_tiles.cpp

@@ -26,7 +26,8 @@
 #include "ui/renaming.hpp"
 #include "ui/level_rewriting.hpp"
 #include "ui/renames.hpp"
-#include "ui/state_machine_graph.hpp"
+#include "ui/state_machine_field.hpp"
+#include "ui/state_machine_shown.hpp"
 #include "game/level.hpp"
 #include "npc/npc.hpp"
 #include <memory>
@@ -187,11 +188,9 @@ void TypesUi::drawShown(
     case TypeShown::What::Npc: {
         NpcData &npc = gameData.npcData.at(showing.name);
         drawActorPreview(scope, npc.actorData);
-        if (npc.stateMachineBehaviorData &&
-            ImGui::CollapsingHeader("Machine", ImGuiTreeNodeFlags_DefaultOpen))
-            drawStateMachineGraph(*npc.stateMachineBehaviorData, statesLitBy(live, showing.name));
-
-        inspector::drawFields(npc);
+        inspector::drawFieldsExcept(npc, "stateMachineBehaviorData");
+        drawStateMachineEditor(
+            npc.stateMachineBehaviorData, statesLitBy(live, showing.name), machineShown);
         break;
     }
 
@@ -251,7 +250,10 @@ void TypesUi::draw(
     EditorCommands &commands,
     const Level *live)
 {
+    TypeShown wasShowing = showing;
     drawChooser(gameData);
+    if (showing != wasShowing)
+        machineShown = MachineShown{};
 
     ImGui::Separator();
 
@@ -342,6 +344,7 @@ std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData) 
 void TypesUi::show(const TypeShown &type)
 {
     showing = type;
+    machineShown = MachineShown{};
 }
 
 void TypesUi::reloaded(GameData &current, const GameData &onDisk)

@@ -2,9 +2,11 @@
 
 #include <set>
 #include <string>
+#include "ui/state_machine_shown.hpp"
 
 struct StateMachineBehaviorData;
 
-void drawStateMachineGraph(
+MachineShown drawStateMachineGraph(
     const StateMachineBehaviorData &machine,
-    const std::set<std::string> &litStates);
+    const std::set<std::string> &litStates,
+    MachineShown selected);

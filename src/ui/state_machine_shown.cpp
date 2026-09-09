@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <algorithm>
+#include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
@@ -110,4 +112,44 @@ bool goesBothWays(const StateMachineBehaviorData &machine, const BehaviorTransit
             return true;
 
     return false;
+}
+
+MachineShown showingState(std::size_t index)
+{
+    return MachineShown{MachineShown::What::State, index};
+}
+
+MachineShown showingTransition(std::size_t index)
+{
+    return MachineShown{MachineShown::What::Transition, index};
+}
+
+MachineShown stillAmong(MachineShown shown, const StateMachineBehaviorData &machine)
+{
+    if (shown.what == MachineShown::What::State && shown.index >= machine.states.size())
+        return MachineShown{};
+
+    if (shown.what == MachineShown::What::Transition && shown.index >= machine.transitions.size())
+        return MachineShown{};
+
+    return shown;
+}
+
+glm::vec2 onCurve(float along, glm::vec2 start, glm::vec2 control, glm::vec2 end)
+{
+    float left = 1.0f - along;
+    return start * (left * left) + control * (2.0f * left * along) + end * (along * along);
+}
+
+float distanceToCurve(glm::vec2 point, glm::vec2 start, glm::vec2 control, glm::vec2 end)
+{
+    constexpr int Samples = 24;
+    float nearest = glm::distance(point, start);
+    for (int sample = 1; sample <= Samples; ++sample)
+    {
+        float along = static_cast<float>(sample) / static_cast<float>(Samples);
+        nearest = std::min(nearest, glm::distance(point, onCurve(along, start, control, end)));
+    }
+
+    return nearest;
 }

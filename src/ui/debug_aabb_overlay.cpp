@@ -15,6 +15,8 @@
 #include "cameras/camera2d.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "npc/npc.hpp"
+#include "actor/actor.hpp"
+#include "actor/hurting.hpp"
 #include "ui/actors_in_level.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "physics/physics_body.hpp"
@@ -33,9 +35,9 @@ namespace
     constexpr ImU32 ProbeGripColor = IM_COL32(0, 220, 255, 70);
     constexpr ImU32 PlayerColliderColor = IM_COL32(0, 255, 0, 255);
     constexpr ImU32 PlayerCollisionColor = IM_COL32(255, 127, 0, 255);
-    constexpr ImU32 PlayerSwingColor = IM_COL32(255, 40, 40, 255);
-    constexpr ImU32 PlayerSwingFillColor = IM_COL32(255, 40, 40, 60);
-    constexpr float SwingLingersFor = 0.2f;
+    constexpr ImU32 HurtBoxColor = IM_COL32(255, 40, 40, 255);
+    constexpr ImU32 HurtBoxFillColor = IM_COL32(255, 40, 40, 60);
+    constexpr float HurtingLingersFor = 0.2f;
     constexpr ImU32 NpcColliderColor = IM_COL32(130, 160, 255, 255);
     constexpr ImU32 TileColliderColor = IM_COL32(230, 230, 230, 255);
     constexpr ImU32 DeadlyTileColliderColor = IM_COL32(255, 0, 0, 255);
@@ -113,23 +115,35 @@ void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs)
     fadingAABBs.add(contacts.collisionAABBY, PlayerCollisionColor, 0.1f);
 }
 
-void drawPlayerSwing(
+void drawHurting(
+    const ImGuiManager &imGuiManager,
+    const Camera2D &camera,
+    const Actor &actor,
+    FadingAABBs *lingering)
+{
+    std::optional<Hurting> hurting = actor.hurting();
+    if (!hurting)
+        return;
+
+    ImVec2 topLeft = imGuiManager.worldToScreen(
+        hurting->box.position, camera.getZoom(), camera.getTopLeftPosition());
+    ImVec2 bottomRight = imGuiManager.worldToScreen(
+        hurting->box.position + hurting->box.size, camera.getZoom(), camera.getTopLeftPosition());
+    ImGui::GetBackgroundDrawList()->AddRectFilled(topLeft, bottomRight, HurtBoxFillColor);
+
+    if (lingering)
+        lingering->add(hurting->box, HurtBoxColor, HurtingLingersFor);
+    else
+        drawAABB(ImGui::GetBackgroundDrawList(), imGuiManager, hurting->box, camera, HurtBoxColor);
+}
+
+void drawPlayerHurting(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     const Player &player,
     FadingAABBs &fadingAABBs)
 {
-    std::optional<AABB> reach = player.swing();
-    if (!reach)
-        return;
-
-    ImVec2 topLeft =
-        imGuiManager.worldToScreen(reach->position, camera.getZoom(), camera.getTopLeftPosition());
-    ImVec2 bottomRight = imGuiManager.worldToScreen(
-        reach->position + reach->size, camera.getZoom(), camera.getTopLeftPosition());
-    ImGui::GetBackgroundDrawList()->AddRectFilled(topLeft, bottomRight, PlayerSwingFillColor);
-
-    fadingAABBs.add(*reach, PlayerSwingColor, SwingLingersFor);
+    drawHurting(imGuiManager, camera, player, &fadingAABBs);
 }
 
 void drawTileColliders(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
@@ -165,7 +179,10 @@ void drawNpcColliders(const ImGuiManager &imGuiManager, const Camera2D &camera, 
 {
     ImDrawList *drawList = ImGui::GetBackgroundDrawList();
     for (const std::unique_ptr<Npc> &npc : level.getNpcs())
+    {
         drawAABB(drawList, imGuiManager, npc->body().aabb(), camera, NpcColliderColor);
+        drawHurting(imGuiManager, camera, *npc, nullptr);
+    }
 }
 
 void drawLevelBounds(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)

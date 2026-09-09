@@ -120,7 +120,7 @@ TEST_CASE("Between swings, nothing lands", "[StrikingNpcs]")
 {
     Duel duel(3, PlayerTile + glm::ivec2(1, 0));
     runFor(duel.player, duel.level, 0.1f, duel.timestepper);
-    REQUIRE_FALSE(duel.player.swing());
+    REQUIRE_FALSE(duel.player.hurting());
 
     strikeNpcs(duel.player, duel.level.getNpcs());
 
@@ -133,7 +133,7 @@ TEST_CASE("A swing reaches out from the collider on the side it faces", "[Striki
     duel.swingFor(0.1f);
     AABB collider = duel.player.body().aabb();
 
-    AABB reach = duel.player.swing().value();
+    AABB reach = duel.player.hurting().value().box;
 
     REQUIRE(reach.left() == collider.right());
     REQUIRE(reach.size == duel.playerData.actorData.motionData.swingAbilityData->reach);

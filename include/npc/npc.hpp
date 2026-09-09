@@ -1,7 +1,9 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <optional>
 #include <string>
+#include "actor/hurting.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "actor/actor.hpp"
@@ -13,7 +15,7 @@ public:
 
     const NpcSpawnData &getSpawn() const;
     const std::string &type() const;
-    int contactDamage() const;
+    std::optional<Hurting> hurting() const override;
 
 private:
     void died() override;

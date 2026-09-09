@@ -1,10 +1,13 @@
 #include <memory>
+#include <optional>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <string>
 #include "actor/decided.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
+#include "actor/abilities/swing_ability_data.hpp"
+#include "actor/hurting.hpp"
 #include "helpers/palettes.hpp"
 #include "game/level.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
@@ -18,7 +21,7 @@
 #include "helpers/tiles.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
-#include "npc/touching_npcs.hpp"
+#include "npc/striking_player.hpp"
 #include "player/player.hpp"
 
 namespace
@@ -36,18 +39,18 @@ namespace
 
 }
 
-TEST_CASE("Standing in an npc that bites costs its damage", "[TouchingNpcs]")
+TEST_CASE("Standing in an npc that bites costs its damage", "[StrikingPlayer]")
 {
     Player player(playerDataWithHealth(3, 1.0f), noIntentions());
     player.standAt(feetOf(Here));
     std::vector<std::unique_ptr<Npc>> npcs = oneNpcThatBites(2);
 
-    touchNpcs(player, npcs);
+    strikePlayer(player, npcs);
 
     REQUIRE(player.health().points() == 1);
 }
 
-TEST_CASE("An npc with no bite is safe to stand in, and hurts nothing", "[TouchingNpcs]")
+TEST_CASE("An npc with no bite is safe to stand in, and hurts nothing", "[StrikingPlayer]")
 {
     Player player(playerDataWithHealth(3, 1.0f), noIntentions());
     player.standAt(feetOf(Here));
@@ -55,37 +58,60 @@ TEST_CASE("An npc with no bite is safe to stand in, and hurts nothing", "[Touchi
     bool hurt = false;
     player.onHurt.connect([&] { hurt = true; });
 
-    touchNpcs(player, npcs);
+    strikePlayer(player, npcs);
 
     REQUIRE(player.health().points() == 3);
     REQUIRE_FALSE(hurt);
     REQUIRE_FALSE(player.health().invulnerable());
 }
 
-TEST_CASE("An npc a tile away does not reach", "[TouchingNpcs]")
+TEST_CASE(
+    "A creature's hurt box is its body while it bites, and nothing while it is safe",
+    "[StrikingPlayer]")
+{
+    std::vector<std::unique_ptr<Npc>> biting = oneNpcThatBites(2);
+    std::vector<std::unique_ptr<Npc>> safe = oneNpcThatBites(0);
+
+    REQUIRE(biting.front()->hurting().has_value());
+    REQUIRE(biting.front()->hurting()->box.position == biting.front()->body().aabb().position);
+    REQUIRE(biting.front()->hurting()->box.size == biting.front()->body().aabb().size);
+    REQUIRE(biting.front()->hurting()->damage == 2);
+    REQUIRE_FALSE(safe.front()->hurting().has_value());
+}
+
+TEST_CASE("A dead creature hurts with nothing", "[StrikingPlayer]")
+{
+    std::vector<std::unique_ptr<Npc>> npcs = oneNpcThatBites(2);
+    npcs.front()->takeHit(Hit{99, glm::vec2(1.0f, 0.0f), false});
+
+    REQUIRE_FALSE(npcs.front()->alive());
+    REQUIRE_FALSE(npcs.front()->hurting().has_value());
+}
+
+TEST_CASE("An npc a tile away does not reach", "[StrikingPlayer]")
 {
     Player player(playerDataWithHealth(3, 1.0f), noIntentions());
     player.standAt(feetOf(Here));
     std::vector<std::unique_ptr<Npc>> npcs = oneNpcThatBites(1, Here + glm::ivec2(2, 0));
 
-    touchNpcs(player, npcs);
+    strikePlayer(player, npcs);
 
     REQUIRE(player.health().points() == 3);
 }
 
-TEST_CASE("A dead npc bites nobody", "[TouchingNpcs]")
+TEST_CASE("A dead npc bites nobody", "[StrikingPlayer]")
 {
     Player player(playerDataWithHealth(3, 1.0f), noIntentions());
     player.standAt(feetOf(Here));
     std::vector<std::unique_ptr<Npc>> npcs = oneNpcThatBites(1);
     npcs.front()->takeHit(lethalHit());
 
-    touchNpcs(player, npcs);
+    strikePlayer(player, npcs);
 
     REQUIRE(player.health().points() == 3);
 }
 
-TEST_CASE("A bite pushes away from the npc", "[TouchingNpcs]")
+TEST_CASE("A bite pushes away from the npc", "[StrikingPlayer]")
 {
     Player player(playerDataWithHealth(3, 1.0f), noIntentions());
     player.standAt(feetOf(Here));
@@ -94,27 +120,27 @@ TEST_CASE("A bite pushes away from the npc", "[TouchingNpcs]")
     glm::vec2 pushed(0.0f);
     player.onHurt.connect([&] { pushed = player.health().lastHit()->direction; });
 
-    touchNpcs(player, npcs);
+    strikePlayer(player, npcs);
 
     REQUIRE(pushed.x > 0.0f);
 }
 
-TEST_CASE("A bite lands once per invulnerable window", "[TouchingNpcs]")
+TEST_CASE("A bite lands once per invulnerable window", "[StrikingPlayer]")
 {
     Player player(playerDataWithHealth(3, 1.0f), noIntentions());
     player.standAt(feetOf(Here));
     std::vector<std::unique_ptr<Npc>> npcs = oneNpcThatBites(1);
 
-    touchNpcs(player, npcs);
-    touchNpcs(player, npcs);
-    touchNpcs(player, npcs);
+    strikePlayer(player, npcs);
+    strikePlayer(player, npcs);
+    strikePlayer(player, npcs);
 
     REQUIRE(player.health().points() == 2);
 }
 
 TEST_CASE(
     "A creature bites while its pounce is in the air, and not on the ground",
-    "[TouchingNpcs]")
+    "[StrikingPlayer]")
 {
     Player player(playerDataWithHealth(3, 0.0f), noIntentions());
     player.standAt(feetOf(SpawnTile));
@@ -139,7 +165,8 @@ TEST_CASE(
         npcs.front()->fixedUpdate(0.01f, level);
     }
 
-    touchNpcs(player, npcs);
+    REQUIRE_FALSE(npcs.front()->hurting().has_value());
+    strikePlayer(player, npcs);
     REQUIRE(player.health().points() == 3);
 
     for (int step = 0; step < 3; ++step)
@@ -148,7 +175,43 @@ TEST_CASE(
         npcs.front()->fixedUpdate(0.01f, level, player.feet() + glm::vec2(4.0f, 0.0f));
     }
     REQUIRE(npcs.front()->decided().pounce.active);
-    touchNpcs(player, npcs);
+    REQUIRE(npcs.front()->hurting().has_value());
+    REQUIRE(npcs.front()->hurting()->box.position == npcs.front()->body().aabb().position);
+    strikePlayer(player, npcs);
+
+    REQUIRE(player.health().points() == 2);
+}
+
+TEST_CASE("A creature with a swing strikes the player with it", "[StrikingPlayer]")
+{
+    Player player(playerDataWithHealth(3, 0.0f), noIntentions());
+    player.standAt(feetOf(SpawnTile + glm::ivec2(1, 0)));
+
+    NpcData swinger = setupNpcData();
+    swinger.actorData.motionData.swingAbilityData = SwingAbilityData{};
+    swinger.actorData.animationData.attack = anAttackClip();
+    BehaviorStateData swinging;
+    swinging.name = "swing";
+    swinging.attackBehaviorData = AttackBehaviorData{std::string(SwingAttack)};
+    swinger.stateMachineBehaviorData->states = {swinging};
+    std::vector<std::unique_ptr<Npc>> npcs;
+    npcs.push_back(std::make_unique<Npc>(spawnAt("swinger", SpawnTile), swinger));
+    Level level(
+        aFloorLevelPlacing({}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerDataWithHealth(3, 0.0f),
+        {{"swinger", swinger}},
+        {});
+
+    for (int step = 0; step < 60 && !npcs.front()->hurting(); ++step)
+    {
+        npcs.front()->beginFrame();
+        npcs.front()->fixedUpdate(0.01f, level, player.feet());
+    }
+    REQUIRE(npcs.front()->hurting().has_value());
+    REQUIRE(npcs.front()->hurting()->box.left() == npcs.front()->body().aabb().right());
+
+    strikePlayer(player, npcs);
 
     REQUIRE(player.health().points() == 2);
 }

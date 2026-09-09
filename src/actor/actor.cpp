@@ -8,6 +8,8 @@
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/hit.hpp"
+#include "actor/hurting.hpp"
+#include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "physics/aabb.hpp"
 #include "actor/observing.hpp"
@@ -191,7 +193,7 @@ bool Actor::takeHit(const Hit &hit)
     return true;
 }
 
-std::optional<AABB> Actor::swing() const
+std::optional<AABB> Actor::swingBox() const
 {
     const SwingAbilityState &swing = decisions.swing;
     if (!swing.striking())
@@ -202,23 +204,42 @@ std::optional<AABB> Actor::swing() const
     return AABB{glm::vec2(x, collider.center().y - swing.reach.y * 0.5f), swing.reach};
 }
 
+std::optional<Hurting> Actor::hurting() const
+{
+    if (!alive())
+        return std::nullopt;
+
+    const SwingAbilityState &swing = decisions.swing;
+    if (std::optional<AABB> reach = swingBox())
+        return Hurting{*reach, swing.damage, swing.direction};
+
+    const PounceAbilityState &pounce = decisions.pounce;
+    if (pounce.active)
+        return Hurting{physicsBody.aabb(), pounce.damage, pounce.direction};
+
+    return std::nullopt;
+}
+
 bool Actor::strike(Actor &target)
 {
-    std::optional<AABB> reach = swing();
-    if (!reach || &target == this)
+    std::optional<Hurting> hurting = this->hurting();
+    if (!hurting || &target == this)
         return false;
 
     SwingAbilityState &swing = decisions.swing;
-    if (std::ranges::find(swing.struck, &target) != swing.struck.end())
+    if (swing.striking() && std::ranges::find(swing.struck, &target) != swing.struck.end())
         return false;
 
-    if (!reach->intersects(target.body().touchBox()))
+    if (!hurting->box.intersects(target.body().touchBox()))
         return false;
 
-    if (!target.takeHit(Hit{swing.damage, glm::vec2(swing.direction, 0.0f), false}))
+    float away = target.feet().x < feet().x ? -1.0f : 1.0f;
+    float direction = hurting->direction != 0.0f ? hurting->direction : away;
+    if (!target.takeHit(Hit{hurting->damage, glm::vec2(direction, 0.0f), false}))
         return false;
 
-    swing.struck.push_back(&target);
+    if (swing.striking())
+        swing.struck.push_back(&target);
     return true;
 }
 

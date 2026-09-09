@@ -14,7 +14,7 @@
 #include "pickups/pickup.hpp"
 #include "actor/actor.hpp"
 #include "tile_map/touching_tiles.hpp"
-#include "npc/touching_npcs.hpp"
+#include "npc/striking_player.hpp"
 #include "npc/striking_npcs.hpp"
 #include "npc/npc.hpp"
 #include "player/player.hpp"
@@ -134,7 +134,7 @@ void World::fixedUpdate(float deltaTime)
 
     strikeNpcs(*player.get(), level->getNpcs());
     touchTiles(*player.get(), level->getTileMap());
-    touchNpcs(*player.get(), level->getNpcs());
+    strikePlayer(*player.get(), level->getNpcs());
 
     for (const Pickup &taken : level->takePickupsTouching(player->body().touchBox()))
         score.add(taken.getScoreDelta());

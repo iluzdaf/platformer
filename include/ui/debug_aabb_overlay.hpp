@@ -15,7 +15,7 @@ void drawPlayerCollider(
 
 void drawPlayerCollisions(const Player &player, FadingAABBs &fadingAABBs);
 
-void drawPlayerSwing(
+void drawPlayerHurting(
     const ImGuiManager &imGuiManager,
     const Camera2D &camera,
     const Player &player,

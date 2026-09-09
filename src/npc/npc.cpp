@@ -8,12 +8,12 @@
 #include "actor/actor_motion_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
-#include "actor/decided.hpp"
-#include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/actor.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "actor/hurting.hpp"
+#include "physics/physics_body.hpp"
 
 namespace
 {
@@ -65,8 +65,13 @@ void Npc::died()
     setBehavior(nullptr);
 }
 
-int Npc::contactDamage() const
+std::optional<Hurting> Npc::hurting() const
 {
-    const PounceAbilityState &pounce = decided().pounce;
-    return pounce.active ? pounce.damage : npcData.contactDamage;
+    if (std::optional<Hurting> attacking = Actor::hurting())
+        return attacking;
+
+    if (!alive() || npcData.contactDamage <= 0)
+        return std::nullopt;
+
+    return Hurting{body().aabb(), npcData.contactDamage, 0.0f};
 }

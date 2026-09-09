@@ -257,3 +257,19 @@ TEST_CASE("A path between two nodes in one place is that place", "[NavigationPla
 
     REQUIRE(placeOnThePath(navigationGraph, {40.0f, 96.0f})->feet == glm::vec2(16.0f, 96.0f));
 }
+
+TEST_CASE(
+    "Cornered means no node further from the threat than the one underfoot",
+    "[NavigationPlace]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {16.0f, 96.0f});
+    navigationGraph.addNode(1, {112.0f, 96.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+
+    REQUIRE(corneredBy(navigationGraph, {16.0f, 96.0f}, {40.0f, 96.0f}, 8.0f));
+    REQUIRE_FALSE(corneredBy(navigationGraph, {60.0f, 96.0f}, {100.0f, 96.0f}, 8.0f));
+    REQUIRE_FALSE(corneredBy(navigationGraph, {30.0f, 96.0f}, {100.0f, 96.0f}, 8.0f));
+    REQUIRE(corneredBy(navigationGraph, {112.0f, 96.0f}, {80.0f, 96.0f}, 8.0f));
+}

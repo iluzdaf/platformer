@@ -352,7 +352,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
         npc.fixedUpdate(0.01f, level, footOf(npc) + glm::vec2(8.0f, 0.0f));
     }
 
-    REQUIRE(npc.stateName() == "flee");
+    REQUIRE((npc.stateName() == "flee" || npc.stateName() == "pounce"));
 
     for (int step = 0; step < 400; ++step)
     {
@@ -504,7 +504,7 @@ TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
         level.fixedUpdate(0.01f, footOf(npc) + glm::vec2(8.0f, 0.0f));
     }
 
-    REQUIRE(npc.stateName() == "flee");
+    REQUIRE((npc.stateName() == "flee" || npc.stateName() == "pounce"));
 }
 
 TEST_CASE("A level drives the npcs it holds", "[Npc][Level]")

@@ -356,3 +356,66 @@ TEST_CASE("A state told to pounce leaps at the threat", "[StateMachineBehavior]"
     REQUIRE(leap.attack == PounceAttack);
     REQUIRE(leap.direction.x == 1.0f);
 }
+
+TEST_CASE(
+    "A fleeing creature pounces when the threat comes within reach, then flees again once it lands",
+    "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    BehaviorStateData fleeing;
+    fleeing.name = "flee";
+    fleeing.fleeBehaviorData = FleeBehaviorData{};
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+    pouncing.cooldown = 1.0f;
+    BehaviorTransitionData tooClose;
+    tooClose.from = "flee";
+    tooClose.to = "pounce";
+    tooClose.threatWithin = 24.0f;
+    BehaviorTransitionData landed;
+    landed.from = "pounce";
+    landed.to = "flee";
+    landed.onGround = true;
+    landed.after = 0.05f;
+    StateMachineBehavior behavior({{fleeing, pouncing}, {tooClose, landed}});
+
+    behavior.decide(
+        0.01f, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(150.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "flee");
+
+    InputIntentions leap = behavior.decide(
+        0.01f, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(176.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "pounce");
+    REQUIRE(leap.attack == PounceAttack);
+    REQUIRE(leap.direction.x == -1.0f);
+
+    for (int step = 0; step < 10; ++step)
+        behavior.decide(
+            0.01f, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(176.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "flee");
+}
+
+TEST_CASE("A transition can ask whether the creature is cornered", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    BehaviorStateData fleeing;
+    fleeing.name = "flee";
+    fleeing.fleeBehaviorData = FleeBehaviorData{};
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+    BehaviorTransitionData cornered;
+    cornered.from = "flee";
+    cornered.to = "pounce";
+    cornered.threatWithin = 24.0f;
+    cornered.cornered = true;
+    StateMachineBehavior behavior({{fleeing, pouncing}, {cornered}});
+
+    behavior.decide(
+        0.01f, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(208.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "flee");
+
+    behavior.decide(0.01f, standingAt(navigationGraph, {0.0f, 192.0f}, glm::vec2(16.0f, 192.0f)));
+    REQUIRE(behavior.getStateName() == "pounce");
+}

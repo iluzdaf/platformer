@@ -29,6 +29,7 @@ struct BehaviorTransitionData
     std::optional<bool> threatOnMySurface;
     float after = 0.0f;
     std::optional<bool> onGround = std::nullopt;
+    std::optional<bool> cornered = std::nullopt;
 
     bool operator==(const BehaviorTransitionData &) const = default;
 };

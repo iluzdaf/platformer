@@ -4,7 +4,11 @@
             "sheet":{"texture":"textures/rat.png","cellSize":[32,32]},
             "size":[8,8],
             "physicsBodyData":{"colliderSize":[5,4],"colliderOffset":[2,4],"stepHeight":1},
-            "motionData":{"moveAbilityData":{"moveSpeed":60},"gravityAbilityData":{}},
+            "motionData":{
+                "moveAbilityData":{"moveSpeed":60},
+                "gravityAbilityData":{},
+                "pounceAbilityData":{"leap":[120,-60]}
+            },
             "animationData":{
                 "idle":{"frames":[0,1],"frameDuration":0.5},
                 "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
@@ -15,14 +19,22 @@
         "stateMachineBehaviorData":{
             "states":[
                 {"name":"patrol","patrolBehaviorData":{}},
-                {"name":"flee","fleeBehaviorData":{"breakPastWithin":24}}
+                {"name":"flee","fleeBehaviorData":{}},
+                {"name":"pounce","attackBehaviorData":{"with":"pounce"},"cooldown":1}
             ],
             "transitions":[
                 {"from":"patrol","to":"flee","threatWithin":40,"threatOnMySurface":true},
-                {"from":"flee","to":"patrol","threatOnMySurface":false,"after":1.5}
+                {"from":"flee","to":"patrol","threatOnMySurface":false,"after":1.5},
+                {
+                    "from":"flee",
+                    "to":"pounce",
+                    "threatWithin":24,
+                    "threatOnMySurface":true,
+                    "cornered":true
+                },
+                {"from":"pounce","to":"flee","after":0.1,"onGround":true}
             ]
         },
-        "contactDamage":1,
         "script":"scripts/npcs/rat.lua"
     },
     "spider":{

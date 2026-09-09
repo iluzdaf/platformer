@@ -59,7 +59,7 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
     REQUIRE(placed > 0);
 }
 
-TEST_CASE("The shipped rat bites whoever stands in it", "[Npc]")
+TEST_CASE("The shipped rat is safe to stand in while it patrols", "[Npc]")
 {
     Player player(playerDataWithHealth(3, 1.0f), noIntentions());
     player.standAt(feetOf(SpawnTile));
@@ -68,8 +68,36 @@ TEST_CASE("The shipped rat bites whoever stands in it", "[Npc]")
 
     touchNpcs(player, rats);
 
-    REQUIRE(player.health().points() == 2);
-    REQUIRE(player.health().lastHit()->direction.x != 0.0f);
+    REQUIRE(player.health().points() == 3);
+}
+
+TEST_CASE("The shipped rat, cornered, pounces through you and bites", "[Npc][Level][Pounce]")
+{
+    NpcSpawnData spawn = patrolling("rat", LedgeLeftEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
+    std::vector<std::unique_ptr<Npc>> rats;
+    rats.push_back(std::make_unique<Npc>(spawn, shippedNpcData().at("rat")));
+    Player player(playerDataWithHealth(3, 0.0f), noIntentions());
+    player.standAt(glm::vec2(feetOf(LedgeLeftEnd).x + 20.0f, surfaceOf(LedgeRow)));
+
+    int bittenAt = -1;
+    bool pouncingAtTheBite = false;
+    for (int step = 0; step < 300 && bittenAt < 0; ++step)
+    {
+        rats.front()->beginFrame();
+        rats.front()->fixedUpdate(0.01f, level, player.feet());
+        touchNpcs(player, rats);
+        if (player.health().points() < 3)
+        {
+            bittenAt = step;
+            pouncingAtTheBite = rats.front()->stateName() == "pounce";
+        }
+    }
+
+    INFO("bitten at step " << bittenAt);
+    REQUIRE(bittenAt >= 0);
+    REQUIRE(pouncingAtTheBite);
+    REQUIRE(std::abs(footOf(*rats.front()).y - surfaceOf(LedgeRow)) < 8.0f);
 }
 
 TEST_CASE("The shipped spider walks up from the ground to a ledge and back", "[Npc][Level]")

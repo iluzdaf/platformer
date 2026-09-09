@@ -141,3 +141,41 @@ bool canPatrolBetween(const NavigationGraph &navigationGraph, glm::vec2 from, gl
 
     return std::find(andBack.begin(), andBack.end(), turnsRound->fromId) != andBack.end();
 }
+
+std::optional<int> furthestRefugeFrom(
+    const NavigationGraph &navigationGraph,
+    int from,
+    glm::vec2 threat,
+    float away)
+{
+    std::optional<int> furthest;
+    float furthestDistance = 0.0f;
+    for (int id : roundTripFrom(navigationGraph, from))
+    {
+        float distance = (navigationGraph.getNode(id).feet.x - threat.x) * away;
+        if (furthest && distance <= furthestDistance)
+            continue;
+
+        furthest = id;
+        furthestDistance = distance;
+    }
+
+    return furthest;
+}
+
+bool corneredBy(
+    const NavigationGraph &navigationGraph,
+    glm::vec2 feet,
+    glm::vec2 threat,
+    float reach)
+{
+    std::optional<int> from = nodeUnderfoot(navigationGraph, feet);
+    if (!from)
+        return false;
+
+    float away = feet.x < threat.x ? -1.0f : 1.0f;
+    if (furthestRefugeFrom(navigationGraph, *from, threat, away) != from)
+        return false;
+
+    return std::abs(navigationGraph.getNode(*from).feet.x - feet.x) <= reach;
+}

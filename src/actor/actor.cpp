@@ -18,6 +18,8 @@
 #include "actor/actor_animations.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
+#include "animations/animator.hpp"
+#include "animations/animator_data.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -51,6 +53,7 @@ Actor::Actor(const ActorData &data)
     if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
 
+    animator = Animator(data.animationData.ladder.value_or(theUsualLadder()));
     for (const ActorAnimationSlot &slot : ActorAnimationSlots)
         if (const FrameAnimationData *said = saidFor(data.animationData, slot))
             animator.add(slot.state, FrameAnimation(*said));

@@ -12,6 +12,7 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "conditions/asked.hpp"
 #include "game/level.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/tiles.hpp"
@@ -52,8 +53,13 @@ namespace
         chasing.does = ChaseBehaviorData{};
         data.stateMachineBehaviorData->states.push_back(chasing);
         data.stateMachineBehaviorData->transitions = {
-            BehaviorTransitionData{"patrol", "chase", 64.0f, std::nullopt, true, 0.0f},
-            BehaviorTransitionData{"chase", "patrol", std::nullopt, std::nullopt, false, 2.0f}};
+            BehaviorTransitionData{
+                "patrol",
+                "chase",
+                BehaviorWhen{{{"threatWithin", 64.0f}, {"threatOnMySurface", true}}},
+                0.0f},
+            BehaviorTransitionData{
+                "chase", "patrol", BehaviorWhen{{{"threatOnMySurface", false}}}, 2.0f}};
         return data;
     }
 

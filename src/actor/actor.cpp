@@ -19,6 +19,8 @@
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
+#include "animations/animator_facts.hpp"
+#include "conditions/fact_rows.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -62,6 +64,9 @@ namespace
             if (!clipNamed(animations, rung.to))
                 throw std::runtime_error(
                     "The ladder goes to \"" + rung.to + "\", and there is no such clip");
+
+            if (std::optional<std::string> why = whyNotAsked(rung.when, animatorRows()))
+                throw std::runtime_error("The rung to \"" + rung.to + "\" " + *why);
         }
     }
 }

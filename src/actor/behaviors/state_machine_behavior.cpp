@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <glm/geometric.hpp>
 #include <optional>
+#include <stdexcept>
 #include <utility>
 #include <memory>
 #include <type_traits>
@@ -20,7 +21,8 @@
 #include "actor/behaviors/attack_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "input/input_intentions.hpp"
-#include "navigation/navigation_place.hpp"
+#include "actor/behaviors/behavior_facts.hpp"
+#include "conditions/fact_rows.hpp"
 
 namespace
 {
@@ -28,45 +30,7 @@ namespace
         const BehaviorTransitionData &transition,
         const ActorBehaviorContext &context)
     {
-        if (transition.threatWithin)
-        {
-            if (!context.threatFeet)
-                return false;
-
-            if (glm::distance(context.feet, *context.threatFeet) > *transition.threatWithin)
-                return false;
-        }
-
-        if (transition.threatBeyond && context.threatFeet)
-        {
-            if (glm::distance(context.feet, *context.threatFeet) <= *transition.threatBeyond)
-                return false;
-        }
-
-        if (transition.onGround && context.contacts.onGround != *transition.onGround)
-            return false;
-
-        if (transition.cornered)
-        {
-            bool cornered = context.threatFeet && corneredBy(
-                                                      context.navigationGraph,
-                                                      context.feet,
-                                                      *context.threatFeet,
-                                                      context.colliderSize.x);
-            if (cornered != *transition.cornered)
-                return false;
-        }
-
-        if (transition.threatOnMySurface)
-        {
-            bool sharing = context.threatFeet &&
-                           onTheSameRun(context.navigationGraph, context.feet, *context.threatFeet);
-
-            if (sharing != *transition.threatOnMySurface)
-                return false;
-        }
-
-        return true;
+        return holds(transition.when, behaviorRows(), context);
     }
 }
 
@@ -75,6 +39,12 @@ StateMachineBehavior::StateMachineBehavior(
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
     : data(data), heldFor(data.transitions.size(), 0.0f), sinceLeft(data.states.size(), 1e9f)
 {
+    for (const BehaviorTransitionData &transition : this->data.transitions)
+        if (std::optional<std::string> why = whyNotAsked(transition.when, behaviorRows()))
+            throw std::runtime_error(
+                "The transition from \"" + transition.from + "\" to \"" + transition.to + "\" " +
+                *why);
+
     for (const BehaviorStateData &state : this->data.states)
         states.push_back(
             std::visit(

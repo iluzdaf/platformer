@@ -70,7 +70,7 @@ namespace differs
 
             return out + "}";
         }
-        else if constexpr (shapes::IsVariant<T>::value)
+        else if constexpr (shapes::IsVariant<T>::value && glz::tagged<T>)
         {
             return std::visit(
                 [&](const auto &held)

@@ -19,8 +19,8 @@
                 "ladder":{
                     "transitions":[
                         {"to":"dead","when":{"alive":false}},
-                        {"to":"fall","when":{"onGround":false,"falling":true}},
-                        {"to":"walk","when":{"onGround":true,"moving":true}},
+                        {"to":"fall","when":{"falling":true,"onGround":false}},
+                        {"to":"walk","when":{"moving":true,"onGround":true}},
                         {"to":"idle","when":{"onGround":true}}
                     ]
                 }
@@ -33,16 +33,14 @@
                 {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":1}
             ],
             "transitions":[
-                {"from":"patrol","to":"flee","threatWithin":40,"threatOnMySurface":true},
-                {"from":"flee","to":"patrol","threatOnMySurface":false,"after":1.5},
+                {"from":"patrol","to":"flee","when":{"threatOnMySurface":true,"threatWithin":40}},
+                {"from":"flee","to":"patrol","when":{"threatOnMySurface":false},"after":1.5},
                 {
                     "from":"flee",
                     "to":"pounce",
-                    "threatWithin":24,
-                    "threatOnMySurface":true,
-                    "cornered":true
+                    "when":{"cornered":true,"threatOnMySurface":true,"threatWithin":24}
                 },
-                {"from":"pounce","to":"flee","after":0.1,"onGround":true}
+                {"from":"pounce","to":"flee","when":{"onGround":true},"after":0.1}
             ]
         },
         "script":"scripts/npcs/rat.lua"
@@ -76,11 +74,11 @@
                     "transitions":[
                         {"to":"dead","when":{"alive":false}},
                         {"to":"pounce","when":{"inState":"pounce"}},
-                        {"to":"climb","when":{"onGround":false,"climbing":true}},
+                        {"to":"climb","when":{"climbing":true,"onGround":false}},
                         {"to":"wallSlide","when":{"onGround":false,"onWall":true}},
                         {"to":"jump","when":{"onGround":false,"rising":true}},
-                        {"to":"fall","when":{"onGround":false,"falling":true}},
-                        {"to":"walk","when":{"onGround":true,"moving":true}},
+                        {"to":"fall","when":{"falling":true,"onGround":false}},
+                        {"to":"walk","when":{"moving":true,"onGround":true}},
                         {"to":"idle","when":{"onGround":true}}
                     ]
                 }
@@ -93,10 +91,10 @@
                 {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":2}
             ],
             "transitions":[
-                {"from":"patrol","to":"chase","threatWithin":64,"threatOnMySurface":true},
-                {"from":"chase","to":"patrol","threatOnMySurface":false,"after":2},
-                {"from":"chase","to":"pounce","threatWithin":40,"threatOnMySurface":true},
-                {"from":"pounce","to":"chase","after":0.1,"onGround":true}
+                {"from":"patrol","to":"chase","when":{"threatOnMySurface":true,"threatWithin":64}},
+                {"from":"chase","to":"patrol","when":{"threatOnMySurface":false},"after":2},
+                {"from":"chase","to":"pounce","when":{"threatOnMySurface":true,"threatWithin":40}},
+                {"from":"pounce","to":"chase","when":{"onGround":true},"after":0.1}
             ]
         },
         "script":"scripts/npcs/spider.lua"

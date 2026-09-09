@@ -17,20 +17,11 @@
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/behavior_facts.hpp"
+#include "conditions/fact_rows.hpp"
 
 namespace
 {
-    std::string joined(const std::vector<std::string> &parts, std::string_view none)
-    {
-        if (parts.empty())
-            return std::string(none);
-
-        std::string text = parts.front();
-        for (std::size_t index = 1; index < parts.size(); ++index)
-            text += ", " + parts[index];
-
-        return text;
-    }
 }
 
 std::string behaviourOf(const BehaviorStateData &state)
@@ -61,26 +52,12 @@ std::string behaviourOf(const BehaviorStateData &state)
 
 std::string whenOf(const BehaviorTransitionData &transition)
 {
-    std::vector<std::string> parts;
-    if (transition.threatWithin)
-        parts.push_back(std::format("threat within {}", *transition.threatWithin));
+    std::string text = whenOf(transition.when, behaviorRows());
+    if (transition.after <= 0.0f)
+        return text;
 
-    if (transition.threatBeyond)
-        parts.push_back(std::format("threat beyond {}", *transition.threatBeyond));
-
-    if (transition.threatOnMySurface)
-        parts.emplace_back(*transition.threatOnMySurface ? "on my surface" : "off my surface");
-
-    if (transition.cornered)
-        parts.emplace_back(*transition.cornered ? "cornered" : "not cornered");
-
-    if (transition.onGround)
-        parts.emplace_back(*transition.onGround ? "on ground" : "in the air");
-
-    if (transition.after > 0.0f)
-        parts.push_back(std::format("after {} s", transition.after));
-
-    return joined(parts, "always");
+    std::string after = std::format("after {} s", transition.after);
+    return text == "always" ? after : text + ", " + after;
 }
 
 std::vector<glm::vec2> aRingOf(std::size_t count, glm::vec2 centre, float radius)

@@ -58,25 +58,25 @@ TEST_CASE("A state says what it does in words", "[StateMachineShown]")
 TEST_CASE("A transition says when it fires, every condition in one line", "[StateMachineShown]")
 {
     BehaviorTransitionData transition = aTransition("flee", "pounce");
-    transition.threatWithin = 24.0f;
-    transition.threatOnMySurface = true;
-    transition.cornered = true;
+    transition.when["threatWithin"] = 24.0f;
+    transition.when["threatOnMySurface"] = true;
+    transition.when["cornered"] = true;
     REQUIRE(whenOf(transition) == "threat within 24, on my surface, cornered");
 
     BehaviorTransitionData back = aTransition("flee", "patrol");
-    back.threatOnMySurface = false;
+    back.when["threatOnMySurface"] = false;
     back.after = 1.5f;
     REQUIRE(whenOf(back) == "off my surface, after 1.5 s");
 
     BehaviorTransitionData landed = aTransition("pounce", "chase");
-    landed.onGround = true;
+    landed.when["onGround"] = true;
     landed.after = 0.1f;
     REQUIRE(whenOf(landed) == "on ground, after 0.1 s");
 
     BehaviorTransitionData far = aTransition("chase", "patrol");
-    far.threatBeyond = 64.0f;
-    far.cornered = false;
-    far.onGround = false;
+    far.when["threatBeyond"] = 64.0f;
+    far.when["cornered"] = false;
+    far.when["onGround"] = false;
     REQUIRE(whenOf(far) == "threat beyond 64, not cornered, in the air");
 
     REQUIRE(whenOf(aTransition("a", "b")) == "always");

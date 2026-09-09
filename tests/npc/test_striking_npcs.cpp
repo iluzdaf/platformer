@@ -21,6 +21,7 @@
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 #include "animations/animator_data.hpp"
+#include "conditions/asked.hpp"
 #include "npc/striking_npcs.hpp"
 #include "player/player.hpp"
 #include "player/player_data.hpp"
@@ -43,7 +44,7 @@ namespace
         rat.actorData.healthData = HealthData{points, 0.0f};
         rat.actorData.animationData.clips["dead"] = FrameAnimationData({7}, 1.0f);
         AnimationWhen dead;
-        dead.alive = false;
+        dead["alive"] = false;
         rat.actorData.animationData.ladder = AnimatorData{{{"", "dead", dead}}};
         return rat;
     }

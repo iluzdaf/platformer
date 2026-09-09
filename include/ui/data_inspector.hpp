@@ -212,7 +212,7 @@ namespace inspector
             ImGui::TreePop();
             return edited;
         }
-        else if constexpr (IsVariant<T>::value)
+        else if constexpr (IsVariant<T>::value && glz::tagged<T>)
         {
             constexpr auto &Ids = glz::meta<T>::ids;
             Edited edited;

@@ -9,6 +9,8 @@
 #include "actor/decided.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
+#include "animations/animator_data.hpp"
+#include <stdexcept>
 
 namespace
 {
@@ -215,4 +217,56 @@ TEST_CASE("The animator says when the clip it is playing has finished", "[Animat
 
     animator.animate(0.3f, Decided{}, walkingOnGround());
     REQUIRE(animator.finished());
+}
+
+TEST_CASE("A ladder given as data drives the animator", "[Animator]")
+{
+    AnimationWhen moving;
+    moving.moving = true;
+    AnimationWhen still;
+    still.moving = false;
+    AnimatorData ladder{{{"", "walk", moving}, {"walk", "idle", still}}};
+    Animator animator(ladder);
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(ActorAnimationState::Walk, animationOfFrame(2));
+    animator.add(ActorAnimationState::Jump, animationOfFrame(3));
+
+    animator.animate(0.01f, Decided{}, walkingOnGround());
+    REQUIRE(animator.state() == ActorAnimationState::Walk);
+
+    Observed airborne;
+    airborne.velocity = glm::vec2(0.0f, -40.0f);
+    animator.animate(0.01f, Decided{}, airborne);
+    REQUIRE(animator.state() == ActorAnimationState::Idle);
+
+    animator.animate(0.01f, Decided{}, walkingOnGround());
+    REQUIRE(animator.state() == ActorAnimationState::Walk);
+}
+
+TEST_CASE("A rung with a from only fires from that state", "[Animator]")
+{
+    AnimationWhen always;
+    AnimatorData ladder{{{"walk", "jump", always}}};
+    Animator animator(ladder);
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    animator.add(ActorAnimationState::Walk, animationOfFrame(2));
+    animator.add(ActorAnimationState::Jump, animationOfFrame(3));
+
+    animator.animate(0.01f, Decided{}, walkingOnGround());
+
+    REQUIRE(animator.state() == ActorAnimationState::Idle);
+}
+
+TEST_CASE("A rung naming a state that does not exist is refused", "[Animator]")
+{
+    AnimatorData wrong{{{"", "somersault", AnimationWhen{}}}};
+
+    REQUIRE_THROWS_AS(Animator(wrong), std::runtime_error);
+}
+
+TEST_CASE("The animator can say the ladder it walks", "[Animator]")
+{
+    Animator animator;
+
+    REQUIRE(animator.ladder() == theUsualLadder());
 }

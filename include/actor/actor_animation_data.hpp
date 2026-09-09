@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 
 struct ActorAnimationData
@@ -15,4 +16,5 @@ struct ActorAnimationData
     std::optional<FrameAnimationData> attack;
     std::optional<FrameAnimationData> knockback;
     std::optional<FrameAnimationData> dead;
+    std::optional<AnimatorData> ladder;
 };

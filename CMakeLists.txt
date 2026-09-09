@@ -180,6 +180,8 @@ add_library(platformer_lib OBJECT
     src/input/keys_unless_captured.cpp
     src/animations/frame_animation.cpp
     src/animations/animator.cpp
+    src/animations/animator_data.cpp
+    src/animations/animation_parameters.cpp
     src/scripting/lua_script_system.cpp
     src/navigation/navigation_graph.cpp
     src/navigation/navigation_graph_builder.cpp
@@ -355,6 +357,8 @@ add_executable(tests
     tests/input/test_keyboard_intentions.cpp
     tests/input/test_keys_unless_captured.cpp
     tests/animations/test_animator.cpp
+    tests/animations/test_animator_data.cpp
+    tests/animations/test_animation_parameters.cpp
     tests/animations/test_frame_animation.cpp
     tests/navigation/test_navigation_graph.cpp
     tests/scripting/test_lua_script_system.cpp

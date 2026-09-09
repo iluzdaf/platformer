@@ -201,3 +201,18 @@ TEST_CASE("Staying in a state does not repeat its opening cue", "[Animator]")
 
     REQUIRE(animator.takeCues().empty());
 }
+
+TEST_CASE("The animator says when the clip it is playing has finished", "[Animator]")
+{
+    Animator animator;
+    animator.add(ActorAnimationState::Idle, animationOfFrame(1));
+    FrameAnimationData once{{2, 3}, 0.1f};
+    once.loops = false;
+    animator.add(ActorAnimationState::Walk, FrameAnimation(once));
+
+    animator.animate(0.01f, Decided{}, walkingOnGround());
+    REQUIRE_FALSE(animator.finished());
+
+    animator.animate(0.3f, Decided{}, walkingOnGround());
+    REQUIRE(animator.finished());
+}

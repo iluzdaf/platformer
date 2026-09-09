@@ -6,7 +6,7 @@
 
 FrameAnimation::FrameAnimation(const FrameAnimationData &frameAnimationData)
     : frames(frameAnimationData.frames), frameDuration(frameAnimationData.frameDuration),
-      cues(frameAnimationData.cues)
+      cues(frameAnimationData.cues), loops(frameAnimationData.loops)
 {
     reset();
 }
@@ -20,10 +20,23 @@ void FrameAnimation::update(float deltaTime)
     while (timer >= frameDuration)
     {
         timer -= frameDuration;
+        bool onTheLast = static_cast<std::size_t>(currentFrame) + 1 == frames.size();
+        if (onTheLast && !loops)
+        {
+            playedOut = true;
+            timer = 0.0f;
+            return;
+        }
+
         currentFrame =
             static_cast<int>((static_cast<std::size_t>(currentFrame) + 1) % frames.size());
         entered.push_back(currentFrame);
     }
+}
+
+bool FrameAnimation::finished() const
+{
+    return playedOut;
 }
 
 int FrameAnimation::frame() const
@@ -35,6 +48,7 @@ void FrameAnimation::reset()
 {
     currentFrame = 0;
     timer = 0.0f;
+    playedOut = false;
     entered.clear();
     if (!frames.empty())
         entered.push_back(0);

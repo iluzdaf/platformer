@@ -153,3 +153,14 @@ TEST_CASE("A clip is written with its cues, and without them when it has none", 
         onlyWhatDiffers(cueing) ==
         R"({"frames":[1,2],"frameDuration":0.5,"cues":[{"frame":1,"name":"onSwing"}]})");
 }
+
+TEST_CASE("A clip that does not loop says so, and a looping one says nothing", "[OnlyWhatDiffers]")
+{
+    FrameAnimationData once{{1, 2}, 0.5f};
+    once.loops = false;
+
+    REQUIRE(
+        onlyWhatDiffers(FrameAnimationData{{1, 2}, 0.5f}) ==
+        R"({"frames":[1,2],"frameDuration":0.5})");
+    REQUIRE(onlyWhatDiffers(once) == R"({"frames":[1,2],"frameDuration":0.5,"loops":false})");
+}

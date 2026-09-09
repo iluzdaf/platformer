@@ -91,6 +91,7 @@ inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &val
     edited |= inspector::drawNamed("frameDuration", value.frameDuration);
     if (value.frameDuration <= 0.0f)
         value.frameDuration = 0.01f;
+    edited |= inspector::drawNamed("loops", value.loops);
     edited |= drawCues(value.cues, value.frames.size());
 
     ImGui::TreePop();

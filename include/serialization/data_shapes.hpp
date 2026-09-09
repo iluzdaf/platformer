@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <variant>
 #include <optional>
 #include <string>
 #include <type_traits>
@@ -19,6 +20,14 @@ namespace shapes
     {
     };
     template <class T> struct IsVector<std::vector<T>> : std::true_type
+    {
+    };
+
+    template <class T> struct IsVariant : std::false_type
+    {
+    };
+    template <class... Alternatives>
+    struct IsVariant<std::variant<Alternatives...>> : std::true_type
     {
     };
 

@@ -18,9 +18,9 @@
         },
         "stateMachineBehaviorData":{
             "states":[
-                {"name":"patrol","patrolBehaviorData":{}},
-                {"name":"flee","fleeBehaviorData":{}},
-                {"name":"pounce","attackBehaviorData":{"with":"pounce"},"cooldown":1}
+                {"name":"patrol","does":{"kind":"patrol"}},
+                {"name":"flee","does":{"kind":"flee"}},
+                {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":1}
             ],
             "transitions":[
                 {"from":"patrol","to":"flee","threatWithin":40,"threatOnMySurface":true},
@@ -63,9 +63,9 @@
         },
         "stateMachineBehaviorData":{
             "states":[
-                {"name":"patrol","patrolBehaviorData":{}},
-                {"name":"chase","chaseBehaviorData":{"standoff":28}},
-                {"name":"pounce","attackBehaviorData":{"with":"pounce"},"cooldown":2}
+                {"name":"patrol","does":{"kind":"patrol"}},
+                {"name":"chase","does":{"kind":"chase","standoff":28}},
+                {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":2}
             ],
             "transitions":[
                 {"from":"patrol","to":"chase","threatWithin":64,"threatOnMySurface":true},

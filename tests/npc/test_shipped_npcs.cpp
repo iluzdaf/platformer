@@ -22,6 +22,8 @@
 #include <vector>
 #include <memory>
 #include "npc/npc_spawn_data.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
 
 TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level]")
@@ -321,4 +323,124 @@ TEST_CASE("The level 6 spider keeps walking its beat", "[Npc][Level][Patrol]")
                                   << reachedTheSecond);
     REQUIRE(reachedTheFirst >= 2);
     REQUIRE(reachedTheSecond >= 2);
+}
+
+namespace
+{
+    constexpr glm::ivec2 OnTheLedge{3, LedgeRow - 1};
+
+    void stepNpcHunting(Npc &npc, const Level &level, glm::vec2 threatFeet, int steps)
+    {
+        for (int step = 0; step < steps; ++step)
+        {
+            npc.beginFrame();
+            npc.fixedUpdate(0.01f, level, threatFeet);
+        }
+    }
+
+}
+
+TEST_CASE("The shipped spider gives chase when you step onto its ledge", "[Npc][Level][Chase]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("spider"));
+    glm::vec2 you = feetOf(OnTheLedge);
+
+    stepNpc(npc, level, 10);
+    REQUIRE(npc.stateName() == "patrol");
+
+    stepNpcHunting(npc, level, you, 10);
+    REQUIRE(npc.stateName() == "chase");
+
+    stepNpcHunting(npc, level, you, 150);
+    REQUIRE(std::abs(footOf(npc).x - you.x) < 16.0f);
+    REQUIRE(std::abs(footOf(npc).y - surfaceOf(LedgeRow)) <= 1.0f);
+}
+
+TEST_CASE("The shipped spider follows you down off its ledge", "[Npc][Level][Chase]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("spider"));
+
+    stepNpcHunting(npc, level, feetOf(OnTheLedge), 20);
+    REQUIRE(npc.stateName() == "chase");
+
+    glm::vec2 below = feetOf(OnTheGround);
+    stepNpcHunting(npc, level, below, 400);
+
+    INFO("spider foot at " << footOf(npc).x << "," << footOf(npc).y << " in " << npc.stateName());
+    REQUIRE(std::abs(footOf(npc).y - surfaceOf(GroundRow)) <= 1.0f);
+    REQUIRE(npc.stateName() == "chase");
+}
+
+TEST_CASE(
+    "The shipped spider notices you from its wall and comes down",
+    "[Npc][Level][Chase][Climb]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("spider"));
+
+    const float wellAboveTheLedge = surfaceOf(LedgeRow) - 24.0f;
+    const float wellBelowTheTop = surfaceOf(1) + 24.0f;
+    int step = 0;
+    for (; step < 400; ++step)
+    {
+        stepNpc(npc, level, 1);
+        float y = footOf(npc).y;
+        if (y < wellAboveTheLedge && y > wellBelowTheTop)
+            break;
+    }
+    INFO("mid-wall at step " << step << ", foot y " << footOf(npc).y);
+    REQUIRE(step < 400);
+
+    glm::vec2 you = feetOf(OnTheLedge);
+    stepNpcHunting(npc, level, you, 10);
+    REQUIRE(npc.stateName() == "chase");
+
+    stepNpcHunting(npc, level, you, 300);
+    INFO("spider foot at " << footOf(npc).x << "," << footOf(npc).y << " in " << npc.stateName());
+    REQUIRE(std::abs(footOf(npc).y - surfaceOf(LedgeRow)) <= 1.0f);
+    REQUIRE(std::abs(footOf(npc).x - you.x) < 16.0f);
+}
+
+TEST_CASE("The shipped spider ignores you on the step below its ledge", "[Npc][Level][Chase]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("spider"));
+    glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile, StepRow - 1));
+
+    INFO(
+        "you at " << you.x << "," << you.y << ", spider at " << footOf(npc).x << ","
+                  << footOf(npc).y);
+    stepNpcHunting(npc, level, you, 20);
+
+    REQUIRE(npc.stateName() == "patrol");
+}
+
+TEST_CASE("The shipped spider's patience outlasts its own climb on level 6", "[Npc][Level][Chase]")
+{
+    const NpcData &spider = shippedNpcData().at("spider");
+    LevelData level6 = readLevelData(assetPath("levels/level6.json"));
+
+    float tallestClimb = 0.0f;
+    for (const NpcSpawnData &spawn : level6.npcs)
+        if (spawn.type == "spider" && spawn.patrol)
+            tallestClimb =
+                std::max(tallestClimb, std::abs(spawn.patrol->from.y - spawn.patrol->to.y));
+    REQUIRE(tallestClimb > 0.0f);
+
+    float climbSpeed = spider.actorData.motionData.wallClimbAbilityData->climbSpeed;
+    float givesUpAfter = 0.0f;
+    for (const BehaviorTransitionData &transition : spider.stateMachineBehaviorData->transitions)
+        if (transition.from == "chase" && transition.to == "patrol")
+            givesUpAfter = transition.after;
+
+    INFO(
+        "climb of " << tallestClimb << " at " << climbSpeed << " takes "
+                    << tallestClimb / climbSpeed);
+    REQUIRE(givesUpAfter >= tallestClimb / climbSpeed);
 }

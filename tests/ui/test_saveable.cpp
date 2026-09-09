@@ -1,6 +1,12 @@
 #include <string>
+#include <variant>
 #include <catch2/catch_test_macros.hpp>
+#include <map>
 #include "cameras/camera2d_data.hpp"
+#include "actor/behaviors/flee_behavior_data.hpp"
+#include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "npc/npc_data.hpp"
 #include "ui/saveable.hpp"
 
 TEST_CASE("Saveable has nothing to save until a value changes", "[Saveable]")
@@ -146,4 +152,49 @@ TEST_CASE("Saving moves what everything after is compared against", "[Saveable]"
 
     REQUIRE_FALSE(saveable.unsavedSince("camera", "two"));
     REQUIRE(saveable.unsavedSince("camera", "one"));
+}
+
+namespace
+{
+    std::map<std::string, NpcData> aRatThat(const BehaviorDoes &does)
+    {
+        BehaviorStateData state;
+        state.name = "one";
+        state.does = does;
+        NpcData rat;
+        rat.stateMachineBehaviorData = StateMachineBehaviorData{{state}, {}};
+        return {{"rat", rat}};
+    }
+}
+
+TEST_CASE("A state that says its kind can be put back", "[Saveable]")
+{
+    Saveable saveable;
+    PatrolBehaviorData patrol;
+    patrol.arrivalThreshold = 2.0f;
+    std::map<std::string, NpcData> npcs = aRatThat(patrol);
+    std::map<std::string, NpcData> asSaved = npcs;
+    saveable.saved("npcs", asJson(npcs));
+
+    BehaviorDoes &does = npcs.at("rat").stateMachineBehaviorData->states.front().does;
+    std::get<PatrolBehaviorData>(does).arrivalThreshold = 4.0f;
+    REQUIRE(saveable.unsaved("npcs", asJson(npcs)));
+
+    revertTo(saveable, "npcs", npcs);
+
+    const BehaviorDoes &back = npcs.at("rat").stateMachineBehaviorData->states.front().does;
+    REQUIRE(std::holds_alternative<PatrolBehaviorData>(back));
+    REQUIRE(std::get<PatrolBehaviorData>(back).arrivalThreshold == 2.0f);
+    REQUIRE(asJson(npcs) == asJson(asSaved));
+}
+
+TEST_CASE("Choosing a kind that looks the same still counts as unsaved", "[Saveable]")
+{
+    Saveable saveable;
+    std::map<std::string, NpcData> npcs = aRatThat(PatrolBehaviorData{});
+    saveable.saved("npcs", asJson(npcs));
+
+    npcs.at("rat").stateMachineBehaviorData->states.front().does = FleeBehaviorData{};
+
+    REQUIRE(saveable.unsaved("npcs", asJson(npcs)));
 }

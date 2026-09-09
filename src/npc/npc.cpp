@@ -2,9 +2,11 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include "npc/npc.hpp"
 #include <stdexcept>
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
@@ -33,11 +35,11 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
     if (npcData.stateMachineBehaviorData)
     {
         for (const BehaviorStateData &state : npcData.stateMachineBehaviorData->states)
-            if (state.attackBehaviorData &&
-                !canAttackWith(npcData.actorData.motionData, state.attackBehaviorData->with))
+            if (const auto *attack = std::get_if<AttackBehaviorData>(&state.does);
+                attack && !canAttackWith(npcData.actorData.motionData, attack->with))
                 throw std::runtime_error(
-                    "\"" + spawn.type + "\" attacks with \"" + state.attackBehaviorData->with +
-                    "\" in state \"" + state.name + "\", and has no such ability");
+                    "\"" + spawn.type + "\" attacks with \"" + attack->with + "\" in state \"" +
+                    state.name + "\", and has no such ability");
 
         std::optional<std::pair<glm::vec2, glm::vec2>> walk;
         if (this->spawn.patrol)

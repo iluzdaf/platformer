@@ -149,7 +149,7 @@ TEST_CASE(
     pouncer.actorData.motionData.pounceAbilityData = PounceAbilityData{};
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
-    pouncing.attackBehaviorData = AttackBehaviorData{std::string(PounceAttack)};
+    pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
     pouncer.stateMachineBehaviorData->states = {pouncing};
     std::vector<std::unique_ptr<Npc>> npcs;
     npcs.push_back(std::make_unique<Npc>(spawnAt("pouncer", SpawnTile), pouncer));
@@ -192,7 +192,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[StrikingPlayer
     swinger.actorData.animationData.attack = anAttackClip();
     BehaviorStateData swinging;
     swinging.name = "swing";
-    swinging.attackBehaviorData = AttackBehaviorData{std::string(SwingAttack)};
+    swinging.does = AttackBehaviorData{std::string(SwingAttack)};
     swinger.stateMachineBehaviorData->states = {swinging};
     std::vector<std::unique_ptr<Npc>> npcs;
     npcs.push_back(std::make_unique<Npc>(spawnAt("swinger", SpawnTile), swinger));

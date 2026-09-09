@@ -4,8 +4,15 @@
 #include <optional>
 #include <utility>
 #include <memory>
+#include <type_traits>
+#include <variant>
 #include <string>
 #include "actor/behaviors/state_machine_behavior.hpp"
+#include "actor/actor_behavior.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
+#include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/flee_behavior_data.hpp"
+#include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "actor/behaviors/chase_behavior.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
@@ -69,19 +76,23 @@ StateMachineBehavior::StateMachineBehavior(
     : data(data), heldFor(data.transitions.size(), 0.0f), sinceLeft(data.states.size(), 1e9f)
 {
     for (const BehaviorStateData &state : this->data.states)
-    {
-        if (state.patrolBehaviorData)
-            states.push_back(
-                std::make_unique<PatrolBehavior>(*state.patrolBehaviorData, patrolBetween));
-        else if (state.fleeBehaviorData)
-            states.push_back(std::make_unique<FleeBehavior>(*state.fleeBehaviorData));
-        else if (state.chaseBehaviorData)
-            states.push_back(std::make_unique<ChaseBehavior>(*state.chaseBehaviorData));
-        else if (state.attackBehaviorData)
-            states.push_back(std::make_unique<AttackBehavior>(*state.attackBehaviorData));
-        else
-            states.push_back(nullptr);
-    }
+        states.push_back(
+            std::visit(
+                [&patrolBetween](const auto &does) -> std::unique_ptr<ActorBehavior>
+                {
+                    using Does = std::remove_cvref_t<decltype(does)>;
+                    if constexpr (std::is_same_v<Does, PatrolBehaviorData>)
+                        return std::make_unique<PatrolBehavior>(does, patrolBetween);
+                    else if constexpr (std::is_same_v<Does, FleeBehaviorData>)
+                        return std::make_unique<FleeBehavior>(does);
+                    else if constexpr (std::is_same_v<Does, ChaseBehaviorData>)
+                        return std::make_unique<ChaseBehavior>(does);
+                    else if constexpr (std::is_same_v<Does, AttackBehaviorData>)
+                        return std::make_unique<AttackBehavior>(does);
+                    else
+                        return nullptr;
+                },
+                state.does));
 }
 
 std::optional<std::size_t> StateMachineBehavior::stateNamed(const std::string &name) const
@@ -168,12 +179,14 @@ std::string_view StateMachineBehavior::getStateName() const
 
 std::optional<int> StateMachineBehavior::getCurrentNodeId() const
 {
-    return states.empty() ? std::nullopt : states[activeState]->getCurrentNodeId();
+    return states.empty() || !states[activeState] ? std::nullopt
+                                                  : states[activeState]->getCurrentNodeId();
 }
 
 std::optional<int> StateMachineBehavior::getTargetNodeId() const
 {
-    return states.empty() ? std::nullopt : states[activeState]->getTargetNodeId();
+    return states.empty() || !states[activeState] ? std::nullopt
+                                                  : states[activeState]->getTargetNodeId();
 }
 
 float StateMachineBehavior::secondsSinceLeaving(std::string_view state) const

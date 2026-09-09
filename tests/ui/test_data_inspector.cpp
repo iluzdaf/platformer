@@ -1,6 +1,7 @@
 #include <optional>
 #include <string_view>
 #include <cstddef>
+#include <variant>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
@@ -18,6 +19,8 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/sheet_in_scope.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/chase_behavior_data.hpp"
 
 namespace
 {
@@ -235,4 +238,17 @@ TEST_CASE("A list nobody clicks keeps what it had", "[DataInspector]")
     gui.frame(drawOpen);
 
     REQUIRE(frames == std::vector<int>{7, 8});
+}
+
+TEST_CASE(
+    "A variant draws a chooser of its kinds and the fields of what it holds",
+    "[DataInspector]")
+{
+    HeadlessImGui gui;
+    BehaviorStateData chasing;
+    chasing.name = "chase";
+    chasing.does = ChaseBehaviorData{};
+
+    REQUIRE_NOTHROW(gui.frame([&] { inspector::drawFields(chasing); }));
+    REQUIRE(std::holds_alternative<ChaseBehaviorData>(chasing.does));
 }

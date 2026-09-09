@@ -577,7 +577,7 @@ namespace
             data.actorData.motionData.pounceAbilityData = PounceAbilityData{};
         BehaviorStateData attacking;
         attacking.name = "attack";
-        attacking.attackBehaviorData = AttackBehaviorData{with};
+        attacking.does = AttackBehaviorData{with};
         data.stateMachineBehaviorData->states.push_back(attacking);
         return data;
     }

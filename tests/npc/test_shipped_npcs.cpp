@@ -2,8 +2,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <filesystem>
+#include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/level.hpp"
+#include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/asset_path.hpp"
@@ -286,4 +288,37 @@ TEST_CASE("The shipped spider climbs the wall above the ledge", "[Npc][Level][Cl
     REQUIRE(cameBackDown);
     REQUIRE(reachedTheTopAt < 270);
     REQUIRE(showedTheClimb);
+}
+
+TEST_CASE("The level 6 spider keeps walking its beat", "[Npc][Level][Patrol]")
+{
+    LevelData level6 = readLevelData(assetPath("levels/level6.json"));
+    Level level(level6, shippedPalettes(), PlayerData(), shippedNpcData(), shippedPickupData());
+    NpcSpawnData spawn;
+    for (const NpcSpawnData &placed : level6.npcs)
+        if (placed.type == "spider" && placed.patrol)
+            spawn = placed;
+    REQUIRE(spawn.patrol.has_value());
+    Npc npc(spawn, shippedNpcData().at("spider"));
+
+    int reachedTheFirst = 0, reachedTheSecond = 0;
+    bool atTheFirst = false, atTheSecond = false;
+    for (int step = 0; step < 3000; ++step)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level);
+        glm::vec2 foot = footOf(npc);
+        bool nowFirst = glm::distance(foot, spawn.patrol->from) < 8.0f;
+        bool nowSecond = glm::distance(foot, spawn.patrol->to) < 8.0f;
+        reachedTheFirst += nowFirst && !atTheFirst;
+        reachedTheSecond += nowSecond && !atTheSecond;
+        atTheFirst = nowFirst;
+        atTheSecond = nowSecond;
+    }
+
+    INFO(
+        "reached the first beat " << reachedTheFirst << " times and the second "
+                                  << reachedTheSecond);
+    REQUIRE(reachedTheFirst >= 2);
+    REQUIRE(reachedTheSecond >= 2);
 }

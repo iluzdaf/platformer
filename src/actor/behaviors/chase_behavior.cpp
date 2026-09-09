@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 #include "actor/behaviors/chase_behavior.hpp"
+#include "actor/behaviors/footing.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "input/input_intentions.hpp"
@@ -11,11 +12,6 @@
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_place.hpp"
-
-namespace
-{
-    constexpr float SurfaceTolerance = 1.0f;
-}
 
 ChaseBehavior::ChaseBehavior(const ChaseBehaviorData &data)
     : data(data), walker(data.arrivalThreshold)
@@ -33,7 +29,7 @@ bool ChaseBehavior::caughtUp(const ActorBehaviorContext &context) const
     if (!context.threatFeet)
         return false;
 
-    if (std::abs(context.threatFeet->y - context.feet.y) > SurfaceTolerance)
+    if (!feetSettledOn(context.feet.y, context.threatFeet->y))
         return false;
 
     float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;

@@ -6,6 +6,7 @@
 struct InputIntentions;
 struct Observed;
 struct Decided;
+struct MeleeAbilityState;
 
 class MeleeAbility : public Ability
 {
@@ -19,4 +20,5 @@ public:
 
 private:
     MeleeAbilityData data;
+    void followTheClip(const Observed &observed, MeleeAbilityState &melee);
 };

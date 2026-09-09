@@ -24,7 +24,11 @@
             "fall":{"frames":[7],"frameDuration":1},
             "wallSlide":{"frames":[9],"frameDuration":1},
             "climb":{"frames":[10,11],"frameDuration":0.15},
-            "attack":{"frames":[12,13,14],"loops":false},
+            "attack":{
+                "frames":[12,13,14],
+                "cues":[{"frame":1,"name":"onStrike"},{"frame":2,"name":"onRecover"}],
+                "loops":false
+            },
             "knockback":{"frames":[15],"frameDuration":1,"loops":false},
             "dead":{"frames":[16],"frameDuration":1,"loops":false}
         },

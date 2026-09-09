@@ -9,6 +9,7 @@
 #include "actor/abilities/jump_ability_data.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/abilities/melee_ability_data.hpp"
+#include <string>
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/wall_climb_ability_data.hpp"
 #include "actor/abilities/wall_hang_ability_data.hpp"
@@ -51,6 +52,19 @@ inline const IntentionSource &noIntentions()
     return source;
 }
 
+inline FrameAnimationData anAttackClip(int strikeFrames = 1, float frameDuration = 0.1f)
+{
+    std::vector<int> frames{12};
+    for (int held = 0; held < strikeFrames; ++held)
+        frames.push_back(13);
+    frames.push_back(14);
+
+    FrameAnimationData clip{frames, frameDuration, {{1, std::string(StrikeCue)}}};
+    clip.cues.push_back({static_cast<int>(frames.size()) - 1, std::string(RecoverCue)});
+    clip.loops = false;
+    return clip;
+}
+
 inline PlayerData playerDataWithEveryAbility()
 {
     PlayerData playerData;
@@ -67,6 +81,7 @@ inline PlayerData playerDataWithEveryAbility()
     playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
     playerData.actorData.motionData.knockbackAbilityData = KnockbackAbilityData();
     playerData.actorData.motionData.meleeAbilityData = MeleeAbilityData();
+    playerData.actorData.animationData.attack = anAttackClip();
     return playerData;
 }
 

@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include "animations/animator_data.hpp"
+#include "conditions/asked.hpp"
 #include "actor/actor_animation_data.hpp"
 
 inline AnimationTransitionData fromAnyTo(std::string to, AnimationWhen when)
@@ -13,30 +14,30 @@ inline AnimationTransitionData fromAnyTo(std::string to, AnimationWhen when)
 inline AnimatorData everyPictureLadder()
 {
     AnimationWhen dead;
-    dead.alive = false;
+    dead["alive"] = false;
     AnimationWhen pushed;
-    pushed.knockback = true;
+    pushed["knockback"] = true;
     AnimationWhen swinging;
-    swinging.swinging = true;
+    swinging["swinging"] = true;
     AnimationWhen dashing;
-    dashing.dashing = true;
+    dashing["dashing"] = true;
     AnimationWhen climbing;
-    climbing.onGround = false;
-    climbing.climbing = true;
+    climbing["onGround"] = false;
+    climbing["climbing"] = true;
     AnimationWhen onWall;
-    onWall.onGround = false;
-    onWall.onWall = true;
+    onWall["onGround"] = false;
+    onWall["onWall"] = true;
     AnimationWhen rising;
-    rising.onGround = false;
-    rising.rising = true;
+    rising["onGround"] = false;
+    rising["rising"] = true;
     AnimationWhen falling;
-    falling.onGround = false;
-    falling.falling = true;
+    falling["onGround"] = false;
+    falling["falling"] = true;
     AnimationWhen walking;
-    walking.onGround = true;
-    walking.moving = true;
+    walking["onGround"] = true;
+    walking["moving"] = true;
     AnimationWhen standing;
-    standing.onGround = true;
+    standing["onGround"] = true;
 
     return AnimatorData{
         {fromAnyTo("dead", dead),

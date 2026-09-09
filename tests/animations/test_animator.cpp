@@ -9,6 +9,7 @@
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
 #include "animations/animator_data.hpp"
+#include "conditions/asked.hpp"
 #include "helpers/ladders.hpp"
 
 namespace
@@ -217,9 +218,9 @@ TEST_CASE("The animator says when the clip it is playing has finished", "[Animat
 TEST_CASE("A ladder given as data drives the animator", "[Animator]")
 {
     AnimationWhen moving;
-    moving.moving = true;
+    moving["moving"] = true;
     AnimationWhen still;
-    still.moving = false;
+    still["moving"] = false;
     AnimatorData ladder{{{"", "walk", moving}, {"walk", "idle", still}}};
     Animator animator(ladder);
     animator.add("idle", animationOfFrame(1));
@@ -262,9 +263,9 @@ TEST_CASE("The animator can say the ladder it walks", "[Animator]")
 TEST_CASE("A rung may ask which state the machine is in", "[Animator]")
 {
     AnimationWhen asleep;
-    asleep.inState = "sleep";
+    asleep["inState"] = std::string("sleep");
     AnimationWhen otherwise;
-    otherwise.onGround = true;
+    otherwise["onGround"] = true;
     AnimatorData ladder{{{"", "sleep", asleep}, {"", "idle", otherwise}}};
     Animator animator(ladder);
     animator.add("idle", animationOfFrame(1));

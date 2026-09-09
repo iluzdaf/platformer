@@ -31,12 +31,12 @@ namespace
         animations.clips["dead"] = FrameAnimationData{{9}, 1.0f};
         animations.clips.at("dead").loops = false;
         AnimationWhen dead;
-        dead.alive = false;
+        dead["alive"] = false;
         AnimationWhen moving;
-        moving.onGround = true;
-        moving.moving = true;
+        moving["onGround"] = true;
+        moving["moving"] = true;
         AnimationWhen finished;
-        finished.finished = true;
+        finished["finished"] = true;
         animations.ladder =
             AnimatorData{{{"", "dead", dead}, {"", "walk", moving}, {"walk", "idle", finished}}};
         return animations;
@@ -55,7 +55,7 @@ TEST_CASE("A machine draws as its states and its transitions, in words", "[Graph
     BehaviorTransitionData near;
     near.from = "idle";
     near.to = "chase";
-    near.threatWithin = 40.0f;
+    near.when["threatWithin"] = 40.0f;
     StateMachineBehaviorData machine{{idling, chasing}, {near}};
 
     GraphShown graph = graphOf(machine);
@@ -103,18 +103,18 @@ TEST_CASE("An animator with no rung from anywhere has no any node", "[GraphShown
 TEST_CASE("A rung's words say every parameter it asks about", "[GraphShown]")
 {
     AnimationWhen when;
-    when.alive = true;
-    when.knockback = false;
-    when.onGround = false;
-    when.rising = true;
-    when.onWall = false;
-    when.finished = false;
+    when["alive"] = true;
+    when["knockback"] = false;
+    when["onGround"] = false;
+    when["rising"] = true;
+    when["onWall"] = false;
+    when["finished"] = false;
     REQUIRE(
         whenOf(when) == "alive, not knocked back, in the air, off the wall, rising, clip playing");
     REQUIRE(whenOf(AnimationWhen{}) == "always");
 
     AnimationWhen asleep;
-    asleep.inState = "sleep";
+    asleep["inState"] = std::string("sleep");
     REQUIRE(whenOf(asleep) == "in state \"sleep\"");
 }
 

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <stdexcept>
 #include <string>
 #include "actor/abilities/pounce_ability_data.hpp"
 #include <optional>
@@ -10,6 +11,7 @@
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "conditions/asked.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 
@@ -28,12 +30,12 @@ namespace
         BehaviorTransitionData alarmed;
         alarmed.from = "patrol";
         alarmed.to = "flee";
-        alarmed.threatWithin = threatWithin;
+        alarmed.when["threatWithin"] = threatWithin;
 
         BehaviorTransitionData calmed;
         calmed.from = "flee";
         calmed.to = "patrol";
-        calmed.threatBeyond = threatWithin * 2.0f;
+        calmed.when["threatBeyond"] = threatWithin * 2.0f;
         calmed.after = calmDown;
 
         return {{patrolling, fleeing}, {alarmed, calmed}};
@@ -164,8 +166,8 @@ TEST_CASE("Holds a state while the threat shares its run", "[StateMachineBehavio
     navigationGraph.addNode(5, {192.0f, 288.0f});
 
     StateMachineBehaviorData data = setupData();
-    data.transitions.at(1) =
-        BehaviorTransitionData{"flee", "patrol", std::nullopt, std::nullopt, false, 0.0f};
+    data.transitions.at(1) = BehaviorTransitionData{
+        "flee", "patrol", BehaviorWhen{{{"threatOnMySurface", false}}}, 0.0f};
 
     StateMachineBehavior behavior(data);
 
@@ -187,8 +189,11 @@ TEST_CASE("Ignores a threat that is close by but not on its ground", "[StateMach
     navigationGraph.addNode(5, {192.0f, 224.0f});
 
     StateMachineBehaviorData data = setupData();
-    data.transitions.at(0) =
-        BehaviorTransitionData{"patrol", "flee", 48.0f, std::nullopt, true, 0.0f};
+    data.transitions.at(0) = BehaviorTransitionData{
+        "patrol",
+        "flee",
+        BehaviorWhen{{{"threatWithin", 48.0f}, {"threatOnMySurface", true}}},
+        0.0f};
 
     StateMachineBehavior behavior(data);
 
@@ -225,7 +230,7 @@ TEST_CASE("A transition to a state it does not have is ignored", "[StateMachineB
     BehaviorTransitionData haunted;
     haunted.from = "flee";
     haunted.to = "ghost";
-    haunted.threatWithin = 48.0f;
+    haunted.when["threatWithin"] = 48.0f;
     data.transitions.push_back(haunted);
     StateMachineBehavior behavior(data, std::nullopt);
     ActorBehaviorContext threatened =
@@ -283,12 +288,12 @@ namespace
         BehaviorTransitionData close;
         close.from = "chase";
         close.to = "pounce";
-        close.threatWithin = 48.0f;
+        close.when["threatWithin"] = 48.0f;
 
         BehaviorTransitionData landed;
         landed.from = "pounce";
         landed.to = "chase";
-        landed.onGround = true;
+        landed.when["onGround"] = true;
         landed.after = 0.05f;
 
         return {{chasing, pouncing}, {close, landed}};
@@ -372,11 +377,11 @@ TEST_CASE(
     BehaviorTransitionData tooClose;
     tooClose.from = "flee";
     tooClose.to = "pounce";
-    tooClose.threatWithin = 24.0f;
+    tooClose.when["threatWithin"] = 24.0f;
     BehaviorTransitionData landed;
     landed.from = "pounce";
     landed.to = "flee";
-    landed.onGround = true;
+    landed.when["onGround"] = true;
     landed.after = 0.05f;
     StateMachineBehavior behavior({{fleeing, pouncing}, {tooClose, landed}});
 
@@ -408,8 +413,8 @@ TEST_CASE("A transition can ask whether the creature is cornered", "[StateMachin
     BehaviorTransitionData cornered;
     cornered.from = "flee";
     cornered.to = "pounce";
-    cornered.threatWithin = 24.0f;
-    cornered.cornered = true;
+    cornered.when["threatWithin"] = 24.0f;
+    cornered.when["cornered"] = true;
     StateMachineBehavior behavior({{fleeing, pouncing}, {cornered}});
 
     behavior.decide(
@@ -433,4 +438,17 @@ TEST_CASE("A state that does nothing stands still", "[StateMachineBehavior]")
     REQUIRE(behavior.getStateName() == "idle");
     REQUIRE(standing.direction.x == 0.0f);
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
+}
+
+TEST_CASE("A transition asking about a fact nobody publishes is refused", "[StateMachineBehavior]")
+{
+    StateMachineBehaviorData data = setupData();
+    data.transitions.front().when["snowing"] = true;
+
+    REQUIRE_THROWS_AS(StateMachineBehavior(data), std::runtime_error);
+
+    data = setupData();
+    data.transitions.front().when["threatWithin"] = true;
+
+    REQUIRE_THROWS_AS(StateMachineBehavior(data), std::runtime_error);
 }

@@ -22,6 +22,7 @@
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 #include "animations/animator_data.hpp"
+#include "conditions/asked.hpp"
 #include "npc/striking_player.hpp"
 #include "player/player.hpp"
 
@@ -192,7 +193,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[StrikingPlayer
     swinger.actorData.motionData.swingAbilityData = SwingAbilityData{};
     swinger.actorData.animationData.clips["attack"] = anAttackClip();
     AnimationWhen whileSwinging;
-    whileSwinging.swinging = true;
+    whileSwinging["swinging"] = true;
     swinger.actorData.animationData.ladder = AnimatorData{{{"", "attack", whileSwinging}}};
     BehaviorStateData swinging;
     swinging.name = "swing";

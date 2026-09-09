@@ -1,43 +1,55 @@
-#include <catch2/catch_test_macros.hpp>
 #include <string>
-#include "animations/animation_parameters.hpp"
-#include "animations/animator_data.hpp"
+#include <catch2/catch_test_macros.hpp>
+#include "actor/decided.hpp"
+#include "actor/observed.hpp"
+#include "animations/animator_facts.hpp"
+#include "conditions/asked.hpp"
+#include "conditions/fact_rows.hpp"
+
+namespace
+{
+    AnimatorFacts factsOf(const Decided &decided, const Observed &observed)
+    {
+        return AnimatorFacts{decided, observed, false, ""};
+    }
+}
 
 TEST_CASE("A condition that asks nothing always holds", "[AnimatorData]")
 {
-    REQUIRE(holds(AnimationWhen{}, AnimationParameters{}));
+    Decided decided;
+    Observed observed;
+
+    REQUIRE(holds(AnimationWhen{}, animatorRows(), factsOf(decided, observed)));
 }
 
-TEST_CASE("A condition holds only when every parameter it asks about agrees", "[AnimatorData]")
+TEST_CASE("A condition holds only when every fact it asks about agrees", "[AnimatorData]")
 {
     AnimationWhen airborneAndRising;
-    airborneAndRising.onGround = false;
-    airborneAndRising.rising = true;
+    airborneAndRising["onGround"] = false;
+    airborneAndRising["rising"] = true;
+    Decided decided;
 
-    AnimationParameters rising;
-    rising.onGround = false;
-    rising.rising = true;
-    REQUIRE(holds(airborneAndRising, rising));
+    Observed rising;
+    rising.contacts.onGround = false;
+    rising.velocity.y = -40.0f;
+    REQUIRE(holds(airborneAndRising, animatorRows(), factsOf(decided, rising)));
 
-    AnimationParameters risingOnGround = rising;
-    risingOnGround.onGround = true;
-    REQUIRE_FALSE(holds(airborneAndRising, risingOnGround));
+    Observed risingOnGround = rising;
+    risingOnGround.contacts.onGround = true;
+    REQUIRE_FALSE(holds(airborneAndRising, animatorRows(), factsOf(decided, risingOnGround)));
 
-    AnimationParameters airborneStill = rising;
-    airborneStill.rising = false;
-    REQUIRE_FALSE(holds(airborneAndRising, airborneStill));
+    Observed airborneStill = rising;
+    airborneStill.velocity.y = 0.0f;
+    REQUIRE_FALSE(holds(airborneAndRising, animatorRows(), factsOf(decided, airborneStill)));
 }
 
 TEST_CASE("A condition may ask which state the machine is in", "[AnimatorData]")
 {
     AnimationWhen asleep;
-    asleep.inState = "sleep";
-    AnimationParameters sleeping;
-    sleeping.inState = "sleep";
-    AnimationParameters charging;
-    charging.inState = "charge";
+    asleep["inState"] = std::string("sleep");
+    Decided decided;
+    Observed observed;
 
-    REQUIRE(holds(asleep, sleeping));
-    REQUIRE_FALSE(holds(asleep, charging));
-    REQUIRE(holds(AnimationWhen{}, charging));
+    REQUIRE(holds(asleep, animatorRows(), AnimatorFacts{decided, observed, false, "sleep"}));
+    REQUIRE_FALSE(holds(asleep, animatorRows(), AnimatorFacts{decided, observed, false, "charge"}));
 }

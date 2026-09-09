@@ -2,7 +2,8 @@
 #include <string_view>
 #include <vector>
 #include "animations/animator.hpp"
-#include "animations/animation_parameters.hpp"
+#include "animations/animator_facts.hpp"
+#include "conditions/fact_rows.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "actor/actor_animation_data.hpp"
@@ -18,13 +19,13 @@ const std::string &Animator::wanted(
     const Observed &observed,
     std::string_view inState) const
 {
-    AnimationParameters parameters = parametersFrom(decided, observed, finished(), inState);
+    AnimatorFacts facts{decided, observed, finished(), inState};
     for (const AnimationTransitionData &rung : data.transitions)
     {
         if (!rung.from.empty() && rung.from != currentState)
             continue;
 
-        if (holds(rung.when, parameters))
+        if (holds(rung.when, animatorRows(), facts))
             return rung.to;
     }
 

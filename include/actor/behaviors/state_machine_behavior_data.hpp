@@ -1,13 +1,13 @@
 #pragma once
 
 #include <array>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <variant>
 #include <vector>
 #include <glaze/glaze.hpp>
 #include "actor/behaviors/attack_behavior_data.hpp"
+#include "conditions/asked.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/idle_behavior_data.hpp"
@@ -41,12 +41,8 @@ struct BehaviorTransitionData
 {
     std::string from;
     std::string to;
-    std::optional<float> threatWithin;
-    std::optional<float> threatBeyond;
-    std::optional<bool> threatOnMySurface;
+    BehaviorWhen when;
     float after = 0.0f;
-    std::optional<bool> onGround = std::nullopt;
-    std::optional<bool> cornered = std::nullopt;
 
     bool operator==(const BehaviorTransitionData &) const = default;
 };

@@ -13,34 +13,15 @@
 #include "actor/actor_animation_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "animations/animator_data.hpp"
+#include "animations/animator_facts.hpp"
+#include "conditions/asked.hpp"
+#include "conditions/fact_rows.hpp"
 #include "animations/frame_animation_data.hpp"
 
 namespace
 {
     constexpr float LeastGraphHeight = 220.0f;
     constexpr float RoomPerNode = 44.0f;
-
-    void say(
-        std::vector<std::string> &parts,
-        std::optional<bool> asked,
-        const char *yes,
-        const char *no)
-    {
-        if (asked)
-            parts.emplace_back(*asked ? yes : no);
-    }
-
-    std::string joined(const std::vector<std::string> &parts, std::string_view none)
-    {
-        if (parts.empty())
-            return std::string(none);
-
-        std::string text = parts.front();
-        for (std::size_t index = 1; index < parts.size(); ++index)
-            text += ", " + parts[index];
-
-        return text;
-    }
 
     std::string wordsOf(const FrameAnimationData &clip)
     {
@@ -130,21 +111,7 @@ std::vector<glm::vec2> placedAround(const GraphShown &graph, glm::vec2 centre, g
 
 std::string whenOf(const AnimationWhen &when)
 {
-    std::vector<std::string> parts;
-    say(parts, when.alive, "alive", "dead");
-    say(parts, when.knockback, "knocked back", "not knocked back");
-    say(parts, when.swinging, "swinging", "not swinging");
-    say(parts, when.dashing, "dashing", "not dashing");
-    say(parts, when.onGround, "on ground", "in the air");
-    say(parts, when.climbing, "climbing", "not climbing");
-    say(parts, when.onWall, "on a wall", "off the wall");
-    say(parts, when.rising, "rising", "not rising");
-    say(parts, when.falling, "falling", "not falling");
-    say(parts, when.moving, "moving", "still");
-    say(parts, when.finished, "clip finished", "clip playing");
-    if (when.inState)
-        parts.push_back("in state \"" + *when.inState + "\"");
-    return joined(parts, "always");
+    return whenOf(when, animatorRows());
 }
 
 GraphShown graphOf(const StateMachineBehaviorData &machine)

@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "actor/actor_animation_data.hpp"
 #include "animations/animator_data.hpp"
+#include "conditions/asked.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "helpers/actors.hpp"
 #include "player/player.hpp"
@@ -41,7 +42,7 @@ TEST_CASE("A ladder naming a clip the actor does not have is refused", "[ActorAn
     playerData.actorData.animationData.clips["idle"] = FrameAnimationData({0}, 1.0f);
     playerData.actorData.animationData.clips["walk"] = FrameAnimationData({1}, 1.0f);
     AnimationWhen moving;
-    moving.moving = true;
+    moving["moving"] = true;
     playerData.actorData.animationData.ladder = AnimatorData{{{"", "somersault", moving}}};
 
     REQUIRE_THROWS_AS(Player(playerData, noIntentions()), std::runtime_error);
@@ -57,8 +58,20 @@ TEST_CASE("A creature named with a clip nobody else has can show it", "[ActorAni
     playerData.actorData.animationData.clips["idle"] = FrameAnimationData({0}, 1.0f);
     playerData.actorData.animationData.clips["somersault"] = FrameAnimationData({1}, 1.0f);
     AnimationWhen airborne;
-    airborne.onGround = false;
+    airborne["onGround"] = false;
     playerData.actorData.animationData.ladder = AnimatorData{{{"", "somersault", airborne}}};
 
     REQUIRE_NOTHROW(Player(playerData, noIntentions()));
+}
+
+TEST_CASE("A rung asking about a fact nobody publishes is refused", "[ActorAnimations]")
+{
+    PlayerData playerData;
+    playerData.actorData.animationData.clips["idle"] = FrameAnimationData({0}, 1.0f);
+    playerData.actorData.animationData.clips["walk"] = FrameAnimationData({1}, 1.0f);
+    AnimationWhen snowing;
+    snowing["snowing"] = true;
+    playerData.actorData.animationData.ladder = AnimatorData{{{"", "walk", snowing}}};
+
+    REQUIRE_THROWS_AS(Player(playerData, noIntentions()), std::runtime_error);
 }

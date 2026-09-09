@@ -14,7 +14,6 @@
 
 namespace
 {
-    constexpr float GraphHeight = 220.0f;
     constexpr float NodeHeight = 26.0f;
     constexpr float NodeMinWidth = 64.0f;
     constexpr float NodePadding = 10.0f;
@@ -181,10 +180,10 @@ namespace
         std::vector<std::string> missing;
     };
 
-    Drawn layOut(const GraphShown &graph, glm::vec2 centre, float radius)
+    Drawn layOut(const GraphShown &graph, glm::vec2 centre, glm::vec2 radii)
     {
         Drawn drawn;
-        std::vector<glm::vec2> ring = aRingOf(graph.nodes.size(), centre, radius);
+        std::vector<glm::vec2> ring = placedAround(graph, centre, radii);
         drawn.nodes.reserve(graph.nodes.size());
         for (std::size_t index = 0; index < graph.nodes.size(); ++index)
             drawn.nodes.push_back(Node{ring[index], halfOf(graph.nodes[index])});
@@ -242,7 +241,8 @@ MachineShown drawGraph(
         return MachineShown{};
     }
 
-    ImVec2 size(std::max(ImGui::GetContentRegionAvail().x, 1.0f), GraphHeight);
+    ImVec2 size(
+        std::max(ImGui::GetContentRegionAvail().x, 1.0f), graphHeightFor(nodesAroundIn(graph)));
     ImVec2 at = ImGui::GetCursorScreenPos();
     ImGui::InvisibleButton("##graph", size);
     bool hovered = ImGui::IsItemHovered();
@@ -254,8 +254,9 @@ MachineShown drawGraph(
     drawList->AddRect(at, ImVec2(at.x + size.x, at.y + size.y), FrameColour);
 
     glm::vec2 centre(at.x + size.x * 0.5f, at.y + size.y * 0.5f);
-    float radius = std::max(std::min(size.x, size.y) * 0.5f - RingMargin, 0.0f);
-    Drawn drawn = layOut(graph, centre, radius);
+    glm::vec2 radii(
+        std::max(size.x * 0.5f - RingMargin, 0.0f), std::max(size.y * 0.5f - RingMargin, 0.0f));
+    Drawn drawn = layOut(graph, centre, radii);
 
     if (clicked)
         selected = whatIsAt(mouse, drawn);

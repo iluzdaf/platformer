@@ -1,9 +1,13 @@
+#include <algorithm>
+#include <cmath>
 #include <cstddef>
+#include <numbers>
 #include <format>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
+#include <glm/gtc/matrix_transform.hpp>
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "actor/actor_animation_data.hpp"
@@ -13,6 +17,9 @@
 
 namespace
 {
+    constexpr float LeastGraphHeight = 220.0f;
+    constexpr float RoomPerNode = 44.0f;
+
     void say(
         std::vector<std::string> &parts,
         std::optional<bool> asked,
@@ -84,6 +91,43 @@ MachineShown stillAmong(MachineShown shown, const GraphShown &graph)
     return shown;
 }
 
+std::size_t nodesAroundIn(const GraphShown &graph)
+{
+    std::size_t around = 0;
+    for (const GraphNode &node : graph.nodes)
+        if (!node.hub)
+            ++around;
+
+    return around;
+}
+
+float graphHeightFor(std::size_t ringCount)
+{
+    return std::max(LeastGraphHeight, RoomPerNode * static_cast<float>(ringCount));
+}
+
+std::vector<glm::vec2> placedAround(const GraphShown &graph, glm::vec2 centre, glm::vec2 radii)
+{
+    std::size_t around = nodesAroundIn(graph);
+    std::vector<glm::vec2> positions(graph.nodes.size(), centre);
+    std::size_t placed = 0;
+    for (std::size_t index = 0; index < graph.nodes.size(); ++index)
+    {
+        if (graph.nodes[index].hub || around == 1)
+            positions[index] = centre;
+        else
+        {
+            float turn = static_cast<float>(placed++) / static_cast<float>(around);
+            float angle =
+                -std::numbers::pi_v<float> / 2.0f + turn * 2.0f * std::numbers::pi_v<float>;
+            positions[index] = glm::vec2(
+                centre.x + radii.x * std::cos(angle), centre.y + radii.y * std::sin(angle));
+        }
+    }
+
+    return positions;
+}
+
 std::string whenOf(const AnimationWhen &when)
 {
     std::vector<std::string> parts;
@@ -126,7 +170,7 @@ GraphShown graphOf(const ActorAnimationData &animations)
             graph.nodes.push_back({name, wordsOf(clip)});
 
     if (anyRungLeavesFromAnywhere(animations.ladder))
-        graph.nodes.push_back({std::string(AnyNode), "from whatever is playing"});
+        graph.nodes.push_back({std::string(AnyNode), "from whatever is playing", true});
 
     graph.edges.reserve(animations.ladder.transitions.size());
     for (const AnimationTransitionData &rung : animations.ladder.transitions)

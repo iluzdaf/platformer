@@ -3,6 +3,7 @@
 #include <glm/geometric.hpp>
 #include <utility>
 #include "actor/behaviors/patrol_behavior.hpp"
+#include "actor/behaviors/footing.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "input/input_intentions.hpp"
@@ -10,11 +11,6 @@
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_place.hpp"
 #include "navigation/navigation_node.hpp"
-
-namespace
-{
-    constexpr float SurfaceTolerance = 1.0f;
-}
 
 PatrolBehavior::PatrolBehavior(
     const PatrolBehaviorData &data,
@@ -51,7 +47,7 @@ PatrolBehavior::BeatEnd PatrolBehavior::endOfTheBeat(
 
 bool PatrolBehavior::standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const
 {
-    if (std::abs(context.feet.y - end.position.y) > SurfaceTolerance)
+    if (!feetSettledOn(context.feet.y, end.position.y))
         return false;
 
     float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;

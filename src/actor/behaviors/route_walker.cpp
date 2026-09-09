@@ -3,6 +3,7 @@
 #include <optional>
 #include <vector>
 #include "actor/behaviors/route_walker.hpp"
+#include "actor/behaviors/footing.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "input/input_intentions.hpp"
@@ -14,8 +15,6 @@
 namespace
 {
     constexpr float SurfaceTolerance = 1.0f;
-
-    constexpr float SettlingTolerance = 4.0f;
 
     constexpr float TakeOffReach = 1.5f;
 
@@ -85,7 +84,7 @@ bool RouteWalker::hasLostTheRoute(const ActorBehaviorContext &context) const
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
     NavigationNode node = navigationGraph.getNode(*currentNodeId);
-    if (std::abs(node.feet.y - context.feet.y) > SettlingTolerance)
+    if (!feetSettledOn(context.feet.y, node.feet.y))
         return true;
 
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
@@ -237,7 +236,7 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
 bool RouteWalker::withinReachOf(const ActorBehaviorContext &context, int nodeId) const
 {
     NavigationNode node = context.navigationGraph.getNode(nodeId);
-    if (std::abs(node.feet.y - context.feet.y) > SurfaceTolerance)
+    if (!feetSettledOn(context.feet.y, node.feet.y))
         return false;
 
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
@@ -263,7 +262,7 @@ bool RouteWalker::hasArrived(const ActorBehaviorContext &context, int setOffAt, 
         return directionTowards(context.feet.y, target.y) != climbDirection;
     }
 
-    if (std::abs(target.y - context.feet.y) > SurfaceTolerance)
+    if (!feetSettledOn(context.feet.y, target.y))
         return false;
 
     if (std::abs(target.x - context.feet.x) <= reach)

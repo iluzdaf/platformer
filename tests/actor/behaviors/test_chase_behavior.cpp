@@ -201,3 +201,22 @@ TEST_CASE("Has nothing to do on a graph with no edges at all", "[ChaseBehavior]"
     REQUIRE(inputIntentions.direction.x == 0.0f);
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
 }
+
+TEST_CASE("Catches up with feet settled a pixel below the run", "[ChaseBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    ChaseBehavior behavior(setupData());
+    glm::vec2 threat(200.0f, 192.0f);
+
+    glm::vec2 position(96.0f, 193.5f);
+    for (int step = 0; step < 400; ++step)
+    {
+        InputIntentions inputIntentions =
+            behavior.decide(0.01f, standingAt(navigationGraph, position, threat));
+        position.x += inputIntentions.direction.x * 2.0f;
+    }
+    InputIntentions holding = behavior.decide(0.01f, standingAt(navigationGraph, position, threat));
+
+    REQUIRE(beside(position, threat));
+    REQUIRE(holding.direction.x == 0.0f);
+}

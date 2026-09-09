@@ -589,3 +589,25 @@ TEST_CASE("A beat in the far half of a single edge is not overshot either", "[Pa
     REQUIRE(rightMost < 250.0f + 16.0f);
     REQUIRE(leftMost > 200.0f - 16.0f);
 }
+
+TEST_CASE("A patrol reaches both beats with feet settled a pixel below the run", "[PatrolBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    PatrolBehavior behavior(
+        PatrolBehaviorData{}, std::pair(glm::vec2(96.0f, 192.0f), glm::vec2(288.0f, 192.0f)));
+
+    glm::vec2 position(150.0f, 193.5f);
+    float furthest = position.x, nearest = position.x;
+    for (int step = 0; step < 600; ++step)
+    {
+        InputIntentions inputIntentions =
+            behavior.decide(0.01f, standingAt(navigationGraph, position));
+        position.x += inputIntentions.direction.x * 2.0f;
+        furthest = std::max(furthest, position.x);
+        nearest = std::min(nearest, position.x);
+    }
+
+    INFO("walked " << nearest << ".." << furthest);
+    REQUIRE(furthest >= 280.0f);
+    REQUIRE(nearest <= 104.0f);
+}

@@ -130,3 +130,45 @@ TEST_CASE("Feet a whole drop below a run have left it", "[RouteWalker]")
     REQUIRE_FALSE(onTheUpperRun(walker.getCurrentNodeId()));
     REQUIRE_FALSE(walker.getTargetNodeId().has_value());
 }
+
+TEST_CASE("A walker arrives at its node with feet settled a pixel below the run", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = twoRunsOneAboveTheOther();
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {250.0f, Upper + 1.5f}));
+    walker.takeRouteTo(at(navigationGraph, {250.0f, Upper + 1.5f}), 0);
+    REQUIRE(walker.getTargetNodeId() == 0);
+
+    walker.advanceOnArrival(at(navigationGraph, {192.0f, Upper + 1.5f}));
+
+    REQUIRE(walker.routeFinished());
+    REQUIRE(walker.getCurrentNodeId() == 0);
+}
+
+TEST_CASE(
+    "A walker arrives at a stop short of the node with feet settled below the run",
+    "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = twoRunsOneAboveTheOther();
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {200.0f, Upper + 1.5f}));
+    walker.takeRouteTo(at(navigationGraph, {200.0f, Upper + 1.5f}), 1, glm::vec2(250.0f, Upper));
+
+    walker.advanceOnArrival(at(navigationGraph, {250.0f, Upper + 1.5f}));
+
+    REQUIRE(walker.routeFinished());
+}
+
+TEST_CASE(
+    "A walker already at its destination with feet settled below the run has nowhere to go",
+    "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = twoRunsOneAboveTheOther();
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {192.0f, Upper + 1.5f}));
+    REQUIRE(walker.getCurrentNodeId() == 0);
+
+    walker.takeRouteTo(at(navigationGraph, {192.0f, Upper + 1.5f}), 0);
+
+    REQUIRE(walker.routeFinished());
+}

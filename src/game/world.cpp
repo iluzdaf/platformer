@@ -1,4 +1,5 @@
 #include <memory>
+#include <vector>
 #include "game/level_data.hpp"
 #include <optional>
 #include <stdexcept>
@@ -7,6 +8,9 @@
 #include <utility>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/world.hpp"
+#include "actor/observed.hpp"
+#include "actor/actor_contact_state.hpp"
+#include "game/noise.hpp"
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
 #include "assets/asset_paths.hpp"
@@ -129,8 +133,12 @@ void World::beginFrame()
 
 void World::fixedUpdate(float deltaTime)
 {
-    level->fixedUpdate(deltaTime, player->feet());
+    level->fixedUpdate(deltaTime, player->feet(), heardThisTick);
+    heardThisTick.clear();
     player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
+    const ActorContactState &contacts = player->observed().contacts;
+    if (!contacts.wasOnGround && contacts.onGround && player->observed().previousVelocity.y > 0.0f)
+        heardThisTick.push_back(Noise{std::string(LandingNoise), player->feet()});
 
     strikeNpcs(*player.get(), level->getNpcs());
     touchTiles(*player.get(), level->getTileMap());
@@ -174,4 +182,9 @@ Player &World::getPlayer()
 const Score &World::getScore() const
 {
     return score;
+}
+
+const std::vector<Noise> &World::noises() const
+{
+    return heardThisTick;
 }

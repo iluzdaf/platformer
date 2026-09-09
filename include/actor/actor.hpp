@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 #include <string_view>
 #include "events/event.hpp"
 #include "actor/actor_state.hpp"
@@ -50,6 +51,7 @@ public:
     std::optional<AABB> swing() const;
     bool strike(Actor &target);
     Event<Actor> onHurt, onDeath;
+    Event<Actor, const std::string &> onCue;
 
 protected:
     explicit Actor(const ActorData &data);

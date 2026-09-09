@@ -25,12 +25,14 @@ void checkFits(const ActorData &actor, const std::string &whose, int width, int 
             continue;
 
         checkFramesFit(said->frames, actor.sheet, whose + " " + slot.name, width, height);
+        checkCuesFit(*said, whose + " " + slot.name);
     }
 }
 
 void checkFits(const PickupData &pickup, const std::string &whose, int width, int height)
 {
     checkFramesFit(pickup.animationData.frames, pickup.sheet, whose, width, height);
+    checkCuesFit(pickup.animationData, whose);
 }
 
 void checkFits(const TilePaletteData &palette, const std::string &whose, int width, int height)

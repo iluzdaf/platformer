@@ -47,6 +47,39 @@ namespace
         ImGui::TreePop();
         return edited;
     }
+
+    inspector::Edited drawCues(std::vector<FrameCueData> &cues, std::size_t frameCount)
+    {
+        if (!ImGui::TreeNode("cues"))
+            return {};
+
+        inspector::Edited edited;
+        std::optional<std::size_t> takeAway;
+        for (std::size_t at = 0; at < cues.size(); ++at)
+        {
+            ImGui::PushID(static_cast<int>(at));
+            if (ImGui::SmallButton("-"))
+                takeAway = at;
+
+            ImGui::SameLine();
+            edited |= inspector::drawNamed("frame", cues[at].frame);
+            edited |= inspector::drawNamed("name", cues[at].name);
+            ImGui::PopID();
+        }
+
+        bool addAsked = ImGui::SmallButton("+");
+        if (takeAway)
+            cues.erase(cues.begin() + static_cast<std::ptrdiff_t>(*takeAway));
+        else if (addAsked)
+            cues.push_back(
+                FrameCueData{frameCount == 0 ? 0 : static_cast<int>(frameCount) - 1, ""});
+
+        if (takeAway || addAsked)
+            edited |= inspector::Edited{true, true};
+
+        ImGui::TreePop();
+        return edited;
+    }
 }
 
 inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &value)
@@ -58,6 +91,7 @@ inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &val
     edited |= inspector::drawNamed("frameDuration", value.frameDuration);
     if (value.frameDuration <= 0.0f)
         value.frameDuration = 0.01f;
+    edited |= drawCues(value.cues, value.frames.size());
 
     ImGui::TreePop();
     return edited;

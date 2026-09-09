@@ -4,6 +4,8 @@
 #include "actor/decided.hpp"
 #include <cstdlib>
 #include "animations/frame_animation.hpp"
+#include <string>
+#include <vector>
 
 void Animator::animate(float deltaTime, const Decided &decided, const Observed &observed)
 {
@@ -58,4 +60,10 @@ ActorAnimationState Animator::state() const
 void Animator::add(ActorAnimationState state, const FrameAnimation &animation)
 {
     animations.insert_or_assign(state, animation);
+}
+std::vector<std::string> Animator::takeCues()
+{
+    auto playingNow = animations.find(currentState);
+    return playingNow == animations.end() ? std::vector<std::string>{}
+                                          : playingNow->second.takeCues();
 }

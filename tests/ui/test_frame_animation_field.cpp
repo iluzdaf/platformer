@@ -3,6 +3,7 @@
 #include <vector>
 #include <imgui_internal.h>
 #include "ui/data_inspector.hpp"
+#include "ui/inspector_edited.hpp"
 #include "helpers/headless_imgui.hpp"
 
 #ifndef SKIP_OPENGL_TESTS
@@ -63,6 +64,27 @@ TEST_CASE("Frames stay what they were when nothing is picked", "[FrameAnimationF
     drawsFramesAsPictures(gui, animation, true);
 
     REQUIRE(animation.frames == std::vector<int>{1, 2, 3});
+}
+
+TEST_CASE("Cues are drawn beside the frames and left as they were", "[FrameAnimationField]")
+{
+    HeadlessImGui gui;
+    FrameAnimationData animation{{0, 1, 2}, 0.1f, {{1, "onSwing"}}};
+
+    inspector::Edited edited;
+    gui.frame(
+        [&]
+        {
+            ImGui::TreeNodeSetOpen(ImGui::GetID("animation"), true);
+            ImGui::PushOverrideID(ImGui::GetID("animation"));
+            ImGui::TreeNodeSetOpen(ImGui::GetID("cues"), true);
+            ImGui::PopID();
+            edited = inspector::draw("animation", animation);
+        });
+
+    REQUIRE_FALSE(edited.whileEditing);
+    REQUIRE_FALSE(edited.onCommit);
+    REQUIRE(animation.cues == std::vector<FrameCueData>{{1, "onSwing"}});
 }
 
 #endif

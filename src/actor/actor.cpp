@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <optional>
+#include <string>
 #include <string_view>
 #include "actor/actor.hpp"
 #include "actor/actor_data.hpp"
@@ -75,6 +76,9 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, std::optional<glm::
     observations.facingLeft = actorState.facingLeft;
     actorState.currentFrame = animator.playing().frame();
     actorState.currentAnimationState = animator.state();
+
+    for (const std::string &cue : animator.takeCues())
+        onCue(cue);
 }
 
 const SheetData &Actor::drawnFrom() const

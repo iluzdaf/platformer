@@ -74,6 +74,8 @@ void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePla
                            { luaScriptSystem.emitTo(scriptOf(it->type()), "onHurt", it, it); });
         it->onDeath.connect([this, it]
                             { luaScriptSystem.emitTo(scriptOf(it->type()), "onDied", it, it); });
+        it->onCue.connect([this, it](const std::string &cue)
+                          { luaScriptSystem.emitTo(scriptOf(it->type()), cue, it, it); });
     }
 
     levelData = fromData;
@@ -114,6 +116,8 @@ void World::respawnPlayer()
     hear(player->onWallSliding, "onWallSliding");
     hear(player->onFallFromHeight, "onFallFromHeight");
     hear(player->onHitCeiling, "onHitCeiling");
+    player->onCue.connect([this, who = player.get()](const std::string &cue)
+                          { luaScriptSystem.emitTo(PlayerScript, cue, nullptr, who); });
     luaScriptSystem.bindPlayer(player.get());
 }
 

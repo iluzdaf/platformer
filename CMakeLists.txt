@@ -401,6 +401,7 @@ add_executable(tests
     tests/actor/abilities/test_wall_jump_ability.cpp
     tests/actor/test_observing.cpp
     tests/actor/test_health.cpp
+    tests/actor/test_cues.cpp
 
     tests/actor/test_actor_animations.cpp
     tests/actor/abilities/test_wall_hang_ability.cpp

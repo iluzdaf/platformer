@@ -7,6 +7,7 @@
 #include <string>
 #include "game/world.hpp"
 #include "input/input_intentions.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "player/player.hpp"
@@ -516,4 +517,74 @@ TEST_CASE("Bumping into an npc that bites costs the player a point", "[World]")
     walkFor(world, 3);
 
     REQUIRE(world.getPlayer().health().points() == 2);
+}
+
+TEST_CASE("A cue reaches the player's script by its name", "[World][Cues]")
+{
+    std::filesystem::path shared =
+        std::filesystem::temp_directory_path() / "platformer_world_cue.lua";
+    std::ofstream(shared) << "seen = {steps = 0}\n";
+    std::filesystem::path playerScript =
+        std::filesystem::temp_directory_path() / "platformer_world_cue_player.lua";
+    std::ofstream(playerScript)
+        << "return { onFootstep = function(who) seen.steps = seen.steps + 1; seen.alive = "
+           "who:alive() end }\n";
+
+    GameData gameData = aFloorWorldWithCoins();
+    gameData.playerData.actorData.animationData.idle =
+        FrameAnimationData{{0, 1}, 0.05f, {{0, "onFootstep"}}};
+    gameData.playerData.script = playerScript.string();
+    LuaScriptSystem luaScriptSystem(shared.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_cue");
+    levels.write("floor.json", aFloorLevelPlacing({}));
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    for (int step = 0; step < 50; ++step)
+    {
+        world.beginFrame();
+        world.fixedUpdate(0.01f);
+        world.postFixedUpdate();
+    }
+
+    sol::table seen = luaScriptSystem.getLua()["seen"];
+    REQUIRE(seen["steps"].get<int>() >= 1);
+    REQUIRE(seen["alive"].get<bool>());
+}
+
+TEST_CASE("A cue reaches the creature's own script, not the player's", "[World][Cues]")
+{
+    std::filesystem::path shared =
+        std::filesystem::temp_directory_path() / "platformer_world_cue_npc.lua";
+    std::ofstream(shared) << "seen = {}\n";
+    std::filesystem::path playerScript =
+        std::filesystem::temp_directory_path() / "platformer_world_cue_npc_player.lua";
+    std::ofstream(playerScript) << "return { onSkitter = function(who) seen.wrong = true end }\n";
+    std::filesystem::path ratScript =
+        std::filesystem::temp_directory_path() / "platformer_world_cue_npc_rat.lua";
+    std::ofstream(ratScript) << "return { onSkitter = function(rat) seen.who = rat:type() end }\n";
+
+    GameData gameData = aFloorWorldWithCoins();
+    gameData.playerData.script = playerScript.string();
+    NpcData rat = setupNpcData();
+    rat.actorData.animationData.idle = FrameAnimationData{{0}, 0.05f, {{0, "onSkitter"}}};
+    rat.script = ratScript.string();
+    gameData.npcData = {{"rat", rat}};
+    LuaScriptSystem luaScriptSystem(shared.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_cue_npc");
+    levels.write(
+        "floor.json", aFloorLevelPlacing({spawnAt("rat", glm::ivec2(3, FloorLevelStanding))}));
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    for (int step = 0; step < 50; ++step)
+    {
+        world.beginFrame();
+        world.fixedUpdate(0.01f);
+        world.postFixedUpdate();
+    }
+
+    sol::table seen = luaScriptSystem.getLua()["seen"];
+    REQUIRE(seen["who"].get<std::string>() == "rat");
+    REQUIRE_FALSE(seen["wrong"].valid());
 }

@@ -142,3 +142,14 @@ TEST_CASE("A level file lays its grid out and keeps its leaves compact", "[OnlyW
                              "    \"nextLevel\":\"levels/level2.json\"\n"
                              "}");
 }
+
+TEST_CASE("A clip is written with its cues, and without them when it has none", "[OnlyWhatDiffers]")
+{
+    FrameAnimationData quiet{{1, 2}, 0.5f};
+    FrameAnimationData cueing{{1, 2}, 0.5f, {{1, "onSwing"}}};
+
+    REQUIRE(onlyWhatDiffers(quiet) == R"({"frames":[1,2],"frameDuration":0.5})");
+    REQUIRE(
+        onlyWhatDiffers(cueing) ==
+        R"({"frames":[1,2],"frameDuration":0.5,"cues":[{"frame":1,"name":"onSwing"}]})");
+}

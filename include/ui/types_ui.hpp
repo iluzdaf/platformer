@@ -14,6 +14,7 @@
 #include "player/player_data.hpp"
 
 struct LevelData;
+class Level;
 class TextureCache;
 struct EditorCommands;
 struct SheetInScope;
@@ -33,7 +34,11 @@ public:
         WritePickups writePickups = savePickupData,
         WritePlayer writePlayer = savePlayerData);
 
-    void draw(GameData &gameData, const TextureCache &textures, EditorCommands &commands);
+    void draw(
+        GameData &gameData,
+        const TextureCache &textures,
+        EditorCommands &commands,
+        const Level *live = nullptr);
     bool save(GameData &gameData, LevelData &playing);
     void revert(GameData &gameData);
     bool unsavedSince(const GameData &gameData);
@@ -44,7 +49,11 @@ public:
 private:
     void drawChooser(GameData &gameData);
     void drawRename(const GameData &gameData);
-    void drawShown(GameData &gameData, const TextureCache &textures, EditorCommands &commands);
+    void drawShown(
+        GameData &gameData,
+        const TextureCache &textures,
+        EditorCommands &commands,
+        const Level *live);
     void drawActorPreview(const SheetInScope &scope, const ActorData &actorData);
 
     std::string levelsDirectory;

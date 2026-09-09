@@ -26,6 +26,8 @@
 #include "game/level_data_file.hpp"
 #include "helpers/asset_path.hpp"
 #include "helpers/temporary_levels.hpp"
+#include "helpers/npc_fixtures.hpp"
+#include "helpers/levels.hpp"
 
 namespace
 {
@@ -89,6 +91,22 @@ TEST_CASE("The types section draws with nothing picked", "[TypesUi]")
     TextureCache textures;
     EditorCommands commands;
 
+    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands); }));
+}
+
+TEST_CASE(
+    "The shown npc's machine draws, lit by the creatures of its type in the level",
+    "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = loadGameData();
+    Level level = levelWithALedgeAndAWall({spawnAt("rat", LedgeRightEnd)});
+    TextureCache textures;
+    EditorCommands commands;
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
+
+    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands, &level); }));
     REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands); }));
 }
 

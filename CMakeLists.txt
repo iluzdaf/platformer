@@ -139,6 +139,8 @@ add_library(platformer_lib OBJECT
     src/ui/navigation_overlay.cpp
     src/ui/navigation_ui.cpp
     src/ui/actors_in_level.cpp
+    src/ui/state_machine_shown.cpp
+    src/ui/state_machine_graph.cpp
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/touching_tiles.cpp
@@ -308,6 +310,7 @@ add_executable(tests
     tests/ui/test_level_ui_update.cpp
     tests/ui/test_actors_in_level.cpp
     tests/ui/test_navigation_shown.cpp
+    tests/ui/test_state_machine_shown.cpp
     tests/ui/test_tile_map_overlays.cpp
     tests/ui/test_unsaved_sections.cpp
     tests/ui/test_editor_saving.cpp

@@ -33,37 +33,43 @@ namespace
             "alive",
             "dead",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.observed.alive; }},
+            { return yes(asked) == facts.observed.alive; },
+            ""},
         Row{"knockback",
             AskedKind::YesOrNo,
             "knocked back",
             "not knocked back",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.knockback.active; }},
+            { return yes(asked) == facts.decided.knockback.active; },
+            "knockback"},
         Row{"swinging",
             AskedKind::YesOrNo,
             "swinging",
             "not swinging",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.swing.swinging(); }},
+            { return yes(asked) == facts.decided.swing.swinging(); },
+            ""},
         Row{"dashing",
             AskedKind::YesOrNo,
             "dashing",
             "not dashing",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.dash.active; }},
+            { return yes(asked) == facts.decided.dash.active; },
+            "dash"},
         Row{"pouncing",
             AskedKind::YesOrNo,
             "pouncing",
             "not pouncing",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.pounce.active; }},
+            { return yes(asked) == facts.decided.pounce.active; },
+            "pounce"},
         Row{"onGround",
             AskedKind::YesOrNo,
             "on ground",
             "in the air",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.observed.contacts.onGround; }},
+            { return yes(asked) == facts.observed.contacts.onGround; },
+            ""},
         Row{"climbing",
             AskedKind::YesOrNo,
             "climbing",
@@ -73,7 +79,8 @@ namespace
                 bool climbing =
                     facts.decided.wallHang.active && facts.decided.wallClimb.velocity.y != 0.0f;
                 return yes(asked) == climbing;
-            }},
+            },
+            "wallHang"},
         Row{"onWall",
             AskedKind::YesOrNo,
             "on a wall",
@@ -82,37 +89,43 @@ namespace
             {
                 bool onWall = facts.decided.wallSlide.active || facts.decided.wallHang.active;
                 return yes(asked) == onWall;
-            }},
+            },
+            "wallSlide"},
         Row{"rising",
             AskedKind::YesOrNo,
             "rising",
             "not rising",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == (facts.observed.velocity.y < 0.0f); }},
+            { return yes(asked) == (facts.observed.velocity.y < 0.0f); },
+            ""},
         Row{"falling",
             AskedKind::YesOrNo,
             "falling",
             "not falling",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == (facts.observed.velocity.y > 0.0f); }},
+            { return yes(asked) == (facts.observed.velocity.y > 0.0f); },
+            ""},
         Row{"moving",
             AskedKind::YesOrNo,
             "moving",
             "still",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == (std::abs(facts.observed.velocity.x) > StandingStill); }},
+            { return yes(asked) == (std::abs(facts.observed.velocity.x) > StandingStill); },
+            ""},
         Row{"finished",
             AskedKind::YesOrNo,
             "clip finished",
             "clip playing",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.finished; }},
+            { return yes(asked) == facts.finished; },
+            ""},
         Row{"inState",
             AskedKind::Name,
             "in state",
             "",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return std::get<std::string>(asked) == facts.inState; }},
+            { return std::get<std::string>(asked) == facts.inState; },
+            ""},
     };
 }
 

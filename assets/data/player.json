@@ -14,7 +14,7 @@
             "mantleAbilityData":{},
             "gravityAbilityData":{},
             "knockbackAbilityData":{},
-            "meleeAbilityData":{}
+            "swingAbilityData":{}
         },
         "animationData":{
             "idle":{"frames":[0,1],"frameDuration":0.6},

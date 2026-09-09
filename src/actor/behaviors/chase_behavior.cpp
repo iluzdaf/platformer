@@ -34,7 +34,7 @@ bool ChaseBehavior::caughtUp(const ActorBehaviorContext &context) const
 
     float reach = context.colliderSize.x * 0.5f + data.arrivalThreshold;
 
-    return std::abs(context.threatFeet->x - context.feet.x) <= reach;
+    return std::abs(context.threatFeet->x - context.feet.x) <= std::max(reach, data.standoff);
 }
 
 bool ChaseBehavior::threatHasMoved(const ActorBehaviorContext &context) const

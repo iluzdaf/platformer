@@ -194,6 +194,7 @@ add_library(platformer_lib OBJECT
     src/actor/behaviors/chase_behavior.cpp
     src/actor/behaviors/flee_behavior.cpp
     src/actor/behaviors/patrol_behavior.cpp
+    src/actor/behaviors/attack_behavior.cpp
     src/actor/behaviors/route_walker.cpp
     src/actor/behaviors/state_machine_behavior.cpp
     src/npc/npc.cpp
@@ -203,7 +204,8 @@ add_library(platformer_lib OBJECT
     src/actor/abilities/jump_ability.cpp
     src/actor/abilities/dash_ability.cpp
     src/actor/abilities/knockback_ability.cpp
-    src/actor/abilities/melee_ability.cpp
+    src/actor/abilities/swing_ability.cpp
+    src/actor/abilities/pounce_ability.cpp
 
     src/actor/abilities/move_ability.cpp
     src/actor/abilities/wall_slide_ability.cpp
@@ -365,6 +367,7 @@ add_executable(tests
     tests/actor/behaviors/test_chase_behavior.cpp
     tests/actor/behaviors/test_flee_behavior.cpp
     tests/actor/behaviors/test_patrol_behavior.cpp
+    tests/actor/behaviors/test_attack_behavior.cpp
     tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
@@ -394,7 +397,8 @@ add_executable(tests
     tests/actor/abilities/test_jump_ability.cpp
     tests/actor/abilities/test_dash_ability.cpp
     tests/actor/abilities/test_knockback_ability.cpp
-    tests/actor/abilities/test_melee_ability.cpp
+    tests/actor/abilities/test_swing_ability.cpp
+    tests/actor/abilities/test_pounce_ability.cpp
 
     tests/actor/abilities/test_move_ability.cpp
     tests/actor/abilities/test_wall_slide_ability.cpp

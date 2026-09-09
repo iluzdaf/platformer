@@ -8,7 +8,7 @@
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
-#include "actor/abilities/melee_ability_data.hpp"
+#include "actor/abilities/swing_ability_data.hpp"
 #include <string>
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/wall_climb_ability_data.hpp"
@@ -80,7 +80,7 @@ inline PlayerData playerDataWithEveryAbility()
     playerData.actorData.motionData.mantleAbilityData = MantleAbilityData();
     playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
     playerData.actorData.motionData.knockbackAbilityData = KnockbackAbilityData();
-    playerData.actorData.motionData.meleeAbilityData = MeleeAbilityData();
+    playerData.actorData.motionData.swingAbilityData = SwingAbilityData();
     playerData.actorData.animationData.attack = anAttackClip();
     return playerData;
 }

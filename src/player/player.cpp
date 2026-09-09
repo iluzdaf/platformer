@@ -28,7 +28,7 @@ void Player::postFixedUpdate()
     if (decided().dash.emit)
         onDash();
 
-    if (decided().melee.emit)
+    if (decided().swing.emit)
         onAttack();
 
     if (decided().wallJump.emit)

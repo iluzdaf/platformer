@@ -6,6 +6,7 @@
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
 
 struct BehaviorStateData
 {
@@ -13,6 +14,8 @@ struct BehaviorStateData
     std::optional<PatrolBehaviorData> patrolBehaviorData;
     std::optional<FleeBehaviorData> fleeBehaviorData;
     std::optional<ChaseBehaviorData> chaseBehaviorData;
+    std::optional<AttackBehaviorData> attackBehaviorData;
+    float cooldown = 0.0f;
 
     bool operator==(const BehaviorStateData &) const = default;
 };
@@ -25,6 +28,7 @@ struct BehaviorTransitionData
     std::optional<float> threatBeyond;
     std::optional<bool> threatOnMySurface;
     float after = 0.0f;
+    std::optional<bool> onGround = std::nullopt;
 
     bool operator==(const BehaviorTransitionData &) const = default;
 };

@@ -7,7 +7,7 @@
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "actor/decided.hpp"
-#include "actor/abilities/melee_ability_state.hpp"
+#include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
 
 namespace
@@ -92,7 +92,7 @@ TEST_CASE("A swing shows the attack, and a corpse shows dead, over everything el
     animator.add(ActorAnimationState::Dead, animationOfFrame(4));
     Decided swingingWhileDashing;
     swingingWhileDashing.dash.active = true;
-    swingingWhileDashing.melee.phase = MeleePhase::Windup;
+    swingingWhileDashing.swing.phase = SwingPhase::Windup;
 
     animator.animate(0.01f, swingingWhileDashing, walkingOnGround());
     REQUIRE(animator.state() == ActorAnimationState::Attack);
@@ -112,7 +112,7 @@ TEST_CASE("A knockback shows over a swing, a dash and the ground", "[Animator]")
     animator.add(ActorAnimationState::Knockback, animationOfFrame(5));
     Decided pushedWhileSwinging;
     pushedWhileSwinging.dash.active = true;
-    pushedWhileSwinging.melee.phase = MeleePhase::Windup;
+    pushedWhileSwinging.swing.phase = SwingPhase::Windup;
     pushedWhileSwinging.knockback.active = true;
 
     animator.animate(0.01f, pushedWhileSwinging, walkingOnGround());

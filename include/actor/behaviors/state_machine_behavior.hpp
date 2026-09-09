@@ -24,6 +24,7 @@ public:
     std::string_view getStateName() const override;
     std::optional<int> getCurrentNodeId() const override;
     std::optional<int> getTargetNodeId() const override;
+    float secondsSinceLeaving(std::string_view state) const;
 
 private:
     StateMachineBehaviorData data;
@@ -31,6 +32,7 @@ private:
     std::vector<std::unique_ptr<ActorBehavior>> states;
     std::size_t activeState = 0;
     std::vector<float> heldFor;
+    std::vector<float> sinceLeft;
 
     std::optional<std::size_t> stateNamed(const std::string &name) const;
     void enter(std::size_t state);

@@ -1,5 +1,7 @@
 #include <GLFW/glfw3.h>
 #include "input/keyboard_intentions.hpp"
+#include "actor/abilities/swing_ability_data.hpp"
+#include <string>
 #include "input/keys_down.hpp"
 
 KeyboardIntentions::KeyboardIntentions()
@@ -21,7 +23,8 @@ void KeyboardIntentions::process(const KeysDown &keysDown)
     intentions.jumpRequested = keys.isPressed(GLFW_KEY_C);
     intentions.jumpHeld = keys.isDown(GLFW_KEY_C);
     intentions.dashRequested = keys.isPressed(GLFW_KEY_X);
-    intentions.attackRequested = keys.isPressed(GLFW_KEY_V);
+    if (keys.isPressed(GLFW_KEY_V))
+        intentions.attack = std::string(SwingAttack);
     intentions.climbRequested = keys.isDown(GLFW_KEY_Z);
     intentions.direction = {
         keys.isDown(GLFW_KEY_LEFT) ? -1.0f : (keys.isDown(GLFW_KEY_RIGHT) ? 1.0f : 0.0f),

@@ -3,7 +3,7 @@
 #include "input/intention_source.hpp"
 #include "actor/actor_state.hpp"
 #include "actor/decided.hpp"
-#include "actor/abilities/melee_ability_data.hpp"
+#include "actor/abilities/swing_ability_data.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <algorithm>
 #include <string>
@@ -97,7 +97,7 @@ namespace
             InputIntentions intentions;
             if (armed && !pressed)
             {
-                intentions.attackRequested = true;
+                intentions.attack = std::string(SwingAttack);
                 pressed = true;
             }
             return intentions;
@@ -131,10 +131,10 @@ TEST_CASE("A swing strikes one tick behind the frame that shows the blade", "[Ac
         INFO(
             "step " << step << ": shown last tick " << shownLastTick << ", now "
                     << player.state().currentFrame);
-        if (player.decided().melee.swinging())
-            REQUIRE(player.decided().melee.striking() == (shownLastTick == 13));
-        ticksStriking += player.decided().melee.striking();
-        if (step > 5 && !player.decided().melee.swinging())
+        if (player.decided().swing.swinging())
+            REQUIRE(player.decided().swing.striking() == (shownLastTick == 13));
+        ticksStriking += player.decided().swing.striking();
+        if (step > 5 && !player.decided().swing.swinging())
             rested = true;
         shownLastTick = player.state().currentFrame;
     }

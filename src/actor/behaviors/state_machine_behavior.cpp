@@ -10,6 +10,7 @@
 #include "actor/behaviors/chase_behavior.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
+#include "actor/behaviors/attack_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_place.hpp"
@@ -35,6 +36,9 @@ namespace
                 return false;
         }
 
+        if (transition.onGround && context.contacts.onGround != *transition.onGround)
+            return false;
+
         if (transition.threatOnMySurface)
         {
             bool sharing = context.threatFeet &&
@@ -51,7 +55,7 @@ namespace
 StateMachineBehavior::StateMachineBehavior(
     const StateMachineBehaviorData &data,
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
-    : data(data), heldFor(data.transitions.size(), 0.0f)
+    : data(data), heldFor(data.transitions.size(), 0.0f), sinceLeft(data.states.size(), 1e9f)
 {
     for (const BehaviorStateData &state : this->data.states)
     {
@@ -62,6 +66,8 @@ StateMachineBehavior::StateMachineBehavior(
             states.push_back(std::make_unique<FleeBehavior>(*state.fleeBehaviorData));
         else if (state.chaseBehaviorData)
             states.push_back(std::make_unique<ChaseBehavior>(*state.chaseBehaviorData));
+        else if (state.attackBehaviorData)
+            states.push_back(std::make_unique<AttackBehavior>(*state.attackBehaviorData));
         else
             states.push_back(nullptr);
     }
@@ -78,6 +84,7 @@ std::optional<std::size_t> StateMachineBehavior::stateNamed(const std::string &n
 
 void StateMachineBehavior::enter(std::size_t state)
 {
+    sinceLeft[activeState] = 0.0f;
     activeState = state;
     heldFor.assign(data.transitions.size(), 0.0f);
 
@@ -119,6 +126,9 @@ void StateMachineBehavior::takeATransition(float deltaTime, const ActorBehaviorC
         if (!destination || *destination == activeState)
             continue;
 
+        if (sinceLeft[*destination] < data.states[*destination].cooldown)
+            continue;
+
         enter(*destination);
         return;
     }
@@ -128,6 +138,9 @@ InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorBehavio
 {
     if (states.empty())
         return InputIntentions();
+
+    for (float &since : sinceLeft)
+        since += deltaTime;
 
     takeATransition(deltaTime, context);
 
@@ -150,4 +163,10 @@ std::optional<int> StateMachineBehavior::getCurrentNodeId() const
 std::optional<int> StateMachineBehavior::getTargetNodeId() const
 {
     return states.empty() ? std::nullopt : states[activeState]->getTargetNodeId();
+}
+
+float StateMachineBehavior::secondsSinceLeaving(std::string_view state) const
+{
+    std::optional<std::size_t> which = stateNamed(std::string(state));
+    return which ? sinceLeft[*which] : 0.0f;
 }

@@ -12,7 +12,8 @@
 #include "actor/abilities/mantle_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "actor/abilities/knockback_ability.hpp"
-#include "actor/abilities/melee_ability.hpp"
+#include "actor/abilities/swing_ability.hpp"
+#include "actor/abilities/pounce_ability.hpp"
 #include <memory>
 
 Abilities::Abilities(const ActorMotionData &data)
@@ -35,10 +36,12 @@ Abilities::Abilities(const ActorMotionData &data)
         abilities.push_back(std::make_unique<MantleAbility>(data.mantleAbilityData.value()));
     if (data.gravityAbilityData)
         abilities.push_back(std::make_unique<GravityAbility>(data.gravityAbilityData.value()));
+    if (data.pounceAbilityData)
+        abilities.push_back(std::make_unique<PounceAbility>(data.pounceAbilityData.value()));
     if (data.knockbackAbilityData)
         abilities.push_back(std::make_unique<KnockbackAbility>(data.knockbackAbilityData.value()));
-    if (data.meleeAbilityData)
-        abilities.push_back(std::make_unique<MeleeAbility>(data.meleeAbilityData.value()));
+    if (data.swingAbilityData)
+        abilities.push_back(std::make_unique<SwingAbility>(data.swingAbilityData.value()));
 }
 
 void Abilities::decide(
@@ -57,6 +60,8 @@ void Abilities::decide(
         finalVelocity = decided.dash.velocity;
     else if (decided.mantle.active)
         finalVelocity = decided.mantle.velocity;
+    else if (decided.pounce.active)
+        finalVelocity = decided.pounce.velocity;
     else
     {
         finalVelocity.x = decided.move.velocity.x;

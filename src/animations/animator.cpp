@@ -15,7 +15,7 @@ void Animator::animate(float deltaTime, const Decided &decided, const Observed &
         newState = ActorAnimationState::Dead;
     else if (decided.knockback.active)
         newState = ActorAnimationState::Knockback;
-    else if (decided.melee.swinging())
+    else if (decided.swing.swinging())
         newState = ActorAnimationState::Attack;
     else if (decided.dash.active)
         newState = ActorAnimationState::Dash;

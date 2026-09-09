@@ -1,5 +1,9 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
+#include "actor/abilities/pounce_ability_data.hpp"
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <cmath>
 #include <map>
@@ -562,4 +566,35 @@ TEST_CASE("An npc with no beat at all walks past where a beat would turn it", "[
     Level freed = levelWithALedgeAndAWall({spawnAt("rat", LedgeRightEnd)});
 
     REQUIRE(leftmostReached(freed, 600) < leftmostReached(kept, 600));
+}
+
+namespace
+{
+    NpcData aCreatureWhoseStateAttacksWith(const char *with, bool ablePounce)
+    {
+        NpcData data = setupNpcData();
+        if (ablePounce)
+            data.actorData.motionData.pounceAbilityData = PounceAbilityData{};
+        BehaviorStateData attacking;
+        attacking.name = "attack";
+        attacking.attackBehaviorData = AttackBehaviorData{with};
+        data.stateMachineBehaviorData->states.push_back(attacking);
+        return data;
+    }
+}
+
+TEST_CASE("A creature whose state attacks with something it cannot do is refused", "[Npc]")
+{
+    REQUIRE_THROWS_WITH(
+        Npc(spawnAt("rat", SpawnTile), aCreatureWhoseStateAttacksWith("pounce", false)),
+        Catch::Matchers::ContainsSubstring("pounce") &&
+            Catch::Matchers::ContainsSubstring("no such ability"));
+    REQUIRE_THROWS_WITH(
+        Npc(spawnAt("rat", SpawnTile), aCreatureWhoseStateAttacksWith("headbutt", true)),
+        Catch::Matchers::ContainsSubstring("headbutt"));
+}
+
+TEST_CASE("A creature whose state attacks with an ability it has is welcome", "[Npc]")
+{
+    REQUIRE_NOTHROW(Npc(spawnAt("rat", SpawnTile), aCreatureWhoseStateAttacksWith("pounce", true)));
 }

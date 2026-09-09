@@ -86,7 +86,7 @@ namespace
         drawRow("Wall Jumping", decided.wallJump.active ? "true" : "false");
         drawRow("Dashing", decided.dash.active ? "true" : "false");
         drawRow("Hanging", decided.wallHang.active ? "true" : "false");
-        drawRow("Swinging", decided.melee.swinging() ? "true" : "false");
+        drawRow("Swinging", decided.swing.swinging() ? "true" : "false");
         drawRow("Animation", toString(state.currentAnimationState));
     }
 

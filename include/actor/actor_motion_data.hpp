@@ -11,7 +11,8 @@
 #include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/knockback_ability_data.hpp"
-#include "actor/abilities/melee_ability_data.hpp"
+#include "actor/abilities/swing_ability_data.hpp"
+#include "actor/abilities/pounce_ability_data.hpp"
 
 struct ActorMotionData
 {
@@ -25,7 +26,8 @@ struct ActorMotionData
     std::optional<MantleAbilityData> mantleAbilityData;
     std::optional<GravityAbilityData> gravityAbilityData;
     std::optional<KnockbackAbilityData> knockbackAbilityData;
-    std::optional<MeleeAbilityData> meleeAbilityData;
+    std::optional<SwingAbilityData> swingAbilityData;
+    std::optional<PounceAbilityData> pounceAbilityData;
 
     bool operator==(const ActorMotionData &) const = default;
 };

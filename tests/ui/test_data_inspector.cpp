@@ -21,6 +21,8 @@
 #include "ui/sheet_in_scope.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 
 namespace
 {
@@ -251,4 +253,18 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(gui.frame([&] { inspector::drawFields(chasing); }));
     REQUIRE(std::holds_alternative<ChaseBehaviorData>(chasing.does));
+}
+
+TEST_CASE("An actor's animation data draws as a graph of its clips and rungs", "[DataInspector]")
+{
+    HeadlessImGui gui;
+    ActorAnimationData animations;
+    animations.clips["idle"] = FrameAnimationData{{0}, 0.5f};
+    animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
+    AnimationWhen moving;
+    moving.moving = true;
+    animations.ladder = AnimatorData{{{"", "walk", moving}}};
+
+    REQUIRE_NOTHROW(gui.frame([&] { inspector::draw("animationData", animations); }));
+    REQUIRE(animations.clips.size() == 2);
 }

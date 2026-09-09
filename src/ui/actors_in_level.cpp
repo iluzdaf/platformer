@@ -23,6 +23,8 @@
 #include "npc/npc_spawn_data.hpp"
 #include "game/beat_between.hpp"
 #include "ui/state_machine_graph.hpp"
+#include "ui/animator_field.hpp"
+#include "actor/actor_data.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "tile_map/tile_map.hpp"
 
@@ -135,6 +137,19 @@ namespace
 
         if (ImGui::CollapsingHeader("Machine", ImGuiTreeNodeFlags_DefaultOpen))
             drawStateMachineGraph(machine.value(), {std::string(npc.stateName())}, MachineShown{});
+    }
+
+    void drawAnimatorOf(const std::map<std::string, NpcData> &npcTypes, const Npc &npc)
+    {
+        auto type = npcTypes.find(npc.type());
+        if (type == npcTypes.end())
+            return;
+
+        if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
+            drawAnimatorGraph(
+                type->second.actorData.animationData,
+                {npc.state().currentAnimation},
+                MachineShown{});
     }
 
     void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)
@@ -318,6 +333,7 @@ ActorAsked drawActorsInLevel(
         }
 
         drawMachineOf(npcTypes, *npc);
+        drawAnimatorOf(npcTypes, *npc);
         break;
     }
 

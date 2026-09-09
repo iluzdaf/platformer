@@ -1,0 +1,51 @@
+#pragma once
+
+#include <cstddef>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <vector>
+#include "ui/state_machine_shown.hpp"
+
+struct StateMachineBehaviorData;
+struct ActorAnimationData;
+struct AnimationWhen;
+
+inline constexpr std::string_view AnyNode = "any";
+
+struct GraphNode
+{
+    std::string name;
+    std::string words;
+
+    bool operator==(const GraphNode &) const = default;
+};
+
+struct GraphEdge
+{
+    std::string from;
+    std::string to;
+    std::string words;
+
+    bool operator==(const GraphEdge &) const = default;
+};
+
+struct GraphShown
+{
+    std::vector<GraphNode> nodes;
+    std::vector<GraphEdge> edges;
+
+    bool operator==(const GraphShown &) const = default;
+};
+
+std::optional<std::size_t> indexOfNode(const GraphShown &graph, std::string_view name);
+
+bool goesBothWays(const GraphShown &graph, const GraphEdge &edge);
+
+MachineShown stillAmong(MachineShown shown, const GraphShown &graph);
+
+std::string whenOf(const AnimationWhen &when);
+
+GraphShown graphOf(const StateMachineBehaviorData &machine);
+
+GraphShown graphOf(const ActorAnimationData &animations);

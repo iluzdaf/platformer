@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
+#include "game/level_path_data.hpp"
 
 struct LevelsData
 {
-    std::string first;
+    LevelPathData first;
 };

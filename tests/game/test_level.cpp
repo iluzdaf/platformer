@@ -248,7 +248,7 @@ TEST_CASE("Actors that navigate alike share a graph, and it says so", "[Level]")
 TEST_CASE("A level names the level its data points at next", "[Level]")
 {
     LevelData levelData = corridorPlacing({});
-    levelData.nextLevel = "levels/level4.json";
+    levelData.nextLevel.path = "levels/level4.json";
 
     REQUIRE(levelOf(levelData).getNextLevel() == "levels/level4.json");
 }
@@ -256,7 +256,7 @@ TEST_CASE("A level names the level its data points at next", "[Level]")
 TEST_CASE("A level whose data names no level next is refused", "[Level]")
 {
     LevelData levelData = corridorPlacing({});
-    levelData.nextLevel.clear();
+    levelData.nextLevel.path.clear();
 
     REQUIRE_THROWS(levelOf(levelData));
 }

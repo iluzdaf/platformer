@@ -10,7 +10,7 @@
 
 TEST_CASE("The game data names the level the game starts on", "[Levels]")
 {
-    REQUIRE_FALSE(loadGameData().levels.first.empty());
+    REQUIRE_FALSE(loadGameData().levels.first.path.empty());
 }
 
 TEST_CASE("The level the game starts on survives being written and read", "[Levels]")

@@ -35,14 +35,14 @@ namespace
         void editInMemory()
         {
             LevelData edited = world.getLevelData();
-            edited.nextLevel = "edited in memory";
+            edited.nextLevel.path = "edited in memory";
             world.rebuildFrom(edited);
         }
 
         void changeOnDisk()
         {
             LevelData changed = readLevelData(levelPath);
-            changed.nextLevel = "changed on disk";
+            changed.nextLevel.path = "changed on disk";
             writeLevelData(changed, levelPath);
         }
     };
@@ -55,7 +55,7 @@ TEST_CASE("A level file that changed is followed while the level is clean", "[Re
 
     reloads::levelChanged(playing.world, playing.editorUi, playing.levelPath);
 
-    REQUIRE(playing.world.getLevelData().nextLevel == "changed on disk");
+    REQUIRE(playing.world.getLevelData().nextLevel.path == "changed on disk");
 }
 
 TEST_CASE("A level file that changed leaves unsaved edits alone", "[Reloads]")
@@ -66,7 +66,7 @@ TEST_CASE("A level file that changed leaves unsaved edits alone", "[Reloads]")
 
     reloads::levelChanged(playing.world, playing.editorUi, playing.levelPath);
 
-    REQUIRE(playing.world.getLevelData().nextLevel == "edited in memory");
+    REQUIRE(playing.world.getLevelData().nextLevel.path == "edited in memory");
 }
 
 TEST_CASE("Game data changing reloads a clean level from disk", "[Reloads]")
@@ -76,7 +76,7 @@ TEST_CASE("Game data changing reloads a clean level from disk", "[Reloads]")
 
     reloads::gameDataChanged(playing.world, playing.editorUi, playing.gameData, playing.gameData);
 
-    REQUIRE(playing.world.getLevelData().nextLevel == "changed on disk");
+    REQUIRE(playing.world.getLevelData().nextLevel.path == "changed on disk");
 }
 
 TEST_CASE("Game data changing rebuilds a level with unsaved edits from memory", "[Reloads]")
@@ -87,7 +87,7 @@ TEST_CASE("Game data changing rebuilds a level with unsaved edits from memory", 
 
     reloads::gameDataChanged(playing.world, playing.editorUi, playing.gameData, playing.gameData);
 
-    REQUIRE(playing.world.getLevelData().nextLevel == "edited in memory");
+    REQUIRE(playing.world.getLevelData().nextLevel.path == "edited in memory");
 }
 
 TEST_CASE("Game data changing takes the disk for sections that are clean", "[Reloads]")
@@ -110,5 +110,5 @@ TEST_CASE("Game data changing before any level is played loads the first", "[Rel
 
     reloads::gameDataChanged(world, editorUi, gameData, gameData);
 
-    REQUIRE(world.getLevelPath() == gameData.levels.first);
+    REQUIRE(world.getLevelPath() == gameData.levels.first.path);
 }

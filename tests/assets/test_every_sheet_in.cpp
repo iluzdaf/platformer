@@ -38,7 +38,7 @@ namespace
     std::vector<std::string> texturesIn(const shaped::Everywhere &data)
     {
         std::vector<std::string> found;
-        everySheetIn(data, [&](const SheetData &sheet) { found.push_back(sheet.texture); });
+        everySheetIn(data, [&](const SheetData &sheet) { found.push_back(sheet.texture.path); });
 
         return found;
     }
@@ -51,13 +51,13 @@ namespace
     shaped::Everywhere aSheetInEveryShape()
     {
         shaped::Everywhere data;
-        data.mine.texture = "mine.png";
-        data.nested.sheet.texture = "nested.png";
+        data.mine.texture.path = "mine.png";
+        data.nested.sheet.texture.path = "nested.png";
         data.perhaps = shaped::Held{};
-        data.perhaps->sheet.texture = "perhaps.png";
+        data.perhaps->sheet.texture.path = "perhaps.png";
         data.several.push_back(shaped::Held{});
-        data.several.back().sheet.texture = "several.png";
-        data.named["one"].sheet.texture = "named.png";
+        data.several.back().sheet.texture.path = "several.png";
+        data.named["one"].sheet.texture.path = "named.png";
         data.plain.name = "not a sheet";
 
         return data;
@@ -84,7 +84,7 @@ TEST_CASE("Data naming no sheet at all is walked without one", "[EverySheetIn]")
 {
     std::vector<std::string> found;
     everySheetIn(
-        shaped::Nowhere{}, [&](const SheetData &sheet) { found.push_back(sheet.texture); });
+        shaped::Nowhere{}, [&](const SheetData &sheet) { found.push_back(sheet.texture.path); });
 
     REQUIRE(found.empty());
 }

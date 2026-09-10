@@ -3,6 +3,7 @@
 #include <string>
 #include <imgui.h>
 #include "ui/levels_ui.hpp"
+#include "ui/file_chooser.hpp"
 #include "ui/switching_level.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "ui/saveable.hpp"
@@ -66,8 +67,7 @@ void LevelsUi::draw(
 
     ImGui::Separator();
 
-    if (std::optional<std::string> first = levelChooser("first", levels.first))
-        levels.first = *first;
+    drawFileChooser("first", levels.first.path, directoryOf(levelPath), ".json");
 }
 void LevelsUi::revert(LevelsData &levels)
 {

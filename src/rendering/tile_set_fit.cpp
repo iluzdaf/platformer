@@ -35,14 +35,14 @@ void checkTileSetFits(
     int cells = tilesInSheet(textureWidth, textureHeight, tileSet.cellSize.x);
     if (cells <= 0)
         throw std::runtime_error(
-            "Tile set \"" + tileSet.texture + "\" holds no whole tiles at " +
+            "Tile set \"" + tileSet.texture.path + "\" holds no whole tiles at " +
             std::to_string(tileSet.cellSize.x) + " across" + named(whose));
     for (const auto &[tileIndex, tileData] : palette.tiles)
     {
         if (tileIndex >= cells)
             throw std::runtime_error(
                 "Tile " + std::to_string(tileIndex) + " is past the " + std::to_string(cells) +
-                " tiles of \"" + tileSet.texture + "\"" + named(whose));
+                " tiles of \"" + tileSet.texture.path + "\"" + named(whose));
 
         if (tileData.animationData)
             checkFramesFit(

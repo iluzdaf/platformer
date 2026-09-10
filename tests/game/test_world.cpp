@@ -348,7 +348,7 @@ TEST_CASE("The player's signals reach the script by their hook names", "[World]"
            "}\n";
     GameData gameData = aFloorWorldWithCoins();
     gameData.playerData = playerDataWithHealth(2, 0.0f);
-    gameData.playerData.script = playerScript.string();
+    gameData.playerData.script.path = playerScript.string();
     LuaScriptSystem luaScriptSystem(script.string());
     World world(gameData, noIntentions(), luaScriptSystem);
     TemporaryLevels levels("world_hurt");
@@ -379,9 +379,9 @@ TEST_CASE("A creature named like the player does not answer for it", "[World]")
 
     GameData gameData = aFloorWorldWithCoins();
     gameData.playerData = playerDataWithHealth(3, 0.0f);
-    gameData.playerData.script = playerScript.string();
+    gameData.playerData.script.path = playerScript.string();
     NpcData impostor = setupNpcData();
-    impostor.script = npcScript.string();
+    impostor.script.path = npcScript.string();
     gameData.npcData = {{"player", impostor}};
 
     LuaScriptSystem luaScriptSystem(shared.string());
@@ -416,9 +416,9 @@ TEST_CASE("An npc's own script hears it hurt and killed, and no other npc's does
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
     rat.actorData.healthData = HealthData{2, 0.0f};
-    rat.script = ratScript.string();
+    rat.script.path = ratScript.string();
     NpcData spider = setupNpcData();
-    spider.script = spiderScript.string();
+    spider.script.path = spiderScript.string();
     gameData.npcData = {{"rat", rat}, {"spider", spider}};
 
     LuaScriptSystem luaScriptSystem(shared.string());
@@ -456,7 +456,7 @@ TEST_CASE("A coroutine an npc started is dropped when its level is rebuilt", "[W
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
     rat.actorData.healthData = HealthData{3, 0.0f};
-    rat.script = ratScript.string();
+    rat.script.path = ratScript.string();
     gameData.npcData = {{"rat", rat}};
 
     LuaScriptSystem luaScriptSystem(shared.string());
@@ -483,7 +483,7 @@ TEST_CASE("A swing that kills an npc reaches that npc's own script", "[World]")
     std::ofstream(ratScript) << "return { onDied = function(rat) seen.dead = rat:type() end }\n";
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
-    rat.script = ratScript.string();
+    rat.script.path = ratScript.string();
     gameData.npcData = {{"rat", rat}};
     ScriptedIntentions intentions;
     InputIntentions attacking;
@@ -538,7 +538,7 @@ TEST_CASE("A cue reaches the player's script by its name", "[World][Cues]")
     GameData gameData = aFloorWorldWithCoins();
     gameData.playerData.actorData.animationData.clips["idle"] =
         FrameAnimationData{{0, 1}, 0.05f, {{0, "onFootstep"}}};
-    gameData.playerData.script = playerScript.string();
+    gameData.playerData.script.path = playerScript.string();
     LuaScriptSystem luaScriptSystem(shared.string());
     World world(gameData, noIntentions(), luaScriptSystem);
     TemporaryLevels levels("world_cue");
@@ -570,10 +570,10 @@ TEST_CASE("A cue reaches the creature's own script, not the player's", "[World][
     std::ofstream(ratScript) << "return { onSkitter = function(rat) seen.who = rat:type() end }\n";
 
     GameData gameData = aFloorWorldWithCoins();
-    gameData.playerData.script = playerScript.string();
+    gameData.playerData.script.path = playerScript.string();
     NpcData rat = setupNpcData();
     rat.actorData.animationData.clips["idle"] = FrameAnimationData{{0}, 0.05f, {{0, "onSkitter"}}};
-    rat.script = ratScript.string();
+    rat.script.path = ratScript.string();
     gameData.npcData = {{"rat", rat}};
     LuaScriptSystem luaScriptSystem(shared.string());
     World world(gameData, noIntentions(), luaScriptSystem);
@@ -662,7 +662,7 @@ namespace
         boar.facts["heard"] = false;
         boar.facts["near"] = false;
         boar.tuning["range"] = 200.0f;
-        boar.script = script;
+        boar.script.path = script;
         return boar;
     }
 }

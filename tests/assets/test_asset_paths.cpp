@@ -57,3 +57,11 @@ TEST_CASE("Files under a directory are listed by extension in order", "[AssetPat
 
     REQUIRE(assets::filesIn(assets::Textures, ".json").empty());
 }
+
+TEST_CASE("Files in a folder under the directory are listed too", "[AssetPaths]")
+{
+    std::vector<std::string> scripts = assets::filesIn(assets::Scripts, ".lua");
+
+    REQUIRE(std::find(scripts.begin(), scripts.end(), "scripts/player.lua") != scripts.end());
+    REQUIRE(std::find(scripts.begin(), scripts.end(), "scripts/npcs/rat.lua") != scripts.end());
+}

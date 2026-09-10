@@ -86,12 +86,12 @@ void GameRenderer::draw(
         tileMap,
         projection,
         *tileSetShader.get(),
-        textures.get(tileMap.getTileSet().texture));
+        textures.get(tileMap.getTileSet().texture.path));
 
     for (const Pickup &pickup : pickups)
     {
         const SheetData &sheet = pickup.getSheet();
-        const Texture2D &texture = textures.get(sheet.texture);
+        const Texture2D &texture = textures.get(sheet.texture.path);
         auto [uvStart, uvEnd] = frameUvRangeIn(
             static_cast<int>(texture.getWidth()),
             static_cast<int>(texture.getHeight()),
@@ -113,7 +113,7 @@ void GameRenderer::draw(
     {
         const ActorState &actorState = actor.state();
         const SheetData &sheet = actor.drawnFrom();
-        const Texture2D &texture = textures.get(sheet.texture);
+        const Texture2D &texture = textures.get(sheet.texture.path);
         auto [uvStart, uvEnd] = frameUvRangeIn(
             static_cast<int>(texture.getWidth()),
             static_cast<int>(texture.getHeight()),

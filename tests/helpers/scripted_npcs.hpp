@@ -11,7 +11,7 @@ class ScriptedNpcs
 public:
     void script(Npc &npc)
     {
-        lua.use(scriptOf(npc.type()), assets::pathTo(shippedNpcData().at(npc.type()).script));
+        lua.use(scriptOf(npc.type()), assets::pathTo(shippedNpcData().at(npc.type()).script.path));
         connectNpcHooks(lua, npc);
     }
 

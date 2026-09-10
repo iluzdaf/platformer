@@ -53,7 +53,7 @@ namespace
 {
     std::optional<std::string> whyNot(const SheetData &sheet)
     {
-        if (sheet.texture.empty())
+        if (sheet.texture.path.empty())
             return "names no sheet to draw from";
 
         return std::nullopt;

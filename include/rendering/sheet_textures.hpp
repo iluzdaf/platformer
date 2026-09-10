@@ -28,11 +28,11 @@ template <class T>
 void warmAndCheck(TextureCache &textures, const T &value, const std::string &whose)
 {
     const SheetData &sheet = theSheetIn(value);
-    if (sheet.texture.empty())
+    if (sheet.texture.path.empty())
         throw std::runtime_error("No sheet is named for " + whose);
 
-    textures.warm(sheet.texture);
-    const Texture2D &texture = textures.get(sheet.texture);
+    textures.warm(sheet.texture.path);
+    const Texture2D &texture = textures.get(sheet.texture.path);
     checkFits(
         value, whose, static_cast<int>(texture.getWidth()), static_cast<int>(texture.getHeight()));
 }

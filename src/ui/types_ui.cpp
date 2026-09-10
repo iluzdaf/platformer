@@ -174,11 +174,11 @@ void TypesUi::drawShown(
         return;
     }
 
-    const Texture2D *texture = textures.find(sheet->texture);
-    if (!texture && !sheet->texture.empty() && sheet->texture != askedToWarm)
+    const Texture2D *texture = textures.find(sheet->texture.path);
+    if (!texture && !sheet->texture.path.empty() && sheet->texture.path != askedToWarm)
     {
-        askedToWarm = sheet->texture;
-        commands.onWarmTexture(sheet->texture);
+        askedToWarm = sheet->texture.path;
+        commands.onWarmTexture(sheet->texture.path);
     }
 
     SheetInScope scope{texture, *sheet};

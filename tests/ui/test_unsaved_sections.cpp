@@ -69,7 +69,7 @@ TEST_CASE("The levels section has nothing unsaved when it is first drawn", "[Uns
     LevelsUi levelsUi;
     GameData gameData = loadGameData();
     LevelsData levels = gameData.levels;
-    std::string levelPath = assetPath(levels.first);
+    std::string levelPath = assetPath(levels.first.path);
     Level level(
         readLevelData(levelPath),
         gameData.tilePalettes,
@@ -89,7 +89,7 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
     LevelsUi levelsUi;
     GameData gameData = loadGameData();
     LevelsData levels = gameData.levels;
-    std::string levelPath = assetPath(levels.first);
+    std::string levelPath = assetPath(levels.first.path);
     Level level(
         readLevelData(levelPath),
         gameData.tilePalettes,
@@ -99,7 +99,7 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
     EditorCommands commands;
 
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
-    levels.first = "levels/level3.json";
+    levels.first.path = "levels/level3.json";
 
     REQUIRE(levelsUi.unsavedSince(levels));
 }
@@ -131,7 +131,7 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
     LevelData edited = levelData;
-    edited.nextLevel = "levels/level3.json";
+    edited.nextLevel.path = "levels/level3.json";
 
     REQUIRE(levelUi.unsavedSince(edited, levelPath));
 }
@@ -169,16 +169,16 @@ TEST_CASE("Reverting the levels section puts the first level back", "[UnsavedSec
 {
     LevelsUi levelsUi;
     LevelsData levels = loadGameData().levels;
-    std::string was = levels.first;
+    std::string was = levels.first.path;
 
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
 
-    levels.first = "levels/level3.json";
+    levels.first.path = "levels/level3.json";
     REQUIRE(levelsUi.unsavedSince(levels));
 
     levelsUi.revert(levels);
 
-    REQUIRE(levels.first == was);
+    REQUIRE(levels.first.path == was);
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
 }
 

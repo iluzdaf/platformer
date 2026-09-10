@@ -283,7 +283,7 @@ namespace
         TilePalettes palettes;
         palettes["default"] = paletteOf({{0, TileData{}}, {1, TileData{}}});
         palettes["other"] = paletteOf({{0, TileData{}}});
-        palettes["other"].tileSet.texture = std::string(assets::PlayerTexture);
+        palettes["other"].tileSet.texture.path = std::string(assets::PlayerTexture);
         return palettes;
     }
 
@@ -295,7 +295,7 @@ namespace
 
         explicit TypingAName(const TilePalettes &palettes)
         {
-            textures.warm(palettes.begin()->second.tileSet.texture);
+            textures.warm(palettes.begin()->second.tileSet.texture.path);
         }
 
         auto drawing(TilePalettesUi &tilePalettesUi, TilePalettes &palettes)
@@ -312,8 +312,8 @@ TEST_CASE("The palette editor draws a palette no level is using", "[TilePalettes
     TilePalettes palettes = twoPalettes();
 
     TextureCache textures;
-    textures.warm(palettes["default"].tileSet.texture);
-    textures.warm(palettes["other"].tileSet.texture);
+    textures.warm(palettes["default"].tileSet.texture.path);
+    textures.warm(palettes["other"].tileSet.texture.path);
 
     std::optional<Armed> armed;
     EditorCommands commands;
@@ -327,7 +327,7 @@ TEST_CASE("The palette editor survives a tile set that is not loaded", "[TilePal
     TilePalettesUi tilePalettesUi;
     TilePalettes palettes;
     palettes["half typed"] = paletteOf({{0, TileData{}}});
-    palettes["half typed"].tileSet.texture = "textures/tile_se";
+    palettes["half typed"].tileSet.texture.path = "textures/tile_se";
 
     TextureCache textures;
     std::optional<Armed> armed;
@@ -343,8 +343,8 @@ TEST_CASE("The palette editor reports unsaved once a tile set changes", "[TilePa
     TilePalettes palettes = twoPalettes();
 
     TextureCache textures;
-    textures.warm(palettes["default"].tileSet.texture);
-    textures.warm(palettes["other"].tileSet.texture);
+    textures.warm(palettes["default"].tileSet.texture.path);
+    textures.warm(palettes["other"].tileSet.texture.path);
 
     std::optional<Armed> armed;
     EditorCommands commands;
@@ -352,7 +352,7 @@ TEST_CASE("The palette editor reports unsaved once a tile set changes", "[TilePa
 
     REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
 
-    palettes["default"].tileSet.texture = std::string(assets::PlayerTexture);
+    palettes["default"].tileSet.texture.path = std::string(assets::PlayerTexture);
 
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
 }
@@ -363,7 +363,7 @@ TEST_CASE("A tile set nobody loaded is asked for once", "[TilePalettesUi]")
     TilePalettesUi tilePalettesUi;
     TilePalettes palettes;
     palettes["ice"] = paletteOf({{0, TileData{}}});
-    palettes["ice"].tileSet.texture = "textures/not_loaded.png";
+    palettes["ice"].tileSet.texture.path = "textures/not_loaded.png";
 
     TextureCache textures;
     std::optional<Armed> armed;
@@ -389,7 +389,7 @@ TEST_CASE("The palette editor offers every cell of its sheet", "[TilePalettesUi]
     palettes["default"] = paletteOf({{0, TileData{}}});
 
     TextureCache textures;
-    textures.warm(palettes["default"].tileSet.texture);
+    textures.warm(palettes["default"].tileSet.texture.path);
 
     std::optional<Armed> armed;
     EditorCommands commands;
@@ -407,7 +407,7 @@ TEST_CASE("Looking at a cell does not give it settings", "[TilePalettesUi]")
     palettes["default"] = paletteOf({{0, TileData{}}});
 
     TextureCache textures;
-    textures.warm(palettes["default"].tileSet.texture);
+    textures.warm(palettes["default"].tileSet.texture.path);
 
     std::optional<Armed> armed = PaintTile{30};
     EditorCommands commands;
@@ -428,8 +428,8 @@ TEST_CASE(
     TilePalettes palettes = twoPalettes();
 
     TextureCache textures;
-    textures.warm(palettes["default"].tileSet.texture);
-    textures.warm(palettes["other"].tileSet.texture);
+    textures.warm(palettes["default"].tileSet.texture.path);
+    textures.warm(palettes["other"].tileSet.texture.path);
 
     std::optional<Armed> armed;
     EditorCommands commands;
@@ -634,7 +634,7 @@ TEST_CASE("The palette editor previews the picked tile above its fields", "[Tile
     palettes["default"] = paletteOf({{0, TileData{}}});
 
     TextureCache textures;
-    textures.warm(palettes["default"].tileSet.texture);
+    textures.warm(palettes["default"].tileSet.texture.path);
 
     std::optional<Armed> armed;
     EditorCommands commands;

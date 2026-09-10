@@ -55,8 +55,8 @@ void warmEverySheetIn(TextureCache &textures, const GameData &gameData)
         gameData,
         [&textures](const SheetData &sheet)
         {
-            if (!sheet.texture.empty())
-                textures.warm(sheet.texture);
+            if (!sheet.texture.path.empty())
+                textures.warm(sheet.texture.path);
         });
 }
 

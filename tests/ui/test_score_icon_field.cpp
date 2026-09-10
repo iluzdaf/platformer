@@ -66,7 +66,7 @@ TEST_CASE("The frame keeps what it was when nothing is picked", "[ScoreIconField
     drawsTheFrameAsAPicture(gui, icon, true);
 
     REQUIRE(icon.frame == 3);
-    REQUIRE(icon.sheet.texture == "textures/somewhere.png");
+    REQUIRE(icon.sheet.texture.path == "textures/somewhere.png");
 }
 
 #endif

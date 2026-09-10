@@ -28,7 +28,7 @@ namespace assets
     std::vector<std::string> filesIn(std::string_view directory, std::string_view extension)
     {
         std::vector<std::string> paths;
-        for (const auto &entry : std::filesystem::directory_iterator(pathTo(directory)))
+        for (const auto &entry : std::filesystem::recursive_directory_iterator(pathTo(directory)))
             if (entry.path().extension() == extension)
                 paths.push_back(underRoot(entry.path().string()));
 

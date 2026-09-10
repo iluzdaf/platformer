@@ -37,12 +37,12 @@ World::World(
     LuaScriptSystem &luaScriptSystem)
     : gameData(gameData), intentionSource(intentionSource), luaScriptSystem(luaScriptSystem)
 {
-    if (!gameData.playerData.script.empty())
-        luaScriptSystem.use(PlayerScript, assets::pathTo(gameData.playerData.script));
+    if (!gameData.playerData.script.path.empty())
+        luaScriptSystem.use(PlayerScript, assets::pathTo(gameData.playerData.script.path));
 
     for (const auto &[type, npcData] : gameData.npcData)
-        if (!npcData.script.empty())
-            luaScriptSystem.use(scriptOf(type), assets::pathTo(npcData.script));
+        if (!npcData.script.path.empty())
+            luaScriptSystem.use(scriptOf(type), assets::pathTo(npcData.script.path));
 }
 
 World::~World() = default;

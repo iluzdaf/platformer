@@ -52,7 +52,7 @@ Level::Level(
     if (startTile.isPortal())
         throw std::runtime_error("Player start position is on a portal tile");
 
-    nextLevel = levelData.nextLevel;
+    nextLevel = levelData.nextLevel.path;
     if (nextLevel.empty())
         throw std::runtime_error("nextLevel must not be empty");
 

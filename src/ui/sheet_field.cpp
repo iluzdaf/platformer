@@ -1,51 +1,20 @@
-#include <algorithm>
 #include <cfloat>
 #include <string>
 #include <string_view>
-#include <vector>
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include "ui/sheet_field.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/data_inspector.hpp"
+#include "ui/file_chooser.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "assets/asset_paths.hpp"
 #include "assets/sheet_data.hpp"
 
-namespace
-{
-    inspector::Edited drawTextureChooser(std::string &texture)
-    {
-        std::vector<std::string> offered = assets::filesIn(assets::Textures, ".png");
-        bool picked = false;
-
-        ImGui::TextUnformatted("texture");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(-FLT_MIN);
-        if (ImGui::BeginCombo("##texture", texture.empty() ? "none" : texture.c_str()))
-        {
-            for (const std::string &path : offered)
-                if (ImGui::Selectable(path.c_str(), path == texture))
-                {
-                    picked = texture != path;
-                    texture = path;
-                }
-
-            ImGui::EndCombo();
-        }
-
-        if (texture.empty())
-            ImGui::TextColored(CannotSaveColour, "names no sheet to draw from");
-        else if (std::find(offered.begin(), offered.end(), texture) == offered.end())
-            ImGui::TextColored(CannotSaveColour, "no such file under textures");
-
-        return {picked, picked};
-    }
-}
-
 inspector::Edited drawSheetFields(SheetData &value)
 {
-    inspector::Edited edited = drawTextureChooser(value.texture);
+    inspector::Edited edited =
+        drawFileChooser("texture", value.texture.path, assets::Textures, ".png");
     edited |= inspector::draw("cellSize", value.cellSize);
 
     return edited;
@@ -53,7 +22,8 @@ inspector::Edited drawSheetFields(SheetData &value)
 
 inspector::Edited drawSquareSheetFields(SheetData &value)
 {
-    inspector::Edited edited = drawTextureChooser(value.texture);
+    inspector::Edited edited =
+        drawFileChooser("texture", value.texture.path, assets::Textures, ".png");
 
     int side = value.cellSize.x;
     inspector::Edited squared = inspector::draw("cellSize", side);

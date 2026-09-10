@@ -17,7 +17,7 @@ TEST_CASE("Game tells the reloader which level it is playing", "[Game]")
     std::vector<std::string> loaded;
     reloader.commands.onLoadLevel.connect([&loaded](const std::string &path)
                                           { loaded.push_back(path); });
-    std::string firstLevel = loadGameData().levels.first;
+    std::string firstLevel = loadGameData().levels.first.path;
 
     SECTION("The level it started on is loaded again when it changes")
     {

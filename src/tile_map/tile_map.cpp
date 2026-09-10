@@ -47,7 +47,7 @@ TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalette
         throw std::runtime_error("Unknown tile palette \"" + tilePalette + "\"");
 
     tileSet = palette->second.tileSet;
-    if (tileSet.texture.empty())
+    if (tileSet.texture.path.empty())
         throw std::runtime_error("Palette \"" + tilePalette + "\" names no tile set texture");
 
     if (tileSet.cellSize.x <= 0)

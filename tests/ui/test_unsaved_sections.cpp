@@ -1,4 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <filesystem>
 #include <string>
 #include "game/levels_data.hpp"
 #include <tuple>
@@ -307,4 +309,23 @@ TEST_CASE(
     REQUIRE_FALSE(cameraUi.reloaded(gameData, onDisk));
 
     REQUIRE(gameData.cameraData.zoom == 1.0f + GameData().cameraData.zoom);
+}
+
+TEST_CASE(
+    "The first-level gate reads the disk once per path, and again when the path changes",
+    "[UnsavedSections]")
+{
+    LevelsUi levelsUi;
+    ACopyOfLevelOne copy;
+    LevelsData levels;
+    levels.first.path = copy.path;
+    REQUIRE_FALSE(levelsUi.cannotSaveBecause(levels).has_value());
+
+    std::filesystem::remove(copy.path);
+    REQUIRE_FALSE(levelsUi.cannotSaveBecause(levels).has_value());
+
+    levels.first.path = copy.path + ".gone";
+    std::optional<std::string> why = levelsUi.cannotSaveBecause(levels);
+    REQUIRE(why.has_value());
+    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("cannot be read"));
 }

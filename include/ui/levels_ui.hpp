@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ui/last_answer.hpp"
+
 #include <optional>
 #include <string>
 #include "ui/saveable.hpp"
@@ -24,5 +26,6 @@ public:
 
 private:
     Saveable saveable;
+    mutable LastAnswer firstLevelGate;
     std::optional<std::string> askedToSwitchTo;
 };

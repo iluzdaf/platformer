@@ -345,7 +345,10 @@ bool TypesUi::unsavedSince(const GameData &gameData)
 
 std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData) const
 {
-    if (std::optional<std::string> cannot = aTypeThatCannotBeSaved(gameData))
+    std::string cast =
+        asJson(gameData.playerData) + asJson(gameData.npcData) + asJson(gameData.pickupData);
+    if (std::optional<std::string> cannot =
+            castGate.to(std::move(cast), [&] { return aTypeThatCannotBeSaved(gameData); }))
         return cannot;
 
     if (std::optional<std::string> npcs = npcRenaming.cannotSaveBecause())

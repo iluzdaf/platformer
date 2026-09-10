@@ -1,5 +1,9 @@
 #pragma once
 
+#include "npc/npc_data.hpp"
+
+#include "ui/last_answer.hpp"
+
 #include "game/level_data.hpp"
 
 #include <string>
@@ -61,11 +65,15 @@ public:
 
     void save(const LevelData &levelData, const std::string &levelPath);
     bool unsavedSince(const LevelData &levelData, const std::string &levelPath);
-    std::optional<std::string> cannotSaveBecause(const Level &level) const;
+    std::optional<std::string> cannotSaveBecause(
+        const Level &level,
+        const LevelData &levelData,
+        const std::map<std::string, NpcData> &npcs) const;
     bool takesTheDisk(const LevelData &current, const std::string &levelPath);
 
 private:
     Saveable saveable;
+    mutable LastAnswer walkGate;
     NavigationUi navigationUi;
     ActorShown showingActor;
     TileMapShown tileMapShown;

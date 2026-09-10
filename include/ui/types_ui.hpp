@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include "ui/saveable.hpp"
+#include "ui/last_answer.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/renaming.hpp"
 #include "ui/state_machine_shown.hpp"
@@ -64,6 +65,7 @@ private:
     WritePickups writePickups;
     WritePlayer writePlayer;
     Saveable saveable;
+    mutable LastAnswer castGate;
     Renaming npcRenaming, pickupRenaming;
     TypeShown showing = thePlayer();
     std::string previewing = "idle";

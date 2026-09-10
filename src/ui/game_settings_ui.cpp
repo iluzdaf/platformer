@@ -45,7 +45,7 @@ bool GameSettingsUi::unsavedSince(const GameData &gameData)
     return saveable.unsavedSince("game", asJson(gameData.settings));
 }
 
-void GameSettingsUi::reloaded(GameData &current, const GameData &onDisk)
+bool GameSettingsUi::reloaded(GameData &current, const GameData &onDisk)
 {
-    reload(saveable, "game", current.settings, onDisk.settings);
+    return reload(saveable, "game", current.settings, onDisk.settings);
 }

@@ -266,11 +266,16 @@ void LevelUi::update(
     armed.reset();
 }
 
-bool LevelUi::followsTheDisk(const LevelData &current, const std::string &levelPath)
+bool LevelUi::takesTheDisk(const LevelData &current, const std::string &levelPath)
 {
     bool kept = unsavedSince(current, levelPath);
-    if (std::optional<LevelData> onDisk = readLevelDataIfYouCan(levelPath))
-        saveable.saved(levelPath, asItWouldBeSaved(*onDisk));
+    std::optional<LevelData> onDisk = readLevelDataIfYouCan(levelPath);
+    if (!onDisk)
+        return !kept;
 
-    return !kept;
+    std::string fromDisk = asItWouldBeSaved(*onDisk);
+    bool changed = fromDisk != saveable.lastSeen(levelPath);
+    saveable.saved(levelPath, fromDisk);
+
+    return !kept && changed;
 }

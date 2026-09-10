@@ -7,7 +7,7 @@
 
 void reloads::levelChanged(World &world, EditorUi &editorUi, const std::string &levelPath)
 {
-    if (editorUi.levelFollowsTheDisk(world.getLevelData(), levelPath))
+    if (editorUi.levelTakesTheDisk(world.getLevelData(), levelPath))
         world.loadLevel(levelPath);
 }
 
@@ -22,7 +22,7 @@ void reloads::gameDataChanged(
     std::string current = world.getLevelPath();
     if (current.empty())
         world.loadLevel(gameData.levels.first.path);
-    else if (editorUi.levelFollowsTheDisk(world.getLevelData(), current))
+    else if (editorUi.levelTakesTheDisk(world.getLevelData(), current))
         world.loadLevel(current);
     else
         world.rebuildFrom(LevelData(world.getLevelData()));

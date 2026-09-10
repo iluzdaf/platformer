@@ -77,8 +77,6 @@ Game::Game(Window &window, Reloader &reloader)
         {
             GameData onDisk = loadGameData();
             reloads::gameDataChanged(world, gameUi.editor(), gameData, onDisk);
-            this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight);
-            camera.setZoom(gameData.cameraData.zoom);
             renderer.warm(gameData);
         }));
     reloadConnections.push_back(

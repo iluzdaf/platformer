@@ -27,6 +27,7 @@ std::optional<Resize> drawSizeButtons(int width, int height)
     ImGui::Text("%d by %d tiles", width, height);
 
     std::optional<Resize> asked;
+    ImGui::BeginGroup();
     for (const auto &[label, side] :
          {std::pair{"column left", Side::Left},
           std::pair{"column right", Side::Right},
@@ -34,6 +35,7 @@ std::optional<Resize> drawSizeButtons(int width, int height)
           std::pair{"row below", Side::Below}})
         if (std::optional<Resize> row = drawSideRow(label, side))
             asked = row;
+    ImGui::EndGroup();
 
     return asked;
 }

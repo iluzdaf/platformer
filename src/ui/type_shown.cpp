@@ -2,6 +2,14 @@
 #include <stdexcept>
 #include <string>
 #include "ui/type_shown.hpp"
+#include "player/player.hpp"
+#include "pickups/pickup_spawn_data.hpp"
+#include "pickups/pickup.hpp"
+#include "npc/npc_spawn_data.hpp"
+#include "npc/npc.hpp"
+#include "input/intention_source.hpp"
+#include "input/input_intentions.hpp"
+#include <exception>
 #include "physics/physics_body_data.hpp"
 #include "game/game_data.hpp"
 #include "npc/npc_data.hpp"
@@ -80,6 +88,53 @@ namespace
     }
 }
 
+namespace
+{
+    struct NoIntentions : IntentionSource
+    {
+        InputIntentions getIntentions() const override
+        {
+            return {};
+        }
+    };
+
+    std::optional<std::string> whyNotBuilt(const GameData &gameData, const TypeShown &type)
+    {
+        try
+        {
+            switch (type.what)
+            {
+            case TypeShown::What::Npc: {
+                auto known = gameData.npcData.find(type.name);
+                if (known != gameData.npcData.end())
+                    Npc built(
+                        NpcSpawnData{type.name, glm::vec2(0.0f), std::nullopt}, known->second);
+                break;
+            }
+
+            case TypeShown::What::Pickup: {
+                auto known = gameData.pickupData.find(type.name);
+                if (known != gameData.pickupData.end())
+                    Pickup built(PickupSpawnData{type.name, glm::vec2(0.0f)}, known->second);
+                break;
+            }
+
+            case TypeShown::What::Player: {
+                NoIntentions nobody;
+                Player built(gameData.playerData, nobody);
+                break;
+            }
+            }
+        }
+        catch (const std::exception &e)
+        {
+            return e.what();
+        }
+
+        return std::nullopt;
+    }
+}
+
 std::optional<std::string> whyATypeCannotBeSaved(const GameData &gameData, const TypeShown &type)
 {
     const SheetData *sheet = sheetOf(gameData, type);
@@ -87,9 +142,10 @@ std::optional<std::string> whyATypeCannotBeSaved(const GameData &gameData, const
         return noSheet;
 
     if (const PhysicsBodyData *body = bodyOf(gameData, type))
-        return whyNotABody(*body);
+        if (std::optional<std::string> noBody = whyNotABody(*body))
+            return noBody;
 
-    return std::nullopt;
+    return whyNotBuilt(gameData, type);
 }
 
 std::optional<std::string> aTypeThatCannotBeSaved(const GameData &gameData)

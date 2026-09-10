@@ -217,6 +217,26 @@ void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()
     }
 }
 
+namespace
+{
+    template <class Section>
+    concept Gated = requires { &Section::cannotSaveBecause; };
+
+    static_assert(Gated<GameSettingsUi>);
+    static_assert(Gated<CameraUi>);
+    static_assert(Gated<TypesUi>);
+    static_assert(Gated<LevelUi>);
+    static_assert(Gated<TilePalettesUi>);
+    static_assert(Gated<LevelsUi>);
+
+    template <class... Reasons> std::optional<std::string> firstOf(Reasons &&...reasons)
+    {
+        std::optional<std::string> found;
+        ((found = found ? found : reasons), ...);
+        return found;
+    }
+}
+
 SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subject)
 {
     switch (listed)
@@ -224,7 +244,7 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
     case EditorSection::Game:
         return {
             gameSettingsUi.unsavedSince(subject.gameData),
-            std::nullopt,
+            gameSettingsUi.cannotSaveBecause(subject.gameData),
             [this, &subject] { gameSettingsUi.save(subject.gameData); },
             [this, &subject]
             {
@@ -235,7 +255,7 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
     case EditorSection::Runtime:
         return {
             cameraUi.unsavedSince(subject.gameData),
-            std::nullopt,
+            cameraUi.cannotSaveBecause(subject.gameData),
             [this, &subject] { cameraUi.save(subject.gameData); },
             [this, &subject]
             {
@@ -260,9 +280,10 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
             levelUi.unsavedSince(subject.levelData, subject.levelPath) ||
                 tilePalettesUi.unsavedSince(subject.gameData.tilePalettes) ||
                 levelsUi.unsavedSince(subject.levels),
-            npcsThatCannotGetBack(subject.level).has_value()
-                ? npcsThatCannotGetBack(subject.level)
-                : tilePalettesUi.cannotSaveBecause(subject.gameData.tilePalettes),
+            firstOf(
+                levelUi.cannotSaveBecause(subject.level),
+                tilePalettesUi.cannotSaveBecause(subject.gameData.tilePalettes),
+                levelsUi.cannotSaveBecause(subject.levels)),
             [this, &subject]
             {
                 levelUi.save(subject.levelData, subject.levelPath);

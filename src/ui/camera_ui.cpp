@@ -1,6 +1,9 @@
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/camera_ui.hpp"
+#include <string>
+#include <optional>
+#include <exception>
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
@@ -24,6 +27,20 @@ void CameraUi::save(GameData &gameData)
 {
     saveCameraData(gameData.cameraData);
     saveable.saved("camera", asJson(gameData.cameraData));
+}
+
+std::optional<std::string> CameraUi::cannotSaveBecause(const GameData &gameData) const
+{
+    try
+    {
+        Camera2D built(gameData.cameraData, 1, 1);
+    }
+    catch (const std::exception &e)
+    {
+        return e.what();
+    }
+
+    return std::nullopt;
 }
 
 bool CameraUi::unsavedSince(const GameData &gameData)

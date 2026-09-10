@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <filesystem>
 #include <memory>
 #include <fstream>
@@ -917,4 +918,23 @@ TEST_CASE("An edit committed in the cast panel asks for the cast to change", "[T
 
     REQUIRE(gameData.npcData.at("rat").actorData.motionData.jumpAbilityData.has_value());
     REQUIRE(castChanged == 1);
+}
+
+TEST_CASE(
+    "A type the game could not build cannot be saved, and says why in its own words",
+    "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = loadGameData();
+    REQUIRE_FALSE(typesUi.cannotSaveBecause(gameData).has_value());
+
+    gameData.pickupData.begin()->second.size = glm::vec2(0.0f);
+
+    std::optional<std::string> why = typesUi.cannotSaveBecause(gameData);
+    REQUIRE(why.has_value());
+    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring(gameData.pickupData.begin()->first));
+    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("nobody can see"));
+    REQUIRE(whyATypeCannotBeSaved(
+                gameData, TypeShown{TypeShown::What::Pickup, gameData.pickupData.begin()->first})
+                .has_value());
 }

@@ -3,6 +3,7 @@
 #include <string>
 #include <imgui.h>
 #include "ui/levels_ui.hpp"
+#include "game/level_data_file.hpp"
 #include "ui/file_chooser.hpp"
 #include "ui/switching_level.hpp"
 #include "ui/unsaved_colours.hpp"
@@ -57,6 +58,14 @@ void LevelsUi::save(const LevelsData &levels)
 {
     saveLevels(levels);
     saveable.saved("levels", asJson(levels));
+}
+
+std::optional<std::string> LevelsUi::cannotSaveBecause(const LevelsData &levels) const
+{
+    if (!readLevelDataIfYouCan(levels.first.path))
+        return "the first level \"" + levels.first.path + "\" cannot be read";
+
+    return std::nullopt;
 }
 
 bool LevelsUi::unsavedSince(const LevelsData &levels)

@@ -61,6 +61,7 @@ public:
 
     void save(const LevelData &levelData, const std::string &levelPath);
     bool unsavedSince(const LevelData &levelData, const std::string &levelPath);
+    std::optional<std::string> cannotSaveBecause(const Level &level) const;
     bool takesTheDisk(const LevelData &current, const std::string &levelPath);
 
 private:

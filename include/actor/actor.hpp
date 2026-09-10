@@ -71,7 +71,7 @@ public:
     bool onSameSurfaceAs(glm::vec2 at) const;
     bool corneredBy(glm::vec2 at) const;
     bool onGround() const;
-    void forgetTheGround();
+    void walks(const NavigationGraph &navigationGraph);
 
 protected:
     explicit Actor(const ActorData &data);

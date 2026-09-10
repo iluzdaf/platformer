@@ -4,7 +4,6 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cstddef>
 #include <exception>
-#include <stdexcept>
 #include <string>
 #include <map>
 #include <optional>
@@ -440,7 +439,7 @@ TEST_CASE(
     "Rebuilding the graphs for a new cast gives it the graphs it walks, and drops the old",
     "[Level]")
 {
-    Level level = levelPlacing({spawnAt("tall", StandingTile)});
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
     REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(24.0f)), std::exception);
 
     level.rebuildGraphsFor(playerOfHeight(30.0f), withTheTallOnesTaller(24.0f));
@@ -450,9 +449,7 @@ TEST_CASE(
     REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(20.0f)), std::exception);
 }
 
-TEST_CASE(
-    "Rebuilding the graphs makes every creature forget the ground until its next tick",
-    "[Level]")
+TEST_CASE("Rebuilding the graphs hands every creature the graph it walks now", "[Level]")
 {
     Level level = levelPlacing({spawnAt("short", StandingTile)});
     Npc &creature = *level.getNpcs()[0];
@@ -461,9 +458,8 @@ TEST_CASE(
 
     level.rebuildGraphsFor(playerOfHeight(13.0f), theUsualNpcs());
 
-    REQUIRE_THROWS_AS(creature.onSameSurfaceAs(creature.feet()), std::runtime_error);
-    tick(level);
-    REQUIRE_NOTHROW(creature.onSameSurfaceAs(creature.feet()));
+    REQUIRE(creature.onSameSurfaceAs(creature.feet()));
+    REQUIRE_FALSE(creature.onSameSurfaceAs(creature.feet() - glm::vec2(0.0f, 64.0f)));
 }
 
 TEST_CASE("Remaking a creature puts a new one at its spawn, built from the data given", "[Level]")
@@ -525,4 +521,13 @@ TEST_CASE("Recasting the pickups without a kind on the floor is refused by name"
 
     REQUIRE_THROWS_WITH(level.recastPickups({}), Catch::Matchers::ContainsSubstring("coin"));
     REQUIRE(level.getPickups().size() == 1);
+}
+
+TEST_CASE("Rebuilding the graphs under a creature whose kind is gone is refused", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("tall", StandingTile)});
+
+    REQUIRE_THROWS_WITH(
+        level.rebuildGraphsFor(playerOfHeight(13.0f), withTheTallOnesTaller(24.0f)),
+        Catch::Matchers::ContainsSubstring("no navigation graph"));
 }

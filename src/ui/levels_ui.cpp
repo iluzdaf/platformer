@@ -60,7 +60,7 @@ void LevelsUi::save(const LevelsData &levels)
     saveable.saved("levels", asJson(levels));
 }
 
-std::optional<std::string> LevelsUi::cannotSaveBecause(const LevelsData &levels) const
+std::optional<std::string> LevelsUi::cannotSaveBecause(const LevelsData &levels)
 {
     return firstLevelGate.to(
         levels.first.path,

@@ -40,7 +40,7 @@ public:
     bool save(TilePalettes &tilePalettes, LevelData &playing);
     void revert(TilePalettes &tilePalettes);
     bool unsavedSince(const TilePalettes &tilePalettes);
-    std::optional<std::string> cannotSaveBecause(const TilePalettes &tilePalettes) const;
+    std::optional<std::string> cannotSaveBecause(const TilePalettes &tilePalettes);
     bool reloaded(TilePalettes &current, const TilePalettes &onDisk);
 
 private:
@@ -60,7 +60,7 @@ private:
     std::string levelsDirectory;
     WritePalettes writePalettes;
     Saveable saveable;
-    mutable LastAnswer tileGate;
+    LastAnswer tileGate;
     Renaming renaming;
     std::string selectedPalette, askedToWarm;
 };

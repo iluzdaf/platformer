@@ -273,7 +273,7 @@ void LevelUi::update(
 std::optional<std::string> LevelUi::cannotSaveBecause(
     const Level &level,
     const LevelData &levelData,
-    const std::map<std::string, NpcData> &npcs) const
+    const std::map<std::string, NpcData> &npcs)
 {
     return walkGate.to(
         asItWouldBeSaved(levelData) + asJson(npcs), [&] { return npcsThatCannotGetBack(level); });

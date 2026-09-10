@@ -313,7 +313,7 @@ bool TilePalettesUi::unsavedSince(const TilePalettes &tilePalettes)
     return values || renaming.pending();
 }
 
-std::optional<std::string> TilePalettesUi::cannotSaveBecause(const TilePalettes &tilePalettes) const
+std::optional<std::string> TilePalettesUi::cannotSaveBecause(const TilePalettes &tilePalettes)
 {
     if (std::optional<std::string> renames = renaming.cannotSaveBecause())
         return renames;

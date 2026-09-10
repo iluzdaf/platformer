@@ -343,7 +343,7 @@ bool TypesUi::unsavedSince(const GameData &gameData)
     return player || npcs || pickups || npcRenaming.pending() || pickupRenaming.pending();
 }
 
-std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData) const
+std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData)
 {
     std::string cast =
         asJson(gameData.playerData) + asJson(gameData.npcData) + asJson(gameData.pickupData);

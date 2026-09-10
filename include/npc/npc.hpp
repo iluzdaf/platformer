@@ -14,6 +14,7 @@ public:
     Npc(const NpcSpawnData &spawn, const NpcData &npcData);
 
     const NpcSpawnData &getSpawn() const;
+    const NpcData &builtFrom() const;
     const std::string &type() const;
     float tuning(const std::string &name) const;
     std::optional<Hurting> hurting() const override;

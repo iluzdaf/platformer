@@ -79,7 +79,13 @@ public:
 
     EditorCommands commands;
 
-    void reloaded(GameData &current, const GameData &onDisk);
+    struct Reloaded
+    {
+        bool cast = false;
+        bool palettes = false;
+    };
+
+    Reloaded reloaded(GameData &current, const GameData &onDisk);
     bool levelTakesTheDisk(const LevelData &current, const std::string &levelPath);
 
     SectionSaving savingIn(EditorSection listed, const EditorSubject &subject);

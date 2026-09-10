@@ -275,7 +275,7 @@ std::optional<std::string> TilePalettesUi::cannotSaveBecause() const
     return renaming.cannotSaveBecause();
 }
 
-void TilePalettesUi::reloaded(TilePalettes &current, const TilePalettes &onDisk)
+bool TilePalettesUi::reloaded(TilePalettes &current, const TilePalettes &onDisk)
 {
-    reload(saveable, "palettes", current, onDisk);
+    return reload(saveable, "palettes", current, onDisk);
 }

@@ -883,3 +883,38 @@ TEST_CASE("The types section previews a pickup above its fields", "[TypesUi]")
 }
 
 #endif
+
+TEST_CASE("An edit committed in the cast panel asks for the cast to change", "[TypesUi]")
+{
+    HeadlessImGui gui;
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
+    TypeRenaming renaming;
+    int castChanged = 0;
+    renaming.commands.onCastChanged.connect([&] { ++castChanged; });
+    auto drawing = renaming.drawing(typesUi, gameData);
+
+    gui.frame(drawing);
+    renaming.commands.drain();
+    REQUIRE(castChanged == 0);
+
+    gui.frame(
+        [&]
+        {
+            ImGui::TreeNodeSetOpen(ImGui::GetID("actorData"), true);
+            ImGui::PushOverrideID(ImGui::GetID("actorData"));
+            ImGui::TreeNodeSetOpen(ImGui::GetID("motionData"), true);
+            ImGui::PushOverrideID(ImGui::GetID("motionData"));
+            ImGui::ActivateItemByID(ImGui::GetID("jumpAbilityData"));
+            ImGui::PopID();
+            ImGui::PopID();
+            drawing();
+        });
+    gui.frame(drawing);
+    gui.frame(drawing);
+    renaming.commands.drain();
+
+    REQUIRE(gameData.npcData.at("rat").actorData.motionData.jumpAbilityData.has_value());
+    REQUIRE(castChanged == 1);
+}

@@ -62,6 +62,11 @@ const NpcSpawnData &Npc::getSpawn() const
     return spawn;
 }
 
+const NpcData &Npc::builtFrom() const
+{
+    return npcData;
+}
+
 const std::string &Npc::type() const
 {
     return spawn.type;

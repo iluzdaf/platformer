@@ -10,6 +10,7 @@
 #include "ui/type_shown.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
+#include "ui/inspector_edited.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "ui/sheet_preview.hpp"
 #include "actor/actor_data.hpp"
@@ -184,14 +185,15 @@ void TypesUi::drawShown(
     SheetInScope scope{texture, *sheet};
     ShowingSheet offering(scope);
 
+    inspector::Edited edited;
     switch (showing.what)
     {
     case TypeShown::What::Npc: {
         NpcData &npc = gameData.npcData.at(showing.name);
         drawActorPreview(scope, npc.actorData);
-        inspector::drawFieldsExcept(npc, "stateMachineBehaviorData");
+        edited |= inspector::drawFieldsExcept(npc, "stateMachineBehaviorData");
         OfferingFacts declared(npc.facts);
-        drawStateMachineEditor(
+        edited |= drawStateMachineEditor(
             npc.stateMachineBehaviorData, statesLitBy(live, showing.name), machineShown);
         break;
     }
@@ -206,15 +208,18 @@ void TypesUi::drawShown(
                 PreviewSize / drawn.x,
                 pickup.colliderOffset,
                 pickup.colliderSize.value_or(drawn));
-        inspector::drawFields(pickup);
+        edited |= inspector::drawFields(pickup);
         break;
     }
 
     case TypeShown::What::Player:
         drawActorPreview(scope, gameData.playerData.actorData);
-        inspector::drawFields(gameData.playerData);
+        edited |= inspector::drawFields(gameData.playerData);
         break;
     }
+
+    if (edited.onCommit)
+        commands.onCastChanged();
 }
 
 void TypesUi::drawActorPreview(const SheetInScope &scope, const ActorData &actorData)
@@ -349,9 +354,10 @@ void TypesUi::show(const TypeShown &type)
     machineShown = MachineShown{};
 }
 
-void TypesUi::reloaded(GameData &current, const GameData &onDisk)
+bool TypesUi::reloaded(GameData &current, const GameData &onDisk)
 {
-    reload(saveable, "player", current.playerData, onDisk.playerData);
-    reload(saveable, "npcs", current.npcData, onDisk.npcData);
-    reload(saveable, "pickups", current.pickupData, onDisk.pickupData);
+    bool player = reload(saveable, "player", current.playerData, onDisk.playerData);
+    bool npcs = reload(saveable, "npcs", current.npcData, onDisk.npcData);
+    bool pickups = reload(saveable, "pickups", current.pickupData, onDisk.pickupData);
+    return player || npcs || pickups;
 }

@@ -19,6 +19,9 @@
 #include "game/level_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "npc/npc_data.hpp"
+#include "npc/npc.hpp"
+#include "pickups/pickup_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 #include "player/player_data.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
@@ -406,4 +409,103 @@ TEST_CASE("A beat between tiles is the same with or without a map", "[Level]")
 
     REQUIRE(beatBetween(tileMap, {1, 4}, {5, 4}) == beatBetween({1, 4}, {5, 4}, 16));
     REQUIRE(beatBetween({1, 4}, {5, 4}, 16) == PatrolData{{16.0f, 80.0f}, {96.0f, 80.0f}});
+}
+
+namespace
+{
+    std::map<std::string, NpcData> withTheTallOnesTaller(float height)
+    {
+        std::map<std::string, NpcData> npcs = theUsualNpcs();
+        npcs.at("tall") = npcOfHeight(height);
+        return npcs;
+    }
+
+    PickupData aPickupWorth(int scoreDelta)
+    {
+        PickupData pickup;
+        pickup.size = glm::vec2(8.0f);
+        pickup.scoreDelta = scoreDelta;
+        return pickup;
+    }
+}
+
+TEST_CASE("Recasting re-makes only the creatures whose data changed, where they spawned", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
+    const Npc *shortOne = level.getNpcs()[0].get();
+    const Npc *tallOne = level.getNpcs()[1].get();
+    glm::vec2 wandered = tallOne->feet() + glm::vec2(24.0f, 0.0f);
+    level.getNpcs()[1]->standAt(wandered);
+
+    std::vector<Npc *> remade =
+        level.recast(playerOfHeight(13.0f), withTheTallOnesTaller(24.0f), {});
+
+    REQUIRE(remade.size() == 1);
+    REQUIRE(level.getNpcs()[0].get() == shortOne);
+    REQUIRE(level.getNpcs()[1].get() == remade.front());
+    REQUIRE(level.getNpcs()[1].get() != tallOne);
+    REQUIRE(level.getNpcs()[1]->feet() == feetOf(StandingTile));
+    REQUIRE(level.getNpcs()[1]->builtFrom().actorData.physicsBodyData.colliderSize.y == 24.0f);
+}
+
+TEST_CASE("Recasting with nothing changed re-makes nobody", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+    const Npc *shortOne = level.getNpcs()[0].get();
+
+    REQUIRE(level.recast(playerOfHeight(13.0f), theUsualNpcs(), {}).empty());
+    REQUIRE(level.getNpcs()[0].get() == shortOne);
+}
+
+TEST_CASE("Recasting builds the graphs the new cast walks", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("tall", StandingTile)});
+    REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(24.0f)), std::exception);
+
+    level.recast(playerOfHeight(30.0f), withTheTallOnesTaller(24.0f), {});
+
+    REQUIRE_NOTHROW(level.graphFor(profileOfHeight(24.0f)));
+    REQUIRE_NOTHROW(level.graphFor(profileOfHeight(30.0f)));
+    REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(20.0f)), std::exception);
+}
+
+TEST_CASE("Recasting re-makes the pickups still on the floor, and only the changed kind", "[Level]")
+{
+    LevelData levelData = corridorPlacing({});
+    levelData.pickups = {
+        PickupSpawnData{"coin", feetOf(glm::ivec2(3, FloorRow - 1))},
+        PickupSpawnData{"gem", feetOf(glm::ivec2(5, FloorRow - 1))},
+        PickupSpawnData{"coin", feetOf(glm::ivec2(7, FloorRow - 1))}};
+    std::map<std::string, PickupData> kinds{{"coin", aPickupWorth(1)}, {"gem", aPickupWorth(5)}};
+    Level level(
+        levelData,
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerOfHeight(13.0f),
+        theUsualNpcs(),
+        kinds);
+    level.takePickupsTouching(level.getPickups()[0].getAABB());
+    REQUIRE(level.getPickups().size() == 2);
+
+    kinds.at("coin") = aPickupWorth(3);
+    level.recast(playerOfHeight(13.0f), theUsualNpcs(), kinds);
+
+    REQUIRE(level.getPickups().size() == 2);
+    REQUIRE(level.getPickups()[0].getScoreDelta() == 5);
+    REQUIRE(level.getPickups()[1].getScoreDelta() == 3);
+    REQUIRE(level.getPickups()[1].getFeet() == feetOf(glm::ivec2(7, FloorRow - 1)));
+}
+
+TEST_CASE("Recasting without a type the level places is refused and changes nothing", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
+    const Npc *tallOne = level.getNpcs()[1].get();
+    std::map<std::string, NpcData> withoutTheShort = withTheTallOnesTaller(24.0f);
+    withoutTheShort.erase("short");
+
+    REQUIRE_THROWS_WITH(
+        level.recast(playerOfHeight(13.0f), withoutTheShort, {}),
+        Catch::Matchers::ContainsSubstring("short"));
+
+    REQUIRE(level.getNpcs()[1].get() == tallOne);
+    REQUIRE_NOTHROW(level.graphFor(profileOfHeight(20.0f)));
 }

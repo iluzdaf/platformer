@@ -26,6 +26,7 @@
 #include "pickups/pickup_data.hpp"
 #include "pickups/collecting.hpp"
 #include "game/catalogue.hpp"
+#include "serialization/only_what_differs.hpp"
 #include "actor/actor.hpp"
 #include <memory>
 #include <span>
@@ -84,8 +85,7 @@ Level::Level(
     for (const PickupSpawnData &spawn : levelData.pickups)
     {
         const PickupData &kind = oneNamed(pickupData, "pickup", spawn.type);
-        glm::vec2 drawn = drawnSizeOf(kind);
-        pickups.push_back(Pickup(kind, spawn.feet - glm::vec2(drawn.x * 0.5f, drawn.y)));
+        pickups.push_back(Pickup(spawn.type, kind, spawn.feet));
     }
 }
 
@@ -102,6 +102,48 @@ void Level::addGraphFor(const std::string &name, const NavigationProfile &profil
         }
 
     graphs.push_back({name, profile, buildNavigationGraph(tileMap, profile)});
+}
+
+std::vector<Npc *> Level::recast(
+    const PlayerData &playerData,
+    const std::map<std::string, NpcData> &npcData,
+    const std::map<std::string, PickupData> &pickupData)
+{
+    std::vector<std::pair<std::size_t, std::unique_ptr<Npc>>> remade;
+    for (std::size_t at = 0; at < npcs.size(); ++at)
+    {
+        const NpcSpawnData &spawn = npcs[at]->getSpawn();
+        const NpcData &data = oneNamed(npcData, "npc", spawn.type);
+        if (differs::compact(npcs[at]->builtFrom()) == differs::compact(data))
+            continue;
+
+        remade.emplace_back(at, std::make_unique<Npc>(spawn, data));
+    }
+
+    std::vector<Pickup> pickupsNow;
+    for (const Pickup &pickup : pickups)
+    {
+        const PickupData &kind = oneNamed(pickupData, "pickup", pickup.type());
+        if (differs::compact(pickup.builtFrom()) == differs::compact(kind))
+            pickupsNow.push_back(pickup);
+        else
+            pickupsNow.push_back(Pickup(pickup.type(), kind, pickup.getFeet()));
+    }
+
+    graphs.clear();
+    addGraphFor("player", buildNavigationProfile(playerData.actorData));
+    for (const auto &[type, data] : npcData)
+        addGraphFor(type, buildNavigationProfile(data.actorData));
+
+    std::vector<Npc *> creatures;
+    for (auto &[at, npc] : remade)
+    {
+        npcs[at] = std::move(npc);
+        creatures.push_back(npcs[at].get());
+    }
+
+    pickups = std::move(pickupsNow);
+    return creatures;
 }
 
 const TileMap &Level::getTileMap() const

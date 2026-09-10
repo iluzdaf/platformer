@@ -44,7 +44,7 @@ public:
     void revert(GameData &gameData);
     bool unsavedSince(const GameData &gameData);
     std::optional<std::string> cannotSaveBecause(const GameData &gameData) const;
-    void reloaded(GameData &current, const GameData &onDisk);
+    bool reloaded(GameData &current, const GameData &onDisk);
     void show(const TypeShown &type);
 
 private:

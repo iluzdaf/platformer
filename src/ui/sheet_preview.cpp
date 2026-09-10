@@ -105,7 +105,22 @@ void drawColliderOver(ImVec2 at, float scale, glm::vec2 offset, glm::vec2 size)
     ImGui::GetWindowDrawList()->AddRect(low, high, IM_COL32(0, 255, 255, 255));
 }
 
-void drawTilePreview(const SheetInScope &offering, int tileIndex, const TileData &tile)
+TileColliderData colliderShownFor(const TileData &tile, int tileSize)
+{
+    glm::vec2 whole(static_cast<float>(tileSize));
+    return tile.collider.value_or(TileColliderData{glm::vec2(0.0f), whole});
+}
+
+float tilePreviewScale(int tileSize)
+{
+    return tileSize > 0 ? PreviewSize / static_cast<float>(tileSize) : 0.0f;
+}
+
+void drawTilePreview(
+    const SheetInScope &offering,
+    int tileIndex,
+    const TileData &tile,
+    int tileSize)
 {
     if (!offering.texture)
         return;
@@ -115,8 +130,6 @@ void drawTilePreview(const SheetInScope &offering, int tileIndex, const TileData
                     : tileIndex;
     ImVec2 at = drawFrame(offering, frame);
 
-    glm::vec2 cell(offering.sheet.cellSize);
-    TileColliderData collider = tile.collider.value_or(TileColliderData{glm::vec2(0.0f), cell});
-    float scale = cell.x > 0.0f ? PreviewSize / cell.x : 0.0f;
-    drawColliderOver(at, scale, collider.offset, collider.size);
+    TileColliderData collider = colliderShownFor(tile, tileSize);
+    drawColliderOver(at, tilePreviewScale(tileSize), collider.offset, collider.size);
 }

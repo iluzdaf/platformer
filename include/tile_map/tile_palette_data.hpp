@@ -14,3 +14,8 @@ struct TilePaletteData
 };
 
 using TilePalettes = std::map<std::string, TilePaletteData>;
+
+inline int tileSizeOf(const TilePaletteData &palette)
+{
+    return palette.tileSize.value_or(palette.tileSet.cellSize.x);
+}

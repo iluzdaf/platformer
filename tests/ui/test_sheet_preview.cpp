@@ -7,6 +7,8 @@
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "ui/sheet_preview.hpp"
+#include "tile_map/tile_collider_data.hpp"
+#include "tile_map/tile_data.hpp"
 
 namespace
 {
@@ -178,6 +180,7 @@ TEST_CASE("Nothing offered is nothing to preview", "[SheetPreview]")
 #include "helpers/headless_imgui.hpp"
 #include "helpers/made_sheet.hpp"
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_collider_data.hpp"
 #include "ui/sheet_in_scope.hpp"
 
 namespace
@@ -220,8 +223,8 @@ TEST_CASE("A tile preview plays the tile's animation", "[SheetPreview]")
     animated.animationData = FrameAnimationData{{5}, 0.1f};
     FrameAnimationData onFive{{5}, 0.1f};
 
-    Drawn stillDrawn = drawnBy(gui, [&] { drawTilePreview(offering, 0, still); });
-    Drawn animatedDrawn = drawnBy(gui, [&] { drawTilePreview(offering, 0, animated); });
+    Drawn stillDrawn = drawnBy(gui, [&] { drawTilePreview(offering, 0, still, 16); });
+    Drawn animatedDrawn = drawnBy(gui, [&] { drawTilePreview(offering, 0, animated, 16); });
     Drawn frameFive = drawnBy(gui, [&] { drawAnimationPreview(offering, onFive); });
 
     REQUIRE(animatedDrawn.uvs != stillDrawn.uvs);
@@ -237,7 +240,7 @@ TEST_CASE("A tile preview draws the collider over the picture", "[SheetPreview]"
     TileData tile;
     FrameAnimationData nothing;
 
-    Drawn asTile = drawnBy(gui, [&] { drawTilePreview(offering, 0, tile); });
+    Drawn asTile = drawnBy(gui, [&] { drawTilePreview(offering, 0, tile, 16); });
     Drawn asFrame = drawnBy(gui, [&] { drawAnimationPreview(offering, nothing); });
 
     REQUIRE(asTile.vertices > asFrame.vertices);
@@ -264,7 +267,30 @@ TEST_CASE("A preview with no texture draws nothing", "[SheetPreview]")
     TileData tile;
 
     REQUIRE(drawnBy(gui, [&] { drawAnimationPreview(unloaded, nothing); }).vertices == 0);
-    REQUIRE(drawnBy(gui, [&] { drawTilePreview(unloaded, 0, tile); }).vertices == 0);
+    REQUIRE(drawnBy(gui, [&] { drawTilePreview(unloaded, 0, tile, 16); }).vertices == 0);
 }
 
 #endif
+
+TEST_CASE(
+    "A tile's collider is shown at the size the map lays it out, not the sheet's cell",
+    "[SheetPreview]")
+{
+    TileData unsaid;
+    TileColliderData whole = colliderShownFor(unsaid, 32);
+    REQUIRE(whole.offset == glm::vec2(0.0f));
+    REQUIRE(whole.size == glm::vec2(32.0f));
+
+    TileData spike;
+    spike.collider = TileColliderData{glm::vec2(0.0f, 24.0f), glm::vec2(32.0f, 8.0f)};
+    TileColliderData shown = colliderShownFor(spike, 32);
+    REQUIRE(shown.offset == glm::vec2(0.0f, 24.0f));
+    REQUIRE(shown.size == glm::vec2(32.0f, 8.0f));
+}
+
+TEST_CASE("A tile preview is scaled by the tile size the map lays out", "[SheetPreview]")
+{
+    REQUIRE(tilePreviewScale(32) == PreviewSize / 32.0f);
+    REQUIRE(tilePreviewScale(16) == PreviewSize / 16.0f);
+    REQUIRE(tilePreviewScale(0) == 0.0f);
+}

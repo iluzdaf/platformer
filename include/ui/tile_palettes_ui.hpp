@@ -39,7 +39,7 @@ public:
     bool save(TilePalettes &tilePalettes, LevelData &playing);
     void revert(TilePalettes &tilePalettes);
     bool unsavedSince(const TilePalettes &tilePalettes);
-    std::optional<std::string> cannotSaveBecause() const;
+    std::optional<std::string> cannotSaveBecause(const TilePalettes &tilePalettes) const;
     bool reloaded(TilePalettes &current, const TilePalettes &onDisk);
 
 private:

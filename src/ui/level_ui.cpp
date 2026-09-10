@@ -266,6 +266,11 @@ void LevelUi::update(
     armed.reset();
 }
 
+std::optional<std::string> LevelUi::cannotSaveBecause(const Level &level) const
+{
+    return npcsThatCannotGetBack(level);
+}
+
 bool LevelUi::takesTheDisk(const LevelData &current, const std::string &levelPath)
 {
     bool kept = unsavedSince(current, levelPath);

@@ -22,6 +22,10 @@
 #include "helpers/temporary_levels.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/editor_ui.hpp"
+#include <string>
+#include <exception>
+#include "npc/npc.hpp"
+#include "npc/npc_data.hpp"
 
 namespace
 {
@@ -266,6 +270,82 @@ TEST_CASE("A level that strands an npc says so where its save would be", "[Edito
 
     REQUIRE(saving.cannotBecause.has_value());
     REQUIRE_THAT(*saving.cannotBecause, Catch::Matchers::ContainsSubstring("cannot get back"));
+}
+
+TEST_CASE("The game section refuses a window nobody can see, as the window would", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Game, subject).cannotBecause.has_value());
+
+    editing.gameData.settings.windowHeight = 0;
+
+    SectionSaving saving = editorUi.savingIn(EditorSection::Game, subject);
+    REQUIRE(saving.cannotBecause.has_value());
+    REQUIRE_THAT(*saving.cannotBecause, Catch::Matchers::ContainsSubstring("nobody can see"));
+}
+
+TEST_CASE("The runtime section refuses what the camera refuses", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).cannotBecause.has_value());
+
+    editing.gameData.cameraData.zoom = 0.0f;
+    std::string cameraSays;
+    try
+    {
+        Camera2D built(editing.gameData.cameraData, 1, 1);
+    }
+    catch (const std::exception &e)
+    {
+        cameraSays = e.what();
+    }
+
+    SectionSaving saving = editorUi.savingIn(EditorSection::Runtime, subject);
+    REQUIRE(saving.cannotBecause == cameraSays);
+    REQUIRE_FALSE(cameraSays.empty());
+}
+
+TEST_CASE("The cast section refuses what a creature refuses when it is built", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).cannotBecause.has_value());
+
+    NpcData &rat = editing.gameData.npcData.at("rat");
+    rat.actorData.motionData.pounceAbilityData.reset();
+    std::string creatureSays;
+    try
+    {
+        Npc built(NpcSpawnData{"rat", glm::vec2(0.0f), std::nullopt}, rat);
+    }
+    catch (const std::exception &e)
+    {
+        creatureSays = e.what();
+    }
+
+    SectionSaving saving = editorUi.savingIn(EditorSection::Cast, subject);
+    REQUIRE(saving.cannotBecause == "rat " + creatureSays);
+    REQUIRE_THAT(creatureSays, Catch::Matchers::ContainsSubstring("no such ability"));
+}
+
+TEST_CASE("The level section refuses a first level that cannot be read", "[EditorSaving]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    EditorSubject subject = editing.subject();
+    REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).cannotBecause.has_value());
+
+    editing.levels.first.path = "levels/nowhere.json";
+
+    SectionSaving saving = editorUi.savingIn(EditorSection::Level, subject);
+    REQUIRE(saving.cannotBecause.has_value());
+    REQUIRE_THAT(*saving.cannotBecause, Catch::Matchers::ContainsSubstring("nowhere"));
+    REQUIRE_THAT(*saving.cannotBecause, Catch::Matchers::ContainsSubstring("cannot be read"));
 }
 
 TEST_CASE("The cast section is unsaved when its types are", "[EditorSaving]")

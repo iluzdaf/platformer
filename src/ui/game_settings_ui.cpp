@@ -1,6 +1,8 @@
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/game_settings_ui.hpp"
+#include <string>
+#include <optional>
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/editor_commands.hpp"
@@ -38,6 +40,16 @@ void GameSettingsUi::save(GameData &gameData)
 {
     saveGameSettings(gameData.settings);
     saveable.saved("game", asJson(gameData.settings));
+}
+
+std::optional<std::string> GameSettingsUi::cannotSaveBecause(const GameData &gameData) const
+{
+    const GameSettingsData &settings = gameData.settings;
+    if (settings.windowWidth <= 0 || settings.windowHeight <= 0)
+        return "a window " + std::to_string(settings.windowWidth) + " by " +
+               std::to_string(settings.windowHeight) + " is one nobody can see";
+
+    return std::nullopt;
 }
 
 bool GameSettingsUi::unsavedSince(const GameData &gameData)

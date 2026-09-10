@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <string>
 #include "ui/saveable.hpp"
 
@@ -14,6 +16,7 @@ public:
     void save(GameData &gameData);
     void revert(GameData &gameData);
     bool unsavedSince(const GameData &gameData);
+    std::optional<std::string> cannotSaveBecause(const GameData &gameData) const;
     bool reloaded(GameData &current, const GameData &onDisk);
 
 private:

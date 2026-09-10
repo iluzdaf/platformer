@@ -19,6 +19,7 @@ public:
     void save(const LevelsData &levels);
     void revert(LevelsData &levels);
     bool unsavedSince(const LevelsData &levels);
+    std::optional<std::string> cannotSaveBecause(const LevelsData &levels) const;
     void reloaded(LevelsData &current, const LevelsData &onDisk);
 
 private:

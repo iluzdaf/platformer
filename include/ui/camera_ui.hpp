@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+
+#include <optional>
+
 #include "ui/saveable.hpp"
 
 struct EditorCommands;
@@ -13,6 +17,7 @@ public:
     void save(GameData &gameData);
     void revert(GameData &gameData);
     bool unsavedSince(const GameData &gameData);
+    std::optional<std::string> cannotSaveBecause(const GameData &gameData) const;
     bool reloaded(GameData &current, const GameData &onDisk);
 
 private:

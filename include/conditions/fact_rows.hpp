@@ -30,6 +30,21 @@ const FactRow<Context> *rowNamed(std::span<const FactRow<Context>> rows, std::st
     return nullptr;
 }
 
+inline std::optional<std::string> whyNotAsked(
+    const std::string &name,
+    const Asked &asked,
+    std::optional<AskedKind> wanted)
+{
+    if (!wanted)
+        return "asks about \"" + name + "\", and there is no such fact";
+
+    if (*wanted != kindOf(asked))
+        return "asks \"" + name + "\" with " + std::string(nameOf(kindOf(asked))) +
+               ", and it wants " + std::string(nameOf(*wanted));
+
+    return std::nullopt;
+}
+
 template <class Context>
 std::optional<std::string> whyNotAsked(
     const std::map<std::string, Asked> &when,
@@ -38,12 +53,9 @@ std::optional<std::string> whyNotAsked(
     for (const auto &[name, asked] : when)
     {
         const FactRow<Context> *row = rowNamed(rows, name);
-        if (!row)
-            return "asks about \"" + name + "\", and there is no such fact";
-
-        if (row->kind != kindOf(asked))
-            return "asks \"" + name + "\" with " + std::string(nameOf(kindOf(asked))) +
-                   ", and it wants " + std::string(nameOf(row->kind));
+        if (std::optional<std::string> why =
+                whyNotAsked(name, asked, row ? std::optional(row->kind) : std::nullopt))
+            return why;
     }
 
     return std::nullopt;

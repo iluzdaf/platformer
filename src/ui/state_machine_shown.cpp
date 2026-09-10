@@ -17,11 +17,20 @@
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/actor_behavior_context.hpp"
 #include "actor/behaviors/behavior_facts.hpp"
+#include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 
 namespace
 {
+    std::string wordsOfAFact(const std::string &name, const Asked &asked)
+    {
+        if (kindOf(asked) == AskedKind::YesOrNo)
+            return std::get<bool>(asked) ? name : "not " + name;
+
+        return name + " " + textOf(asked);
+    }
 }
 
 std::string behaviourOf(const BehaviorStateData &state)
@@ -52,7 +61,17 @@ std::string behaviourOf(const BehaviorStateData &state)
 
 std::string whenOf(const BehaviorTransitionData &transition)
 {
-    std::string text = whenOf(transition.when, behaviorRows());
+    std::string text;
+    for (const auto &[name, asked] : transition.when)
+    {
+        const FactRow<ActorBehaviorContext> *row = rowNamed(behaviorRows(), name);
+        text +=
+            (text.empty() ? "" : ", ") + (row ? wordsOf(*row, asked) : wordsOfAFact(name, asked));
+    }
+
+    if (text.empty())
+        text = "always";
+
     if (transition.after <= 0.0f)
         return text;
 

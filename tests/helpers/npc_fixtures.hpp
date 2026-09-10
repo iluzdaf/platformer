@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -161,4 +162,17 @@ inline void stepNpc(Npc &npc, const Level &level, int steps)
 inline glm::vec2 footOf(const Npc &npc)
 {
     return npc.body().aabb().bottomCenter();
+}
+
+inline void noticingAThreatWithin(Npc &npc, float range)
+{
+    npc.onTick.connect(
+        [&npc, range](float)
+        {
+            std::optional<glm::vec2> threat = npc.threatFeet();
+            npc.fact(
+                "threatNear",
+                threat.has_value() && npc.onSameSurfaceAs(*threat) &&
+                    npc.distanceTo(*threat) <= range);
+        });
 }

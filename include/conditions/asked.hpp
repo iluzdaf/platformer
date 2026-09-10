@@ -18,6 +18,10 @@ AskedKind kindOf(const Asked &asked);
 
 std::string_view nameOf(AskedKind kind);
 
+Asked emptyOf(AskedKind kind);
+
+std::string textOf(const Asked &asked);
+
 struct AnimationWhen : std::map<std::string, Asked>
 {
     bool operator==(const AnimationWhen &) const = default;

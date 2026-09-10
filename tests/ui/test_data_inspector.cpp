@@ -16,6 +16,8 @@
 #include "tile_map/tile_data.hpp"
 #include "assets/sheet_data.hpp"
 #include "ui/data_inspector.hpp"
+#include "ui/facts_in_scope.hpp"
+#include "conditions/facts.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/sheet_in_scope.hpp"
@@ -283,14 +285,18 @@ TEST_CASE(
     BehaviorTransitionData transition;
     transition.from = "chase";
     transition.to = "pounce";
-    transition.when["threatWithin"] = 40.0f;
+    transition.when["hits"] = 3.0f;
     transition.when["threatOnMySurface"] = true;
+    Facts declared;
+    declared["hits"] = 0.0f;
+    declared["threatOnMySurface"] = false;
 
     REQUIRE_NOTHROW(gui.frame(
         [&]
         {
             ImGui::TreeNodeSetOpen(ImGui::GetID("when"), true);
             inspector::drawFields(rung);
+            OfferingFacts offering(declared);
             inspector::drawFields(transition);
         }));
     REQUIRE(rung.when.size() == 2);

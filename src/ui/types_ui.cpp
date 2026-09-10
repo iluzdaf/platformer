@@ -27,6 +27,7 @@
 #include "ui/level_rewriting.hpp"
 #include "ui/renames.hpp"
 #include "ui/state_machine_field.hpp"
+#include "ui/facts_in_scope.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "game/level.hpp"
 #include "npc/npc.hpp"
@@ -189,6 +190,7 @@ void TypesUi::drawShown(
         NpcData &npc = gameData.npcData.at(showing.name);
         drawActorPreview(scope, npc.actorData);
         inspector::drawFieldsExcept(npc, "stateMachineBehaviorData");
+        OfferingFacts declared(npc.facts);
         drawStateMachineEditor(
             npc.stateMachineBehaviorData, statesLitBy(live, showing.name), machineShown);
         break;

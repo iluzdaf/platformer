@@ -12,6 +12,7 @@
 #include "player/player.hpp"
 #include "npc/npc.hpp"
 #include "actor/actor.hpp"
+#include "conditions/asked.hpp"
 #include "game/playback.hpp"
 #include "game/level.hpp"
 
@@ -39,9 +40,34 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
     lua.new_usertype<Camera2D>("Camera", "startShake", &Camera2D::startShake);
     lua.new_usertype<Level>("Level", "getNextLevel", &Level::getNextLevel);
     lua.new_usertype<Actor>(
-        "Actor", "feet", &Actor::feet, "standAt", &Actor::standAt, "alive", &Actor::alive);
+        "Actor",
+        "feet",
+        &Actor::feet,
+        "standAt",
+        &Actor::standAt,
+        "alive",
+        &Actor::alive,
+        "state",
+        &Actor::stateName,
+        "fact",
+        sol::overload(
+            sol::resolve<const Asked &(const std::string &) const>(&Actor::fact),
+            sol::resolve<void(const std::string &, const Asked &)>(&Actor::fact)),
+        "event",
+        &Actor::event,
+        "threatFeet",
+        &Actor::threatFeet,
+        "distanceTo",
+        &Actor::distanceTo,
+        "onSameSurfaceAs",
+        &Actor::onSameSurfaceAs,
+        "corneredBy",
+        &Actor::corneredBy,
+        "onGround",
+        &Actor::onGround);
     lua.new_usertype<Player>("Player", sol::base_classes, sol::bases<Actor>());
-    lua.new_usertype<Npc>("Npc", "type", &Npc::type, sol::base_classes, sol::bases<Actor>());
+    lua.new_usertype<Npc>(
+        "Npc", "type", &Npc::type, "tuning", &Npc::tuning, sol::base_classes, sol::bases<Actor>());
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
 
     lua.set_function(

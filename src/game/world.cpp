@@ -24,15 +24,11 @@
 #include "player/player.hpp"
 #include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
+#include "scripting/npc_hooks.hpp"
 
 namespace
 {
     constexpr std::string_view PlayerScript = "player";
-
-    std::string scriptOf(const std::string &npcType)
-    {
-        return "npc:" + npcType;
-    }
 }
 
 World::World(
@@ -72,15 +68,7 @@ void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePla
             luaScriptSystem.forget(npc.get());
 
     for (const std::unique_ptr<Npc> &npc : built->getNpcs())
-    {
-        Npc *it = npc.get();
-        it->onHurt.connect([this, it]
-                           { luaScriptSystem.emitTo(scriptOf(it->type()), "onHurt", it, it); });
-        it->onDeath.connect([this, it]
-                            { luaScriptSystem.emitTo(scriptOf(it->type()), "onDied", it, it); });
-        it->onCue.connect([this, it](const std::string &cue)
-                          { luaScriptSystem.emitTo(scriptOf(it->type()), cue, it, it); });
-    }
+        connectNpcHooks(luaScriptSystem, *npc);
 
     levelData = fromData;
     level = std::move(built);

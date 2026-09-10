@@ -21,18 +21,24 @@
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
+#include "actor/behaviors/behavior_facts.hpp"
 #include "conditions/fact_rows.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_place.hpp"
 #include "navigation/navigation_profile.hpp"
+#include "conditions/asked.hpp"
+#include "conditions/facts.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "input/input_intentions.hpp"
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "game/noise.hpp"
+#include <glm/geometric.hpp>
 #include <optional>
 #include <memory>
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -118,8 +124,13 @@ void Actor::fixedUpdate(
     const TileMap &tileMap = level.getTileMap();
     hp.update(deltaTime);
     observations.alive = hp.alive();
-    ActorBehaviorContext context =
-        behaviorContext(level.graphFor(navigationProfile), threatFeet, noises);
+    walking = &level.graphFor(navigationProfile);
+    threat = threatFeet;
+    for (const Noise &noise : noises)
+        onNoise(noise);
+    onTick(deltaTime);
+
+    ActorBehaviorContext context = behaviorContext(*walking);
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
@@ -147,6 +158,94 @@ void Actor::fixedUpdate(
     observations.animationFinished = animator.finished();
     for (const std::string &cue : observations.cues)
         onCue(cue);
+
+    forgetTheTick();
+}
+
+void Actor::forgetTheTick()
+{
+    for (const std::string &name : saidForTheTick)
+        known[name] = declared.at(name);
+
+    saidForTheTick.clear();
+}
+
+void Actor::declare(const Facts &facts)
+{
+    for (const auto &[name, value] : facts)
+        if (rowNamed(behaviorRows(), name))
+            throw std::runtime_error(
+                "\"" + name + "\" is a fact the engine answers, and cannot be declared");
+
+    declared = facts;
+    known = facts;
+    saidForTheTick.clear();
+}
+
+const Facts &Actor::facts() const
+{
+    return known;
+}
+
+const Asked &Actor::fact(const std::string &name) const
+{
+    auto found = known.find(name);
+    if (found == known.end())
+        throw std::runtime_error("\"" + name + "\" is not a declared fact");
+
+    return found->second;
+}
+
+void Actor::say(const std::string &name, const Asked &value)
+{
+    if (std::optional<std::string> why = whyNotDeclared(declared, name, value))
+        throw std::runtime_error(*why);
+
+    known[name] = value;
+}
+
+void Actor::fact(const std::string &name, const Asked &value)
+{
+    say(name, value);
+}
+
+void Actor::event(const std::string &name, const Asked &value)
+{
+    say(name, value);
+    saidForTheTick.push_back(name);
+}
+
+const NavigationGraph &Actor::graphWalked() const
+{
+    if (!walking)
+        throw std::runtime_error("Nothing can be asked about the ground before the first tick");
+
+    return *walking;
+}
+
+std::optional<glm::vec2> Actor::threatFeet() const
+{
+    return threat;
+}
+
+float Actor::distanceTo(glm::vec2 at) const
+{
+    return glm::distance(feet(), at);
+}
+
+bool Actor::onSameSurfaceAs(glm::vec2 at) const
+{
+    return onTheSameRun(graphWalked(), feet(), at);
+}
+
+bool Actor::corneredBy(glm::vec2 at) const
+{
+    return ::corneredBy(graphWalked(), feet(), at, physicsBody.colliderSize().x);
+}
+
+bool Actor::onGround() const
+{
+    return observations.contacts.onGround;
 }
 
 const SheetData &Actor::drawnFrom() const
@@ -300,16 +399,8 @@ void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
     behavior = std::move(newBehavior);
 }
 
-ActorBehaviorContext Actor::behaviorContext(
-    const NavigationGraph &navigationGraph,
-    std::optional<glm::vec2> threatFeet,
-    std::span<const Noise> noises) const
+ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGraph) const
 {
     return ActorBehaviorContext{
-        navigationGraph,
-        feet(),
-        physicsBody.colliderSize(),
-        threatFeet,
-        observations.contacts,
-        noises};
+        navigationGraph, feet(), physicsBody.colliderSize(), threat, observations.contacts, &known};
 }

@@ -28,6 +28,9 @@
 #include "helpers/temporary_levels.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "actor/health.hpp"
+#include "actor/behaviors/idle_behavior_data.hpp"
+#include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/health_data.hpp"
 #include "npc/npc_data.hpp"
 #include "actor/hit.hpp"
@@ -631,4 +634,98 @@ TEST_CASE("The world hears the player land once, and the noise is gone the tick 
 
     REQUIRE(heardOn >= 0);
     REQUIRE(heardAgain == 0);
+}
+
+namespace
+{
+    NpcData aBoarThatSleepsUntilItHears(const std::string &script)
+    {
+        NpcData boar = setupNpcData();
+        BehaviorStateData sleeping;
+        sleeping.name = "sleep";
+        sleeping.does = IdleBehaviorData{};
+        BehaviorStateData charging;
+        charging.name = "charge";
+        charging.does = ChaseBehaviorData{};
+        BehaviorTransitionData woken;
+        woken.from = "sleep";
+        woken.to = "charge";
+        woken.when["heard"] = true;
+        woken.when["near"] = true;
+        BehaviorTransitionData tired;
+        tired.from = "charge";
+        tired.to = "sleep";
+        tired.when["near"] = false;
+        tired.after = 1.0f;
+        boar.stateMachineBehaviorData =
+            StateMachineBehaviorData{{sleeping, charging}, {woken, tired}};
+        boar.facts["heard"] = false;
+        boar.facts["near"] = false;
+        boar.tuning["range"] = 200.0f;
+        boar.script = script;
+        return boar;
+    }
+}
+
+TEST_CASE(
+    "A creature hears through its script, and wakes the tick you land on its ground",
+    "[World]")
+{
+    std::filesystem::path shared =
+        std::filesystem::temp_directory_path() / "platformer_world_boar_shared.lua";
+    std::ofstream(shared) << "seen = {ticks = 0}\n";
+    std::filesystem::path boarScript =
+        std::filesystem::temp_directory_path() / "platformer_world_boar.lua";
+    std::ofstream(boarScript) << "return {\n"
+                                 "  onNoise = function(boar, kind, at)\n"
+                                 "    seen.kind = kind\n"
+                                 "    seen.state = boar:state()\n"
+                                 "    if kind == 'landing' and boar:onSameSurfaceAs(at) then\n"
+                                 "      boar:event('heard', true)\n"
+                                 "    end\n"
+                                 "  end,\n"
+                                 "  onTick = function(boar, dt)\n"
+                                 "    seen.ticks = seen.ticks + 1\n"
+                                 "    local threat = boar:threatFeet()\n"
+                                 "    boar:fact('near', threat ~= nil and boar:distanceTo(threat) "
+                                 "<= boar:tuning('range'))\n"
+                                 "  end,\n"
+                                 "}\n";
+
+    GameData gameData = aFloorWorldWithCoins();
+    gameData.npcData = {{"boar", aBoarThatSleepsUntilItHears(boarScript.string())}};
+    ScriptedIntentions input;
+    LuaScriptSystem luaScriptSystem(shared.string());
+    World world(gameData, input, luaScriptSystem);
+    TemporaryLevels levels("world_boar");
+    levels.write(
+        "floor.json", aFloorLevelPlacing({spawnAt("boar", glm::ivec2(6, FloorLevelStanding))}));
+    world.loadLevel(levels.pathOf("floor.json"));
+    const Npc &boar = *world.getLevel().getNpcs().front();
+    sol::table seen = luaScriptSystem.getLua()["seen"];
+
+    walkFor(world, 5);
+    REQUIRE(boar.stateName() == "sleep");
+    REQUIRE(seen["ticks"].get<int>() > 0);
+    REQUIRE(std::get<bool>(boar.fact("near")));
+
+    InputIntentions jump;
+    jump.jumpRequested = true;
+    jump.jumpHeld = true;
+    input.set(jump);
+    walkFor(world, 1);
+    input.set(InputIntentions{});
+
+    int wokeOn = -1;
+    for (int frame = 0; frame < 120 && wokeOn < 0; ++frame)
+    {
+        walkFor(world, 1);
+        if (boar.stateName() == "charge")
+            wokeOn = frame;
+    }
+
+    REQUIRE(wokeOn >= 0);
+    REQUIRE(seen["kind"].get<std::string>() == "landing");
+    REQUIRE(seen["state"].get<std::string>() == "sleep");
+    REQUIRE_FALSE(std::get<bool>(boar.fact("heard")));
 }

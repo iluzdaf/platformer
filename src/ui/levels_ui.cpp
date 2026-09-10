@@ -3,6 +3,7 @@
 #include <string>
 #include <imgui.h>
 #include "ui/levels_ui.hpp"
+#include "ui/data_inspector.hpp"
 #include "game/level_data_file.hpp"
 #include "ui/file_chooser.hpp"
 #include "ui/switching_level.hpp"
@@ -47,7 +48,7 @@ void LevelsUi::draw(
 
     ImGui::Separator();
 
-    drawFileChooser("first", levels.first.path, directoryOf(levelPath), ".json");
+    inspector::draw("first", levels.first);
 }
 void LevelsUi::revert(LevelsData &levels)
 {

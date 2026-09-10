@@ -315,7 +315,6 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
             levelUi.draw(
                 level,
                 levelData,
-                LevelPath,
                 animations,
                 observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),

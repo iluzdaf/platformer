@@ -44,7 +44,6 @@ public:
     void draw(
         const Level &level,
         const LevelData &levelData,
-        const std::string &levelPath,
         const ActorAnimationData &playerAnimations,
         const Observed &playerObserved,
         const glm::vec2 &playerFeet,
@@ -80,11 +79,7 @@ private:
     bool npcsShown = false;
 
     std::string asItWouldBeSaved(const LevelData &levelData) const;
-    void drawLevel(
-        const Level &level,
-        const LevelData &levelData,
-        const std::string &levelPath,
-        EditorCommands &commands);
+    void drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands);
     void drawActors(
         const Level &level,
         const LevelData &levelData,

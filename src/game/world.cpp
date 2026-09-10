@@ -8,6 +8,8 @@
 #include <utility>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/world.hpp"
+#include "game/catalogue.hpp"
+#include <cstddef>
 #include "actor/observed.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "game/noise.hpp"
@@ -21,6 +23,7 @@
 #include "npc/striking_player.hpp"
 #include "npc/striking_npcs.hpp"
 #include "npc/npc.hpp"
+#include "npc/npc_data.hpp"
 #include "player/player.hpp"
 #include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
@@ -129,25 +132,20 @@ void World::castChanged()
     if (!level)
         return;
 
-    std::vector<const Npc *> before;
-    for (const std::unique_ptr<Npc> &npc : level->getNpcs())
-        before.push_back(npc.get());
+    level->rebuildGraphsFor(gameData.playerData, gameData.npcData);
 
-    std::vector<Npc *> remade =
-        level->recast(gameData.playerData, gameData.npcData, gameData.pickupData);
-
-    for (const Npc *was : before)
+    const std::vector<std::unique_ptr<Npc>> &creatures = level->getNpcs();
+    for (std::size_t at = 0; at < creatures.size(); ++at)
     {
-        bool still = false;
-        for (const std::unique_ptr<Npc> &npc : level->getNpcs())
-            still = still || npc.get() == was;
+        const NpcData &data = oneNamed(gameData.npcData, "npc", creatures[at]->getSpawn().type);
+        if (differs::compact(creatures[at]->builtFrom()) == differs::compact(data))
+            continue;
 
-        if (!still)
-            luaScriptSystem.forget(was);
+        luaScriptSystem.forget(creatures[at].get());
+        connectNpcHooks(luaScriptSystem, level->remake(at, data));
     }
 
-    for (Npc *npc : remade)
-        connectNpcHooks(luaScriptSystem, *npc);
+    level->recastPickups(gameData.pickupData);
 
     if (player && differs::compact(player->builtFrom()) != differs::compact(gameData.playerData))
         makePlayerAt(player->feet());

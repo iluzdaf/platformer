@@ -4,6 +4,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cstddef>
 #include <exception>
+#include <stdexcept>
 #include <string>
 #include <map>
 #include <optional>
@@ -427,49 +428,64 @@ namespace
         pickup.scoreDelta = scoreDelta;
         return pickup;
     }
+
+    void tick(Level &level)
+    {
+        level.beginFrame();
+        level.fixedUpdate(0.01f, glm::vec2(0.0f));
+    }
 }
 
-TEST_CASE("Recasting re-makes only the creatures whose data changed, where they spawned", "[Level]")
-{
-    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
-    const Npc *shortOne = level.getNpcs()[0].get();
-    const Npc *tallOne = level.getNpcs()[1].get();
-    glm::vec2 wandered = tallOne->feet() + glm::vec2(24.0f, 0.0f);
-    level.getNpcs()[1]->standAt(wandered);
-
-    std::vector<Npc *> remade =
-        level.recast(playerOfHeight(13.0f), withTheTallOnesTaller(24.0f), {});
-
-    REQUIRE(remade.size() == 1);
-    REQUIRE(level.getNpcs()[0].get() == shortOne);
-    REQUIRE(level.getNpcs()[1].get() == remade.front());
-    REQUIRE(level.getNpcs()[1].get() != tallOne);
-    REQUIRE(level.getNpcs()[1]->feet() == feetOf(StandingTile));
-    REQUIRE(level.getNpcs()[1]->builtFrom().actorData.physicsBodyData.colliderSize.y == 24.0f);
-}
-
-TEST_CASE("Recasting with nothing changed re-makes nobody", "[Level]")
-{
-    Level level = levelPlacing({spawnAt("short", StandingTile)});
-    const Npc *shortOne = level.getNpcs()[0].get();
-
-    REQUIRE(level.recast(playerOfHeight(13.0f), theUsualNpcs(), {}).empty());
-    REQUIRE(level.getNpcs()[0].get() == shortOne);
-}
-
-TEST_CASE("Recasting builds the graphs the new cast walks", "[Level]")
+TEST_CASE(
+    "Rebuilding the graphs for a new cast gives it the graphs it walks, and drops the old",
+    "[Level]")
 {
     Level level = levelPlacing({spawnAt("tall", StandingTile)});
     REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(24.0f)), std::exception);
 
-    level.recast(playerOfHeight(30.0f), withTheTallOnesTaller(24.0f), {});
+    level.rebuildGraphsFor(playerOfHeight(30.0f), withTheTallOnesTaller(24.0f));
 
     REQUIRE_NOTHROW(level.graphFor(profileOfHeight(24.0f)));
     REQUIRE_NOTHROW(level.graphFor(profileOfHeight(30.0f)));
     REQUIRE_THROWS_AS(level.graphFor(profileOfHeight(20.0f)), std::exception);
 }
 
-TEST_CASE("Recasting re-makes the pickups still on the floor, and only the changed kind", "[Level]")
+TEST_CASE(
+    "Rebuilding the graphs makes every creature forget the ground until its next tick",
+    "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile)});
+    Npc &creature = *level.getNpcs()[0];
+    tick(level);
+    REQUIRE_NOTHROW(creature.onSameSurfaceAs(creature.feet()));
+
+    level.rebuildGraphsFor(playerOfHeight(13.0f), theUsualNpcs());
+
+    REQUIRE_THROWS_AS(creature.onSameSurfaceAs(creature.feet()), std::runtime_error);
+    tick(level);
+    REQUIRE_NOTHROW(creature.onSameSurfaceAs(creature.feet()));
+}
+
+TEST_CASE("Remaking a creature puts a new one at its spawn, built from the data given", "[Level]")
+{
+    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
+    const Npc *shortOne = level.getNpcs()[0].get();
+    const Npc *tallOne = level.getNpcs()[1].get();
+    level.getNpcs()[1]->standAt(tallOne->feet() + glm::vec2(24.0f, 0.0f));
+
+    Npc &remade = level.remake(1, npcOfHeight(24.0f));
+
+    REQUIRE(&remade == level.getNpcs()[1].get());
+    REQUIRE(&remade != tallOne);
+    REQUIRE(level.getNpcs()[0].get() == shortOne);
+    REQUIRE(remade.feet() == feetOf(StandingTile));
+    REQUIRE(remade.getSpawn().type == "tall");
+    REQUIRE(remade.builtFrom().actorData.physicsBodyData.colliderSize.y == 24.0f);
+}
+
+TEST_CASE(
+    "Recasting the pickups re-makes the ones still on the floor, and only the changed kind",
+    "[Level]")
 {
     LevelData levelData = corridorPlacing({});
     levelData.pickups = {
@@ -487,7 +503,7 @@ TEST_CASE("Recasting re-makes the pickups still on the floor, and only the chang
     REQUIRE(level.getPickups().size() == 2);
 
     kinds.at("coin") = aPickupWorth(3);
-    level.recast(playerOfHeight(13.0f), theUsualNpcs(), kinds);
+    level.recastPickups(kinds);
 
     REQUIRE(level.getPickups().size() == 2);
     REQUIRE(level.getPickups()[0].getScoreDelta() == 5);
@@ -495,17 +511,18 @@ TEST_CASE("Recasting re-makes the pickups still on the floor, and only the chang
     REQUIRE(level.getPickups()[1].getSpawn().feet == feetOf(glm::ivec2(7, FloorRow - 1)));
 }
 
-TEST_CASE("Recasting without a type the level places is refused and changes nothing", "[Level]")
+TEST_CASE("Recasting the pickups without a kind on the floor is refused by name", "[Level]")
 {
-    Level level = levelPlacing({spawnAt("short", StandingTile), spawnAt("tall", StandingTile)});
-    const Npc *tallOne = level.getNpcs()[1].get();
-    std::map<std::string, NpcData> withoutTheShort = withTheTallOnesTaller(24.0f);
-    withoutTheShort.erase("short");
+    LevelData levelData = corridorPlacing({});
+    levelData.pickups = {PickupSpawnData{"coin", feetOf(glm::ivec2(3, FloorRow - 1))}};
+    std::map<std::string, PickupData> kinds{{"coin", aPickupWorth(1)}};
+    Level level(
+        levelData,
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerOfHeight(13.0f),
+        theUsualNpcs(),
+        kinds);
 
-    REQUIRE_THROWS_WITH(
-        level.recast(playerOfHeight(13.0f), withoutTheShort, {}),
-        Catch::Matchers::ContainsSubstring("short"));
-
-    REQUIRE(level.getNpcs()[1].get() == tallOne);
-    REQUIRE_NOTHROW(level.graphFor(profileOfHeight(20.0f)));
+    REQUIRE_THROWS_WITH(level.recastPickups({}), Catch::Matchers::ContainsSubstring("coin"));
+    REQUIRE(level.getPickups().size() == 1);
 }

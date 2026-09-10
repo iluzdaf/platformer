@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "actor/abilities/swing_ability_data.hpp"
 #include <optional>
 #include "game/level_data.hpp"
@@ -803,6 +804,14 @@ TEST_CASE(
     REQUIRE(playing.rat().feet() == ratWas);
     REQUIRE(playing.spider().feet() == feetOf(glm::ivec2(6, FloorLevelStanding)));
     REQUIRE(playing.spider().builtFrom().actorData.motionData.moveAbilityData->moveSpeed == 90.0f);
+}
+
+TEST_CASE("A cast change naming a creature the cast no longer has is refused by name", "[World]")
+{
+    TwoWalkers playing;
+    playing.gameData.npcData.erase("spider");
+
+    REQUIRE_THROWS_WITH(playing.world.castChanged(), Catch::Matchers::ContainsSubstring("spider"));
 }
 
 TEST_CASE(

@@ -104,22 +104,27 @@ void Level::addGraphFor(const std::string &name, const NavigationProfile &profil
     graphs.push_back({name, profile, buildNavigationGraph(tileMap, profile)});
 }
 
-std::vector<Npc *> Level::recast(
+void Level::rebuildGraphsFor(
     const PlayerData &playerData,
-    const std::map<std::string, NpcData> &npcData,
-    const std::map<std::string, PickupData> &pickupData)
+    const std::map<std::string, NpcData> &npcData)
 {
-    std::vector<std::pair<std::size_t, std::unique_ptr<Npc>>> remade;
-    for (std::size_t at = 0; at < npcs.size(); ++at)
-    {
-        const NpcSpawnData &spawn = npcs[at]->getSpawn();
-        const NpcData &data = oneNamed(npcData, "npc", spawn.type);
-        if (differs::compact(npcs[at]->builtFrom()) == differs::compact(data))
-            continue;
+    graphs.clear();
+    addGraphFor("player", buildNavigationProfile(playerData.actorData));
+    for (const auto &[type, data] : npcData)
+        addGraphFor(type, buildNavigationProfile(data.actorData));
 
-        remade.emplace_back(at, std::make_unique<Npc>(spawn, data));
-    }
+    for (const std::unique_ptr<Npc> &npc : npcs)
+        npc->forgetTheGround();
+}
 
+Npc &Level::remake(std::size_t at, const NpcData &data)
+{
+    npcs.at(at) = std::make_unique<Npc>(npcs.at(at)->getSpawn(), data);
+    return *npcs[at];
+}
+
+void Level::recastPickups(const std::map<std::string, PickupData> &pickupData)
+{
     std::vector<Pickup> pickupsNow;
     for (const Pickup &pickup : pickups)
     {
@@ -130,20 +135,7 @@ std::vector<Npc *> Level::recast(
             pickupsNow.push_back(Pickup(pickup.getSpawn(), kind));
     }
 
-    graphs.clear();
-    addGraphFor("player", buildNavigationProfile(playerData.actorData));
-    for (const auto &[type, data] : npcData)
-        addGraphFor(type, buildNavigationProfile(data.actorData));
-
-    std::vector<Npc *> creatures;
-    for (auto &[at, npc] : remade)
-    {
-        npcs[at] = std::move(npc);
-        creatures.push_back(npcs[at].get());
-    }
-
     pickups = std::move(pickupsNow);
-    return creatures;
 }
 
 const TileMap &Level::getTileMap() const

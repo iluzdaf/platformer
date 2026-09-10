@@ -1,4 +1,39 @@
 {
+    "boar":{
+        "actorData":{
+            "sheet":{"texture":"textures/boar.png","cellSize":[32,32]},
+            "size":[16,16],
+            "physicsBodyData":{"colliderSize":[14,10],"colliderOffset":[2,6]},
+            "motionData":{"moveAbilityData":{"moveSpeed":180},"gravityAbilityData":{}},
+            "animationData":{
+                "clips":{
+                    "dead":{"frames":[7],"frameDuration":1,"loops":false},
+                    "idle":{"frames":[0],"frameDuration":1},
+                    "run":{"frames":[3,4,5,6],"frameDuration":0.08},
+                    "sleep":{"frames":[1,2],"frameDuration":0.6}
+                },
+                "ladder":{
+                    "transitions":[
+                        {"to":"dead","when":{"alive":false}},
+                        {"to":"sleep","when":{"inState":"sleep"}},
+                        {"to":"run","when":{"moving":true,"onGround":true}},
+                        {"to":"idle","when":{"onGround":true}}
+                    ]
+                }
+            }
+        },
+        "stateMachineBehaviorData":{
+            "states":[{"name":"sleep"},{"name":"charge","does":{"kind":"chase"}}],
+            "transitions":[
+                {"from":"sleep","to":"charge","when":{"heard":true,"near":true}},
+                {"from":"charge","to":"sleep","when":{"near":false},"after":1}
+            ]
+        },
+        "facts":{"heard":false,"near":false},
+        "tuning":{"range":200},
+        "contactDamage":1,
+        "script":"scripts/npcs/boar.lua"
+    },
     "rat":{
         "actorData":{
             "sheet":{"texture":"textures/rat.png","cellSize":[32,32]},

@@ -22,9 +22,22 @@
 #include <vector>
 #include <memory>
 #include "npc/npc_spawn_data.hpp"
+#include "actor/behaviors/idle_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include <optional>
+#include <variant>
 #include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
+
+namespace
+{
+    bool sleepsAtFirst(const NpcData &data)
+    {
+        const std::optional<StateMachineBehaviorData> &machine = data.stateMachineBehaviorData;
+        return machine && !machine->states.empty() &&
+               std::holds_alternative<IdleBehaviorData>(machine->states.front().does);
+    }
+}
 
 TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level]")
 {
@@ -47,7 +60,14 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
                 "npc \"" << spawn.type << "\" at " << spawn.feet.x << "," << spawn.feet.y << " in "
                          << entry.path().filename().string() << " has nowhere to walk");
 
-            Npc npc(spawn, shippedNpcData().at(spawn.type));
+            const NpcData &data = shippedNpcData().at(spawn.type);
+            Npc npc(spawn, data);
+            if (sleepsAtFirst(data))
+            {
+                REQUIRE(level.runBeneath(npc.profile(), spawn.feet).has_value());
+                continue;
+            }
+
             ScriptedNpcs scripts;
             scripts.script(npc);
 

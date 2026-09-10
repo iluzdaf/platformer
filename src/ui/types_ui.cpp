@@ -82,10 +82,12 @@ namespace
         const GameData &gameData,
         const std::map<std::string, T> &types,
         TypeShown::What what,
+        const Renaming &renaming,
         TypeShown &showing)
     {
         for (const auto &[name, type] : types)
-            offer(gameData, TypeShown{what, name}, showing);
+            if (!renaming.gone(name))
+                offer(gameData, TypeShown{what, name}, showing);
     }
 }
 
@@ -105,8 +107,8 @@ void TypesUi::drawChooser(GameData &gameData)
     if (ImGui::BeginCombo("##type", labelOf(showing).c_str()))
     {
         offer(gameData, thePlayer(), showing);
-        offerEach(gameData, gameData.npcData, TypeShown::What::Npc, showing);
-        offerEach(gameData, gameData.pickupData, TypeShown::What::Pickup, showing);
+        offerEach(gameData, gameData.npcData, TypeShown::What::Npc, npcRenaming, showing);
+        offerEach(gameData, gameData.pickupData, TypeShown::What::Pickup, pickupRenaming, showing);
         ImGui::EndCombo();
     }
 
@@ -117,10 +119,7 @@ void TypesUi::drawChooser(GameData &gameData)
     ImGui::SameLine();
     ImGui::BeginDisabled(showing.what == TypeShown::What::Player || showing.name.empty());
     if (ImGui::Button("remove", ImVec2(-FLT_MIN, 0.0f)))
-    {
-        removeTypeFrom(gameData, showing);
-        showing = thePlayer();
-    }
+        remove(gameData);
 
     ImGui::EndDisabled();
 
@@ -128,10 +127,10 @@ void TypesUi::drawChooser(GameData &gameData)
         return;
 
     if (ImGui::Selectable("npc"))
-        showing = addTypeTo(gameData, TypeShown::What::Npc);
+        add(gameData, TypeShown::What::Npc);
 
     if (ImGui::Selectable("pickup"))
-        showing = addTypeTo(gameData, TypeShown::What::Pickup);
+        add(gameData, TypeShown::What::Pickup);
 
     ImGui::EndPopup();
 }
@@ -283,6 +282,8 @@ void TypesUi::revert(GameData &gameData)
 bool TypesUi::save(GameData &gameData, LevelData &playing)
 {
     Renames npcs = npcRenaming.sinceSaved(), pickups = pickupRenaming.sinceSaved();
+    std::vector<std::string> npcsRemoved = npcRenaming.removed();
+    std::vector<std::string> pickupsRemoved = pickupRenaming.removed();
 
     bool npcsWritten = writeRenamesIntoLevels(
         npcRenaming,
@@ -298,6 +299,11 @@ bool TypesUi::save(GameData &gameData, LevelData &playing)
 
     if (!npcsWritten || !pickupsWritten)
         return false;
+
+    for (const std::string &name : npcsRemoved)
+        gameData.npcData.erase(name);
+    for (const std::string &name : pickupsRemoved)
+        gameData.pickupData.erase(name);
 
     renamesTakeEffect(npcs, gameData.npcData);
     renamesTakeEffect(pickups, gameData.pickupData);
@@ -352,6 +358,34 @@ void TypesUi::show(const TypeShown &type)
 {
     showing = type;
     machineShown = MachineShown{};
+}
+
+void TypesUi::add(GameData &gameData, TypeShown::What what)
+{
+    show(addTypeTo(gameData, what));
+    (what == TypeShown::What::Npc ? npcRenaming : pickupRenaming).added(showing.name);
+}
+
+void TypesUi::remove(GameData &gameData)
+{
+    if (showing.what == TypeShown::What::Player || showing.name.empty())
+        return;
+
+    bool npc = showing.what == TypeShown::What::Npc;
+    Renaming &renaming = npc ? npcRenaming : pickupRenaming;
+    if (renaming.remove(showing.name, std::string()))
+        lookAheadAtLevels(
+            renaming,
+            levelsDirectory,
+            [npc](LevelData &levelData, const Renames &renames)
+            {
+                return npc ? rewriting::typeIn(levelData.npcs, renames)
+                           : rewriting::typeIn(levelData.pickups, renames);
+            });
+    else
+        removeTypeFrom(gameData, showing);
+
+    show(thePlayer());
 }
 
 bool TypesUi::reloaded(GameData &current, const GameData &onDisk)

@@ -46,6 +46,8 @@ public:
     std::optional<std::string> cannotSaveBecause(const GameData &gameData) const;
     bool reloaded(GameData &current, const GameData &onDisk);
     void show(const TypeShown &type);
+    void add(GameData &gameData, TypeShown::What what);
+    void remove(GameData &gameData);
 
 private:
     void drawChooser(GameData &gameData);

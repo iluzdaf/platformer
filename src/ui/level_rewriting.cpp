@@ -28,6 +28,7 @@ namespace
             rewritten = true;
         }
 
+        std::erase_if(spawns, [](const Spawn &spawn) { return spawn.type.empty(); });
         return rewritten;
     }
 

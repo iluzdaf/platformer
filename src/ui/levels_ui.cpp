@@ -12,37 +12,16 @@
 #include "game/game_data.hpp"
 #include "ui/editor_commands.hpp"
 
-namespace
-{
-    std::optional<std::string> levelChooser(const char *label, const std::string &current)
-    {
-        std::optional<std::string> chosen;
-
-        ImGui::TextUnformatted(label);
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(-FLT_MIN);
-        if (ImGui::BeginCombo(("##" + std::string(label)).c_str(), levelName(current).c_str()))
-        {
-            for (const std::string &path : levelPathsIn(directoryOf(current)))
-            {
-                bool isCurrent = path == current;
-                if (ImGui::Selectable(levelName(path).c_str(), isCurrent) && !isCurrent)
-                    chosen = path;
-            }
-            ImGui::EndCombo();
-        }
-
-        return chosen;
-    }
-}
-
 void LevelsUi::draw(
     LevelsData &levels,
     const std::string &levelPath,
     EditorCommands &commands,
     bool levelHasUnsavedChanges)
 {
-    std::optional<std::string> chosen = levelChooser("playing", levelPath);
+    std::string playing = levelPath;
+    std::optional<std::string> chosen;
+    if (drawFileChooser("playing", playing, directoryOf(levelPath), ".json"))
+        chosen = playing;
 
     bool switchPressed = false;
     bool cancelPressed = false;

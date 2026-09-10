@@ -166,7 +166,7 @@ TEST_CASE("A palette that measures its tiles at nothing is refused", "[TileMap]"
 TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
 {
     TilePaletteData palette = paletteOf({{0, TileData{}}});
-    palette.tileSet.texture = "textures/somewhere_else.png";
+    palette.tileSet.texture.path = "textures/somewhere_else.png";
     palette.tileSet.cellSize = glm::ivec2(8);
 
     TileMapData tileMapData;
@@ -175,7 +175,7 @@ TEST_CASE("A level is drawn from the tile set its palette names", "[TileMap]")
 
     TileMap tileMap(tileMapData, theOnlyPalette(palette));
 
-    REQUIRE(tileMap.getTileSet().texture == "textures/somewhere_else.png");
+    REQUIRE(tileMap.getTileSet().texture.path == "textures/somewhere_else.png");
     REQUIRE(tileMap.getTileSet().cellSize.x == 8);
 }
 
@@ -213,7 +213,7 @@ TEST_CASE("A level takes the size of a tile from the palette it names", "[TileMa
 TEST_CASE("Every shipped palette names a texture that is on disk", "[TileMap]")
 {
     for (const auto &[name, palette] : shippedPalettes())
-        REQUIRE(std::filesystem::exists(assetPath(palette.tileSet.texture)));
+        REQUIRE(std::filesystem::exists(assetPath(palette.tileSet.texture.path)));
 }
 
 TEST_CASE("A painted tile the palette says nothing about is empty", "[TileMap]")
@@ -467,7 +467,7 @@ TEST_CASE("A tile map refuses data it cannot build from", "[TileMap]")
     SECTION("A palette naming no tile set texture")
     {
         TilePaletteData palette = paletteOf({{0, TileData{}}});
-        palette.tileSet.texture.clear();
+        palette.tileSet.texture.path.clear();
         TileMapData sized;
         sized.tilePalette = "default";
         sized.indices = std::vector<std::vector<int>>(2, std::vector<int>(2, 0));

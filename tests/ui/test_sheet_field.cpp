@@ -75,7 +75,7 @@ TEST_CASE("A sheet keeps what it was given after being drawn", "[SheetField]")
 
     drawnHeightOf(gui, sheet);
 
-    REQUIRE(sheet.texture == "textures/somewhere.png");
+    REQUIRE(sheet.texture.path == "textures/somewhere.png");
     REQUIRE(sheet.cellSize == glm::ivec2(24, 32));
 }
 

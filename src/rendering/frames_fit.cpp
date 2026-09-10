@@ -20,8 +20,8 @@ void checkFramesFit(
     for (int frame : frames)
         if (frame < 0 || frame >= cells)
             throw std::runtime_error(
-                whose + " animates on frame " + std::to_string(frame) + ", and \"" + sheet.texture +
-                "\" holds " + std::to_string(cells));
+                whose + " animates on frame " + std::to_string(frame) + ", and \"" +
+                sheet.texture.path + "\" holds " + std::to_string(cells));
 }
 
 void checkCuesFit(const FrameAnimationData &clip, const std::string &whose)

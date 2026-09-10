@@ -10,7 +10,7 @@
 inline TilePaletteData paletteOf(std::map<int, TileData> tiles)
 {
     TilePaletteData palette;
-    palette.tileSet.texture = std::string(assets::TileSetTexture);
+    palette.tileSet.texture.path = std::string(assets::TileSetTexture);
     palette.tiles = std::move(tiles);
     return palette;
 }

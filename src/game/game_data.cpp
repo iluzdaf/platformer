@@ -77,7 +77,7 @@ GameData loadGameData()
     readInto(loaded.tilePalettes, assets::TilePalettes);
     readInto(loaded.levels, assets::LevelList);
 
-    if (loaded.levels.first.empty())
+    if (loaded.levels.first.path.empty())
         throw std::runtime_error("first must not be empty");
 
     return loaded;

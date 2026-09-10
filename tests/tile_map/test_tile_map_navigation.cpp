@@ -73,7 +73,7 @@ namespace
             for (int x = 0; x < 20; ++x)
                 data.tileMapData.indices[2][x] = 1;
             data.playerFeet = feetOf(glm::ivec2(0, 1));
-            data.nextLevel = "levels/somewhere.json";
+            data.nextLevel.path = "levels/somewhere.json";
             data.npcs = {NpcSpawnData{"rat", feetOf(glm::ivec2(2, 1)), std::nullopt}};
             data.pickups = {PickupSpawnData{"coin", feetOf(glm::ivec2(3, 1))}};
             return data;

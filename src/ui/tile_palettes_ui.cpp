@@ -178,16 +178,16 @@ void TilePalettesUi::draw(
     drawTileSizeField(palette);
     ImGui::Separator();
 
-    const Texture2D *tileSet = textures.find(palette.tileSet.texture);
+    const Texture2D *tileSet = textures.find(palette.tileSet.texture.path);
     if (!tileSet)
     {
-        if (!palette.tileSet.texture.empty() && palette.tileSet.texture != askedToWarm)
+        if (!palette.tileSet.texture.path.empty() && palette.tileSet.texture.path != askedToWarm)
         {
-            askedToWarm = palette.tileSet.texture;
-            commands.onWarmTexture(palette.tileSet.texture);
+            askedToWarm = palette.tileSet.texture.path;
+            commands.onWarmTexture(palette.tileSet.texture.path);
         }
 
-        ImGui::TextDisabled("no texture at %s", palette.tileSet.texture.c_str());
+        ImGui::TextDisabled("no texture at %s", palette.tileSet.texture.path.c_str());
         return;
     }
 

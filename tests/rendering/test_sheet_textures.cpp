@@ -10,11 +10,11 @@
 TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 {
     PlayerData playerData = playerDataWithEveryAbility();
-    playerData.actorData.sheet.texture = "textures/somewhere_else.png";
+    playerData.actorData.sheet.texture.path = "textures/somewhere_else.png";
 
     Player player(playerData, noIntentions());
 
-    REQUIRE(player.drawnFrom().texture == "textures/somewhere_else.png");
+    REQUIRE(player.drawnFrom().texture.path == "textures/somewhere_else.png");
 }
 
 #ifndef SKIP_OPENGL_TESTS
@@ -35,7 +35,7 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 TEST_CASE("An actor's sheet is loaded and checked together", "[SheetTextures]")
 {
     ActorData actor;
-    actor.sheet.texture = std::string(assets::PlayerTexture);
+    actor.sheet.texture.path = std::string(assets::PlayerTexture);
 
     TextureCache textures;
     warmAndCheck(textures, actor, "the player");
@@ -57,13 +57,14 @@ TEST_CASE("Two palettes naming two tile sets get two textures", "[SheetTextures]
 {
     TilePaletteData first = paletteOf({{0, TileData{}}});
     TilePaletteData second = paletteOf({{0, TileData{}}});
-    second.tileSet.texture = std::string(assets::PlayerTexture);
+    second.tileSet.texture.path = std::string(assets::PlayerTexture);
 
     TextureCache textures;
     warmAndCheck(textures, first, "\"default\"");
     warmAndCheck(textures, second, "\"other\"");
 
-    REQUIRE(&textures.get(first.tileSet.texture) != &textures.get(second.tileSet.texture));
+    REQUIRE(
+        &textures.get(first.tileSet.texture.path) != &textures.get(second.tileSet.texture.path));
 }
 
 TEST_CASE("Two palettes sharing a tile set load it once", "[SheetTextures]")
@@ -75,13 +76,13 @@ TEST_CASE("Two palettes sharing a tile set load it once", "[SheetTextures]")
     warmAndCheck(textures, first, "\"default\"");
     warmAndCheck(textures, same, "\"same\"");
 
-    REQUIRE(&textures.get(first.tileSet.texture) == &textures.get(same.tileSet.texture));
+    REQUIRE(&textures.get(first.tileSet.texture.path) == &textures.get(same.tileSet.texture.path));
 }
 
 TEST_CASE("A palette whose tile set is not on disk says so", "[SheetTextures]")
 {
     TilePaletteData palette = paletteOf({{0, TileData{}}});
-    palette.tileSet.texture = "textures/nothing_here.png";
+    palette.tileSet.texture.path = "textures/nothing_here.png";
 
     TextureCache textures;
 
@@ -93,7 +94,7 @@ TEST_CASE("A palette whose tile set is not on disk says so", "[SheetTextures]")
 TEST_CASE("A palette naming no tile set is refused by name", "[SheetTextures]")
 {
     TilePaletteData palette = paletteOf({{0, TileData{}}});
-    palette.tileSet.texture.clear();
+    palette.tileSet.texture.path.clear();
 
     TextureCache textures;
 
@@ -166,8 +167,8 @@ TEST_CASE("A health icon naming a heart its sheet has not got says so", "[SheetT
 TEST_CASE("Warming the data loads every texture it names", "[SheetTextures]")
 {
     GameData gameData;
-    gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
-    gameData.settings.healthIcon.sheet.texture = std::string(assets::TileSetTexture);
+    gameData.playerData.actorData.sheet.texture.path = std::string(assets::PlayerTexture);
+    gameData.settings.healthIcon.sheet.texture.path = std::string(assets::TileSetTexture);
     TextureCache textures;
 
     warmEverySheetIn(textures, gameData);

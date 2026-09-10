@@ -9,6 +9,7 @@
 #include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "ui/file_chooser.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "game/level_data_file.hpp"
 #include "ui/mouse_on_the_map.hpp"
@@ -145,22 +146,9 @@ void LevelUi::drawLevel(
     if (std::optional<Resize> resize = drawSizeButtons(tileMap.getWidth(), tileMap.getHeight()))
         askedToResize(*resize, levelData, tileMap.getTileSize(), commands);
 
-    ImGui::TextUnformatted("next");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(110.0f);
-    if (ImGui::BeginCombo("##next", levelName(levelData.nextLevel).c_str()))
-    {
-        std::string directory = directoryOf(levelPath);
-        for (const std::string &path : levelPathsIn(directory))
-            if (ImGui::Selectable(levelName(path).c_str(), path == levelData.nextLevel))
-            {
-                LevelData edited = levelData;
-                edited.nextLevel = path;
-                commands.onLevelEdited(edited);
-            }
-
-        ImGui::EndCombo();
-    }
+    LevelData edited = levelData;
+    if (drawFileChooser("next", edited.nextLevel.path, directoryOf(levelPath), ".json"))
+        commands.onLevelEdited(edited);
 }
 
 void LevelUi::drawOverlayToggles()

@@ -46,7 +46,7 @@ Game::Game(Window &window, Reloader &reloader)
         });
     world.onLevelBuilt.connect([this, &reloader] { reloader.levelLoaded(world.getLevelPath()); });
     renderer.warm(gameData);
-    world.loadLevel(gameData.levels.first);
+    world.loadLevel(gameData.levels.first.path);
 
     gameUi.commands().onPlay.connect([this] { playback.play(); });
     gameUi.commands().onPause.connect([this] { playback.pause(); });

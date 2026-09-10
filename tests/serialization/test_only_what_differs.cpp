@@ -87,7 +87,7 @@ TEST_CASE("A level with nobody in it names no npcs or pickups", "[OnlyWhatDiffer
     LevelData level;
     level.tileMapData.indices = {{0, 1}};
     level.tileMapData.tilePalette = "cave";
-    level.nextLevel = "levels/level2.json";
+    level.nextLevel.path = "levels/level2.json";
 
     REQUIRE(
         onlyWhatDiffers(level) ==
@@ -122,7 +122,7 @@ TEST_CASE("What was left out reads back as the default it was", "[OnlyWhatDiffer
 
     REQUIRE(back.tileMapData.indices == level.tileMapData.indices);
     REQUIRE(back.playerFeet == glm::vec2(0.0f));
-    REQUIRE(back.nextLevel == level.nextLevel);
+    REQUIRE(back.nextLevel.path == level.nextLevel.path);
     REQUIRE(back.npcs.size() == 1);
     REQUIRE(back.npcs[0].feet == glm::vec2(0.0f));
     REQUIRE(back.pickups.empty());
@@ -134,7 +134,7 @@ TEST_CASE("A level file lays its grid out and keeps its leaves compact", "[OnlyW
     level.tileMapData.indices = {{0, 10}, {3, 0}};
     level.tileMapData.tilePalette = "cave";
     level.playerFeet = glm::vec2(8.0f, 16.0f);
-    level.nextLevel = "levels/level2.json";
+    level.nextLevel.path = "levels/level2.json";
 
     REQUIRE(
         asFileText(level) == "{\n"

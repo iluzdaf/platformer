@@ -368,7 +368,7 @@ TEST_CASE("Reverting puts back a type that was removed", "[TypesUi]")
 TEST_CASE("The player is in the cast and hands back their own sheet", "[TypesUi]")
 {
     GameData gameData = twoOfEach();
-    gameData.playerData.actorData.sheet.texture = "textures/hero.png";
+    gameData.playerData.actorData.sheet.texture.path = "textures/hero.png";
 
     REQUIRE(sheetOf(gameData, thePlayer()) == &gameData.playerData.actorData.sheet);
     REQUIRE(sheetOf(gameData, thePlayer())->texture == "textures/hero.png");
@@ -385,7 +385,7 @@ TEST_CASE("The player cannot leave the cast", "[TypesUi]")
 TEST_CASE("The player naming no sheet is named as the reason a save cannot happen", "[TypesUi]")
 {
     GameData gameData = loadGameData();
-    gameData.playerData.actorData.sheet.texture.clear();
+    gameData.playerData.actorData.sheet.texture.path.clear();
 
     std::optional<std::string> why = aTypeThatCannotBeSaved(gameData);
 
@@ -472,7 +472,7 @@ TEST_CASE("The cast starts on the player", "[TypesUi]")
     GameData gameData = twoOfEach();
     TextureCache textures;
     EditorCommands commands;
-    gameData.playerData.actorData.sheet.texture = "textures/hero.png";
+    gameData.playerData.actorData.sheet.texture.path = "textures/hero.png";
 
     std::string asked;
     commands.onWarmTexture.connect([&](const std::string &texture) { asked = texture; });
@@ -485,8 +485,8 @@ TEST_CASE("The cast starts on the player", "[TypesUi]")
 TEST_CASE("A type hands back the sheet it draws from", "[TypesUi]")
 {
     GameData gameData = twoOfEach();
-    gameData.pickupData["coin"].sheet.texture = "textures/coin.png";
-    gameData.npcData["rat"].actorData.sheet.texture = "textures/player.png";
+    gameData.pickupData["coin"].sheet.texture.path = "textures/coin.png";
+    gameData.npcData["rat"].actorData.sheet.texture.path = "textures/player.png";
 
     REQUIRE(
         sheetOf(gameData, TypeShown{TypeShown::What::Pickup, "coin"})->texture ==
@@ -514,7 +514,7 @@ TEST_CASE("Editing a type asks for the sheet it draws from", "[TypesUi]")
 
     std::string asked;
     commands.onWarmTexture.connect([&](const std::string &texture) { asked = texture; });
-    gameData.pickupData["coin"].sheet.texture = "textures/coin.png";
+    gameData.pickupData["coin"].sheet.texture.path = "textures/coin.png";
     typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
 
     gui.frame([&] { typesUi.draw(gameData, textures, commands); });
@@ -769,10 +769,10 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
         [&](const std::map<std::string, PickupData> &) { wrote = true; });
     GameData gameData = twoOfEach();
     for (auto &[name, npc] : gameData.npcData)
-        npc.actorData.sheet.texture = std::string(assets::PlayerTexture);
+        npc.actorData.sheet.texture.path = std::string(assets::PlayerTexture);
     for (auto &[name, pickup] : gameData.pickupData)
-        pickup.sheet.texture = std::string(assets::PlayerTexture);
-    gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
+        pickup.sheet.texture.path = std::string(assets::PlayerTexture);
+    gameData.playerData.actorData.sheet.texture.path = std::string(assets::PlayerTexture);
     typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 
@@ -805,7 +805,7 @@ TEST_CASE("An actor's preview shows the collider its body will have", "[TypesUi]
     GameData gameData = twoOfEach();
     TextureCache textures;
     EditorCommands commands;
-    gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
+    gameData.playerData.actorData.sheet.texture.path = std::string(assets::PlayerTexture);
     gameData.playerData.actorData.sheet.cellSize = glm::ivec2(32);
     gameData.playerData.actorData.size = glm::vec2(16.0f);
     gameData.playerData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
@@ -824,7 +824,7 @@ TEST_CASE("A pickup's preview shows the reach that collects it", "[TypesUi]")
     TextureCache textures;
     EditorCommands commands;
     PickupData &coin = gameData.pickupData["coin"];
-    coin.sheet.texture = std::string(assets::PlayerTexture);
+    coin.sheet.texture.path = std::string(assets::PlayerTexture);
     coin.size = glm::vec2(16.0f);
     coin.colliderSize = glm::vec2(6.0f);
     textures.warm(std::string(assets::PlayerTexture));
@@ -841,7 +841,7 @@ TEST_CASE("The types section previews an npc above its fields", "[TypesUi]")
     GameData gameData = twoOfEach();
     TextureCache textures;
     EditorCommands commands;
-    gameData.npcData["rat"].actorData.sheet.texture = std::string(assets::PlayerTexture);
+    gameData.npcData["rat"].actorData.sheet.texture.path = std::string(assets::PlayerTexture);
     typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
     auto drawing = [&] { typesUi.draw(gameData, textures, commands); };
 
@@ -859,7 +859,7 @@ TEST_CASE("The types section previews the player above their fields", "[TypesUi]
     GameData gameData = twoOfEach();
     TextureCache textures;
     EditorCommands commands;
-    gameData.playerData.actorData.sheet.texture = std::string(assets::PlayerTexture);
+    gameData.playerData.actorData.sheet.texture.path = std::string(assets::PlayerTexture);
     textures.warm(std::string(assets::PlayerTexture));
     typesUi.show(thePlayer());
 
@@ -874,7 +874,7 @@ TEST_CASE("The types section previews a pickup above its fields", "[TypesUi]")
     GameData gameData = twoOfEach();
     TextureCache textures;
     EditorCommands commands;
-    gameData.pickupData["coin"].sheet.texture = std::string(assets::PlayerTexture);
+    gameData.pickupData["coin"].sheet.texture.path = std::string(assets::PlayerTexture);
     textures.warm(std::string(assets::PlayerTexture));
     typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
 

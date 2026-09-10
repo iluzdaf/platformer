@@ -79,8 +79,10 @@ namespace
 
             return notNamedAsDataInFields<T>(std::make_index_sequence<glz::reflect<T>::size>{});
         }
-        else
+        else if constexpr (ours<T>() && !glz::name_v<T>.ends_with("Data"))
             return glz::name_v<T>;
+        else
+            return {};
     }
 }
 

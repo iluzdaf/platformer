@@ -25,13 +25,13 @@ void GameUi::draw(const GameUiSubject &subject)
 
     const ScoreIconData &scoreIcon = subject.gameData.settings.scoreIcon;
     drawScore(
-        imGuiManager, subject.score, subject.textures.get(scoreIcon.sheet.texture), scoreIcon);
+        imGuiManager, subject.score, subject.textures.get(scoreIcon.sheet.texture.path), scoreIcon);
 
     const HealthIconData &healthIcon = subject.gameData.settings.healthIcon;
     drawHealth(
         imGuiManager,
         subject.player.health(),
-        subject.textures.get(healthIcon.sheet.texture),
+        subject.textures.get(healthIcon.sheet.texture.path),
         healthIcon);
 
     editorUi.draw(

@@ -10,7 +10,7 @@
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
 #include "ui/saveable.hpp"
-#include "ui/file_chooser.hpp"
+#include "ui/data_inspector.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "game/level_data_file.hpp"
 #include "ui/mouse_on_the_map.hpp"
@@ -30,13 +30,11 @@
 #include "ui/tile_map_overlays.hpp"
 #include "ui/size_buttons.hpp"
 #include "game/level_resizing.hpp"
-#include "game/levels.hpp"
 #include "cameras/camera2d.hpp"
 
 void LevelUi::draw(
     const Level &level,
     const LevelData &levelData,
-    const std::string &levelPath,
     const ActorAnimationData &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
@@ -45,7 +43,7 @@ void LevelUi::draw(
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
-    drawLevel(level, levelData, levelPath, commands);
+    drawLevel(level, levelData, commands);
     navigationUi.draw(level);
     drawActors(
         level,
@@ -137,14 +135,10 @@ void askedToResize(
     commands.onLevelResized(resizedBy(resize, levelData, tileSize), shiftOf(resize, tileSize));
 }
 
-void LevelUi::drawLevel(
-    const Level &level,
-    const LevelData &levelData,
-    const std::string &levelPath,
-    EditorCommands &commands)
+void LevelUi::drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands)
 {
     LevelData edited = levelData;
-    if (drawFileChooser("next", edited.nextLevel.path, directoryOf(levelPath), ".json"))
+    if (inspector::draw("next", edited.nextLevel))
         commands.onLevelEdited(edited);
 
     if (!ImGui::TreeNodeEx("Resize"))

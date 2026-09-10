@@ -123,7 +123,6 @@ void EditorUi::draw(
             levelUi.draw(
                 subject.level,
                 subject.levelData,
-                subject.levelPath,
                 subject.gameData.playerData.actorData.animationData,
                 subject.playerObserved,
                 subject.playerFeet,

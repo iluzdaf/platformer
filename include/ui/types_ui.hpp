@@ -4,6 +4,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <vector>
 #include "ui/saveable.hpp"
 #include "ui/last_answer.hpp"
 #include "ui/type_shown.hpp"
@@ -47,6 +48,7 @@ public:
     std::optional<std::string> cannotSaveBecause(const GameData &gameData);
     bool reloaded(GameData &current, const GameData &onDisk);
     void show(const TypeShown &type);
+    std::vector<TypeShown> offered(const GameData &gameData) const;
     void add(GameData &gameData, TypeShown::What what);
     void remove(GameData &gameData);
 

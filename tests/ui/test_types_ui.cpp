@@ -1,4 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
+#include <vector>
+#include <algorithm>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <cstddef>
 #include <filesystem>
@@ -873,6 +875,48 @@ TEST_CASE("A type removal cannot be saved while a level cannot be read", "[Types
     REQUIRE_FALSE(wrote);
     REQUIRE(gameData.npcData.contains(type));
     REQUIRE(firstNpcTypeIn(directory) == type);
+}
+
+TEST_CASE("The chooser offers the player, then the npcs, then the pickups", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+
+    std::vector<TypeShown> offered = typesUi.offered(gameData);
+
+    REQUIRE(
+        offered == std::vector<TypeShown>{
+                       thePlayer(),
+                       TypeShown{TypeShown::What::Npc, "rat"},
+                       TypeShown{TypeShown::What::Npc, "spider"},
+                       TypeShown{TypeShown::What::Pickup, "coin"},
+                       TypeShown{TypeShown::What::Pickup, "gem"}});
+}
+
+TEST_CASE("A type removed is no longer offered, and is offered again once reverted", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
+
+    typesUi.remove(gameData);
+
+    std::vector<TypeShown> offered = typesUi.offered(gameData);
+    REQUIRE(
+        std::find(offered.begin(), offered.end(), TypeShown{TypeShown::What::Npc, "rat"}) ==
+        offered.end());
+    REQUIRE(
+        std::find(offered.begin(), offered.end(), TypeShown{TypeShown::What::Npc, "spider"}) !=
+        offered.end());
+    REQUIRE(gameData.npcData.contains("rat"));
+
+    typesUi.revert(gameData);
+
+    offered = typesUi.offered(gameData);
+    REQUIRE(
+        std::find(offered.begin(), offered.end(), TypeShown{TypeShown::What::Npc, "rat"}) !=
+        offered.end());
 }
 
 TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesUi]")

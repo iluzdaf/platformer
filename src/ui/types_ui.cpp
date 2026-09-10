@@ -77,18 +77,6 @@ namespace
         return lit;
     }
 
-    template <class T>
-    void offerEach(
-        const GameData &gameData,
-        const std::map<std::string, T> &types,
-        TypeShown::What what,
-        const Renaming &renaming,
-        TypeShown &showing)
-    {
-        for (const auto &[name, type] : types)
-            if (!renaming.gone(name))
-                offer(gameData, TypeShown{what, name}, showing);
-    }
 }
 
 TypesUi::TypesUi(
@@ -106,9 +94,8 @@ void TypesUi::drawChooser(GameData &gameData)
     ImGui::SetNextItemWidth(-ButtonsWidth);
     if (ImGui::BeginCombo("##type", labelOf(showing).c_str()))
     {
-        offer(gameData, thePlayer(), showing);
-        offerEach(gameData, gameData.npcData, TypeShown::What::Npc, npcRenaming, showing);
-        offerEach(gameData, gameData.pickupData, TypeShown::What::Pickup, pickupRenaming, showing);
+        for (const TypeShown &listed : offered(gameData))
+            offer(gameData, listed, showing);
         ImGui::EndCombo();
     }
 
@@ -355,6 +342,20 @@ std::optional<std::string> TypesUi::cannotSaveBecause(const GameData &gameData)
         return npcs;
 
     return pickupRenaming.cannotSaveBecause();
+}
+
+std::vector<TypeShown> TypesUi::offered(const GameData &gameData) const
+{
+    std::vector<TypeShown> listed{thePlayer()};
+    for (const auto &[name, npc] : gameData.npcData)
+        if (!npcRenaming.gone(name))
+            listed.push_back(TypeShown{TypeShown::What::Npc, name});
+
+    for (const auto &[name, pickup] : gameData.pickupData)
+        if (!pickupRenaming.gone(name))
+            listed.push_back(TypeShown{TypeShown::What::Pickup, name});
+
+    return listed;
 }
 
 void TypesUi::show(const TypeShown &type)

@@ -44,7 +44,7 @@ public:
     bool save(GameData &gameData, LevelData &playing);
     void revert(GameData &gameData);
     bool unsavedSince(const GameData &gameData);
-    std::optional<std::string> cannotSaveBecause(const GameData &gameData) const;
+    std::optional<std::string> cannotSaveBecause(const GameData &gameData);
     bool reloaded(GameData &current, const GameData &onDisk);
     void show(const TypeShown &type);
     void add(GameData &gameData, TypeShown::What what);
@@ -65,7 +65,7 @@ private:
     WritePickups writePickups;
     WritePlayer writePlayer;
     Saveable saveable;
-    mutable LastAnswer castGate;
+    LastAnswer castGate;
     Renaming npcRenaming, pickupRenaming;
     TypeShown showing = thePlayer();
     std::string previewing = "idle";

@@ -68,12 +68,12 @@ public:
     std::optional<std::string> cannotSaveBecause(
         const Level &level,
         const LevelData &levelData,
-        const std::map<std::string, NpcData> &npcs) const;
+        const std::map<std::string, NpcData> &npcs);
     bool takesTheDisk(const LevelData &current, const std::string &levelPath);
 
 private:
     Saveable saveable;
-    mutable LastAnswer walkGate;
+    LastAnswer walkGate;
     NavigationUi navigationUi;
     ActorShown showingActor;
     TileMapShown tileMapShown;

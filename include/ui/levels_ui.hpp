@@ -21,11 +21,11 @@ public:
     void save(const LevelsData &levels);
     void revert(LevelsData &levels);
     bool unsavedSince(const LevelsData &levels);
-    std::optional<std::string> cannotSaveBecause(const LevelsData &levels) const;
+    std::optional<std::string> cannotSaveBecause(const LevelsData &levels);
     void reloaded(LevelsData &current, const LevelsData &onDisk);
 
 private:
     Saveable saveable;
-    mutable LastAnswer firstLevelGate;
+    LastAnswer firstLevelGate;
     std::optional<std::string> askedToSwitchTo;
 };

@@ -216,10 +216,15 @@ void Actor::event(const std::string &name, const Asked &value)
     saidForTheTick.push_back(name);
 }
 
+void Actor::forgetTheGround()
+{
+    walking = nullptr;
+}
+
 const NavigationGraph &Actor::graphWalked() const
 {
     if (!walking)
-        throw std::runtime_error("Nothing can be asked about the ground before the first tick");
+        throw std::runtime_error("Nothing can be asked about the ground until the next tick");
 
     return *walking;
 }

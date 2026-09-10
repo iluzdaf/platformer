@@ -53,10 +53,11 @@ public:
     void postFixedUpdate();
     void update(float deltaTime);
     std::vector<Pickup> takePickupsTouching(const AABB &reach);
-    std::vector<Npc *> recast(
+    void rebuildGraphsFor(
         const PlayerData &playerData,
-        const std::map<std::string, NpcData> &npcData,
-        const std::map<std::string, PickupData> &pickupData);
+        const std::map<std::string, NpcData> &npcData);
+    Npc &remake(std::size_t at, const NpcData &data);
+    void recastPickups(const std::map<std::string, PickupData> &pickupData);
     std::optional<PatrolData> runBeneath(const NavigationProfile &profile, glm::vec2 position)
         const;
 

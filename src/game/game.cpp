@@ -63,6 +63,8 @@ Game::Game(Window &window, Reloader &reloader)
         { this->window.setSize(gameData.settings.windowWidth, gameData.settings.windowHeight); });
     gameUi.commands().onCameraChanged.connect([this] { camera.setZoom(gameData.cameraData.zoom); });
     gameUi.commands().onCastChanged.connect([this] { world.castChanged(); });
+    gameUi.commands().onPalettesChanged.connect(
+        [this] { world.rebuildFrom(LevelData(world.getLevelData())); });
     gameUi.commands().onWarmTexture.connect([this](const std::string &texturePath)
                                             { renderer.warmTexture(texturePath); });
 

@@ -420,6 +420,43 @@ TEST_CASE("Looking at a cell does not give it settings", "[TilePalettesUi]")
 }
 
 TEST_CASE(
+    "An edit committed in the palette editor asks for the palettes to change",
+    "[TilePalettesUi]")
+{
+    HeadlessImGui gui;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+
+    TextureCache textures;
+    textures.warm(palettes["default"].tileSet.texture.path);
+
+    std::optional<Armed> armed = PaintTile{0};
+    EditorCommands commands;
+    int palettesChanged = 0;
+    commands.onPalettesChanged.connect([&] { ++palettesChanged; });
+    auto drawing = [&] { tilePalettesUi.draw(palettes, textures, commands, armed); };
+
+    gui.frame(drawing);
+    gui.frame(drawing);
+    commands.drain();
+    REQUIRE(palettesChanged == 0);
+
+    gui.frame(
+        [&]
+        {
+            ImGui::ActivateItemByID(ImGui::GetID("solid"));
+            drawing();
+        });
+    gui.frame(drawing);
+    gui.frame(drawing);
+    commands.drain();
+
+    REQUIRE(palettes["default"].tiles.at(0).solid);
+    REQUIRE(palettesChanged == 1);
+}
+
+TEST_CASE(
     "A palette made from an image starts with nothing said about its tiles",
     "[TilePalettesUi]")
 {

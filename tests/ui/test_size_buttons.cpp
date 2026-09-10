@@ -23,7 +23,7 @@ namespace
             const ImGuiStyle &style = ImGui::GetStyle();
             float line = ImGui::GetTextLineHeight();
             float buttonWidth = ImGui::CalcTextSize("-").x + style.FramePadding.x * 2.0f;
-            float minusMiddle = ImGui::GetWindowPos().x + SizeLabelWidth + buttonWidth * 0.5f;
+            float minusMiddle = top.x + SizeLabelWidth + buttonWidth * 0.5f;
             float plusMiddle = minusMiddle + buttonWidth + style.ItemSpacing.x;
             for (int row = 0; row < 4; ++row)
             {
@@ -84,4 +84,40 @@ TEST_CASE("Each side's minus asks for a smaller map on that side", "[SizeButtons
     REQUIRE(askedByClicking(gui, rows[1].smaller) == Resize{Side::Right, false});
     REQUIRE(askedByClicking(gui, rows[2].smaller) == Resize{Side::Above, false});
     REQUIRE(askedByClicking(gui, rows[3].smaller) == Resize{Side::Below, false});
+}
+
+namespace
+{
+    float lastButtonLeftEdge(HeadlessImGui &gui, bool indented)
+    {
+        float left = 0.0f;
+        auto draw = [&]
+        {
+            if (indented)
+                ImGui::Indent();
+
+            drawSizeButtons(3, 2);
+            left = ImGui::GetItemRectMin().x;
+
+            if (indented)
+                ImGui::Unindent();
+        };
+        gui.frame(draw);
+        gui.frame(draw);
+        return left;
+    }
+}
+
+TEST_CASE(
+    "The buttons keep their place beside the labels when the rows are indented",
+    "[SizeButtons]")
+{
+    HeadlessImGui gui;
+
+    float plain = lastButtonLeftEdge(gui, false);
+    float indented = lastButtonLeftEdge(gui, true);
+    float indent = 0.0f;
+    gui.frame([&] { indent = ImGui::GetStyle().IndentSpacing; });
+
+    REQUIRE(indented - plain == indent);
 }

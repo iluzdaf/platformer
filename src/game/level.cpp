@@ -114,7 +114,7 @@ void Level::rebuildGraphsFor(
         addGraphFor(type, buildNavigationProfile(data.actorData));
 
     for (const std::unique_ptr<Npc> &npc : npcs)
-        npc->forgetTheGround();
+        npc->walks(graphFor(npc->profile()));
 }
 
 Npc &Level::remake(std::size_t at, const NpcData &data)

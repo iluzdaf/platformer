@@ -132,8 +132,6 @@ void World::castChanged()
     if (!level)
         return;
 
-    level->rebuildGraphsFor(gameData.playerData, gameData.npcData);
-
     const std::vector<std::unique_ptr<Npc>> &creatures = level->getNpcs();
     for (std::size_t at = 0; at < creatures.size(); ++at)
     {
@@ -145,6 +143,7 @@ void World::castChanged()
         connectNpcHooks(luaScriptSystem, level->remake(at, data));
     }
 
+    level->rebuildGraphsFor(gameData.playerData, gameData.npcData);
     level->recastPickups(gameData.pickupData);
 
     if (player && differs::compact(player->builtFrom()) != differs::compact(gameData.playerData))

@@ -125,7 +125,7 @@ void Actor::fixedUpdate(
     const TileMap &tileMap = level.getTileMap();
     hp.update(deltaTime);
     observations.alive = hp.alive();
-    walking = &level.graphFor(navigationProfile);
+    walks(level.graphFor(navigationProfile));
     threat = threatFeet;
     for (const Noise &noise : noises)
         onNoise(noise);
@@ -216,15 +216,15 @@ void Actor::event(const std::string &name, const Asked &value)
     saidForTheTick.push_back(name);
 }
 
-void Actor::forgetTheGround()
+void Actor::walks(const NavigationGraph &navigationGraph)
 {
-    walking = nullptr;
+    walking = &navigationGraph;
 }
 
 const NavigationGraph &Actor::graphWalked() const
 {
     if (!walking)
-        throw std::runtime_error("Nothing can be asked about the ground until the next tick");
+        throw std::runtime_error("Nothing can be asked about the ground before the first tick");
 
     return *walking;
 }

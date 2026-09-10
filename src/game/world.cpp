@@ -25,6 +25,7 @@
 #include "input/intention_source.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "scripting/npc_hooks.hpp"
+#include "serialization/only_what_differs.hpp"
 
 namespace
 {
@@ -90,10 +91,15 @@ void World::respawnPlayer()
     if (!level)
         throw std::runtime_error("Cannot spawn the player before the tile map");
 
+    makePlayerAt(level->getPlayerStart());
+}
+
+void World::makePlayerAt(glm::vec2 feet)
+{
     std::unique_ptr<Player> newPlayer =
         std::make_unique<Player>(gameData.playerData, intentionSource);
     player = std::move(newPlayer);
-    player->standAt(level->getPlayerStart());
+    player->standAt(feet);
     auto hear = [this, who = player.get()](const auto &event, std::string_view hook)
     {
         event.connect([this, hook, who]
@@ -111,6 +117,35 @@ void World::respawnPlayer()
     player->onCue.connect([this, who = player.get()](const std::string &cue)
                           { luaScriptSystem.emitTo(PlayerScript, cue, nullptr, who); });
     luaScriptSystem.bindPlayer(player.get());
+}
+
+void World::castChanged()
+{
+    if (!level)
+        return;
+
+    std::vector<const Npc *> before;
+    for (const std::unique_ptr<Npc> &npc : level->getNpcs())
+        before.push_back(npc.get());
+
+    std::vector<Npc *> remade =
+        level->recast(gameData.playerData, gameData.npcData, gameData.pickupData);
+
+    for (const Npc *was : before)
+    {
+        bool still = false;
+        for (const std::unique_ptr<Npc> &npc : level->getNpcs())
+            still = still || npc.get() == was;
+
+        if (!still)
+            luaScriptSystem.forget(was);
+    }
+
+    for (Npc *npc : remade)
+        connectNpcHooks(luaScriptSystem, *npc);
+
+    if (player && differs::compact(player->builtFrom()) != differs::compact(gameData.playerData))
+        makePlayerAt(player->feet());
 }
 
 void World::beginFrame()

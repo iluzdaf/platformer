@@ -30,6 +30,7 @@ public:
 
     Event<World> onLevelBuilt;
     void respawnPlayer();
+    void castChanged();
 
     void beginFrame();
     void fixedUpdate(float deltaTime);
@@ -57,4 +58,6 @@ private:
     std::vector<Noise> heardThisTick;
     std::unique_ptr<Player> player;
     Score score;
+
+    void makePlayerAt(glm::vec2 feet);
 };

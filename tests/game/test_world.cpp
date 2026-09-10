@@ -729,3 +729,151 @@ TEST_CASE(
     REQUIRE(seen["state"].get<std::string>() == "sleep");
     REQUIRE_FALSE(std::get<bool>(boar.fact("heard")));
 }
+
+namespace
+{
+    struct TwoWalkers
+    {
+        GameData gameData = aFloorWorldWithCoins();
+        LuaScriptSystem luaScriptSystem;
+        World world{gameData, noIntentions(), luaScriptSystem};
+        TemporaryLevels levels{"world_cast"};
+
+        TwoWalkers()
+        {
+            gameData.npcData = {{"rat", setupNpcData()}, {"spider", setupNpcData()}};
+            LevelData levelData = aFloorLevelPlacing(
+                {spawnAt("rat", glm::ivec2(3, FloorLevelStanding)),
+                 spawnAt("spider", glm::ivec2(6, FloorLevelStanding))});
+            levelData.pickups.push_back(
+                PickupSpawnData{"coin", feetOf(glm::ivec2(8, FloorLevelStanding))});
+            levels.write("floor.json", levelData);
+            world.loadLevel(levels.pathOf("floor.json"));
+        }
+
+        TwoWalkers(const TwoWalkers &) = delete;
+        TwoWalkers &operator=(const TwoWalkers &) = delete;
+
+        const Npc &rat() const
+        {
+            return *world.getLevel().getNpcs()[0];
+        }
+
+        const Npc &spider() const
+        {
+            return *world.getLevel().getNpcs()[1];
+        }
+    };
+}
+
+TEST_CASE(
+    "A cast change re-makes only the creatures whose kind changed, and leaves the rest walking",
+    "[World]")
+{
+    TwoWalkers playing;
+    walkFor(playing.world, 60);
+    const Npc *ratBefore = &playing.rat();
+    glm::vec2 ratWas = playing.rat().feet();
+    glm::vec2 spiderWas = playing.spider().feet();
+    REQUIRE(spiderWas != feetOf(glm::ivec2(6, FloorLevelStanding)));
+
+    playing.gameData.npcData.at("spider").actorData.motionData.moveAbilityData->moveSpeed = 90.0f;
+    playing.world.castChanged();
+
+    REQUIRE(&playing.rat() == ratBefore);
+    REQUIRE(playing.rat().feet() == ratWas);
+    REQUIRE(playing.spider().feet() == feetOf(glm::ivec2(6, FloorLevelStanding)));
+    REQUIRE(playing.spider().builtFrom().actorData.motionData.moveAbilityData->moveSpeed == 90.0f);
+}
+
+TEST_CASE(
+    "A cast change leaves the player where they stand, re-made if their data changed",
+    "[World]")
+{
+    TwoWalkers playing;
+    glm::vec2 wandered = playing.world.getPlayer().feet() + glm::vec2(32.0f, 0.0f);
+    playing.world.getPlayer().standAt(wandered);
+    const Player *before = &playing.world.getPlayer();
+
+    playing.world.castChanged();
+    REQUIRE(&playing.world.getPlayer() == before);
+
+    playing.gameData.playerData.fallFromHeightThreshold += 1.0f;
+    playing.world.castChanged();
+
+    REQUIRE(&playing.world.getPlayer() != before);
+    REQUIRE(playing.world.getPlayer().feet() == wandered);
+}
+
+TEST_CASE("A cast change does not bring back a coin already taken", "[World]")
+{
+    TwoWalkers playing;
+    playing.world.getPlayer().standAt(feetOf(glm::ivec2(8, FloorLevelStanding)));
+    walkFor(playing.world, 2);
+    REQUIRE(playing.world.getScore().total() == 1);
+    REQUIRE(playing.world.getLevel().getPickups().empty());
+
+    playing.gameData.pickupData.at("coin").scoreDelta = 5;
+    playing.world.castChanged();
+
+    REQUIRE(playing.world.getLevel().getPickups().empty());
+}
+
+TEST_CASE("A re-made creature is wired to its script, and the old one is forgotten", "[World]")
+{
+    std::filesystem::path shared =
+        std::filesystem::temp_directory_path() / "platformer_world_recast_shared.lua";
+    std::ofstream(shared) << "seen = {hurt = 0}\n";
+    std::filesystem::path script =
+        std::filesystem::temp_directory_path() / "platformer_world_recast.lua";
+    std::ofstream(script) << "return { onHurt = function(who) seen.hurt = seen.hurt + 1 end }\n";
+
+    GameData gameData = aFloorWorldWithCoins();
+    NpcData rat = setupNpcData();
+    rat.actorData.healthData = HealthData{3, 0.0f};
+    rat.script = script.string();
+    gameData.npcData = {{"rat", rat}};
+    LuaScriptSystem luaScriptSystem(shared.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_recast");
+    levels.write(
+        "floor.json", aFloorLevelPlacing({spawnAt("rat", glm::ivec2(3, FloorLevelStanding))}));
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    gameData.npcData.at("rat").contactDamage = 2;
+    world.castChanged();
+    world.getLevel().getNpcs().front()->takeHit(Hit{1, glm::vec2(0.0f), false});
+
+    REQUIRE(luaScriptSystem.getLua()["seen"]["hurt"].get<int>() == 1);
+}
+
+TEST_CASE("A coroutine the old creature started is dropped when it is re-made", "[World]")
+{
+    std::filesystem::path shared =
+        std::filesystem::temp_directory_path() / "platformer_world_recast_co_shared.lua";
+    std::ofstream(shared) << "waitSeconds = coroutine.yield\nseen = {}\n";
+    std::filesystem::path script =
+        std::filesystem::temp_directory_path() / "platformer_world_recast_co.lua";
+    std::ofstream(script) << "return { onHurt = function(who)\n"
+                             "  startCoroutine(function() waitSeconds(0.1) seen.woke = true end)\n"
+                             "end }\n";
+
+    GameData gameData = aFloorWorldWithCoins();
+    NpcData rat = setupNpcData();
+    rat.actorData.healthData = HealthData{3, 0.0f};
+    rat.script = script.string();
+    gameData.npcData = {{"rat", rat}};
+    LuaScriptSystem luaScriptSystem(shared.string());
+    World world(gameData, noIntentions(), luaScriptSystem);
+    TemporaryLevels levels("world_recast_co");
+    levels.write(
+        "floor.json", aFloorLevelPlacing({spawnAt("rat", glm::ivec2(3, FloorLevelStanding))}));
+    world.loadLevel(levels.pathOf("floor.json"));
+
+    world.getLevel().getNpcs().front()->takeHit(Hit{1, glm::vec2(0.0f), false});
+    gameData.npcData.at("rat").contactDamage = 2;
+    world.castChanged();
+    luaScriptSystem.update(0.2f);
+
+    REQUIRE_FALSE(luaScriptSystem.getLua()["seen"]["woke"].valid());
+}

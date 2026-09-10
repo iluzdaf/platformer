@@ -11,6 +11,7 @@ public:
     Player(const PlayerData &data, const IntentionSource &intentionSource);
     void postFixedUpdate() override;
     void completeLevel();
+    const PlayerData &builtFrom() const;
     Event<Player> onLevelComplete, onFallFromHeight, onHitCeiling, onWallJump, onDash,
         onWallSliding, onAttack;
 

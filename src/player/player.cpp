@@ -13,6 +13,11 @@ Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
     setBehavior(std::make_unique<InputBehavior>(intentionSource));
 }
 
+const PlayerData &Player::builtFrom() const
+{
+    return data;
+}
+
 void Player::completeLevel()
 {
     if (levelCompleted)

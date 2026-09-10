@@ -17,13 +17,15 @@ void reloads::gameDataChanged(
     GameData &gameData,
     const GameData &onDisk)
 {
-    editorUi.reloaded(gameData, onDisk);
+    EditorUi::Reloaded taken = editorUi.reloaded(gameData, onDisk);
 
     std::string current = world.getLevelPath();
     if (current.empty())
         world.loadLevel(gameData.levels.first.path);
     else if (editorUi.levelTakesTheDisk(world.getLevelData(), current))
         world.loadLevel(current);
-    else
+    else if (taken.palettes)
         world.rebuildFrom(LevelData(world.getLevelData()));
+    else if (taken.cast)
+        world.castChanged();
 }

@@ -50,23 +50,19 @@ World::~World() = default;
 
 void World::loadLevel(const std::string &levelPath)
 {
-    LevelData fromDisk = readLevelData(levelPath);
-    std::string was = path;
+    build(readLevelData(levelPath), glm::vec2(0.0f));
     path = levelPath;
-    try
-    {
-        rebuildFrom(fromDisk);
-    }
-    catch (...)
-    {
-        path = was;
-        throw;
-    }
-
+    onLevelBuilt();
     respawnPlayer();
 }
 
 void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePlayerBy)
+{
+    build(fromData, movingThePlayerBy);
+    onLevelBuilt();
+}
+
+void World::build(const LevelData &fromData, const glm::vec2 &movingThePlayerBy)
 {
     std::unique_ptr<Level> built = std::make_unique<Level>(
         fromData,
@@ -88,8 +84,6 @@ void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePla
 
     if (player)
         player->standAt(player->feet() + movingThePlayerBy);
-
-    onLevelBuilt();
 }
 
 const LevelData &World::getLevelData() const

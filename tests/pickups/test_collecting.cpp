@@ -9,6 +9,7 @@
 #include "pickups/collecting.hpp"
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 
 namespace
 {
@@ -24,7 +25,7 @@ namespace
 
     Pickup at(float x, int scoreDelta = 1)
     {
-        return Pickup(worth(scoreDelta), glm::vec2(x, 0.0f));
+        return Pickup(PickupSpawnData{"coin", glm::vec2(x + 8.0f, 16.0f)}, worth(scoreDelta));
     }
 
     AABB reaching(float x)
@@ -87,7 +88,7 @@ TEST_CASE("A pickup is as big a box as its kind is", "[Collecting]")
     PickupData small = worth(1);
     small.size = glm::vec2(4.0f, 6.0f);
 
-    Pickup pickup(small, glm::vec2(20.0f, 30.0f));
+    Pickup pickup(PickupSpawnData{"coin", glm::vec2(22.0f, 36.0f)}, small);
 
     REQUIRE(pickup.getAABB().position == glm::vec2(20.0f, 30.0f));
     REQUIRE(pickup.getAABB().size == glm::vec2(4.0f, 6.0f));
@@ -100,7 +101,7 @@ TEST_CASE("A pickup with a collider is taken by that, not by what is drawn", "[C
     glowing.colliderSize = glm::vec2(8.0f);
     glowing.colliderOffset = glm::vec2(12.0f);
 
-    Pickup pickup(glowing, glm::vec2(0.0f));
+    Pickup pickup(PickupSpawnData{"heart", glm::vec2(16.0f, 32.0f)}, glowing);
 
     REQUIRE(pickup.getSize() == glm::vec2(32.0f));
     REQUIRE(pickup.getAABB().position == glm::vec2(12.0f));
@@ -111,7 +112,7 @@ TEST_CASE("A pickup with a collider is taken by that, not by what is drawn", "[C
     REQUIRE(takeWhatTouches(glow, AABB{glm::vec2(0.0f), glm::vec2(8.0f)}).empty());
 
     std::vector<Pickup> heart;
-    heart.push_back(Pickup(glowing, glm::vec2(0.0f)));
+    heart.push_back(Pickup(PickupSpawnData{"heart", glm::vec2(16.0f, 32.0f)}, glowing));
     REQUIRE(takeWhatTouches(heart, AABB{glm::vec2(16.0f), glm::vec2(8.0f)}).size() == 1);
 }
 
@@ -120,7 +121,7 @@ TEST_CASE("A pickup said nothing about is taken by the whole of what is drawn", 
     PickupData plain = worth(1);
     plain.size = glm::vec2(24.0f, 10.0f);
 
-    Pickup pickup(plain, glm::vec2(5.0f, 7.0f));
+    Pickup pickup(PickupSpawnData{"plain", glm::vec2(17.0f, 17.0f)}, plain);
 
     REQUIRE(pickup.getAABB().position == glm::vec2(5.0f, 7.0f));
     REQUIRE(pickup.getAABB().size == glm::vec2(24.0f, 10.0f));
@@ -132,6 +133,6 @@ TEST_CASE("A pickup nothing can reach is refused", "[Collecting]")
     unreachable.colliderSize = glm::vec2(0.0f, 8.0f);
 
     REQUIRE_THROWS_WITH(
-        Pickup(unreachable, glm::vec2(0.0f)),
+        Pickup(PickupSpawnData{"coin", glm::vec2(0.0f)}, unreachable),
         Catch::Matchers::ContainsSubstring("nobody can take"));
 }

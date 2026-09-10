@@ -492,7 +492,7 @@ TEST_CASE("Recasting re-makes the pickups still on the floor, and only the chang
     REQUIRE(level.getPickups().size() == 2);
     REQUIRE(level.getPickups()[0].getScoreDelta() == 5);
     REQUIRE(level.getPickups()[1].getScoreDelta() == 3);
-    REQUIRE(level.getPickups()[1].getFeet() == feetOf(glm::ivec2(7, FloorRow - 1)));
+    REQUIRE(level.getPickups()[1].getSpawn().feet == feetOf(glm::ivec2(7, FloorRow - 1)));
 }
 
 TEST_CASE("Recasting without a type the level places is refused and changes nothing", "[Level]")

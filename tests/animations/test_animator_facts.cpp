@@ -104,9 +104,9 @@ TEST_CASE(
         names += std::string(row.name) + " ";
 
     REQUIRE(
-        names ==
-        "alive knockback swinging dashing pouncing onGround climbing onWall rising falling "
-        "moving finished inState ");
+        names == "alive knockback swinging dashing pouncing charging onGround climbing onWall "
+                 "rising falling "
+                 "moving finished inState ");
     REQUIRE(rowNamed(animatorRows(), "inState")->kind == AskedKind::Name);
     REQUIRE(rowNamed(animatorRows(), "somersault") == nullptr);
 }
@@ -170,6 +170,8 @@ TEST_CASE("A row that says it watches a flag really reads it", "[AnimatorFacts]"
             on.knockback.active = true;
         else if (row.covers == "pounce")
             on.pounce.active = true;
+        else if (row.covers == "charge")
+            on.charge.active = true;
         else if (row.covers == "wallSlide")
             on.wallSlide.active = true;
         else if (row.covers == "wallHang")

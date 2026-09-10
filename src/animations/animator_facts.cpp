@@ -3,6 +3,7 @@
 #include <span>
 #include <string>
 #include "animations/animator_facts.hpp"
+#include "actor/abilities/charge_ability_state.hpp"
 #include "actor/abilities/dash_ability_state.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
@@ -63,6 +64,13 @@ namespace
             [](const Asked &asked, const AnimatorFacts &facts)
             { return yes(asked) == facts.decided.pounce.active; },
             "pounce"},
+        Row{"charging",
+            AskedKind::YesOrNo,
+            "charging",
+            "not charging",
+            [](const Asked &asked, const AnimatorFacts &facts)
+            { return yes(asked) == facts.decided.charge.active; },
+            "charge"},
         Row{"onGround",
             AskedKind::YesOrNo,
             "on ground",

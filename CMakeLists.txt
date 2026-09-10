@@ -220,6 +220,7 @@ add_library(platformer_lib OBJECT
     src/actor/abilities/knockback_ability.cpp
     src/actor/abilities/swing_ability.cpp
     src/actor/abilities/pounce_ability.cpp
+    src/actor/abilities/charge_ability.cpp
 
     src/actor/abilities/move_ability.cpp
     src/actor/abilities/wall_slide_ability.cpp
@@ -421,6 +422,7 @@ add_executable(tests
     tests/actor/abilities/test_knockback_ability.cpp
     tests/actor/abilities/test_swing_ability.cpp
     tests/actor/abilities/test_pounce_ability.cpp
+    tests/actor/abilities/test_charge_ability.cpp
 
     tests/actor/abilities/test_move_ability.cpp
     tests/actor/abilities/test_wall_slide_ability.cpp

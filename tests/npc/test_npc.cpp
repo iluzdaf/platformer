@@ -3,6 +3,7 @@
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
+#include "actor/abilities/charge_ability_data.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <cmath>
@@ -575,11 +576,13 @@ TEST_CASE("An npc with no beat at all walks past where a beat would turn it", "[
 
 namespace
 {
-    NpcData aCreatureWhoseStateAttacksWith(const char *with, bool ablePounce)
+    NpcData aCreatureWhoseStateAttacksWith(const char *with, bool able)
     {
         NpcData data = setupNpcData();
-        if (ablePounce)
+        if (able && with == PounceAttack)
             data.actorData.motionData.pounceAbilityData = PounceAbilityData{};
+        if (able && with == ChargeAttack)
+            data.actorData.motionData.chargeAbilityData = ChargeAbilityData{};
         BehaviorStateData attacking;
         attacking.name = "attack";
         attacking.does = AttackBehaviorData{with};
@@ -602,4 +605,5 @@ TEST_CASE("A creature whose state attacks with something it cannot do is refused
 TEST_CASE("A creature whose state attacks with an ability it has is welcome", "[Npc]")
 {
     REQUIRE_NOTHROW(Npc(spawnAt("rat", SpawnTile), aCreatureWhoseStateAttacksWith("pounce", true)));
+    REQUIRE_NOTHROW(Npc(spawnAt("rat", SpawnTile), aCreatureWhoseStateAttacksWith("charge", true)));
 }

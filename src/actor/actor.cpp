@@ -12,6 +12,7 @@
 #include "actor/hit.hpp"
 #include "actor/hurting.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
+#include "actor/abilities/charge_ability_state.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "physics/aabb.hpp"
 #include "actor/observing.hpp"
@@ -360,6 +361,10 @@ std::optional<Hurting> Actor::hurting() const
     if (pounce.active)
         return Hurting{physicsBody.aabb(), pounce.damage, pounce.direction};
 
+    const ChargeAbilityState &charge = decisions.charge;
+    if (charge.active)
+        return Hurting{physicsBody.aabb(), charge.damage, charge.direction};
+
     return std::nullopt;
 }
 
@@ -402,5 +407,11 @@ void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
 ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGraph) const
 {
     return ActorBehaviorContext{
-        navigationGraph, feet(), physicsBody.colliderSize(), threat, observations.contacts, &known};
+        navigationGraph,
+        feet(),
+        physicsBody.colliderSize(),
+        threat,
+        observations.contacts,
+        &known,
+        &decisions};
 }

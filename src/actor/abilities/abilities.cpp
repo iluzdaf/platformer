@@ -14,6 +14,7 @@
 #include "actor/abilities/knockback_ability.hpp"
 #include "actor/abilities/swing_ability.hpp"
 #include "actor/abilities/pounce_ability.hpp"
+#include "actor/abilities/charge_ability.hpp"
 #include <memory>
 
 Abilities::Abilities(const ActorMotionData &data)
@@ -38,6 +39,8 @@ Abilities::Abilities(const ActorMotionData &data)
         abilities.push_back(std::make_unique<GravityAbility>(data.gravityAbilityData.value()));
     if (data.pounceAbilityData)
         abilities.push_back(std::make_unique<PounceAbility>(data.pounceAbilityData.value()));
+    if (data.chargeAbilityData)
+        abilities.push_back(std::make_unique<ChargeAbility>(data.chargeAbilityData.value()));
     if (data.knockbackAbilityData)
         abilities.push_back(std::make_unique<KnockbackAbility>(data.knockbackAbilityData.value()));
     if (data.swingAbilityData)
@@ -62,6 +65,8 @@ void Abilities::decide(
         finalVelocity = decided.mantle.velocity;
     else if (decided.pounce.active)
         finalVelocity = decided.pounce.velocity;
+    else if (decided.charge.active)
+        finalVelocity = decided.charge.velocity;
     else
     {
         finalVelocity.x = decided.move.velocity.x;

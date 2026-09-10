@@ -6,6 +6,8 @@
 #include "actor/decided.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
+#include "actor/abilities/charge_ability_data.hpp"
+#include "actor/abilities/charge_ability_state.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/hurting.hpp"
 #include "helpers/palettes.hpp"
@@ -177,6 +179,48 @@ TEST_CASE(
         npcs.front()->fixedUpdate(0.01f, level, player.feet() + glm::vec2(4.0f, 0.0f));
     }
     REQUIRE(npcs.front()->decided().pounce.active);
+    REQUIRE(npcs.front()->hurting().has_value());
+    REQUIRE(npcs.front()->hurting()->box.position == npcs.front()->body().aabb().position);
+    strikePlayer(player, npcs);
+
+    REQUIRE(player.health().points() == 2);
+}
+
+TEST_CASE("A creature bites while it charges, and not while it stands", "[StrikingPlayer]")
+{
+    Player player(playerDataWithHealth(3, 0.0f), noIntentions());
+    player.standAt(feetOf(SpawnTile));
+
+    NpcData charger = setupNpcData();
+    charger.actorData.motionData.chargeAbilityData = ChargeAbilityData{};
+    BehaviorStateData charging;
+    charging.name = "charge";
+    charging.does = AttackBehaviorData{std::string(ChargeAttack)};
+    charger.stateMachineBehaviorData->states = {charging};
+    std::vector<std::unique_ptr<Npc>> npcs;
+    npcs.push_back(std::make_unique<Npc>(spawnAt("charger", SpawnTile), charger));
+    Level level(
+        aFloorLevelPlacing({}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerDataWithHealth(3, 0.0f),
+        {{"charger", charger}},
+        {});
+    for (int settle = 0; settle < 30; ++settle)
+    {
+        npcs.front()->beginFrame();
+        npcs.front()->fixedUpdate(0.01f, level);
+    }
+
+    REQUIRE_FALSE(npcs.front()->hurting().has_value());
+    strikePlayer(player, npcs);
+    REQUIRE(player.health().points() == 3);
+
+    for (int step = 0; step < 2; ++step)
+    {
+        npcs.front()->beginFrame();
+        npcs.front()->fixedUpdate(0.01f, level, player.feet() + glm::vec2(4.0f, 0.0f));
+    }
+    REQUIRE(npcs.front()->decided().charge.active);
     REQUIRE(npcs.front()->hurting().has_value());
     REQUIRE(npcs.front()->hurting()->box.position == npcs.front()->body().aabb().position);
     strikePlayer(player, npcs);

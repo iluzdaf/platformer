@@ -22,6 +22,7 @@
 #include <vector>
 #include <memory>
 #include "npc/npc_spawn_data.hpp"
+#include "game/noise.hpp"
 #include "actor/behaviors/idle_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include <optional>
@@ -656,6 +657,49 @@ TEST_CASE("The shipped spider pounces only once you are within its reach", "[Npc
     INFO("pounced from " << reachAtThePounce);
     REQUIRE(reachAtThePounce >= 0.0f);
     REQUIRE(reachAtThePounce <= shippedNpcData().at("spider").tuning.at("reach") + 2.0f);
+}
+
+TEST_CASE(
+    "The shipped boar charges when you land on its ground, is stunned at the wall, and sleeps "
+    "again once you are gone",
+    "[Npc][Level][Charge]")
+{
+    NpcSpawnData spawn = spawnAt("boar", glm::ivec2(9, GroundRow - 1));
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("boar"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
+    glm::vec2 you = feetOf(glm::ivec2(4, GroundRow - 1));
+    for (int settle = 0; settle < 30; ++settle)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, you);
+    }
+    REQUIRE(npc.stateName() == "sleep");
+
+    std::vector<Noise> landing{{std::string(LandingNoise), you}};
+    npc.beginFrame();
+    npc.fixedUpdate(0.01f, level, you, landing);
+    REQUIRE(npc.stateName() == "charge");
+
+    int stunnedAt = -1;
+    for (int step = 0; step < 300 && stunnedAt < 0; ++step)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, you);
+        if (npc.stateName() == "stunned")
+            stunnedAt = step;
+    }
+    INFO("stunned at step " << stunnedAt << ", foot x " << footOf(npc).x);
+    REQUIRE(stunnedAt >= 0);
+    REQUIRE(footOf(npc).x < feetOf(glm::ivec2(2, GroundRow - 1)).x);
+
+    for (int step = 0; step < 200; ++step)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level);
+    }
+    REQUIRE(npc.stateName() == "sleep");
 }
 
 TEST_CASE("The spider shows its pounce clip while its pounce state is on", "[ShippedNpcs]")

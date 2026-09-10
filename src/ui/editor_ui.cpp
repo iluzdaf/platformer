@@ -260,8 +260,9 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
             levelUi.unsavedSince(subject.levelData, subject.levelPath) ||
                 tilePalettesUi.unsavedSince(subject.gameData.tilePalettes) ||
                 levelsUi.unsavedSince(subject.levels),
-            npcsThatCannotGetBack(subject.level).has_value() ? npcsThatCannotGetBack(subject.level)
-                                                             : tilePalettesUi.cannotSaveBecause(),
+            npcsThatCannotGetBack(subject.level).has_value()
+                ? npcsThatCannotGetBack(subject.level)
+                : tilePalettesUi.cannotSaveBecause(subject.gameData.tilePalettes),
             [this, &subject]
             {
                 levelUi.save(subject.levelData, subject.levelPath);

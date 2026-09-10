@@ -58,7 +58,7 @@ TileMap::TileMap(const TileMapData &tileMapData, const TilePalettes &tilePalette
             "Palette \"" + tilePalette + "\" has cells " + std::to_string(tileSet.cellSize.x) +
             " by " + std::to_string(tileSet.cellSize.y) + ", and a tile map lays out squares");
 
-    tileSize = palette->second.tileSize.value_or(tileSet.cellSize.x);
+    tileSize = tileSizeOf(palette->second);
     if (tileSize <= 0)
         throw std::runtime_error(
             "Palette \"" + tilePalette + "\" measures its tiles at " + std::to_string(tileSize) +

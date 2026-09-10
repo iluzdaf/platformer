@@ -317,6 +317,25 @@ TEST_CASE("A rebuild that cannot be built leaves the world as it was", "[World]"
     REQUIRE(world.getPlayer().body().position() == stoodAt);
 }
 
+TEST_CASE("A load that cannot be built leaves the world on the level it had", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    world.loadLevel("levels/level6.json");
+    const Level *before = &world.getLevel();
+
+    TemporaryLevels levels("world_unbuildable");
+    LevelData broken = aFloorLevelPlacing({});
+    broken.npcs.push_back(NpcSpawnData{"rat", glm::vec2(-100.0f, -100.0f), std::nullopt});
+    levels.write("broken.json", broken);
+
+    REQUIRE_THROWS(world.loadLevel(levels.pathOf("broken.json")));
+
+    REQUIRE(world.getLevelPath() == "levels/level6.json");
+    REQUIRE(&world.getLevel() == before);
+}
+
 TEST_CASE("A pickup the player's collider only grazes is taken", "[World]")
 {
     GameData gameData = aFloorWorldWithCoins();

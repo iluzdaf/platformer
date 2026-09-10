@@ -8,6 +8,8 @@
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/tile_palettes_ui.hpp"
+#include <exception>
+#include "tile_map/tile.hpp"
 #include "ui/renaming.hpp"
 #include "ui/level_rewriting.hpp"
 #include "ui/renames.hpp"
@@ -31,6 +33,32 @@
 
 namespace
 {
+    std::optional<std::string> aTileThatCannotBeBuilt(const TilePalettes &tilePalettes)
+    {
+        for (const auto &[name, palette] : tilePalettes)
+        {
+            int tileSize = tileSizeOf(palette);
+            if (tileSize <= 0)
+                return "palette \"" + name + "\" measures its tiles at " +
+                       std::to_string(tileSize) + ", and a tile is wider than nothing";
+
+            for (const auto &[index, tile] : palette.tiles)
+            {
+                try
+                {
+                    Tile built(tile, glm::vec2(static_cast<float>(tileSize)));
+                }
+                catch (const std::exception &e)
+                {
+                    return "palette \"" + name + "\" tile " + std::to_string(index) + ": " +
+                           e.what();
+                }
+            }
+        }
+
+        return std::nullopt;
+    }
+
     constexpr float ButtonsWidth = 124.0f;
 }
 
@@ -237,12 +265,12 @@ inspector::Edited TilePalettesUi::drawTiles(
     auto known = palette.tiles.find(*picked);
     if (known != palette.tiles.end())
     {
-        drawTilePreview(scope, *picked, known->second);
+        drawTilePreview(scope, *picked, known->second, tileSizeOf(palette));
         return inspector::drawFields(known->second);
     }
 
     TileData nothingSaid;
-    drawTilePreview(scope, *picked, nothingSaid);
+    drawTilePreview(scope, *picked, nothingSaid, tileSizeOf(palette));
     inspector::Edited said = inspector::drawFields(nothingSaid);
     if (said)
         palette.tiles.insert({*picked, nothingSaid});
@@ -285,9 +313,12 @@ bool TilePalettesUi::unsavedSince(const TilePalettes &tilePalettes)
     return values || renaming.pending();
 }
 
-std::optional<std::string> TilePalettesUi::cannotSaveBecause() const
+std::optional<std::string> TilePalettesUi::cannotSaveBecause(const TilePalettes &tilePalettes) const
 {
-    return renaming.cannotSaveBecause();
+    if (std::optional<std::string> renames = renaming.cannotSaveBecause())
+        return renames;
+
+    return aTileThatCannotBeBuilt(tilePalettes);
 }
 
 bool TilePalettesUi::reloaded(TilePalettes &current, const TilePalettes &onDisk)

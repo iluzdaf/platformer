@@ -14,6 +14,7 @@
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
 #include "tile_map/tile_data.hpp"
+#include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
@@ -227,7 +228,7 @@ TEST_CASE("A removal cannot be saved while a level cannot be read", "[TilePalett
     tilePalettesUi.show("other");
     tilePalettesUi.remove(palettes);
 
-    REQUIRE(tilePalettesUi.cannotSaveBecause() == "broken cannot be read");
+    REQUIRE(tilePalettesUi.cannotSaveBecause(palettes) == "broken cannot be read");
 
     LevelData playing = readLevelData((directory / "level1.json").string());
     REQUIRE_FALSE(tilePalettesUi.save(palettes, playing));
@@ -237,6 +238,40 @@ TEST_CASE("A removal cannot be saved while a level cannot be read", "[TilePalett
     REQUIRE(playing.tileMapData.tilePalette == "other");
     REQUIRE(paletteNamedIn(directory) == "other");
     REQUIRE(tilePalettesUi.unsavedSince(palettes));
+}
+
+TEST_CASE(
+    "A tile the map would refuse cannot be saved, and the reason names it",
+    "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+    REQUIRE_FALSE(tilePalettesUi.cannotSaveBecause(palettes).has_value());
+
+    palettes["default"].tileSize = 16;
+    palettes["default"].tiles[3].collider = TileColliderData{glm::vec2(0.0f), glm::vec2(32.0f)};
+
+    std::optional<std::string> why = tilePalettesUi.cannotSaveBecause(palettes);
+    REQUIRE(why.has_value());
+    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("default"));
+    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("tile 3"));
+    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("outside its tile"));
+
+    palettes["default"].tiles[3].collider = TileColliderData{glm::vec2(0.0f), glm::vec2(16.0f)};
+    REQUIRE_FALSE(tilePalettesUi.cannotSaveBecause(palettes).has_value());
+}
+
+TEST_CASE("A palette measuring its tiles at nothing cannot be saved", "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes;
+    palettes["default"] = paletteOf({{0, TileData{}}});
+    palettes["default"].tileSize = 0;
+
+    std::optional<std::string> why = tilePalettesUi.cannotSaveBecause(palettes);
+    REQUIRE(why.has_value());
+    REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("wider than nothing"));
 }
 
 TEST_CASE("An added palette gets a name nobody has taken", "[TilePalettesUi]")

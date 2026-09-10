@@ -50,8 +50,19 @@ World::~World() = default;
 
 void World::loadLevel(const std::string &levelPath)
 {
+    LevelData fromDisk = readLevelData(levelPath);
+    std::string was = path;
     path = levelPath;
-    rebuildFrom(readLevelData(levelPath));
+    try
+    {
+        rebuildFrom(fromDisk);
+    }
+    catch (...)
+    {
+        path = was;
+        throw;
+    }
+
     respawnPlayer();
 }
 

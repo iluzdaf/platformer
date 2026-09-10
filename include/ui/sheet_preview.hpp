@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tile_map/tile_collider_data.hpp"
+
 #include <string>
 #include <string_view>
 #include <utility>
@@ -38,4 +40,12 @@ ImVec2 drawAnimationPreview(const SheetInScope &offering, const FrameAnimationDa
 
 void drawColliderOver(ImVec2 at, float scale, glm::vec2 offset, glm::vec2 size);
 
-void drawTilePreview(const SheetInScope &offering, int tileIndex, const TileData &tile);
+TileColliderData colliderShownFor(const TileData &tile, int tileSize);
+
+float tilePreviewScale(int tileSize);
+
+void drawTilePreview(
+    const SheetInScope &offering,
+    int tileIndex,
+    const TileData &tile,
+    int tileSize);

@@ -9,6 +9,9 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "actor/abilities/pounce_ability_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
@@ -17,8 +20,12 @@
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "pickups/pickup_data.hpp"
 #include "rendering/texture_cache.hpp"
-#include "helpers/asset_path.hpp"
+#include "helpers/actors.hpp"
+#include "helpers/levels.hpp"
+#include "helpers/npc_fixtures.hpp"
+#include "helpers/palettes.hpp"
 #include "helpers/temporary_levels.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/editor_ui.hpp"
@@ -29,33 +36,68 @@
 
 namespace
 {
-    LevelData level6Placing(const std::vector<NpcSpawnData> &extra)
+    constexpr const char *SomeSheet = "textures/somewhere.png";
+
+    GameData aSmallGame()
     {
-        LevelData levelData = readLevelData(assetPath("levels/level6.json"));
-        for (const NpcSpawnData &spawn : extra)
-            levelData.npcs.push_back(spawn);
+        GameData gameData;
+        gameData.tilePalettes = theOnlyPalette(aPaletteWithASolidTile());
+        gameData.playerData = playerDataWithEveryAbility();
+        gameData.playerData.actorData.sheet.texture.path = SomeSheet;
+
+        NpcData rat = setupNpcData();
+        rat.actorData.sheet.texture.path = SomeSheet;
+        rat.actorData.motionData.pounceAbilityData = PounceAbilityData{};
+        BehaviorStateData pouncing;
+        pouncing.name = "pounce";
+        pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
+        rat.stateMachineBehaviorData->states.push_back(pouncing);
+        NpcData spider = setupNpcData();
+        spider.actorData.sheet.texture.path = SomeSheet;
+        gameData.npcData = {{"rat", rat}, {"spider", spider}};
+
+        PickupData coin;
+        coin.sheet.texture.path = SomeSheet;
+        coin.size = glm::vec2(16.0f);
+        coin.scoreDelta = 1;
+        gameData.pickupData = {{"coin", coin}};
+        return gameData;
+    }
+
+    constexpr int PlatformRow = FloorLevelRow - 3;
+    constexpr glm::ivec2 OnThePlatform{5, PlatformRow - 1};
+
+    LevelData aFloorWithAPlatform(const std::vector<NpcSpawnData> &npcs)
+    {
+        LevelData levelData = aFloorLevelPlacing(npcs);
+        for (int x = 4; x <= 6; ++x)
+            levelData.tileMapData.indices[PlatformRow][x] = 1;
 
         return levelData;
     }
 
     NpcSpawnData strandedVillager()
     {
-        NpcSpawnData stranded{"rat", feetOf(glm::ivec2(2, 8)), std::nullopt};
-        stranded.patrol = beatOf(glm::ivec2(2, 8), glm::ivec2(2, 1));
+        NpcSpawnData stranded = spawnAt("rat", OnThePlatform);
+        stranded.patrol = beatOf(OnThePlatform, glm::ivec2(5, FloorLevelStanding));
         return stranded;
     }
 
     struct Editing
     {
         explicit Editing(const std::vector<NpcSpawnData> &extra = {})
-            : levelData(level6Placing(extra))
+            : levelData(aFloorWithAPlatform(extra))
         {
+            files.write("floor.json", levelData);
+            gameData.levels.first.path = levelPath;
+            levels = gameData.levels;
         }
 
-        GameData gameData = loadGameData();
-        LevelsData levels = gameData.levels;
-        std::string levelPath = assetPath("levels/level6.json");
+        GameData gameData = aSmallGame();
+        TemporaryLevels files{"editor_saving"};
+        std::string levelPath = files.pathOf("floor.json");
         LevelData levelData;
+        LevelsData levels;
         Level level{
             levelData,
             gameData.tilePalettes,
@@ -132,7 +174,7 @@ TEST_CASE("The level section is unsaved when its level list is", "[EditorSaving]
     EditorSubject subject = editing.subject();
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
 
-    editing.levels.first.path = "levels/level6.json";
+    editing.levels.first.path = "levels/elsewhere.json";
 
     REQUIRE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
 }
@@ -150,7 +192,7 @@ TEST_CASE(
     std::string firstWas = editing.levels.first.path;
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
     editing.gameData.tilePalettes.begin()->second.tiles[0].solid = true;
-    editing.levels.first.path = "levels/level6.json";
+    editing.levels.first.path = "levels/elsewhere.json";
 
     editorUi.savingIn(EditorSection::Level, subject).revert();
     editorUi.commands.drain();
@@ -171,10 +213,10 @@ TEST_CASE(
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
 
+    GameData onDisk = editing.gameData;
     editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
     float edited = editing.gameData.playerData.fallFromHeightThreshold;
 
-    GameData onDisk = loadGameData();
     onDisk.cameraData.zoom += 1.0f;
     editorUi.reloaded(editing.gameData, onDisk);
 
@@ -191,9 +233,9 @@ TEST_CASE("Reverting a section kept through a reload takes what is on disk now",
     EditorSubject subject = editing.subject();
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
 
+    GameData onDisk = editing.gameData;
     editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
 
-    GameData onDisk = loadGameData();
     onDisk.playerData.fallFromHeightThreshold += 50.0f;
     editorUi.reloaded(editing.gameData, onDisk);
     editorUi.savingIn(EditorSection::Cast, subject).revert();
@@ -209,10 +251,7 @@ TEST_CASE(
     "[EditorSaving]")
 {
     EditorUi editorUi;
-    TemporaryLevels levels{"editor_saving_takes"};
-    levels.copyShipped("level6.json");
     Editing editing;
-    editing.levelPath = levels.pathOf("level6.json");
     EditorSubject subject = editing.subject();
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
     REQUIRE_FALSE(editorUi.levelTakesTheDisk(editing.levelData, editing.levelPath));

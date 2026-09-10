@@ -6,15 +6,12 @@
 #include "ui/sheet_field.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/data_inspector.hpp"
-#include "ui/file_chooser.hpp"
 #include "ui/unsaved_colours.hpp"
-#include "assets/asset_paths.hpp"
 #include "assets/sheet_data.hpp"
 
 inspector::Edited drawSheetFields(SheetData &value)
 {
-    inspector::Edited edited =
-        drawFileChooser("texture", value.texture.path, assets::Textures, ".png");
+    inspector::Edited edited = inspector::draw("texture", value.texture);
     edited |= inspector::draw("cellSize", value.cellSize);
 
     return edited;
@@ -22,8 +19,7 @@ inspector::Edited drawSheetFields(SheetData &value)
 
 inspector::Edited drawSquareSheetFields(SheetData &value)
 {
-    inspector::Edited edited =
-        drawFileChooser("texture", value.texture.path, assets::Textures, ".png");
+    inspector::Edited edited = inspector::draw("texture", value.texture);
 
     int side = value.cellSize.x;
     inspector::Edited squared = inspector::draw("cellSize", side);

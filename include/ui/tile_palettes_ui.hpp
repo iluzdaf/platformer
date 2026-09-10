@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ui/inspector_edited.hpp"
+
 #include <functional>
 #include <optional>
 #include <string>
@@ -43,6 +45,11 @@ public:
 private:
     void drawChooser(TilePalettes &tilePalettes);
     void drawRename(const TilePalettes &tilePalettes);
+    inspector::Edited drawTiles(
+        TilePaletteData &palette,
+        const TextureCache &textures,
+        EditorCommands &commands,
+        std::optional<Armed> &armed);
     bool shownIn(const TilePalettes &tilePalettes, const std::string &name) const;
     std::string firstShownIn(const TilePalettes &tilePalettes) const;
     std::optional<std::string> firstRemainingAfter(

@@ -26,6 +26,7 @@
 #include "rendering/texture2d.hpp"
 #include "rendering/texture_cache.hpp"
 #include "ui/editor_commands.hpp"
+#include "ui/inspector_edited.hpp"
 #include "assets/sheet_data.hpp"
 
 namespace
@@ -174,9 +175,21 @@ void TilePalettesUi::draw(
     drawRename(tilePalettes);
 
     TilePaletteData &palette = tilePalettes.at(selectedPalette);
-    drawSquareSheetFields(palette.tileSet);
-    drawTileSizeField(palette);
+    inspector::Edited edited = drawSquareSheetFields(palette.tileSet);
+    edited |= drawTileSizeField(palette);
     ImGui::Separator();
+
+    edited |= drawTiles(palette, textures, commands, armed);
+    if (edited.onCommit)
+        commands.onPalettesChanged();
+}
+
+inspector::Edited TilePalettesUi::drawTiles(
+    TilePaletteData &palette,
+    const TextureCache &textures,
+    EditorCommands &commands,
+    std::optional<Armed> &armed)
+{
 
     const Texture2D *tileSet = textures.find(palette.tileSet.texture.path);
     if (!tileSet)
@@ -188,7 +201,7 @@ void TilePalettesUi::draw(
         }
 
         ImGui::TextDisabled("no texture at %s", palette.tileSet.texture.path.c_str());
-        return;
+        return {};
     }
 
     int cells = tilesInSheet(
@@ -198,7 +211,7 @@ void TilePalettesUi::draw(
     if (cells <= 0)
     {
         ImGui::TextDisabled("no whole tiles in this tile set");
-        return;
+        return {};
     }
 
     std::optional<int> showing = paintedTile(armed);
@@ -213,7 +226,7 @@ void TilePalettesUi::draw(
     if (!picked)
     {
         ImGui::TextDisabled("pick a tile");
-        return;
+        return {};
     }
 
     ImGui::Text("tile %d", *picked);
@@ -225,14 +238,16 @@ void TilePalettesUi::draw(
     if (known != palette.tiles.end())
     {
         drawTilePreview(scope, *picked, known->second);
-        inspector::drawFields(known->second);
-        return;
+        return inspector::drawFields(known->second);
     }
 
     TileData nothingSaid;
     drawTilePreview(scope, *picked, nothingSaid);
-    if (inspector::drawFields(nothingSaid))
+    inspector::Edited said = inspector::drawFields(nothingSaid);
+    if (said)
         palette.tiles.insert({*picked, nothingSaid});
+
+    return said;
 }
 void TilePalettesUi::revert(TilePalettes &tilePalettes)
 {

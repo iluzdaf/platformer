@@ -11,7 +11,7 @@ struct EditorCommands
     EditorCommand<> onPlay, onPause, onStep;
     EditorCommand<const LevelData &> onLevelEdited;
     EditorCommand<const LevelData &, const glm::vec2 &> onLevelResized;
-    EditorCommand<> onSettingsChanged, onCameraChanged, onCastChanged;
+    EditorCommand<> onSettingsChanged, onCameraChanged, onCastChanged, onPalettesChanged;
     EditorCommand<const std::string &> onLoadLevel, onWarmTexture;
 
     void drain()
@@ -24,6 +24,7 @@ struct EditorCommands
         onSettingsChanged.drain();
         onCameraChanged.drain();
         onCastChanged.drain();
+        onPalettesChanged.drain();
         onLoadLevel.drain();
         onWarmTexture.drain();
     }

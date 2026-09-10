@@ -229,6 +229,27 @@ TEST_CASE("Every spawn of a renamed pickup type is re-pointed", "[Renaming]")
     REQUIRE(pickups[1].type == "gem");
 }
 
+TEST_CASE("A spawn whose type is renamed to nothing is dropped", "[Renaming]")
+{
+    std::vector<NpcSpawnData> npcs{
+        NpcSpawnData{"rat", glm::ivec2(1, 1), std::nullopt},
+        NpcSpawnData{"spider", glm::ivec2(2, 2), std::nullopt},
+        NpcSpawnData{"rat", glm::ivec2(3, 3), std::nullopt}};
+
+    REQUIRE(rewriting::typeIn(npcs, {{"rat", ""}}));
+
+    REQUIRE(npcs.size() == 1);
+    REQUIRE(npcs[0].type == "spider");
+
+    std::vector<PickupSpawnData> pickups{
+        PickupSpawnData{"coin", glm::ivec2(1, 1)}, PickupSpawnData{"gem", glm::ivec2(2, 2)}};
+
+    REQUIRE(rewriting::typeIn(pickups, {{"gem", ""}}));
+
+    REQUIRE(pickups.size() == 1);
+    REQUIRE(pickups[0].type == "coin");
+}
+
 TEST_CASE("A rename nobody's level uses rewrites nothing", "[Renaming]")
 {
     rewriting::Reach reach = rewriting::theLevels(

@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <fstream>
@@ -9,6 +10,7 @@
 #include <imgui_internal.h>
 #include "game/game_data.hpp"
 #include "npc/npc_data.hpp"
+#include "npc/npc_spawn_data.hpp"
 #include "actor/actor_data.hpp"
 #include "assets/asset_paths.hpp"
 #include "pickups/pickup_data.hpp"
@@ -755,6 +757,122 @@ TEST_CASE("A type save with nothing pending leaves the playing level alone", "[T
 
     REQUIRE_FALSE(wrote);
     REQUIRE(playing.npcs.front().type == firstNpcTypeIn(directory));
+}
+
+TEST_CASE(
+    "A type removed stays until the save, is not offered, and leaves the cast unsaved",
+    "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
+    typesUi.remove(gameData);
+
+    REQUIRE(gameData.npcData.contains("rat"));
+    REQUIRE(typesUi.unsavedSince(gameData));
+    REQUIRE(gameData.npcData.size() == 2);
+}
+
+TEST_CASE(
+    "Saving a type removal drops its placements from every level, and the one being played",
+    "[TypesUi]")
+{
+    std::unique_ptr<TemporaryLevels> levels = levelsPlacingTypes();
+    const std::filesystem::path &directory = levels->directory;
+    std::optional<std::map<std::string, NpcData>> written;
+    TypesUi typesUi(
+        directory.string(),
+        [&](const std::map<std::string, NpcData> &npcs)
+        {
+            REQUIRE(
+                readLevelData((directory / "level6.json").string()).npcs.size() <
+                readLevelData(assetPath("levels/level6.json")).npcs.size());
+            written = npcs;
+        },
+        [](const std::map<std::string, PickupData> &) {});
+    GameData gameData = twoOfEach();
+    std::string type = firstNpcTypeIn(directory);
+    std::size_t placedBefore = readLevelData((directory / "level6.json").string()).npcs.size();
+    typesUi.show(TypeShown{TypeShown::What::Npc, type});
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    typesUi.remove(gameData);
+
+    LevelData playing = readLevelData((directory / "level6.json").string());
+    REQUIRE(typesUi.save(gameData, playing));
+
+    REQUIRE(written.has_value());
+    REQUIRE_FALSE(written->contains(type));
+    REQUIRE_FALSE(written->contains(""));
+    REQUIRE_FALSE(gameData.npcData.contains(type));
+    REQUIRE_FALSE(gameData.npcData.contains(""));
+    for (const NpcSpawnData &spawn : readLevelData((directory / "level6.json").string()).npcs)
+        REQUIRE(spawn.type != type);
+    for (const NpcSpawnData &spawn : playing.npcs)
+        REQUIRE(spawn.type != type);
+    REQUIRE(playing.npcs.size() < placedBefore);
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("A type added and removed before a save vanishes at once", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    typesUi.add(gameData, TypeShown::What::Pickup);
+    REQUIRE(gameData.pickupData.size() == 3);
+
+    typesUi.remove(gameData);
+
+    REQUIRE(gameData.pickupData.size() == 2);
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("Reverting takes back a type removal that was never saved", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
+    typesUi.remove(gameData);
+    typesUi.revert(gameData);
+
+    REQUIRE(gameData.pickupData.contains("coin"));
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+}
+
+TEST_CASE("A type removal cannot be saved while a level cannot be read", "[TypesUi]")
+{
+    std::unique_ptr<TemporaryLevels> levels = levelsPlacingTypes();
+    const std::filesystem::path &directory = levels->directory;
+    std::ofstream(directory / "broken.json") << "{";
+    bool wrote = false;
+    TypesUi typesUi(
+        directory.string(),
+        [&](const std::map<std::string, NpcData> &) { wrote = true; },
+        [&](const std::map<std::string, PickupData> &) { wrote = true; });
+    GameData gameData = twoOfEach();
+    for (auto &[name, npc] : gameData.npcData)
+        npc.actorData.sheet.texture.path = std::string(assets::PlayerTexture);
+    for (auto &[name, pickup] : gameData.pickupData)
+        pickup.sheet.texture.path = std::string(assets::PlayerTexture);
+    gameData.playerData.actorData.sheet.texture.path = std::string(assets::PlayerTexture);
+    std::string type = firstNpcTypeIn(directory);
+    typesUi.show(TypeShown{TypeShown::What::Npc, type});
+    REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+
+    typesUi.remove(gameData);
+
+    REQUIRE(typesUi.cannotSaveBecause(gameData) == "broken cannot be read");
+    LevelData playing = readLevelData((directory / "level6.json").string());
+    REQUIRE_FALSE(typesUi.save(gameData, playing));
+    REQUIRE_FALSE(wrote);
+    REQUIRE(gameData.npcData.contains(type));
+    REQUIRE(firstNpcTypeIn(directory) == type);
 }
 
 TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesUi]")

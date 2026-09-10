@@ -142,13 +142,16 @@ void LevelUi::drawLevel(
     const std::string &levelPath,
     EditorCommands &commands)
 {
-    const TileMap &tileMap = level.getTileMap();
-    if (std::optional<Resize> resize = drawSizeButtons(tileMap.getWidth(), tileMap.getHeight()))
-        askedToResize(*resize, levelData, tileMap.getTileSize(), commands);
-
     LevelData edited = levelData;
     if (drawFileChooser("next", edited.nextLevel.path, directoryOf(levelPath), ".json"))
         commands.onLevelEdited(edited);
+
+    if (!ImGui::TreeNodeEx("Resize"))
+        return;
+    const TileMap &tileMap = level.getTileMap();
+    if (std::optional<Resize> resize = drawSizeButtons(tileMap.getWidth(), tileMap.getHeight()))
+        askedToResize(*resize, levelData, tileMap.getTileSize(), commands);
+    ImGui::TreePop();
 }
 
 void LevelUi::drawOverlayToggles()

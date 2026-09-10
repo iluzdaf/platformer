@@ -26,6 +26,7 @@
 #include "actor/actor_data.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "ui/state_machine_shown.hpp"
+#include "conditions/asked.hpp"
 #include "tile_map/tile_map.hpp"
 
 namespace
@@ -131,8 +132,12 @@ namespace
         if (!machine.has_value())
             return;
 
-        if (ImGui::CollapsingHeader("Machine", ImGuiTreeNodeFlags_DefaultOpen))
-            drawStateMachineGraph(machine.value(), {std::string(npc.stateName())}, MachineShown{});
+        if (!ImGui::CollapsingHeader("Machine", ImGuiTreeNodeFlags_DefaultOpen))
+            return;
+
+        drawStateMachineGraph(machine.value(), {std::string(npc.stateName())}, MachineShown{});
+        for (const auto &[name, value] : npc.facts())
+            ImGui::Text("%s: %s", name.c_str(), textOf(value).c_str());
     }
 
     void drawAnimatorOf(const std::map<std::string, NpcData> &npcTypes, const Npc &npc)

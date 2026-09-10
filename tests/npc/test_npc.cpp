@@ -19,6 +19,7 @@
 #include "helpers/actors.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/npc_fixtures.hpp"
+#include "helpers/scripted_npcs.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
 #include "helpers/tiles.hpp"
@@ -343,6 +344,8 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("rat"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     REQUIRE(npc.stateName() == "patrol");
 
@@ -495,7 +498,9 @@ TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
     Level level = levelWithALedgeAndAWall({spawn});
 
     REQUIRE(level.getNpcs().size() == 1);
-    const Npc &npc = *level.getNpcs().front();
+    Npc &npc = *level.getNpcs().front();
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     REQUIRE(npc.stateName() == "patrol");
 
     for (int step = 0; step < 20; ++step)

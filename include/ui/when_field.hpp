@@ -7,8 +7,17 @@
 #include <vector>
 #include <imgui.h>
 #include "conditions/asked.hpp"
-#include "conditions/fact_rows.hpp"
 #include "ui/inspector_edited.hpp"
+
+struct Facts;
+
+struct FactOffered
+{
+    std::string name;
+    AskedKind kind;
+};
+
+std::vector<FactOffered> factsOffered(const Facts *declared);
 
 namespace when_field
 {
@@ -20,18 +29,18 @@ namespace when_field
         std::span<const AskedKind> kinds);
 }
 
-template <class Context>
+template <class Rows>
 inspector::Edited drawWhen(
     std::string_view name,
     std::map<std::string, Asked> &when,
-    std::span<const FactRow<Context>> rows)
+    const Rows &rows)
 {
     if (!ImGui::TreeNode(std::string(name).c_str()))
         return {};
 
     inspector::Edited edited;
     std::string takeAway;
-    for (const FactRow<Context> &row : rows)
+    for (const auto &row : rows)
     {
         auto asked = when.find(std::string(row.name));
         if (asked == when.end())
@@ -48,7 +57,7 @@ inspector::Edited drawWhen(
 
     std::vector<std::string_view> names;
     std::vector<AskedKind> kinds;
-    for (const FactRow<Context> &row : rows)
+    for (const auto &row : rows)
         if (!when.contains(std::string(row.name)))
         {
             names.push_back(row.name);

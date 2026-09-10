@@ -55,14 +55,14 @@ TEST_CASE("A machine draws as its states and its transitions, in words", "[Graph
     BehaviorTransitionData near;
     near.from = "idle";
     near.to = "chase";
-    near.when["threatWithin"] = 40.0f;
+    near.when["threatNear"] = true;
     StateMachineBehaviorData machine{{idling, chasing}, {near}};
 
     GraphShown graph = graphOf(machine);
 
     REQUIRE(namesOf(graph) == std::vector<std::string>{"idle", "chase"});
     REQUIRE(graph.nodes[1].words == "chase, standoff 28");
-    REQUIRE(graph.edges == std::vector<GraphEdge>{{"idle", "chase", "threat within 40"}});
+    REQUIRE(graph.edges == std::vector<GraphEdge>{{"idle", "chase", "threatNear"}});
 }
 
 TEST_CASE(

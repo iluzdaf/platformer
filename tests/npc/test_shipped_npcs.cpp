@@ -12,6 +12,7 @@
 #include "helpers/levels.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/npc_fixtures.hpp"
+#include "helpers/scripted_npcs.hpp"
 #include "helpers/shipped.hpp"
 #include "actor/actor_state.hpp"
 #include "npc/npc.hpp"
@@ -47,6 +48,8 @@ TEST_CASE("Every npc a shipped level places has somewhere to walk", "[Npc][Level
                          << entry.path().filename().string() << " has nowhere to walk");
 
             Npc npc(spawn, shippedNpcData().at(spawn.type));
+            ScriptedNpcs scripts;
+            scripts.script(npc);
 
             float startX = npc.body().position().x;
             stepNpc(npc, level, 400);
@@ -76,6 +79,8 @@ TEST_CASE("The shipped rat, cornered, pounces through you and bites", "[Npc][Lev
     Level level = levelWithALedgeAndAWall({spawn});
     std::vector<std::unique_ptr<Npc>> rats;
     rats.push_back(std::make_unique<Npc>(spawn, shippedNpcData().at("rat")));
+    ScriptedNpcs scripts;
+    scripts.script(*rats.front());
     Player player(playerDataWithHealth(3, 0.0f), noIntentions());
     player.standAt(glm::vec2(feetOf(LedgeLeftEnd).x + 20.0f, surfaceOf(LedgeRow)));
 
@@ -105,6 +110,8 @@ TEST_CASE("The shipped spider walks up from the ground to a ledge and back", "[N
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     const float topOfTheLedge = surfaceOf(LedgeRow);
     const float theGround = surfaceOf(GroundRow);
@@ -151,6 +158,8 @@ TEST_CASE("The shipped rat runs from the player and settles once it is gone", "[
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("rat"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     glm::vec2 crowding = footOf(npc) + glm::vec2(12.0f, 0.0f);
     float startedAt = footOf(npc).x;
@@ -180,6 +189,8 @@ TEST_CASE("The shipped rat never freezes out in the open on its platform", "[Npc
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("rat"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     constexpr float LeftEnd = 16.0f, RightEnd = 112.0f;
     auto outInTheOpen = [](float x)
@@ -211,6 +222,8 @@ TEST_CASE("The shipped rat holds its ground while the player shares its platform
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("rat"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     glm::vec2 cornering(112.0f, 96.0f);
     for (int step = 0; step < 600; ++step)
@@ -247,6 +260,8 @@ TEST_CASE("The shipped rat does not shuffle on the spot once it is cornered", "[
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("rat"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     glm::vec2 driving(8.0f, 96.0f);
     int flips = 0;
@@ -272,6 +287,8 @@ TEST_CASE("The shipped rat pays no mind to a player on the platform below", "[Np
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("rat"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
     for (int step = 0; step < 1200; ++step)
@@ -292,6 +309,8 @@ TEST_CASE("The shipped spider climbs the wall above the ledge", "[Npc][Level][Cl
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     const float theLedge = surfaceOf(LedgeRow);
     const float topOfTheFace = surfaceOf(1);
@@ -329,6 +348,8 @@ TEST_CASE("The level 6 spider keeps walking its beat", "[Npc][Level][Patrol]")
             spawn = placed;
     REQUIRE(spawn.patrol.has_value());
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     int reachedTheFirst = 0, reachedTheSecond = 0;
     bool atTheFirst = false, atTheSecond = false;
@@ -377,6 +398,8 @@ TEST_CASE("The shipped spider gives chase when you step onto its ledge", "[Npc][
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     glm::vec2 you = feetOf(OnTheLedge);
 
     stepNpc(npc, level, 10);
@@ -395,6 +418,8 @@ TEST_CASE("The shipped spider follows you down off its ledge", "[Npc][Level][Cha
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     stepNpcHunting(npc, level, feetOf(glm::ivec2(2, LedgeRow - 1)), 20);
     REQUIRE(hunting(npc));
@@ -419,6 +444,8 @@ TEST_CASE(
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     const float wellAboveTheLedge = surfaceOf(LedgeRow) - 24.0f;
     const float wellBelowTheTop = surfaceOf(1) + 24.0f;
@@ -454,6 +481,8 @@ TEST_CASE("The shipped spider ignores you on the step below its ledge", "[Npc][L
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile, StepRow - 1));
 
     INFO(
@@ -495,6 +524,8 @@ TEST_CASE(
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile - 2, LedgeRow - 1));
 
     int pounces = 0;
@@ -525,6 +556,8 @@ TEST_CASE("The shipped spider bites while pouncing and at no other time", "[Npc]
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile - 2, LedgeRow - 1));
 
     REQUIRE_FALSE(npc.hurting().has_value());
@@ -553,6 +586,8 @@ TEST_CASE(
     Level level = levelWithALedgeAndAWall({spawn});
     std::vector<std::unique_ptr<Npc>> spiders;
     spiders.push_back(std::make_unique<Npc>(spawn, shippedNpcData().at("spider")));
+    ScriptedNpcs scripts;
+    scripts.script(*spiders.front());
     Player player(playerDataWithHealth(3, 0.0f), noIntentions());
     player.standAt(feetOf(glm::ivec2(2, LedgeRow - 1)));
 
@@ -579,11 +614,37 @@ TEST_CASE(
     REQUIRE(spiders.front()->stateName() == "pounce");
 }
 
+TEST_CASE("The shipped spider pounces only once you are within its reach", "[Npc][Level][Pounce]")
+{
+    NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn});
+    Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
+    glm::vec2 you(feetOf(LedgeLeftEnd).x + 20.0f, surfaceOf(LedgeRow));
+
+    float reachAtThePounce = -1.0f;
+    for (int step = 0; step < 600 && reachAtThePounce < 0.0f; ++step)
+    {
+        float before = glm::distance(footOf(npc), you);
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, you);
+        if (npc.stateName() == "pounce")
+            reachAtThePounce = before;
+    }
+
+    INFO("pounced from " << reachAtThePounce);
+    REQUIRE(reachAtThePounce >= 0.0f);
+    REQUIRE(reachAtThePounce <= shippedNpcData().at("spider").tuning.at("reach") + 2.0f);
+}
+
 TEST_CASE("The spider shows its pounce clip while its pounce state is on", "[ShippedNpcs]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     glm::vec2 you = feetOf(glm::ivec2(LedgeLastTile - 2, LedgeRow - 1));
 
     bool pouncedOnFilm = false, pouncedOffFilm = false, filmedElsewhere = false;

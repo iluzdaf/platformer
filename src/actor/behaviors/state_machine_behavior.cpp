@@ -22,28 +22,64 @@
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "input/input_intentions.hpp"
 #include "actor/behaviors/behavior_facts.hpp"
+#include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
+#include "conditions/facts.hpp"
 
 namespace
 {
+    std::optional<AskedKind> kindKnown(const std::string &name, const Facts &declared)
+    {
+        if (const FactRow<ActorBehaviorContext> *row = rowNamed(behaviorRows(), name))
+            return row->kind;
+
+        auto fact = declared.find(name);
+        if (fact != declared.end())
+            return kindOf(fact->second);
+
+        return std::nullopt;
+    }
+
     bool conditionHolds(
         const BehaviorTransitionData &transition,
         const ActorBehaviorContext &context)
     {
-        return holds(transition.when, behaviorRows(), context);
+        for (const auto &[name, asked] : transition.when)
+        {
+            if (const FactRow<ActorBehaviorContext> *row = rowNamed(behaviorRows(), name))
+            {
+                if (!row->holds(asked, context))
+                    return false;
+
+                continue;
+            }
+
+            auto fact = context.facts ? context.facts->find(name) : Facts::const_iterator{};
+            if (!context.facts || fact == context.facts->end())
+                throw std::runtime_error(
+                    "A condition asks about \"" + name + "\", and there is no such fact");
+
+            if (fact->second != asked)
+                return false;
+        }
+
+        return true;
     }
 }
 
 StateMachineBehavior::StateMachineBehavior(
     const StateMachineBehaviorData &data,
-    std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween)
+    std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween,
+    const Facts &declared)
     : data(data), heldFor(data.transitions.size(), 0.0f), sinceLeft(data.states.size(), 1e9f)
 {
     for (const BehaviorTransitionData &transition : this->data.transitions)
-        if (std::optional<std::string> why = whyNotAsked(transition.when, behaviorRows()))
-            throw std::runtime_error(
-                "The transition from \"" + transition.from + "\" to \"" + transition.to + "\" " +
-                *why);
+        for (const auto &[name, asked] : transition.when)
+            if (std::optional<std::string> why =
+                    whyNotAsked(name, asked, kindKnown(name, declared)))
+                throw std::runtime_error(
+                    "The transition from \"" + transition.from + "\" to \"" + transition.to +
+                    "\" " + *why);
 
     for (const BehaviorStateData &state : this->data.states)
         states.push_back(

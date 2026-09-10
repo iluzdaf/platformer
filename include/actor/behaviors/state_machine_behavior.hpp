@@ -11,6 +11,7 @@
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/actor_behavior_context.hpp"
+#include "conditions/facts.hpp"
 #include "input/input_intentions.hpp"
 
 class StateMachineBehavior : public ActorBehavior
@@ -18,7 +19,8 @@ class StateMachineBehavior : public ActorBehavior
 public:
     explicit StateMachineBehavior(
         const StateMachineBehaviorData &data,
-        std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween = std::nullopt);
+        std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween = std::nullopt,
+        const Facts &declared = Facts{});
     void reset() override;
     InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
     std::string_view getStateName() const override;

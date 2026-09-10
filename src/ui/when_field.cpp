@@ -4,14 +4,19 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 #include <imgui.h>
 #include "ui/when_field.hpp"
 #include "ui/data_inspector.hpp"
+#include "ui/facts_in_scope.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "animations/animator_facts.hpp"
+#include "actor/actor_behavior_context.hpp"
 #include "actor/behaviors/behavior_facts.hpp"
 #include "conditions/asked.hpp"
+#include "conditions/fact_rows.hpp"
+#include "conditions/facts.hpp"
 
 namespace when_field
 {
@@ -49,19 +54,7 @@ namespace when_field
                 if (!ImGui::Selectable(label.c_str()))
                     continue;
 
-                switch (kinds[index])
-                {
-                case AskedKind::YesOrNo:
-                    when.emplace(label, true);
-                    break;
-                case AskedKind::Number:
-                    when.emplace(label, 0.0f);
-                    break;
-                case AskedKind::Name:
-                    when.emplace(label, std::string());
-                    break;
-                }
-
+                when.emplace(label, emptyOf(kinds[index]));
                 added = true;
             }
 
@@ -72,6 +65,19 @@ namespace when_field
     }
 }
 
+std::vector<FactOffered> factsOffered(const Facts *declared)
+{
+    std::vector<FactOffered> offered;
+    for (const FactRow<ActorBehaviorContext> &row : behaviorRows())
+        offered.push_back({std::string(row.name), row.kind});
+
+    if (declared)
+        for (const auto &[name, value] : *declared)
+            offered.push_back({name, kindOf(value)});
+
+    return offered;
+}
+
 inspector::Edited drawCustomField(std::string_view name, AnimationWhen &value)
 {
     return drawWhen(name, value, animatorRows());
@@ -79,5 +85,5 @@ inspector::Edited drawCustomField(std::string_view name, AnimationWhen &value)
 
 inspector::Edited drawCustomField(std::string_view name, BehaviorWhen &value)
 {
-    return drawWhen(name, value, behaviorRows());
+    return drawWhen(name, value, factsOffered(factsInScope()));
 }

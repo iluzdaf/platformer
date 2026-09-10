@@ -5,6 +5,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 #include "events/event.hpp"
 #include "actor/actor_state.hpp"
 #include "assets/sheet_data.hpp"
@@ -17,6 +18,8 @@
 #include "physics/physics_body.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
+#include "conditions/asked.hpp"
+#include "conditions/facts.hpp"
 #include "game/noise.hpp"
 #include "actor/health.hpp"
 #include "actor/hurting.hpp"
@@ -56,19 +59,37 @@ public:
     bool strike(Actor &target);
     Event<Actor> onHurt, onDeath;
     Event<Actor, const std::string &> onCue;
+    Event<Actor, float> onTick;
+    Event<Actor, const Noise &> onNoise;
+
+    const Facts &facts() const;
+    const Asked &fact(const std::string &name) const;
+    void fact(const std::string &name, const Asked &value);
+    void event(const std::string &name, const Asked &value);
+    std::optional<glm::vec2> threatFeet() const;
+    float distanceTo(glm::vec2 at) const;
+    bool onSameSurfaceAs(glm::vec2 at) const;
+    bool corneredBy(glm::vec2 at) const;
+    bool onGround() const;
 
 protected:
     explicit Actor(const ActorData &data);
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
+    void declare(const Facts &facts);
     virtual void hurt();
     virtual void died();
-    ActorBehaviorContext behaviorContext(
-        const NavigationGraph &navigationGraph,
-        std::optional<glm::vec2> threatFeet,
-        std::span<const Noise> noises) const;
+    ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
 
 private:
     std::optional<AABB> swingBox() const;
+    const NavigationGraph &graphWalked() const;
+    void say(const std::string &name, const Asked &value);
+    void forgetTheTick();
+    Facts declared;
+    Facts known;
+    std::vector<std::string> saidForTheTick;
+    const NavigationGraph *walking = nullptr;
+    std::optional<glm::vec2> threat;
     Abilities abilities;
     Decided decisions;
     Observed observations;

@@ -32,6 +32,7 @@ namespace
 Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
     : Actor(npcData.actorData), spawn(spawn), npcData(npcData)
 {
+    declare(npcData.facts);
     if (npcData.stateMachineBehaviorData)
     {
         for (const BehaviorStateData &state : npcData.stateMachineBehaviorData->states)
@@ -46,7 +47,8 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
             walk = std::pair(this->spawn.patrol->from, this->spawn.patrol->to);
 
         setBehavior(
-            std::make_unique<StateMachineBehavior>(npcData.stateMachineBehaviorData.value(), walk));
+            std::make_unique<StateMachineBehavior>(
+                npcData.stateMachineBehaviorData.value(), walk, npcData.facts));
     }
 
     standAt(this->spawn.feet);
@@ -60,6 +62,15 @@ const NpcSpawnData &Npc::getSpawn() const
 const std::string &Npc::type() const
 {
     return spawn.type;
+}
+
+float Npc::tuning(const std::string &name) const
+{
+    auto found = npcData.tuning.find(name);
+    if (found == npcData.tuning.end())
+        throw std::runtime_error("\"" + spawn.type + "\" has no tuning called \"" + name + "\"");
+
+    return found->second;
 }
 
 void Npc::died()

@@ -33,16 +33,23 @@
                 {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":1}
             ],
             "transitions":[
-                {"from":"patrol","to":"flee","when":{"threatOnMySurface":true,"threatWithin":40}},
+                {"from":"patrol","to":"flee","when":{"threatClose":true,"threatOnMySurface":true}},
                 {"from":"flee","to":"patrol","when":{"threatOnMySurface":false},"after":1.5},
                 {
                     "from":"flee",
                     "to":"pounce",
-                    "when":{"cornered":true,"threatOnMySurface":true,"threatWithin":24}
+                    "when":{"cornered":true,"threatInReach":true,"threatOnMySurface":true}
                 },
                 {"from":"pounce","to":"flee","when":{"onGround":true},"after":0.1}
             ]
         },
+        "facts":{
+            "cornered":false,
+            "threatClose":false,
+            "threatInReach":false,
+            "threatOnMySurface":false
+        },
+        "tuning":{"close":40,"reach":24},
         "script":"scripts/npcs/rat.lua"
     },
     "spider":{
@@ -91,12 +98,18 @@
                 {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":2}
             ],
             "transitions":[
-                {"from":"patrol","to":"chase","when":{"threatOnMySurface":true,"threatWithin":64}},
+                {"from":"patrol","to":"chase","when":{"threatClose":true,"threatOnMySurface":true}},
                 {"from":"chase","to":"patrol","when":{"threatOnMySurface":false},"after":2},
-                {"from":"chase","to":"pounce","when":{"threatOnMySurface":true,"threatWithin":40}},
+                {
+                    "from":"chase",
+                    "to":"pounce",
+                    "when":{"threatInReach":true,"threatOnMySurface":true}
+                },
                 {"from":"pounce","to":"chase","when":{"onGround":true},"after":0.1}
             ]
         },
+        "facts":{"threatClose":false,"threatInReach":false,"threatOnMySurface":false},
+        "tuning":{"close":64,"reach":40},
         "script":"scripts/npcs/spider.lua"
     }
 }

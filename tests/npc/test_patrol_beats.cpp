@@ -53,13 +53,9 @@ namespace
         chasing.does = ChaseBehaviorData{};
         data.stateMachineBehaviorData->states.push_back(chasing);
         data.stateMachineBehaviorData->transitions = {
-            BehaviorTransitionData{
-                "patrol",
-                "chase",
-                BehaviorWhen{{{"threatWithin", 64.0f}, {"threatOnMySurface", true}}},
-                0.0f},
-            BehaviorTransitionData{
-                "chase", "patrol", BehaviorWhen{{{"threatOnMySurface", false}}}, 2.0f}};
+            BehaviorTransitionData{"patrol", "chase", BehaviorWhen{{{"threatNear", true}}}, 0.0f},
+            BehaviorTransitionData{"chase", "patrol", BehaviorWhen{{{"threatNear", false}}}, 2.0f}};
+        data.facts["threatNear"] = false;
         return data;
     }
 
@@ -110,6 +106,7 @@ TEST_CASE("A patrol resumed after a chase stays between its beats", "[Npc][Patro
     NpcSpawnData spawn = patrolling("chaser", LeftBeat, LeftBeat, RightBeat);
     Level level = levelWithALedgeAndAWall({spawn}, chasers);
     Npc npc(spawn, chasers.at("chaser"));
+    noticingAThreatWithin(npc, 64.0f);
 
     glm::vec2 you(feetOf(RightBeat).x + 48.0f, feetOf(RightBeat).y);
     whereItWent(npc, level, 400, you);

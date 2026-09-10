@@ -130,6 +130,8 @@ add_library(platformer_lib OBJECT
     src/ui/tile_picker.cpp
     src/ui/size_buttons.cpp
     src/ui/sheet_in_scope.cpp
+    src/ui/facts_in_scope.cpp
+    src/ui/facts_field.cpp
     src/ui/frame_animation_field.cpp
     src/ui/frame_picker.cpp
     src/ui/score_icon_field.cpp
@@ -187,7 +189,9 @@ add_library(platformer_lib OBJECT
     src/animations/animator_facts.cpp
     src/actor/behaviors/behavior_facts.cpp
     src/conditions/asked.cpp
+    src/conditions/facts.cpp
     src/scripting/lua_script_system.cpp
+    src/scripting/npc_hooks.cpp
     src/navigation/navigation_graph.cpp
     src/navigation/navigation_graph_builder.cpp
     src/navigation/navigation_walk_edges.cpp
@@ -327,6 +331,7 @@ add_executable(tests
     tests/ui/test_renaming.cpp
     tests/ui/test_section_mark.cpp
     tests/ui/test_sheet_field.cpp
+    tests/ui/test_facts_field.cpp
     tests/ui/test_tile_size_field.cpp
     tests/ui/test_score_icon_field.cpp
     tests/ui/test_data_inspector.cpp
@@ -366,6 +371,7 @@ add_executable(tests
     tests/animations/test_animator_data.cpp
     tests/animations/test_animator_facts.cpp
     tests/conditions/test_fact_rows.cpp
+    tests/conditions/test_facts.cpp
     tests/animations/test_frame_animation.cpp
     tests/navigation/test_navigation_graph.cpp
     tests/scripting/test_lua_script_system.cpp
@@ -384,12 +390,11 @@ add_executable(tests
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/actor/behaviors/test_attack_behavior.cpp
     tests/actor/behaviors/test_state_machine_behavior.cpp
-    tests/actor/behaviors/test_behavior_facts.cpp
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/npc/test_patrol_beats.cpp
     tests/npc/test_striking_player.cpp
-    tests/npc/test_hearing.cpp
+    tests/npc/test_senses.cpp
     tests/npc/test_striking_npcs.cpp
 
     tests/npc/test_shipped_npcs.cpp

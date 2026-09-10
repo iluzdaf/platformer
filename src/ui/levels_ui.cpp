@@ -62,10 +62,15 @@ void LevelsUi::save(const LevelsData &levels)
 
 std::optional<std::string> LevelsUi::cannotSaveBecause(const LevelsData &levels) const
 {
-    if (!readLevelDataIfYouCan(levels.first.path))
-        return "the first level \"" + levels.first.path + "\" cannot be read";
+    return firstLevelGate.to(
+        levels.first.path,
+        [&]() -> std::optional<std::string>
+        {
+            if (!readLevelDataIfYouCan(levels.first.path))
+                return "the first level \"" + levels.first.path + "\" cannot be read";
 
-    return std::nullopt;
+            return std::nullopt;
+        });
 }
 
 bool LevelsUi::unsavedSince(const LevelsData &levels)

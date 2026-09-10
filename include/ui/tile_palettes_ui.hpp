@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui/inspector_edited.hpp"
+#include "ui/last_answer.hpp"
 
 #include <functional>
 #include <optional>
@@ -59,6 +60,7 @@ private:
     std::string levelsDirectory;
     WritePalettes writePalettes;
     Saveable saveable;
+    mutable LastAnswer tileGate;
     Renaming renaming;
     std::string selectedPalette, askedToWarm;
 };

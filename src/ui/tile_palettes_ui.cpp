@@ -318,7 +318,7 @@ std::optional<std::string> TilePalettesUi::cannotSaveBecause(const TilePalettes 
     if (std::optional<std::string> renames = renaming.cannotSaveBecause())
         return renames;
 
-    return aTileThatCannotBeBuilt(tilePalettes);
+    return tileGate.to(asJson(tilePalettes), [&] { return aTileThatCannotBeBuilt(tilePalettes); });
 }
 
 bool TilePalettesUi::reloaded(TilePalettes &current, const TilePalettes &onDisk)

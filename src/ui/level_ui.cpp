@@ -9,6 +9,7 @@
 #include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "ui/saveable.hpp"
 #include "ui/file_chooser.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "game/level_data_file.hpp"
@@ -269,9 +270,13 @@ void LevelUi::update(
     armed.reset();
 }
 
-std::optional<std::string> LevelUi::cannotSaveBecause(const Level &level) const
+std::optional<std::string> LevelUi::cannotSaveBecause(
+    const Level &level,
+    const LevelData &levelData,
+    const std::map<std::string, NpcData> &npcs) const
 {
-    return npcsThatCannotGetBack(level);
+    return walkGate.to(
+        asItWouldBeSaved(levelData) + asJson(npcs), [&] { return npcsThatCannotGetBack(level); });
 }
 
 bool LevelUi::takesTheDisk(const LevelData &current, const std::string &levelPath)

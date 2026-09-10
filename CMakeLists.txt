@@ -314,6 +314,7 @@ target_link_libraries(header_self_containment PRIVATE platformer_lib)
 add_executable(tests
     tests/test_main.cpp
     tests/ui/test_saveable.cpp
+    tests/ui/test_last_answer.cpp
     tests/serialization/test_json_format.cpp
     tests/serialization/test_only_what_differs.cpp
     tests/serialization/test_data_naming.cpp

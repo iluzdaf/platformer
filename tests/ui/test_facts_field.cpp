@@ -116,15 +116,17 @@ TEST_CASE(
 
     std::vector<FactOffered> offered = factsOffered(&facts);
 
-    REQUIRE(offered.size() == 4);
+    REQUIRE(offered.size() == 5);
     REQUIRE(offered[0].name == "onGround");
     REQUIRE(offered[0].kind == AskedKind::YesOrNo);
-    REQUIRE(offered[1].name == "hits");
-    REQUIRE(offered[1].kind == AskedKind::Number);
-    REQUIRE(offered[2].name == "mood");
-    REQUIRE(offered[2].kind == AskedKind::Name);
-    REQUIRE(offered[3].name == "near");
-    REQUIRE(offered[3].kind == AskedKind::YesOrNo);
+    REQUIRE(offered[1].name == "charging");
+    REQUIRE(offered[1].kind == AskedKind::YesOrNo);
+    REQUIRE(offered[2].name == "hits");
+    REQUIRE(offered[2].kind == AskedKind::Number);
+    REQUIRE(offered[3].name == "mood");
+    REQUIRE(offered[3].kind == AskedKind::Name);
+    REQUIRE(offered[4].name == "near");
+    REQUIRE(offered[4].kind == AskedKind::YesOrNo);
 
-    REQUIRE(factsOffered(nullptr).size() == 1);
+    REQUIRE(factsOffered(nullptr).size() == 2);
 }

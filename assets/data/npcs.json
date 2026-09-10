@@ -4,7 +4,11 @@
             "sheet":{"texture":"textures/boar.png","cellSize":[32,32]},
             "size":[16,16],
             "physicsBodyData":{"colliderSize":[14,10],"colliderOffset":[2,6]},
-            "motionData":{"moveAbilityData":{"moveSpeed":180},"gravityAbilityData":{}},
+            "motionData":{
+                "moveAbilityData":{"moveSpeed":180},
+                "gravityAbilityData":{},
+                "chargeAbilityData":{}
+            },
             "animationData":{
                 "clips":{
                     "dead":{"frames":[7],"frameDuration":1,"loops":false},
@@ -23,15 +27,20 @@
             }
         },
         "stateMachineBehaviorData":{
-            "states":[{"name":"sleep"},{"name":"charge","does":{"kind":"chase"}}],
+            "states":[
+                {"name":"sleep"},
+                {"name":"charge","does":{"kind":"attack","with":"charge"}},
+                {"name":"stunned"}
+            ],
             "transitions":[
                 {"from":"sleep","to":"charge","when":{"heard":true,"near":true}},
-                {"from":"charge","to":"sleep","when":{"near":false},"after":1}
+                {"from":"charge","to":"stunned","when":{"charging":false}},
+                {"from":"stunned","to":"charge","when":{"near":true},"after":1.5},
+                {"from":"stunned","to":"sleep","when":{"near":false},"after":1.5}
             ]
         },
         "facts":{"heard":false,"near":false},
         "tuning":{"range":200},
-        "contactDamage":1,
         "script":"scripts/npcs/boar.lua"
     },
     "rat":{

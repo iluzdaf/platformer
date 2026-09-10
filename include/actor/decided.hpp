@@ -13,6 +13,7 @@
 #include "actor/abilities/knockback_ability_state.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
+#include "actor/abilities/charge_ability_state.hpp"
 
 struct Decided
 {
@@ -31,4 +32,5 @@ struct Decided
     KnockbackAbilityState knockback;
     SwingAbilityState swing;
     PounceAbilityState pounce;
+    ChargeAbilityState charge;
 };

@@ -9,6 +9,7 @@
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
+#include "actor/abilities/charge_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/actor.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
@@ -25,6 +26,8 @@ namespace
             return motion.swingAbilityData.has_value();
         if (attack == PounceAttack)
             return motion.pounceAbilityData.has_value();
+        if (attack == ChargeAttack)
+            return motion.chargeAbilityData.has_value();
         return false;
     }
 }

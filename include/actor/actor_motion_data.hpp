@@ -13,6 +13,7 @@
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
+#include "actor/abilities/charge_ability_data.hpp"
 
 struct ActorMotionData
 {
@@ -28,6 +29,7 @@ struct ActorMotionData
     std::optional<KnockbackAbilityData> knockbackAbilityData;
     std::optional<SwingAbilityData> swingAbilityData;
     std::optional<PounceAbilityData> pounceAbilityData;
+    std::optional<ChargeAbilityData> chargeAbilityData;
 
     bool operator==(const ActorMotionData &) const = default;
 };

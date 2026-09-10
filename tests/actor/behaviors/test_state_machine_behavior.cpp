@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <string>
 #include "actor/abilities/pounce_ability_data.hpp"
+#include "actor/abilities/charge_ability_state.hpp"
+#include "actor/decided.hpp"
 #include <optional>
 #include "actor/actor_behavior_context.hpp"
 #include "helpers/behaviour_context.hpp"
@@ -453,4 +455,49 @@ TEST_CASE("A transition asking about a fact nobody has said is an error", "[Stat
         std::runtime_error);
     REQUIRE_THROWS_AS(
         behavior.decide(0.01f, standingAt(navigationGraph, {192.0f, 192.0f})), std::runtime_error);
+}
+
+TEST_CASE(
+    "A transition can wait for a charge to end, which the engine answers",
+    "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    BehaviorStateData charging;
+    charging.name = "charge";
+    BehaviorStateData stunned;
+    stunned.name = "stunned";
+    BehaviorTransitionData spent;
+    spent.from = "charge";
+    spent.to = "stunned";
+    spent.when["charging"] = false;
+    StateMachineBehavior behavior(StateMachineBehaviorData{{charging, stunned}, {spent}});
+    Decided decided;
+    decided.charge.active = true;
+    ActorBehaviorContext midCharge = standingAt(navigationGraph, {96.0f, 192.0f});
+    midCharge.decided = &decided;
+
+    behavior.decide(0.01f, midCharge);
+    REQUIRE(behavior.getStateName() == "charge");
+
+    decided.charge.active = false;
+    behavior.decide(0.01f, midCharge);
+    REQUIRE(behavior.getStateName() == "stunned");
+}
+
+TEST_CASE("A machine told nothing of its abilities is not charging", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    BehaviorStateData charging;
+    charging.name = "charge";
+    BehaviorStateData stunned;
+    stunned.name = "stunned";
+    BehaviorTransitionData spent;
+    spent.from = "charge";
+    spent.to = "stunned";
+    spent.when["charging"] = false;
+    StateMachineBehavior behavior(StateMachineBehaviorData{{charging, stunned}, {spent}});
+
+    behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 192.0f}));
+
+    REQUIRE(behavior.getStateName() == "stunned");
 }

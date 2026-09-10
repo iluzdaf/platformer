@@ -12,9 +12,9 @@
 
 namespace
 {
-    Facts threeFacts()
+    FactsData threeFacts()
     {
-        Facts facts;
+        FactsData facts;
         facts["hits"] = 2.0f;
         facts["mood"] = std::string("calm");
         facts["near"] = true;
@@ -41,7 +41,7 @@ namespace
         }
     };
 
-    Rows rowsOf(HeadlessImGui &gui, Facts &facts)
+    Rows rowsOf(HeadlessImGui &gui, FactsData &facts)
     {
         Rows found;
         auto drawOpen = [&]
@@ -62,10 +62,10 @@ namespace
 
 TEST_CASE("Declared facts draw themselves, and keep what they were given", "[FactsField]")
 {
-    STATIC_REQUIRE(inspector::HasCustomField<Facts>);
+    STATIC_REQUIRE(inspector::HasCustomField<FactsData>);
 
     HeadlessImGui gui;
-    Facts facts = threeFacts();
+    FactsData facts = threeFacts();
 
     rowsOf(gui, facts);
 
@@ -75,7 +75,7 @@ TEST_CASE("Declared facts draw themselves, and keep what they were given", "[Fac
 TEST_CASE("A declared fact can be taken away, and the rest stay", "[FactsField]")
 {
     HeadlessImGui gui;
-    Facts facts = threeFacts();
+    FactsData facts = threeFacts();
 
     Rows rows = rowsOf(gui, facts);
     gui.clickAt(
@@ -86,7 +86,7 @@ TEST_CASE("A declared fact can be taken away, and the rest stay", "[FactsField]"
             inspector::draw("facts", facts);
         });
 
-    Facts left = threeFacts();
+    FactsData left = threeFacts();
     left.erase("mood");
     REQUIRE(facts == left);
 }
@@ -94,7 +94,7 @@ TEST_CASE("A declared fact can be taken away, and the rest stay", "[FactsField]"
 TEST_CASE("Asking to declare opens the chooser and declares nothing by itself", "[FactsField]")
 {
     HeadlessImGui gui;
-    Facts facts = threeFacts();
+    FactsData facts = threeFacts();
 
     Rows rows = rowsOf(gui, facts);
     gui.clickAt(
@@ -112,7 +112,7 @@ TEST_CASE(
     "A condition is offered the ground the engine answers, then what is declared",
     "[FactsField]")
 {
-    Facts facts = threeFacts();
+    FactsData facts = threeFacts();
 
     std::vector<FactOffered> offered = factsOffered(&facts);
 

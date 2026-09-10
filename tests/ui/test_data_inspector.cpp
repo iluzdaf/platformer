@@ -265,7 +265,7 @@ TEST_CASE("An actor's animation data draws as a graph of its clips and rungs", "
     ActorAnimationData animations;
     animations.clips["idle"] = FrameAnimationData{{0}, 0.5f};
     animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
-    AnimationWhen moving;
+    AnimationWhenData moving;
     moving["moving"] = true;
     animations.ladder = AnimatorData{{{"", "walk", moving}}};
 
@@ -287,7 +287,7 @@ TEST_CASE(
     transition.to = "pounce";
     transition.when["hits"] = 3.0f;
     transition.when["threatOnMySurface"] = true;
-    Facts declared;
+    FactsData declared;
     declared["hits"] = 0.0f;
     declared["threatOnMySurface"] = false;
 

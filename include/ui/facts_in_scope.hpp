@@ -1,18 +1,18 @@
 #pragma once
 
-struct Facts;
+struct FactsData;
 
-const Facts *factsInScope();
+const FactsData *factsInScope();
 
 class OfferingFacts
 {
 public:
-    explicit OfferingFacts(const Facts &facts);
+    explicit OfferingFacts(const FactsData &facts);
     ~OfferingFacts();
 
     OfferingFacts(const OfferingFacts &) = delete;
     OfferingFacts &operator=(const OfferingFacts &) = delete;
 
 private:
-    const Facts *before = nullptr;
+    const FactsData *before = nullptr;
 };

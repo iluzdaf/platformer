@@ -65,7 +65,7 @@ namespace when_field
     }
 }
 
-std::vector<FactOffered> factsOffered(const Facts *declared)
+std::vector<FactOffered> factsOffered(const FactsData *declared)
 {
     std::vector<FactOffered> offered;
     for (const FactRow<ActorBehaviorContext> &row : behaviorRows())
@@ -78,12 +78,12 @@ std::vector<FactOffered> factsOffered(const Facts *declared)
     return offered;
 }
 
-inspector::Edited drawCustomField(std::string_view name, AnimationWhen &value)
+inspector::Edited drawCustomField(std::string_view name, AnimationWhenData &value)
 {
     return drawWhen(name, value, animatorRows());
 }
 
-inspector::Edited drawCustomField(std::string_view name, BehaviorWhen &value)
+inspector::Edited drawCustomField(std::string_view name, BehaviorWhenData &value)
 {
     return drawWhen(name, value, factsOffered(factsInScope()));
 }

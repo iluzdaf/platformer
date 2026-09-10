@@ -44,21 +44,21 @@ namespace
         return {{patrolling, fleeing}, {alarmed, calmed}};
     }
 
-    Facts knowingNear()
+    FactsData knowingNear()
     {
-        Facts facts;
+        FactsData facts;
         facts["near"] = false;
         return facts;
     }
 
-    Facts saying(const std::string &name, const Asked &value)
+    FactsData saying(const std::string &name, const Asked &value)
     {
-        Facts facts = knowingNear();
+        FactsData facts = knowingNear();
         facts[name] = value;
         return facts;
     }
 
-    ActorBehaviorContext told(const Facts &facts, ActorBehaviorContext context)
+    ActorBehaviorContext told(const FactsData &facts, ActorBehaviorContext context)
     {
         context.facts = &facts;
         return context;
@@ -76,8 +76,8 @@ TEST_CASE("Switches state once the fact it asks for is said", "[StateMachineBeha
 {
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
-    Facts calm = knowingNear();
-    Facts near = saying("near", true);
+    FactsData calm = knowingNear();
+    FactsData near = saying("near", true);
 
     behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
     REQUIRE(behavior.getStateName() == "patrol");
@@ -90,8 +90,8 @@ TEST_CASE("Calms down once the fact is unsaid", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
-    Facts calm = knowingNear();
-    Facts near = saying("near", true);
+    FactsData calm = knowingNear();
+    FactsData near = saying("near", true);
 
     behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
     REQUIRE(behavior.getStateName() == "flee");
@@ -104,8 +104,8 @@ TEST_CASE("Waits out the calm down before going back to patrol", "[StateMachineB
 {
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(setupData(1.0f), std::nullopt, knowingNear());
-    Facts calm = knowingNear();
-    Facts near = saying("near", true);
+    FactsData calm = knowingNear();
+    FactsData near = saying("near", true);
 
     behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
     REQUIRE(behavior.getStateName() == "flee");
@@ -123,8 +123,8 @@ TEST_CASE("A fact said again resets the calm down", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(setupData(1.0f), std::nullopt, knowingNear());
-    Facts calm = knowingNear();
-    Facts near = saying("near", true);
+    FactsData calm = knowingNear();
+    FactsData near = saying("near", true);
 
     behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
 
@@ -146,8 +146,8 @@ TEST_CASE("Runs the state it is in, not the one it left", "[StateMachineBehavior
 {
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
-    Facts calm = knowingNear();
-    Facts near = saying("near", true);
+    FactsData calm = knowingNear();
+    FactsData near = saying("near", true);
 
     InputIntentions patrolling = behavior.decide(
         0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(0.0f, 192.0f))));
@@ -184,7 +184,7 @@ TEST_CASE(
     provoked.to = "angry";
     provoked.when["hits"] = 2.0f;
     provoked.when["mood"] = std::string("sour");
-    Facts facts;
+    FactsData facts;
     facts["hits"] = 0.0f;
     facts["mood"] = std::string("calm");
     StateMachineBehavior behavior(
@@ -226,7 +226,7 @@ TEST_CASE("A transition to a state it does not have is ignored", "[StateMachineB
     haunted.when["near"] = true;
     data.transitions.push_back(haunted);
     StateMachineBehavior behavior(data, std::nullopt, knowingNear());
-    Facts near = saying("near", true);
+    FactsData near = saying("near", true);
     ActorBehaviorContext threatened =
         told(near, standingAt(navigationGraph, {0.0f, 192.0f}, glm::vec2(8.0f, 192.0f)));
 
@@ -298,7 +298,7 @@ TEST_CASE("A state on cooldown is not re-entered until it has passed", "[StateMa
 {
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(aChaseThatPounces(1.0f), std::nullopt, knowingNear());
-    Facts near = saying("near", true);
+    FactsData near = saying("near", true);
     ActorBehaviorContext close =
         told(near, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(200.0f, 192.0f)));
     auto pouncesIn = [&](int steps)
@@ -328,7 +328,7 @@ TEST_CASE(
 {
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(aChaseThatPounces(1.0f), std::nullopt, knowingNear());
-    Facts near = saying("near", true);
+    FactsData near = saying("near", true);
     behavior.decide(
         0.01f,
         told(near, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(200.0f, 192.0f))));
@@ -383,7 +383,7 @@ TEST_CASE(
     landed.to = "flee";
     landed.when["onGround"] = true;
     landed.after = 0.05f;
-    Facts facts;
+    FactsData facts;
     facts["inReach"] = false;
     StateMachineBehavior behavior({{fleeing, pouncing}, {tooClose, landed}}, std::nullopt, facts);
 
@@ -448,7 +448,7 @@ TEST_CASE("A transition asking about a fact nobody has said is an error", "[Stat
 {
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
-    Facts nothing;
+    FactsData nothing;
 
     REQUIRE_THROWS_AS(
         behavior.decide(0.01f, told(nothing, standingAt(navigationGraph, {192.0f, 192.0f}))),

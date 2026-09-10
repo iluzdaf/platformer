@@ -8,7 +8,7 @@ struct AnimationTransitionData
 {
     std::string from;
     std::string to;
-    AnimationWhen when;
+    AnimationWhenData when;
 
     bool operator==(const AnimationTransitionData &) const = default;
 };

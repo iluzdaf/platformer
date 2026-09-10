@@ -43,7 +43,7 @@ namespace
         NpcData rat = setupNpcData();
         rat.actorData.healthData = HealthData{points, 0.0f};
         rat.actorData.animationData.clips["dead"] = FrameAnimationData({7}, 1.0f);
-        AnimationWhen dead;
+        AnimationWhenData dead;
         dead["alive"] = false;
         rat.actorData.animationData.ladder = AnimatorData{{{"", "dead", dead}}};
         return rat;

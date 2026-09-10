@@ -14,7 +14,7 @@ namespace
     constexpr std::array Kinds{AskedKind::YesOrNo, AskedKind::Number, AskedKind::Name};
     constexpr std::array KindLabels{"yes or no", "number", "name"};
 
-    bool drawDeclaring(Facts &facts)
+    bool drawDeclaring(FactsData &facts)
     {
         if (ImGui::SmallButton("+"))
             ImGui::OpenPopup("##declare");
@@ -47,7 +47,7 @@ namespace
     }
 }
 
-inspector::Edited drawCustomField(std::string_view name, Facts &value)
+inspector::Edited drawCustomField(std::string_view name, FactsData &value)
 {
     if (!ImGui::TreeNode(std::string(name).c_str()))
         return {};

@@ -41,7 +41,7 @@ struct BehaviorTransitionData
 {
     std::string from;
     std::string to;
-    BehaviorWhen when;
+    BehaviorWhenData when;
     float after = 0.0f;
 
     bool operator==(const BehaviorTransitionData &) const = default;

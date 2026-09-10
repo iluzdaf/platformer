@@ -12,7 +12,7 @@ struct NpcData
     ActorData actorData;
 
     std::optional<StateMachineBehaviorData> stateMachineBehaviorData;
-    Facts facts;
+    FactsData facts;
     std::map<std::string, float> tuning;
     int contactDamage = 0;
     std::string script;

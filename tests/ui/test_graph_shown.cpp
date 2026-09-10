@@ -30,12 +30,12 @@ namespace
         animations.clips["idle"] = FrameAnimationData{{0}, 0.5f};
         animations.clips["dead"] = FrameAnimationData{{9}, 1.0f};
         animations.clips.at("dead").loops = false;
-        AnimationWhen dead;
+        AnimationWhenData dead;
         dead["alive"] = false;
-        AnimationWhen moving;
+        AnimationWhenData moving;
         moving["onGround"] = true;
         moving["moving"] = true;
-        AnimationWhen finished;
+        AnimationWhenData finished;
         finished["finished"] = true;
         animations.ladder =
             AnimatorData{{{"", "dead", dead}, {"", "walk", moving}, {"walk", "idle", finished}}};
@@ -95,14 +95,14 @@ TEST_CASE("An animator with no rung from anywhere has no any node", "[GraphShown
     ActorAnimationData animations;
     animations.clips["idle"] = FrameAnimationData{{0}, 0.5f};
     animations.clips["walk"] = FrameAnimationData{{1}, 0.5f};
-    animations.ladder = AnimatorData{{{"idle", "walk", AnimationWhen{}}}};
+    animations.ladder = AnimatorData{{{"idle", "walk", AnimationWhenData{}}}};
 
     REQUIRE(namesOf(graphOf(animations)) == std::vector<std::string>{"idle", "walk"});
 }
 
 TEST_CASE("A rung's words say every parameter it asks about", "[GraphShown]")
 {
-    AnimationWhen when;
+    AnimationWhenData when;
     when["alive"] = true;
     when["knockback"] = false;
     when["onGround"] = false;
@@ -111,9 +111,9 @@ TEST_CASE("A rung's words say every parameter it asks about", "[GraphShown]")
     when["finished"] = false;
     REQUIRE(
         whenOf(when) == "alive, not knocked back, in the air, off the wall, rising, clip playing");
-    REQUIRE(whenOf(AnimationWhen{}) == "always");
+    REQUIRE(whenOf(AnimationWhenData{}) == "always");
 
-    AnimationWhen asleep;
+    AnimationWhenData asleep;
     asleep["inState"] = std::string("sleep");
     REQUIRE(whenOf(asleep) == "in state \"sleep\"");
 }

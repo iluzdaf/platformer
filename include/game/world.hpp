@@ -59,5 +59,6 @@ private:
     std::unique_ptr<Player> player;
     Score score;
 
+    void build(const LevelData &fromData, const glm::vec2 &movingThePlayerBy);
     void makePlayerAt(glm::vec2 feet);
 };

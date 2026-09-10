@@ -16,6 +16,6 @@ struct ActorBehaviorContext
     std::optional<glm::vec2> threatFeet;
 
     ActorContactState contacts;
-    const Facts *facts = nullptr;
+    const FactsData *facts = nullptr;
     const Decided *decided = nullptr;
 };

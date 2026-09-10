@@ -28,7 +28,7 @@
 
 namespace
 {
-    std::optional<AskedKind> kindKnown(const std::string &name, const Facts &declared)
+    std::optional<AskedKind> kindKnown(const std::string &name, const FactsData &declared)
     {
         if (const FactRow<ActorBehaviorContext> *row = rowNamed(behaviorRows(), name))
             return row->kind;
@@ -54,7 +54,7 @@ namespace
                 continue;
             }
 
-            auto fact = context.facts ? context.facts->find(name) : Facts::const_iterator{};
+            auto fact = context.facts ? context.facts->find(name) : FactsData::const_iterator{};
             if (!context.facts || fact == context.facts->end())
                 throw std::runtime_error(
                     "A condition asks about \"" + name + "\", and there is no such fact");
@@ -70,7 +70,7 @@ namespace
 StateMachineBehavior::StateMachineBehavior(
     const StateMachineBehaviorData &data,
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween,
-    const Facts &declared)
+    const FactsData &declared)
     : data(data), heldFor(data.transitions.size(), 0.0f), sinceLeft(data.states.size(), 1e9f)
 {
     for (const BehaviorTransitionData &transition : this->data.transitions)

@@ -41,7 +41,7 @@ TEST_CASE("A ladder naming a clip the actor does not have is refused", "[ActorAn
     PlayerData playerData;
     playerData.actorData.animationData.clips["idle"] = FrameAnimationData({0}, 1.0f);
     playerData.actorData.animationData.clips["walk"] = FrameAnimationData({1}, 1.0f);
-    AnimationWhen moving;
+    AnimationWhenData moving;
     moving["moving"] = true;
     playerData.actorData.animationData.ladder = AnimatorData{{{"", "somersault", moving}}};
 
@@ -57,7 +57,7 @@ TEST_CASE("A creature named with a clip nobody else has can show it", "[ActorAni
     PlayerData playerData;
     playerData.actorData.animationData.clips["idle"] = FrameAnimationData({0}, 1.0f);
     playerData.actorData.animationData.clips["somersault"] = FrameAnimationData({1}, 1.0f);
-    AnimationWhen airborne;
+    AnimationWhenData airborne;
     airborne["onGround"] = false;
     playerData.actorData.animationData.ladder = AnimatorData{{{"", "somersault", airborne}}};
 
@@ -69,7 +69,7 @@ TEST_CASE("A rung asking about a fact nobody publishes is refused", "[ActorAnima
     PlayerData playerData;
     playerData.actorData.animationData.clips["idle"] = FrameAnimationData({0}, 1.0f);
     playerData.actorData.animationData.clips["walk"] = FrameAnimationData({1}, 1.0f);
-    AnimationWhen snowing;
+    AnimationWhenData snowing;
     snowing["snowing"] = true;
     playerData.actorData.animationData.ladder = AnimatorData{{{"", "walk", snowing}}};
 

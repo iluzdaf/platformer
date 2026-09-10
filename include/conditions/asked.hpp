@@ -22,12 +22,12 @@ Asked emptyOf(AskedKind kind);
 
 std::string textOf(const Asked &asked);
 
-struct AnimationWhen : std::map<std::string, Asked>
+struct AnimationWhenData : std::map<std::string, Asked>
 {
-    bool operator==(const AnimationWhen &) const = default;
+    bool operator==(const AnimationWhenData &) const = default;
 };
 
-struct BehaviorWhen : std::map<std::string, Asked>
+struct BehaviorWhenData : std::map<std::string, Asked>
 {
-    bool operator==(const BehaviorWhen &) const = default;
+    bool operator==(const BehaviorWhenData &) const = default;
 };

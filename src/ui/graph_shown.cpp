@@ -109,7 +109,7 @@ std::vector<glm::vec2> placedAround(const GraphShown &graph, glm::vec2 centre, g
     return positions;
 }
 
-std::string whenOf(const AnimationWhen &when)
+std::string whenOf(const AnimationWhenData &when)
 {
     return whenOf(when, animatorRows());
 }

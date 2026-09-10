@@ -53,8 +53,10 @@ namespace
         chasing.does = ChaseBehaviorData{};
         data.stateMachineBehaviorData->states.push_back(chasing);
         data.stateMachineBehaviorData->transitions = {
-            BehaviorTransitionData{"patrol", "chase", BehaviorWhen{{{"threatNear", true}}}, 0.0f},
-            BehaviorTransitionData{"chase", "patrol", BehaviorWhen{{{"threatNear", false}}}, 2.0f}};
+            BehaviorTransitionData{
+                "patrol", "chase", BehaviorWhenData{{{"threatNear", true}}}, 0.0f},
+            BehaviorTransitionData{
+                "chase", "patrol", BehaviorWhenData{{{"threatNear", false}}}, 2.0f}};
         data.facts["threatNear"] = false;
         return data;
     }

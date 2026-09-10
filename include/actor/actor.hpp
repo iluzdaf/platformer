@@ -62,7 +62,7 @@ public:
     Event<Actor, float> onTick;
     Event<Actor, const Noise &> onNoise;
 
-    const Facts &facts() const;
+    const FactsData &facts() const;
     const Asked &fact(const std::string &name) const;
     void fact(const std::string &name, const Asked &value);
     void event(const std::string &name, const Asked &value);
@@ -75,7 +75,7 @@ public:
 protected:
     explicit Actor(const ActorData &data);
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
-    void declare(const Facts &facts);
+    void declare(const FactsData &facts);
     virtual void hurt();
     virtual void died();
     ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
@@ -85,8 +85,8 @@ private:
     const NavigationGraph &graphWalked() const;
     void say(const std::string &name, const Asked &value);
     void forgetTheTick();
-    Facts declared;
-    Facts known;
+    FactsData declared;
+    FactsData known;
     std::vector<std::string> saidForTheTick;
     const NavigationGraph *walking = nullptr;
     std::optional<glm::vec2> threat;

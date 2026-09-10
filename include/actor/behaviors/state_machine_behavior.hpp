@@ -20,7 +20,7 @@ public:
     explicit StateMachineBehavior(
         const StateMachineBehaviorData &data,
         std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween = std::nullopt,
-        const Facts &declared = Facts{});
+        const FactsData &declared = FactsData{});
     void reset() override;
     InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
     std::string_view getStateName() const override;

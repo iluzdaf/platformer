@@ -171,7 +171,7 @@ void Actor::forgetTheTick()
     saidForTheTick.clear();
 }
 
-void Actor::declare(const Facts &facts)
+void Actor::declare(const FactsData &facts)
 {
     for (const auto &[name, value] : facts)
         if (rowNamed(behaviorRows(), name))
@@ -183,7 +183,7 @@ void Actor::declare(const Facts &facts)
     saidForTheTick.clear();
 }
 
-const Facts &Actor::facts() const
+const FactsData &Actor::facts() const
 {
     return known;
 }

@@ -19,12 +19,12 @@ TEST_CASE("A condition that asks nothing always holds", "[AnimatorData]")
     Decided decided;
     Observed observed;
 
-    REQUIRE(holds(AnimationWhen{}, animatorRows(), factsOf(decided, observed)));
+    REQUIRE(holds(AnimationWhenData{}, animatorRows(), factsOf(decided, observed)));
 }
 
 TEST_CASE("A condition holds only when every fact it asks about agrees", "[AnimatorData]")
 {
-    AnimationWhen airborneAndRising;
+    AnimationWhenData airborneAndRising;
     airborneAndRising["onGround"] = false;
     airborneAndRising["rising"] = true;
     Decided decided;
@@ -45,7 +45,7 @@ TEST_CASE("A condition holds only when every fact it asks about agrees", "[Anima
 
 TEST_CASE("A condition may ask which state the machine is in", "[AnimatorData]")
 {
-    AnimationWhen asleep;
+    AnimationWhenData asleep;
     asleep["inState"] = std::string("sleep");
     Decided decided;
     Observed observed;

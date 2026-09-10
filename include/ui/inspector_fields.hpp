@@ -8,17 +8,17 @@ struct FrameAnimationData;
 struct SheetData;
 struct ScoreIconData;
 struct ActorAnimationData;
-struct AnimationWhen;
-struct BehaviorWhen;
-struct Facts;
+struct AnimationWhenData;
+struct BehaviorWhenData;
+struct FactsData;
 
 inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &value);
 inspector::Edited drawCustomField(std::string_view name, SheetData &value);
 inspector::Edited drawCustomField(std::string_view name, ScoreIconData &value);
 inspector::Edited drawCustomField(std::string_view name, ActorAnimationData &value);
-inspector::Edited drawCustomField(std::string_view name, AnimationWhen &value);
-inspector::Edited drawCustomField(std::string_view name, BehaviorWhen &value);
-inspector::Edited drawCustomField(std::string_view name, Facts &value);
+inspector::Edited drawCustomField(std::string_view name, AnimationWhenData &value);
+inspector::Edited drawCustomField(std::string_view name, BehaviorWhenData &value);
+inspector::Edited drawCustomField(std::string_view name, FactsData &value);
 
 namespace inspector
 {

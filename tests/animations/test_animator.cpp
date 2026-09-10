@@ -217,9 +217,9 @@ TEST_CASE("The animator says when the clip it is playing has finished", "[Animat
 
 TEST_CASE("A ladder given as data drives the animator", "[Animator]")
 {
-    AnimationWhen moving;
+    AnimationWhenData moving;
     moving["moving"] = true;
-    AnimationWhen still;
+    AnimationWhenData still;
     still["moving"] = false;
     AnimatorData ladder{{{"", "walk", moving}, {"walk", "idle", still}}};
     Animator animator(ladder);
@@ -241,7 +241,7 @@ TEST_CASE("A ladder given as data drives the animator", "[Animator]")
 
 TEST_CASE("A rung with a from only fires from that state", "[Animator]")
 {
-    AnimationWhen always;
+    AnimationWhenData always;
     AnimatorData ladder{{{"walk", "jump", always}}};
     Animator animator(ladder);
     animator.add("idle", animationOfFrame(1));
@@ -262,9 +262,9 @@ TEST_CASE("The animator can say the ladder it walks", "[Animator]")
 
 TEST_CASE("A rung may ask which state the machine is in", "[Animator]")
 {
-    AnimationWhen asleep;
+    AnimationWhenData asleep;
     asleep["inState"] = std::string("sleep");
-    AnimationWhen otherwise;
+    AnimationWhenData otherwise;
     otherwise["onGround"] = true;
     AnimatorData ladder{{{"", "sleep", asleep}, {"", "idle", otherwise}}};
     Animator animator(ladder);

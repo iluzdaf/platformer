@@ -236,7 +236,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[StrikingPlayer
     NpcData swinger = setupNpcData();
     swinger.actorData.motionData.swingAbilityData = SwingAbilityData{};
     swinger.actorData.animationData.clips["attack"] = anAttackClip();
-    AnimationWhen whileSwinging;
+    AnimationWhenData whileSwinging;
     whileSwinging["swinging"] = true;
     swinger.actorData.animationData.ladder = AnimatorData{{{"", "attack", whileSwinging}}};
     BehaviorStateData swinging;

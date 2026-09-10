@@ -2,15 +2,15 @@
 
 namespace
 {
-    const Facts *offered = nullptr;
+    const FactsData *offered = nullptr;
 }
 
-const Facts *factsInScope()
+const FactsData *factsInScope()
 {
     return offered;
 }
 
-OfferingFacts::OfferingFacts(const Facts &facts) : before(offered)
+OfferingFacts::OfferingFacts(const FactsData &facts) : before(offered)
 {
     offered = &facts;
 }

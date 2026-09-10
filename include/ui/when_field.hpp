@@ -9,7 +9,7 @@
 #include "conditions/asked.hpp"
 #include "ui/inspector_edited.hpp"
 
-struct Facts;
+struct FactsData;
 
 struct FactOffered
 {
@@ -17,7 +17,7 @@ struct FactOffered
     AskedKind kind;
 };
 
-std::vector<FactOffered> factsOffered(const Facts *declared);
+std::vector<FactOffered> factsOffered(const FactsData *declared);
 
 namespace when_field
 {

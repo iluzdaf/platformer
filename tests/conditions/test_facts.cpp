@@ -6,9 +6,9 @@
 
 namespace
 {
-    Facts declared()
+    FactsData declared()
     {
-        Facts facts;
+        FactsData facts;
         facts["near"] = false;
         facts["hits"] = 0.0f;
         facts["mood"] = std::string("calm");

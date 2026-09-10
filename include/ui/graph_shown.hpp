@@ -10,7 +10,7 @@
 
 struct StateMachineBehaviorData;
 struct ActorAnimationData;
-struct AnimationWhen;
+struct AnimationWhenData;
 
 inline constexpr std::string_view AnyNode = "any";
 
@@ -52,7 +52,7 @@ float graphHeightFor(std::size_t ringCount);
 
 std::vector<glm::vec2> placedAround(const GraphShown &graph, glm::vec2 centre, glm::vec2 radii);
 
-std::string whenOf(const AnimationWhen &when);
+std::string whenOf(const AnimationWhenData &when);
 
 GraphShown graphOf(const StateMachineBehaviorData &machine);
 

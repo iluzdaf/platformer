@@ -4,7 +4,7 @@
 #include "conditions/asked.hpp"
 
 std::optional<std::string> whyNotDeclared(
-    const Facts &declared,
+    const FactsData &declared,
     const std::string &name,
     const Asked &value)
 {

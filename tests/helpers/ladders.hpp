@@ -6,37 +6,37 @@
 #include "conditions/asked.hpp"
 #include "actor/actor_animation_data.hpp"
 
-inline AnimationTransitionData fromAnyTo(std::string to, AnimationWhen when)
+inline AnimationTransitionData fromAnyTo(std::string to, AnimationWhenData when)
 {
     return AnimationTransitionData{std::string(), std::move(to), when};
 }
 
 inline AnimatorData everyPictureLadder()
 {
-    AnimationWhen dead;
+    AnimationWhenData dead;
     dead["alive"] = false;
-    AnimationWhen pushed;
+    AnimationWhenData pushed;
     pushed["knockback"] = true;
-    AnimationWhen swinging;
+    AnimationWhenData swinging;
     swinging["swinging"] = true;
-    AnimationWhen dashing;
+    AnimationWhenData dashing;
     dashing["dashing"] = true;
-    AnimationWhen climbing;
+    AnimationWhenData climbing;
     climbing["onGround"] = false;
     climbing["climbing"] = true;
-    AnimationWhen onWall;
+    AnimationWhenData onWall;
     onWall["onGround"] = false;
     onWall["onWall"] = true;
-    AnimationWhen rising;
+    AnimationWhenData rising;
     rising["onGround"] = false;
     rising["rising"] = true;
-    AnimationWhen falling;
+    AnimationWhenData falling;
     falling["onGround"] = false;
     falling["falling"] = true;
-    AnimationWhen walking;
+    AnimationWhenData walking;
     walking["onGround"] = true;
     walking["moving"] = true;
-    AnimationWhen standing;
+    AnimationWhenData standing;
     standing["onGround"] = true;
 
     return AnimatorData{

@@ -5,17 +5,15 @@
 #include "assets/sheet_data.hpp"
 #include "physics/aabb.hpp"
 #include "pickups/pickup_data.hpp"
-#include <string>
+#include "pickups/pickup_spawn_data.hpp"
 
 class Pickup
 {
 public:
-    Pickup(const PickupData &pickupData, glm::vec2 position);
-    Pickup(std::string type, const PickupData &pickupData, glm::vec2 feet);
+    Pickup(const PickupSpawnData &spawn, const PickupData &pickupData);
 
-    const std::string &type() const;
+    const PickupSpawnData &getSpawn() const;
     const PickupData &builtFrom() const;
-    glm::vec2 getFeet() const;
 
     void update(float deltaTime);
 
@@ -27,9 +25,8 @@ public:
     AABB getAABB() const;
 
 private:
-    std::string kind;
+    PickupSpawnData spawn;
     PickupData data;
-    glm::vec2 feet = glm::vec2(0.0f);
     SheetData sheet;
     FrameAnimation animation;
     glm::vec2 position, size, colliderSize, colliderOffset;

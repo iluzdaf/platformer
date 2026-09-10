@@ -1,14 +1,14 @@
 #include <stdexcept>
 #include <glm/gtc/matrix_transform.hpp>
 #include "pickups/pickup.hpp"
-#include <string>
-#include <utility>
 #include "pickups/pickup_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 #include "physics/aabb.hpp"
 
-Pickup::Pickup(const PickupData &pickupData, glm::vec2 position)
-    : data(pickupData), sheet(pickupData.sheet), animation(pickupData.animationData),
-      position(position), size(drawnSizeOf(pickupData)),
+Pickup::Pickup(const PickupSpawnData &spawn, const PickupData &pickupData)
+    : spawn(spawn), data(pickupData), sheet(pickupData.sheet), animation(pickupData.animationData),
+      position(spawn.feet - glm::vec2(drawnSizeOf(pickupData).x * 0.5f, drawnSizeOf(pickupData).y)),
+      size(drawnSizeOf(pickupData)),
       colliderSize(pickupData.colliderSize.value_or(drawnSizeOf(pickupData))),
       colliderOffset(pickupData.colliderOffset), scoreDelta(pickupData.scoreDelta)
 {
@@ -19,28 +19,14 @@ Pickup::Pickup(const PickupData &pickupData, glm::vec2 position)
         throw std::runtime_error("A pickup nothing can reach is one nobody can take");
 }
 
-Pickup::Pickup(std::string type, const PickupData &pickupData, glm::vec2 feet)
-    : Pickup(
-          pickupData,
-          feet - glm::vec2(drawnSizeOf(pickupData).x * 0.5f, drawnSizeOf(pickupData).y))
+const PickupSpawnData &Pickup::getSpawn() const
 {
-    kind = std::move(type);
-    this->feet = feet;
-}
-
-const std::string &Pickup::type() const
-{
-    return kind;
+    return spawn;
 }
 
 const PickupData &Pickup::builtFrom() const
 {
     return data;
-}
-
-glm::vec2 Pickup::getFeet() const
-{
-    return feet;
 }
 
 void Pickup::update(float deltaTime)

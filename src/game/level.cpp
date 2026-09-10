@@ -85,7 +85,7 @@ Level::Level(
     for (const PickupSpawnData &spawn : levelData.pickups)
     {
         const PickupData &kind = oneNamed(pickupData, "pickup", spawn.type);
-        pickups.push_back(Pickup(spawn.type, kind, spawn.feet));
+        pickups.push_back(Pickup(spawn, kind));
     }
 }
 
@@ -123,11 +123,11 @@ std::vector<Npc *> Level::recast(
     std::vector<Pickup> pickupsNow;
     for (const Pickup &pickup : pickups)
     {
-        const PickupData &kind = oneNamed(pickupData, "pickup", pickup.type());
+        const PickupData &kind = oneNamed(pickupData, "pickup", pickup.getSpawn().type);
         if (differs::compact(pickup.builtFrom()) == differs::compact(kind))
             pickupsNow.push_back(pickup);
         else
-            pickupsNow.push_back(Pickup(pickup.type(), kind, pickup.getFeet()));
+            pickupsNow.push_back(Pickup(pickup.getSpawn(), kind));
     }
 
     graphs.clear();

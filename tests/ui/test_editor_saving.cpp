@@ -19,6 +19,7 @@
 #include "npc/npc_spawn_data.hpp"
 #include "rendering/texture_cache.hpp"
 #include "helpers/asset_path.hpp"
+#include "helpers/temporary_levels.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/editor_ui.hpp"
 
@@ -199,18 +200,27 @@ TEST_CASE("Reverting a section kept through a reload takes what is on disk now",
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Cast, subject).unsaved);
 }
 
-TEST_CASE("The level being played follows the disk only while it is clean", "[EditorSaving]")
+TEST_CASE(
+    "The level being played takes the disk only while it is clean and the file changed",
+    "[EditorSaving]")
 {
     EditorUi editorUi;
+    TemporaryLevels levels{"editor_saving_takes"};
+    levels.copyShipped("level6.json");
     Editing editing;
+    editing.levelPath = levels.pathOf("level6.json");
     EditorSubject subject = editing.subject();
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
+    REQUIRE_FALSE(editorUi.levelTakesTheDisk(editing.levelData, editing.levelPath));
 
-    REQUIRE(editorUi.levelFollowsTheDisk(editing.levelData, editing.levelPath));
+    LevelData changedOnDisk = editing.levelData;
+    changedOnDisk.playerFeet.x += 16.0f;
+    writeLevelData(changedOnDisk, editing.levelPath);
+    REQUIRE(editorUi.levelTakesTheDisk(editing.levelData, editing.levelPath));
 
-    editing.levelData.playerFeet.x += 16.0f;
+    editing.levelData.playerFeet.x += 32.0f;
 
-    REQUIRE_FALSE(editorUi.levelFollowsTheDisk(editing.levelData, editing.levelPath));
+    REQUIRE_FALSE(editorUi.levelTakesTheDisk(editing.levelData, editing.levelPath));
     REQUIRE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
 }
 

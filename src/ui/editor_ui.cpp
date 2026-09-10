@@ -283,15 +283,18 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
 
 void EditorUi::reloaded(GameData &current, const GameData &onDisk)
 {
-    gameSettingsUi.reloaded(current, onDisk);
-    cameraUi.reloaded(current, onDisk);
+    if (gameSettingsUi.reloaded(current, onDisk))
+        commands.onSettingsChanged();
+
+    if (cameraUi.reloaded(current, onDisk))
+        commands.onCameraChanged();
 
     typesUi.reloaded(current, onDisk);
     tilePalettesUi.reloaded(current.tilePalettes, onDisk.tilePalettes);
     levelsUi.reloaded(current.levels, onDisk.levels);
 }
 
-bool EditorUi::levelFollowsTheDisk(const LevelData &current, const std::string &levelPath)
+bool EditorUi::levelTakesTheDisk(const LevelData &current, const std::string &levelPath)
 {
-    return levelUi.followsTheDisk(current, levelPath);
+    return levelUi.takesTheDisk(current, levelPath);
 }

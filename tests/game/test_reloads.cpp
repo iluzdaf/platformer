@@ -8,6 +8,8 @@
 #include "scripting/lua_script_system.hpp"
 #include "helpers/temporary_levels.hpp"
 #include "helpers/actors.hpp"
+#include "player/player.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 #include "ui/editor_ui.hpp"
 
 namespace
@@ -26,7 +28,7 @@ namespace
             levels.copyShipped("level1.json");
 
             world.loadLevel(levelPath);
-            editorUi.levelFollowsTheDisk(world.getLevelData(), levelPath);
+            editorUi.levelTakesTheDisk(world.getLevelData(), levelPath);
         }
 
         Playing(const Playing &) = delete;
@@ -56,6 +58,18 @@ TEST_CASE("A level file that changed is followed while the level is clean", "[Re
     reloads::levelChanged(playing.world, playing.editorUi, playing.levelPath);
 
     REQUIRE(playing.world.getLevelData().nextLevel.path == "changed on disk");
+}
+
+TEST_CASE("A level file written as it already was is not reloaded", "[Reloads]")
+{
+    Playing playing;
+    glm::vec2 wandered = playing.world.getPlayer().feet() + glm::vec2(32.0f, 0.0f);
+    playing.world.getPlayer().standAt(wandered);
+    writeLevelData(playing.world.getLevelData(), playing.levelPath);
+
+    reloads::levelChanged(playing.world, playing.editorUi, playing.levelPath);
+
+    REQUIRE(playing.world.getPlayer().feet() == wandered);
 }
 
 TEST_CASE("A level file that changed leaves unsaved edits alone", "[Reloads]")
@@ -99,6 +113,35 @@ TEST_CASE("Game data changing takes the disk for sections that are clean", "[Rel
     reloads::gameDataChanged(playing.world, playing.editorUi, playing.gameData, onDisk);
 
     REQUIRE(playing.gameData.cameraData.zoom == onDisk.cameraData.zoom);
+}
+
+TEST_CASE(
+    "Game data changing fires a section's command only when a clean section took a change",
+    "[Reloads]")
+{
+    Playing playing;
+    int settingsChanged = 0;
+    int cameraChanged = 0;
+    playing.editorUi.commands.onSettingsChanged.connect([&] { ++settingsChanged; });
+    playing.editorUi.commands.onCameraChanged.connect([&] { ++cameraChanged; });
+
+    reloads::gameDataChanged(playing.world, playing.editorUi, playing.gameData, playing.gameData);
+    playing.editorUi.commands.drain();
+    REQUIRE(settingsChanged == 0);
+    REQUIRE(cameraChanged == 0);
+
+    GameData onDisk = playing.gameData;
+    onDisk.cameraData.zoom += 1.0f;
+    reloads::gameDataChanged(playing.world, playing.editorUi, playing.gameData, onDisk);
+    playing.editorUi.commands.drain();
+    REQUIRE(settingsChanged == 0);
+    REQUIRE(cameraChanged == 1);
+
+    onDisk.settings.windowWidth += 10;
+    reloads::gameDataChanged(playing.world, playing.editorUi, playing.gameData, onDisk);
+    playing.editorUi.commands.drain();
+    REQUIRE(settingsChanged == 1);
+    REQUIRE(cameraChanged == 1);
 }
 
 TEST_CASE("Game data changing before any level is played loads the first", "[Reloads]")

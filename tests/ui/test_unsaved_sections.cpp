@@ -182,7 +182,7 @@ TEST_CASE("Reverting the levels section puts the first level back", "[UnsavedSec
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
 }
 
-TEST_CASE("A clean level follows the disk", "[UnsavedSections]")
+TEST_CASE("A clean level whose file is as it knows it has nothing to take", "[UnsavedSections]")
 {
     LevelUi levelUi;
     ACopyOfLevelOne copy;
@@ -190,7 +190,23 @@ TEST_CASE("A clean level follows the disk", "[UnsavedSections]")
     LevelData levelData = readLevelData(levelPath);
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
-    REQUIRE(levelUi.followsTheDisk(levelData, levelPath));
+    REQUIRE_FALSE(levelUi.takesTheDisk(levelData, levelPath));
+    REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
+}
+
+TEST_CASE("A clean level takes the disk once its file changes", "[UnsavedSections]")
+{
+    LevelUi levelUi;
+    ACopyOfLevelOne copy;
+    const std::string &levelPath = copy.path;
+    LevelData levelData = readLevelData(levelPath);
+    REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
+
+    LevelData changedOnDisk = levelData;
+    changedOnDisk.playerFeet.x += 16.0f;
+    writeLevelData(changedOnDisk, levelPath);
+
+    REQUIRE(levelUi.takesTheDisk(levelData, levelPath));
 }
 
 TEST_CASE("A level with unsaved edits is kept and stays unsaved", "[UnsavedSections]")
@@ -204,7 +220,7 @@ TEST_CASE("A level with unsaved edits is kept and stays unsaved", "[UnsavedSecti
     LevelData edited = levelData;
     edited.playerFeet.x += 16.0f;
 
-    REQUIRE_FALSE(levelUi.followsTheDisk(edited, levelPath));
+    REQUIRE_FALSE(levelUi.takesTheDisk(edited, levelPath));
     REQUIRE(levelUi.unsavedSince(edited, levelPath));
 }
 
@@ -222,11 +238,11 @@ TEST_CASE(
     edited.playerFeet.x += 16.0f;
     writeLevelData(edited, levelPath);
 
-    REQUIRE_FALSE(levelUi.followsTheDisk(edited, levelPath));
+    REQUIRE_FALSE(levelUi.takesTheDisk(edited, levelPath));
     REQUIRE_FALSE(levelUi.unsavedSince(edited, levelPath));
 }
 
-TEST_CASE("A level that followed the disk is compared against what it loaded", "[UnsavedSections]")
+TEST_CASE("A level that took the disk is compared against what it loaded", "[UnsavedSections]")
 {
     LevelUi levelUi;
     ACopyOfLevelOne copy;
@@ -238,17 +254,57 @@ TEST_CASE("A level that followed the disk is compared against what it loaded", "
     changedOnDisk.playerFeet.x += 16.0f;
     writeLevelData(changedOnDisk, levelPath);
 
-    REQUIRE(levelUi.followsTheDisk(levelData, levelPath));
+    REQUIRE(levelUi.takesTheDisk(levelData, levelPath));
     REQUIRE_FALSE(levelUi.unsavedSince(readLevelData(levelPath), levelPath));
     REQUIRE(levelUi.unsavedSince(levelData, levelPath));
 }
 
-TEST_CASE("A level never looked at follows the disk", "[UnsavedSections]")
+TEST_CASE("A level never looked at takes the disk only where it differs", "[UnsavedSections]")
 {
     LevelUi levelUi;
     ACopyOfLevelOne copy;
     const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
+    REQUIRE_FALSE(levelUi.takesTheDisk(levelData, levelPath));
 
-    REQUIRE(levelUi.followsTheDisk(levelData, levelPath));
+    LevelUi another;
+    LevelData changedOnDisk = levelData;
+    changedOnDisk.playerFeet.x += 16.0f;
+    writeLevelData(changedOnDisk, levelPath);
+
+    REQUIRE(another.takesTheDisk(levelData, levelPath));
+}
+
+TEST_CASE(
+    "A clean section says when a reload changed it, and takes the change",
+    "[UnsavedSections]")
+{
+    CameraUi cameraUi;
+    GameData gameData;
+    REQUIRE_FALSE(cameraUi.unsavedSince(gameData));
+
+    GameData onDisk = gameData;
+    REQUIRE_FALSE(cameraUi.reloaded(gameData, onDisk));
+
+    onDisk.cameraData.zoom += 1.0f;
+    REQUIRE(cameraUi.reloaded(gameData, onDisk));
+    REQUIRE(gameData.cameraData.zoom == onDisk.cameraData.zoom);
+
+    REQUIRE_FALSE(cameraUi.reloaded(gameData, onDisk));
+}
+
+TEST_CASE(
+    "A section with unsaved edits keeps them through a reload and says nothing changed",
+    "[UnsavedSections]")
+{
+    CameraUi cameraUi;
+    GameData gameData;
+    REQUIRE_FALSE(cameraUi.unsavedSince(gameData));
+    gameData.cameraData.zoom += 1.0f;
+
+    GameData onDisk;
+    onDisk.cameraData.zoom += 2.0f;
+    REQUIRE_FALSE(cameraUi.reloaded(gameData, onDisk));
+
+    REQUIRE(gameData.cameraData.zoom == 1.0f + GameData().cameraData.zoom);
 }

@@ -69,10 +69,14 @@ template <class T> std::string asJson(const T &value)
 }
 
 template <class T>
-void reload(Saveable &saveable, std::string_view name, T &current, const T &onDisk)
+bool reload(Saveable &saveable, std::string_view name, T &current, const T &onDisk)
 {
-    if (!saveable.unsaved(name, asJson(current)))
+    std::string held = asJson(current);
+    std::string fromDisk = asJson(onDisk);
+    bool taken = !saveable.unsaved(name, held) && held != fromDisk;
+    if (!saveable.unsaved(name, held))
         current = onDisk;
 
-    saveable.saved(name, asJson(onDisk));
+    saveable.saved(name, fromDisk);
+    return taken;
 }

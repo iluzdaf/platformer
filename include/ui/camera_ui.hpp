@@ -13,7 +13,7 @@ public:
     void save(GameData &gameData);
     void revert(GameData &gameData);
     bool unsavedSince(const GameData &gameData);
-    void reloaded(GameData &current, const GameData &onDisk);
+    bool reloaded(GameData &current, const GameData &onDisk);
 
 private:
     Saveable saveable;

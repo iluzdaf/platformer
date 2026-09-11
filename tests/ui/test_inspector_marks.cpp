@@ -449,44 +449,43 @@ namespace
     }
 }
 
-TEST_CASE("Nothing in the cast reads as changed until it is edited", "[InspectorMarks]")
+namespace
 {
-    HeadlessImGui gui;
-    GameData ofEachKind = aGameWithSomethingOfEachKind();
-    GameData shipped = loadGameData();
-    GameData &gameData = GENERATE_REF(std::ref(ofEachKind), std::ref(shipped));
-    TextureCache textures;
-    EditorCommands commands;
+    struct Drawn
+    {
+        std::string what;
+        std::function<void()> draw;
+    };
 
-    for (const TypeShown &type : everyTypeIn(gameData))
-        for (const MachineShown &shown : everySelectionIn(graphsDrawnFor(gameData, type)))
-        {
-            TypesUi typesUi;
-            REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-            typesUi.show(type);
+    void everyTypeAndSelection(
+        GameData &gameData,
+        const TextureCache &textures,
+        EditorCommands &commands,
+        std::string_view called,
+        std::vector<Drawn> &into)
+    {
+        for (const TypeShown &type : everyTypeIn(gameData))
+            for (const MachineShown &shown : everySelectionIn(graphsDrawnFor(gameData, type)))
+                into.push_back(
+                    Drawn{
+                        std::string(called) + " " + saying(type, shown),
+                        [&gameData, &textures, &commands, type, shown]
+                        {
+                            TypesUi typesUi;
+                            REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+                            typesUi.show(type);
 
-            Read read = readingWhile(
-                gui,
-                [&]
-                {
-                    InScope showing(shown);
-                    typesUi.draw(gameData, textures, commands, nullptr);
-                });
-
-            std::string report = "looking at " + saying(type, shown);
-            for (const std::string &path : read.changed)
-                report += "\nread as changed: " + path;
-
-            INFO(report);
-            REQUIRE_FALSE(read.looked.empty());
-            REQUIRE(read.changed.empty());
-        }
+                            InScope showing(shown);
+                            typesUi.draw(gameData, textures, commands, nullptr);
+                        }});
+    }
 }
 
-TEST_CASE("Nothing in a section reads as changed until it is edited", "[InspectorMarks]")
+TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[InspectorMarks]")
 {
     HeadlessImGui gui;
     GameData gameData = aGameWithSomethingOfEachKind();
+    GameData shipped = loadGameData();
     LevelData levelData = aFloorLevelPlacing({spawnAt("rat", glm::ivec2(2, FloorLevelStanding))});
     Level level{
         levelData,
@@ -503,56 +502,58 @@ TEST_CASE("Nothing in a section reads as changed until it is edited", "[Inspecto
     Observed observed;
     std::string levelPath = "levels/being_edited.json";
 
-    auto nothingSaysItChanged = [&](std::string_view section, const std::function<void()> &draw)
+    CameraUi cameraUi;
+    GameSettingsUi settingsUi;
+    TilePalettesUi palettesUi;
+    LevelsUi levelsUi;
+    LevelUi levelUi(history);
+    std::ignore = cameraUi.unsavedSince(gameData);
+    std::ignore = settingsUi.unsavedSince(gameData);
+    std::ignore = palettesUi.unsavedSince(gameData.tilePalettes);
+    std::ignore = levelsUi.unsavedSince(gameData.levels);
+    std::ignore = levelUi.unsavedSince(levelData, levelPath);
+    levelUi.update(MouseOnTheMap{}, level, levelData, levelPath, armed, commands);
+
+    std::vector<Drawn> drawn;
+    drawn.push_back({"camera", [&] { cameraUi.draw(gameData, camera, commands); }});
+    drawn.push_back({"settings", [&] { settingsUi.draw(gameData, textures, commands); }});
+    drawn.push_back(
+        {"palettes", [&] { palettesUi.draw(gameData.tilePalettes, textures, commands, armed); }});
+    drawn.push_back(
+        {"levels",
+         [&]
+         {
+             std::ignore =
+                 levelsUi.draw(gameData.levels, levelData, levelPath, 16, commands, false);
+         }});
+    drawn.push_back(
+        {"level",
+         [&]
+         {
+             levelUi.draw(
+                 level,
+                 levelData,
+                 gameData.playerData.actorData.animationData,
+                 observed,
+                 levelData.playerFeet,
+                 playerState,
+                 gameData.npcData,
+                 armed,
+                 commands);
+         }});
+
+    everyTypeAndSelection(gameData, textures, commands, "cast", drawn);
+    everyTypeAndSelection(shipped, textures, commands, "the shipped cast", drawn);
+
+    for (const Drawn &one : drawn)
     {
-        Read read = readingWhile(gui, draw);
-        std::string report = "in " + std::string(section);
+        Read read = readingWhile(gui, one.draw);
+        std::string report = "in " + one.what;
         for (const std::string &path : read.changed)
             report += "\nread as changed: " + path;
 
         INFO(report);
         REQUIRE_FALSE(read.looked.empty());
         REQUIRE(read.changed.empty());
-    };
-
-    CameraUi cameraUi;
-    std::ignore = cameraUi.unsavedSince(gameData);
-    nothingSaysItChanged("camera", [&] { cameraUi.draw(gameData, camera, commands); });
-
-    GameSettingsUi settingsUi;
-    std::ignore = settingsUi.unsavedSince(gameData);
-    nothingSaysItChanged("settings", [&] { settingsUi.draw(gameData, textures, commands); });
-
-    TilePalettesUi palettesUi;
-    std::ignore = palettesUi.unsavedSince(gameData.tilePalettes);
-    nothingSaysItChanged(
-        "palettes", [&] { palettesUi.draw(gameData.tilePalettes, textures, commands, armed); });
-
-    LevelsUi levelsUi;
-    std::ignore = levelsUi.unsavedSince(gameData.levels);
-    nothingSaysItChanged(
-        "levels",
-        [&]
-        {
-            std::ignore = levelsUi.draw(gameData.levels, levelData, levelPath, 16, commands, false);
-        });
-
-    LevelUi levelUi(history);
-    std::ignore = levelUi.unsavedSince(levelData, levelPath);
-    levelUi.update(MouseOnTheMap{}, level, levelData, levelPath, armed, commands);
-    nothingSaysItChanged(
-        "level",
-        [&]
-        {
-            levelUi.draw(
-                level,
-                levelData,
-                gameData.playerData.actorData.animationData,
-                observed,
-                levelData.playerFeet,
-                playerState,
-                gameData.npcData,
-                armed,
-                commands);
-        });
+    }
 }

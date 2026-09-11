@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include <set>
 #include <string>
 #include "ui/saveable.hpp"
 
@@ -21,5 +22,5 @@ public:
 
 private:
     Saveable saveable;
-    std::string askedToWarm;
+    std::set<std::string> askedToWarm;
 };

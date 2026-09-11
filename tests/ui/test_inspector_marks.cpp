@@ -544,6 +544,13 @@ TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[Inspe
          }});
 
 #ifndef SKIP_OPENGL_TESTS
+    GameSettingsUi shippedSettingsUi;
+    std::ignore = shippedSettingsUi.unsavedSince(shipped);
+    textures.warm(shipped.settings.scoreIcon.sheet.texture.path);
+    textures.warm(shipped.settings.healthIcon.sheet.texture.path);
+    drawn.push_back(
+        {"the shipped settings", [&] { shippedSettingsUi.draw(shipped, textures, commands); }});
+
     TilePalettes shippedPalettes = shipped.tilePalettes;
     const std::string paletteName = shippedPalettes.begin()->first;
     TilePaletteData &shippedPalette = shippedPalettes.at(paletteName);

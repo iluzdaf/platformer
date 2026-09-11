@@ -142,6 +142,7 @@ add_library(platformer_lib OBJECT
     src/ui/facts_field.cpp
     src/ui/frame_animation_field.cpp
     src/ui/frame_picker.cpp
+    src/ui/health_icon_field.cpp
     src/ui/score_icon_field.cpp
     src/ui/sheet_preview.cpp
     src/ui/tile_palettes_ui.cpp
@@ -354,6 +355,7 @@ add_executable(tests
     tests/ui/test_path_fields.cpp
     tests/ui/test_facts_field.cpp
     tests/ui/test_tile_size_field.cpp
+    tests/ui/test_health_icon_field.cpp
     tests/ui/test_score_icon_field.cpp
     tests/ui/test_data_inspector.cpp
     tests/ui/test_frame_animation_field.cpp

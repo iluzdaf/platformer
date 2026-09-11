@@ -328,6 +328,13 @@ void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()
         if (ImGui::SmallButton("revert") && thing.revert)
             thing.revert();
 
+        if (thing.cannotBecause)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, CannotSaveColour);
+            ImGui::TextWrapped("%s", thing.cannotBecause->c_str());
+            ImGui::PopStyleColor();
+        }
+
         ImGui::PopID();
     }
 }

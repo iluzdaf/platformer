@@ -28,6 +28,8 @@ void rememberRename(Renames &renames, const std::string &from, const std::string
 
 std::string nameAfterRenames(const Renames &renames, const std::string &name);
 
+std::string inAList(const std::vector<std::string> &names);
+
 std::string levelsInAList(const std::vector<std::string> &levelPaths);
 
 template <class T>
@@ -65,8 +67,10 @@ public:
     std::optional<std::string> cannotSaveBecause() const;
     bool somethingIsBecoming(const std::string &name) const;
     void applied();
+    std::vector<std::string> nowhereToGo() const;
     void willReach(const std::vector<std::string> &levels);
     void cannotReach(const std::vector<std::string> &levels);
+    void leftNaming(const std::vector<std::string> &levels);
     void forget();
 
 private:
@@ -74,7 +78,7 @@ private:
     Renames renames;
     std::map<std::string, std::optional<std::string>> removals;
     std::set<std::string> neverSaved;
-    std::vector<std::string> willRePoint, unreadable;
+    std::vector<std::string> willRePoint, unreadable, stranded;
 };
 
 template <class T>

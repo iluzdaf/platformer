@@ -762,3 +762,55 @@ TEST_CASE("A palette added or removed says the names changed, once", "[TilePalet
     REQUIRE(tilePalettesUi.namesChanged());
     REQUIRE_FALSE(tilePalettesUi.namesChanged());
 }
+
+TEST_CASE(
+    "Removing the last palette refuses the save, naming the levels left without one",
+    "[TilePalettesUi]")
+{
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("only");
+    const std::filesystem::path &directory = levels->directory;
+    TilePalettesUi tilePalettesUi(directory.string(), [](const TilePalettes &) { REQUIRE(false); });
+    TilePalettes palettes;
+    palettes["only"] = paletteOf({{0, TileData{}}});
+    REQUIRE_FALSE(tilePalettesUi.cannotSaveBecause(palettes));
+
+    tilePalettesUi.show("only");
+    tilePalettesUi.remove(palettes);
+
+    std::optional<std::string> cannot = tilePalettesUi.cannotSaveBecause(palettes);
+    REQUIRE(cannot);
+    REQUIRE_THAT(*cannot, Catch::Matchers::ContainsSubstring("level1"));
+    REQUIRE_THAT(*cannot, Catch::Matchers::ContainsSubstring("only"));
+}
+
+TEST_CASE("Removing a palette the levels can fall back from saves", "[TilePalettesUi]")
+{
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("default");
+    const std::filesystem::path &directory = levels->directory;
+    TilePalettesUi tilePalettesUi(directory.string(), [](const TilePalettes &) {});
+    TilePalettes palettes = namedPalettes();
+
+    tilePalettesUi.show("default");
+    tilePalettesUi.remove(palettes);
+
+    REQUIRE_FALSE(tilePalettesUi.cannotSaveBecause(palettes));
+}
+
+TEST_CASE("Reverting a removal that was refused lets the save through", "[TilePalettesUi]")
+{
+    std::unique_ptr<TemporaryLevels> levels = aLevelNaming("only");
+    const std::filesystem::path &directory = levels->directory;
+    TilePalettesUi tilePalettesUi(directory.string(), [](const TilePalettes &) {});
+    TilePalettes palettes;
+    palettes["only"] = paletteOf({{0, TileData{}}});
+    REQUIRE_FALSE(tilePalettesUi.unsavedSince(palettes));
+
+    tilePalettesUi.show("only");
+    tilePalettesUi.remove(palettes);
+    REQUIRE(tilePalettesUi.cannotSaveBecause(palettes));
+
+    tilePalettesUi.revert(palettes);
+
+    REQUIRE(palettes.contains("only"));
+    REQUIRE_FALSE(tilePalettesUi.cannotSaveBecause(palettes));
+}

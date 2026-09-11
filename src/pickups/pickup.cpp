@@ -63,3 +63,13 @@ AABB Pickup::getAABB() const
 {
     return AABB{position + colliderOffset, colliderSize};
 }
+
+void Pickup::taken()
+{
+    waiting = false;
+}
+
+bool Pickup::stillThere() const
+{
+    return waiting;
+}

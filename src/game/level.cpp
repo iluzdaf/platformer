@@ -151,9 +151,16 @@ void Level::recastPickups(const std::map<std::string, PickupData> &pickupData)
     {
         const PickupData &kind = oneNamed(pickupData, "pickup", pickup.getSpawn().type);
         if (differs::compact(pickup.builtFrom()) == differs::compact(kind))
+        {
             pickupsNow.push_back(pickup);
-        else
-            pickupsNow.push_back(Pickup(pickup.getSpawn(), kind));
+            continue;
+        }
+
+        Pickup madeAgain(pickup.getSpawn(), kind);
+        if (!pickup.stillThere())
+            madeAgain.taken();
+
+        pickupsNow.push_back(std::move(madeAgain));
     }
 
     pickups = std::move(pickupsNow);

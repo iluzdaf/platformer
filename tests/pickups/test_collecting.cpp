@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
+#include <algorithm>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "animations/frame_animation_data.hpp"
@@ -57,7 +58,8 @@ TEST_CASE("What is touched is handed over and taken away", "[Collecting]")
 
     REQUIRE(taken.size() == 1);
     REQUIRE(taken[0].getScoreDelta() == 10);
-    REQUIRE(pickups.empty());
+    REQUIRE(pickups.size() == 1);
+    REQUIRE_FALSE(pickups[0].stillThere());
 }
 
 TEST_CASE("Several in one place are all taken at once", "[Collecting]")
@@ -67,7 +69,9 @@ TEST_CASE("Several in one place are all taken at once", "[Collecting]")
     std::vector<Pickup> taken = takeWhatTouches(pickups, reaching(0.0f));
 
     REQUIRE(taken.size() == 3);
-    REQUIRE(pickups.empty());
+    REQUIRE(pickups.size() == 3);
+    REQUIRE(
+        std::ranges::none_of(pickups, [](const Pickup &pickup) { return pickup.stillThere(); }));
 }
 
 TEST_CASE("Taking one leaves the others where they were", "[Collecting]")
@@ -78,9 +82,18 @@ TEST_CASE("Taking one leaves the others where they were", "[Collecting]")
 
     REQUIRE(taken.size() == 1);
     REQUIRE(taken[0].getScoreDelta() == 1);
-    REQUIRE(pickups.size() == 2);
-    REQUIRE(pickups[0].getScoreDelta() == 2);
-    REQUIRE(pickups[1].getScoreDelta() == 3);
+    REQUIRE(pickups.size() == 3);
+    REQUIRE_FALSE(pickups[0].stillThere());
+    REQUIRE(pickups[1].stillThere());
+    REQUIRE(pickups[2].stillThere());
+}
+
+TEST_CASE("What has been taken is not taken again", "[Collecting]")
+{
+    std::vector<Pickup> pickups{at(0.0f, 10)};
+
+    REQUIRE(takeWhatTouches(pickups, reaching(0.0f)).size() == 1);
+    REQUIRE(takeWhatTouches(pickups, reaching(0.0f)).empty());
 }
 
 TEST_CASE("A pickup is as big a box as its kind is", "[Collecting]")

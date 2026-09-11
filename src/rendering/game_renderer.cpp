@@ -90,6 +90,9 @@ void GameRenderer::draw(
 
     for (const Pickup &pickup : pickups)
     {
+        if (!pickup.stillThere())
+            continue;
+
         const SheetData &sheet = pickup.getSheet();
         const Texture2D &texture = textures.get(sheet.texture.path);
         auto [uvStart, uvEnd] = frameUvRangeIn(

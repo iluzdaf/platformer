@@ -100,9 +100,24 @@ bool RouteWalker::hasLostTheRoute(const ActorBehaviorContext &context) const
     return context.feet.x < leftEnd - reach || context.feet.x > rightEnd + reach;
 }
 
+bool RouteWalker::walksGroundThatIsGone(const NavigationGraph &navigationGraph) const
+{
+    if (currentNodeId && !navigationGraph.hasNode(*currentNodeId))
+        return true;
+
+    if (targetNodeId && !navigationGraph.hasNode(*targetNodeId))
+        return true;
+
+    for (int id : legsLeft)
+        if (!navigationGraph.hasNode(id))
+            return true;
+
+    return false;
+}
+
 void RouteWalker::keepInStep(const ActorBehaviorContext &context)
 {
-    if (hasLostTheRoute(context))
+    if (walksGroundThatIsGone(context.navigationGraph) || hasLostTheRoute(context))
         reset();
 
     if (!currentNodeId)

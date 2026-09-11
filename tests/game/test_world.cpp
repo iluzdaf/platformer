@@ -6,6 +6,8 @@
 #include "helpers/tiles.hpp"
 #include "helpers/actors.hpp"
 #include <cstddef>
+#include <memory>
+#include <vector>
 #include <string>
 #include "game/world.hpp"
 #include "game/empty_level.hpp"
@@ -989,4 +991,29 @@ TEST_CASE("A tile painted where the player starts is refused", "[World]")
         playing.world.tilesChanged(painted),
         Catch::Matchers::ContainsSubstring("Player start position is on a solid tile"));
     REQUIRE(playing.world.getLevelData().tileMapData.indices == wasThere.indices);
+}
+
+TEST_CASE("A tile painted leaves no creature walking a node that is gone", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    world.loadLevel("levels/level6.json");
+    walkFor(world, 90);
+
+    const std::vector<std::unique_ptr<Npc>> &creatures = world.getLevel().getNpcs();
+    REQUIRE(creatures.size() > 1);
+    const Npc &climbing = *creatures[1];
+    REQUIRE(climbing.getSpawn().type == "spider");
+
+    std::optional<int> headingFor = climbing.targetNodeId();
+    REQUIRE(headingFor);
+
+    TileMapData painted = world.getLevelData().tileMapData;
+    painted.indices[2][1] = 6;
+    world.tilesChanged(painted);
+
+    REQUIRE_FALSE(world.getLevel().graphFor(climbing.profile()).hasNode(*headingFor));
+    REQUIRE_NOTHROW(walkFor(world, 30));
+    REQUIRE(climbing.currentNodeId());
 }

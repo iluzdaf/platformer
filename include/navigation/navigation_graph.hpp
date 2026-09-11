@@ -17,6 +17,7 @@ public:
     void addEdge(int fromId, int toId, EdgeType type);
     void addEdge(const NavigationEdge &edge);
     NavigationNode getNode(int id) const;
+    bool hasNode(int id) const;
     const std::unordered_map<int, NavigationNode> &getNodes() const;
     const std::vector<NavigationEdge> &getEdges() const;
     const std::vector<NavigationEdge> &getOutgoingEdges(int id) const;

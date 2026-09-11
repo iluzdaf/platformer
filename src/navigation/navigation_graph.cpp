@@ -46,6 +46,11 @@ NavigationNode NavigationGraph::getNode(int id) const
     return it->second;
 }
 
+bool NavigationGraph::hasNode(int id) const
+{
+    return nodes.contains(id);
+}
+
 const std::unordered_map<int, NavigationNode> &NavigationGraph::getNodes() const
 {
     return nodes;

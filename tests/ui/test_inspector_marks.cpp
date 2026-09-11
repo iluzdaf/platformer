@@ -49,29 +49,48 @@ namespace
     template <class T> bool nudge(T &value)
     {
         if constexpr (std::is_same_v<T, bool>)
+        {
             value = !value;
+            return true;
+        }
         else if constexpr (std::is_same_v<T, int>)
+        {
             value += 1;
+            return true;
+        }
         else if constexpr (std::is_same_v<T, float>)
+        {
             value += 1.0f;
+            return true;
+        }
         else if constexpr (std::is_same_v<T, std::string>)
+        {
             value += "x";
+            return true;
+        }
         else if constexpr (std::is_same_v<T, glm::vec2>)
+        {
             value.x += 1.0f;
+            return true;
+        }
         else if constexpr (std::is_same_v<T, glm::ivec2>)
+        {
             value.x += 1;
+            return true;
+        }
         else if constexpr (
             std::is_same_v<T, TexturePathData> || std::is_same_v<T, ScriptPathData> ||
             std::is_same_v<T, LevelPathData>)
+        {
             value.path += "x";
+            return true;
+        }
         else if constexpr (std::is_same_v<T, Asked>)
             return std::visit([](auto &held) { return nudge(held); }, value);
         else if constexpr (inspector::IsOptional<T>::value)
             return value && nudge(*value);
         else
             return false;
-
-        return true;
     }
 
     struct Fold

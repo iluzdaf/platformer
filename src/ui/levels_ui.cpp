@@ -87,6 +87,7 @@ LevelsAsked LevelsUi::draw(
     bool levelHasUnsavedChanges)
 {
     LevelsAsked asked;
+    ImGui::PushID("levels");
 
     std::string chosenPath = levelPath;
     std::optional<std::string> chosen;
@@ -128,6 +129,8 @@ LevelsAsked LevelsUi::draw(
     ImGui::Separator();
 
     inspector::draw("first", levels.first);
+
+    ImGui::PopID();
 
     return asked;
 }

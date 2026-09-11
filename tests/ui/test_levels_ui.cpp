@@ -16,7 +16,16 @@
 #include "helpers/tiles.hpp"
 #include "ui/editor_commands.hpp"
 #include "assets/asset_paths.hpp"
+#include <imgui.h>
+#include <imgui_internal.h>
+#include "helpers/headless_imgui.hpp"
+#include "helpers/palettes.hpp"
+#include "rendering/texture_cache.hpp"
+#include "tile_map/tile_palette_data.hpp"
+#include "ui/armed.hpp"
+#include "ui/drawn_items.hpp"
 #include "ui/levels_ui.hpp"
+#include "ui/tile_palettes_ui.hpp"
 #include "ui/switching_level.hpp"
 
 namespace
@@ -264,4 +273,34 @@ TEST_CASE("Reverting an added level goes back to one that has a file", "[LevelsU
 
     REQUIRE(playing != made);
     REQUIRE(readLevelDataIfYouCan(playing));
+}
+
+TEST_CASE("The levels section shares no item with the palettes beneath it", "[LevelsUi]")
+{
+    HeadlessImGui gui;
+    Editing editing;
+    TilePalettesUi tilePalettesUi;
+    TilePalettes palettes = theOnlyPalette(aPaletteWithASolidTile());
+    TextureCache textures;
+    std::optional<Armed> armed;
+    LevelData playing = editing.playing();
+
+    auto drawing = [&]
+    {
+        std::ignore = editing.levelsUi.draw(
+            editing.levels,
+            playing,
+            editing.named("level1.json"),
+            TileSize,
+            editing.commands,
+            false);
+        tilePalettesUi.draw(palettes, textures, editing.commands, armed);
+    };
+
+    DrawnItems drawn;
+    gui.frame(drawing);
+    drawn.startAgain();
+    gui.frame(drawing);
+
+    REQUIRE_FALSE(drawn.twoWithTheSameId());
 }

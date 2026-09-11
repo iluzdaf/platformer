@@ -8,6 +8,8 @@
 #include "serialization/only_what_differs.hpp"
 #include <utility>
 
+inline constexpr std::string_view NoFileYet = "no file yet";
+
 class Saveable
 {
 public:
@@ -29,6 +31,11 @@ public:
     {
         auto it = asLastSeen.find(std::string(name));
         return it != asLastSeen.end() && !it->second.empty() && it->second != now;
+    }
+
+    void neverSaved(std::string_view name)
+    {
+        asLastSeen[std::string(name)] = std::string(NoFileYet);
     }
 
     void saved(std::string_view name, std::string now)

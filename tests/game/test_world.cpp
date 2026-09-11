@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <string>
 #include "game/world.hpp"
+#include "game/empty_level.hpp"
+#include "game/level_data_file.hpp"
 #include "game/noise.hpp"
 #include "input/input_intentions.hpp"
 #include "animations/frame_animation_data.hpp"
@@ -904,4 +906,21 @@ TEST_CASE("A coroutine the old creature started is dropped when it is re-made", 
     luaScriptSystem.update(0.2f);
 
     REQUIRE_FALSE(luaScriptSystem.getLua()["seen"]["woke"].valid());
+}
+
+TEST_CASE("A level with no file of its own can be played", "[World]")
+{
+    GameData gameData = loadGameData();
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    world.loadLevel("levels/level1.json");
+
+    LevelData made =
+        anEmptyLevelLike(world.getLevelData(), world.getLevel().getTileMap().getTileSize());
+    world.playLevel("levels/nowhere.json", made);
+
+    REQUIRE(world.getLevelPath() == "levels/nowhere.json");
+    REQUIRE(world.getLevel().getNpcs().empty());
+    REQUIRE(world.getPlayer().feet() == made.playerFeet);
+    REQUIRE_FALSE(readLevelDataIfYouCan("levels/nowhere.json"));
 }

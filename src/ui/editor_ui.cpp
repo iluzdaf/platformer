@@ -8,6 +8,7 @@
 #include "ui/editor_ui.hpp"
 #include "ui/asked_to_undo.hpp"
 #include "ui/editor_history.hpp"
+#include "ui/levels_ui.hpp"
 #include "ui/saveable.hpp"
 #include <glaze/glaze.hpp>
 #include <iostream>
@@ -88,11 +89,15 @@ void EditorUi::draw(
     case EditorSection::Level:
         if (ImGui::CollapsingHeader("Levels", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            levelsUi.draw(
+            LevelsAsked asked = levelsUi.draw(
                 subject.levels,
+                subject.levelData,
                 subject.levelPath,
+                subject.level.getTileMap().getTileSize(),
                 commands,
                 levelUi.unsavedSince(subject.levelData, subject.levelPath));
+            if (asked.made)
+                levelUi.aNewLevel(*asked.made);
         }
         ImGui::Separator();
         if (ImGui::CollapsingHeader("Level", ImGuiTreeNodeFlags_DefaultOpen))
@@ -414,19 +419,19 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
             {
                 levelUi.save(subject.levelData, subject.levelPath);
                 LevelData playing = subject.levelData;
-                if (tilePalettesUi.save(subject.gameData.tilePalettes, playing))
+                bool rePointed = tilePalettesUi.save(subject.gameData.tilePalettes, playing);
+                rePointed = levelsUi.save(subject.levels, playing) || rePointed;
+                if (rePointed)
                 {
                     levelUi.forgets();
                     commands.onLevelEdited(playing);
                 }
-                levelsUi.save(subject.levels);
             },
             [this, &subject]
             {
                 levelUi.forgets();
-                commands.onLoadLevel(subject.levelPath);
+                commands.onLoadLevel(levelsUi.revert(subject.levels, subject.levelPath));
                 tilePalettesUi.revert(subject.gameData.tilePalettes);
-                levelsUi.revert(subject.levels);
             }};
     }
 

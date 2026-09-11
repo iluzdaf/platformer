@@ -175,6 +175,11 @@ void LevelUi::forgets()
     history.forgets();
 }
 
+void LevelUi::aNewLevel(const std::string &levelPath)
+{
+    saveable.neverSaved(levelPath);
+}
+
 void LevelUi::drawOverlayToggles()
 {
     ImGui::Checkbox("Tile map", &tileMapShown.showing);

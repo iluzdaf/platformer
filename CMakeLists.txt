@@ -180,6 +180,7 @@ add_library(platformer_lib OBJECT
     src/game/beat_between.cpp
     src/game/level_data_file.cpp
     src/game/levels.cpp
+    src/game/empty_level.cpp
     src/game/level_resizing.cpp
     src/game/score.cpp
     src/physics/aabb.cpp

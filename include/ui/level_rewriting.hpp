@@ -20,6 +20,8 @@ namespace rewriting
 
     bool paletteIn(TileMapData &tileMapData, const Renames &renames);
 
+    bool nextLevelIn(LevelData &levelData, const Renames &renames);
+
     // A spawn whose type is renamed to nothing is dropped: that is how a removed type leaves.
     bool typeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames);
     bool typeIn(std::vector<PickupSpawnData> &pickups, const Renames &renames);

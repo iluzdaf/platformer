@@ -15,6 +15,7 @@
 #include "helpers/temporary_levels.hpp"
 #include "ui/camera_ui.hpp"
 #include "ui/levels_ui.hpp"
+#include "tile_map/tile_map.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/editor_history.hpp"
 #include "ui/level_ui.hpp"
@@ -81,7 +82,13 @@ TEST_CASE("The levels section has nothing unsaved when it is first drawn", "[Uns
         gameData.pickupData);
     EditorCommands commands;
 
-    gui.frame([&] { levelsUi.draw(levels, levelPath, commands, false); });
+    LevelData playing = readLevelData(levelPath);
+    gui.frame(
+        [&]
+        {
+            std::ignore = levelsUi.draw(
+                levels, playing, levelPath, level.getTileMap().getTileSize(), commands, false);
+        });
 
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
 }
@@ -182,7 +189,7 @@ TEST_CASE("Reverting the levels section puts the first level back", "[UnsavedSec
     levels.first.path = "levels/level3.json";
     REQUIRE(levelsUi.unsavedSince(levels));
 
-    levelsUi.revert(levels);
+    std::ignore = levelsUi.revert(levels, "levels/level1.json");
 
     REQUIRE(levels.first.path == was);
     REQUIRE_FALSE(levelsUi.unsavedSince(levels));
@@ -339,4 +346,18 @@ TEST_CASE(
     std::optional<std::string> why = levelsUi.cannotSaveBecause(levels);
     REQUIRE(why.has_value());
     REQUIRE_THAT(*why, Catch::Matchers::ContainsSubstring("cannot be read"));
+}
+
+TEST_CASE("A level with no file of its own is unsaved from the start", "[UnsavedSections]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    GameData gameData = loadGameData();
+    LevelData made = readLevelData(assetPath("levels/level1.json"));
+    std::string levelPath = "levels/nowhere.json";
+
+    levelUi.aNewLevel(levelPath);
+
+    REQUIRE(levelUi.unsavedSince(made, levelPath));
+    REQUIRE_FALSE(levelUi.takesTheDisk(made, levelPath));
 }

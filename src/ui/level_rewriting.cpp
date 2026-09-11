@@ -54,6 +54,16 @@ bool rewriting::paletteIn(TileMapData &tileMapData, const Renames &renames)
     return true;
 }
 
+bool rewriting::nextLevelIn(LevelData &levelData, const Renames &renames)
+{
+    auto renamed = renames.find(levelData.nextLevel.path);
+    if (renamed == renames.end())
+        return false;
+
+    levelData.nextLevel.path = renamed->second;
+    return true;
+}
+
 bool rewriting::typeIn(std::vector<NpcSpawnData> &npcs, const Renames &renames)
 {
     return renameSpawnTypes(npcs, renames);

@@ -70,6 +70,7 @@ public:
     void resizes(Resize resize, const LevelData &levelData, int tileSize, EditorCommands &commands);
     bool undo(EditorCommands &commands);
     void forgets();
+    void aNewLevel(const std::string &levelPath);
 
     void save(const LevelData &levelData, const std::string &levelPath);
     bool unsavedSince(const LevelData &levelData, const std::string &levelPath);

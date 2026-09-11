@@ -9,3 +9,5 @@ std::optional<LevelData> readLevelDataIfYouCan(const std::string &levelPath);
 LevelData readLevelData(const std::string &levelPath);
 
 void writeLevelData(const LevelData &levelData, const std::string &levelPath);
+
+void removeLevelData(const std::string &levelPath);

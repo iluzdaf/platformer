@@ -53,7 +53,12 @@ World::~World() = default;
 
 void World::loadLevel(const std::string &levelPath)
 {
-    build(readLevelData(levelPath), glm::vec2(0.0f));
+    playLevel(levelPath, readLevelData(levelPath));
+}
+
+void World::playLevel(const std::string &levelPath, const LevelData &fromData)
+{
+    build(fromData, glm::vec2(0.0f));
     path = levelPath;
     onLevelBuilt();
     respawnPlayer();

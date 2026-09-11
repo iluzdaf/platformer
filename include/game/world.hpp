@@ -7,6 +7,7 @@
 #include "events/event.hpp"
 #include "game/score.hpp"
 #include "game/level_data.hpp"
+#include "tile_map/tile_map_data.hpp"
 
 class IntentionSource;
 class Level;
@@ -25,6 +26,7 @@ public:
 
     void loadLevel(const std::string &levelPath);
     void playLevel(const std::string &levelPath, const LevelData &fromData);
+    void tilesChanged(const TileMapData &tileMapData);
     void rebuildFrom(
         const LevelData &fromData,
         const glm::vec2 &movingThePlayerBy = glm::vec2(0.0f));

@@ -60,37 +60,17 @@ namespace
             value.x += 1.0f;
         else if constexpr (std::is_same_v<T, glm::ivec2>)
             value.x += 1;
+        else if constexpr (
+            std::is_same_v<T, TexturePathData> || std::is_same_v<T, ScriptPathData> ||
+            std::is_same_v<T, LevelPathData>)
+            value.path += "x";
+        else if constexpr (std::is_same_v<T, Asked>)
+            return std::visit([](auto &held) { return nudge(held); }, value);
+        else if constexpr (inspector::IsOptional<T>::value)
+            return value && nudge(*value);
         else
             return false;
 
-        return true;
-    }
-
-    template <class T> bool nudge(std::optional<T> &value)
-    {
-        return value && nudge(*value);
-    }
-
-    bool nudge(Asked &value)
-    {
-        return std::visit([](auto &held) { return nudge(held); }, value);
-    }
-
-    bool nudge(TexturePathData &value)
-    {
-        value.path += "x";
-        return true;
-    }
-
-    bool nudge(ScriptPathData &value)
-    {
-        value.path += "x";
-        return true;
-    }
-
-    bool nudge(LevelPathData &value)
-    {
-        value.path += "x";
         return true;
     }
 

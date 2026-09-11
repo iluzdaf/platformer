@@ -114,6 +114,8 @@ add_library(platformer_lib OBJECT
     src/ui/debug_aabb_overlay.cpp
     src/ui/fading_aabbs.cpp
     src/ui/level_ui.cpp
+    src/ui/level_history.cpp
+    src/ui/asked_to_undo.cpp
     src/ui/playback_ui.cpp
     src/ui/game_settings_ui.cpp
     src/ui/section_mark.cpp
@@ -325,6 +327,8 @@ add_executable(tests
     tests/ui/test_size_buttons.cpp
     tests/ui/test_tile_picker.cpp
     tests/ui/test_level_ui_update.cpp
+    tests/ui/test_level_history.cpp
+    tests/ui/test_asked_to_undo.cpp
     tests/ui/test_actors_in_level.cpp
     tests/ui/test_navigation_shown.cpp
     tests/ui/test_state_machine_shown.cpp

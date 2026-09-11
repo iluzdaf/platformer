@@ -67,6 +67,12 @@ namespace
             REQUIRE(edited);
             return *edited;
         }
+
+        void forgetWhatWasAsked()
+        {
+            commands.drain();
+            edited.reset();
+        }
     };
 
     MouseOnTheMap over(const Level &level, glm::ivec2 tilePosition)
@@ -372,4 +378,177 @@ TEST_CASE("A row below is asked for with no shift", "[LevelUi]")
 
     REQUIRE(asked.level.tileMapData.indices.size() == MapTiles + 1);
     REQUIRE(asked.shift == glm::vec2(0.0f));
+}
+
+namespace
+{
+    void paints(
+        LevelUi &levelUi,
+        Editing &editing,
+        const MouseOnTheMap &mouse,
+        std::optional<Armed> &armed)
+    {
+        levelUi.update(mouse, editing.level, editing.levelData, LevelPath, armed, editing.commands);
+    }
+
+    MouseOnTheMap lettingGo()
+    {
+        return MouseOnTheMap();
+    }
+}
+
+TEST_CASE("Undo puts back the level as it was before the paint", "[LevelUi]")
+{
+    LevelUi levelUi;
+    Editing editing;
+    std::optional<Armed> armed = PaintTile{PaintedTile};
+    glm::ivec2 target(3, 2);
+    int wasThere = editing.levelData.tileMapData.indices[target.y][target.x];
+
+    paints(levelUi, editing, holding(editing.level, target), armed);
+    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == PaintedTile);
+    editing.forgetWhatWasAsked();
+
+    REQUIRE(levelUi.undo(editing.commands));
+
+    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == wasThere);
+}
+
+TEST_CASE("A stroke of paint is one step back, not one for each tile", "[LevelUi]")
+{
+    LevelUi levelUi;
+    Editing editing;
+    std::optional<Armed> armed = PaintTile{PaintedTile};
+
+    paints(levelUi, editing, holding(editing.level, glm::ivec2(3, 2)), armed);
+    paints(levelUi, editing, holding(editing.level, glm::ivec2(4, 2)), armed);
+    paints(levelUi, editing, lettingGo(), armed);
+    paints(levelUi, editing, holding(editing.level, glm::ivec2(5, 2)), armed);
+    editing.forgetWhatWasAsked();
+
+    REQUIRE(levelUi.undo(editing.commands));
+    REQUIRE(levelUi.undo(editing.commands));
+    REQUIRE_FALSE(levelUi.undo(editing.commands));
+}
+
+TEST_CASE("Undo puts a moved player start back where it stood", "[LevelUi]")
+{
+    LevelUi levelUi;
+    Editing editing;
+    std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
+    glm::vec2 stood = editing.levelData.playerFeet;
+
+    paints(levelUi, editing, clicking(editing.level, glm::ivec2(4, Standing)), armed);
+    REQUIRE(editing.asked().playerFeet != stood);
+    editing.forgetWhatWasAsked();
+
+    REQUIRE(levelUi.undo(editing.commands));
+
+    REQUIRE(editing.asked().playerFeet == stood);
+}
+
+TEST_CASE("Undoing a resize asks for the shift that moves the player back", "[LevelUi]")
+{
+    LevelUi levelUi;
+    Editing editing;
+    std::optional<Resized> asked;
+    std::ignore = editing.commands.onLevelResized.connect(
+        [&](const LevelData &level, const glm::vec2 &shift) { asked = Resized{level, shift}; });
+
+    levelUi.resizes(Resize{Side::Left, true}, editing.levelData, 16, editing.commands);
+    editing.commands.drain();
+    REQUIRE(asked->level.tileMapData.indices[0].size() == MapTiles + 1);
+
+    REQUIRE(levelUi.undo(editing.commands));
+    editing.commands.drain();
+
+    REQUIRE(asked->level.tileMapData.indices[0].size() == MapTiles);
+    REQUIRE(asked->shift == glm::vec2(-16.0f, 0.0f));
+}
+
+TEST_CASE("A level with nothing behind it has nothing to undo", "[LevelUi]")
+{
+    LevelUi levelUi;
+    Editing editing;
+
+    REQUIRE_FALSE(levelUi.undo(editing.commands));
+
+    editing.commands.drain();
+    REQUIRE_FALSE(editing.edited);
+}
+
+TEST_CASE("Moving to another level forgets what the last one was", "[LevelUi]")
+{
+    LevelUi levelUi;
+    Editing editing;
+    std::optional<Armed> armed = PaintTile{PaintedTile};
+
+    paints(levelUi, editing, holding(editing.level, glm::ivec2(3, 2)), armed);
+    editing.forgetWhatWasAsked();
+
+    levelUi.update(
+        lettingGo(),
+        editing.level,
+        editing.levelData,
+        "levels/somewhere_else.json",
+        armed,
+        editing.commands);
+
+    REQUIRE_FALSE(levelUi.undo(editing.commands));
+}
+
+TEST_CASE("A section told to forget has nothing to undo", "[LevelUi]")
+{
+    LevelUi levelUi;
+    Editing editing;
+    std::optional<Armed> armed = PaintTile{PaintedTile};
+
+    paints(levelUi, editing, holding(editing.level, glm::ivec2(3, 2)), armed);
+    editing.forgetWhatWasAsked();
+
+    levelUi.forgets();
+
+    REQUIRE_FALSE(levelUi.undo(editing.commands));
+}
+
+TEST_CASE("The undo button in the level section steps back", "[LevelUi]")
+{
+    HeadlessImGui gui;
+    LevelUi levelUi;
+    Editing editing;
+    std::optional<Armed> armed = PaintTile{PaintedTile};
+    ActorAnimationData animations;
+    Observed observed;
+    ActorState playerState;
+    glm::ivec2 target(3, 2);
+    int wasThere = editing.levelData.tileMapData.indices[target.y][target.x];
+
+    paints(levelUi, editing, holding(editing.level, target), armed);
+    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == PaintedTile);
+    editing.forgetWhatWasAsked();
+
+    auto drawing = [&]
+    {
+        levelUi.draw(
+            editing.level,
+            editing.levelData,
+            animations,
+            observed,
+            editing.level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
+            playerState,
+            shippedNpcData(),
+            armed,
+            editing.commands);
+    };
+
+    gui.frame(drawing);
+    gui.frame(
+        [&]
+        {
+            ImGui::ActivateItemByID(ImGui::GetID("undo"));
+            drawing();
+        });
+    gui.frame(drawing);
+
+    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == wasThere);
 }

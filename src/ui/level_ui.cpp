@@ -9,6 +9,7 @@
 #include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
+#include "ui/level_history.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "actor/actor_animation_data.hpp"
@@ -92,6 +93,7 @@ void LevelUi::drawActors(
         edited.npcs.push_back(placing);
 
         showingActor = ActorShown{ActorShown::What::Npc, edited.npcs.size() - 1};
+        history.remembers(levelData);
         commands.onLevelEdited(edited);
     }
     else if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
@@ -100,12 +102,14 @@ void LevelUi::drawActors(
         edited.npcs.erase(edited.npcs.begin() + static_cast<std::ptrdiff_t>(showingActor.npcIndex));
 
         showingActor = ActorShown{};
+        history.remembers(levelData);
         commands.onLevelEdited(edited);
     }
     else if (asked.clearShownBeat && showingActor.what == ActorShown::What::Npc)
     {
         LevelData edited = levelData;
         edited.npcs[showingActor.npcIndex].patrol.reset();
+        history.remembers(levelData);
         commands.onLevelEdited(edited);
     }
     else
@@ -135,18 +139,63 @@ void askedToResize(
     commands.onLevelResized(resizedBy(resize, levelData, tileSize), shiftOf(resize, tileSize));
 }
 
+void LevelUi::drawUndo(EditorCommands &commands)
+{
+    ImGui::BeginDisabled(!history.anythingToUndo());
+    if (ImGui::Button("undo"))
+        undo(commands);
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+    ImGui::TextDisabled("ctrl+z");
+}
+
 void LevelUi::drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands)
 {
+    drawUndo(commands);
+
     LevelData edited = levelData;
     if (inspector::draw("next", edited.nextLevel))
+    {
+        history.remembers(levelData);
         commands.onLevelEdited(edited);
+    }
 
     if (!ImGui::TreeNodeEx("Resize"))
         return;
     const TileMap &tileMap = level.getTileMap();
     if (std::optional<Resize> resize = drawSizeButtons(tileMap.getWidth(), tileMap.getHeight()))
-        askedToResize(*resize, levelData, tileMap.getTileSize(), commands);
+        resizes(*resize, levelData, tileMap.getTileSize(), commands);
     ImGui::TreePop();
+}
+
+void LevelUi::resizes(
+    Resize resize,
+    const LevelData &levelData,
+    int tileSize,
+    EditorCommands &commands)
+{
+    history.remembers(levelData, -shiftOf(resize, tileSize));
+    askedToResize(resize, levelData, tileSize, commands);
+}
+
+bool LevelUi::undo(EditorCommands &commands)
+{
+    std::optional<LevelAsItWas> back = history.stepBack();
+    if (!back)
+        return false;
+
+    if (back->movingThePlayerBack == glm::vec2(0.0f))
+        commands.onLevelEdited(back->levelData);
+    else
+        commands.onLevelResized(back->levelData, back->movingThePlayerBack);
+
+    return true;
+}
+
+void LevelUi::forgets()
+{
+    history.forgets();
 }
 
 void LevelUi::drawOverlayToggles()
@@ -199,7 +248,16 @@ void LevelUi::update(
     if (saveable.lastSeen(levelPath).empty())
         saveable.seen(levelPath, asItWouldBeSaved(levelData));
 
+    if (levelPath != editing)
+    {
+        history.forgets();
+        editing = levelPath;
+    }
+
     tileMapShown = whileArmed(tileMapShown, armed.has_value());
+
+    if (!mouse.heldDown)
+        paintingAStroke = false;
 
     if (!armed || mouse.overTheUi)
         return;
@@ -216,6 +274,12 @@ void LevelUi::update(
 
         LevelData edited = levelData;
         edited.tileMapData = tileMap.toTileMapData();
+        if (!paintingAStroke)
+        {
+            history.remembers(edited);
+            paintingAStroke = true;
+        }
+
         edited.tileMapData.indices[tilePosition.y][tilePosition.x] = painting->tileIndex;
         commands.onLevelEdited(edited);
 
@@ -260,6 +324,7 @@ void LevelUi::update(
     }
     }
 
+    history.remembers(levelData);
     commands.onLevelEdited(edited);
     armed.reset();
 }
@@ -284,5 +349,11 @@ bool LevelUi::takesTheDisk(const LevelData &current, const std::string &levelPat
     bool changed = fromDisk != saveable.lastSeen(levelPath);
     saveable.saved(levelPath, fromDisk);
 
-    return !kept && changed;
+    if (!kept && changed)
+    {
+        history.forgets();
+        return true;
+    }
+
+    return false;
 }

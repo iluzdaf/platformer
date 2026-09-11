@@ -4,6 +4,10 @@
 
 #include "ui/last_answer.hpp"
 
+#include "ui/level_history.hpp"
+
+#include "game/level_resizing.hpp"
+
 #include "game/level_data.hpp"
 
 #include <string>
@@ -30,7 +34,6 @@ struct ActorState;
 class Npc;
 
 struct EditorCommands;
-struct Resize;
 
 void askedToResize(
     Resize resize,
@@ -62,6 +65,10 @@ public:
         std::optional<Armed> &armed,
         EditorCommands &commands);
 
+    void resizes(Resize resize, const LevelData &levelData, int tileSize, EditorCommands &commands);
+    bool undo(EditorCommands &commands);
+    void forgets();
+
     void save(const LevelData &levelData, const std::string &levelPath);
     bool unsavedSince(const LevelData &levelData, const std::string &levelPath);
     std::optional<std::string> cannotSaveBecause(
@@ -73,12 +80,16 @@ public:
 private:
     Saveable saveable;
     LastAnswer walkGate;
+    LevelHistory history;
+    std::string editing;
+    bool paintingAStroke = false;
     NavigationUi navigationUi;
     ActorShown showingActor;
     TileMapShown tileMapShown;
     bool npcsShown = false;
 
     std::string asItWouldBeSaved(const LevelData &levelData) const;
+    void drawUndo(EditorCommands &commands);
     void drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands);
     void drawActors(
         const Level &level,

@@ -264,6 +264,32 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
     REQUIRE_FALSE(armed);
 }
 
+TEST_CASE("A level told to name another palette asks for the level again", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing;
+
+    levelUi.namesPalette("another", editing.levelData, editing.commands);
+
+    REQUIRE(editing.asked().tileMapData.tilePalette == "another");
+    REQUIRE(history.anythingToUndo());
+}
+
+TEST_CASE("A level told to name the palette it already names asks for nothing", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing;
+
+    levelUi.namesPalette(
+        editing.levelData.tileMapData.tilePalette, editing.levelData, editing.commands);
+    editing.commands.drain();
+
+    REQUIRE_FALSE(editing.edited);
+    REQUIRE_FALSE(history.anythingToUndo());
+}
+
 TEST_CASE("Picking a pickup's spawn moves it and says the level changed", "[LevelUi]")
 {
     EditorHistory history;

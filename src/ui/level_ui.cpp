@@ -84,7 +84,7 @@ void LevelUi::drawActors(
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
-    if (!ImGui::TreeNode("Actors"))
+    if (!ImGui::TreeNode("Cast"))
         return;
 
     ActorShown wasShowing = showingActor;
@@ -178,6 +178,8 @@ void askedToResize(
 
 namespace
 {
+    constexpr float ButtonsWidth = 124.0f;
+
     inspector::Edited drawPaletteNamed(std::string &shown, const TilePalettes &tilePalettes)
     {
         inspector::InField here("tilePalette");
@@ -185,7 +187,7 @@ namespace
         inspector::Marking marking(changed);
         inspector::drawLabel("tilePalette", changed);
         ImGui::SameLine();
-        ImGui::SetNextItemWidth(-FLT_MIN);
+        ImGui::SetNextItemWidth(-ButtonsWidth);
 
         inspector::Edited edited;
         if (ImGui::BeginCombo("##tilePalette", shown.c_str()))
@@ -207,7 +209,7 @@ namespace
     }
 }
 
-void LevelUi::drawTilePaletteNamed(
+PaletteAsked LevelUi::drawTilePaletteNamed(
     const LevelData &levelData,
     const TilePalettes &tilePalettes,
     EditorCommands &commands)
@@ -215,12 +217,41 @@ void LevelUi::drawTilePaletteNamed(
     SavedInScope was(asItWasSaved<LevelData>(saveable.lastSeen(editing)));
 
     LevelData edited = levelData;
-    inspector::InField tileMapData("tileMapData");
-    if (drawPaletteNamed(edited.tileMapData.tilePalette, tilePalettes))
+    inspector::Edited picked;
+    {
+        inspector::InField tileMapData("tileMapData");
+        picked = drawPaletteNamed(edited.tileMapData.tilePalette, tilePalettes);
+    }
+
+    if (picked)
     {
         history.remembers(levelData);
         commands.onLevelEdited(edited);
     }
+
+    PaletteAsked asked;
+    ImGui::SameLine();
+    asked.add = ImGui::Button("add");
+    ImGui::SameLine();
+    ImGui::BeginDisabled(tilePalettes.empty());
+    asked.remove = ImGui::Button("remove", ImVec2(-FLT_MIN, 0.0f));
+    ImGui::EndDisabled();
+
+    return asked;
+}
+
+void LevelUi::namesPalette(
+    const std::string &palette,
+    const LevelData &levelData,
+    EditorCommands &commands)
+{
+    if (levelData.tileMapData.tilePalette == palette)
+        return;
+
+    LevelData edited = levelData;
+    edited.tileMapData.tilePalette = palette;
+    history.remembers(levelData);
+    commands.onLevelEdited(edited);
 }
 
 void LevelUi::drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands)

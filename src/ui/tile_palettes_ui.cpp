@@ -201,8 +201,6 @@ void TilePalettesUi::draw(
     if (!shownIn(tilePalettes, selectedPalette))
         selectedPalette = firstShownIn(tilePalettes);
 
-    drawChooser(tilePalettes);
-
     if (selectedPalette.empty())
     {
         ImGui::TextDisabled("no palettes");

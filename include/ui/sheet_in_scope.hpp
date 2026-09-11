@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assets/sheet_data.hpp"
+#include "ui/in_scope.hpp"
 
 class Texture2D;
 
@@ -10,17 +11,7 @@ struct SheetInScope
     SheetData sheet;
 };
 
-const SheetInScope *sheetInScope();
-
-class ShowingSheet
+inline const SheetInScope *sheetInScope()
 {
-public:
-    explicit ShowingSheet(const SheetInScope &scope);
-    ~ShowingSheet();
-
-    ShowingSheet(const ShowingSheet &) = delete;
-    ShowingSheet &operator=(const ShowingSheet &) = delete;
-
-private:
-    const SheetInScope *before = nullptr;
-};
+    return inScope<SheetInScope>();
+}

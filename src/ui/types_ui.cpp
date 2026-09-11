@@ -12,6 +12,7 @@
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
+#include "ui/in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "ui/sheet_preview.hpp"
 #include "actor/actor_data.hpp"
@@ -29,7 +30,6 @@
 #include "ui/level_rewriting.hpp"
 #include "ui/renames.hpp"
 #include "ui/state_machine_field.hpp"
-#include "ui/facts_in_scope.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "game/level.hpp"
 #include "npc/npc.hpp"
@@ -171,7 +171,7 @@ void TypesUi::drawShown(
     }
 
     SheetInScope scope{texture, *sheet};
-    ShowingSheet offering(scope);
+    InScope offering(scope);
 
     inspector::Edited edited;
     switch (showing.what)
@@ -182,7 +182,7 @@ void TypesUi::drawShown(
         NpcData &npc = gameData.npcData.at(showing.name);
         drawActorPreview(scope, npc.actorData);
         edited |= inspector::drawFieldsExcept(npc, "stateMachineBehaviorData");
-        OfferingFacts declared(npc.facts);
+        InScope declared(npc.facts);
         inspector::InField machine("stateMachineBehaviorData");
         edited |= drawStateMachineEditor(
             npc.stateMachineBehaviorData, statesLitBy(live, showing.name), machineShown);

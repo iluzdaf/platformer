@@ -1,20 +1,9 @@
 #pragma once
 
+#include "ui/in_scope.hpp"
 #include "ui/state_machine_shown.hpp"
 
-const MachineShown *selectionInScope();
-
-class ShowingSelection
+inline const MachineShown *selectionInScope()
 {
-public:
-    explicit ShowingSelection(const MachineShown &shown);
-    ~ShowingSelection();
-
-    ShowingSelection(const ShowingSelection &) = delete;
-    ShowingSelection &operator=(const ShowingSelection &) = delete;
-    ShowingSelection(ShowingSelection &&) = delete;
-    ShowingSelection &operator=(ShowingSelection &&) = delete;
-
-private:
-    const MachineShown *before = nullptr;
-};
+    return inScope<MachineShown>();
+}

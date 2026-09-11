@@ -20,6 +20,7 @@
 #include "conditions/facts.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
+#include "ui/in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
@@ -95,13 +96,13 @@ TEST_CASE("What is on offer is put back when the scope ends", "[DataInspector]")
 
     REQUIRE(sheetInScope() == nullptr);
     {
-        ShowingSheet showing(offering);
+        InScope showing(offering);
         REQUIRE(sheetInScope() == &offering);
         REQUIRE(sheetInScope()->sheet.cellSize.x == 8);
 
         SheetInScope inner;
         {
-            ShowingSheet nested(inner);
+            InScope nested(inner);
             REQUIRE(sheetInScope() == &inner);
         }
         REQUIRE(sheetInScope() == &offering);
@@ -300,7 +301,7 @@ TEST_CASE(
             ImGui::PopID();
 
             ImGui::PushID("transition");
-            OfferingFacts offering(declared);
+            InScope offering(declared);
             inspector::drawFields(transition);
             ImGui::PopID();
         }));

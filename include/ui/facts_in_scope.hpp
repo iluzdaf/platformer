@@ -1,18 +1,10 @@
 #pragma once
 
+#include "ui/in_scope.hpp"
+
 struct FactsData;
 
-const FactsData *factsInScope();
-
-class OfferingFacts
+inline const FactsData *factsInScope()
 {
-public:
-    explicit OfferingFacts(const FactsData &facts);
-    ~OfferingFacts();
-
-    OfferingFacts(const OfferingFacts &) = delete;
-    OfferingFacts &operator=(const OfferingFacts &) = delete;
-
-private:
-    const FactsData *before = nullptr;
-};
+    return inScope<FactsData>();
+}

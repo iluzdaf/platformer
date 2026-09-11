@@ -30,6 +30,11 @@
 #include "game/catalogue.hpp"
 #include "npc/npc_data.hpp"
 #include "ui/tile_map_overlays.hpp"
+#include <cfloat>
+#include "ui/inspector_edited.hpp"
+#include "ui/marked_label.hpp"
+#include "tile_map/tile_palette_data.hpp"
+#include "ui/unsaved_colours.hpp"
 #include "ui/size_buttons.hpp"
 #include "game/level_resizing.hpp"
 #include "cameras/camera2d.hpp"
@@ -142,6 +147,53 @@ void askedToResize(
     EditorCommands &commands)
 {
     commands.onLevelResized(resizedBy(resize, levelData, tileSize), shiftOf(resize, tileSize));
+}
+
+namespace
+{
+    inspector::Edited drawPaletteNamed(std::string &shown, const TilePalettes &tilePalettes)
+    {
+        inspector::InField here("tilePalette");
+        const bool changed = inspector::changedHere(shown);
+        inspector::Marking marking(changed);
+        inspector::drawLabel("tilePalette", changed);
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(-FLT_MIN);
+
+        inspector::Edited edited;
+        if (ImGui::BeginCombo("##tilePalette", shown.c_str()))
+        {
+            for (const auto &[name, palette] : tilePalettes)
+                if (ImGui::Selectable(name.c_str(), name == shown) && name != shown)
+                {
+                    shown = name;
+                    edited = {true, true};
+                }
+
+            ImGui::EndCombo();
+        }
+
+        if (!tilePalettes.contains(shown))
+            ImGui::TextColored(CannotSaveColour, "no palette called %s", shown.c_str());
+
+        return edited;
+    }
+}
+
+void LevelUi::drawTilePaletteNamed(
+    const LevelData &levelData,
+    const TilePalettes &tilePalettes,
+    EditorCommands &commands)
+{
+    SavedInScope was(asItWasSaved<LevelData>(saveable.lastSeen(editing)));
+
+    LevelData edited = levelData;
+    inspector::InField tileMapData("tileMapData");
+    if (drawPaletteNamed(edited.tileMapData.tilePalette, tilePalettes))
+    {
+        history.remembers(levelData);
+        commands.onLevelEdited(edited);
+    }
 }
 
 void LevelUi::drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands)

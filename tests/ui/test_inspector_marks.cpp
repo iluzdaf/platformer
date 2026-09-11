@@ -531,6 +531,7 @@ TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[Inspe
         {"level",
          [&]
          {
+             levelUi.drawTilePaletteNamed(levelData, gameData.tilePalettes, commands);
              levelUi.draw(
                  level,
                  levelData,

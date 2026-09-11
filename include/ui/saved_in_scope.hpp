@@ -57,6 +57,8 @@ namespace inspector
 
     bool changedFromSaved(const std::string &nowJson);
 
+    bool changedAt(const std::vector<std::string> &at, const std::string &nowJson);
+
     template <class T> bool changedHere(const T &value)
     {
         return changedFromSaved(differs::compact(value));

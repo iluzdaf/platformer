@@ -31,10 +31,10 @@ namespace
         return written;
     }
 
-    const glz::json_t *walked(const glz::json_t &from)
+    const glz::json_t *walked(const glz::json_t &from, const std::vector<std::string> &names)
     {
         const glz::json_t *at = &from;
-        for (const std::string &name : path)
+        for (const std::string &name : names)
         {
             if (at->holds<glz::json_t::object_t>())
             {
@@ -126,9 +126,12 @@ std::string inspector::pathHere()
 
 namespace
 {
-    bool askedOfWhatWasSaved(const glz::json_t &from, const std::string &nowJson)
+    bool askedOfWhatWasSaved(
+        const glz::json_t &from,
+        const std::vector<std::string> &names,
+        const std::string &nowJson)
     {
-        const glz::json_t *at = walked(from);
+        const glz::json_t *at = walked(from, names);
         if (!at)
             return nowJson != "null";
 
@@ -140,12 +143,20 @@ namespace
     }
 }
 
+bool inspector::changedAt(const std::vector<std::string> &at, const std::string &nowJson)
+{
+    if (!saved)
+        return false;
+
+    return askedOfWhatWasSaved(*saved, at, nowJson);
+}
+
 bool inspector::changedFromSaved(const std::string &nowJson)
 {
     if (!saved)
         return false;
 
-    bool answer = askedOfWhatWasSaved(*saved, nowJson);
+    bool answer = askedOfWhatWasSaved(*saved, path, nowJson);
     if (watching)
     {
         pathsLooked.push_back(pathHere());

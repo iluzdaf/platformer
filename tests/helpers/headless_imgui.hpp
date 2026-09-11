@@ -3,6 +3,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include "ui/imgui_complaints.hpp"
@@ -59,6 +60,11 @@ public:
 
         if (std::optional<std::string> wrong = complaints->anything())
             throw std::runtime_error("imgui: " + *wrong);
+    }
+
+    std::vector<ImGuiID> everythingDrawn() const
+    {
+        return complaints ? complaints->whatWasDrawn() : std::vector<ImGuiID>{};
     }
 
     template <class Draw> void clickAt(ImVec2 at, Draw &&draw)

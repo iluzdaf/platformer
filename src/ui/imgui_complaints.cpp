@@ -126,6 +126,16 @@ void ImGuiComplaints::startAgain()
     heard.clashing = 0;
 }
 
+std::vector<ImGuiID> ImGuiComplaints::whatWasDrawn() const
+{
+    std::vector<ImGuiID> drawn;
+    drawn.reserve(heard.timesDrawn.size());
+    for (const auto &[id, times] : heard.timesDrawn)
+        drawn.push_back(id);
+
+    return drawn;
+}
+
 std::optional<std::string> ImGuiComplaints::anything() const
 {
     if (heard.said.empty())

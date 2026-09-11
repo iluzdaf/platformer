@@ -480,7 +480,7 @@ TEST_CASE("Remaking a creature puts a new one at its spawn, built from the data 
 }
 
 TEST_CASE(
-    "Recasting the pickups re-makes the ones still on the floor, and only the changed kind",
+    "Recasting the pickups re-makes only the changed kind, and what was taken stays taken",
     "[Level]")
 {
     LevelData levelData = corridorPlacing({});
@@ -496,15 +496,17 @@ TEST_CASE(
         theUsualNpcs(),
         kinds);
     level.takePickupsTouching(level.getPickups()[0].getAABB());
-    REQUIRE(level.getPickups().size() == 2);
+    REQUIRE(level.getPickups().size() == 3);
+    REQUIRE_FALSE(level.getPickups()[0].stillThere());
 
     kinds.at("coin") = aPickupWorth(3);
     level.recastPickups(kinds);
 
-    REQUIRE(level.getPickups().size() == 2);
-    REQUIRE(level.getPickups()[0].getScoreDelta() == 5);
-    REQUIRE(level.getPickups()[1].getScoreDelta() == 3);
-    REQUIRE(level.getPickups()[1].getSpawn().feet == feetOf(glm::ivec2(7, FloorRow - 1)));
+    REQUIRE(level.getPickups().size() == 3);
+    REQUIRE(level.getPickups()[0].getScoreDelta() == 3);
+    REQUIRE_FALSE(level.getPickups()[0].stillThere());
+    REQUIRE(level.getPickups()[1].getScoreDelta() == 5);
+    REQUIRE(level.getPickups()[2].getScoreDelta() == 3);
 }
 
 TEST_CASE("Recasting the pickups without a kind on the floor is refused by name", "[Level]")

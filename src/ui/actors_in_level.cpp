@@ -234,6 +234,12 @@ namespace
             armed);
 
         drawRow("Gives", std::to_string(pickup.getScoreDelta()));
+
+        beginRow("State");
+        if (pickup.stillThere())
+            ImGui::TextUnformatted("waiting");
+        else
+            ImGui::TextDisabled("picked up");
     }
 
     bool drawNpcEditing(

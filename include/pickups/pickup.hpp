@@ -17,6 +17,9 @@ public:
 
     void update(float deltaTime);
 
+    void taken();
+    bool stillThere() const;
+
     const SheetData &getSheet() const;
     int frame() const;
     const glm::vec2 &getPosition() const;
@@ -31,4 +34,5 @@ private:
     FrameAnimation animation;
     glm::vec2 position, size, colliderSize, colliderOffset;
     int scoreDelta = 0;
+    bool waiting = true;
 };

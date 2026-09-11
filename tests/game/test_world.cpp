@@ -848,12 +848,12 @@ TEST_CASE("A cast change does not bring back a coin already taken", "[World]")
     playing.world.getPlayer().standAt(feetOf(glm::ivec2(8, FloorLevelStanding)));
     walkFor(playing.world, 2);
     REQUIRE(playing.world.getScore().total() == 1);
-    REQUIRE(playing.world.getLevel().getPickups().empty());
+    REQUIRE_FALSE(playing.world.getLevel().getPickups().front().stillThere());
 
     playing.gameData.pickupData.at("coin").scoreDelta = 5;
     playing.world.castChanged();
 
-    REQUIRE(playing.world.getLevel().getPickups().empty());
+    REQUIRE_FALSE(playing.world.getLevel().getPickups().front().stillThere());
 }
 
 TEST_CASE("A re-made creature is wired to its script, and the old one is forgotten", "[World]")
@@ -960,7 +960,7 @@ TEST_CASE("A tile painted does not bring back a coin already taken", "[World]")
 
     playing.world.tilesChanged(playing.world.getLevelData().tileMapData);
 
-    REQUIRE(playing.world.getLevel().getPickups().empty());
+    REQUIRE_FALSE(playing.world.getLevel().getPickups().front().stillThere());
 }
 
 TEST_CASE("A tile painted hands the creatures the ground they now walk", "[World]")

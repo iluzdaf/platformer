@@ -90,6 +90,7 @@ target_include_directories(imgui PUBLIC
     external/imgui
     external/imgui/backends
 )
+target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_TEST_ENGINE)
 target_compile_features(imgui PUBLIC cxx_std_23)
 set_target_properties(imgui PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(imgui PRIVATE glfw glad)
@@ -108,6 +109,7 @@ add_library(platformer_lib OBJECT
     src/rendering/tile_map_drawing.cpp
     src/rendering/screen_transition.cpp
     src/ui/editor_ui.cpp
+    src/ui/drawn_items.cpp
     src/ui/game_ui.cpp
     src/ui/imgui_manager.cpp
     src/ui/tile_map_overlays.cpp

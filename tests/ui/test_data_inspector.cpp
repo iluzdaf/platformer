@@ -295,9 +295,14 @@ TEST_CASE(
         [&]
         {
             ImGui::TreeNodeSetOpen(ImGui::GetID("when"), true);
+            ImGui::PushID("rung");
             inspector::drawFields(rung);
+            ImGui::PopID();
+
+            ImGui::PushID("transition");
             OfferingFacts offering(declared);
             inspector::drawFields(transition);
+            ImGui::PopID();
         }));
     REQUIRE(rung.when.size() == 2);
     REQUIRE(transition.when.size() == 2);

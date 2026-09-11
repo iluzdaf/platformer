@@ -1,7 +1,11 @@
 #pragma once
 
+#include <optional>
+#include <stdexcept>
+#include <string>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include "ui/imgui_complaints.hpp"
 
 class HeadlessImGui
 {
@@ -17,6 +21,8 @@ public:
         unsigned char *pixels = nullptr;
         int width = 0, height = 0;
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+        complaints.emplace();
     }
 
     HeadlessImGui(const HeadlessImGui &) = delete;
@@ -24,6 +30,7 @@ public:
 
     ~HeadlessImGui()
     {
+        complaints.reset();
         ImGui::DestroyContext(context);
     }
 
@@ -38,11 +45,20 @@ public:
         io.MousePos = mouse;
         io.MouseDown[0] = held;
 
+        if (complaints)
+            complaints->startAgain();
+
         ImGui::NewFrame();
         ImGui::Begin("headless");
         draw();
         ImGui::End();
         ImGui::Render();
+
+        if (!complaints)
+            return;
+
+        if (std::optional<std::string> wrong = complaints->anything())
+            throw std::runtime_error("imgui: " + *wrong);
     }
 
     template <class Draw> void clickAt(ImVec2 at, Draw &&draw)
@@ -90,4 +106,5 @@ public:
 
 private:
     ImGuiContext *context = nullptr;
+    std::optional<ImGuiComplaints> complaints;
 };

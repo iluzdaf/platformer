@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 #include "ui/imgui_manager.hpp"
+#include "ui/imgui_complaints.hpp"
 
 ImGuiManager::ImGuiManager(
     GLFWwindow *window,
@@ -17,10 +18,13 @@ ImGuiManager::ImGuiManager(
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glslVersion);
     ImGui::StyleColorsDark();
+
+    complaints.emplace();
 }
 
 ImGuiManager::~ImGuiManager()
 {
+    complaints.reset();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -28,6 +32,9 @@ ImGuiManager::~ImGuiManager()
 
 void ImGuiManager::newFrame()
 {
+    if (complaints)
+        complaints->startAgain();
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();

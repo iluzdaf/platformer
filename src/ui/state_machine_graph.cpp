@@ -10,5 +10,5 @@ MachineShown drawStateMachineGraph(
     const std::set<std::string> &litStates,
     MachineShown selected)
 {
-    return drawGraph(graphOf(machine), litStates, selected);
+    return drawGraph("##machineGraph", graphOf(machine), litStates, selected);
 }

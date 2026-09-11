@@ -109,7 +109,7 @@ add_library(platformer_lib OBJECT
     src/rendering/tile_map_drawing.cpp
     src/rendering/screen_transition.cpp
     src/ui/editor_ui.cpp
-    src/ui/drawn_items.cpp
+    src/ui/imgui_complaints.cpp
     src/ui/game_ui.cpp
     src/ui/imgui_manager.cpp
     src/ui/tile_map_overlays.cpp
@@ -356,7 +356,7 @@ add_executable(tests
     tests/ui/test_frame_animation_field.cpp
     tests/ui/test_sheet_preview.cpp
     tests/ui/test_levels_ui.cpp
-    tests/ui/test_levels_ui.cpp
+    tests/ui/test_imgui_complaints.cpp
     tests/ui/test_tile_palettes_ui.cpp
     tests/rendering/test_texture_cache.cpp
     tests/rendering/test_tile_set_fit.cpp

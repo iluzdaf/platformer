@@ -23,7 +23,6 @@
 #include "rendering/texture_cache.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "ui/armed.hpp"
-#include "ui/drawn_items.hpp"
 #include "ui/levels_ui.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/switching_level.hpp"
@@ -297,10 +296,6 @@ TEST_CASE("The levels section shares no item with the palettes beneath it", "[Le
         tilePalettesUi.draw(palettes, textures, editing.commands, armed);
     };
 
-    DrawnItems drawn;
-    gui.frame(drawing);
-    drawn.startAgain();
-    gui.frame(drawing);
-
-    REQUIRE_FALSE(drawn.twoWithTheSameId());
+    REQUIRE_NOTHROW(gui.frame(drawing));
+    REQUIRE_NOTHROW(gui.frame(drawing));
 }

@@ -7,6 +7,7 @@
 struct GraphShown;
 
 MachineShown drawGraph(
+    const char *name,
     const GraphShown &graph,
     const std::set<std::string> &litNodes,
     MachineShown selected);

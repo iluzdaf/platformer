@@ -231,6 +231,7 @@ namespace
 }
 
 MachineShown drawGraph(
+    const char *name,
     const GraphShown &graph,
     const std::set<std::string> &litNodes,
     MachineShown selected)
@@ -244,7 +245,7 @@ MachineShown drawGraph(
     ImVec2 size(
         std::max(ImGui::GetContentRegionAvail().x, 1.0f), graphHeightFor(nodesAroundIn(graph)));
     ImVec2 at = ImGui::GetCursorScreenPos();
-    ImGui::InvisibleButton("##graph", size);
+    ImGui::InvisibleButton(name, size);
     bool hovered = ImGui::IsItemHovered();
     bool clicked = ImGui::IsItemClicked();
     glm::vec2 mouse(ImGui::GetMousePos().x, ImGui::GetMousePos().y);

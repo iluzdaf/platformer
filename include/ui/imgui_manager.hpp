@@ -1,6 +1,8 @@
 #pragma once
+#include <optional>
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include "ui/imgui_complaints.hpp"
 
 class Camera2D;
 struct GLFWwindow;
@@ -26,4 +28,5 @@ public:
 
 private:
     int windowWidth = 800, windowHeight = 600;
+    std::optional<ImGuiComplaints> complaints;
 };

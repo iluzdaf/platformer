@@ -144,7 +144,7 @@ MachineShown drawAnimatorGraph(
     const std::set<std::string> &litClips,
     MachineShown selected)
 {
-    return drawGraph(graphOf(animations), litClips, selected);
+    return drawGraph("##animatorGraph", graphOf(animations), litClips, selected);
 }
 
 inspector::Edited drawCustomField(std::string_view name, ActorAnimationData &value)
@@ -167,7 +167,7 @@ inspector::Edited drawCustomField(std::string_view name, ActorAnimationData &val
         shown = stillAmong(shown, graph);
     }
 
-    shown = drawGraph(graph, {}, shown);
+    shown = drawGraph("##animatorGraph", graph, {}, shown);
     edited |= drawShown(value, graph, shown);
     remember(shown);
 

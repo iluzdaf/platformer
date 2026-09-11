@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <optional>
 #include <stdexcept>
@@ -31,4 +32,9 @@ void writeLevelData(const LevelData &levelData, const std::string &levelPath)
 {
     std::ofstream outFile(assets::pathTo(levelPath));
     outFile << asFileText(levelData);
+}
+
+void removeLevelData(const std::string &levelPath)
+{
+    std::filesystem::remove(assets::pathTo(levelPath));
 }

@@ -19,6 +19,11 @@ public:
         return held;
     }
 
+    void forgets()
+    {
+        asked = false;
+    }
+
 private:
     bool asked = false;
     std::string lastQuestion;

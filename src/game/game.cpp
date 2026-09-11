@@ -53,6 +53,9 @@ Game::Game(Window &window, Reloader &reloader)
     gameUi.commands().onStep.connect([this] { playback.step(); });
     gameUi.commands().onLoadLevel.connect([this](const std::string &levelPath)
                                           { world.loadLevel(levelPath); });
+    gameUi.commands().onPlayLevel.connect(
+        [this](const std::string &levelPath, const LevelData &levelData)
+        { world.playLevel(levelPath, levelData); });
     gameUi.commands().onLevelEdited.connect([this](const LevelData &edited)
                                             { world.rebuildFrom(edited); });
     gameUi.commands().onLevelResized.connect(

@@ -24,6 +24,7 @@ public:
     ~World();
 
     void loadLevel(const std::string &levelPath);
+    void playLevel(const std::string &levelPath, const LevelData &fromData);
     void rebuildFrom(
         const LevelData &fromData,
         const glm::vec2 &movingThePlayerBy = glm::vec2(0.0f));

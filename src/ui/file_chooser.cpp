@@ -15,7 +15,15 @@ inspector::Edited drawFileChooser(
     std::string_view folder,
     std::string_view extension)
 {
-    std::vector<std::string> offered = assets::filesIn(folder, extension);
+    return drawFileChooser(label, path, folder, assets::filesIn(folder, extension));
+}
+
+inspector::Edited drawFileChooser(
+    std::string_view label,
+    std::string &path,
+    std::string_view folder,
+    const std::vector<std::string> &offered)
+{
     bool picked = false;
 
     ImGui::TextUnformatted(label.data(), label.data() + label.size());

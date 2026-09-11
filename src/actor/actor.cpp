@@ -144,6 +144,7 @@ void Actor::fixedUpdate(
     observations.contacts = contactsAfterStep(observations.contacts, physicsBody, tileMap);
     observations.previousVelocity = observations.velocity;
     observations.velocity = physicsBody.velocity();
+    observations.fell = howFarItFell();
 
     animator.animate(deltaTime, decisions, observations, stateName());
 
@@ -161,6 +162,20 @@ void Actor::fixedUpdate(
         onCue(cue);
 
     forgetTheTick();
+}
+
+float Actor::howFarItFell()
+{
+    if (!observations.contacts.onGround)
+    {
+        highestSinceTheGround = std::min(highestSinceTheGround, feet().y);
+        return 0.0f;
+    }
+
+    float fell = observations.contacts.wasOnGround ? 0.0f : feet().y - highestSinceTheGround;
+    highestSinceTheGround = feet().y;
+
+    return fell;
 }
 
 void Actor::forgetTheTick()

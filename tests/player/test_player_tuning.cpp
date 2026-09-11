@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,6 +17,7 @@
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
+#include <tuple>
 #include "timing/fixed_time_step.hpp"
 
 namespace
@@ -275,4 +277,47 @@ TEST_CASE("The shipped player can climb three stepped platforms", "[Player][Tuni
         INFO(step.what << " worked from " << takeOffPointsThatWork << " take off points");
         REQUIRE(takeOffPointsThatWork >= 5);
     }
+}
+
+namespace
+{
+    constexpr int DropMapWidth = 6;
+
+    bool shakenAfterFallingTiles(const GameData &gameData, int tiles)
+    {
+        int rows = tiles + 3;
+        std::vector<std::vector<int>> indices(
+            static_cast<std::size_t>(rows), std::vector<int>(DropMapWidth, 0));
+        for (int x = 0; x < DropMapWidth; ++x)
+            indices[static_cast<std::size_t>(rows) - 1][x] = PitSolid;
+
+        LevelData levelData;
+        levelData.tileMapData.indices = indices;
+        levelData.tileMapData.tilePalette = "default";
+        levelData.playerFeet = feetOf(glm::ivec2(2, rows - 2));
+        Level level(
+            levelData, pitPalette(), gameData.playerData, gameData.npcData, gameData.pickupData);
+
+        ScriptedIntentions input;
+        Player player(gameData.playerData, input);
+        bool shaken = false;
+        std::ignore = player.onFallFromHeight.connect([&shaken] { shaken = true; });
+        player.standAt(feetOf(glm::ivec2(2, rows - 2 - tiles)));
+
+        FixedTimeStep timestepper;
+        for (int frame = 0; frame < 240; ++frame)
+            runFor(player, level, 1.0f / 60.0f, timestepper);
+
+        REQUIRE(player.feet().y == feetOf(glm::ivec2(2, rows - 2)).y);
+
+        return shaken;
+    }
+}
+
+TEST_CASE("The shipped player's fall is worth twelve tiles before it shakes", "[Player][Tuning]")
+{
+    GameData gameData = loadGameData();
+
+    REQUIRE(shakenAfterFallingTiles(gameData, 12));
+    REQUIRE_FALSE(shakenAfterFallingTiles(gameData, 11));
 }

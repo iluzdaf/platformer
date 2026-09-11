@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <memory>
 #include <vector>
 #include "game/level_data.hpp"
@@ -13,7 +12,6 @@
 #include "game/catalogue.hpp"
 #include <cstddef>
 #include "actor/observed.hpp"
-#include "actor/actor_contact_state.hpp"
 #include "game/noise.hpp"
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
@@ -191,17 +189,8 @@ void World::fixedUpdate(float deltaTime)
 
 void World::hearWhereItLands()
 {
-    glm::vec2 feet = player->feet();
-    if (!player->observed().contacts.onGround)
-    {
-        highestSinceTheGround = std::min(highestSinceTheGround, feet.y);
-        return;
-    }
-
-    if (feet.y - highestSinceTheGround > gameData.playerData.heardAfterFalling)
-        heardThisTick.push_back(Noise{std::string(LandingNoise), feet});
-
-    highestSinceTheGround = feet.y;
+    if (player->observed().fell > gameData.playerData.heardAfterFalling)
+        heardThisTick.push_back(Noise{std::string(LandingNoise), player->feet()});
 }
 
 void World::postFixedUpdate()

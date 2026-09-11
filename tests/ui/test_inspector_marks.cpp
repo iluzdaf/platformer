@@ -1,7 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
+#include <algorithm>
+#include <concepts>
 #include <cstddef>
+#include <stdexcept>
 #include <functional>
 #include <map>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -13,7 +17,11 @@
 #include "game/level_data.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/npc_fixtures.hpp"
+#include "assets/texture_path_data.hpp"
+#include "conditions/asked.hpp"
+#include "game/level_path_data.hpp"
 #include "npc/npc_data.hpp"
+#include "scripting/script_path_data.hpp"
 #include "pickups/pickup_data.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "animations/animator_data.hpp"
@@ -52,6 +60,34 @@ namespace
         return true;
     }
 
+    template <class T> bool nudge(std::optional<T> &value)
+    {
+        return value && nudge(*value);
+    }
+
+    bool nudge(Asked &value)
+    {
+        return std::visit([](auto &held) { return nudge(held); }, value);
+    }
+
+    bool nudge(TexturePathData &value)
+    {
+        value.path += "x";
+        return true;
+    }
+
+    bool nudge(ScriptPathData &value)
+    {
+        value.path += "x";
+        return true;
+    }
+
+    bool nudge(LevelPathData &value)
+    {
+        value.path += "x";
+        return true;
+    }
+
     struct Fold
     {
         std::string name;
@@ -61,8 +97,12 @@ namespace
     struct Asking
     {
         std::vector<std::string> quiet;
-        std::size_t nudged = 0;
+        std::vector<std::string> nudged;
     };
+
+    template <class T>
+    constexpr bool MapLike =
+        inspector::IsMap<T>::value || std::derived_from<T, std::map<std::string, Asked>>;
 
     bool everyFoldSaysSo(const std::vector<Fold> &folds)
     {
@@ -88,7 +128,7 @@ namespace
         T asItWas = value;
         if (nudge(value))
         {
-            ++asking.nudged;
+            asking.nudged.push_back(inspector::pathHere());
             if (!inspector::changedHere(value) || !everyFoldSaysSo(folds))
                 asking.quiet.push_back(inspector::pathHere());
 
@@ -113,7 +153,7 @@ namespace
             for (std::size_t at = 0; at < value.size(); ++at)
                 nudgingUnder(std::to_string(at), value[at], folds, asking);
         }
-        else if constexpr (inspector::IsMap<T>::value)
+        else if constexpr (MapLike<T>)
         {
             for (auto &[key, held] : value)
                 nudgingUnder(inspector::keyLabel(key), held, folds, asking);
@@ -139,14 +179,85 @@ namespace
         }
     }
 
-    template <class T> Asking nudgingEveryFieldOf(T &value)
+    void scalarsIn(const glz::json_t &json, const std::string &at, std::vector<std::string> &into)
     {
-        SavedInScope was(differs::compact(value));
+        if (json.is_object())
+        {
+            for (const auto &[key, held] : json.get_object())
+                scalarsIn(held, at.empty() ? key : at + "." + key, into);
+        }
+        else if (json.is_array())
+        {
+            const glz::json_t::array_t &items = json.get_array();
+            for (std::size_t index = 0; index < items.size(); ++index)
+                scalarsIn(items[index], at + "." + std::to_string(index), into);
+        }
+        else if (!json.is_null())
+            into.push_back(at);
+    }
+
+    std::vector<std::string> scalarsIn(const std::string &json)
+    {
+        glz::json_t read;
+        if (glz::read_json(read, json))
+            throw std::runtime_error("The saved copy is not json");
+
+        std::vector<std::string> scalars;
+        scalarsIn(read, "", scalars);
+        return scalars;
+    }
+
+    bool startsWith(const std::string &path, const std::string &at)
+    {
+        return path == at || (path.starts_with(at) && path[at.size()] == '.');
+    }
+
+    struct Coverage
+    {
+        std::vector<std::string> neverNudged;
+        std::vector<std::string> notInTheSavedCopy;
+    };
+
+    Coverage coveredBy(const std::string &savedJson, const std::vector<std::string> &nudged)
+    {
+        std::vector<std::string> scalars = scalarsIn(savedJson);
+
+        Coverage coverage;
+        for (const std::string &scalar : scalars)
+            if (std::ranges::none_of(
+                    nudged, [&scalar](const std::string &at) { return startsWith(scalar, at); }))
+                coverage.neverNudged.push_back(scalar);
+
+        for (const std::string &at : nudged)
+            if (std::ranges::none_of(
+                    scalars, [&at](const std::string &scalar) { return startsWith(scalar, at); }))
+                coverage.notInTheSavedCopy.push_back(at);
+
+        return coverage;
+    }
+
+    template <class T> void everyFieldOf(T &value)
+    {
+        std::string saved = differs::compact(value);
+
+        SavedInScope was(saved);
         std::vector<Fold> folds;
         Asking asking;
         nudgingEachField(value, folds, asking);
 
-        return asking;
+        Coverage coverage = coveredBy(saved, asking.nudged);
+        std::string report = "fields nudged: " + std::to_string(asking.nudged.size());
+        for (const std::string &path : asking.quiet)
+            report += "\nsaid nothing: " + path;
+        for (const std::string &path : coverage.neverNudged)
+            report += "\nnever nudged: " + path;
+        for (const std::string &path : coverage.notInTheSavedCopy)
+            report += "\nnudged but not in the saved copy: " + path;
+
+        INFO(report);
+        REQUIRE(asking.quiet.empty());
+        REQUIRE(coverage.neverNudged.empty());
+        REQUIRE(coverage.notInTheSavedCopy.empty());
     }
 
     ActorAnimationData someClipsAndARung()
@@ -189,28 +300,14 @@ TEST_CASE("Every field of the game data says when it is edited", "[InspectorMark
 {
     GameData gameData = aGameWithSomethingOfEachKind();
 
-    Asking asking = nudgingEveryFieldOf(gameData);
-
-    INFO("fields nudged: " << asking.nudged);
-    for (const std::string &path : asking.quiet)
-        UNSCOPED_INFO("said nothing: " << path);
-
-    REQUIRE(asking.nudged > 50);
-    REQUIRE(asking.quiet.empty());
+    everyFieldOf(gameData);
 }
 
 TEST_CASE("Every field of a level says when it is edited", "[InspectorMarks]")
 {
     LevelData levelData = aFloorLevelPlacing({aVillagerAt(glm::ivec2(2, FloorLevelStanding))});
 
-    Asking asking = nudgingEveryFieldOf(levelData);
-
-    INFO("fields nudged: " << asking.nudged);
-    for (const std::string &path : asking.quiet)
-        UNSCOPED_INFO("said nothing: " << path);
-
-    REQUIRE(asking.nudged > 10);
-    REQUIRE(asking.quiet.empty());
+    everyFieldOf(levelData);
 }
 
 namespace

@@ -66,8 +66,16 @@ namespace
     }
 }
 
-SavedInScope::SavedInScope(const std::string &savedJson)
+SavedInScope::SavedInScope() : before(std::move(saved)), pathBefore(std::move(path))
 {
+    saved.reset();
+    path.clear();
+}
+
+SavedInScope::SavedInScope(const std::string &savedJson)
+    : before(std::move(saved)), pathBefore(std::move(path))
+{
+    saved.reset();
     glz::json_t read;
     if (!glz::read_json(read, savedJson))
         saved = std::move(read);
@@ -77,8 +85,8 @@ SavedInScope::SavedInScope(const std::string &savedJson)
 
 SavedInScope::~SavedInScope()
 {
-    saved.reset();
-    path.clear();
+    saved = std::move(before);
+    path = std::move(pathBefore);
 }
 
 inspector::InField::InField(std::string_view name)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 #include <string_view>
@@ -18,12 +19,17 @@ template <class T> std::string asItWasSaved(const std::string &savedJson)
 class SavedInScope
 {
 public:
+    SavedInScope();
     explicit SavedInScope(const std::string &savedJson);
     ~SavedInScope();
     SavedInScope(const SavedInScope &) = delete;
     SavedInScope &operator=(const SavedInScope &) = delete;
     SavedInScope(SavedInScope &&) = delete;
     SavedInScope &operator=(SavedInScope &&) = delete;
+
+private:
+    std::optional<glz::json_t> before;
+    std::vector<std::string> pathBefore;
 };
 
 namespace inspector

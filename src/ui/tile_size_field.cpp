@@ -19,9 +19,6 @@ inspector::Edited drawTileSizeField(TilePaletteData &palette)
 
     if (measured <= 0)
         ImGui::TextColored(CannotSaveColour, "a tile is wider than nothing");
-    else if (measured != palette.tileSet.cellSize.x)
-        ImGui::TextDisabled(
-            "a %d cell drawn over %d in the level", palette.tileSet.cellSize.x, measured);
 
     return edited;
 }

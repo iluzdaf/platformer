@@ -6,6 +6,7 @@
 #include <imgui.h>
 #include "ui/marked_label.hpp"
 #include "ui/animator_field.hpp"
+#include "ui/saved_in_scope.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/graph_shown.hpp"
 #include "ui/graph_view.hpp"
@@ -121,7 +122,12 @@ namespace
     {
         ImGui::Separator();
         if (shown.what == MachineShown::What::Transition)
+        {
+            inspector::InField ladder("ladder");
+            inspector::InField transitions("transitions");
+            inspector::InField rung(std::to_string(shown.index));
             return inspector::drawFields(animations.ladder.transitions[shown.index]);
+        }
 
         if (shown.what == MachineShown::What::State)
         {
@@ -132,6 +138,8 @@ namespace
                 return {};
             }
 
+            inspector::InField clips("clips");
+            inspector::InField clip(name);
             return drawCustomField(name, animations.clips.at(name));
         }
 

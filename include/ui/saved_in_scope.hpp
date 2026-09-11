@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <string_view>
 #include <glaze/glaze.hpp>
 #include "serialization/only_what_differs.hpp"
@@ -39,6 +40,20 @@ namespace inspector
     };
 
     std::string pathHere();
+
+    class Watching
+    {
+    public:
+        Watching();
+        ~Watching();
+        Watching(const Watching &) = delete;
+        Watching &operator=(const Watching &) = delete;
+        Watching(Watching &&) = delete;
+        Watching &operator=(Watching &&) = delete;
+
+        std::vector<std::string> looked() const;
+        std::vector<std::string> saidChanged() const;
+    };
 
     bool changedFromSaved(const std::string &nowJson);
 

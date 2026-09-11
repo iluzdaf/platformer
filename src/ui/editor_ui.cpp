@@ -7,6 +7,7 @@
 #include <string_view>
 #include <optional>
 #include "ui/editor_ui.hpp"
+#include "ui/asked_to_undo.hpp"
 #include "actor/actor_data.hpp"
 #include "player/player_data.hpp"
 #include "ui/actors_in_level.hpp"
@@ -81,6 +82,9 @@ void EditorUi::draw(
     }
 
     drawSaveRow(saving);
+
+    if (askedToUndo())
+        levelUi.undo(commands);
 
     ImGui::Separator();
 
@@ -270,7 +274,10 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
             {
                 LevelData playing = subject.levelData;
                 if (typesUi.save(subject.gameData, playing))
+                {
+                    levelUi.forgets();
                     commands.onLevelEdited(playing);
+                }
             },
             [this, &subject] { typesUi.revert(subject.gameData); }};
 
@@ -289,11 +296,15 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
                 levelUi.save(subject.levelData, subject.levelPath);
                 LevelData playing = subject.levelData;
                 if (tilePalettesUi.save(subject.gameData.tilePalettes, playing))
+                {
+                    levelUi.forgets();
                     commands.onLevelEdited(playing);
+                }
                 levelsUi.save(subject.levels);
             },
             [this, &subject]
             {
+                levelUi.forgets();
                 commands.onLoadLevel(subject.levelPath);
                 tilePalettesUi.revert(subject.gameData.tilePalettes);
                 levelsUi.revert(subject.levels);

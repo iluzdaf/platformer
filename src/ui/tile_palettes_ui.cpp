@@ -216,7 +216,12 @@ void TilePalettesUi::draw(
     inspector::InField shown(renaming.shownName(selectedPalette));
 
     TilePaletteData &palette = tilePalettes.at(selectedPalette);
-    inspector::Edited edited = drawSquareSheetFields(palette.tileSet);
+    inspector::Edited edited;
+    {
+        inspector::InField tileSet("tileSet");
+        edited = drawSquareSheetFields(palette.tileSet);
+    }
+
     edited |= drawTileSizeField(palette);
     ImGui::Separator();
 

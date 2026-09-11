@@ -149,7 +149,7 @@ void LevelUi::drawLevel(const Level &level, const LevelData &levelData, EditorCo
     SavedInScope was(asItWasSaved<LevelData>(saveable.lastSeen(editing)));
 
     LevelData edited = levelData;
-    if (inspector::draw("next", edited.nextLevel))
+    if (inspector::draw("nextLevel", edited.nextLevel))
     {
         history.remembers(levelData);
         commands.onLevelEdited(edited);

@@ -167,6 +167,16 @@ namespace inspector
         return drawHere(name, value, changed);
     }
 
+    template <class Shown, class Held>
+    Edited drawAs(std::string_view name, Shown &shown, const Held &held)
+    {
+        InField here(name);
+        const bool changed = changedHere(held);
+        Marking marking(changed);
+
+        return drawNamed(name, shown, changed);
+    }
+
     template <class T> Edited drawHere(std::string_view name, T &value, bool changed)
     {
         if constexpr (HasCustomField<T>)

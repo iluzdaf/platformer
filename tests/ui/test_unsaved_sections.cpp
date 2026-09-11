@@ -16,6 +16,7 @@
 #include "ui/camera_ui.hpp"
 #include "ui/levels_ui.hpp"
 #include "ui/editor_commands.hpp"
+#include "ui/editor_history.hpp"
 #include "ui/level_ui.hpp"
 
 namespace
@@ -109,12 +110,14 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
 #include <optional>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/armed.hpp"
+#include "ui/editor_history.hpp"
 #include "ui/level_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
 
 TEST_CASE("A level edited with the inspector shut still reports unsaved", "[UnsavedSections]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     GameData gameData = loadGameData();
     std::string levelPath = assetPath("levels/level1.json");
     LevelData levelData = readLevelData(levelPath);
@@ -140,7 +143,8 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
 
 TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSections]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     GameData gameData = loadGameData();
     std::string levelPath = assetPath("levels/level1.json");
     LevelData levelData = readLevelData(levelPath);
@@ -186,7 +190,8 @@ TEST_CASE("Reverting the levels section puts the first level back", "[UnsavedSec
 
 TEST_CASE("A clean level whose file is as it knows it has nothing to take", "[UnsavedSections]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     ACopyOfLevelOne copy;
     const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
@@ -198,7 +203,8 @@ TEST_CASE("A clean level whose file is as it knows it has nothing to take", "[Un
 
 TEST_CASE("A clean level takes the disk once its file changes", "[UnsavedSections]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     ACopyOfLevelOne copy;
     const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
@@ -213,7 +219,8 @@ TEST_CASE("A clean level takes the disk once its file changes", "[UnsavedSection
 
 TEST_CASE("A level with unsaved edits is kept and stays unsaved", "[UnsavedSections]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     ACopyOfLevelOne copy;
     const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
@@ -230,7 +237,8 @@ TEST_CASE(
     "A level kept through a reload is compared against what is on disk now",
     "[UnsavedSections]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     ACopyOfLevelOne copy;
     const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
@@ -246,7 +254,8 @@ TEST_CASE(
 
 TEST_CASE("A level that took the disk is compared against what it loaded", "[UnsavedSections]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     ACopyOfLevelOne copy;
     const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
@@ -263,13 +272,15 @@ TEST_CASE("A level that took the disk is compared against what it loaded", "[Uns
 
 TEST_CASE("A level never looked at takes the disk only where it differs", "[UnsavedSections]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     ACopyOfLevelOne copy;
     const std::string &levelPath = copy.path;
     LevelData levelData = readLevelData(levelPath);
     REQUIRE_FALSE(levelUi.takesTheDisk(levelData, levelPath));
 
-    LevelUi another;
+    EditorHistory anotherHistory;
+    LevelUi another{anotherHistory};
     LevelData changedOnDisk = levelData;
     changedOnDisk.playerFeet.x += 16.0f;
     writeLevelData(changedOnDisk, levelPath);

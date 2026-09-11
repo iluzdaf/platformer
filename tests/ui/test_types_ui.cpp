@@ -1100,3 +1100,32 @@ TEST_CASE(
                 gameData, TypeShown{TypeShown::What::Pickup, gameData.pickupData.begin()->first})
                 .has_value());
 }
+
+TEST_CASE("A type added or removed says the names changed, once", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+
+    REQUIRE_FALSE(typesUi.namesChanged());
+
+    typesUi.add(gameData, TypeShown::What::Npc);
+
+    REQUIRE(typesUi.namesChanged());
+    REQUIRE_FALSE(typesUi.namesChanged());
+
+    typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
+    typesUi.remove(gameData);
+
+    REQUIRE(typesUi.namesChanged());
+    REQUIRE_FALSE(typesUi.namesChanged());
+}
+
+TEST_CASE("Editing a type without touching its name says nothing changed", "[TypesUi]")
+{
+    TypesUi typesUi;
+    GameData gameData = twoOfEach();
+
+    gameData.npcData.at("rat").actorData.size = glm::vec2(24.0f);
+
+    REQUIRE_FALSE(typesUi.namesChanged());
+}

@@ -743,3 +743,22 @@ TEST_CASE("Reverting takes back a palette that was added", "[TilePalettesUi]")
     REQUIRE(palettes.size() == before);
     REQUIRE_FALSE(palettes.contains("ice"));
 }
+
+TEST_CASE("A palette added or removed says the names changed, once", "[TilePalettesUi]")
+{
+    TilePalettesUi tilePalettesUi("levels", [](const TilePalettes &) {});
+    TilePalettes palettes = namedPalettes();
+
+    REQUIRE_FALSE(tilePalettesUi.namesChanged());
+
+    tilePalettesUi.add(palettes);
+
+    REQUIRE(tilePalettesUi.namesChanged());
+    REQUIRE_FALSE(tilePalettesUi.namesChanged());
+
+    tilePalettesUi.show("default");
+    tilePalettesUi.remove(palettes);
+
+    REQUIRE(tilePalettesUi.namesChanged());
+    REQUIRE_FALSE(tilePalettesUi.namesChanged());
+}

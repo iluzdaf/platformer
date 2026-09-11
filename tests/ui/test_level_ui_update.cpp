@@ -10,6 +10,8 @@
 #include "tile_map/tile_map.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
+#include "ui/editor_history.hpp"
+#include "ui/editor_section.hpp"
 #include "ui/level_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include <imgui_internal.h>
@@ -67,12 +69,6 @@ namespace
             REQUIRE(edited);
             return *edited;
         }
-
-        void forgetWhatWasAsked()
-        {
-            commands.drain();
-            edited.reset();
-        }
     };
 
     MouseOnTheMap over(const Level &level, glm::ivec2 tilePosition)
@@ -99,7 +95,8 @@ namespace
 
 TEST_CASE("Painting sets the tile under the mouse while the button is down", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
     glm::ivec2 target(3, 2);
@@ -118,7 +115,8 @@ TEST_CASE("Painting sets the tile under the mouse while the button is down", "[L
 
 TEST_CASE("Painting waits for the button", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
     glm::ivec2 target(3, 2);
@@ -137,7 +135,8 @@ TEST_CASE("Painting waits for the button", "[LevelUi]")
 
 TEST_CASE("A click that belongs to the panel does not reach the map", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
     glm::ivec2 target(3, 2);
@@ -152,7 +151,8 @@ TEST_CASE("A click that belongs to the panel does not reach the map", "[LevelUi]
 
 TEST_CASE("A click outside the map changes nothing", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
 
@@ -167,7 +167,8 @@ TEST_CASE("A click outside the map changes nothing", "[LevelUi]")
 
 TEST_CASE("Nothing happens when nothing is armed", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed;
     glm::ivec2 target(3, 2);
@@ -186,7 +187,8 @@ TEST_CASE("Nothing happens when nothing is armed", "[LevelUi]")
 
 TEST_CASE("Picking the player start moves it and puts the pick down", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
     glm::ivec2 target(4, Standing);
@@ -205,7 +207,8 @@ TEST_CASE("Picking the player start moves it and puts the pick down", "[LevelUi]
 
 TEST_CASE("A pick waits for the click rather than the hold", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
 
@@ -224,7 +227,8 @@ TEST_CASE("A pick waits for the click rather than the hold", "[LevelUi]")
 
 TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 0};
     glm::ivec2 target(5, Standing);
@@ -242,7 +246,8 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
 
 TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     NpcSpawnData walking = aVillagerAt(glm::ivec2(2, Standing));
     walking.patrol = beatOf(glm::ivec2(1, Standing), glm::ivec2(8, Standing));
     Editing editing({walking});
@@ -265,7 +270,8 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
 
 TEST_CASE("The first end picked of an absent beat becomes both of them", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
     REQUIRE_FALSE(editing.levelData.npcs.front().patrol);
 
@@ -285,7 +291,8 @@ TEST_CASE("The first end picked of an absent beat becomes both of them", "[Level
 
 TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 4};
 
@@ -305,7 +312,8 @@ TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[Lev
 TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
 {
     HeadlessImGui gui;
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     LevelData levelData = dataPlacing({aVillagerAt(glm::ivec2(3, Standing))});
     Level level = levelOf(levelData);
     ActorAnimationData animations;
@@ -397,9 +405,10 @@ namespace
     }
 }
 
-TEST_CASE("Undo puts back the level as it was before the paint", "[LevelUi]")
+TEST_CASE("The level as it was before the paint is remembered", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
     glm::ivec2 target(3, 2);
@@ -407,16 +416,17 @@ TEST_CASE("Undo puts back the level as it was before the paint", "[LevelUi]")
 
     paints(levelUi, editing, holding(editing.level, target), armed);
     REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == PaintedTile);
-    editing.forgetWhatWasAsked();
 
-    REQUIRE(levelUi.undo(editing.commands));
-
-    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == wasThere);
+    std::optional<EditorStep> back = history.stepBack();
+    REQUIRE(back);
+    REQUIRE(back->section == EditorSection::Level);
+    REQUIRE(back->levelData->tileMapData.indices[target.y][target.x] == wasThere);
 }
 
 TEST_CASE("A stroke of paint is one step back, not one for each tile", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
 
@@ -424,32 +434,30 @@ TEST_CASE("A stroke of paint is one step back, not one for each tile", "[LevelUi
     paints(levelUi, editing, holding(editing.level, glm::ivec2(4, 2)), armed);
     paints(levelUi, editing, lettingGo(), armed);
     paints(levelUi, editing, holding(editing.level, glm::ivec2(5, 2)), armed);
-    editing.forgetWhatWasAsked();
 
-    REQUIRE(levelUi.undo(editing.commands));
-    REQUIRE(levelUi.undo(editing.commands));
-    REQUIRE_FALSE(levelUi.undo(editing.commands));
+    REQUIRE(history.stepBack());
+    REQUIRE(history.stepBack());
+    REQUIRE_FALSE(history.stepBack());
 }
 
-TEST_CASE("Undo puts a moved player start back where it stood", "[LevelUi]")
+TEST_CASE("The player start is remembered where it stood", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
     glm::vec2 stood = editing.levelData.playerFeet;
 
     paints(levelUi, editing, clicking(editing.level, glm::ivec2(4, Standing)), armed);
     REQUIRE(editing.asked().playerFeet != stood);
-    editing.forgetWhatWasAsked();
 
-    REQUIRE(levelUi.undo(editing.commands));
-
-    REQUIRE(editing.asked().playerFeet == stood);
+    REQUIRE(history.stepBack()->levelData->playerFeet == stood);
 }
 
-TEST_CASE("Undoing a resize asks for the shift that moves the player back", "[LevelUi]")
+TEST_CASE("A resize is remembered with the shift that moves the player back", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Resized> asked;
     std::ignore = editing.commands.onLevelResized.connect(
@@ -459,32 +467,33 @@ TEST_CASE("Undoing a resize asks for the shift that moves the player back", "[Le
     editing.commands.drain();
     REQUIRE(asked->level.tileMapData.indices[0].size() == MapTiles + 1);
 
-    REQUIRE(levelUi.undo(editing.commands));
-    editing.commands.drain();
-
-    REQUIRE(asked->level.tileMapData.indices[0].size() == MapTiles);
-    REQUIRE(asked->shift == glm::vec2(-16.0f, 0.0f));
+    std::optional<EditorStep> back = history.stepBack();
+    REQUIRE(back);
+    REQUIRE(back->levelData->tileMapData.indices[0].size() == MapTiles);
+    REQUIRE(back->movingThePlayerBack == glm::vec2(-16.0f, 0.0f));
 }
 
-TEST_CASE("A level with nothing behind it has nothing to undo", "[LevelUi]")
+TEST_CASE("A level nobody has edited leaves the history empty", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
+    std::optional<Armed> armed;
 
-    REQUIRE_FALSE(levelUi.undo(editing.commands));
+    paints(levelUi, editing, clicking(editing.level, glm::ivec2(4, Standing)), armed);
 
-    editing.commands.drain();
-    REQUIRE_FALSE(editing.edited);
+    REQUIRE_FALSE(history.anythingToUndo());
 }
 
 TEST_CASE("Moving to another level forgets what the last one was", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
 
     paints(levelUi, editing, holding(editing.level, glm::ivec2(3, 2)), armed);
-    editing.forgetWhatWasAsked();
+    REQUIRE(history.anythingToUndo());
 
     levelUi.update(
         lettingGo(),
@@ -494,61 +503,20 @@ TEST_CASE("Moving to another level forgets what the last one was", "[LevelUi]")
         armed,
         editing.commands);
 
-    REQUIRE_FALSE(levelUi.undo(editing.commands));
+    REQUIRE_FALSE(history.anythingToUndo());
 }
 
 TEST_CASE("A section told to forget has nothing to undo", "[LevelUi]")
 {
-    LevelUi levelUi;
+    EditorHistory history;
+    LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PaintTile{PaintedTile};
 
     paints(levelUi, editing, holding(editing.level, glm::ivec2(3, 2)), armed);
-    editing.forgetWhatWasAsked();
+    REQUIRE(history.anythingToUndo());
 
     levelUi.forgets();
 
-    REQUIRE_FALSE(levelUi.undo(editing.commands));
-}
-
-TEST_CASE("The undo button in the level section steps back", "[LevelUi]")
-{
-    HeadlessImGui gui;
-    LevelUi levelUi;
-    Editing editing;
-    std::optional<Armed> armed = PaintTile{PaintedTile};
-    ActorAnimationData animations;
-    Observed observed;
-    ActorState playerState;
-    glm::ivec2 target(3, 2);
-    int wasThere = editing.levelData.tileMapData.indices[target.y][target.x];
-
-    paints(levelUi, editing, holding(editing.level, target), armed);
-    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == PaintedTile);
-    editing.forgetWhatWasAsked();
-
-    auto drawing = [&]
-    {
-        levelUi.draw(
-            editing.level,
-            editing.levelData,
-            animations,
-            observed,
-            editing.level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
-            playerState,
-            shippedNpcData(),
-            armed,
-            editing.commands);
-    };
-
-    gui.frame(drawing);
-    gui.frame(
-        [&]
-        {
-            ImGui::ActivateItemByID(ImGui::GetID("undo"));
-            drawing();
-        });
-    gui.frame(drawing);
-
-    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == wasThere);
+    REQUIRE_FALSE(history.anythingToUndo());
 }

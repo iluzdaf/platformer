@@ -121,6 +121,7 @@ void TilePalettesUi::add(TilePalettes &tilePalettes)
 
     tilePalettes.insert({name, made});
     renaming.added(name);
+    namesTouched = true;
     selectedPalette = name;
 }
 
@@ -138,7 +139,13 @@ void TilePalettesUi::remove(TilePalettes &tilePalettes)
     else
         tilePalettes.erase(selectedPalette);
 
+    namesTouched = true;
     selectedPalette = firstShownIn(tilePalettes);
+}
+
+bool TilePalettesUi::namesChanged()
+{
+    return std::exchange(namesTouched, false);
 }
 
 void TilePalettesUi::drawChooser(TilePalettes &tilePalettes)
@@ -175,6 +182,7 @@ void TilePalettesUi::drawRename(const TilePalettes &tilePalettes)
             { return shownIn(tilePalettes, name) || renaming.somethingIsBecoming(name); }))
         return;
 
+    namesTouched = true;
     lookAheadAtLevels(
         renaming,
         levelsDirectory,

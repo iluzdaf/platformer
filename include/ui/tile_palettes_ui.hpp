@@ -36,6 +36,7 @@ public:
     const std::string &shownPalette() const;
     void add(TilePalettes &tilePalettes);
     void remove(TilePalettes &tilePalettes);
+    bool namesChanged();
 
     bool save(TilePalettes &tilePalettes, LevelData &playing);
     void revert(TilePalettes &tilePalettes);
@@ -63,6 +64,7 @@ private:
     LastAnswer tileGate;
     Renaming renaming;
     std::string selectedPalette, askedToWarm;
+    bool namesTouched = false;
 };
 
 std::string aNameNobodyHasTaken(const TilePalettes &tilePalettes);

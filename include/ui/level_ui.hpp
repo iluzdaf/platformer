@@ -4,7 +4,7 @@
 
 #include "ui/last_answer.hpp"
 
-#include "ui/level_history.hpp"
+#include "ui/editor_history.hpp"
 
 #include "game/level_resizing.hpp"
 
@@ -44,6 +44,8 @@ void askedToResize(
 class LevelUi
 {
 public:
+    explicit LevelUi(EditorHistory &history);
+
     void draw(
         const Level &level,
         const LevelData &levelData,
@@ -80,7 +82,7 @@ public:
 private:
     Saveable saveable;
     LastAnswer walkGate;
-    LevelHistory history;
+    EditorHistory &history;
     std::string editing;
     bool paintingAStroke = false;
     NavigationUi navigationUi;
@@ -89,7 +91,6 @@ private:
     bool npcsShown = false;
 
     std::string asItWouldBeSaved(const LevelData &levelData) const;
-    void drawUndo(EditorCommands &commands);
     void drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands);
     void drawActors(
         const Level &level,

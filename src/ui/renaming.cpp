@@ -161,18 +161,28 @@ std::string nameAfterRenames(const Renames &renames, const std::string &name)
     return renamed == renames.end() ? name : renamed->second;
 }
 
-std::string levelsInAList(const std::vector<std::string> &levelPaths)
+std::string inAList(const std::vector<std::string> &names)
 {
     std::string listed;
-    for (std::size_t at = 0; at < levelPaths.size(); ++at)
+    for (std::size_t at = 0; at < names.size(); ++at)
     {
         if (at > 0)
-            listed += at + 1 == levelPaths.size() ? " and " : ", ";
+            listed += at + 1 == names.size() ? " and " : ", ";
 
-        listed += levelName(levelPaths[at]);
+        listed += names[at];
     }
 
     return listed;
+}
+
+std::string levelsInAList(const std::vector<std::string> &levelPaths)
+{
+    std::vector<std::string> names;
+    names.reserve(levelPaths.size());
+    for (const std::string &levelPath : levelPaths)
+        names.push_back(levelName(levelPath));
+
+    return inAList(names);
 }
 
 std::string Renaming::shownName(const std::string &onDisk) const
@@ -182,10 +192,24 @@ std::string Renaming::shownName(const std::string &onDisk) const
 
 std::optional<std::string> Renaming::cannotSaveBecause() const
 {
-    if (unreadable.empty())
-        return std::nullopt;
+    if (!unreadable.empty())
+        return levelsInAList(unreadable) + " cannot be read";
 
-    return levelsInAList(unreadable) + " cannot be read";
+    if (!stranded.empty())
+        return levelsInAList(stranded) + " would be left naming \"" + inAList(nowhereToGo()) +
+               "\", which is being removed";
+
+    return std::nullopt;
+}
+
+std::vector<std::string> Renaming::nowhereToGo() const
+{
+    std::vector<std::string> names;
+    for (const auto &[was, fallsBackTo] : removals)
+        if (!fallsBackTo)
+            names.push_back(was);
+
+    return names;
 }
 
 std::string Renaming::whatTheLevelsNeed() const
@@ -212,6 +236,7 @@ void Renaming::applied()
     neverSaved.clear();
     willRePoint.clear();
     unreadable.clear();
+    stranded.clear();
 }
 
 void Renaming::willReach(const std::vector<std::string> &levels)
@@ -224,6 +249,11 @@ void Renaming::cannotReach(const std::vector<std::string> &levels)
     unreadable = levels;
 }
 
+void Renaming::leftNaming(const std::vector<std::string> &levels)
+{
+    stranded = levels;
+}
+
 void Renaming::forget()
 {
     typing.clear();
@@ -233,6 +263,7 @@ void Renaming::forget()
     neverSaved.clear();
     willRePoint.clear();
     unreadable.clear();
+    stranded.clear();
 }
 
 void lookAheadAtLevels(
@@ -246,6 +277,14 @@ void lookAheadAtLevels(
 
     renaming.willReach(reach.levels);
     renaming.cannotReach(reach.unreadable);
+
+    Renames gone;
+    for (const std::string &name : renaming.nowhereToGo())
+        gone.insert({name, name});
+
+    rewriting::Reach left = rewriting::whatItWouldReach(
+        directory, [&](LevelData &levelData) { return rename(levelData, gone); });
+    renaming.leftNaming(left.levels);
 }
 
 bool writeRenamesIntoLevels(

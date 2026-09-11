@@ -21,6 +21,7 @@
 #include "ui/actors_in_level.hpp"
 #include "ui/navigation_ui.hpp"
 #include "ui/saveable.hpp"
+#include "tile_map/tile_palette_data.hpp"
 
 class ImGuiManager;
 class TileMap;
@@ -46,6 +47,10 @@ class LevelUi
 public:
     explicit LevelUi(EditorHistory &history);
 
+    void drawTilePaletteNamed(
+        const LevelData &levelData,
+        const TilePalettes &tilePalettes,
+        EditorCommands &commands);
     void draw(
         const Level &level,
         const LevelData &levelData,

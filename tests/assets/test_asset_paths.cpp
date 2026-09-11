@@ -65,3 +65,16 @@ TEST_CASE("Files in a folder under the directory are listed too", "[AssetPaths]"
     REQUIRE(std::find(scripts.begin(), scripts.end(), "scripts/player.lua") != scripts.end());
     REQUIRE(std::find(scripts.begin(), scripts.end(), "scripts/npcs/rat.lua") != scripts.end());
 }
+
+TEST_CASE("A path outside the assets root is still said, and still found", "[AssetPaths]")
+{
+    std::string outside =
+        (std::filesystem::temp_directory_path() / "platformer_outside.json").generic_string();
+
+    std::string said = assets::underRoot(outside);
+
+    REQUIRE_FALSE(said.empty());
+    REQUIRE(
+        std::filesystem::weakly_canonical(assets::pathTo(said)) ==
+        std::filesystem::weakly_canonical(outside));
+}

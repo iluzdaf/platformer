@@ -22,7 +22,9 @@ namespace assets
 
     std::string underRoot(const std::string &path)
     {
-        return std::filesystem::relative(path, root()).generic_string();
+        std::string said = std::filesystem::relative(path, root()).generic_string();
+
+        return said.empty() ? std::filesystem::path(path).generic_string() : said;
     }
 
     std::vector<std::string> filesIn(std::string_view directory, std::string_view extension)

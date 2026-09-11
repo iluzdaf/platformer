@@ -34,7 +34,7 @@
 #include "ui/data_inspector.hpp"
 #include "ui/saved_in_scope.hpp"
 #include "ui/saveable.hpp"
-#include "ui/state_machine_field.hpp"
+#include "ui/selection_in_scope.hpp"
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "ui/types_ui.hpp"
@@ -358,136 +358,90 @@ TEST_CASE("Every field of the shipped game data says when it is edited", "[Inspe
 
 namespace
 {
-    std::vector<std::string> readsAsChangedShowing(
-        HeadlessImGui &gui,
-        ActorData &actor,
-        MachineShown shown)
+    std::vector<MachineShown> everySelectionIn(const std::vector<GraphShown> &graphs)
     {
-        auto remembering = [shown]
+        std::size_t nodes = 0;
+        std::size_t edges = 0;
+        for (const GraphShown &graph : graphs)
         {
-            ImGui::TreeNodeSetOpen(ImGui::GetID("animationData"), true);
-            ImGui::PushOverrideID(ImGui::GetID("animationData"));
-            ImGui::GetStateStorage()->SetInt(
-                ImGui::GetID("shownWhat"), static_cast<int>(shown.what));
-            ImGui::GetStateStorage()->SetInt(
-                ImGui::GetID("shownIndex"), static_cast<int>(shown.index));
-            ImGui::PopID();
-        };
+            nodes = std::max(nodes, graph.nodes.size());
+            edges = std::max(edges, graph.edges.size());
+        }
 
-        return nothingReadsAsChangedWhile(
-            gui,
-            [&actor, remembering]
-            {
-                remembering();
-                SavedInScope was(differs::compact(actor));
-                std::ignore = inspector::draw("animationData", actor.animationData);
-            });
-    }
-}
+        std::vector<MachineShown> shown{MachineShown{}};
+        for (std::size_t at = 0; at < nodes; ++at)
+            shown.push_back(showingState(at));
 
-TEST_CASE("Every clip and rung is looked for where the actor keeps it", "[InspectorMarks]")
-{
-    HeadlessImGui gui;
-    GameData gameData = aGameWithSomethingOfEachKind();
-    ActorData shipped = loadGameData().playerData.actorData;
-    ActorData &actor = GENERATE_REF(std::ref(gameData.playerData.actorData), std::ref(shipped));
-    GraphShown graph = graphOf(actor.animationData);
-    REQUIRE(graph.nodes.size() > 1);
-    REQUIRE_FALSE(graph.edges.empty());
+        for (std::size_t at = 0; at < edges; ++at)
+            shown.push_back(showingTransition(at));
 
-    for (std::size_t at = 0; at < graph.nodes.size(); ++at)
-    {
-        std::vector<std::string> changed = readsAsChangedShowing(gui, actor, showingState(at));
-        INFO(
-            "showing " << graph.nodes[at].name << ", read as changed: "
-                       << (changed.empty() ? std::string() : changed.front()));
-        REQUIRE(changed.empty());
+        return shown;
     }
 
-    for (std::size_t at = 0; at < graph.edges.size(); ++at)
+    std::vector<GraphShown> graphsDrawnFor(GameData &gameData, const TypeShown &type)
     {
-        std::vector<std::string> changed = readsAsChangedShowing(gui, actor, showingTransition(at));
-        INFO(
-            "showing rung " << at << ", read as changed: "
-                            << (changed.empty() ? std::string() : changed.front()));
-        REQUIRE(changed.empty());
-    }
-}
+        if (type.what == TypeShown::What::Player)
+            return {graphOf(gameData.playerData.actorData.animationData)};
 
-namespace
-{
-    std::vector<std::string> readsAsChangedShowing(
-        HeadlessImGui &gui,
-        NpcData &npc,
-        MachineShown shown)
-    {
-        return nothingReadsAsChangedWhile(
-            gui,
-            [&npc, shown]
-            {
-                SavedInScope was(differs::compact(npc));
-                inspector::InField machine("stateMachineBehaviorData");
-                MachineShown showing = shown;
-                std::ignore = drawStateMachineEditor(npc.stateMachineBehaviorData, {}, showing);
-            });
-    }
-}
+        if (type.what != TypeShown::What::Npc)
+            return {};
 
-TEST_CASE("Every state and transition is looked for where the npc keeps it", "[InspectorMarks]")
-{
-    HeadlessImGui gui;
-    NpcData npc = loadGameData().npcData.at("rat");
-    REQUIRE(npc.stateMachineBehaviorData);
-    GraphShown graph = graphOf(*npc.stateMachineBehaviorData);
-    REQUIRE_FALSE(graph.nodes.empty());
-    REQUIRE_FALSE(graph.edges.empty());
+        NpcData &npc = gameData.npcData.at(type.name);
+        std::vector<GraphShown> graphs{graphOf(npc.actorData.animationData)};
+        if (npc.stateMachineBehaviorData)
+            graphs.push_back(graphOf(*npc.stateMachineBehaviorData));
 
-    for (std::size_t at = 0; at < graph.nodes.size(); ++at)
-    {
-        std::vector<std::string> changed = readsAsChangedShowing(gui, npc, showingState(at));
-        INFO(
-            "showing " << graph.nodes[at].name << ", read as changed: "
-                       << (changed.empty() ? std::string() : changed.front()));
-        REQUIRE(changed.empty());
+        return graphs;
     }
 
-    for (std::size_t at = 0; at < graph.edges.size(); ++at)
+    std::vector<TypeShown> everyTypeIn(const GameData &gameData)
     {
-        std::vector<std::string> changed = readsAsChangedShowing(gui, npc, showingTransition(at));
-        INFO(
-            "showing transition " << at << ", read as changed: "
-                                  << (changed.empty() ? std::string() : changed.front()));
-        REQUIRE(changed.empty());
+        std::vector<TypeShown> types{thePlayer()};
+        for (const auto &[name, npc] : gameData.npcData)
+            types.push_back(TypeShown{TypeShown::What::Npc, name});
+
+        for (const auto &[name, pickup] : gameData.pickupData)
+            types.push_back(TypeShown{TypeShown::What::Pickup, name});
+
+        return types;
+    }
+
+    std::string saying(const TypeShown &type, MachineShown shown)
+    {
+        return type.name + ", showing " + std::to_string(static_cast<int>(shown.what)) + " " +
+               std::to_string(shown.index);
     }
 }
 
 TEST_CASE("Nothing in the cast reads as changed until it is edited", "[InspectorMarks]")
 {
     HeadlessImGui gui;
-    GameData gameData = aGameWithSomethingOfEachKind();
+    GameData ofEachKind = aGameWithSomethingOfEachKind();
+    GameData shipped = loadGameData();
+    GameData &gameData = GENERATE_REF(std::ref(ofEachKind), std::ref(shipped));
     TextureCache textures;
     EditorCommands commands;
 
-    auto nothingSaysItChanged = [&](const TypeShown &type)
-    {
-        TypesUi typesUi;
-        REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-        typesUi.show(type);
+    for (const TypeShown &type : everyTypeIn(gameData))
+        for (const MachineShown &shown : everySelectionIn(graphsDrawnFor(gameData, type)))
+        {
+            TypesUi typesUi;
+            REQUIRE_FALSE(typesUi.unsavedSince(gameData));
+            typesUi.show(type);
 
-        return nothingReadsAsChangedWhile(
-            gui, [&] { typesUi.draw(gameData, textures, commands, nullptr); });
-    };
+            std::vector<std::string> changed = nothingReadsAsChangedWhile(
+                gui,
+                [&]
+                {
+                    ShowingSelection showing(shown);
+                    typesUi.draw(gameData, textures, commands, nullptr);
+                });
 
-    for (const TypeShown &type :
-         {thePlayer(),
-          TypeShown{TypeShown::What::Npc, "rat"},
-          TypeShown{TypeShown::What::Pickup, "coin"}})
-    {
-        std::vector<std::string> changed = nothingSaysItChanged(type);
-        INFO("looking at " << type.name);
-        for (const std::string &path : changed)
-            UNSCOPED_INFO("read as changed: " << path);
+            std::string report = "looking at " + saying(type, shown);
+            for (const std::string &path : changed)
+                report += "\nread as changed: " + path;
 
-        REQUIRE(changed.empty());
-    }
+            INFO(report);
+            REQUIRE(changed.empty());
+        }
 }

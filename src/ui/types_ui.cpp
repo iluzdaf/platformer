@@ -183,6 +183,7 @@ void TypesUi::drawShown(
         drawActorPreview(scope, npc.actorData);
         edited |= inspector::drawFieldsExcept(npc, "stateMachineBehaviorData");
         OfferingFacts declared(npc.facts);
+        inspector::InField machine("stateMachineBehaviorData");
         edited |= drawStateMachineEditor(
             npc.stateMachineBehaviorData, statesLitBy(live, showing.name), machineShown);
         break;

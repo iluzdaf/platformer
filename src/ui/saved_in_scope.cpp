@@ -14,6 +14,9 @@ namespace
 {
     std::optional<glz::json_t> saved;
     std::vector<std::string> path;
+    std::vector<std::string> pathsLooked;
+    std::vector<std::string> pathsChanged;
+    bool watching = false;
 
     std::string canonical(const std::string &json)
     {
@@ -88,6 +91,30 @@ inspector::InField::~InField()
     path.pop_back();
 }
 
+inspector::Watching::Watching()
+{
+    pathsLooked.clear();
+    pathsChanged.clear();
+    watching = true;
+}
+
+inspector::Watching::~Watching()
+{
+    watching = false;
+    pathsLooked.clear();
+    pathsChanged.clear();
+}
+
+std::vector<std::string> inspector::Watching::looked() const
+{
+    return pathsLooked;
+}
+
+std::vector<std::string> inspector::Watching::saidChanged() const
+{
+    return pathsChanged;
+}
+
 std::string inspector::pathHere()
 {
     std::string dotted;
@@ -97,18 +124,34 @@ std::string inspector::pathHere()
     return dotted;
 }
 
+namespace
+{
+    bool askedOfWhatWasSaved(const glz::json_t &from, const std::string &nowJson)
+    {
+        const glz::json_t *at = walked(from);
+        if (!at)
+            return nowJson != "null";
+
+        std::string was;
+        if (glz::write_json(*at, was))
+            return false;
+
+        return canonical(was) != canonical(nowJson);
+    }
+}
+
 bool inspector::changedFromSaved(const std::string &nowJson)
 {
     if (!saved)
         return false;
 
-    const glz::json_t *at = walked(saved.value());
-    if (!at)
-        return true;
+    bool answer = askedOfWhatWasSaved(*saved, nowJson);
+    if (watching)
+    {
+        pathsLooked.push_back(pathHere());
+        if (answer)
+            pathsChanged.push_back(pathHere());
+    }
 
-    std::string was;
-    if (glz::write_json(*at, was))
-        return false;
-
-    return canonical(was) != canonical(nowJson);
+    return answer;
 }

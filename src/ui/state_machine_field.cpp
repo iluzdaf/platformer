@@ -4,6 +4,7 @@
 #include <string>
 #include <imgui.h>
 #include "ui/state_machine_field.hpp"
+#include "ui/saved_in_scope.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/state_machine_graph.hpp"
@@ -82,10 +83,18 @@ namespace
     {
         ImGui::Separator();
         if (shown.what == MachineShown::What::State)
+        {
+            inspector::InField states("states");
+            inspector::InField state(std::to_string(shown.index));
             return inspector::drawFields(machine.states[shown.index]);
+        }
 
         if (shown.what == MachineShown::What::Transition)
+        {
+            inspector::InField transitions("transitions");
+            inspector::InField transition(std::to_string(shown.index));
             return inspector::drawFields(machine.transitions[shown.index]);
+        }
 
         ImGui::TextDisabled("pick a state or a transition");
         return {};

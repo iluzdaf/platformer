@@ -1101,3 +1101,31 @@ TEST_CASE("A player dropped from a height is heard where it lands", "[World]")
 
     REQUIRE(heard);
 }
+
+TEST_CASE("A player set down further down the map has not fallen", "[World]")
+{
+    GameData gameData;
+    gameData.tilePalettes = aPaletteWhoseTilesSitAtDifferentHeights();
+    gameData.playerData = playerDataWithEveryAbility();
+
+    LevelData levelData = aFloorLevelPlacing({});
+    for (int x = 0; x < 4; ++x)
+        levelData.tileMapData.indices[FloorLevelRow - 4][x] = 1;
+    levelData.playerFeet = feetOf(glm::ivec2(1, FloorLevelRow - 5));
+
+    TemporaryLevels levels("world_set_down");
+    levels.write("floor.json", levelData);
+
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    world.loadLevel(levels.pathOf("floor.json"));
+    walkFor(world, 10);
+    REQUIRE(world.getPlayer().observed().contacts.onGround);
+    REQUIRE(world.noises().empty());
+
+    world.getPlayer().standAt(feetOf(glm::ivec2(6, FloorLevelStanding)));
+    walkFor(world, 1);
+
+    REQUIRE(world.getPlayer().observed().contacts.onGround);
+    REQUIRE(world.noises().empty());
+}

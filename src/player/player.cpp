@@ -42,8 +42,7 @@ void Player::postFixedUpdate()
     if (decided().wallSlide.emit)
         onWallSliding();
 
-    if (!contacts.wasOnGround && contacts.onGround &&
-        observed().previousVelocity.y > data.fallFromHeightThreshold)
+    if (observed().fell > data.fallFromHeightThreshold)
         onFallFromHeight();
 
     if (!contacts.wasHitCeiling && contacts.hitCeiling)

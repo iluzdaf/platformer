@@ -16,6 +16,7 @@
 #include "actor/actor_behavior.hpp"
 #include "animations/animator.hpp"
 #include "physics/physics_body.hpp"
+#include <limits>
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "conditions/asked.hpp"
@@ -86,10 +87,12 @@ private:
     const NavigationGraph &graphWalked() const;
     void say(const std::string &name, const Asked &value);
     void forgetTheTick();
+    float howFarItFell();
     FactsData declared;
     FactsData known;
     std::vector<std::string> saidForTheTick;
     const NavigationGraph *walking = nullptr;
+    float highestSinceTheGround = std::numeric_limits<float>::max();
     std::optional<glm::vec2> threat;
     Abilities abilities;
     Decided decisions;

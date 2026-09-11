@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <vector>
-#include <limits>
 #include "game/noise.hpp"
 #include <string>
 #include "events/event.hpp"
@@ -60,7 +59,6 @@ private:
 
     std::unique_ptr<Level> level;
     std::vector<Noise> heardThisTick;
-    float highestSinceTheGround = std::numeric_limits<float>::max();
     std::unique_ptr<Player> player;
     Score score;
 

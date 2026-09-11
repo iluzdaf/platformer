@@ -42,6 +42,7 @@
 #include "ui/level_ui.hpp"
 #include "ui/levels_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "actor/actor_state.hpp"
 #include "actor/observed.hpp"
@@ -541,6 +542,34 @@ TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[Inspe
                  armed,
                  commands);
          }});
+
+#ifndef SKIP_OPENGL_TESTS
+    TilePalettes shippedPalettes = shipped.tilePalettes;
+    const std::string paletteName = shippedPalettes.begin()->first;
+    TilePaletteData &shippedPalette = shippedPalettes.at(paletteName);
+    REQUIRE_FALSE(shippedPalette.tiles.empty());
+
+    const int neverSaid = shippedPalette.tiles.begin()->first;
+    shippedPalette.tiles.erase(neverSaid);
+    textures.warm(shippedPalette.tileSet.texture.path);
+
+    TilePalettesUi shippedPalettesUi;
+    shippedPalettesUi.show(paletteName);
+    std::ignore = shippedPalettesUi.unsavedSince(shippedPalettes);
+
+    std::vector<int> everyTile{neverSaid};
+    for (const auto &[index, tile] : shippedPalette.tiles)
+        everyTile.push_back(index);
+
+    for (int tile : everyTile)
+        drawn.push_back(
+            {"the shipped palette showing tile " + std::to_string(tile),
+             [&, tile]
+             {
+                 std::optional<Armed> showing = PaintTile{tile};
+                 shippedPalettesUi.draw(shippedPalettes, textures, commands, showing);
+             }});
+#endif
 
     everyTypeAndSelection(gameData, textures, commands, "cast", drawn);
     everyTypeAndSelection(shipped, textures, commands, "the shipped cast", drawn);

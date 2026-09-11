@@ -280,6 +280,9 @@ inspector::Edited TilePalettesUi::drawTiles(
     SheetInScope scope{tileSet, palette.tileSet};
     InScope offering(scope);
 
+    inspector::InField tiles("tiles");
+    inspector::InField tile(std::to_string(*picked));
+
     auto known = palette.tiles.find(*picked);
     if (known != palette.tiles.end())
     {
@@ -289,6 +292,8 @@ inspector::Edited TilePalettesUi::drawTiles(
 
     TileData nothingSaid;
     drawTilePreview(scope, *picked, nothingSaid, tileSizeOf(palette));
+
+    SavedInScope nothingSavedYet;
     inspector::Edited said = inspector::drawFields(nothingSaid);
     if (said)
         palette.tiles.insert({*picked, nothingSaid});

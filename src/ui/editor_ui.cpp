@@ -17,6 +17,7 @@
 #include "actor/actor_data.hpp"
 #include "player/player_data.hpp"
 #include "ui/actors_in_level.hpp"
+#include "ui/level_ui.hpp"
 #include "ui/tile_palettes_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "cameras/camera2d.hpp"
@@ -102,9 +103,17 @@ void EditorUi::draw(
         ImGui::Separator();
         if (ImGui::CollapsingHeader("Level", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            levelUi.drawTilePaletteNamed(
+            PaletteAsked asked = levelUi.drawTilePaletteNamed(
                 subject.levelData, subject.gameData.tilePalettes, commands);
-            tilePalettesUi.show(subject.levelData.tileMapData.tilePalette);
+            if (asked.add)
+                tilePalettesUi.add(subject.gameData.tilePalettes);
+            else if (asked.remove)
+                tilePalettesUi.remove(subject.gameData.tilePalettes);
+
+            if (asked.add || asked.remove)
+                levelUi.namesPalette(tilePalettesUi.shownPalette(), subject.levelData, commands);
+            else
+                tilePalettesUi.show(subject.levelData.tileMapData.tilePalette);
             if (ImGui::TreeNode("tiles in it"))
             {
                 tilePalettesUi.draw(

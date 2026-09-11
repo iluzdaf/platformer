@@ -43,14 +43,24 @@ void askedToResize(
     int tileSize,
     EditorCommands &commands);
 
+struct PaletteAsked
+{
+    bool add = false;
+    bool remove = false;
+};
+
 class LevelUi
 {
 public:
     explicit LevelUi(EditorHistory &history);
 
-    void drawTilePaletteNamed(
+    PaletteAsked drawTilePaletteNamed(
         const LevelData &levelData,
         const TilePalettes &tilePalettes,
+        EditorCommands &commands);
+    void namesPalette(
+        const std::string &palette,
+        const LevelData &levelData,
         EditorCommands &commands);
     void draw(
         const Level &level,

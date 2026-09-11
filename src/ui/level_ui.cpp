@@ -9,7 +9,7 @@
 #include <variant>
 #include <glaze/glaze.hpp>
 #include "ui/level_ui.hpp"
-#include "ui/level_history.hpp"
+#include "ui/editor_history.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
 #include "actor/actor_animation_data.hpp"
@@ -32,6 +32,10 @@
 #include "ui/size_buttons.hpp"
 #include "game/level_resizing.hpp"
 #include "cameras/camera2d.hpp"
+
+LevelUi::LevelUi(EditorHistory &history) : history(history)
+{
+}
 
 void LevelUi::draw(
     const Level &level,
@@ -139,21 +143,8 @@ void askedToResize(
     commands.onLevelResized(resizedBy(resize, levelData, tileSize), shiftOf(resize, tileSize));
 }
 
-void LevelUi::drawUndo(EditorCommands &commands)
-{
-    ImGui::BeginDisabled(!history.anythingToUndo());
-    if (ImGui::Button("undo"))
-        undo(commands);
-    ImGui::EndDisabled();
-
-    ImGui::SameLine();
-    ImGui::TextDisabled("ctrl+z");
-}
-
 void LevelUi::drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands)
 {
-    drawUndo(commands);
-
     LevelData edited = levelData;
     if (inspector::draw("next", edited.nextLevel))
     {
@@ -177,20 +168,6 @@ void LevelUi::resizes(
 {
     history.remembers(levelData, -shiftOf(resize, tileSize));
     askedToResize(resize, levelData, tileSize, commands);
-}
-
-bool LevelUi::undo(EditorCommands &commands)
-{
-    std::optional<LevelAsItWas> back = history.stepBack();
-    if (!back)
-        return false;
-
-    if (back->movingThePlayerBack == glm::vec2(0.0f))
-        commands.onLevelEdited(back->levelData);
-    else
-        commands.onLevelResized(back->levelData, back->movingThePlayerBack);
-
-    return true;
 }
 
 void LevelUi::forgets()

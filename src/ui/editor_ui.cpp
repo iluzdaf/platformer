@@ -8,6 +8,12 @@
 #include <optional>
 #include "ui/editor_ui.hpp"
 #include "ui/asked_to_undo.hpp"
+#include "ui/editor_history.hpp"
+#include "ui/saveable.hpp"
+#include <glaze/glaze.hpp>
+#include <iostream>
+#include <utility>
+#include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_data.hpp"
 #include "player/player_data.hpp"
 #include "ui/actors_in_level.hpp"
@@ -82,9 +88,7 @@ void EditorUi::draw(
     }
 
     drawSaveRow(saving);
-
-    if (askedToUndo())
-        levelUi.undo(commands);
+    drawUndoRow(subject);
 
     ImGui::Separator();
 
@@ -141,7 +145,115 @@ void EditorUi::draw(
         break;
     }
 
+    forgetsIfNamesChanged(subject);
+    remembersWhatChanged(subject, ImGui::IsAnyItemActive());
+
     ImGui::End();
+}
+
+void EditorUi::drawUndoRow(const EditorSubject &subject)
+{
+    ImGui::BeginDisabled(!history.anythingToUndo());
+    bool pressed = ImGui::Button("undo");
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+    ImGui::TextDisabled("ctrl+z");
+
+    if (pressed || askedToUndo())
+        undo(subject);
+}
+
+void EditorUi::show(EditorSection listed)
+{
+    section = listed;
+}
+
+EditorSection EditorUi::shown() const
+{
+    return section;
+}
+
+void EditorUi::remembersWhatChanged(const EditorSubject &subject, bool stillBeingEdited)
+{
+    std::optional<std::string> was = editing.settled(asJson(subject.gameData), stillBeingEdited);
+    if (!was)
+        return;
+
+    history.remembers(EditorStep{section, std::move(was), std::nullopt, glm::vec2(0.0f)});
+}
+
+void EditorUi::forgetsIfNamesChanged(const EditorSubject &subject)
+{
+    bool types = typesUi.namesChanged();
+    bool palettes = tilePalettesUi.namesChanged();
+    if (!types && !palettes)
+        return;
+
+    history.forgets();
+    editing.startsAgainFrom(asJson(subject.gameData));
+}
+
+bool EditorUi::undo(const EditorSubject &subject)
+{
+    std::optional<EditorStep> back = history.stepBack();
+    if (!back)
+        return false;
+
+    if (back->gameData)
+        putsBack(*back->gameData, subject.gameData);
+
+    if (back->levelData)
+    {
+        if (back->movingThePlayerBack == glm::vec2(0.0f))
+            commands.onLevelEdited(*back->levelData);
+        else
+            commands.onLevelResized(*back->levelData, back->movingThePlayerBack);
+    }
+
+    section = back->section;
+    editing.startsAgainFrom(asJson(subject.gameData));
+
+    return true;
+}
+
+bool EditorUi::anythingToUndo() const
+{
+    return history.anythingToUndo();
+}
+
+namespace
+{
+    std::string castOf(const GameData &gameData)
+    {
+        return asJson(gameData.playerData) + asJson(gameData.npcData) + asJson(gameData.pickupData);
+    }
+}
+
+void EditorUi::putsBack(const std::string &gameDataAsItWas, GameData &gameData)
+{
+    GameData asItWas;
+    if (glz::read_json(asItWas, gameDataAsItWas))
+    {
+        std::cerr << "could not put the game data back\n";
+        return;
+    }
+
+    bool settings = asJson(asItWas.settings) != asJson(gameData.settings);
+    bool camera = asJson(asItWas.cameraData) != asJson(gameData.cameraData);
+    bool cast = castOf(asItWas) != castOf(gameData);
+    bool palettes = asJson(asItWas.tilePalettes) != asJson(gameData.tilePalettes);
+
+    gameData = std::move(asItWas);
+
+    if (settings)
+        commands.onSettingsChanged();
+    if (camera)
+        commands.onCameraChanged();
+    if (cast)
+        commands.onCastChanged();
+    if (palettes)
+        commands.onPalettesChanged();
 }
 
 void EditorUi::drawOverlays(

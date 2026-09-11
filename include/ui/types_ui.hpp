@@ -51,6 +51,7 @@ public:
     std::vector<TypeShown> offered(const GameData &gameData) const;
     void add(GameData &gameData, TypeShown::What what);
     void remove(GameData &gameData);
+    bool namesChanged();
 
 private:
     void drawChooser(GameData &gameData);
@@ -70,6 +71,7 @@ private:
     LastAnswer castGate;
     Renaming npcRenaming, pickupRenaming;
     TypeShown showing = thePlayer();
+    bool namesTouched = false;
     std::string previewing = "idle";
     MachineShown machineShown;
     std::string askedToWarm;

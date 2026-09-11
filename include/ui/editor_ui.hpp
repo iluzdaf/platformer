@@ -10,6 +10,8 @@
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/editor_commands.hpp"
+#include "ui/editor_history.hpp"
+#include "ui/edit_settling.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/camera_ui.hpp"
 #include "ui/game_settings_ui.hpp"
@@ -88,19 +90,30 @@ public:
     Reloaded reloaded(GameData &current, const GameData &onDisk);
     bool levelTakesTheDisk(const LevelData &current, const std::string &levelPath);
 
+    void show(EditorSection listed);
+    EditorSection shown() const;
+    void remembersWhatChanged(const EditorSubject &subject, bool stillBeingEdited);
+    bool undo(const EditorSubject &subject);
+    bool anythingToUndo() const;
+
     SectionSaving savingIn(EditorSection listed, const EditorSubject &subject);
 
 private:
     void drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving);
+    void drawUndoRow(const EditorSubject &subject);
+    void forgetsIfNamesChanged(const EditorSubject &subject);
+    void putsBack(const std::string &gameDataAsItWas, GameData &gameData);
 
 private:
     EditorSection section = EditorSection::Runtime;
+    EditorHistory history;
+    EditSettling editing;
     PlaybackUi playbackUi;
     GameSettingsUi gameSettingsUi;
     CameraUi cameraUi;
     PlayerOverlayUi playerOverlayUi;
     TypesUi typesUi;
-    LevelUi levelUi;
+    LevelUi levelUi{history};
     TilePalettesUi tilePalettesUi;
     LevelsUi levelsUi;
     std::optional<Armed> armed;

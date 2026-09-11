@@ -138,6 +138,7 @@ void TypesUi::drawRename(const GameData &gameData)
             }))
         return;
 
+    namesTouched = true;
     lookAheadAtLevels(
         renaming,
         levelsDirectory,
@@ -368,6 +369,7 @@ void TypesUi::add(GameData &gameData, TypeShown::What what)
 {
     show(addTypeTo(gameData, what));
     (what == TypeShown::What::Npc ? npcRenaming : pickupRenaming).added(showing.name);
+    namesTouched = true;
 }
 
 void TypesUi::remove(GameData &gameData)
@@ -389,7 +391,13 @@ void TypesUi::remove(GameData &gameData)
     else
         removeTypeFrom(gameData, showing);
 
+    namesTouched = true;
     show(thePlayer());
+}
+
+bool TypesUi::namesChanged()
+{
+    return std::exchange(namesTouched, false);
 }
 
 bool TypesUi::reloaded(GameData &current, const GameData &onDisk)

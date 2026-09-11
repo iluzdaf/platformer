@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include "actor/actor.hpp"
+#include "actor/fading_facts.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "animations/animator_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
@@ -43,6 +44,8 @@
 
 namespace
 {
+    constexpr float SaidLingersFor = 0.5f;
+
     bool attackClipSaysWhenToStrike(const ActorAnimationData &animations)
     {
         const FrameAnimationData *attack = clipNamed(animations, AttackClip);
@@ -145,6 +148,7 @@ void Actor::fixedUpdate(
     observations.previousVelocity = observations.velocity;
     observations.velocity = physicsBody.velocity();
     observations.fell = howFarItFell();
+    lately.update(deltaTime);
 
     animator.animate(deltaTime, decisions, observations, stateName());
 
@@ -229,6 +233,12 @@ void Actor::event(const std::string &name, const Asked &value)
 {
     say(name, value);
     saidForTheTick.push_back(name);
+    lately.said(name, value, SaidLingersFor);
+}
+
+const FadingFacts &Actor::saidLately() const
+{
+    return lately;
 }
 
 void Actor::walks(const NavigationGraph &navigationGraph)

@@ -27,10 +27,13 @@
 #include "actor/actor_animation_data.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "conditions/asked.hpp"
+#include "actor/fading_facts.hpp"
 #include "tile_map/tile_map.hpp"
 
 namespace
 {
+    constexpr ImVec4 JustSaidColour{0.5f, 1.0f, 0.6f, 1.0f};
+
     std::string labelOf(const NpcSpawnData &spawn, size_t index)
     {
         return spawn.type + " " + std::to_string(index + 1);
@@ -121,6 +124,19 @@ namespace
             drawRow("Route", std::format("{} heading for {}", *setOffAt, *headingFor));
     }
 
+    void drawFact(const std::string &name, const Asked &value, const FadingFacts &lately)
+    {
+        auto said = lately.all().find(name);
+        if (said == lately.all().end())
+        {
+            ImGui::Text("%s: %s", name.c_str(), textOf(value).c_str());
+            return;
+        }
+
+        ImGui::TextColored(
+            JustSaidColour, "%s: %s", name.c_str(), textOf(said->second.value).c_str());
+    }
+
     void drawMachineOf(const std::map<std::string, NpcData> &npcTypes, const Npc &npc)
     {
         auto type = npcTypes.find(npc.type());
@@ -137,7 +153,7 @@ namespace
 
         drawStateMachineGraph(machine.value(), {std::string(npc.stateName())}, MachineShown{});
         for (const auto &[name, value] : npc.facts())
-            ImGui::Text("%s: %s", name.c_str(), textOf(value).c_str());
+            drawFact(name, value, npc.saidLately());
     }
 
     void drawAnimatorOf(const std::map<std::string, NpcData> &npcTypes, const Npc &npc)

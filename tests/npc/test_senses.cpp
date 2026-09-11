@@ -142,6 +142,35 @@ TEST_CASE("A fact said lasts, and an event lasts the tick it is heard in", "[Sen
     REQUIRE(heardDuringTheTick == std::vector<Asked>{false, true, false});
 }
 
+TEST_CASE("What an event said lingers after the tick, and then is gone", "[Senses]")
+{
+    NpcData listener = aListener();
+    NpcSpawnData spawn = spawnAt("listener", OnTheGround);
+    Level level = levelWithALedgeAndAWall({spawn}, {{"listener", listener}});
+    Npc npc(spawn, listener);
+    npc.onNoise.connect([&npc](const Noise &) { npc.event("heard", true); });
+
+    tick(npc, level);
+    REQUIRE(npc.saidLately().all().empty());
+
+    std::vector<Noise> aLanding{{std::string(LandingNoise), npc.feet()}};
+    npc.beginFrame();
+    npc.fixedUpdate(0.01f, level, std::nullopt, aLanding);
+
+    REQUIRE(npc.facts().at("heard") == Asked{false});
+    REQUIRE(npc.saidLately().all().at("heard").value == Asked{true});
+
+    for (int step = 0; step < 30; ++step)
+        tick(npc, level);
+
+    REQUIRE(npc.saidLately().all().contains("heard"));
+
+    for (int step = 0; step < 30; ++step)
+        tick(npc, level);
+
+    REQUIRE(npc.saidLately().all().empty());
+}
+
 TEST_CASE("A fact nobody declared, or of the wrong kind, is refused", "[Senses]")
 {
     NpcData listener = aListener();

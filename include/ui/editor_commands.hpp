@@ -5,12 +5,14 @@
 #include <string>
 #include "ui/editor_command.hpp"
 #include "game/level_data.hpp"
+#include "tile_map/tile_map_data.hpp"
 
 struct EditorCommands
 {
     EditorCommand<> onPlay, onPause, onStep;
     EditorCommand<const LevelData &> onLevelEdited;
     EditorCommand<const LevelData &, const glm::vec2 &> onLevelResized;
+    EditorCommand<const TileMapData &> onTilesChanged;
     EditorCommand<> onSettingsChanged, onCameraChanged, onCastChanged, onPalettesChanged;
     EditorCommand<const std::string &> onLoadLevel, onWarmTexture;
     EditorCommand<const std::string &, const LevelData &> onPlayLevel;
@@ -22,6 +24,7 @@ struct EditorCommands
         onStep.drain();
         onLevelEdited.drain();
         onLevelResized.drain();
+        onTilesChanged.drain();
         onSettingsChanged.drain();
         onCameraChanged.drain();
         onCastChanged.drain();

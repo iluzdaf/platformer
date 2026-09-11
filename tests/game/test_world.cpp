@@ -21,6 +21,8 @@
 #include "physics/physics_body.hpp"
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
+#include "tile_map/tile_map_data.hpp"
+#include "navigation/navigation_graph.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "timing/fixed_time_step.hpp"
 #include "game/score.hpp"
@@ -923,4 +925,68 @@ TEST_CASE("A level with no file of its own can be played", "[World]")
     REQUIRE(world.getLevel().getNpcs().empty());
     REQUIRE(world.getPlayer().feet() == made.playerFeet);
     REQUIRE_FALSE(readLevelDataIfYouCan("levels/nowhere.json"));
+}
+
+TEST_CASE("A tile painted leaves the creatures where they walked to", "[World]")
+{
+    TwoWalkers playing;
+    walkFor(playing.world, 30);
+    glm::vec2 ratWalkedTo = playing.rat().feet();
+    REQUIRE(ratWalkedTo != feetOf(glm::ivec2(3, FloorLevelStanding)));
+
+    TileMapData painted = playing.world.getLevelData().tileMapData;
+    painted.indices[FloorLevelStanding][8] = 1;
+    playing.world.tilesChanged(painted);
+
+    REQUIRE(playing.world.getLevel().getNpcs().size() == 2);
+    REQUIRE(playing.rat().feet() == ratWalkedTo);
+    REQUIRE(
+        playing.world.getLevel().getTileMap().tilePositionToTileIndex(
+            glm::ivec2(8, FloorLevelStanding)) == 1);
+    REQUIRE(playing.world.getLevelData().tileMapData.indices[FloorLevelStanding][8] == 1);
+}
+
+TEST_CASE("A tile painted does not bring back a coin already taken", "[World]")
+{
+    TwoWalkers playing;
+    playing.world.getPlayer().standAt(feetOf(glm::ivec2(8, FloorLevelStanding)));
+    walkFor(playing.world, 2);
+    REQUIRE(playing.world.getScore().total() == 1);
+
+    playing.world.tilesChanged(playing.world.getLevelData().tileMapData);
+
+    REQUIRE(playing.world.getLevel().getPickups().empty());
+}
+
+TEST_CASE("A tile painted hands the creatures the ground they now walk", "[World]")
+{
+    TwoWalkers playing;
+    walkFor(playing.world, 2);
+    std::size_t nodesBefore =
+        playing.world.getLevel().graphFor(playing.rat().profile()).getNodes().size();
+
+    TileMapData painted = playing.world.getLevelData().tileMapData;
+    for (int x = 0; x < FloorLevelTiles; ++x)
+        painted.indices[FloorLevelStanding - 2][x] = 1;
+    playing.world.tilesChanged(painted);
+
+    REQUIRE(
+        playing.world.getLevel().graphFor(playing.rat().profile()).getNodes().size() > nodesBefore);
+    REQUIRE_NOTHROW(walkFor(playing.world, 2));
+}
+
+TEST_CASE("A tile painted where the player starts is refused", "[World]")
+{
+    TwoWalkers playing;
+    TileMapData wasThere = playing.world.getLevelData().tileMapData;
+
+    TileMapData painted = wasThere;
+    glm::ivec2 start = playing.world.getLevel().getTileMap().tileUnderFeet(
+        playing.world.getLevel().getPlayerStart());
+    painted.indices[start.y][start.x] = 1;
+
+    REQUIRE_THROWS_WITH(
+        playing.world.tilesChanged(painted),
+        Catch::Matchers::ContainsSubstring("Player start position is on a solid tile"));
+    REQUIRE(playing.world.getLevelData().tileMapData.indices == wasThere.indices);
 }

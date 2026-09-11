@@ -10,6 +10,7 @@
 #include "tile_map/tile_map.hpp"
 #include "ui/armed.hpp"
 #include "ui/editor_commands.hpp"
+#include "tile_map/tile_map_data.hpp"
 #include "ui/editor_history.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/level_ui.hpp"
@@ -55,12 +56,15 @@ namespace
         Level level;
         EditorCommands commands;
         std::optional<LevelData> edited;
+        std::optional<TileMapData> painted;
 
         explicit Editing(const std::vector<NpcSpawnData> &npcs = {})
             : levelData(dataPlacing(npcs)), level(levelOf(levelData))
         {
             std::ignore =
                 commands.onLevelEdited.connect([this](const LevelData &now) { edited = now; });
+            std::ignore =
+                commands.onTilesChanged.connect([this](const TileMapData &now) { painted = now; });
         }
 
         const LevelData &asked()
@@ -68,6 +72,13 @@ namespace
             commands.drain();
             REQUIRE(edited);
             return *edited;
+        }
+
+        const TileMapData &askedForTiles()
+        {
+            commands.drain();
+            REQUIRE(painted);
+            return *painted;
         }
     };
 
@@ -109,7 +120,7 @@ TEST_CASE("Painting sets the tile under the mouse while the button is down", "[L
         armed,
         editing.commands);
 
-    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == PaintedTile);
+    REQUIRE(editing.askedForTiles().indices[target.y][target.x] == PaintedTile);
     REQUIRE(armed == std::optional<Armed>(PaintTile{PaintedTile}));
 }
 
@@ -130,7 +141,7 @@ TEST_CASE("Painting waits for the button", "[LevelUi]")
         editing.commands);
 
     editing.commands.drain();
-    REQUIRE_FALSE(editing.edited);
+    REQUIRE_FALSE(editing.painted);
 }
 
 TEST_CASE("A click that belongs to the panel does not reach the map", "[LevelUi]")
@@ -415,7 +426,7 @@ TEST_CASE("The level as it was before the paint is remembered", "[LevelUi]")
     int wasThere = editing.levelData.tileMapData.indices[target.y][target.x];
 
     paints(levelUi, editing, holding(editing.level, target), armed);
-    REQUIRE(editing.asked().tileMapData.indices[target.y][target.x] == PaintedTile);
+    REQUIRE(editing.askedForTiles().indices[target.y][target.x] == PaintedTile);
 
     std::optional<EditorStep> back = history.stepBack();
     REQUIRE(back);

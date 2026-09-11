@@ -16,6 +16,7 @@
 #include "ui/camera_ui.hpp"
 #include "ui/levels_ui.hpp"
 #include "tile_map/tile_map.hpp"
+#include "tile_map/tile_map_data.hpp"
 #include "ui/editor_commands.hpp"
 #include "ui/editor_history.hpp"
 #include "ui/level_ui.hpp"
@@ -165,9 +166,9 @@ TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSecti
 
     std::optional<Armed> armed = PaintTile{5};
     EditorCommands commands;
-    std::optional<LevelData> painted;
+    std::optional<TileMapData> painted;
     std::ignore =
-        commands.onLevelEdited.connect([&painted](const LevelData &now) { painted = now; });
+        commands.onTilesChanged.connect([&painted](const TileMapData &now) { painted = now; });
     MouseOnTheMap mouse{false, level.getTileMap().feetOnTile(glm::ivec2(2, 2)), true, false};
 
     levelUi.update(mouse, level, levelData, levelPath, armed, commands);
@@ -175,7 +176,10 @@ TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSecti
 
     commands.drain();
     REQUIRE(painted);
-    REQUIRE(levelUi.unsavedSince(*painted, levelPath));
+
+    LevelData asPainted = levelData;
+    asPainted.tileMapData = *painted;
+    REQUIRE(levelUi.unsavedSince(asPainted, levelPath));
 }
 
 TEST_CASE("Reverting the levels section puts the first level back", "[UnsavedSections]")

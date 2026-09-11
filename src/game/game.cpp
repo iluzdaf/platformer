@@ -8,6 +8,7 @@
 #include "game/level.hpp"
 #include "game/world.hpp"
 #include "game/level_data.hpp"
+#include "tile_map/tile_map_data.hpp"
 #include "player/player.hpp"
 #include "ui/game_ui.hpp"
 #include "rendering/screen_transition.hpp"
@@ -58,6 +59,8 @@ Game::Game(Window &window, Reloader &reloader)
         { world.playLevel(levelPath, levelData); });
     gameUi.commands().onLevelEdited.connect([this](const LevelData &edited)
                                             { world.rebuildFrom(edited); });
+    gameUi.commands().onTilesChanged.connect([this](const TileMapData &tileMapData)
+                                             { world.tilesChanged(tileMapData); });
     gameUi.commands().onLevelResized.connect(
         [this](const LevelData &resized, const glm::vec2 &shift)
         { world.rebuildFrom(resized, shift); });
@@ -67,7 +70,7 @@ Game::Game(Window &window, Reloader &reloader)
     gameUi.commands().onCameraChanged.connect([this] { camera.setZoom(gameData.cameraData.zoom); });
     gameUi.commands().onCastChanged.connect([this] { world.castChanged(); });
     gameUi.commands().onPalettesChanged.connect(
-        [this] { world.rebuildFrom(LevelData(world.getLevelData())); });
+        [this] { world.tilesChanged(world.getLevelData().tileMapData); });
     gameUi.commands().onWarmTexture.connect([this](const std::string &texturePath)
                                             { renderer.warmTexture(texturePath); });
 

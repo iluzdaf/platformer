@@ -32,6 +32,33 @@
 #include <span>
 #include <set>
 
+namespace
+{
+    void checkTheyCanStand(const TileMap &tileMap, const LevelData &levelData)
+    {
+        glm::ivec2 startsOn = tileMap.tileUnderFeet(levelData.playerFeet);
+        if (!tileMap.validTilePosition(startsOn))
+            throw std::runtime_error("playerFeet is out of bounds");
+
+        const Tile &startTile = tileMap.getTileAtTilePosition(startsOn);
+        if (startTile.isSolid())
+            throw std::runtime_error("Player start position is on a solid tile");
+        if (startTile.isDeadly())
+            throw std::runtime_error("Player start position is on a spike tile");
+        if (startTile.isPortal())
+            throw std::runtime_error("Player start position is on a portal tile");
+
+        for (const auto &npc : levelData.npcs)
+        {
+            glm::ivec2 standsOn = tileMap.tileUnderFeet(npc.feet);
+            if (!tileMap.validTilePosition(standsOn))
+                throw std::runtime_error("Npc start position is out of bounds");
+            if (tileMap.getTileAtTilePosition(standsOn).isSolid())
+                throw std::runtime_error("Npc start position is on a solid tile");
+        }
+    }
+}
+
 Level::Level(
     const LevelData &levelData,
     const TilePalettes &tilePalettes,
@@ -41,30 +68,11 @@ Level::Level(
     : tileMap(levelData.tileMapData, tilePalettes)
 {
     playerFeet = levelData.playerFeet;
-    glm::ivec2 startsOn = tileMap.tileUnderFeet(playerFeet);
-    if (!tileMap.validTilePosition(startsOn))
-        throw std::runtime_error("playerFeet is out of bounds");
-
-    const Tile &startTile = tileMap.getTileAtTilePosition(startsOn);
-    if (startTile.isSolid())
-        throw std::runtime_error("Player start position is on a solid tile");
-    if (startTile.isDeadly())
-        throw std::runtime_error("Player start position is on a spike tile");
-    if (startTile.isPortal())
-        throw std::runtime_error("Player start position is on a portal tile");
+    checkTheyCanStand(tileMap, levelData);
 
     nextLevel = levelData.nextLevel.path;
     if (nextLevel.empty())
         throw std::runtime_error("nextLevel must not be empty");
-
-    for (const auto &npc : levelData.npcs)
-    {
-        glm::ivec2 standsOn = tileMap.tileUnderFeet(npc.feet);
-        if (!tileMap.validTilePosition(standsOn))
-            throw std::runtime_error("Npc start position is out of bounds");
-        if (tileMap.getTileAtTilePosition(standsOn).isSolid())
-            throw std::runtime_error("Npc start position is on a solid tile");
-    }
 
     addGraphFor("player", buildNavigationProfile(playerData.actorData));
 
@@ -102,6 +110,19 @@ void Level::addGraphFor(const std::string &name, const NavigationProfile &profil
         }
 
     graphs.push_back({name, profile, buildNavigationGraph(tileMap, profile)});
+}
+
+void Level::tilesChanged(
+    const LevelData &levelData,
+    const TilePalettes &tilePalettes,
+    const PlayerData &playerData,
+    const std::map<std::string, NpcData> &npcData)
+{
+    TileMap painted(levelData.tileMapData, tilePalettes);
+    checkTheyCanStand(painted, levelData);
+
+    tileMap = std::move(painted);
+    rebuildGraphsFor(playerData, npcData);
 }
 
 void Level::rebuildGraphsFor(

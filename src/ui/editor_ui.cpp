@@ -188,6 +188,11 @@ void EditorUi::remembersWhatChanged(const EditorSubject &subject, bool stillBein
     history.remembers(EditorStep{section, std::move(was), std::nullopt, glm::vec2(0.0f)});
 }
 
+void EditorUi::remembers(EditorStep step)
+{
+    history.remembers(std::move(step));
+}
+
 void EditorUi::forgetsIfNamesChanged(const EditorSubject &subject)
 {
     bool types = typesUi.namesChanged();
@@ -209,17 +214,34 @@ bool EditorUi::undo(const EditorSubject &subject)
         putsBack(*back->gameData, subject.gameData);
 
     if (back->levelData)
-    {
-        if (back->movingThePlayerBack == glm::vec2(0.0f))
-            commands.onLevelEdited(*back->levelData);
-        else
-            commands.onLevelResized(*back->levelData, back->movingThePlayerBack);
-    }
+        putsBack(*back->levelData, back->movingThePlayerBack, subject.levelData);
 
     section = back->section;
     editing.startsAgainFrom(asJson(subject.gameData));
 
     return true;
+}
+
+void EditorUi::putsBack(
+    const LevelData &asItWas,
+    const glm::vec2 &movingThePlayerBack,
+    const LevelData &now)
+{
+    if (movingThePlayerBack != glm::vec2(0.0f))
+    {
+        commands.onLevelResized(asItWas, movingThePlayerBack);
+        return;
+    }
+
+    LevelData onlyTheTiles = now;
+    onlyTheTiles.tileMapData = asItWas.tileMapData;
+    if (asJson(onlyTheTiles) == asJson(asItWas))
+    {
+        commands.onTilesChanged(asItWas.tileMapData);
+        return;
+    }
+
+    commands.onLevelEdited(asItWas);
 }
 
 bool EditorUi::anythingToUndo() const

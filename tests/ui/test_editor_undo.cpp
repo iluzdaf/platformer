@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -17,6 +18,8 @@
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/palettes.hpp"
 #include "ui/editor_commands.hpp"
+#include "tile_map/tile_map_data.hpp"
+#include "ui/editor_history.hpp"
 #include "ui/editor_section.hpp"
 #include "ui/editor_ui.hpp"
 
@@ -69,6 +72,8 @@ namespace
     struct Announced
     {
         int settings = 0, camera = 0, cast = 0, palettes = 0;
+        std::optional<LevelData> levelBuiltAgain;
+        std::optional<TileMapData> tilesPainted;
 
         explicit Announced(EditorCommands &commands)
         {
@@ -76,8 +81,17 @@ namespace
             std::ignore = commands.onCameraChanged.connect([this] { ++camera; });
             std::ignore = commands.onCastChanged.connect([this] { ++cast; });
             std::ignore = commands.onPalettesChanged.connect([this] { ++palettes; });
+            std::ignore = commands.onLevelEdited.connect([this](const LevelData &now)
+                                                         { levelBuiltAgain = now; });
+            std::ignore = commands.onTilesChanged.connect([this](const TileMapData &now)
+                                                          { tilesPainted = now; });
         }
     };
+
+    EditorStep aLevelAsItWas(const LevelData &levelData)
+    {
+        return EditorStep{EditorSection::Level, std::nullopt, levelData, glm::vec2(0.0f)};
+    }
 
     void looksAt(EditorUi &editorUi, Editing &editing)
     {
@@ -240,4 +254,40 @@ TEST_CASE("Undo shows the section the edit was made in", "[EditorUndo]")
     REQUIRE(editorUi.undo(editing.subject()));
 
     REQUIRE(editorUi.shown() == EditorSection::Cast);
+}
+
+TEST_CASE("Undoing a paint asks for the tiles, not for the level again", "[EditorUndo]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    Announced announced(editorUi.commands);
+    LevelData asItWas = editing.levelData;
+
+    editing.levelData.tileMapData.indices[FloorLevelRow][2] = 1;
+    editorUi.remembers(aLevelAsItWas(asItWas));
+
+    REQUIRE(editorUi.undo(editing.subject()));
+    editorUi.commands.drain();
+
+    REQUIRE(announced.tilesPainted);
+    REQUIRE(announced.tilesPainted->indices == asItWas.tileMapData.indices);
+    REQUIRE_FALSE(announced.levelBuiltAgain);
+}
+
+TEST_CASE("Undoing anything else about a level asks for the level again", "[EditorUndo]")
+{
+    EditorUi editorUi;
+    Editing editing;
+    Announced announced(editorUi.commands);
+    LevelData asItWas = editing.levelData;
+
+    editing.levelData.playerFeet += glm::vec2(16.0f, 0.0f);
+    editorUi.remembers(aLevelAsItWas(asItWas));
+
+    REQUIRE(editorUi.undo(editing.subject()));
+    editorUi.commands.drain();
+
+    REQUIRE(announced.levelBuiltAgain);
+    REQUIRE(announced.levelBuiltAgain->playerFeet == asItWas.playerFeet);
+    REQUIRE_FALSE(announced.tilesPainted);
 }

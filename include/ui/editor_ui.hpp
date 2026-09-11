@@ -93,6 +93,7 @@ public:
     void show(EditorSection listed);
     EditorSection shown() const;
     void remembersWhatChanged(const EditorSubject &subject, bool stillBeingEdited);
+    void remembers(EditorStep step);
     bool undo(const EditorSubject &subject);
     bool anythingToUndo() const;
 
@@ -104,6 +105,10 @@ private:
     void drawUndoRow(const EditorSubject &subject);
     void forgetsIfNamesChanged(const EditorSubject &subject);
     void putsBack(const std::string &gameDataAsItWas, GameData &gameData);
+    void putsBack(
+        const LevelData &asItWas,
+        const glm::vec2 &movingThePlayerBack,
+        const LevelData &now);
 
 private:
     EditorHistory history;

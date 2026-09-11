@@ -53,6 +53,11 @@ public:
     void postFixedUpdate();
     void update(float deltaTime);
     std::vector<Pickup> takePickupsTouching(const AABB &reach);
+    void tilesChanged(
+        const LevelData &levelData,
+        const TilePalettes &tilePalettes,
+        const PlayerData &playerData,
+        const std::map<std::string, NpcData> &npcData);
     void rebuildGraphsFor(
         const PlayerData &playerData,
         const std::map<std::string, NpcData> &npcData);

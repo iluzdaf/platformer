@@ -263,7 +263,7 @@ void LevelUi::update(
         }
 
         edited.tileMapData.indices[tilePosition.y][tilePosition.x] = painting->tileIndex;
-        commands.onLevelEdited(edited);
+        commands.onTilesChanged(edited.tileMapData);
 
         return;
     }

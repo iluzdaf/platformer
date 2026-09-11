@@ -1,6 +1,7 @@
 #include <memory>
 #include <vector>
 #include "game/level_data.hpp"
+#include "tile_map/tile_map_data.hpp"
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -62,6 +63,17 @@ void World::playLevel(const std::string &levelPath, const LevelData &fromData)
     path = levelPath;
     onLevelBuilt();
     respawnPlayer();
+}
+
+void World::tilesChanged(const TileMapData &tileMapData)
+{
+    LevelData painted = levelData;
+    painted.tileMapData = tileMapData;
+
+    level->tilesChanged(painted, gameData.tilePalettes, gameData.playerData, gameData.npcData);
+    levelData = std::move(painted);
+
+    onLevelBuilt();
 }
 
 void World::rebuildFrom(const LevelData &fromData, const glm::vec2 &movingThePlayerBy)

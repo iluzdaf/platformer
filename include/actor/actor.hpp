@@ -20,6 +20,7 @@
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "conditions/asked.hpp"
+#include "actor/fading_facts.hpp"
 #include "conditions/facts.hpp"
 #include "game/noise.hpp"
 #include "actor/health.hpp"
@@ -64,6 +65,7 @@ public:
     Event<Actor, const Noise &> onNoise;
 
     const FactsData &facts() const;
+    const FadingFacts &saidLately() const;
     const Asked &fact(const std::string &name) const;
     void fact(const std::string &name, const Asked &value);
     void event(const std::string &name, const Asked &value);
@@ -89,6 +91,7 @@ private:
     void forgetTheTick();
     float howFarItFell();
     FactsData declared;
+    FadingFacts lately;
     FactsData known;
     std::vector<std::string> saidForTheTick;
     const NavigationGraph *walking = nullptr;

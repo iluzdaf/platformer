@@ -106,12 +106,8 @@ private:
     void putsBack(const std::string &gameDataAsItWas, GameData &gameData);
 
 private:
-    EditorSection section = EditorSection::Runtime;
-    bool askedToShow = false;
-    float panelWidth = InspectorWidth;
     EditorHistory history;
     EditSettling editing;
-    PlaybackUi playbackUi;
     GameSettingsUi gameSettingsUi;
     CameraUi cameraUi;
     PlayerOverlayUi playerOverlayUi;
@@ -120,4 +116,8 @@ private:
     TilePalettesUi tilePalettesUi;
     LevelsUi levelsUi;
     std::optional<Armed> armed;
+    EditorSection section = EditorSection::Runtime;
+    float panelWidth = InspectorWidth;
+    PlaybackUi playbackUi;
+    bool askedToShow = false;
 };

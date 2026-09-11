@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <initializer_list>
 #include <array>
 #include <cfloat>
 #include <cstddef>
@@ -354,17 +355,23 @@ namespace inspector
         return edited;
     }
 
-    template <class T> Edited drawFieldsExcept(T &value, std::string_view leftOut)
+    template <class T>
+    Edited drawFieldsExcept(T &value, std::initializer_list<std::string_view> leftOut)
     {
         Edited edited;
         forEachNamedField(
             value,
             [&edited, leftOut](std::string_view fieldName, auto &field)
             {
-                if (fieldName != leftOut)
+                if (std::ranges::find(leftOut, fieldName) == leftOut.end())
                     edited |= draw(fieldName, field);
             });
 
         return edited;
+    }
+
+    template <class T> Edited drawFieldsExcept(T &value, std::string_view leftOut)
+    {
+        return drawFieldsExcept(value, {leftOut});
     }
 }

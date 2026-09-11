@@ -8,6 +8,7 @@
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/state_machine_graph.hpp"
+#include "ui/selection_in_scope.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 
@@ -106,27 +107,30 @@ inspector::Edited drawStateMachineEditor(
     const std::set<std::string> &litStates,
     MachineShown &shown)
 {
+    MachineShown asked = selectionInScope() ? *selectionInScope() : shown;
+    MachineShown &showing = selectionInScope() ? asked : shown;
+
     bool present = machine.has_value();
     bool toggled = ImGui::Checkbox("stateMachineBehaviorData", &present);
     inspector::Edited edited = inspector::justEdited(toggled);
     if (toggled)
     {
         machine = present ? std::optional(StateMachineBehaviorData{}) : std::nullopt;
-        shown = MachineShown{};
+        showing = MachineShown{};
     }
 
     if (!machine)
         return edited;
 
     ImGui::PushID("machine");
-    bool changed = drawAdding(*machine, shown);
-    changed = drawRemoving(*machine, shown) || changed;
+    bool changed = drawAdding(*machine, showing);
+    changed = drawRemoving(*machine, showing) || changed;
     if (changed)
         edited |= inspector::Edited{true, true};
 
-    shown = stillAmong(shown, *machine);
-    shown = drawStateMachineGraph(*machine, litStates, shown);
-    edited |= drawShown(*machine, shown);
+    showing = stillAmong(showing, *machine);
+    showing = drawStateMachineGraph(*machine, litStates, showing);
+    edited |= drawShown(*machine, showing);
     ImGui::PopID();
 
     return edited;

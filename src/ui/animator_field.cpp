@@ -7,6 +7,7 @@
 #include "ui/marked_label.hpp"
 #include "ui/animator_field.hpp"
 #include "ui/saved_in_scope.hpp"
+#include "ui/selection_in_scope.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/graph_shown.hpp"
 #include "ui/graph_view.hpp"
@@ -21,6 +22,9 @@ namespace
 {
     MachineShown rememberedSelection()
     {
+        if (const MachineShown *asked = selectionInScope())
+            return *asked;
+
         ImGuiStorage *storage = ImGui::GetStateStorage();
         int what = storage->GetInt(ImGui::GetID("shownWhat"), 0);
         int index = storage->GetInt(ImGui::GetID("shownIndex"), 0);
@@ -29,6 +33,9 @@ namespace
 
     void remember(MachineShown shown)
     {
+        if (selectionInScope())
+            return;
+
         ImGuiStorage *storage = ImGui::GetStateStorage();
         storage->SetInt(ImGui::GetID("shownWhat"), static_cast<int>(shown.what));
         storage->SetInt(ImGui::GetID("shownIndex"), static_cast<int>(shown.index));

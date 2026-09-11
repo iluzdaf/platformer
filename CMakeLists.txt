@@ -139,6 +139,7 @@ add_library(platformer_lib OBJECT
     src/ui/level_rewriting.cpp
     src/ui/tile_picker.cpp
     src/ui/size_buttons.cpp
+    src/ui/selection_in_scope.cpp
     src/ui/sheet_in_scope.cpp
     src/ui/facts_in_scope.cpp
     src/ui/facts_field.cpp

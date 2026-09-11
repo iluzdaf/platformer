@@ -102,6 +102,17 @@ void EditorUi::draw(
         ImGui::Separator();
         if (ImGui::CollapsingHeader("Level", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            levelUi.drawTilePaletteNamed(
+                subject.levelData, subject.gameData.tilePalettes, commands);
+            tilePalettesUi.show(subject.levelData.tileMapData.tilePalette);
+            if (ImGui::TreeNode("tiles in it"))
+            {
+                tilePalettesUi.draw(
+                    subject.gameData.tilePalettes, subject.textures, commands, armed);
+                ImGui::TreePop();
+            }
+
+            ImGui::Separator();
             levelUi.draw(
                 subject.level,
                 subject.levelData,
@@ -113,9 +124,6 @@ void EditorUi::draw(
                 armed,
                 commands);
         }
-        ImGui::Separator();
-        if (ImGui::CollapsingHeader("Tile palettes"))
-            tilePalettesUi.draw(subject.gameData.tilePalettes, subject.textures, commands, armed);
         break;
     }
 

@@ -34,7 +34,19 @@
 #include "ui/data_inspector.hpp"
 #include "ui/saved_in_scope.hpp"
 #include "ui/saveable.hpp"
+#include "ui/armed.hpp"
+#include "ui/camera_ui.hpp"
+#include "ui/editor_history.hpp"
+#include "ui/game_settings_ui.hpp"
 #include "ui/in_scope.hpp"
+#include "ui/level_ui.hpp"
+#include "ui/levels_ui.hpp"
+#include "ui/mouse_on_the_map.hpp"
+#include "ui/tile_palettes_ui.hpp"
+#include "actor/actor_state.hpp"
+#include "actor/observed.hpp"
+#include "cameras/camera2d.hpp"
+#include "game/level.hpp"
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "ui/types_ui.hpp"
@@ -326,9 +338,13 @@ TEST_CASE("Every field of a level says when it is edited", "[InspectorMarks]")
 
 namespace
 {
-    std::vector<std::string> nothingReadsAsChangedWhile(
-        HeadlessImGui &gui,
-        const std::function<void()> &draw)
+    struct Read
+    {
+        std::vector<std::string> looked;
+        std::vector<std::string> changed;
+    };
+
+    Read readingWhile(HeadlessImGui &gui, const std::function<void()> &draw)
     {
         std::vector<ImGuiID> drawn;
         auto unfolding = [&drawn]
@@ -348,17 +364,18 @@ namespace
             drawn = gui.everythingDrawn();
         }
 
-        std::vector<std::string> changed;
+        Read read;
         gui.frame(
             [&]
             {
                 unfolding();
                 inspector::Watching watching;
                 draw();
-                changed = watching.saidChanged();
+                read.looked = watching.looked();
+                read.changed = watching.saidChanged();
             });
 
-        return changed;
+        return read;
     }
 }
 
@@ -448,7 +465,7 @@ TEST_CASE("Nothing in the cast reads as changed until it is edited", "[Inspector
             REQUIRE_FALSE(typesUi.unsavedSince(gameData));
             typesUi.show(type);
 
-            std::vector<std::string> changed = nothingReadsAsChangedWhile(
+            Read read = readingWhile(
                 gui,
                 [&]
                 {
@@ -457,10 +474,85 @@ TEST_CASE("Nothing in the cast reads as changed until it is edited", "[Inspector
                 });
 
             std::string report = "looking at " + saying(type, shown);
-            for (const std::string &path : changed)
+            for (const std::string &path : read.changed)
                 report += "\nread as changed: " + path;
 
             INFO(report);
-            REQUIRE(changed.empty());
+            REQUIRE_FALSE(read.looked.empty());
+            REQUIRE(read.changed.empty());
         }
+}
+
+TEST_CASE("Nothing in a section reads as changed until it is edited", "[InspectorMarks]")
+{
+    HeadlessImGui gui;
+    GameData gameData = aGameWithSomethingOfEachKind();
+    LevelData levelData = aFloorLevelPlacing({spawnAt("rat", glm::ivec2(2, FloorLevelStanding))});
+    Level level{
+        levelData,
+        gameData.tilePalettes,
+        gameData.playerData,
+        gameData.npcData,
+        gameData.pickupData};
+    TextureCache textures;
+    EditorCommands commands;
+    Camera2D camera{gameData.cameraData, 800, 600};
+    EditorHistory history;
+    std::optional<Armed> armed;
+    ActorState playerState;
+    Observed observed;
+    std::string levelPath = "levels/being_edited.json";
+
+    auto nothingSaysItChanged = [&](std::string_view section, const std::function<void()> &draw)
+    {
+        Read read = readingWhile(gui, draw);
+        std::string report = "in " + std::string(section);
+        for (const std::string &path : read.changed)
+            report += "\nread as changed: " + path;
+
+        INFO(report);
+        REQUIRE_FALSE(read.looked.empty());
+        REQUIRE(read.changed.empty());
+    };
+
+    CameraUi cameraUi;
+    std::ignore = cameraUi.unsavedSince(gameData);
+    nothingSaysItChanged("camera", [&] { cameraUi.draw(gameData, camera, commands); });
+
+    GameSettingsUi settingsUi;
+    std::ignore = settingsUi.unsavedSince(gameData);
+    nothingSaysItChanged("settings", [&] { settingsUi.draw(gameData, textures, commands); });
+
+    TilePalettesUi palettesUi;
+    std::ignore = palettesUi.unsavedSince(gameData.tilePalettes);
+    nothingSaysItChanged(
+        "palettes", [&] { palettesUi.draw(gameData.tilePalettes, textures, commands, armed); });
+
+    LevelsUi levelsUi;
+    std::ignore = levelsUi.unsavedSince(gameData.levels);
+    nothingSaysItChanged(
+        "levels",
+        [&]
+        {
+            std::ignore = levelsUi.draw(gameData.levels, levelData, levelPath, 16, commands, false);
+        });
+
+    LevelUi levelUi(history);
+    std::ignore = levelUi.unsavedSince(levelData, levelPath);
+    levelUi.update(MouseOnTheMap{}, level, levelData, levelPath, armed, commands);
+    nothingSaysItChanged(
+        "level",
+        [&]
+        {
+            levelUi.draw(
+                level,
+                levelData,
+                gameData.playerData.actorData.animationData,
+                observed,
+                levelData.playerFeet,
+                playerState,
+                gameData.npcData,
+                armed,
+                commands);
+        });
 }

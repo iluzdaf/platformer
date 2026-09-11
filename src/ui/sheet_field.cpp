@@ -22,7 +22,7 @@ inspector::Edited drawSquareSheetFields(SheetData &value)
     inspector::Edited edited = inspector::draw("texture", value.texture);
 
     int side = value.cellSize.x;
-    inspector::Edited squared = inspector::draw("cellSize", side);
+    inspector::Edited squared = inspector::drawAs("cellSize", side, value.cellSize);
     if (squared)
         value.cellSize = glm::ivec2(side);
 

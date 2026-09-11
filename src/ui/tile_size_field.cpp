@@ -8,7 +8,7 @@
 inspector::Edited drawTileSizeField(TilePaletteData &palette)
 {
     int measured = palette.tileSize.value_or(palette.tileSet.cellSize.x);
-    inspector::Edited edited = inspector::draw("tileSize", measured);
+    inspector::Edited edited = inspector::drawAs("tileSize", measured, palette.tileSize);
     if (edited)
     {
         if (measured == palette.tileSet.cellSize.x)

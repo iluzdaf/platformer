@@ -145,13 +145,7 @@ namespace inspector
 
     template <class T> Edited drawUnder(std::string_view name, T &value, bool changed)
     {
-        bool open = false;
-        {
-            Marked marked(changed);
-            open = ImGui::TreeNode(std::string(name).c_str());
-        }
-
-        if (!open)
+        if (!drawFold(name, changed))
             return {};
 
         Edited edited;
@@ -207,13 +201,7 @@ namespace inspector
         }
         else if constexpr (IsVector<T>::value)
         {
-            bool open = false;
-            {
-                Marked marked(changed);
-                open = ImGui::TreeNode(std::string(name).c_str());
-            }
-
-            if (!open)
+            if (!drawFold(name, changed))
                 return {};
 
             Edited edited;
@@ -280,13 +268,7 @@ namespace inspector
         }
         else if constexpr (IsMap<T>::value)
         {
-            bool open = false;
-            {
-                Marked marked(changed);
-                open = ImGui::TreeNode(std::string(name).c_str());
-            }
-
-            if (!open)
+            if (!drawFold(name, changed))
                 return {};
 
             Edited edited;

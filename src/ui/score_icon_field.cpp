@@ -1,4 +1,3 @@
-#include <string>
 #include <string_view>
 #include <imgui.h>
 #include "ui/marked_label.hpp"
@@ -11,13 +10,7 @@
 
 inspector::Edited drawCustomField(std::string_view name, ScoreIconData &value)
 {
-    bool open = false;
-    {
-        inspector::Marked marked(inspector::markedHere());
-        open = ImGui::TreeNode(std::string(name).c_str());
-    }
-
-    if (!open)
+    if (!inspector::drawFold(name))
         return {};
 
     inspector::Edited edited = inspector::draw("sheet", value.sheet);

@@ -1,5 +1,4 @@
 #include <cfloat>
-#include <string>
 #include <string_view>
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -39,13 +38,7 @@ inspector::Edited drawSquareSheetFields(SheetData &value)
 
 inspector::Edited drawCustomField(std::string_view name, SheetData &value)
 {
-    bool open = false;
-    {
-        inspector::Marked marked(inspector::markedHere());
-        open = ImGui::TreeNode(std::string(name).c_str());
-    }
-
-    if (!open)
+    if (!inspector::drawFold(name))
         return {};
 
     inspector::Edited edited = drawSheetFields(value);

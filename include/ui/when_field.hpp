@@ -8,6 +8,7 @@
 #include <imgui.h>
 #include "conditions/asked.hpp"
 #include "ui/inspector_edited.hpp"
+#include "ui/marked_label.hpp"
 
 struct FactsData;
 
@@ -35,7 +36,7 @@ inspector::Edited drawWhen(
     std::map<std::string, Asked> &when,
     const Rows &rows)
 {
-    if (!ImGui::TreeNode(std::string(name).c_str()))
+    if (!inspector::drawFold(name))
         return {};
 
     inspector::Edited edited;

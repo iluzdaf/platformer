@@ -8,6 +8,7 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/data_inspector.hpp"
+#include "ui/saved_in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "ui/frame_picker.hpp"
 #include "animations/frame_animation_data.hpp"
@@ -16,7 +17,10 @@ namespace
 {
     inspector::Edited drawFrames(const SheetInScope *offering, std::vector<int> &frames)
     {
-        if (!ImGui::TreeNode("frames"))
+        inspector::InField here("frames");
+        const bool changed = inspector::changedHere(frames);
+        inspector::Marking marking(changed);
+        if (!inspector::drawFold("frames", changed))
             return {};
 
         inspector::Edited edited;
@@ -51,7 +55,10 @@ namespace
 
     inspector::Edited drawCues(std::vector<FrameCueData> &cues, std::size_t frameCount)
     {
-        if (!ImGui::TreeNode("cues"))
+        inspector::InField here("cues");
+        const bool changed = inspector::changedHere(cues);
+        inspector::Marking marking(changed);
+        if (!inspector::drawFold("cues", changed))
             return {};
 
         inspector::Edited edited;
@@ -63,6 +70,7 @@ namespace
                 takeAway = at;
 
             ImGui::SameLine();
+            inspector::InField cue(std::to_string(at));
             edited |= inspector::draw("frame", cues[at].frame);
             edited |= inspector::draw("name", cues[at].name);
             ImGui::PopID();
@@ -85,13 +93,7 @@ namespace
 
 inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &value)
 {
-    bool open = false;
-    {
-        inspector::Marked marked(inspector::markedHere());
-        open = ImGui::TreeNode(std::string(name).c_str());
-    }
-
-    if (!open)
+    if (!inspector::drawFold(name))
         return {};
 
     inspector::Edited edited = drawFrames(sheetInScope(), value.frames);

@@ -8,6 +8,7 @@
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/tile_palettes_ui.hpp"
+#include "ui/saved_in_scope.hpp"
 #include <exception>
 #include "tile_map/tile.hpp"
 #include "ui/renaming.hpp"
@@ -209,6 +210,9 @@ void TilePalettesUi::draw(
 
     ImGui::Separator();
     drawRename(tilePalettes);
+
+    SavedInScope was(asItWasSaved<TilePalettes>(saveable.lastSeen("palettes")));
+    inspector::InField shown(renaming.shownName(selectedPalette));
 
     TilePaletteData &palette = tilePalettes.at(selectedPalette);
     inspector::Edited edited = drawSquareSheetFields(palette.tileSet);

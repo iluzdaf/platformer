@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <imgui.h>
+#include "ui/marked_label.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/when_field.hpp"
@@ -49,7 +50,13 @@ namespace
 
 inspector::Edited drawCustomField(std::string_view name, FactsData &value)
 {
-    if (!ImGui::TreeNode(std::string(name).c_str()))
+    bool open = false;
+    {
+        inspector::Marked marked(inspector::markedHere());
+        open = ImGui::TreeNode(std::string(name).c_str());
+    }
+
+    if (!open)
         return {};
 
     inspector::Edited edited;

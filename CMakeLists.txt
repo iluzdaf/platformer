@@ -123,6 +123,8 @@ add_library(platformer_lib OBJECT
     src/ui/playback_ui.cpp
     src/ui/game_settings_ui.cpp
     src/ui/section_mark.cpp
+    src/ui/saved_in_scope.cpp
+    src/ui/marked_label.cpp
     src/ui/sheet_field.cpp
     src/ui/file_chooser.cpp
     src/ui/path_fields.cpp
@@ -322,6 +324,7 @@ target_link_libraries(header_self_containment PRIVATE platformer_lib)
 add_executable(tests
     tests/test_main.cpp
     tests/ui/test_saveable.cpp
+    tests/ui/test_saved_in_scope.cpp
     tests/ui/test_last_answer.cpp
     tests/serialization/test_json_format.cpp
     tests/serialization/test_only_what_differs.cpp

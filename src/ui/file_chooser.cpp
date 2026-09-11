@@ -4,6 +4,7 @@
 #include <string_view>
 #include <vector>
 #include <imgui.h>
+#include "ui/marked_label.hpp"
 #include "ui/file_chooser.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/unsaved_colours.hpp"
@@ -26,7 +27,7 @@ inspector::Edited drawFileChooser(
 {
     bool picked = false;
 
-    ImGui::TextUnformatted(label.data(), label.data() + label.size());
+    inspector::drawLabel(label);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::BeginCombo(

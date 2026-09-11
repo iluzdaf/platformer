@@ -25,11 +25,11 @@ namespace when_field
         switch (kind)
         {
         case AskedKind::YesOrNo:
-            return inspector::drawNamed(name, std::get<bool>(asked));
+            return inspector::draw(name, std::get<bool>(asked));
         case AskedKind::Number:
-            return inspector::drawNamed(name, std::get<float>(asked));
+            return inspector::draw(name, std::get<float>(asked));
         case AskedKind::Name:
-            return inspector::drawNamed(name, std::get<std::string>(asked));
+            return inspector::draw(name, std::get<std::string>(asked));
         }
 
         return {};

@@ -11,6 +11,7 @@
 #include "ui/level_ui.hpp"
 #include "ui/editor_history.hpp"
 #include "ui/saveable.hpp"
+#include "ui/saved_in_scope.hpp"
 #include "ui/data_inspector.hpp"
 #include "actor/actor_animation_data.hpp"
 #include "game/level_data_file.hpp"
@@ -145,6 +146,8 @@ void askedToResize(
 
 void LevelUi::drawLevel(const Level &level, const LevelData &levelData, EditorCommands &commands)
 {
+    SavedInScope was(asItWasSaved<LevelData>(saveable.lastSeen(editing)));
+
     LevelData edited = levelData;
     if (inspector::draw("next", edited.nextLevel))
     {

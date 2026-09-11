@@ -1,6 +1,8 @@
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/camera_ui.hpp"
+#include "ui/saved_in_scope.hpp"
+#include "cameras/camera2d_data.hpp"
 #include <string>
 #include <optional>
 #include <exception>
@@ -15,6 +17,7 @@ void CameraUi::draw(GameData &gameData, const Camera2D &camera, EditorCommands &
     ImGui::TextDisabled("%s", camera.shaking() ? "shaking" : "still");
 
     ImGui::Separator();
+    SavedInScope was(asItWasSaved<Camera2DData>(saveable.lastSeen("camera")));
     if (inspector::drawFields(gameData.cameraData))
         commands.onCameraChanged();
 }

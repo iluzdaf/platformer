@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <imgui.h>
+#include "ui/marked_label.hpp"
 #include "ui/animator_field.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/graph_shown.hpp"
@@ -149,7 +150,13 @@ MachineShown drawAnimatorGraph(
 
 inspector::Edited drawCustomField(std::string_view name, ActorAnimationData &value)
 {
-    if (!ImGui::TreeNode(std::string(name).c_str()))
+    bool open = false;
+    {
+        inspector::Marked marked(inspector::markedHere());
+        open = ImGui::TreeNode(std::string(name).c_str());
+    }
+
+    if (!open)
         return {};
 
     inspector::Edited edited;

@@ -3,6 +3,7 @@
 #include <string_view>
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include "ui/marked_label.hpp"
 #include "ui/sheet_field.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/data_inspector.hpp"
@@ -38,7 +39,13 @@ inspector::Edited drawSquareSheetFields(SheetData &value)
 
 inspector::Edited drawCustomField(std::string_view name, SheetData &value)
 {
-    if (!ImGui::TreeNode(std::string(name).c_str()))
+    bool open = false;
+    {
+        inspector::Marked marked(inspector::markedHere());
+        open = ImGui::TreeNode(std::string(name).c_str());
+    }
+
+    if (!open)
         return {};
 
     inspector::Edited edited = drawSheetFields(value);

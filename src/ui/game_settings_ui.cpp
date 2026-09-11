@@ -1,6 +1,7 @@
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/game_settings_ui.hpp"
+#include "ui/saved_in_scope.hpp"
 #include <string>
 #include <optional>
 #include "ui/saveable.hpp"
@@ -28,6 +29,7 @@ void GameSettingsUi::draw(
 
     ShowingSheet offering(SheetInScope{texture, sheet});
 
+    SavedInScope was(asItWasSaved<GameSettingsData>(saveable.lastSeen("game")));
     if (inspector::drawFields(gameData.settings).onCommit)
         commands.onSettingsChanged();
 }

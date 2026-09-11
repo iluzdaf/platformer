@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <imgui.h>
+#include "ui/marked_label.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/data_inspector.hpp"
@@ -30,7 +31,7 @@ namespace
             if (offering && offering->texture)
                 edited |= drawFramePicked(*offering, frames[at]);
             else
-                edited |= inspector::drawNamed(std::to_string(at), frames[at]);
+                edited |= inspector::draw(std::to_string(at), frames[at]);
 
             ImGui::PopID();
         }
@@ -62,8 +63,8 @@ namespace
                 takeAway = at;
 
             ImGui::SameLine();
-            edited |= inspector::drawNamed("frame", cues[at].frame);
-            edited |= inspector::drawNamed("name", cues[at].name);
+            edited |= inspector::draw("frame", cues[at].frame);
+            edited |= inspector::draw("name", cues[at].name);
             ImGui::PopID();
         }
 
@@ -84,14 +85,20 @@ namespace
 
 inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &value)
 {
-    if (!ImGui::TreeNode(std::string(name).c_str()))
+    bool open = false;
+    {
+        inspector::Marked marked(inspector::markedHere());
+        open = ImGui::TreeNode(std::string(name).c_str());
+    }
+
+    if (!open)
         return {};
 
     inspector::Edited edited = drawFrames(sheetInScope(), value.frames);
-    edited |= inspector::drawNamed("frameDuration", value.frameDuration);
+    edited |= inspector::draw("frameDuration", value.frameDuration);
     if (value.frameDuration <= 0.0f)
         value.frameDuration = 0.01f;
-    edited |= inspector::drawNamed("loops", value.loops);
+    edited |= inspector::draw("loops", value.loops);
     edited |= drawCues(value.cues, value.frames.size());
 
     ImGui::TreePop();

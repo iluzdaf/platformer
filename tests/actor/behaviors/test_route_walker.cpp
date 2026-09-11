@@ -172,3 +172,39 @@ TEST_CASE(
 
     REQUIRE(walker.routeFinished());
 }
+
+TEST_CASE("A walker whose ground is numbered afresh anchors again", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = setupPlatform();
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {0.0f, 192.0f}));
+    walker.takeRouteTo(at(navigationGraph, {0.0f, 192.0f}), 1);
+
+    REQUIRE(walker.getCurrentNodeId() == 0);
+    REQUIRE(walker.getTargetNodeId() == 1);
+
+    NavigationGraph builtAgain;
+    builtAgain.addNode(7, {0.0f, 192.0f});
+    builtAgain.addNode(8, {96.0f, 192.0f});
+    builtAgain.addEdge(7, 8, EdgeType::Walk);
+    builtAgain.addEdge(8, 7, EdgeType::Walk);
+
+    REQUIRE_NOTHROW(walker.keepInStep(at(builtAgain, {0.0f, 192.0f})));
+
+    REQUIRE(walker.getCurrentNodeId() == 7);
+    REQUIRE(walker.routeFinished());
+}
+
+TEST_CASE("A walker whose ground is gone altogether takes no route", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = setupPlatform();
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {0.0f, 192.0f}));
+    REQUIRE(walker.isAnchored());
+
+    NavigationGraph nothing;
+
+    REQUIRE_NOTHROW(walker.keepInStep(at(nothing, {0.0f, 192.0f})));
+
+    REQUIRE_FALSE(walker.isAnchored());
+}

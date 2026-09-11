@@ -37,4 +37,5 @@ private:
     bool hasArrived(const ActorBehaviorContext &context, int setOffAt, int headingFor) const;
     bool withinReachOf(const ActorBehaviorContext &context, int nodeId) const;
     bool hasLostTheRoute(const ActorBehaviorContext &context) const;
+    bool walksGroundThatIsGone(const NavigationGraph &navigationGraph) const;
 };

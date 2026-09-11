@@ -18,6 +18,7 @@ TEST_CASE("A score icon draws itself rather than falling through", "[ScoreIconFi
 
 #include "rendering/texture2d.hpp"
 #include "helpers/made_sheet.hpp"
+#include "ui/in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "helpers/pictures_drawn.hpp"
 #include "ui/tile_picker.hpp"
@@ -38,7 +39,7 @@ namespace
 
                 if (withSheet)
                 {
-                    ShowingSheet showing(offering);
+                    InScope showing(offering);
                     inspector::draw("scoreIcon", icon);
                 }
                 else

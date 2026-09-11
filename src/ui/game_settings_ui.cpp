@@ -10,6 +10,7 @@
 #include "game/game_data.hpp"
 #include "game/score_icon_data.hpp"
 #include "assets/sheet_data.hpp"
+#include "ui/in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "rendering/texture_cache.hpp"
 #include "rendering/texture2d.hpp"
@@ -27,7 +28,8 @@ void GameSettingsUi::draw(
         commands.onWarmTexture(sheet.texture.path);
     }
 
-    ShowingSheet offering(SheetInScope{texture, sheet});
+    const SheetInScope scope{texture, sheet};
+    InScope offering(scope);
 
     SavedInScope was(asItWasSaved<GameSettingsData>(saveable.lastSeen("game")));
     if (inspector::drawFields(gameData.settings).onCommit)

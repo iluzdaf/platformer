@@ -34,7 +34,7 @@
 #include "ui/data_inspector.hpp"
 #include "ui/saved_in_scope.hpp"
 #include "ui/saveable.hpp"
-#include "ui/selection_in_scope.hpp"
+#include "ui/in_scope.hpp"
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "ui/types_ui.hpp"
@@ -433,7 +433,7 @@ TEST_CASE("Nothing in the cast reads as changed until it is edited", "[Inspector
                 gui,
                 [&]
                 {
-                    ShowingSelection showing(shown);
+                    InScope showing(shown);
                     typesUi.draw(gameData, textures, commands, nullptr);
                 });
 

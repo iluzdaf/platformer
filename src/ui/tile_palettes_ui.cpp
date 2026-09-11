@@ -19,6 +19,7 @@
 #include "ui/tile_size_field.hpp"
 #include "ui/armed.hpp"
 #include "ui/tile_picker.hpp"
+#include "ui/in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "ui/sheet_field.hpp"
 #include "ui/sheet_preview.hpp"
@@ -272,7 +273,7 @@ inspector::Edited TilePalettesUi::drawTiles(
     ImGui::Text("tile %d", *picked);
 
     SheetInScope scope{tileSet, palette.tileSet};
-    ShowingSheet offering(scope);
+    InScope offering(scope);
 
     auto known = palette.tiles.find(*picked);
     if (known != palette.tiles.end())

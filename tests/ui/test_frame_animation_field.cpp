@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "rendering/texture2d.hpp"
 #include "helpers/made_sheet.hpp"
+#include "ui/in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "assets/sheet_data.hpp"
 #include "helpers/pictures_drawn.hpp"
@@ -36,7 +37,7 @@ namespace
 
                 if (withSheet)
                 {
-                    ShowingSheet showing(offering);
+                    InScope showing(offering);
                     inspector::draw("animation", animation);
                 }
                 else

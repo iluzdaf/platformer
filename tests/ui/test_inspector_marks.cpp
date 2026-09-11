@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <functional>
+#include <tuple>
 #include <map>
 #include <optional>
 #include <string>
@@ -31,6 +32,8 @@
 #include "serialization/only_what_differs.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/saved_in_scope.hpp"
+#include "ui/graph_shown.hpp"
+#include "ui/state_machine_shown.hpp"
 #include "ui/types_ui.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/editor_commands.hpp"
@@ -265,6 +268,7 @@ namespace
         ActorAnimationData animations;
         animations.clips["idle"] = FrameAnimationData{{0}, 0.2f};
         animations.clips["run"] = FrameAnimationData{{1, 2, 3}, 0.1f};
+        animations.clips["run"].cues.push_back(FrameCueData{1, "step"});
 
         AnimationTransitionData rung;
         rung.from = "idle";
@@ -345,6 +349,63 @@ namespace
             });
 
         return changed;
+    }
+}
+
+namespace
+{
+    std::vector<std::string> readsAsChangedShowing(
+        HeadlessImGui &gui,
+        ActorData &actor,
+        MachineShown shown)
+    {
+        auto remembering = [shown]
+        {
+            ImGui::TreeNodeSetOpen(ImGui::GetID("animationData"), true);
+            ImGui::PushOverrideID(ImGui::GetID("animationData"));
+            ImGui::GetStateStorage()->SetInt(
+                ImGui::GetID("shownWhat"), static_cast<int>(shown.what));
+            ImGui::GetStateStorage()->SetInt(
+                ImGui::GetID("shownIndex"), static_cast<int>(shown.index));
+            ImGui::PopID();
+        };
+
+        return nothingReadsAsChangedWhile(
+            gui,
+            [&actor, remembering]
+            {
+                remembering();
+                SavedInScope was(differs::compact(actor));
+                std::ignore = inspector::draw("animationData", actor.animationData);
+            });
+    }
+}
+
+TEST_CASE("Every clip and rung is looked for where the actor keeps it", "[InspectorMarks]")
+{
+    HeadlessImGui gui;
+    GameData gameData = aGameWithSomethingOfEachKind();
+    ActorData &actor = gameData.playerData.actorData;
+    GraphShown graph = graphOf(actor.animationData);
+    REQUIRE(graph.nodes.size() > 1);
+    REQUIRE_FALSE(graph.edges.empty());
+
+    for (std::size_t at = 0; at < graph.nodes.size(); ++at)
+    {
+        std::vector<std::string> changed = readsAsChangedShowing(gui, actor, showingState(at));
+        INFO(
+            "showing " << graph.nodes[at].name << ", read as changed: "
+                       << (changed.empty() ? std::string() : changed.front()));
+        REQUIRE(changed.empty());
+    }
+
+    for (std::size_t at = 0; at < graph.edges.size(); ++at)
+    {
+        std::vector<std::string> changed = readsAsChangedShowing(gui, actor, showingTransition(at));
+        INFO(
+            "showing rung " << at << ", read as changed: "
+                            << (changed.empty() ? std::string() : changed.front()));
+        REQUIRE(changed.empty());
     }
 }
 

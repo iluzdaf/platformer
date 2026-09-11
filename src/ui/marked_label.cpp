@@ -1,3 +1,4 @@
+#include <string>
 #include <string_view>
 #include <imgui.h>
 #include "ui/marked_label.hpp"
@@ -44,4 +45,15 @@ void inspector::drawLabel(std::string_view name, bool changed)
 void inspector::drawLabel(std::string_view name)
 {
     drawLabel(name, markedHere());
+}
+
+bool inspector::drawFold(std::string_view name, bool changed)
+{
+    Marked marked(changed);
+    return ImGui::TreeNode(std::string(name).c_str());
+}
+
+bool inspector::drawFold(std::string_view name)
+{
+    return drawFold(name, markedHere());
 }

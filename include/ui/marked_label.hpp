@@ -36,4 +36,7 @@ namespace inspector
 
     void drawLabel(std::string_view name, bool changed);
     void drawLabel(std::string_view name);
+
+    bool drawFold(std::string_view name, bool changed);
+    bool drawFold(std::string_view name);
 }

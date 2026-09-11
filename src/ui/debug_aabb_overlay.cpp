@@ -223,10 +223,10 @@ void drawSpawnOf(
         return;
     }
 
-    if (showing.what != ActorShown::What::Npc || showing.npcIndex >= level.getNpcs().size())
+    if (showing.what != ActorShown::What::Npc || showing.index >= level.getNpcs().size())
         return;
 
-    const Npc &npc = *level.getNpcs()[showing.npcIndex];
+    const Npc &npc = *level.getNpcs()[showing.index];
     const NpcSpawnData &spawn = npc.getSpawn();
     drawSpawn(tileMap.tileUnderFeet(spawn.feet), spawn.type);
 

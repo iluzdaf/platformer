@@ -28,6 +28,7 @@ class TileMap;
 class Level;
 class Camera2D;
 struct NpcData;
+struct PickupData;
 struct Decided;
 struct ActorAnimationData;
 struct Observed;
@@ -59,6 +60,7 @@ public:
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
         const std::map<std::string, NpcData> &npcData,
+        const std::map<std::string, PickupData> &pickupData,
         std::optional<Armed> &armed,
         EditorCommands &commands);
     void drawOverlay(const ImGuiManager &imGuiManager, const Camera2D &camera, const Level &level)
@@ -106,6 +108,7 @@ private:
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
         const std::map<std::string, NpcData> &npcData,
+        const std::map<std::string, PickupData> &pickupData,
         std::optional<Armed> &armed,
         EditorCommands &commands);
 };

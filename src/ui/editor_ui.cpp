@@ -121,6 +121,7 @@ void EditorUi::draw(
                 subject.playerFeet,
                 subject.playerState,
                 subject.gameData.npcData,
+                subject.gameData.pickupData,
                 armed,
                 commands);
         }

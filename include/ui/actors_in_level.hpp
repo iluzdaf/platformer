@@ -11,6 +11,7 @@ struct ActorAnimationData;
 struct Observed;
 struct ActorState;
 struct NpcData;
+struct PickupData;
 class Level;
 class Npc;
 
@@ -20,11 +21,12 @@ struct ActorShown
     {
         None,
         Player,
-        Npc
+        Npc,
+        Pickup
     };
 
     What what = What::None;
-    std::size_t npcIndex = 0;
+    std::size_t index = 0;
 
     bool operator==(const ActorShown &) const = default;
 };
@@ -32,9 +34,10 @@ struct ActorShown
 struct ActorAsked
 {
     ActorShown show;
-    bool removeShownNpc = false;
+    bool removeShown = false;
     bool clearShownBeat = false;
     std::optional<std::string> addNpcOfType;
+    std::optional<std::string> addPickupOfType;
 };
 
 std::optional<std::string> npcsThatCannotGetBack(const Level &level);
@@ -46,5 +49,6 @@ ActorAsked drawActorsInLevel(
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcTypes,
+    const std::map<std::string, PickupData> &pickupTypes,
     ActorShown showing,
     std::optional<Armed> &armed);

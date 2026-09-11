@@ -8,6 +8,7 @@
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 #include "player/player_data.hpp"
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
@@ -36,6 +37,8 @@ namespace
     constexpr int IslandRow = 1;
     constexpr int IslandFirstTile = 7;
 
+    Level levelHolding(const std::vector<PickupSpawnData> &pickups);
+
     Level levelWithAnIsland(const std::vector<NpcSpawnData> &npcs)
     {
         LevelData levelData;
@@ -51,6 +54,19 @@ namespace
 
         levelData.playerFeet = feetOf(glm::ivec2(1, Standing));
         levelData.npcs = npcs;
+
+        return Level(
+            levelData,
+            theOnlyPalette(aPaletteWithASolidTile()),
+            PlayerData(),
+            shippedNpcData(),
+            shippedPickupData());
+    }
+
+    Level levelHolding(const std::vector<PickupSpawnData> &pickups)
+    {
+        LevelData levelData = aFloorLevelPlacing({});
+        levelData.pickups = pickups;
 
         return Level(
             levelData,
@@ -82,12 +98,38 @@ namespace
                         level.getTileMap().tileUnderFeet(level.getPlayerStart())),
                     playerState,
                     shippedNpcData(),
+                    shippedPickupData(),
                     showing,
                     armed);
             });
 
         return asked;
     }
+}
+
+TEST_CASE("A pickup in the level is shown the way an npc is", "[ActorsInLevel]")
+{
+    HeadlessImGui gui;
+    Level level = levelHolding({PickupSpawnData{"coin", feetOf(glm::ivec2(2, Standing))}});
+    std::optional<Armed> armed;
+
+    ActorShown showing{ActorShown::What::Pickup, 0};
+    ActorAsked asked = askedFor(gui, level, showing, armed);
+
+    REQUIRE(asked.show == showing);
+    REQUIRE_FALSE(asked.removeShown);
+    REQUIRE_FALSE(asked.addPickupOfType);
+}
+
+TEST_CASE("A pickup the level no longer has stops being shown", "[ActorsInLevel]")
+{
+    HeadlessImGui gui;
+    Level level = levelHolding({PickupSpawnData{"coin", feetOf(glm::ivec2(2, Standing))}});
+    std::optional<Armed> armed;
+
+    ActorAsked asked = askedFor(gui, level, ActorShown{ActorShown::What::Pickup, 7}, armed);
+
+    REQUIRE(asked.show == ActorShown{});
 }
 
 TEST_CASE("Left alone, the actors panel asks for nothing", "[ActorsInLevel]")
@@ -100,7 +142,7 @@ TEST_CASE("Left alone, the actors panel asks for nothing", "[ActorsInLevel]")
     ActorAsked asked = askedFor(gui, level, showing, armed);
 
     REQUIRE(asked.show == showing);
-    REQUIRE_FALSE(asked.removeShownNpc);
+    REQUIRE_FALSE(asked.removeShown);
     REQUIRE_FALSE(asked.clearShownBeat);
     REQUIRE_FALSE(asked.addNpcOfType);
     REQUIRE_FALSE(armed);
@@ -115,7 +157,7 @@ TEST_CASE("An npc the level no longer has stops being shown", "[ActorsInLevel]")
     ActorAsked asked = askedFor(gui, level, ActorShown{ActorShown::What::Npc, 7}, armed);
 
     REQUIRE(asked.show == ActorShown{});
-    REQUIRE_FALSE(asked.removeShownNpc);
+    REQUIRE_FALSE(asked.removeShown);
 }
 
 TEST_CASE("An npc with a beat it cannot walk is still drawn", "[ActorsInLevel]")

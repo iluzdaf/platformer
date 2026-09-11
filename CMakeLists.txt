@@ -325,6 +325,7 @@ add_executable(tests
     tests/test_main.cpp
     tests/ui/test_saveable.cpp
     tests/ui/test_saved_in_scope.cpp
+    tests/ui/test_inspector_marks.cpp
     tests/ui/test_last_answer.cpp
     tests/serialization/test_json_format.cpp
     tests/serialization/test_only_what_differs.cpp

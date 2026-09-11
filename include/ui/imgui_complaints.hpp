@@ -2,6 +2,8 @@
 
 #include <optional>
 #include <string>
+#include <vector>
+#include <imgui.h>
 
 class ImGuiComplaints
 {
@@ -15,4 +17,5 @@ public:
 
     void startAgain();
     std::optional<std::string> anything() const;
+    std::vector<ImGuiID> whatWasDrawn() const;
 };

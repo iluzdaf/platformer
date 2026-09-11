@@ -43,7 +43,7 @@ TEST_CASE("The levels folder lists every level it holds", "[Levels]")
 TEST_CASE("A level path nobody has taken is free of the folder and of what is held", "[Levels]")
 {
     TemporaryLevels levels{"free_level_paths"};
-    std::string directory = levels.directory.string();
+    std::string directory = levels.directory.generic_string();
     levels.write("level1.json", aFloorLevelPlacing({}));
 
     std::string free = aLevelPathNobodyHasTaken(directory);

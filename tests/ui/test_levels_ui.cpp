@@ -112,7 +112,7 @@ namespace
     struct Editing
     {
         TemporaryLevels files{"levels_ui"};
-        std::string directory = files.directory.string();
+        std::string directory = files.directory.generic_string();
         LevelsUi levelsUi{directory, [this](const LevelsData &written) { saved = written; }};
         EditorCommands commands;
         LevelsData levels;

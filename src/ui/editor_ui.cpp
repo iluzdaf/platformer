@@ -4,7 +4,6 @@
 #include <cfloat>
 #include <cstddef>
 #include <imgui.h>
-#include <string_view>
 #include <optional>
 #include "ui/editor_ui.hpp"
 #include "ui/asked_to_undo.hpp"
@@ -28,19 +27,7 @@
 #include "ui/debug_aabb_overlay.hpp"
 #include "ui/unsaved_colours.hpp"
 #include "ui/section_mark.hpp"
-
-namespace
-{
-
-    std::string_view nameOf(EditorSection section)
-    {
-        for (const auto &[listed, name] : EditorSections)
-            if (listed == section)
-                return name;
-
-        return {};
-    }
-}
+#include "ui/panel_placement.hpp"
 
 void EditorUi::draw(
     const ImGuiManager &imGuiManager,
@@ -51,42 +38,24 @@ void EditorUi::draw(
         return;
 
     ImVec2 displaySize = imGuiManager.getUiDimensions();
-    ImGui::SetNextWindowPos(ImVec2(displaySize.x - InspectorWidth, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(InspectorWidth, displaySize.y), ImGuiCond_Always);
+    PanelPlacement placed = panelPinnedRight(displaySize, panelWidth);
+    ImGui::SetNextWindowPos(placed.position, ImGuiCond_Always);
+    ImGui::SetNextWindowSizeConstraints(placed.smallest, placed.largest);
+    ImGui::SetNextWindowSize(ImVec2(panelWidth, displaySize.y), ImGuiCond_FirstUseEver);
 
-    if (!ImGui::Begin("Editor", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+    if (!ImGui::Begin("Editor", nullptr, ImGuiWindowFlags_NoMove))
     {
         ImGui::End();
         return;
     }
 
+    panelWidth = ImGui::GetWindowWidth();
+
     std::array<SectionSaving, EditorSections.size()> saving;
     for (std::size_t at = 0; at < EditorSections.size(); ++at)
         saving[at] = savingIn(EditorSections[at].first, subject);
 
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage) the names are string literals
-    if (ImGui::BeginCombo("##section", nameOf(section).data()))
-    {
-        for (std::size_t at = 0; at < EditorSections.size(); ++at)
-        {
-            const auto &[listed, name] = EditorSections[at];
-            std::optional<ImVec4> mark =
-                markFor(saving[at].unsaved, saving[at].cannotBecause.has_value());
-            if (mark)
-                ImGui::PushStyleColor(ImGuiCol_Text, *mark);
-
-            // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage) a string literal again
-            if (ImGui::Selectable(name.data(), listed == section))
-                section = listed;
-
-            if (mark)
-                ImGui::PopStyleColor();
-        }
-
-        ImGui::EndCombo();
-    }
-
+    drawSectionTabs(saving);
     drawSaveRow(saving);
     drawUndoRow(subject);
 
@@ -151,6 +120,36 @@ void EditorUi::draw(
     ImGui::End();
 }
 
+void EditorUi::drawSectionTabs(const std::array<SectionSaving, EditorSections.size()> &saving)
+{
+    if (!ImGui::BeginTabBar("##sections"))
+        return;
+
+    for (std::size_t at = 0; at < EditorSections.size(); ++at)
+    {
+        const auto &[listed, name] = EditorSections[at];
+        std::optional<ImVec4> mark =
+            markFor(saving[at].unsaved, saving[at].cannotBecause.has_value());
+        if (mark)
+            ImGui::PushStyleColor(ImGuiCol_Text, *mark);
+
+        ImGuiTabItemFlags flags = askedToShow && listed == section ? ImGuiTabItemFlags_SetSelected
+                                                                   : ImGuiTabItemFlags_None;
+        // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage) the names are string literals
+        if (ImGui::BeginTabItem(name.data(), nullptr, flags))
+        {
+            section = listed;
+            ImGui::EndTabItem();
+        }
+
+        if (mark)
+            ImGui::PopStyleColor();
+    }
+
+    ImGui::EndTabBar();
+    askedToShow = false;
+}
+
 void EditorUi::drawUndoRow(const EditorSubject &subject)
 {
     ImGui::BeginDisabled(!history.anythingToUndo());
@@ -167,6 +166,7 @@ void EditorUi::drawUndoRow(const EditorSubject &subject)
 void EditorUi::show(EditorSection listed)
 {
     section = listed;
+    askedToShow = true;
 }
 
 EditorSection EditorUi::shown() const

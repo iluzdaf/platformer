@@ -100,12 +100,15 @@ public:
 
 private:
     void drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving);
+    void drawSectionTabs(const std::array<SectionSaving, EditorSections.size()> &saving);
     void drawUndoRow(const EditorSubject &subject);
     void forgetsIfNamesChanged(const EditorSubject &subject);
     void putsBack(const std::string &gameDataAsItWas, GameData &gameData);
 
 private:
     EditorSection section = EditorSection::Runtime;
+    bool askedToShow = false;
+    float panelWidth = InspectorWidth;
     EditorHistory history;
     EditSettling editing;
     PlaybackUi playbackUi;

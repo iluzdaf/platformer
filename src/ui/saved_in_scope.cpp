@@ -88,6 +88,15 @@ inspector::InField::~InField()
     path.pop_back();
 }
 
+std::string inspector::pathHere()
+{
+    std::string dotted;
+    for (const std::string &name : path)
+        dotted += dotted.empty() ? name : "." + name;
+
+    return dotted;
+}
+
 bool inspector::changedFromSaved(const std::string &nowJson)
 {
     if (!saved)

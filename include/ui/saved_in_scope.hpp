@@ -38,6 +38,8 @@ namespace inspector
         InField &operator=(InField &&) = delete;
     };
 
+    std::string pathHere();
+
     bool changedFromSaved(const std::string &nowJson);
 
     template <class T> bool changedHere(const T &value)

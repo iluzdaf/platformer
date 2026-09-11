@@ -65,6 +65,8 @@ namespace inspector
 
     template <class T> Edited draw(std::string_view name, T &value);
 
+    template <class T> Edited drawHere(std::string_view name, T &value, bool changed);
+
     template <class T, class Visit> void forEachNamedField(T &value, Visit &&visit)
     {
         constexpr auto Fields = glz::reflect<T>::size;
@@ -168,6 +170,11 @@ namespace inspector
         const bool changed = changedHere(value);
         Marking marking(changed);
 
+        return drawHere(name, value, changed);
+    }
+
+    template <class T> Edited drawHere(std::string_view name, T &value, bool changed)
+    {
         if constexpr (HasCustomField<T>)
             return drawCustomField(name, value);
         else if constexpr (
@@ -191,7 +198,7 @@ namespace inspector
             {
                 ImGui::Indent();
                 ImGui::PushID("value");
-                edited |= draw(name, *value);
+                edited |= drawHere(name, *value, changed);
                 ImGui::PopID();
                 ImGui::Unindent();
             }

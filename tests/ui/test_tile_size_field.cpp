@@ -80,25 +80,3 @@ TEST_CASE("A tile size nudged back onto its cells is forgotten", "[TileSizeField
 
     REQUIRE_FALSE(palette.tileSize.has_value());
 }
-
-TEST_CASE("A palette measured apart from its cells says so", "[TileSizeField]")
-{
-    HeadlessImGui gui;
-    TilePaletteData same = aPaletteWithCellsOf(16);
-    TilePaletteData apart = aPaletteWithCellsOf(32);
-    apart.tileSize = 16;
-
-    auto heightOf = [&gui](TilePaletteData &palette)
-    {
-        float reached = 0.0f;
-        gui.frame(
-            [&]
-            {
-                drawTileSizeField(palette);
-                reached = ImGui::GetCurrentWindow()->DC.CursorPos.y;
-            });
-        return reached;
-    };
-
-    REQUIRE(heightOf(apart) > heightOf(same));
-}

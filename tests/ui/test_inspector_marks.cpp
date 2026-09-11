@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <algorithm>
 #include <concepts>
 #include <cstddef>
@@ -32,6 +33,8 @@
 #include "serialization/only_what_differs.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/saved_in_scope.hpp"
+#include "ui/saveable.hpp"
+#include "ui/state_machine_field.hpp"
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "ui/types_ui.hpp"
@@ -239,10 +242,8 @@ namespace
         return coverage;
     }
 
-    template <class T> void everyFieldOf(T &value)
+    template <class T> void everyFieldOf(T &value, const std::string &saved)
     {
-        std::string saved = differs::compact(value);
-
         SavedInScope was(saved);
         std::vector<Fold> folds;
         Asking asking;
@@ -261,6 +262,16 @@ namespace
         REQUIRE(asking.quiet.empty());
         REQUIRE(coverage.neverNudged.empty());
         REQUIRE(coverage.notInTheSavedCopy.empty());
+    }
+
+    template <class T> void everyFieldOf(T &value)
+    {
+        everyFieldOf(value, differs::compact(value));
+    }
+
+    template <class T> void everyFieldOfAsSaved(T &value)
+    {
+        everyFieldOf(value, asItWasSaved<T>(asJson(value)));
     }
 
     ActorAnimationData someClipsAndARung()
@@ -352,6 +363,19 @@ namespace
     }
 }
 
+TEST_CASE("Every field of the shipped game data says when it is edited", "[InspectorMarks]")
+{
+    GameData gameData = loadGameData();
+
+    everyFieldOfAsSaved(gameData.settings);
+    everyFieldOfAsSaved(gameData.cameraData);
+    everyFieldOfAsSaved(gameData.playerData);
+    everyFieldOfAsSaved(gameData.npcData);
+    everyFieldOfAsSaved(gameData.pickupData);
+    everyFieldOfAsSaved(gameData.tilePalettes);
+    everyFieldOfAsSaved(gameData.levels);
+}
+
 namespace
 {
     std::vector<std::string> readsAsChangedShowing(
@@ -385,7 +409,8 @@ TEST_CASE("Every clip and rung is looked for where the actor keeps it", "[Inspec
 {
     HeadlessImGui gui;
     GameData gameData = aGameWithSomethingOfEachKind();
-    ActorData &actor = gameData.playerData.actorData;
+    ActorData shipped = loadGameData().playerData.actorData;
+    ActorData &actor = GENERATE_REF(std::ref(gameData.playerData.actorData), std::ref(shipped));
     GraphShown graph = graphOf(actor.animationData);
     REQUIRE(graph.nodes.size() > 1);
     REQUIRE_FALSE(graph.edges.empty());
@@ -405,6 +430,53 @@ TEST_CASE("Every clip and rung is looked for where the actor keeps it", "[Inspec
         INFO(
             "showing rung " << at << ", read as changed: "
                             << (changed.empty() ? std::string() : changed.front()));
+        REQUIRE(changed.empty());
+    }
+}
+
+namespace
+{
+    std::vector<std::string> readsAsChangedShowing(
+        HeadlessImGui &gui,
+        NpcData &npc,
+        MachineShown shown)
+    {
+        return nothingReadsAsChangedWhile(
+            gui,
+            [&npc, shown]
+            {
+                SavedInScope was(differs::compact(npc));
+                inspector::InField machine("stateMachineBehaviorData");
+                MachineShown showing = shown;
+                std::ignore = drawStateMachineEditor(npc.stateMachineBehaviorData, {}, showing);
+            });
+    }
+}
+
+TEST_CASE("Every state and transition is looked for where the npc keeps it", "[InspectorMarks]")
+{
+    HeadlessImGui gui;
+    NpcData npc = loadGameData().npcData.at("rat");
+    REQUIRE(npc.stateMachineBehaviorData);
+    GraphShown graph = graphOf(*npc.stateMachineBehaviorData);
+    REQUIRE_FALSE(graph.nodes.empty());
+    REQUIRE_FALSE(graph.edges.empty());
+
+    for (std::size_t at = 0; at < graph.nodes.size(); ++at)
+    {
+        std::vector<std::string> changed = readsAsChangedShowing(gui, npc, showingState(at));
+        INFO(
+            "showing " << graph.nodes[at].name << ", read as changed: "
+                       << (changed.empty() ? std::string() : changed.front()));
+        REQUIRE(changed.empty());
+    }
+
+    for (std::size_t at = 0; at < graph.edges.size(); ++at)
+    {
+        std::vector<std::string> changed = readsAsChangedShowing(gui, npc, showingTransition(at));
+        INFO(
+            "showing transition " << at << ", read as changed: "
+                                  << (changed.empty() ? std::string() : changed.front()));
         REQUIRE(changed.empty());
     }
 }

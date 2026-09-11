@@ -47,6 +47,14 @@ namespace
         return observed;
     }
 
+    Observed againstTheEdge(bool onTheRight)
+    {
+        Observed observed = onTheGround();
+        observed.contacts.touchingRightEdge = onTheRight;
+        observed.contacts.touchingLeftEdge = !onTheRight;
+        return observed;
+    }
+
     Observed inTheAir()
     {
         return Observed{};
@@ -181,4 +189,41 @@ TEST_CASE("A charge carries the actor, whatever its legs were asked", "[ChargeAb
 
     abilities.decide(Step, walkingBack, againstAWall(true), decided);
     REQUIRE(decided.targetVelocity.x < 0.0f);
+}
+
+TEST_CASE("A charge ends at the edge of the level, where there is no wall", "[ChargeAbility]")
+{
+    ChargeAbility charge(aChargeOf(180.0f));
+    Decided decided;
+
+    charge.decide(Step, askingToCharge(1.0f), onTheGround(), decided);
+    REQUIRE(decided.charge.active);
+
+    charge.decide(Step, InputIntentions(), againstTheEdge(true), decided);
+
+    REQUIRE_FALSE(decided.charge.active);
+}
+
+TEST_CASE("A charge is refused into the edge it is already against", "[ChargeAbility]")
+{
+    ChargeAbility charge(aChargeOf(180.0f));
+    Decided decided;
+
+    charge.decide(Step, askingToCharge(-1.0f), againstTheEdge(false), decided);
+
+    REQUIRE_FALSE(decided.charge.active);
+    REQUIRE_FALSE(decided.charge.emit);
+}
+
+TEST_CASE("A charge carries on past the edge behind it", "[ChargeAbility]")
+{
+    ChargeAbility charge(aChargeOf(180.0f));
+    Decided decided;
+
+    charge.decide(Step, askingToCharge(1.0f), onTheGround(), decided);
+    REQUIRE(decided.charge.active);
+
+    charge.decide(Step, InputIntentions(), againstTheEdge(false), decided);
+
+    REQUIRE(decided.charge.active);
 }

@@ -9,9 +9,12 @@
 
 namespace
 {
-    bool wallAhead(const ActorContactState &contacts, float direction)
+    bool stoppedAhead(const ActorContactState &contacts, float direction)
     {
-        return direction < 0.0f ? contacts.touchingLeftWall : contacts.touchingRightWall;
+        if (direction < 0.0f)
+            return contacts.touchingLeftWall || contacts.touchingLeftEdge;
+
+        return contacts.touchingRightWall || contacts.touchingRightEdge;
     }
 }
 
@@ -41,7 +44,7 @@ void ChargeAbility::decide(
 
     if (charge.active)
     {
-        if (wallAhead(observed.contacts, charge.direction))
+        if (stoppedAhead(observed.contacts, charge.direction))
         {
             charge.active = false;
             return;
@@ -59,7 +62,7 @@ void ChargeAbility::decide(
     else
         charge.direction = observed.facingLeft ? -1.0f : 1.0f;
 
-    if (wallAhead(observed.contacts, charge.direction))
+    if (stoppedAhead(observed.contacts, charge.direction))
         return;
 
     charge.active = true;

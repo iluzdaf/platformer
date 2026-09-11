@@ -12,6 +12,9 @@
 #include "helpers/levels.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/npc_fixtures.hpp"
+#include "helpers/palettes.hpp"
+#include "game/game_data.hpp"
+#include "tile_map/tile_map_data.hpp"
 #include "helpers/scripted_npcs.hpp"
 #include "helpers/shipped.hpp"
 #include "actor/actor_state.hpp"
@@ -729,4 +732,92 @@ TEST_CASE("The spider shows its pounce clip while its pounce state is on", "[Shi
     REQUIRE(pouncedOnFilm);
     REQUIRE_FALSE(pouncedOffFilm);
     REQUIRE_FALSE(filmedElsewhere);
+}
+
+namespace
+{
+    Level aFloorWithNothingAtItsEnds(const std::vector<NpcSpawnData> &npcs)
+    {
+        TileMapData tileMapData;
+        tileMapData.tilePalette = "default";
+        tileMapData.indices =
+            std::vector<std::vector<int>>(LedgeHeightTiles, std::vector<int>(LedgeWidthTiles, 0));
+        for (int x = 0; x < LedgeWidthTiles; ++x)
+            tileMapData.indices[GroundRow][x] = GroundTile;
+
+        LevelData levelData;
+        levelData.tileMapData = tileMapData;
+        levelData.playerFeet = feetOf(glm::ivec2(1, GroundRow - 1));
+        levelData.npcs = npcs;
+
+        return Level(
+            levelData,
+            theOnlyPalette(ledgePalette()),
+            loadGameData().playerData,
+            shippedNpcData(),
+            shippedPickupData());
+    }
+
+    struct Charged
+    {
+        int stunnedAt = -1;
+        float footX = 0.0f;
+    };
+
+    Charged boarChargingFrom(glm::ivec2 boarTile, glm::ivec2 youTile)
+    {
+        NpcSpawnData spawn = spawnAt("boar", boarTile);
+        Level level = aFloorWithNothingAtItsEnds({spawn});
+        Npc npc(spawn, shippedNpcData().at("boar"));
+        ScriptedNpcs scripts;
+        scripts.script(npc);
+        glm::vec2 you = feetOf(youTile);
+
+        for (int settle = 0; settle < 30; ++settle)
+        {
+            npc.beginFrame();
+            npc.fixedUpdate(0.01f, level, you);
+        }
+        REQUIRE(npc.stateName() == "sleep");
+
+        std::vector<Noise> landing{{std::string(LandingNoise), you}};
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level, you, landing);
+        REQUIRE(npc.stateName() == "charge");
+
+        Charged charged;
+        for (int step = 0; step < 300 && charged.stunnedAt < 0; ++step)
+        {
+            npc.beginFrame();
+            npc.fixedUpdate(0.01f, level, you);
+            if (npc.stateName() == "stunned")
+                charged.stunnedAt = step;
+        }
+
+        charged.footX = footOf(npc).x;
+        return charged;
+    }
+}
+
+TEST_CASE(
+    "The shipped boar charging off the right end of the level is stunned there",
+    "[Npc][Charge]")
+{
+    Charged charged = boarChargingFrom(
+        glm::ivec2(14, GroundRow - 1), glm::ivec2(LedgeWidthTiles - 2, GroundRow - 1));
+
+    INFO("stunned at step " << charged.stunnedAt << ", foot x " << charged.footX);
+    REQUIRE(charged.stunnedAt >= 0);
+    REQUIRE(charged.footX > feetOf(glm::ivec2(LedgeWidthTiles - 2, GroundRow - 1)).x);
+}
+
+TEST_CASE(
+    "The shipped boar charging off the left end of the level is stunned there",
+    "[Npc][Charge]")
+{
+    Charged charged = boarChargingFrom(glm::ivec2(5, GroundRow - 1), glm::ivec2(1, GroundRow - 1));
+
+    INFO("stunned at step " << charged.stunnedAt << ", foot x " << charged.footX);
+    REQUIRE(charged.stunnedAt >= 0);
+    REQUIRE(charged.footX < feetOf(glm::ivec2(1, GroundRow - 1)).x);
 }

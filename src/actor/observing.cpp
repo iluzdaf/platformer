@@ -27,6 +27,9 @@ ActorContactState contactsAfterStep(
 
     contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
     contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
+    contacts.touchingLeftEdge = physicsBody.aabb().left() <= 0.0f;
+    contacts.touchingRightEdge =
+        physicsBody.aabb().right() >= static_cast<float>(tileMap.getWorldWidth());
     contacts.grippableLeftWall = physicsBody.gripOnLeftWall(tileMap);
     contacts.grippableRightWall = physicsBody.gripOnRightWall(tileMap);
     contacts.ledgeOnLeft =

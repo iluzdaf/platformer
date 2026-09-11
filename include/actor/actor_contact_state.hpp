@@ -7,7 +7,7 @@ struct ActorContactState
     bool onGround = false, hitCeiling = false, touchingRightWall = false, touchingLeftWall = false,
          wasOnGround = false, wasHitCeiling = false, wasLastWallLeft = false, ledgeOnLeft = false,
          ledgeOnRight = false, grippableLeftWall = false, grippableRightWall = false,
-         bumpedCeiling = false;
+         bumpedCeiling = false, touchingLeftEdge = false, touchingRightEdge = false;
     AABB collisionAABBX, collisionAABBY;
 
     bool touchingWall() const

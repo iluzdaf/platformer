@@ -68,7 +68,7 @@ namespace inspector_test
     inline inspector::Edited drawCustomField(std::string_view name, Drawn &value)
     {
         ++drawnByItsOwnField;
-        return inspector::drawNamed(name, value.value);
+        return inspector::draw(name, value.value);
     }
 
 }

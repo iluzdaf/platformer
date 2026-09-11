@@ -18,6 +18,8 @@
 #include <glaze/glaze.hpp>
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
+#include "ui/marked_label.hpp"
+#include "ui/saved_in_scope.hpp"
 
 namespace inspector
 {
@@ -85,62 +87,69 @@ namespace inspector
         return std::string("##") + std::string(name);
     }
 
-    inline Edited drawNamed(std::string_view name, float &value)
+    inline Edited drawNamed(std::string_view name, float &value, bool changed)
     {
-        ImGui::TextUnformatted(name.data(), name.data() + name.size());
+        drawLabel(name, changed);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         return justEdited(ImGui::DragFloat(labelled(name).c_str(), &value, 0.5f));
     }
 
-    inline Edited drawNamed(std::string_view name, int &value)
+    inline Edited drawNamed(std::string_view name, int &value, bool changed)
     {
-        ImGui::TextUnformatted(name.data(), name.data() + name.size());
+        drawLabel(name, changed);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         return justEdited(ImGui::DragInt(labelled(name).c_str(), &value));
     }
 
-    inline Edited drawNamed(std::string_view name, bool &value)
+    inline Edited drawNamed(std::string_view name, bool &value, bool changed)
     {
+        Marked marked(changed);
         return justEdited(ImGui::Checkbox(std::string(name).c_str(), &value));
     }
 
-    inline Edited drawNamed(std::string_view name, std::string &value)
+    inline Edited drawNamed(std::string_view name, std::string &value, bool changed)
     {
         std::array<char, 256> buffer{};
         value.copy(buffer.data(), std::min(value.size(), buffer.size() - 1));
 
-        ImGui::TextUnformatted(name.data(), name.data() + name.size());
+        drawLabel(name, changed);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
-        bool changed = ImGui::InputText(labelled(name).c_str(), buffer.data(), buffer.size());
-        Edited edited = justEdited(changed);
-        if (changed)
+        bool typed = ImGui::InputText(labelled(name).c_str(), buffer.data(), buffer.size());
+        Edited edited = justEdited(typed);
+        if (typed)
             value = buffer.data();
 
         return edited;
     }
 
-    inline Edited drawNamed(std::string_view name, glm::vec2 &value)
+    inline Edited drawNamed(std::string_view name, glm::vec2 &value, bool changed)
     {
-        ImGui::TextUnformatted(name.data(), name.data() + name.size());
+        drawLabel(name, changed);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         return justEdited(ImGui::DragFloat2(labelled(name).c_str(), &value.x, 0.5f));
     }
 
-    inline Edited drawNamed(std::string_view name, glm::ivec2 &value)
+    inline Edited drawNamed(std::string_view name, glm::ivec2 &value, bool changed)
     {
-        ImGui::TextUnformatted(name.data(), name.data() + name.size());
+        drawLabel(name, changed);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         return justEdited(ImGui::DragInt2(labelled(name).c_str(), &value.x));
     }
 
-    template <class T> Edited drawUnder(std::string_view name, T &value)
+    template <class T> Edited drawUnder(std::string_view name, T &value, bool changed)
     {
-        if (!ImGui::TreeNode(std::string(name).c_str()))
+        bool open = false;
+        {
+            Marked marked(changed);
+            open = ImGui::TreeNode(std::string(name).c_str());
+        }
+
+        if (!open)
             return {};
 
         Edited edited;
@@ -155,17 +164,25 @@ namespace inspector
 
     template <class T> Edited draw(std::string_view name, T &value)
     {
+        InField here(name);
+        const bool changed = changedHere(value);
+        Marking marking(changed);
+
         if constexpr (HasCustomField<T>)
             return drawCustomField(name, value);
         else if constexpr (
             std::is_same_v<T, bool> || std::is_same_v<T, float> || std::is_same_v<T, int> ||
             std::is_same_v<T, std::string> || std::is_same_v<T, glm::vec2> ||
             std::is_same_v<T, glm::ivec2>)
-            return drawNamed(name, value);
+            return drawNamed(name, value, changed);
         else if constexpr (IsOptional<T>::value)
         {
             bool present = value.has_value();
-            bool toggled = ImGui::Checkbox(std::string(name).c_str(), &present);
+            bool toggled = false;
+            {
+                Marked marked(changed);
+                toggled = ImGui::Checkbox(std::string(name).c_str(), &present);
+            }
             Edited edited = justEdited(toggled);
             if (toggled)
                 value = present ? std::optional(typename T::value_type{}) : std::nullopt;
@@ -183,7 +200,13 @@ namespace inspector
         }
         else if constexpr (IsVector<T>::value)
         {
-            if (!ImGui::TreeNode(std::string(name).c_str()))
+            bool open = false;
+            {
+                Marked marked(changed);
+                open = ImGui::TreeNode(std::string(name).c_str());
+            }
+
+            if (!open)
                 return {};
 
             Edited edited;
@@ -216,7 +239,7 @@ namespace inspector
         {
             constexpr auto &Ids = glz::meta<T>::ids;
             Edited edited;
-            ImGui::TextUnformatted(name.data(), name.data() + name.size());
+            drawLabel(name, changed);
             ImGui::SameLine();
             ImGui::SetNextItemWidth(-FLT_MIN);
             if (ImGui::BeginCombo(labelled(name).c_str(), Ids[value.index()]))
@@ -250,7 +273,13 @@ namespace inspector
         }
         else if constexpr (IsMap<T>::value)
         {
-            if (!ImGui::TreeNode(std::string(name).c_str()))
+            bool open = false;
+            {
+                Marked marked(changed);
+                open = ImGui::TreeNode(std::string(name).c_str());
+            }
+
+            if (!open)
                 return {};
 
             Edited edited;
@@ -307,7 +336,7 @@ namespace inspector
             return edited;
         }
         else if constexpr (glz::reflectable<T>)
-            return drawUnder(name, value);
+            return drawUnder(name, value, changed);
         else
         {
             ImGui::TextDisabled("%s", std::string(name).c_str());

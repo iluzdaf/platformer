@@ -1,6 +1,7 @@
 #include <string>
 #include <string_view>
 #include <imgui.h>
+#include "ui/marked_label.hpp"
 #include "ui/score_icon_field.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/data_inspector.hpp"
@@ -10,7 +11,13 @@
 
 inspector::Edited drawCustomField(std::string_view name, ScoreIconData &value)
 {
-    if (!ImGui::TreeNode(std::string(name).c_str()))
+    bool open = false;
+    {
+        inspector::Marked marked(inspector::markedHere());
+        open = ImGui::TreeNode(std::string(name).c_str());
+    }
+
+    if (!open)
         return {};
 
     inspector::Edited edited = inspector::draw("sheet", value.sheet);
@@ -18,12 +25,12 @@ inspector::Edited drawCustomField(std::string_view name, ScoreIconData &value)
     const SheetInScope *offering = sheetInScope();
     if (offering && offering->texture)
     {
-        ImGui::TextUnformatted("frame");
+        inspector::drawLabel("frame");
         ImGui::SameLine();
         edited |= drawFramePicked(*offering, value.frame);
     }
     else
-        edited |= inspector::drawNamed("frame", value.frame);
+        edited |= inspector::draw("frame", value.frame);
 
     ImGui::TreePop();
     return edited;

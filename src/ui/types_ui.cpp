@@ -7,6 +7,7 @@
 #include <glaze/glaze.hpp>
 #include <imgui.h>
 #include "ui/types_ui.hpp"
+#include "ui/saved_in_scope.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/saveable.hpp"
 #include "ui/data_inspector.hpp"
@@ -176,6 +177,8 @@ void TypesUi::drawShown(
     switch (showing.what)
     {
     case TypeShown::What::Npc: {
+        SavedInScope was(asItWasSaved<std::map<std::string, NpcData>>(saveable.lastSeen("npcs")));
+        inspector::InField shown(npcRenaming.shownName(showing.name));
         NpcData &npc = gameData.npcData.at(showing.name);
         drawActorPreview(scope, npc.actorData);
         edited |= inspector::drawFieldsExcept(npc, "stateMachineBehaviorData");
@@ -186,6 +189,9 @@ void TypesUi::drawShown(
     }
 
     case TypeShown::What::Pickup: {
+        SavedInScope was(
+            asItWasSaved<std::map<std::string, PickupData>>(saveable.lastSeen("pickups")));
+        inspector::InField shown(pickupRenaming.shownName(showing.name));
         PickupData &pickup = gameData.pickupData.at(showing.name);
         ImVec2 at = drawAnimationPreview(scope, pickup.animationData);
         glm::vec2 drawn = drawnSizeOf(pickup);
@@ -199,10 +205,12 @@ void TypesUi::drawShown(
         break;
     }
 
-    case TypeShown::What::Player:
+    case TypeShown::What::Player: {
+        SavedInScope was(asItWasSaved<PlayerData>(saveable.lastSeen("player")));
         drawActorPreview(scope, gameData.playerData.actorData);
         edited |= inspector::drawFields(gameData.playerData);
         break;
+    }
     }
 
     if (edited.onCommit)

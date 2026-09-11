@@ -5,6 +5,7 @@
 #include <vector>
 #include <imgui.h>
 #include "ui/levels_ui.hpp"
+#include "ui/saved_in_scope.hpp"
 #include "ui/data_inspector.hpp"
 #include "game/empty_level.hpp"
 #include "game/level_data_file.hpp"
@@ -128,6 +129,7 @@ LevelsAsked LevelsUi::draw(
 
     ImGui::Separator();
 
+    SavedInScope was(asItWasSaved<LevelsData>(saveable.lastSeen("levels")));
     inspector::draw("first", levels.first);
 
     ImGui::PopID();

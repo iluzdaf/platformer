@@ -24,6 +24,9 @@
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"
+#include "tile_map/tile_data.hpp"
+#include "tile_map/tile_collider_data.hpp"
+#include "tile_map/tile_palette_data.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "timing/fixed_time_step.hpp"
@@ -1016,4 +1019,85 @@ TEST_CASE("A tile painted leaves no creature walking a node that is gone", "[Wor
     REQUIRE_FALSE(world.getLevel().graphFor(climbing.profile()).hasNode(*headingFor));
     REQUIRE_NOTHROW(walkFor(world, 30));
     REQUIRE(climbing.currentNodeId());
+}
+
+namespace
+{
+    TilePalettes aPaletteWhoseTilesSitAtDifferentHeights()
+    {
+        TileData full;
+        full.solid = true;
+        TileData aPixelLower;
+        aPixelLower.solid = true;
+        aPixelLower.collider = TileColliderData{glm::vec2(0.0f, 1.0f), glm::vec2(16.0f, 15.0f)};
+
+        return theOnlyPalette(paletteOf({{0, TileData{}}, {1, full}, {2, aPixelLower}}));
+    }
+
+    LevelData aFloorWithAStepDownAt(int column)
+    {
+        LevelData levelData = aFloorLevelPlacing({});
+        for (int x = column; x < FloorLevelTiles; ++x)
+            levelData.tileMapData.indices[FloorLevelRow][x] = 2;
+
+        return levelData;
+    }
+}
+
+TEST_CASE("Walking over a tile that sits a pixel lower is not heard", "[World]")
+{
+    GameData gameData;
+    gameData.tilePalettes = aPaletteWhoseTilesSitAtDifferentHeights();
+    gameData.playerData = playerDataWithEveryAbility();
+    TemporaryLevels levels("world_step_down");
+    levels.write("floor.json", aFloorWithAStepDownAt(4));
+
+    LuaScriptSystem luaScriptSystem;
+    ScriptedIntentions input;
+    World world(gameData, input, luaScriptSystem);
+    world.loadLevel(levels.pathOf("floor.json"));
+    walkFor(world, 5);
+
+    InputIntentions right;
+    right.direction = glm::vec2(1.0f, 0.0f);
+    input.set(right);
+
+    bool leftTheGround = false;
+    bool heard = false;
+    for (int frame = 0; frame < 120; ++frame)
+    {
+        walkFor(world, 1);
+        leftTheGround = leftTheGround || !world.getPlayer().observed().contacts.onGround;
+        heard = heard || !world.noises().empty();
+    }
+
+    REQUIRE(world.getPlayer().feet().x > feetOf(glm::ivec2(4, FloorLevelStanding)).x);
+    REQUIRE(leftTheGround);
+    REQUIRE_FALSE(heard);
+}
+
+TEST_CASE("A player dropped from a height is heard where it lands", "[World]")
+{
+    GameData gameData;
+    gameData.tilePalettes = aPaletteWhoseTilesSitAtDifferentHeights();
+    gameData.playerData = playerDataWithEveryAbility();
+    TemporaryLevels levels("world_dropped");
+    levels.write("floor.json", aFloorWithAStepDownAt(4));
+
+    LuaScriptSystem luaScriptSystem;
+    World world(gameData, noIntentions(), luaScriptSystem);
+    world.loadLevel(levels.pathOf("floor.json"));
+    walkFor(world, 5);
+    REQUIRE(world.noises().empty());
+
+    world.getPlayer().standAt(feetOf(glm::ivec2(2, FloorLevelStanding - 3)));
+
+    bool heard = false;
+    for (int frame = 0; frame < 120 && !heard; ++frame)
+    {
+        walkFor(world, 1);
+        heard = !world.noises().empty();
+    }
+
+    REQUIRE(heard);
 }

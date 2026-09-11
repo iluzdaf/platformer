@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <memory>
 #include <vector>
 #include "game/level_data.hpp"
@@ -178,9 +179,7 @@ void World::fixedUpdate(float deltaTime)
     level->fixedUpdate(deltaTime, player->feet(), heardThisTick);
     heardThisTick.clear();
     player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
-    const ActorContactState &contacts = player->observed().contacts;
-    if (!contacts.wasOnGround && contacts.onGround && player->observed().previousVelocity.y > 0.0f)
-        heardThisTick.push_back(Noise{std::string(LandingNoise), player->feet()});
+    hearWhereItLands();
 
     strikeNpcs(*player.get(), level->getNpcs());
     touchTiles(*player.get(), level->getTileMap());
@@ -188,6 +187,21 @@ void World::fixedUpdate(float deltaTime)
 
     for (const Pickup &taken : level->takePickupsTouching(player->body().touchBox()))
         score.add(taken.getScoreDelta());
+}
+
+void World::hearWhereItLands()
+{
+    glm::vec2 feet = player->feet();
+    if (!player->observed().contacts.onGround)
+    {
+        highestSinceTheGround = std::min(highestSinceTheGround, feet.y);
+        return;
+    }
+
+    if (feet.y - highestSinceTheGround > gameData.playerData.heardAfterFalling)
+        heardThisTick.push_back(Noise{std::string(LandingNoise), feet});
+
+    highestSinceTheGround = feet.y;
 }
 
 void World::postFixedUpdate()

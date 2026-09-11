@@ -1,21 +1,22 @@
 #pragma once
 
+#include <map>
 #include <string>
-#include <vector>
-#include "conditions/asked.hpp"
+#include <string_view>
+#include "animations/animation_ladder_data.hpp"
+#include "animations/frame_animation_data.hpp"
 
-struct AnimationTransitionData
-{
-    std::string from;
-    std::string to;
-    AnimationWhenData when;
-
-    bool operator==(const AnimationTransitionData &) const = default;
-};
+inline constexpr std::string_view IdleClip = "idle";
+inline constexpr std::string_view AttackClip = "attack";
 
 struct AnimatorData
 {
-    std::vector<AnimationTransitionData> transitions;
-
-    bool operator==(const AnimatorData &) const = default;
+    std::map<std::string, FrameAnimationData> clips;
+    AnimationLadderData ladder;
 };
+
+inline const FrameAnimationData *clipNamed(const AnimatorData &animations, std::string_view name)
+{
+    auto found = animations.clips.find(std::string(name));
+    return found == animations.clips.end() ? nullptr : &found->second;
+}

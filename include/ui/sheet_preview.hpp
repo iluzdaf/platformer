@@ -9,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 
-struct ActorAnimationData;
+struct AnimatorData;
 struct FrameAnimationData;
 struct SheetInScope;
 struct TileData;
@@ -30,7 +30,7 @@ struct NamedAnimation
     const FrameAnimationData *animation;
 };
 
-std::vector<NamedAnimation> animationsOf(const ActorAnimationData &animations);
+std::vector<NamedAnimation> animationsOf(const AnimatorData &animations);
 
 const NamedAnimation &animationNamed(
     const std::vector<NamedAnimation> &offered,

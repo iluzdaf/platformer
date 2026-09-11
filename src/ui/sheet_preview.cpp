@@ -10,7 +10,7 @@
 #include <imgui.h>
 #include "ui/sheet_preview.hpp"
 #include "ui/sheet_in_scope.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "assets/sheet_data.hpp"
 #include "rendering/texture2d.hpp"
@@ -34,7 +34,7 @@ std::pair<ImVec2, ImVec2> colliderRect(ImVec2 tileAt, float scale, glm::vec2 off
     return {low, ImVec2(low.x + size.x * scale, low.y + size.y * scale)};
 }
 
-std::vector<NamedAnimation> animationsOf(const ActorAnimationData &animations)
+std::vector<NamedAnimation> animationsOf(const AnimatorData &animations)
 {
     static const FrameAnimationData noIdleDrawnYet{};
     std::vector<NamedAnimation> offered;

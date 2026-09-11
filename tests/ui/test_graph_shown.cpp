@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "animations/animator_data.hpp"
@@ -23,9 +23,9 @@ namespace
         return names;
     }
 
-    ActorAnimationData aWalkerWithADeath()
+    AnimatorData aWalkerWithADeath()
     {
-        ActorAnimationData animations;
+        AnimatorData animations;
         animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
         animations.clips["idle"] = FrameAnimationData{{0}, 0.5f};
         animations.clips["dead"] = FrameAnimationData{{9}, 1.0f};
@@ -37,8 +37,8 @@ namespace
         moving["moving"] = true;
         AnimationWhenData finished;
         finished["finished"] = true;
-        animations.ladder =
-            AnimatorData{{{"", "dead", dead}, {"", "walk", moving}, {"walk", "idle", finished}}};
+        animations.ladder = AnimationLadderData{
+            {{"", "dead", dead}, {"", "walk", moving}, {"walk", "idle", finished}}};
         return animations;
     }
 }
@@ -92,10 +92,10 @@ TEST_CASE(
 
 TEST_CASE("An animator with no rung from anywhere has no any node", "[GraphShown]")
 {
-    ActorAnimationData animations;
+    AnimatorData animations;
     animations.clips["idle"] = FrameAnimationData{{0}, 0.5f};
     animations.clips["walk"] = FrameAnimationData{{1}, 0.5f};
-    animations.ladder = AnimatorData{{{"idle", "walk", AnimationWhenData{}}}};
+    animations.ladder = AnimationLadderData{{{"idle", "walk", AnimationWhenData{}}}};
 
     REQUIRE(namesOf(graphOf(animations)) == std::vector<std::string>{"idle", "walk"});
 }

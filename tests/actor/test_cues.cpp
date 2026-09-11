@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/level.hpp"
 #include "helpers/actors.hpp"

@@ -238,7 +238,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[StrikingPlayer
     swinger.actorData.animationData.clips["attack"] = anAttackClip();
     AnimationWhenData whileSwinging;
     whileSwinging["swinging"] = true;
-    swinger.actorData.animationData.ladder = AnimatorData{{{"", "attack", whileSwinging}}};
+    swinger.actorData.animationData.ladder = AnimationLadderData{{{"", "attack", whileSwinging}}};
     BehaviorStateData swinging;
     swinging.name = "swing";
     swinging.does = AttackBehaviorData{std::string(SwingAttack)};

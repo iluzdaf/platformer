@@ -9,7 +9,7 @@
 #include "ui/state_machine_shown.hpp"
 
 struct StateMachineBehaviorData;
-struct ActorAnimationData;
+struct AnimatorData;
 struct AnimationWhenData;
 
 inline constexpr std::string_view AnyNode = "any";
@@ -56,4 +56,4 @@ std::string whenOf(const AnimationWhenData &when);
 
 GraphShown graphOf(const StateMachineBehaviorData &machine);
 
-GraphShown graphOf(const ActorAnimationData &animations);
+GraphShown graphOf(const AnimatorData &animations);

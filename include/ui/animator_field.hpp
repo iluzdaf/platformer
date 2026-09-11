@@ -4,9 +4,9 @@
 #include <string>
 #include "ui/state_machine_shown.hpp"
 
-struct ActorAnimationData;
+struct AnimatorData;
 
 MachineShown drawAnimatorGraph(
-    const ActorAnimationData &animations,
+    const AnimatorData &animations,
     const std::set<std::string> &litClips,
     MachineShown selected);

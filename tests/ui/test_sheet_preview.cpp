@@ -3,7 +3,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "ui/sheet_preview.hpp"
@@ -109,7 +109,7 @@ TEST_CASE("A collider is drawn from where the tile is", "[SheetPreview]")
 
 TEST_CASE("An actor offers idle first, then whichever clips it has by name", "[SheetPreview]")
 {
-    ActorAnimationData animations;
+    AnimatorData animations;
     animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
     animations.clips["fall"] = FrameAnimationData{{3}, 0.1f};
 
@@ -122,7 +122,7 @@ TEST_CASE("An actor offers idle first, then whichever clips it has by name", "[S
 
 TEST_CASE("An actor offers a climb and a knockback the same way", "[SheetPreview]")
 {
-    ActorAnimationData animations;
+    AnimatorData animations;
     animations.clips["climb"] = FrameAnimationData{{4}, 0.1f};
     animations.clips["knockback"] = FrameAnimationData{{5}, 0.1f};
 
@@ -135,7 +135,7 @@ TEST_CASE("An actor offers a climb and a knockback the same way", "[SheetPreview
 
 TEST_CASE("An animation asked for by name is the one offered under it", "[SheetPreview]")
 {
-    ActorAnimationData animations;
+    AnimatorData animations;
     animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
 
     std::vector<NamedAnimation> offered = animationsOf(animations);
@@ -145,7 +145,7 @@ TEST_CASE("An animation asked for by name is the one offered under it", "[SheetP
 
 TEST_CASE("An actor with no idle clip yet still offers an empty one to preview", "[SheetPreview]")
 {
-    ActorAnimationData animations;
+    AnimatorData animations;
 
     std::vector<NamedAnimation> offered = animationsOf(animations);
 
@@ -155,7 +155,7 @@ TEST_CASE("An actor with no idle clip yet still offers an empty one to preview",
 
 TEST_CASE("An animation nobody has is previewed as idle", "[SheetPreview]")
 {
-    ActorAnimationData animations;
+    AnimatorData animations;
     animations.clips["idle"] = FrameAnimationData{{0}, 0.1f};
     animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
 

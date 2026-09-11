@@ -21,7 +21,7 @@ class Level;
 class TextureCache;
 struct EditorCommands;
 struct SheetInScope;
-struct ActorAnimationData;
+struct AnimatorData;
 struct ActorData;
 
 class TypesUi

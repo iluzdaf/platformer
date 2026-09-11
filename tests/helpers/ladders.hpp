@@ -4,14 +4,15 @@
 #include <utility>
 #include "animations/animator_data.hpp"
 #include "conditions/asked.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
+#include "animations/animation_ladder_data.hpp"
 
 inline AnimationTransitionData fromAnyTo(std::string to, AnimationWhenData when)
 {
     return AnimationTransitionData{std::string(), std::move(to), when};
 }
 
-inline AnimatorData everyPictureLadder()
+inline AnimationLadderData everyPictureLadder()
 {
     AnimationWhenData dead;
     dead["alive"] = false;
@@ -39,7 +40,7 @@ inline AnimatorData everyPictureLadder()
     AnimationWhenData standing;
     standing["onGround"] = true;
 
-    return AnimatorData{
+    return AnimationLadderData{
         {fromAnyTo("dead", dead),
          fromAnyTo("knockback", pushed),
          fromAnyTo("attack", swinging),
@@ -52,9 +53,9 @@ inline AnimatorData everyPictureLadder()
          fromAnyTo("idle", standing)}};
 }
 
-inline AnimatorData ladderOfWhatItHas(const ActorAnimationData &animations)
+inline AnimationLadderData ladderOfWhatItHas(const AnimatorData &animations)
 {
-    AnimatorData trimmed;
+    AnimationLadderData trimmed;
     for (const AnimationTransitionData &rung : everyPictureLadder().transitions)
         if (animations.clips.contains(rung.to))
             trimmed.transitions.push_back(rung);

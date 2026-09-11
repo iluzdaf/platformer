@@ -13,7 +13,7 @@
 #include "ui/saveable.hpp"
 #include "ui/saved_in_scope.hpp"
 #include "ui/data_inspector.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "game/level_data_file.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "ui/debug_aabb_overlay.hpp"
@@ -48,7 +48,7 @@ LevelUi::LevelUi(EditorHistory &history) : history(history)
 void LevelUi::draw(
     const Level &level,
     const LevelData &levelData,
-    const ActorAnimationData &playerAnimations,
+    const AnimatorData &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -75,7 +75,7 @@ void LevelUi::draw(
 void LevelUi::drawActors(
     const Level &level,
     const LevelData &levelData,
-    const ActorAnimationData &playerAnimations,
+    const AnimatorData &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,

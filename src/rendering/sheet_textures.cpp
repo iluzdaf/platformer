@@ -6,7 +6,7 @@
 #include "rendering/frames_fit.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "pickups/pickup_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/score_icon_data.hpp"

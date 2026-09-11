@@ -1,16 +1,17 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include "animations/animation_ladder_data.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
 #include "conditions/fact_rows.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
 
-Animator::Animator(const AnimatorData &ladder) : data(ladder)
+Animator::Animator(const AnimationLadderData &ladder) : data(ladder)
 {
 }
 
@@ -79,7 +80,7 @@ bool Animator::finished() const
     return playingNow != animations.end() && playingNow->second.finished();
 }
 
-const AnimatorData &Animator::ladder() const
+const AnimationLadderData &Animator::ladder() const
 {
     return data;
 }

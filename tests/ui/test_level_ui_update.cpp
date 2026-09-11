@@ -6,6 +6,7 @@
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 #include "player/player_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "ui/armed.hpp"
@@ -35,9 +36,14 @@ namespace
     constexpr int Standing = FloorRow - 1;
     constexpr int PaintedTile = 1;
 
-    LevelData dataPlacing(const std::vector<NpcSpawnData> &npcs)
+    LevelData dataPlacing(
+        const std::vector<NpcSpawnData> &npcs,
+        const std::vector<PickupSpawnData> &pickups = {})
     {
-        return aFloorLevelPlacing(npcs, PaintedTile);
+        LevelData levelData = aFloorLevelPlacing(npcs, PaintedTile);
+        levelData.pickups = pickups;
+
+        return levelData;
     }
 
     Level levelOf(const LevelData &levelData)
@@ -58,9 +64,12 @@ namespace
         std::optional<LevelData> edited;
         std::optional<TileMapData> painted;
 
-        explicit Editing(const std::vector<NpcSpawnData> &npcs = {})
-            : levelData(dataPlacing(npcs)), level(levelOf(levelData))
+        explicit Editing(
+            const std::vector<NpcSpawnData> &npcs = {},
+            const std::vector<PickupSpawnData> &pickups = {})
+            : levelData(dataPlacing(npcs, pickups)), level(levelOf(levelData))
         {
+
             std::ignore =
                 commands.onLevelEdited.connect([this](const LevelData &now) { edited = now; });
             std::ignore =
@@ -255,6 +264,46 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
     REQUIRE_FALSE(armed);
 }
 
+TEST_CASE("Picking a pickup's spawn moves it and says the level changed", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing({}, {PickupSpawnData{"coin", feetOf(glm::ivec2(2, Standing))}});
+    std::optional<Armed> armed = PickTile{PickTile::For::PickupSpawn, 0};
+    glm::ivec2 target(5, Standing);
+
+    levelUi.update(
+        clicking(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
+
+    REQUIRE(editing.asked().pickups.front().feet == feetOf(target));
+    REQUIRE_FALSE(armed);
+}
+
+TEST_CASE("A pick naming a pickup the level lost is put down, not acted on", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing;
+    std::optional<Armed> armed = PickTile{PickTile::For::PickupSpawn, 0};
+
+    levelUi.update(
+        clicking(editing.level, glm::ivec2(5, Standing)),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        armed,
+        editing.commands);
+    editing.commands.drain();
+
+    REQUIRE_FALSE(editing.edited);
+    REQUIRE_FALSE(armed);
+}
+
 TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]")
 {
     EditorHistory history;
@@ -345,6 +394,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
                 level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
                 playerState,
                 shippedNpcData(),
+                shippedPickupData(),
                 armed,
                 commands);
         }));

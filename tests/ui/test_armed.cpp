@@ -15,8 +15,8 @@ TEST_CASE("Every pick a panel can arm is told apart from the others", "[Armed]")
 
     std::vector<std::string> ids;
     for (PickTile::For what : Kinds)
-        for (std::size_t npcIndex = 0; npcIndex < 4; ++npcIndex)
-            ids.push_back(pickId(PickTile{what, npcIndex}));
+        for (std::size_t index = 0; index < 4; ++index)
+            ids.push_back(pickId(PickTile{what, index}));
 
     std::set<std::string> distinct(ids.begin(), ids.end());
 

@@ -21,18 +21,19 @@ struct PickTile
         PlayerStart,
         NpcSpawn,
         PatrolFrom,
-        PatrolTo
+        PatrolTo,
+        PickupSpawn
     };
 
     For what = For::PlayerStart;
-    std::size_t npcIndex = 0;
+    std::size_t index = 0;
 
     bool operator==(const PickTile &) const = default;
 };
 
 inline std::string pickId(PickTile pick)
 {
-    return std::to_string(static_cast<int>(pick.what)) + "-" + std::to_string(pick.npcIndex);
+    return std::to_string(static_cast<int>(pick.what)) + "-" + std::to_string(pick.index);
 }
 
 using Armed = std::variant<PaintTile, PickTile>;

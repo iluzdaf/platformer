@@ -29,6 +29,8 @@
 #include "navigation/navigation_profile_builder.hpp"
 #include "game/catalogue.hpp"
 #include "npc/npc_data.hpp"
+#include "pickups/pickup_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 #include "ui/tile_map_overlays.hpp"
 #include <cfloat>
 #include "ui/inspector_edited.hpp"
@@ -51,6 +53,7 @@ void LevelUi::draw(
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcData,
+    const std::map<std::string, PickupData> &pickupData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
@@ -64,6 +67,7 @@ void LevelUi::draw(
         playerFeet,
         playerState,
         npcData,
+        pickupData,
         armed,
         commands);
 }
@@ -76,6 +80,7 @@ void LevelUi::drawActors(
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcData,
+    const std::map<std::string, PickupData> &pickupData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
@@ -90,6 +95,7 @@ void LevelUi::drawActors(
         playerFeet,
         playerState,
         npcData,
+        pickupData,
         showingActor,
         armed);
 
@@ -106,10 +112,31 @@ void LevelUi::drawActors(
         history.remembers(levelData);
         commands.onLevelEdited(edited);
     }
-    else if (asked.removeShownNpc && showingActor.what == ActorShown::What::Npc)
+    else if (asked.addPickupOfType)
+    {
+        std::ignore = oneNamed(pickupData, "pickup", *asked.addPickupOfType);
+
+        LevelData edited = levelData;
+        edited.pickups.push_back(PickupSpawnData{*asked.addPickupOfType, levelData.playerFeet});
+
+        showingActor = ActorShown{ActorShown::What::Pickup, edited.pickups.size() - 1};
+        history.remembers(levelData);
+        commands.onLevelEdited(edited);
+    }
+    else if (asked.removeShown && showingActor.what == ActorShown::What::Npc)
     {
         LevelData edited = levelData;
-        edited.npcs.erase(edited.npcs.begin() + static_cast<std::ptrdiff_t>(showingActor.npcIndex));
+        edited.npcs.erase(edited.npcs.begin() + static_cast<std::ptrdiff_t>(showingActor.index));
+
+        showingActor = ActorShown{};
+        history.remembers(levelData);
+        commands.onLevelEdited(edited);
+    }
+    else if (asked.removeShown && showingActor.what == ActorShown::What::Pickup)
+    {
+        LevelData edited = levelData;
+        edited.pickups.erase(
+            edited.pickups.begin() + static_cast<std::ptrdiff_t>(showingActor.index));
 
         showingActor = ActorShown{};
         history.remembers(levelData);
@@ -118,7 +145,7 @@ void LevelUi::drawActors(
     else if (asked.clearShownBeat && showingActor.what == ActorShown::What::Npc)
     {
         LevelData edited = levelData;
-        edited.npcs[showingActor.npcIndex].patrol.reset();
+        edited.npcs[showingActor.index].patrol.reset();
         history.remembers(levelData);
         commands.onLevelEdited(edited);
     }
@@ -327,7 +354,9 @@ void LevelUi::update(
         return;
 
     PickTile picking = std::get<PickTile>(*armed);
-    if (picking.what != PickTile::For::PlayerStart && picking.npcIndex >= levelData.npcs.size())
+    const std::size_t among = picking.what == PickTile::For::PickupSpawn ? levelData.pickups.size()
+                                                                         : levelData.npcs.size();
+    if (picking.what != PickTile::For::PlayerStart && picking.index >= among)
     {
         armed.reset();
         return;
@@ -341,12 +370,16 @@ void LevelUi::update(
         break;
 
     case PickTile::For::NpcSpawn:
-        edited.npcs[picking.npcIndex].feet = tileMap.feetOnTile(tilePosition);
+        edited.npcs[picking.index].feet = tileMap.feetOnTile(tilePosition);
+        break;
+
+    case PickTile::For::PickupSpawn:
+        edited.pickups[picking.index].feet = tileMap.feetOnTile(tilePosition);
         break;
 
     case PickTile::For::PatrolFrom:
     case PickTile::For::PatrolTo: {
-        const std::optional<PatrolData> &walked = levelData.npcs[picking.npcIndex].patrol;
+        const std::optional<PatrolData> &walked = levelData.npcs[picking.index].patrol;
         std::pair<glm::ivec2, glm::ivec2> beat{tilePosition, tilePosition};
         if (walked)
             beat = tilesOfBeat(tileMap, *walked);
@@ -356,7 +389,7 @@ void LevelUi::update(
         else
             beat.second = tilePosition;
 
-        edited.npcs[picking.npcIndex].patrol = beatBetween(tileMap, beat.first, beat.second);
+        edited.npcs[picking.index].patrol = beatBetween(tileMap, beat.first, beat.second);
         break;
     }
     }

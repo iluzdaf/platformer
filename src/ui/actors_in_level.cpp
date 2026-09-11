@@ -20,6 +20,9 @@
 #include "tile_map/tile_map.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "pickups/pickup.hpp"
+#include "pickups/pickup_data.hpp"
+#include "pickups/pickup_spawn_data.hpp"
 #include "game/beat_between.hpp"
 #include "ui/state_machine_graph.hpp"
 #include "ui/animator_field.hpp"
@@ -39,7 +42,15 @@ namespace
         return spawn.type + " " + std::to_string(index + 1);
     }
 
-    std::string labelOf(ActorShown shown, const std::vector<std::unique_ptr<Npc>> &npcs)
+    std::string labelOf(const PickupSpawnData &spawn, size_t index)
+    {
+        return spawn.type + " " + std::to_string(index + 1);
+    }
+
+    std::string labelOf(
+        ActorShown shown,
+        const std::vector<std::unique_ptr<Npc>> &npcs,
+        const std::vector<Pickup> &pickups)
     {
         switch (shown.what)
         {
@@ -47,8 +58,13 @@ namespace
             return "player";
 
         case ActorShown::What::Npc:
-            if (shown.npcIndex < npcs.size())
-                return labelOf(npcs[shown.npcIndex]->getSpawn(), shown.npcIndex);
+            if (shown.index < npcs.size())
+                return labelOf(npcs[shown.index]->getSpawn(), shown.index);
+            break;
+
+        case ActorShown::What::Pickup:
+            if (shown.index < pickups.size())
+                return labelOf(pickups[shown.index].getSpawn(), shown.index);
             break;
 
         case ActorShown::What::None:
@@ -205,6 +221,21 @@ namespace
         drawTileArmButton(asTile(startTile), PickTile{PickTile::For::PlayerStart, 0}, armed);
     }
 
+    void drawPickupEditing(
+        const TileMap &tileMap,
+        const Pickup &pickup,
+        size_t index,
+        std::optional<Armed> &armed)
+    {
+        beginRow("Spawns At");
+        drawTileArmButton(
+            asTile(tileMap.tileUnderFeet(pickup.getSpawn().feet)),
+            PickTile{PickTile::For::PickupSpawn, index},
+            armed);
+
+        drawRow("Gives", std::to_string(pickup.getScoreDelta()));
+    }
+
     bool drawNpcEditing(
         const TileMap &tileMap,
         const NpcSpawnData &spawn,
@@ -270,21 +301,26 @@ ActorAsked drawActorsInLevel(
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcTypes,
+    const std::map<std::string, PickupData> &pickupTypes,
     ActorShown showing,
     std::optional<Armed> &armed)
 {
     const std::vector<std::unique_ptr<Npc>> &npcs = level.getNpcs();
-    if (showing.what == ActorShown::What::Npc && showing.npcIndex >= npcs.size())
+    const std::vector<Pickup> &pickups = level.getPickups();
+    if (showing.what == ActorShown::What::Npc && showing.index >= npcs.size())
         showing = ActorShown{};
 
-    ActorAsked asked{showing, false, false, std::nullopt};
+    if (showing.what == ActorShown::What::Pickup && showing.index >= pickups.size())
+        showing = ActorShown{};
+
+    ActorAsked asked{showing, false, false, std::nullopt, std::nullopt};
 
     const ImGuiStyle &style = ImGui::GetStyle();
     float buttons = ImGui::CalcTextSize("add").x + ImGui::CalcTextSize("remove").x +
                     style.FramePadding.x * 4.0f + style.ItemSpacing.x * 2.0f;
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - buttons);
-    if (ImGui::BeginCombo("##actor", labelOf(showing, npcs).c_str()))
+    if (ImGui::BeginCombo("##actor", labelOf(showing, npcs, pickups).c_str()))
     {
         if (ImGui::Selectable("none", showing.what == ActorShown::What::None))
             asked.show = ActorShown{ActorShown::What::None, 0};
@@ -297,6 +333,14 @@ ActorAsked drawActorsInLevel(
                     labelOf(npcs[index]->getSpawn(), index).c_str(),
                     showing == ActorShown{ActorShown::What::Npc, index}))
                 asked.show = ActorShown{ActorShown::What::Npc, index};
+
+        ImGui::PushID("pickups");
+        for (size_t index = 0; index < pickups.size(); ++index)
+            if (ImGui::Selectable(
+                    labelOf(pickups[index].getSpawn(), index).c_str(),
+                    showing == ActorShown{ActorShown::What::Pickup, index}))
+                asked.show = ActorShown{ActorShown::What::Pickup, index};
+        ImGui::PopID();
 
         ImGui::EndCombo();
     }
@@ -311,13 +355,21 @@ ActorAsked drawActorsInLevel(
             if (ImGui::Selectable(type.c_str()))
                 asked.addNpcOfType = type;
 
+        ImGui::Separator();
+        ImGui::PushID("pickups");
+        for (const auto &[type, pickupData] : pickupTypes)
+            if (ImGui::Selectable(type.c_str()))
+                asked.addPickupOfType = type;
+        ImGui::PopID();
+
         ImGui::EndPopup();
     }
 
     ImGui::SameLine();
-    ImGui::BeginDisabled(showing.what != ActorShown::What::Npc);
+    ImGui::BeginDisabled(
+        showing.what != ActorShown::What::Npc && showing.what != ActorShown::What::Pickup);
     if (ImGui::Button("remove"))
-        asked.removeShownNpc = true;
+        asked.removeShown = true;
     ImGui::EndDisabled();
 
     switch (showing.what)
@@ -336,7 +388,7 @@ ActorAsked drawActorsInLevel(
         break;
 
     case ActorShown::What::Npc: {
-        const Npc *npc = npcs[showing.npcIndex].get();
+        const Npc *npc = npcs[showing.index].get();
         const NpcSpawnData &spawn = npc->getSpawn();
 
         ImGui::Separator();
@@ -345,14 +397,25 @@ ActorAsked drawActorsInLevel(
         if (ImGui::BeginTable("Npc", 2, ImGuiTableFlags_BordersInnerV))
         {
             nameThenValue();
-            asked.clearShownBeat =
-                drawNpcEditing(level.getTileMap(), spawn, showing.npcIndex, armed);
+            asked.clearShownBeat = drawNpcEditing(level.getTileMap(), spawn, showing.index, armed);
             drawNpcState(level, npc);
             ImGui::EndTable();
         }
 
         drawMachineOf(npcTypes, *npc);
         drawAnimatorOf(npcTypes, *npc);
+        break;
+    }
+
+    case ActorShown::What::Pickup: {
+        ImGui::Separator();
+        if (ImGui::BeginTable("Pickup", 2, ImGuiTableFlags_BordersInnerV))
+        {
+            nameThenValue();
+            drawPickupEditing(level.getTileMap(), pickups[showing.index], showing.index, armed);
+            ImGui::EndTable();
+        }
+
         break;
     }
 

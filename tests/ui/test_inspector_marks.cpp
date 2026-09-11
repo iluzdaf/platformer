@@ -540,6 +540,7 @@ TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[Inspe
                  levelData.playerFeet,
                  playerState,
                  gameData.npcData,
+                 gameData.pickupData,
                  armed,
                  commands);
          }});

@@ -25,7 +25,8 @@
 #include "npc/npc_data.hpp"
 #include "scripting/script_path_data.hpp"
 #include "pickups/pickup_data.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animation_ladder_data.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "helpers/actors.hpp"
@@ -286,9 +287,9 @@ namespace
         everyFieldOf(value, asItWasSaved<T>(asJson(value)));
     }
 
-    ActorAnimationData someClipsAndARung()
+    AnimatorData someClipsAndARung()
     {
-        ActorAnimationData animations;
+        AnimatorData animations;
         animations.clips["idle"] = FrameAnimationData{{0}, 0.2f};
         animations.clips["run"] = FrameAnimationData{{1, 2, 3}, 0.1f};
         animations.clips["run"].cues.push_back(FrameCueData{1, "step"});

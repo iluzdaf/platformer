@@ -28,7 +28,7 @@ TEST_CASE("An actor draws from the sheet its data names", "[SheetTextures]")
 #include "rendering/texture_cache.hpp"
 #include "game/game_data.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "assets/sheet_data.hpp"
 

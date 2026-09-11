@@ -8,7 +8,7 @@
 #include "actor/decided.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
-#include "animations/animator_data.hpp"
+#include "animations/animation_ladder_data.hpp"
 #include "conditions/asked.hpp"
 #include "helpers/ladders.hpp"
 
@@ -221,7 +221,7 @@ TEST_CASE("A ladder given as data drives the animator", "[Animator]")
     moving["moving"] = true;
     AnimationWhenData still;
     still["moving"] = false;
-    AnimatorData ladder{{{"", "walk", moving}, {"walk", "idle", still}}};
+    AnimationLadderData ladder{{{"", "walk", moving}, {"walk", "idle", still}}};
     Animator animator(ladder);
     animator.add("idle", animationOfFrame(1));
     animator.add("walk", animationOfFrame(2));
@@ -242,7 +242,7 @@ TEST_CASE("A ladder given as data drives the animator", "[Animator]")
 TEST_CASE("A rung with a from only fires from that state", "[Animator]")
 {
     AnimationWhenData always;
-    AnimatorData ladder{{{"walk", "jump", always}}};
+    AnimationLadderData ladder{{{"walk", "jump", always}}};
     Animator animator(ladder);
     animator.add("idle", animationOfFrame(1));
     animator.add("walk", animationOfFrame(2));
@@ -266,7 +266,7 @@ TEST_CASE("A rung may ask which state the machine is in", "[Animator]")
     asleep["inState"] = std::string("sleep");
     AnimationWhenData otherwise;
     otherwise["onGround"] = true;
-    AnimatorData ladder{{{"", "sleep", asleep}, {"", "idle", otherwise}}};
+    AnimationLadderData ladder{{{"", "sleep", asleep}, {"", "idle", otherwise}}};
     Animator animator(ladder);
     animator.add("idle", animationOfFrame(1));
     animator.add("sleep", animationOfFrame(2));

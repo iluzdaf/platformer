@@ -2,7 +2,7 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "game/level.hpp"
@@ -82,7 +82,7 @@ namespace
         ActorShown showing,
         std::optional<Armed> &armed)
     {
-        ActorAnimationData animations;
+        AnimatorData animations;
         Observed observed;
         ActorState playerState;
         ActorAsked asked;

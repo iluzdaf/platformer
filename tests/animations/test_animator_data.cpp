@@ -14,7 +14,7 @@ namespace
     }
 }
 
-TEST_CASE("A condition that asks nothing always holds", "[AnimatorData]")
+TEST_CASE("A condition that asks nothing always holds", "[AnimationLadderData]")
 {
     Decided decided;
     Observed observed;
@@ -22,7 +22,7 @@ TEST_CASE("A condition that asks nothing always holds", "[AnimatorData]")
     REQUIRE(holds(AnimationWhenData{}, animatorRows(), factsOf(decided, observed)));
 }
 
-TEST_CASE("A condition holds only when every fact it asks about agrees", "[AnimatorData]")
+TEST_CASE("A condition holds only when every fact it asks about agrees", "[AnimationLadderData]")
 {
     AnimationWhenData airborneAndRising;
     airborneAndRising["onGround"] = false;
@@ -43,7 +43,7 @@ TEST_CASE("A condition holds only when every fact it asks about agrees", "[Anima
     REQUIRE_FALSE(holds(airborneAndRising, animatorRows(), factsOf(decided, airborneStill)));
 }
 
-TEST_CASE("A condition may ask which state the machine is in", "[AnimatorData]")
+TEST_CASE("A condition may ask which state the machine is in", "[AnimationLadderData]")
 {
     AnimationWhenData asleep;
     asleep["inState"] = std::string("sleep");

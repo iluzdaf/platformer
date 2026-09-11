@@ -5,7 +5,7 @@
 #include "serialization/glm_vec2_meta.hpp" // IWYU pragma: keep
 #include "assets/sheet_data.hpp"
 #include "actor/actor_motion_data.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "physics/physics_body_data.hpp"
 #include "actor/health_data.hpp"
 
@@ -15,7 +15,7 @@ struct ActorData
     std::optional<glm::vec2> size;
     PhysicsBodyData physicsBodyData;
     ActorMotionData motionData;
-    ActorAnimationData animationData;
+    AnimatorData animationData;
     HealthData healthData;
 };
 

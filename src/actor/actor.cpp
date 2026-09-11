@@ -6,7 +6,7 @@
 #include <string_view>
 #include "actor/actor.hpp"
 #include "actor/fading_facts.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/animator_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/actor_data.hpp"
@@ -21,6 +21,7 @@
 #include "actor/decided.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
+#include "animations/animation_ladder_data.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
 #include "actor/behaviors/behavior_facts.hpp"
@@ -46,7 +47,7 @@ namespace
 {
     constexpr float SaidLingersFor = 0.5f;
 
-    bool attackClipSaysWhenToStrike(const ActorAnimationData &animations)
+    bool attackClipSaysWhenToStrike(const AnimatorData &animations)
     {
         const FrameAnimationData *attack = clipNamed(animations, AttackClip);
         if (!attack || attack->loops)
@@ -56,7 +57,7 @@ namespace
             attack->cues, [](const FrameCueData &cue) { return cue.name == StrikeCue; });
     }
 
-    bool hasPicturesToChooseFrom(const ActorAnimationData &animations)
+    bool hasPicturesToChooseFrom(const AnimatorData &animations)
     {
         for (const auto &[name, clip] : animations.clips)
             if (name != IdleClip)
@@ -65,7 +66,7 @@ namespace
         return false;
     }
 
-    void refuseALadderToNowhere(const ActorAnimationData &animations)
+    void refuseALadderToNowhere(const AnimatorData &animations)
     {
         for (const AnimationTransitionData &rung : animations.ladder.transitions)
         {

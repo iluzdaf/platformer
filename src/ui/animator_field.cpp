@@ -14,7 +14,8 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/state_machine_shown.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animation_ladder_data.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 
@@ -50,7 +51,7 @@ namespace
         return graph.nodes[shown.index].name;
     }
 
-    bool drawAddingAClip(ActorAnimationData &animations, MachineShown &shown)
+    bool drawAddingAClip(AnimatorData &animations, MachineShown &shown)
     {
         if (ImGui::SmallButton("add clip"))
             ImGui::OpenPopup("##addClip");
@@ -80,10 +81,7 @@ namespace
         return added;
     }
 
-    bool drawAddingARung(
-        ActorAnimationData &animations,
-        const GraphShown &graph,
-        MachineShown &shown)
+    bool drawAddingARung(AnimatorData &animations, const GraphShown &graph, MachineShown &shown)
     {
         ImGui::SameLine();
         ImGui::BeginDisabled(animations.clips.empty());
@@ -100,7 +98,7 @@ namespace
         return true;
     }
 
-    bool drawRemoving(ActorAnimationData &animations, const GraphShown &graph, MachineShown &shown)
+    bool drawRemoving(AnimatorData &animations, const GraphShown &graph, MachineShown &shown)
     {
         ImGui::SameLine();
         bool removable =
@@ -123,7 +121,7 @@ namespace
     }
 
     inspector::Edited drawShown(
-        ActorAnimationData &animations,
+        AnimatorData &animations,
         const GraphShown &graph,
         MachineShown shown)
     {
@@ -156,14 +154,14 @@ namespace
 }
 
 MachineShown drawAnimatorGraph(
-    const ActorAnimationData &animations,
+    const AnimatorData &animations,
     const std::set<std::string> &litClips,
     MachineShown selected)
 {
     return drawGraph("##animatorGraph", graphOf(animations), litClips, selected);
 }
 
-inspector::Edited drawCustomField(std::string_view name, ActorAnimationData &value)
+inspector::Edited drawCustomField(std::string_view name, AnimatorData &value)
 {
     if (!inspector::drawFold(name))
         return {};

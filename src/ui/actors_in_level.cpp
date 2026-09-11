@@ -27,7 +27,7 @@
 #include "ui/state_machine_graph.hpp"
 #include "ui/animator_field.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animator_data.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "conditions/asked.hpp"
 #include "actor/fading_facts.hpp"
@@ -102,7 +102,7 @@ namespace
         drawRow("Facing Left", state.facingLeft ? "true" : "false");
     }
 
-    void drawAnimatorOfThePlayer(const ActorAnimationData &animations, const ActorState &state)
+    void drawAnimatorOfThePlayer(const AnimatorData &animations, const ActorState &state)
     {
         if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
             drawAnimatorGraph(animations, {state.currentAnimation}, MachineShown{});
@@ -302,7 +302,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
 
 ActorAsked drawActorsInLevel(
     const Level &level,
-    const ActorAnimationData &playerAnimations,
+    const AnimatorData &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,

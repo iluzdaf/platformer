@@ -10,7 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
-#include "actor/actor_animation_data.hpp"
+#include "animations/animation_ladder_data.hpp"
+#include "animations/animator_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/animator_facts.hpp"
@@ -33,7 +34,7 @@ namespace
             clip.loops ? "" : ", once");
     }
 
-    bool anyRungLeavesFromAnywhere(const AnimatorData &ladder)
+    bool anyRungLeavesFromAnywhere(const AnimationLadderData &ladder)
     {
         for (const AnimationTransitionData &rung : ladder.transitions)
             if (rung.from.empty())
@@ -128,7 +129,7 @@ GraphShown graphOf(const StateMachineBehaviorData &machine)
     return graph;
 }
 
-GraphShown graphOf(const ActorAnimationData &animations)
+GraphShown graphOf(const AnimatorData &animations)
 {
     GraphShown graph;
     if (const FrameAnimationData *idle = clipNamed(animations, IdleClip))

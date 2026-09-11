@@ -8,7 +8,7 @@ struct FrameAnimationData;
 struct SheetData;
 struct ScoreIconData;
 struct HealthIconData;
-struct ActorAnimationData;
+struct AnimatorData;
 struct AnimationWhenData;
 struct BehaviorWhenData;
 struct FactsData;
@@ -20,7 +20,7 @@ inspector::Edited drawCustomField(std::string_view name, FrameAnimationData &val
 inspector::Edited drawCustomField(std::string_view name, SheetData &value);
 inspector::Edited drawCustomField(std::string_view name, ScoreIconData &value);
 inspector::Edited drawCustomField(std::string_view name, HealthIconData &value);
-inspector::Edited drawCustomField(std::string_view name, ActorAnimationData &value);
+inspector::Edited drawCustomField(std::string_view name, AnimatorData &value);
 inspector::Edited drawCustomField(std::string_view name, AnimationWhenData &value);
 inspector::Edited drawCustomField(std::string_view name, BehaviorWhenData &value);
 inspector::Edited drawCustomField(std::string_view name, FactsData &value);

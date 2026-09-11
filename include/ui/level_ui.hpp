@@ -30,7 +30,7 @@ class Camera2D;
 struct NpcData;
 struct PickupData;
 struct Decided;
-struct ActorAnimationData;
+struct AnimatorData;
 struct Observed;
 struct ActorState;
 class Npc;
@@ -65,7 +65,7 @@ public:
     void draw(
         const Level &level,
         const LevelData &levelData,
-        const ActorAnimationData &playerAnimations,
+        const AnimatorData &playerAnimations,
         const Observed &playerObserved,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,
@@ -113,7 +113,7 @@ private:
     void drawActors(
         const Level &level,
         const LevelData &levelData,
-        const ActorAnimationData &playerAnimations,
+        const AnimatorData &playerAnimations,
         const Observed &playerObserved,
         const glm::vec2 &playerFeet,
         const ActorState &playerState,

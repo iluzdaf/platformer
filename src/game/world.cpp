@@ -20,8 +20,7 @@
 #include "pickups/pickup.hpp"
 #include "actor/actor.hpp"
 #include "tile_map/touching_tiles.hpp"
-#include "npc/striking_player.hpp"
-#include "npc/striking_npcs.hpp"
+#include "game/exchanging_strikes.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 #include "player/player.hpp"
@@ -179,9 +178,8 @@ void World::fixedUpdate(float deltaTime)
     player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
     hearWhereItLands();
 
-    strikeNpcs(*player.get(), level->getNpcs());
+    exchangeStrikes(*player.get(), level->getNpcs());
     touchTiles(*player.get(), level->getTileMap());
-    strikePlayer(*player.get(), level->getNpcs());
 
     for (const Pickup &taken : level->takePickupsTouching(player->body().touchBox()))
         score.add(taken.getScoreDelta());

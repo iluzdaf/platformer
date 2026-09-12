@@ -162,8 +162,6 @@ add_library(platformer_lib OBJECT
     src/tile_map/tile_map.cpp
     src/tile_map/tile.cpp
     src/tile_map/touching_tiles.cpp
-    src/npc/striking_player.cpp
-    src/npc/striking_npcs.cpp
 
     src/player/player.cpp
     src/actor/actor.cpp
@@ -185,6 +183,7 @@ add_library(platformer_lib OBJECT
     src/serialization/json_format.cpp
     src/game/level.cpp
     src/game/beat_between.cpp
+    src/game/exchanging_strikes.cpp
     src/game/level_data_file.cpp
     src/game/levels.cpp
     src/game/empty_level.cpp
@@ -423,9 +422,7 @@ add_executable(tests
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/npc/test_patrol_beats.cpp
-    tests/npc/test_striking_player.cpp
     tests/npc/test_senses.cpp
-    tests/npc/test_striking_npcs.cpp
 
     tests/npc/test_shipped_npcs.cpp
     tests/pickups/test_pickup_data.cpp
@@ -440,6 +437,7 @@ add_executable(tests
     tests/game/test_reloads.cpp
     tests/window/test_window.cpp
     tests/game/test_world.cpp
+    tests/game/test_exchanging_strikes.cpp
     tests/game/test_catalogue.cpp
     tests/game/test_playback.cpp
     tests/game/test_level.cpp

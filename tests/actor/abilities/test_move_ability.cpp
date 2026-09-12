@@ -1,45 +1,55 @@
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include "actor/abilities/move_ability.hpp"
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/decided.hpp"
-#include "actor/observed.hpp"
-#include "actor/abilities/move_ability.hpp"
+#include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
 
 using Catch::Approx;
 
-TEST_CASE("MoveAbility basic movement behavior", "[MoveAbility]")
+TEST_CASE("A move goes at its speed the way it is pressed", "[MoveAbility]")
 {
+    MoveAbilityData data;
+    MoveAbility move(data);
     Decided decided;
-    Observed observed;
-    InputIntentions inputIntentions;
-    MoveAbilityData moveAbilityData;
-    MoveAbility moveAbility(moveAbilityData);
 
-    SECTION("Can move left")
-    {
-        inputIntentions.direction.x = -1;
-        moveAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.move.velocity.x == Approx(-moveAbilityData.moveSpeed));
-    }
+    tick(move, pressing(1.0f), onTheGround(), decided);
+    REQUIRE(decided.move.velocity.x == Approx(data.moveSpeed));
 
-    SECTION("Can move right")
-    {
-        inputIntentions.direction.x = 1;
-        moveAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.move.velocity.x == Approx(moveAbilityData.moveSpeed));
-    }
+    tick(move, pressing(-1.0f), onTheGround(), decided);
+    REQUIRE(decided.move.velocity.x == Approx(-data.moveSpeed));
+}
 
-    SECTION("If no direction requested, no movement applied")
-    {
-        moveAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.move.velocity.x == Approx(0.0f));
-    }
+TEST_CASE("However little it is pressed, a move goes at its full speed", "[MoveAbility]")
+{
+    MoveAbilityData data;
+    MoveAbility move(data);
+    Decided decided;
+
+    tick(move, pressing(0.3f), onTheGround(), decided);
+    REQUIRE(decided.move.velocity.x == Approx(data.moveSpeed));
+
+    tick(move, pressing(-0.3f), onTheGround(), decided);
+    REQUIRE(decided.move.velocity.x == Approx(-data.moveSpeed));
+}
+
+TEST_CASE("Letting go stops a move at once", "[MoveAbility]")
+{
+    MoveAbility move(MoveAbilityData{});
+    Decided decided;
+    tick(move, pressing(1.0f), onTheGround(), decided);
+
+    tick(move, InputIntentions{}, onTheGround(), decided);
+
+    REQUIRE(decided.move.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE("A move that goes nowhere is refused", "[MoveAbility]")
 {
     MoveAbilityData noSpeed;
     noSpeed.moveSpeed = 0.0f;
-    REQUIRE_THROWS(MoveAbility(noSpeed));
+
+    REQUIRE_THROWS_WITH(MoveAbility(noSpeed), Catch::Matchers::ContainsSubstring("moveSpeed"));
 }

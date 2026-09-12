@@ -1,79 +1,84 @@
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
-#include <cmath>
+#include <catch2/catch_test_macros.hpp>
+#include "actor/abilities/gravity_ability.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/decided.hpp"
-#include "actor/observed.hpp"
-#include "actor/abilities/gravity_ability.hpp"
+#include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
 
 using Catch::Approx;
 
-TEST_CASE("GravityAbility basic movement behaviour", "[GravityAbility]")
+namespace
 {
-    InputIntentions inputIntentions;
-    Decided decided;
-    Observed observed;
+    Decided fallingFor(GravityAbility &gravity, int ticks)
+    {
+        Decided decided;
+        tick(gravity, InputIntentions{}, inTheAir(), decided, ticks);
+        return decided;
+    }
+}
+
+TEST_CASE("Gravity pulls harder every tick in the air", "[GravityAbility]")
+{
     GravityAbilityData data;
-    GravityAbility ability(data);
+    GravityAbility gravity(data);
+    Decided decided;
 
-    SECTION("Gravity accumulates when airborne")
-    {
-        observed.contacts.onGround = false;
-        decided.wallHang.active = false;
-        decided.wallSlide.active = false;
-        ability.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.gravity.velocity.y == Approx(data.gravity * 0.01f));
-        ability.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.gravity.velocity.y == Approx(2 * data.gravity * 0.01f));
-    }
+    tick(gravity, InputIntentions{}, inTheAir(), decided);
+    REQUIRE(decided.gravity.velocity.y == Approx(data.gravity * Step));
 
-    SECTION("Gravity is capped at max fall speed")
-    {
-        observed.contacts.onGround = false;
-        decided.wallHang.active = false;
-        decided.wallSlide.active = false;
+    tick(gravity, InputIntentions{}, inTheAir(), decided);
+    REQUIRE(decided.gravity.velocity.y == Approx(2.0f * data.gravity * Step));
+}
 
-        int iterationsToMaxFallSpeed =
-            static_cast<int>(std::ceil(data.maxFallSpeed / (data.gravity * 0.01f)));
-        for (int i = 0; i < iterationsToMaxFallSpeed + 10; ++i)
-        {
-            ability.decide(0.01f, inputIntentions, observed, decided);
-        }
+TEST_CASE("A fall gets no faster than its most", "[GravityAbility]")
+{
+    GravityAbilityData data;
+    GravityAbility gravity(data);
 
-        REQUIRE(decided.gravity.velocity.y == Approx(data.maxFallSpeed));
-    }
+    Decided decided = fallingFor(gravity, 1000);
 
-    SECTION("Gravity holds still during a knockback")
-    {
-        observed.contacts.onGround = false;
-        ability.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.gravity.velocity.y > 0.0f);
+    REQUIRE(decided.gravity.velocity.y == Approx(data.maxFallSpeed));
+}
 
-        decided.knockback.active = true;
-        ability.decide(0.01f, inputIntentions, observed, decided);
+TEST_CASE(
+    "On the ground gravity pulls nothing, and a fall after starts from still",
+    "[GravityAbility]")
+{
+    GravityAbilityData data;
+    GravityAbility gravity(data);
+    Decided decided = fallingFor(gravity, 10);
 
-        REQUIRE(decided.gravity.velocity.y == 0.0f);
-    }
+    tick(gravity, InputIntentions{}, onTheGround(), decided);
+    REQUIRE(decided.gravity.velocity.y == 0.0f);
 
-    SECTION("Gravity resets to 0 if onGround, climbing or wallSliding")
-    {
-        observed.contacts.onGround = false;
-        ability.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.gravity.velocity.y > 0.0f);
+    tick(gravity, InputIntentions{}, inTheAir(), decided);
+    REQUIRE(decided.gravity.velocity.y == Approx(data.gravity * Step));
+}
 
-        observed.contacts.onGround = true;
-        ability.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.gravity.velocity.y == 0.0f);
+TEST_CASE(
+    "Gravity pulls nothing while hanging, sliding, pulling up a ledge or knocked back",
+    "[GravityAbility]")
+{
+    GravityAbility gravity(GravityAbilityData{});
 
-        observed.contacts.onGround = false;
-        decided.wallHang.active = true;
-        ability.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.gravity.velocity.y == 0.0f);
+    Decided hanging = fallingFor(gravity, 10);
+    hanging.wallHang.active = true;
+    tick(gravity, InputIntentions{}, inTheAir(), hanging);
+    REQUIRE(hanging.gravity.velocity.y == 0.0f);
 
-        decided.wallHang.active = false;
-        decided.wallSlide.active = true;
-        ability.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.gravity.velocity.y == 0.0f);
-    }
+    Decided sliding = fallingFor(gravity, 10);
+    sliding.wallSlide.active = true;
+    tick(gravity, InputIntentions{}, inTheAir(), sliding);
+    REQUIRE(sliding.gravity.velocity.y == 0.0f);
+
+    Decided mantling = fallingFor(gravity, 10);
+    mantling.mantle.active = true;
+    tick(gravity, InputIntentions{}, inTheAir(), mantling);
+    REQUIRE(mantling.gravity.velocity.y == 0.0f);
+
+    Decided knockedBack = fallingFor(gravity, 10);
+    knockedBack.knockback.active = true;
+    tick(gravity, InputIntentions{}, inTheAir(), knockedBack);
+    REQUIRE(knockedBack.gravity.velocity.y == 0.0f);
 }

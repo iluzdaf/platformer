@@ -49,6 +49,13 @@ inline Observed justOffAWall(WallSide side)
     return observed;
 }
 
+inline InputIntentions pressing(float x, float y = 0.0f)
+{
+    InputIntentions intentions;
+    intentions.direction = glm::vec2(x, y);
+    return intentions;
+}
+
 inline InputIntentions pressingJump(float x = 0.0f)
 {
     InputIntentions intentions;

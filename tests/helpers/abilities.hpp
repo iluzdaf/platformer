@@ -42,6 +42,14 @@ inline Observed onAWall(WallSide side)
     return observed;
 }
 
+inline Observed atALedge(WallSide side)
+{
+    Observed observed = onAWall(side);
+    observed.contacts.ledgeOnLeft = side == WallSide::Left;
+    observed.contacts.ledgeOnRight = side == WallSide::Right;
+    return observed;
+}
+
 inline Observed justOffAWall(WallSide side)
 {
     Observed observed = inTheAir();
@@ -54,6 +62,23 @@ inline InputIntentions pressing(float x, float y = 0.0f)
     InputIntentions intentions;
     intentions.direction = glm::vec2(x, y);
     return intentions;
+}
+
+inline InputIntentions pressingUp()
+{
+    return pressing(0.0f, -1.0f);
+}
+
+inline InputIntentions pressingDown()
+{
+    return pressing(0.0f, 1.0f);
+}
+
+inline Decided hanging()
+{
+    Decided decided;
+    decided.wallHang.active = true;
+    return decided;
 }
 
 inline InputIntentions pressingJump(float x = 0.0f)

@@ -9,26 +9,16 @@
 
 using Catch::Approx;
 
-namespace
-{
-    Decided hanging()
-    {
-        Decided decided;
-        decided.wallHang.active = true;
-        return decided;
-    }
-}
-
 TEST_CASE("Hanging on a wall, a climb goes up and down at its speed", "[WallClimbAbility]")
 {
     WallClimbAbilityData data;
     WallClimbAbility climb(data);
     Decided decided = hanging();
 
-    tick(climb, pressing(0.0f, -1.0f), onAWall(WallSide::Left), decided);
+    tick(climb, pressingUp(), onAWall(WallSide::Left), decided);
     REQUIRE(decided.wallClimb.velocity.y == Approx(-data.climbSpeed));
 
-    tick(climb, pressing(0.0f, 1.0f), onAWall(WallSide::Left), decided);
+    tick(climb, pressingDown(), onAWall(WallSide::Left), decided);
     REQUIRE(decided.wallClimb.velocity.y == Approx(data.climbSpeed));
 }
 
@@ -46,7 +36,7 @@ TEST_CASE("Hanging with nothing pressed, a climb holds still", "[WallClimbAbilit
 {
     WallClimbAbility climb(WallClimbAbilityData{});
     Decided decided = hanging();
-    tick(climb, pressing(0.0f, -1.0f), onAWall(WallSide::Left), decided);
+    tick(climb, pressingUp(), onAWall(WallSide::Left), decided);
 
     tick(climb, InputIntentions{}, onAWall(WallSide::Left), decided);
 
@@ -58,10 +48,10 @@ TEST_CASE("Without hanging on, nothing is climbed either way", "[WallClimbAbilit
     WallClimbAbility climb(WallClimbAbilityData{});
     Decided decided;
 
-    tick(climb, pressing(0.0f, -1.0f), onAWall(WallSide::Left), decided);
+    tick(climb, pressingUp(), onAWall(WallSide::Left), decided);
     REQUIRE(decided.wallClimb.velocity.y == 0.0f);
 
-    tick(climb, pressing(0.0f, 1.0f), onAWall(WallSide::Left), decided);
+    tick(climb, pressingDown(), onAWall(WallSide::Left), decided);
     REQUIRE(decided.wallClimb.velocity.y == 0.0f);
 }
 

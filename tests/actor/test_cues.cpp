@@ -3,17 +3,24 @@
 #include "input/intention_source.hpp"
 #include "actor/appearance.hpp"
 #include "actor/abilities/ability_states.hpp"
+#include "actor/cues.hpp"
+#include "actor/observed.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include <algorithm>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "game/level.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/floor_level.hpp"
+#include "helpers/levels.hpp"
+#include "helpers/npc_fixtures.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/player_fixtures.hpp"
+#include "npc/npc.hpp"
+#include "npc/npc_data.hpp"
 #include "player/player.hpp"
 #include "player/player_data.hpp"
 #include "timing/fixed_time_step.hpp"
@@ -151,4 +158,66 @@ TEST_CASE("A swing strikes without an animator to show it", "[Actor][Cues]")
 
     REQUIRE(ticksStriking == 10);
     REQUIRE(rested);
+}
+
+TEST_CASE("An actor that did nothing of note cues nothing", "[Actor][Cues]")
+{
+    REQUIRE(cuesOf(AbilityStates{}, Observed{}, 180.0f).empty());
+}
+
+TEST_CASE("A dash, a swing, a wall jump and a slide are cued when they say so", "[Actor][Cues]")
+{
+    AbilityStates states;
+    states.dash.emit = true;
+    states.swing.emit = true;
+    states.wallJump.emit = true;
+    states.wallSlide.emit = true;
+
+    REQUIRE(
+        cuesOf(states, Observed{}, 180.0f) ==
+        std::vector<std::string_view>{"onDash", "onAttack", "onWallJump", "onWallSliding"});
+}
+
+TEST_CASE("Only a fall further than the threshold is cued", "[Actor][Cues]")
+{
+    Observed fellFar;
+    fellFar.fell = 181.0f;
+    Observed fellShort;
+    fellShort.fell = 180.0f;
+
+    REQUIRE(
+        cuesOf(AbilityStates{}, fellFar, 180.0f) ==
+        std::vector<std::string_view>{"onFallFromHeight"});
+    REQUIRE(cuesOf(AbilityStates{}, fellShort, 180.0f).empty());
+}
+
+TEST_CASE("A ceiling is cued the tick it is hit, not while it stays hit", "[Actor][Cues]")
+{
+    Observed hitting;
+    hitting.contacts.hitCeiling = true;
+    Observed stillHitting = hitting;
+    stillHitting.contacts.wasHitCeiling = true;
+
+    REQUIRE(
+        cuesOf(AbilityStates{}, hitting, 180.0f) == std::vector<std::string_view>{"onHitCeiling"});
+    REQUIRE(cuesOf(AbilityStates{}, stillHitting, 180.0f).empty());
+}
+
+TEST_CASE("An npc cues its own fall, as the player does", "[Actor][Cues]")
+{
+    NpcData faller = setupNpcData();
+    faller.actorData.fallFromHeightThreshold = 40.0f;
+    Level level(
+        aFloorLevelPlacing({}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        PlayerData(),
+        {{"faller", faller}},
+        {});
+    Npc npc(spawnAt("faller", glm::ivec2(1, 0)), faller);
+    std::vector<std::string> heard;
+    npc.onCue.connect([&](const std::string &cue) { heard.push_back(cue); });
+
+    stepNpc(npc, level, 100);
+
+    REQUIRE(heard == std::vector<std::string>{"onFallFromHeight"});
 }

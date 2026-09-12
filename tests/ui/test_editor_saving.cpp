@@ -107,13 +107,13 @@ TEST_CASE(
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
 
     GameData onDisk = editing.gameData;
-    editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
-    float edited = editing.gameData.playerData.fallFromHeightThreshold;
+    editing.gameData.playerData.actorData.fallFromHeightThreshold += 100.0f;
+    float edited = editing.gameData.playerData.actorData.fallFromHeightThreshold;
 
     onDisk.cameraData.zoom += 1.0f;
     editorUi.reloaded(editing.gameData, onDisk);
 
-    REQUIRE(editing.gameData.playerData.fallFromHeightThreshold == edited);
+    REQUIRE(editing.gameData.playerData.actorData.fallFromHeightThreshold == edited);
     REQUIRE(editing.gameData.cameraData.zoom == onDisk.cameraData.zoom);
     REQUIRE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Runtime, subject).unsaved);
@@ -127,15 +127,15 @@ TEST_CASE("Reverting a section kept through a reload takes what is on disk now",
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
 
     GameData onDisk = editing.gameData;
-    editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
+    editing.gameData.playerData.actorData.fallFromHeightThreshold += 100.0f;
 
-    onDisk.playerData.fallFromHeightThreshold += 50.0f;
+    onDisk.playerData.actorData.fallFromHeightThreshold += 50.0f;
     editorUi.reloaded(editing.gameData, onDisk);
     editorUi.savingIn(EditorSection::Level, subject).revert();
 
     REQUIRE(
-        editing.gameData.playerData.fallFromHeightThreshold ==
-        onDisk.playerData.fallFromHeightThreshold);
+        editing.gameData.playerData.actorData.fallFromHeightThreshold ==
+        onDisk.playerData.actorData.fallFromHeightThreshold);
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
 }
 
@@ -298,14 +298,14 @@ TEST_CASE("Reverting the cast section puts back the player and the types", "[Edi
     Editing editing;
     EditorSubject subject = editing.subject();
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
-    float thresholdWas = editing.gameData.playerData.fallFromHeightThreshold;
+    float thresholdWas = editing.gameData.playerData.actorData.fallFromHeightThreshold;
     int scoreWas = editing.gameData.pickupData.begin()->second.scoreDelta;
-    editing.gameData.playerData.fallFromHeightThreshold += 100.0f;
+    editing.gameData.playerData.actorData.fallFromHeightThreshold += 100.0f;
     editing.gameData.pickupData.begin()->second.scoreDelta += 1;
 
     editorUi.savingIn(EditorSection::Level, subject).revert();
 
-    REQUIRE(editing.gameData.playerData.fallFromHeightThreshold == thresholdWas);
+    REQUIRE(editing.gameData.playerData.actorData.fallFromHeightThreshold == thresholdWas);
     REQUIRE(editing.gameData.pickupData.begin()->second.scoreDelta == scoreWas);
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).unsaved);
 }

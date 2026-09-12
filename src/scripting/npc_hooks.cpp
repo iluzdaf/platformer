@@ -16,7 +16,7 @@ void connectNpcHooks(LuaScriptSystem &luaScriptSystem, Npc &npc)
     npc.onHurt.connect([&luaScriptSystem, script, it]
                        { luaScriptSystem.emitTo(script, "onHurt", it, it); });
     npc.onDeath.connect([&luaScriptSystem, script, it]
-                        { luaScriptSystem.emitTo(script, "onDied", it, it); });
+                        { luaScriptSystem.emitTo(script, "onDeath", it, it); });
     npc.onCue.connect([&luaScriptSystem, script, it](const std::string &cue)
                       { luaScriptSystem.emitTo(script, cue, it, it); });
     npc.onTick.connect([&luaScriptSystem, script, it](float deltaTime)

@@ -301,7 +301,8 @@ namespace
         ScriptedIntentions input;
         Player player(gameData.playerData, input);
         bool shaken = false;
-        std::ignore = player.onFallFromHeight.connect([&shaken] { shaken = true; });
+        std::ignore = player.onCue.connect([&shaken](const std::string &cue)
+                                           { shaken |= cue == "onFallFromHeight"; });
         player.standAt(feetOf(glm::ivec2(2, rows - 2 - tiles)));
 
         FixedTimeStep timestepper;

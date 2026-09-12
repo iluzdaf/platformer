@@ -13,6 +13,7 @@
 #include "actor/abilities/swing_ability_state.hpp"
 #include "physics/aabb.hpp"
 #include "actor/observing.hpp"
+#include "actor/cues.hpp"
 #include "actor/facing.hpp"
 #include "actor/observed.hpp"
 #include "actor/perceived.hpp"
@@ -39,8 +40,9 @@
 #include <vector>
 
 Actor::Actor(const ActorData &data)
-    : abilities(data.abilities), physicsBody(data.physicsBodyData),
-      navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
+    : fallFromHeightThreshold(data.fallFromHeightThreshold), abilities(data.abilities),
+      physicsBody(data.physicsBodyData), navigationProfile(buildNavigationProfile(data)),
+      hp(data.healthData)
 {
     if (data.animationData)
         animator.emplace(*data.animationData);
@@ -52,10 +54,6 @@ Actor::Actor(const ActorData &data)
     shown.size = drawnSizeOf(data);
     if (shown.size.x <= 0.0f || shown.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
-}
-
-void Actor::postFixedUpdate()
-{
 }
 
 void Actor::beginFrame()
@@ -105,6 +103,9 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, const Perceived &pe
         for (const std::string &cue : animator->takeCues())
             onCue(cue);
     }
+
+    for (std::string_view cue : cuesOf(states, observations, fallFromHeightThreshold))
+        onCue(std::string(cue));
 
     declaredFacts.forgetTheTick();
 }

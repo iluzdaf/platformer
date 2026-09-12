@@ -46,7 +46,6 @@ public:
 
     void beginFrame();
     void fixedUpdate(float deltaTime, const Perceived &perceived);
-    void postFixedUpdate();
     void update(float deltaTime);
     std::vector<Pickup> takePickupsTouching(const AABB &reach);
     void tilesChanged(

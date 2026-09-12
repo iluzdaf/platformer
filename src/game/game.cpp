@@ -130,11 +130,7 @@ void Game::frame(float deltaTime)
             keyboardIntentions.process(keysDown);
             world.beginFrame();
         },
-        [this](float dt)
-        {
-            world.fixedUpdate(dt);
-            world.postFixedUpdate();
-        },
+        [this](float dt) { world.fixedUpdate(dt); },
         [this](float dt) { world.update(dt); });
 
     camera.follow(world.getPlayer().body().aabb().center());

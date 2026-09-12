@@ -37,7 +37,6 @@ public:
 
     void beginFrame();
     void fixedUpdate(float deltaTime);
-    void postFixedUpdate();
     void update(float deltaTime);
 
     const std::string &getLevelPath() const;

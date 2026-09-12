@@ -62,6 +62,8 @@
 
 namespace
 {
+    std::optional<Armed> armedForTypes;
+
     template <class T> bool nudge(T &value)
     {
         if constexpr (std::is_same_v<T, bool>)
@@ -480,7 +482,7 @@ namespace
                             typesUi.show(type);
 
                             InScope showing(shown);
-                            typesUi.draw(gameData, textures, commands, nullptr);
+                            typesUi.draw(gameData, textures, commands, armedForTypes, nullptr);
                         }});
     }
 }
@@ -552,7 +554,6 @@ TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[Inspe
                  levelData.playerFeet,
                  playerState,
                  gameData.npcData,
-                 gameData.pickupData,
                  armed,
                  commands);
          }});

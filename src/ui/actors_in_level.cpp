@@ -21,7 +21,6 @@
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup.hpp"
-#include "pickups/pickup_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
 #include "game/beat_between.hpp"
 #include "ui/state_machine_graph.hpp"
@@ -205,48 +204,6 @@ namespace
             armed = isArmed ? std::nullopt : std::optional<Armed>(pick);
     }
 
-    void drawPlacing(
-        const std::map<std::string, NpcData> &npcTypes,
-        const std::map<std::string, PickupData> &pickupTypes,
-        std::optional<Armed> &armed)
-    {
-        const PlaceOne *placing = beingPlaced(armed);
-        std::string label = placing ? "place " + placing->type : std::string("place");
-
-        if (placing)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, ArmedColour);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ArmedColour);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ArmedColour);
-        }
-
-        bool clicked = ImGui::Button(label.c_str());
-
-        if (placing)
-            ImGui::PopStyleColor(3);
-
-        if (clicked && placing)
-            armed.reset();
-        else if (clicked)
-            ImGui::OpenPopup("##placing");
-
-        if (!ImGui::BeginPopup("##placing"))
-            return;
-
-        for (const auto &[type, npcData] : npcTypes)
-            if (ImGui::Selectable(type.c_str()))
-                armed = PlaceOne{PlaceOne::What::Npc, type};
-
-        ImGui::Separator();
-        ImGui::PushID("pickups");
-        for (const auto &[type, pickupData] : pickupTypes)
-            if (ImGui::Selectable(type.c_str()))
-                armed = PlaceOne{PlaceOne::What::Pickup, type};
-
-        ImGui::PopID();
-        ImGui::EndPopup();
-    }
-
     std::string asTile(glm::ivec2 tile)
     {
         return std::to_string(tile.x) + "," + std::to_string(tile.y);
@@ -349,7 +306,6 @@ ActorAsked drawActorsInLevel(
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcTypes,
-    const std::map<std::string, PickupData> &pickupTypes,
     ActorShown showing,
     std::optional<Armed> &armed)
 {
@@ -363,44 +319,14 @@ ActorAsked drawActorsInLevel(
 
     ActorAsked asked{showing, false, false};
 
-    const ImGuiStyle &style = ImGui::GetStyle();
-    float buttons = ImGui::CalcTextSize("add").x + ImGui::CalcTextSize("remove").x +
-                    style.FramePadding.x * 4.0f + style.ItemSpacing.x * 2.0f;
-
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - buttons);
-    if (ImGui::BeginCombo("##actor", labelOf(showing, npcs, pickups).c_str()))
-    {
-        if (ImGui::Selectable("none", showing.what == ActorShown::What::None))
-            asked.show = ActorShown{ActorShown::What::None, 0};
-
-        if (ImGui::Selectable("player", showing.what == ActorShown::What::Player))
-            asked.show = ActorShown{ActorShown::What::Player, 0};
-
-        for (size_t index = 0; index < npcs.size(); ++index)
-            if (ImGui::Selectable(
-                    labelOf(npcs[index]->getSpawn(), index).c_str(),
-                    showing == ActorShown{ActorShown::What::Npc, index}))
-                asked.show = ActorShown{ActorShown::What::Npc, index};
-
-        ImGui::PushID("pickups");
-        for (size_t index = 0; index < pickups.size(); ++index)
-            if (ImGui::Selectable(
-                    labelOf(pickups[index].getSpawn(), index).c_str(),
-                    showing == ActorShown{ActorShown::What::Pickup, index}))
-                asked.show = ActorShown{ActorShown::What::Pickup, index};
-        ImGui::PopID();
-
-        ImGui::EndCombo();
-    }
-
-    ImGui::SameLine();
-    drawPlacing(npcTypes, pickupTypes, armed);
-
+    ImGui::PushID("inTheLevel");
+    ImGui::TextUnformatted(labelOf(showing, npcs, pickups).c_str());
     ImGui::SameLine();
     ImGui::BeginDisabled(
         showing.what != ActorShown::What::Npc && showing.what != ActorShown::What::Pickup);
-    if (ImGui::Button("remove"))
+    if (ImGui::Button("remove", ImVec2(-FLT_MIN, 0.0f)))
         asked.removeShown = true;
+
     ImGui::EndDisabled();
 
     switch (showing.what)
@@ -453,6 +379,8 @@ ActorAsked drawActorsInLevel(
     case ActorShown::What::None:
         break;
     }
+
+    ImGui::PopID();
 
     return asked;
 }

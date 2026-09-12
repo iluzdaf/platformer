@@ -659,7 +659,6 @@ TEST_CASE("Delete takes away what is shown", "[LevelUi]")
     gui.frame(
         [&]
         {
-            ImGui::TreeNodeSetOpen(ImGui::GetID("Cast"), true);
             levelUi.draw(
                 editing.level,
                 editing.levelData,
@@ -668,7 +667,6 @@ TEST_CASE("Delete takes away what is shown", "[LevelUi]")
                 editing.levelData.playerFeet,
                 playerState,
                 shippedNpcData(),
-                shippedPickupData(),
                 armed,
                 editing.commands);
         });
@@ -694,7 +692,6 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
     REQUIRE_NOTHROW(gui.frame(
         [&]
         {
-            ImGui::TreeNodeSetOpen(ImGui::GetID("Cast"), true);
             levelUi.draw(
                 level,
                 levelData,
@@ -703,7 +700,6 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
                 level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
                 playerState,
                 shippedNpcData(),
-                shippedPickupData(),
                 armed,
                 commands);
         }));

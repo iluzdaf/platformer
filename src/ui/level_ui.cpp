@@ -53,7 +53,6 @@ void LevelUi::draw(
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcData,
-    const std::map<std::string, PickupData> &pickupData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
@@ -67,7 +66,6 @@ void LevelUi::draw(
         playerFeet,
         playerState,
         npcData,
-        pickupData,
         armed,
         commands);
 }
@@ -80,13 +78,9 @@ void LevelUi::drawActors(
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
     const std::map<std::string, NpcData> &npcData,
-    const std::map<std::string, PickupData> &pickupData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
-    if (!ImGui::TreeNode("Cast"))
-        return;
-
     ActorShown wasShowing = showingActor;
     ActorAsked asked = drawActorsInLevel(
         level,
@@ -95,7 +89,6 @@ void LevelUi::drawActors(
         playerFeet,
         playerState,
         npcData,
-        pickupData,
         showingActor,
         armed);
 
@@ -133,8 +126,6 @@ void LevelUi::drawActors(
 
     if (showingActor != wasShowing)
         armed.reset();
-
-    ImGui::TreePop();
 }
 
 std::string LevelUi::asItWouldBeSaved(const LevelData &levelData) const

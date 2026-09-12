@@ -83,10 +83,6 @@ void EditorUi::draw(
         gameSettingsUi.draw(subject.gameData, subject.textures, commands);
         break;
 
-    case EditorSection::Cast:
-        typesUi.draw(subject.gameData, subject.textures, commands, &subject.level);
-        break;
-
     case EditorSection::Level:
         if (ImGui::CollapsingHeader("Levels", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -122,6 +118,13 @@ void EditorUi::draw(
             }
 
             ImGui::Separator();
+            if (ImGui::TreeNode("cast"))
+            {
+                typesUi.draw(subject.gameData, subject.textures, commands, armed, &subject.level);
+                ImGui::TreePop();
+            }
+
+            ImGui::Separator();
             levelUi.draw(
                 subject.level,
                 subject.levelData,
@@ -130,7 +133,6 @@ void EditorUi::draw(
                 subject.playerFeet,
                 subject.playerState,
                 subject.gameData.npcData,
-                subject.gameData.pickupData,
                 armed,
                 commands);
         }
@@ -441,37 +443,24 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
                 commands.onCameraChanged();
             }};
 
-    case EditorSection::Cast:
-        return {
-            typesUi.unsavedSince(subject.gameData),
-            typesUi.cannotSaveBecause(subject.gameData),
-            [this, &subject]
-            {
-                LevelData playing = subject.levelData;
-                if (typesUi.save(subject.gameData, playing))
-                {
-                    levelUi.forgets();
-                    commands.onLevelEdited(playing);
-                }
-            },
-            [this, &subject] { typesUi.revert(subject.gameData); }};
-
     case EditorSection::Level:
         return {
             levelUi.unsavedSince(subject.levelData, subject.levelPath) ||
                 tilePalettesUi.unsavedSince(subject.gameData.tilePalettes) ||
-                levelsUi.unsavedSince(subject.levels),
+                levelsUi.unsavedSince(subject.levels) || typesUi.unsavedSince(subject.gameData),
             firstOf(
                 levelUi.cannotSaveBecause(
                     subject.level, subject.levelData, subject.gameData.npcData),
                 tilePalettesUi.cannotSaveBecause(subject.gameData.tilePalettes),
-                levelsUi.cannotSaveBecause(subject.levels)),
+                levelsUi.cannotSaveBecause(subject.levels),
+                typesUi.cannotSaveBecause(subject.gameData)),
             [this, &subject]
             {
                 levelUi.save(subject.levelData, subject.levelPath);
                 LevelData playing = subject.levelData;
                 bool rePointed = tilePalettesUi.save(subject.gameData.tilePalettes, playing);
                 rePointed = levelsUi.save(subject.levels, playing) || rePointed;
+                rePointed = typesUi.save(subject.gameData, playing) || rePointed;
                 if (rePointed)
                 {
                     levelUi.forgets();
@@ -483,6 +472,7 @@ SectionSaving EditorUi::savingIn(EditorSection listed, const EditorSubject &subj
                 levelUi.forgets();
                 commands.onLoadLevel(levelsUi.revert(subject.levels, subject.levelPath));
                 tilePalettesUi.revert(subject.gameData.tilePalettes);
+                typesUi.revert(subject.gameData);
             }};
     }
 

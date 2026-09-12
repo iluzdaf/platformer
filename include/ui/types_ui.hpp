@@ -7,6 +7,7 @@
 #include <vector>
 #include "ui/saveable.hpp"
 #include "ui/last_answer.hpp"
+#include "ui/armed.hpp"
 #include "ui/type_shown.hpp"
 #include "ui/renaming.hpp"
 #include "ui/state_machine_shown.hpp"
@@ -41,6 +42,7 @@ public:
         GameData &gameData,
         const TextureCache &textures,
         EditorCommands &commands,
+        std::optional<Armed> &armed,
         const Level *live = nullptr);
     bool save(GameData &gameData, LevelData &playing);
     void revert(GameData &gameData);
@@ -54,7 +56,7 @@ public:
     bool namesChanged();
 
 private:
-    void drawChooser(GameData &gameData);
+    void drawChooser(GameData &gameData, std::optional<Armed> &armed);
     void drawRename(const GameData &gameData);
     void drawShown(
         GameData &gameData,

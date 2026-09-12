@@ -132,12 +132,8 @@ GraphShown graphOf(const StateMachineBehaviorData &machine)
 GraphShown graphOf(const AnimatorData &animations)
 {
     GraphShown graph;
-    if (const FrameAnimationData *idle = clipNamed(animations, IdleClip))
-        graph.nodes.push_back({std::string(IdleClip), wordsOf(*idle)});
-
     for (const auto &[name, clip] : animations.clips)
-        if (name != IdleClip)
-            graph.nodes.push_back({name, wordsOf(clip)});
+        graph.nodes.push_back({name, wordsOf(clip), false, name == animations.startClip});
 
     if (anyRungLeavesFromAnywhere(animations.ladder))
         graph.nodes.push_back({std::string(AnyNode), "from whatever is playing", true});

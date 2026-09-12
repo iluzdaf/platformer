@@ -21,7 +21,6 @@
 #include "actor/decided.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
-#include "animations/animation_ladder_data.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
 #include "actor/behaviors/behavior_facts.hpp"
@@ -47,63 +46,32 @@ namespace
 {
     constexpr float SaidLingersFor = 0.5f;
 
-    bool attackClipSaysWhenToStrike(const AnimatorData &animations)
+    bool attackClipSaysWhenToStrike(const std::optional<AnimatorData> &animations)
     {
-        const FrameAnimationData *attack = clipNamed(animations, AttackClip);
+        const FrameAnimationData *attack =
+            animations ? clipNamed(*animations, AttackClip) : nullptr;
         if (!attack || attack->loops)
             return false;
 
         return std::ranges::any_of(
             attack->cues, [](const FrameCueData &cue) { return cue.name == StrikeCue; });
     }
-
-    bool hasPicturesToChooseFrom(const AnimatorData &animations)
-    {
-        for (const auto &[name, clip] : animations.clips)
-            if (name != IdleClip)
-                return true;
-
-        return false;
-    }
-
-    void refuseALadderToNowhere(const AnimatorData &animations)
-    {
-        for (const AnimationTransitionData &rung : animations.ladder.transitions)
-        {
-            if (!rung.from.empty() && !clipNamed(animations, rung.from))
-                throw std::runtime_error(
-                    "The ladder leaves from \"" + rung.from + "\", and there is no such clip");
-
-            if (!clipNamed(animations, rung.to))
-                throw std::runtime_error(
-                    "The ladder goes to \"" + rung.to + "\", and there is no such clip");
-
-            if (std::optional<std::string> why = whyNotAsked(rung.when, animatorRows()))
-                throw std::runtime_error("The rung to \"" + rung.to + "\" " + *why);
-        }
-    }
 }
 
 Actor::Actor(const ActorData &data)
     : abilities(data.motionData), physicsBody(data.physicsBodyData),
-      animator(data.animationData.ladder), navigationProfile(buildNavigationProfile(data)),
-      hp(data.healthData)
+      navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
 {
+    if (data.animationData)
+        animator.emplace(*data.animationData);
+
+    actorState.currentAnimation = animator ? animator->state() : std::string();
+    actorState.currentFrame = animator ? animator->playing().frame() : 0;
+
     sheet = data.sheet;
     actorState.size = drawnSizeOf(data);
     if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
-
-    animator.add(std::string(IdleClip), FrameAnimation(FrameAnimationData{}));
-    for (const auto &[name, clip] : data.animationData.clips)
-        animator.add(name, FrameAnimation(clip));
-
-    refuseALadderToNowhere(data.animationData);
-
-    if (hasPicturesToChooseFrom(data.animationData) &&
-        data.animationData.ladder.transitions.empty())
-        throw std::runtime_error(
-            "An actor with pictures to choose from must have a ladder to choose them by");
 
     const std::optional<SwingAbilityData> &swing = data.motionData.swingAbilityData;
     if (swing && !attackClipSaysWhenToStrike(data.animationData))
@@ -151,18 +119,23 @@ void Actor::fixedUpdate(
     observations.fell = howFarItFell();
     lately.update(deltaTime);
 
-    animator.animate(deltaTime, decisions, observations, stateName());
+    if (animator)
+        animator->animate(deltaTime, decisions, observations, stateName());
 
     if (!decisions.knockback.active)
         actorState.facingLeft = observations.velocity.x > 0
                                     ? false
                                     : (observations.velocity.x < 0 ? true : actorState.facingLeft);
     observations.facingLeft = actorState.facingLeft;
-    actorState.currentFrame = animator.playing().frame();
-    actorState.currentAnimation = animator.state();
 
-    observations.cues = animator.takeCues();
-    observations.animationFinished = animator.finished();
+    if (animator)
+    {
+        actorState.currentFrame = animator->playing().frame();
+        actorState.currentAnimation = animator->state();
+        observations.cues = animator->takeCues();
+        observations.animationFinished = animator->finished();
+    }
+
     for (const std::string &cue : observations.cues)
         onCue(cue);
 

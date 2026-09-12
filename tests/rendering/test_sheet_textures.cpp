@@ -127,7 +127,7 @@ TEST_CASE("A pickup animating past the end of its sheet says so", "[SheetTexture
 TEST_CASE("An actor animating past the end of its sheet says so", "[SheetTextures]")
 {
     GameData gameData = loadGameData();
-    gameData.npcData.at("rat").actorData.animationData.clips.at("idle").frames.push_back(99);
+    gameData.npcData.at("rat").actorData.animationData->clips.at("idle").frames.push_back(99);
 
     TextureCache textures;
 
@@ -140,7 +140,7 @@ TEST_CASE("An actor animating past the end of its sheet says so", "[SheetTexture
 TEST_CASE("An animation an actor rarely plays is checked like any other", "[SheetTextures]")
 {
     GameData gameData = loadGameData();
-    gameData.npcData.at("rat").actorData.animationData.clips["attack"] =
+    gameData.npcData.at("rat").actorData.animationData->clips["attack"] =
         FrameAnimationData{{99}, 0.1f};
 
     TextureCache textures;

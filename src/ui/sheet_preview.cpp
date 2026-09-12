@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
-#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -36,15 +35,10 @@ std::pair<ImVec2, ImVec2> colliderRect(ImVec2 tileAt, float scale, glm::vec2 off
 
 std::vector<NamedAnimation> animationsOf(const AnimatorData &animations)
 {
-    static const FrameAnimationData noIdleDrawnYet{};
     std::vector<NamedAnimation> offered;
-    const FrameAnimationData *idle = clipNamed(animations, IdleClip);
-    offered.push_back({std::string(IdleClip), idle ? idle : &noIdleDrawnYet});
-
+    offered.reserve(animations.clips.size());
     for (const auto &[name, clip] : animations.clips)
-        if (name != IdleClip)
-            offered.push_back({name, &clip});
-
+        offered.push_back({name, &clip});
     return offered;
 }
 

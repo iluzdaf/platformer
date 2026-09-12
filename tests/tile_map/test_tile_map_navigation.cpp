@@ -62,7 +62,24 @@ namespace
     struct ALevelOfItsOwn
     {
         TilePalettes palettes = theOnlyPalette(aPaletteWithASolidTile());
-        std::map<std::string, NpcData> npcs = {{"rat", NpcData{}}};
+        std::map<std::string, NpcData> npcs = {
+            {"rat",
+             NpcData{
+                 ActorData{
+                     SheetData{},
+                     std::nullopt,
+                     PhysicsBodyData{},
+                     ActorMotionData{},
+                     AnimatorData{
+                         {{"idle", FrameAnimationData({0}, 1.0f)}},
+                         AnimationLadderData{},
+                         "idle"},
+                     HealthData{}},
+                 std::nullopt,
+                 FactsData{},
+                 std::map<std::string, float>{},
+                 0,
+                 ScriptPathData{}}}};
         std::map<std::string, PickupData> pickups = {{"coin", PickupData{}}};
 
         LevelData levelData() const
@@ -86,7 +103,6 @@ namespace
         return std::string(
             (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     }
-
 }
 
 TEST_CASE("A saved level carries no navigation data", "[TileMap][Navigation]")

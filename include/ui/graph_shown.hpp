@@ -19,6 +19,7 @@ struct GraphNode
     std::string name;
     std::string words;
     bool hub = false;
+    bool start = false;
 
     bool operator==(const GraphNode &) const = default;
 };

@@ -33,6 +33,8 @@
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
 
+using namespace ledgeAndWall;
+
 namespace
 {
     std::map<std::string, NpcData> npcCatalogue()

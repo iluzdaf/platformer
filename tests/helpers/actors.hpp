@@ -69,8 +69,7 @@ inline FrameAnimationData anAttackClip(int strikeFrames = 1, float frameDuration
 inline PlayerData playerDataWithEveryAbility()
 {
     PlayerData playerData;
-    playerData.actorData.animationData.clips["idle"] = FrameAnimationData({0}, 1.0f);
-    playerData.actorData.animationData.clips["walk"] = FrameAnimationData({1, 2, 3}, 0.1f);
+
     playerData.actorData.motionData.moveAbilityData = MoveAbilityData();
     playerData.actorData.motionData.jumpAbilityData = JumpAbilityData();
     playerData.actorData.motionData.dashAbilityData = DashAbilityData();
@@ -82,9 +81,16 @@ inline PlayerData playerDataWithEveryAbility()
     playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
     playerData.actorData.motionData.knockbackAbilityData = KnockbackAbilityData();
     playerData.actorData.motionData.swingAbilityData = SwingAbilityData();
-    playerData.actorData.animationData.clips["attack"] = anAttackClip();
-    playerData.actorData.animationData.ladder =
-        ladderOfWhatItHas(playerData.actorData.animationData);
+
+    AnimatorData &animations = playerData.actorData.animationData.emplace();
+    animations.startClip = "idle";
+    animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
+    animations.clips["walk"] = FrameAnimationData({1, 2, 3}, 0.1f);
+    animations.clips["attack"] = anAttackClip();
+    animations.clips["dead"] = FrameAnimationData({9}, 1.0f);
+    animations.ladder = AnimationLadderData{
+        {deadTransition(), swingTransition(), walkTransition(), idleTransition()}};
+
     return playerData;
 }
 

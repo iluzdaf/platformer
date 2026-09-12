@@ -23,6 +23,16 @@ namespace
         return names;
     }
 
+    std::vector<std::string> startsOf(const GraphShown &graph)
+    {
+        std::vector<std::string> starts;
+        for (const GraphNode &node : graph.nodes)
+            if (node.start)
+                starts.push_back(node.name);
+
+        return starts;
+    }
+
     AnimatorData aWalkerWithADeath()
     {
         AnimatorData animations;
@@ -30,6 +40,7 @@ namespace
         animations.clips["idle"] = FrameAnimationData{{0}, 0.5f};
         animations.clips["dead"] = FrameAnimationData{{9}, 1.0f};
         animations.clips.at("dead").loops = false;
+        animations.startClip = "idle";
         AnimationWhenData dead;
         dead["alive"] = false;
         AnimationWhenData moving;
@@ -66,15 +77,28 @@ TEST_CASE("A machine draws as its states and its transitions, in words", "[Graph
 }
 
 TEST_CASE(
-    "An animator draws idle first, then its clips by name, then any if a rung leaves from anywhere",
+    "An animator draws its clips by name, then any if a rung leaves from anywhere",
     "[GraphShown]")
 {
     GraphShown graph = graphOf(aWalkerWithADeath());
 
-    REQUIRE(namesOf(graph) == std::vector<std::string>{"idle", "dead", "walk", "any"});
-    REQUIRE(graph.nodes[0].words == "1 frame, 0.5 s each");
-    REQUIRE(graph.nodes[1].words == "1 frame, 1 s each, once");
+    REQUIRE(namesOf(graph) == std::vector<std::string>{"dead", "idle", "walk", "any"});
+    REQUIRE(graph.nodes[0].words == "1 frame, 1 s each, once");
+    REQUIRE(graph.nodes[1].words == "1 frame, 0.5 s each");
     REQUIRE(graph.nodes[2].words == "2 frames, 0.1 s each");
+}
+
+TEST_CASE("An animator marks the clip it starts in, and only that one", "[GraphShown]")
+{
+    REQUIRE(startsOf(graphOf(aWalkerWithADeath())) == std::vector<std::string>{"idle"});
+}
+
+TEST_CASE("An animator whose start clip names nothing marks no clip", "[GraphShown]")
+{
+    AnimatorData animations = aWalkerWithADeath();
+    animations.startClip = "gone";
+
+    REQUIRE(startsOf(graphOf(animations)).empty());
 }
 
 TEST_CASE(

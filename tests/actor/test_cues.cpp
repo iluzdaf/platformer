@@ -22,7 +22,7 @@
 TEST_CASE("An actor says the cues of the clip it is playing", "[Actor][Cues]")
 {
     PlayerData playerData = playerDataWithEveryAbility();
-    playerData.actorData.animationData.clips["idle"] =
+    playerData.actorData.animationData->clips["idle"] =
         FrameAnimationData{{0, 1}, 0.05f, {{0, "onFootstep"}, {1, "onFootstep"}}};
     Player player(playerData, noIntentions());
     std::vector<std::string> heard;
@@ -57,9 +57,9 @@ namespace
     PlayerData aPlayerWithAnAttackClip()
     {
         PlayerData playerData = playerDataWithEveryAbility();
-        playerData.actorData.animationData.clips["attack"] = FrameAnimationData{
+        playerData.actorData.animationData->clips["attack"] = FrameAnimationData{
             {12, 13, 14}, 0.1f, {{1, std::string(StrikeCue)}, {2, std::string(RecoverCue)}}};
-        playerData.actorData.animationData.clips.at("attack").loops = false;
+        playerData.actorData.animationData->clips.at("attack").loops = false;
         return playerData;
     }
 }
@@ -67,7 +67,7 @@ namespace
 TEST_CASE("A swing is refused without a strike cue", "[Actor][Cues]")
 {
     PlayerData playerData = aPlayerWithAnAttackClip();
-    playerData.actorData.animationData.clips.at("attack").cues.clear();
+    playerData.actorData.animationData->clips.at("attack").cues.clear();
 
     REQUIRE_THROWS_WITH(
         Player(playerData, noIntentions()), Catch::Matchers::ContainsSubstring("onStrike"));
@@ -76,7 +76,7 @@ TEST_CASE("A swing is refused without a strike cue", "[Actor][Cues]")
 TEST_CASE("A swing is refused when its clip loops", "[Actor][Cues]")
 {
     PlayerData playerData = aPlayerWithAnAttackClip();
-    playerData.actorData.animationData.clips.at("attack").loops = true;
+    playerData.actorData.animationData->clips.at("attack").loops = true;
 
     REQUIRE_THROWS_WITH(
         Player(playerData, noIntentions()), Catch::Matchers::ContainsSubstring("plays once"));

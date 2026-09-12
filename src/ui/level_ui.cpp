@@ -48,7 +48,7 @@ LevelUi::LevelUi(EditorHistory &history) : history(history)
 void LevelUi::draw(
     const Level &level,
     const LevelData &levelData,
-    const AnimatorData &playerAnimations,
+    const std::optional<AnimatorData> &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,
@@ -73,7 +73,7 @@ void LevelUi::draw(
 void LevelUi::drawActors(
     const Level &level,
     const LevelData &levelData,
-    const AnimatorData &playerAnimations,
+    const std::optional<AnimatorData> &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,

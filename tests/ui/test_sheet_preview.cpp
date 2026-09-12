@@ -107,7 +107,7 @@ TEST_CASE("A collider is drawn from where the tile is", "[SheetPreview]")
     REQUIRE(high.y == low.y + 48.0f);
 }
 
-TEST_CASE("An actor offers idle first, then whichever clips it has by name", "[SheetPreview]")
+TEST_CASE("An actor offers whatever clips it has by name", "[SheetPreview]")
 {
     AnimatorData animations;
     animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
@@ -115,20 +115,21 @@ TEST_CASE("An actor offers idle first, then whichever clips it has by name", "[S
 
     std::vector<NamedAnimation> offered = animationsOf(animations);
 
-    REQUIRE(namesOf(offered) == std::vector<std::string>{"idle", "fall", "walk"});
-    REQUIRE(offered[1].animation == &animations.clips.at("fall"));
-    REQUIRE(offered[2].animation == &animations.clips.at("walk"));
+    REQUIRE(namesOf(offered) == std::vector<std::string>{"fall", "walk"});
+    REQUIRE(offered[0].animation == &animations.clips.at("fall"));
+    REQUIRE(offered[1].animation == &animations.clips.at("walk"));
 }
 
 TEST_CASE("An actor offers a climb and a knockback the same way", "[SheetPreview]")
 {
     AnimatorData animations;
+    animations.startClip = "climb";
     animations.clips["climb"] = FrameAnimationData{{4}, 0.1f};
     animations.clips["knockback"] = FrameAnimationData{{5}, 0.1f};
 
     std::vector<NamedAnimation> offered = animationsOf(animations);
 
-    REQUIRE(namesOf(offered) == std::vector<std::string>{"idle", "climb", "knockback"});
+    REQUIRE(namesOf(offered) == std::vector<std::string>{"climb", "knockback"});
     REQUIRE(animationNamed(offered, "climb").animation == &animations.clips.at("climb"));
     REQUIRE(animationNamed(offered, "knockback").animation == &animations.clips.at("knockback"));
 }
@@ -143,14 +144,11 @@ TEST_CASE("An animation asked for by name is the one offered under it", "[SheetP
     REQUIRE(animationNamed(offered, "walk").animation == &animations.clips.at("walk"));
 }
 
-TEST_CASE("An actor with no idle clip yet still offers an empty one to preview", "[SheetPreview]")
+TEST_CASE("An actor with no clips yet offers nothing to preview", "[SheetPreview]")
 {
     AnimatorData animations;
 
-    std::vector<NamedAnimation> offered = animationsOf(animations);
-
-    REQUIRE(namesOf(offered) == std::vector<std::string>{"idle"});
-    REQUIRE(animationNamed(offered, "idle").animation->frames.empty());
+    REQUIRE(animationsOf(animations).empty());
 }
 
 TEST_CASE("An animation nobody has is previewed as idle", "[SheetPreview]")

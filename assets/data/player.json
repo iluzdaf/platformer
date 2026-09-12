@@ -17,6 +17,7 @@
             "swingAbilityData":{}
         },
         "animationData":{
+            "startClip":"idle",
             "clips":{
                 "attack":{
                     "frames":[12,13,14],

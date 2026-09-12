@@ -41,7 +41,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level);
 
 ActorAsked drawActorsInLevel(
     const Level &level,
-    const AnimatorData &playerAnimations,
+    const std::optional<AnimatorData> &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,

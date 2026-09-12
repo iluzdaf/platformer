@@ -4,8 +4,9 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-#include "animations/animation_ladder_data.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
+#include "animations/animation_ladder_data.hpp"
 
 struct Decided;
 struct Observed;
@@ -13,7 +14,7 @@ struct Observed;
 class Animator
 {
 public:
-    explicit Animator(const AnimationLadderData &ladder);
+    explicit Animator(const AnimatorData &data);
 
     void animate(
         float deltaTime,
@@ -21,11 +22,9 @@ public:
         const Observed &observed,
         std::string_view inState = {});
     const FrameAnimation &playing() const;
-    void add(const std::string &name, const FrameAnimation &anim);
     const std::string &state() const;
     std::vector<std::string> takeCues();
     bool finished() const;
-    const AnimationLadderData &ladder() const;
 
 private:
     const std::string &wanted(
@@ -33,7 +32,7 @@ private:
         const Observed &observed,
         std::string_view inState) const;
 
-    AnimationLadderData data;
-    std::string currentState = "idle";
+    AnimationLadderData ladder;
+    std::string currentState;
     std::unordered_map<std::string, FrameAnimation> animations;
 };

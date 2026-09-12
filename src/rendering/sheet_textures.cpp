@@ -18,7 +18,10 @@
 
 void checkFits(const ActorData &actor, const std::string &whose, int width, int height)
 {
-    for (const auto &[name, clip] : actor.animationData.clips)
+    if (!actor.animationData)
+        return;
+
+    for (const auto &[name, clip] : actor.animationData->clips)
     {
         std::string named = whose;
         named += " ";

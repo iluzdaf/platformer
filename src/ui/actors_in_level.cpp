@@ -101,10 +101,15 @@ namespace
         drawRow("Facing Left", state.facingLeft ? "true" : "false");
     }
 
-    void drawAnimatorOfThePlayer(const AnimatorData &animations, const ActorState &state)
+    void drawAnimatorOfThePlayer(
+        const std::optional<AnimatorData> &animations,
+        const ActorState &state)
     {
+        if (!animations)
+            return;
+
         if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
-            drawAnimatorGraph(animations, {state.currentAnimation}, MachineShown{});
+            drawAnimatorGraph(*animations, {state.currentAnimation}, MachineShown{});
     }
 
     void drawCannotGetBack(const Level &level, const Npc *npc)
@@ -174,12 +179,12 @@ namespace
     void drawAnimatorOf(const std::map<std::string, NpcData> &npcTypes, const Npc &npc)
     {
         auto type = npcTypes.find(npc.type());
-        if (type == npcTypes.end())
+        if (type == npcTypes.end() || !type->second.actorData.animationData)
             return;
 
         if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
             drawAnimatorGraph(
-                type->second.actorData.animationData,
+                *type->second.actorData.animationData,
                 {npc.state().currentAnimation},
                 MachineShown{});
     }
@@ -301,7 +306,7 @@ std::optional<std::string> npcsThatCannotGetBack(const Level &level)
 
 ActorAsked drawActorsInLevel(
     const Level &level,
-    const AnimatorData &playerAnimations,
+    const std::optional<AnimatorData> &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
     const ActorState &playerState,

@@ -30,10 +30,8 @@
 
 namespace
 {
-    constexpr int MapTiles = 10;
-    constexpr int FloorRow = 6;
     constexpr int CeilingRow = 4;
-    constexpr glm::ivec2 StandingTile{2, FloorRow - 1};
+    constexpr glm::ivec2 StandingTile{2, FloorLevelStanding};
 
     NpcData npcOfHeight(float height)
     {
@@ -59,19 +57,11 @@ namespace
 
     LevelData corridorPlacing(const std::vector<NpcSpawnData> &npcs)
     {
-        LevelData levelData;
-        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
-        levelData.tileMapData.tilePalette = "default";
-        levelData.tileMapData.indices =
-            std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
-        for (int x = 0; x < MapTiles; ++x)
-        {
-            levelData.tileMapData.indices[FloorRow][x] = 1;
-            levelData.tileMapData.indices[CeilingRow][x] = 1;
-        }
-        levelData.playerFeet = feetOf(glm::ivec2(1, FloorRow - 1));
-        levelData.npcs = npcs;
-        return levelData;
+        Placed laid;
+        layRow(laid, FloorLevelRow, 0, FloorLevelTiles - 1);
+        layRow(laid, CeilingRow, 0, FloorLevelTiles - 1);
+        return aLevelPlacing(
+            laid, FloorLevelTiles, FloorLevelTiles, glm::ivec2(1, FloorLevelStanding), npcs);
     }
 
     Level levelOf(const LevelData &levelData, const PlayerData &playerData = playerOfHeight(13.0f))
@@ -105,30 +95,15 @@ namespace
 
     Level levelWithALedge(const std::vector<NpcSpawnData> &npcs)
     {
-        LevelData levelData;
-        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
-        levelData.tileMapData.tilePalette = "default";
-        levelData.tileMapData.indices =
-            std::vector<std::vector<int>>(LedgeMapRows, std::vector<int>(LedgeMapTiles, 0));
-        std::vector<std::vector<int>> &indices = levelData.tileMapData.indices;
-
-        for (int x = 0; x < LedgeMapTiles; ++x)
-        {
-            indices[LedgeGroundRow][x] = 1;
-            indices[LedgeGroundRow + 1][x] = 1;
-        }
-
-        for (int x = LedgeFirstTile; x <= LedgeLastTile; ++x)
-            indices[LedgeRow][x] = 1;
-
-        for (int x = BelowFirstTile; x <= BelowLastTile; ++x)
-            indices[BelowRow][x] = 1;
-
-        levelData.playerFeet = feetOf(glm::ivec2(1, LedgeGroundRow - 1));
-        levelData.npcs = npcs;
+        Placed laid;
+        layRow(laid, LedgeGroundRow, 0, LedgeMapTiles - 1);
+        layRow(laid, LedgeGroundRow + 1, 0, LedgeMapTiles - 1);
+        layRow(laid, LedgeRow, LedgeFirstTile, LedgeLastTile);
+        layRow(laid, BelowRow, BelowFirstTile, BelowLastTile);
 
         return Level(
-            levelData,
+            aLevelPlacing(
+                laid, LedgeMapTiles, LedgeMapRows, glm::ivec2(1, LedgeGroundRow - 1), npcs),
             theOnlyPalette(aPaletteWithASolidTile()),
             playerOfHeight(13.0f),
             theUsualNpcs(),
@@ -139,7 +114,7 @@ namespace
     {
         size_t count = 0;
         for (const auto &[id, node] : graph.getNodes())
-            if (node.feet.y == static_cast<float>(FloorRow * 16))
+            if (node.feet.y == surfaceOf(FloorLevelRow))
                 ++count;
         return count;
     }
@@ -149,8 +124,8 @@ TEST_CASE("A level offers the tiles it was built from", "[Level]")
 {
     Level level = levelPlacing({});
 
-    REQUIRE(level.getTileMap().getWidth() == MapTiles);
-    REQUIRE(level.getTileMap().getHeight() == MapTiles);
+    REQUIRE(level.getTileMap().getWidth() == FloorLevelTiles);
+    REQUIRE(level.getTileMap().getHeight() == FloorLevelTiles);
 }
 
 TEST_CASE("A level builds a graph for an npc it places", "[Level]")
@@ -202,7 +177,7 @@ TEST_CASE("A gap in the floor changes what the graphs describe", "[Level]")
 
     LevelData whole = corridorPlacing({spawnAt("short", StandingTile)});
     LevelData holed = whole;
-    holed.tileMapData.indices[FloorRow][5] = 0;
+    holed.tileMapData.indices[FloorLevelRow][5] = EmptyTile;
 
     REQUIRE(nodesOnTheFloor(levelOf(whole).graphFor(walker)) == 2);
     REQUIRE(nodesOnTheFloor(levelOf(holed).graphFor(walker)) == 4);
@@ -267,7 +242,7 @@ TEST_CASE("A level whose data names no level next is refused", "[Level]")
 TEST_CASE("A graph does not name the same actor twice", "[Level]")
 {
     Level level =
-        levelPlacing({spawnAt("short", StandingTile), spawnAt("short", {2, FloorRow - 1})});
+        levelPlacing({spawnAt("short", StandingTile), spawnAt("short", {2, FloorLevelStanding})});
 
     for (const NamedNavigationGraph &graph : level.getGraphs())
         REQUIRE(graph.name.find("short", graph.name.find("short") + 1) == std::string::npos);
@@ -396,7 +371,7 @@ TEST_CASE("A beat picked in the editor survives the trip through world space", "
     Level level = levelPlacing({});
     const TileMap &tileMap = level.getTileMap();
 
-    glm::ivec2 left(1, FloorRow - 1), right(6, FloorRow - 1);
+    glm::ivec2 left(1, FloorLevelStanding), right(6, FloorLevelStanding);
 
     REQUIRE(tilesOfBeat(tileMap, beatBetween(tileMap, left, right)) == std::pair(left, right));
     REQUIRE(tilesOfBeat(tileMap, beatBetween(tileMap, right, left)) == std::pair(right, left));
@@ -485,9 +460,9 @@ TEST_CASE(
 {
     LevelData levelData = corridorPlacing({});
     levelData.pickups = {
-        PickupSpawnData{"coin", feetOf(glm::ivec2(3, FloorRow - 1))},
-        PickupSpawnData{"gem", feetOf(glm::ivec2(5, FloorRow - 1))},
-        PickupSpawnData{"coin", feetOf(glm::ivec2(7, FloorRow - 1))}};
+        PickupSpawnData{"coin", feetOf(glm::ivec2(3, FloorLevelStanding))},
+        PickupSpawnData{"gem", feetOf(glm::ivec2(5, FloorLevelStanding))},
+        PickupSpawnData{"coin", feetOf(glm::ivec2(7, FloorLevelStanding))}};
     std::map<std::string, PickupData> kinds{{"coin", aPickupWorth(1)}, {"gem", aPickupWorth(5)}};
     Level level(
         levelData,
@@ -512,7 +487,7 @@ TEST_CASE(
 TEST_CASE("Recasting the pickups without a kind on the floor is refused by name", "[Level]")
 {
     LevelData levelData = corridorPlacing({});
-    levelData.pickups = {PickupSpawnData{"coin", feetOf(glm::ivec2(3, FloorRow - 1))}};
+    levelData.pickups = {PickupSpawnData{"coin", feetOf(glm::ivec2(3, FloorLevelStanding))}};
     std::map<std::string, PickupData> kinds{{"coin", aPickupWorth(1)}};
     Level level(
         levelData,

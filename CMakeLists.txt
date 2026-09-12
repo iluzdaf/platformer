@@ -245,6 +245,8 @@ add_library(platformer_lib OBJECT
     src/actor/abilities/direction_buffer.cpp
     src/actor/abilities/abilities.cpp
     src/actor/abilities/gravity_ability.cpp
+
+    src/animations/animator_data.cpp
 )
 
 add_executable(platformer src/main.cpp)

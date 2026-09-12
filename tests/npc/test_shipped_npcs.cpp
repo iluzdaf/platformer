@@ -33,6 +33,8 @@
 #include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
 
+using namespace ledgeAndWall;
+
 namespace
 {
     bool sleepsAtFirst(const NpcData &data)
@@ -738,21 +740,13 @@ namespace
 {
     Level aFloorWithNothingAtItsEnds(const std::vector<NpcSpawnData> &npcs)
     {
-        TileMapData tileMapData;
-        tileMapData.tilePalette = "default";
-        tileMapData.indices =
-            std::vector<std::vector<int>>(LedgeHeightTiles, std::vector<int>(LedgeWidthTiles, 0));
-        for (int x = 0; x < LedgeWidthTiles; ++x)
-            tileMapData.indices[GroundRow][x] = GroundTile;
-
-        LevelData levelData;
-        levelData.tileMapData = tileMapData;
-        levelData.playerFeet = feetOf(glm::ivec2(1, GroundRow - 1));
-        levelData.npcs = npcs;
+        Placed laid;
+        layRow(laid, GroundRow, 0, LedgeWidthTiles - 1, SlipperyTile);
 
         return Level(
-            levelData,
-            theOnlyPalette(ledgePalette()),
+            aLevelPlacing(
+                laid, LedgeWidthTiles, LedgeHeightTiles, glm::ivec2(1, GroundRow - 1), npcs),
+            theOnlyPalette(aPaletteWithSlipperyTiles()),
             loadGameData().playerData,
             shippedNpcData(),
             shippedPickupData());

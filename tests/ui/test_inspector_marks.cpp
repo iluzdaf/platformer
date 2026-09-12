@@ -294,6 +294,7 @@ namespace
     AnimatorData someClipsAndARung()
     {
         AnimatorData animations;
+        animations.startClip = "idle";
         animations.clips["idle"] = FrameAnimationData{{0}, 0.2f};
         animations.clips["run"] = FrameAnimationData{{1, 2, 3}, 0.1f};
         animations.clips["run"].cues.push_back(FrameCueData{1, "step"});
@@ -423,13 +424,20 @@ namespace
     std::vector<GraphShown> graphsDrawnFor(GameData &gameData, const TypeShown &type)
     {
         if (type.what == TypeShown::What::Player)
-            return {graphOf(gameData.playerData.actorData.animationData)};
+        {
+            const std::optional<AnimatorData> &animations =
+                gameData.playerData.actorData.animationData;
+            return animations ? std::vector<GraphShown>{graphOf(*animations)}
+                              : std::vector<GraphShown>{};
+        }
 
         if (type.what != TypeShown::What::Npc)
             return {};
 
         NpcData &npc = gameData.npcData.at(type.name);
-        std::vector<GraphShown> graphs{graphOf(npc.actorData.animationData)};
+        std::vector<GraphShown> graphs;
+        if (npc.actorData.animationData)
+            graphs.push_back(graphOf(*npc.actorData.animationData));
         if (npc.stateMachineBehaviorData)
             graphs.push_back(graphOf(*npc.stateMachineBehaviorData));
 

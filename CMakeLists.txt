@@ -123,6 +123,7 @@ add_library(platformer_lib OBJECT
     src/ui/playback_ui.cpp
     src/ui/game_settings_ui.cpp
     src/ui/section_mark.cpp
+    src/ui/section_problems.cpp
     src/ui/saved_in_scope.cpp
     src/ui/marked_label.cpp
     src/ui/sheet_field.cpp
@@ -337,6 +338,7 @@ add_executable(tests
     tests/ui/test_armed.cpp
     tests/ui/test_tile_map_shown.cpp
     tests/ui/test_size_buttons.cpp
+    tests/ui/test_field_marks.cpp
     tests/ui/test_picking_in_level.cpp
     tests/ui/test_tile_picker.cpp
     tests/ui/test_level_ui_update.cpp
@@ -355,6 +357,7 @@ add_executable(tests
     tests/ui/test_types_ui.cpp
     tests/ui/test_renaming.cpp
     tests/ui/test_section_mark.cpp
+    tests/ui/test_section_problems.cpp
     tests/ui/test_sheet_field.cpp
     tests/ui/test_path_fields.cpp
     tests/ui/test_facts_field.cpp

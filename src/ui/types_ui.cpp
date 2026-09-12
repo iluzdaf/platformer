@@ -8,6 +8,7 @@
 #include <imgui.h>
 #include <tuple>
 #include "ui/armed.hpp"
+#include "ui/marked_label.hpp"
 #include "ui/types_ui.hpp"
 #include "ui/saved_in_scope.hpp"
 #include "ui/type_shown.hpp"
@@ -26,7 +27,6 @@
 #include "rendering/texture_cache.hpp"
 #include "rendering/texture2d.hpp"
 #include "assets/sheet_data.hpp"
-#include "ui/unsaved_colours.hpp"
 #include "game/game_data.hpp"
 #include "game/level_data.hpp"
 #include "ui/renaming.hpp"
@@ -57,15 +57,9 @@ namespace
 
     void offer(const GameData &gameData, const TypeShown &listed, TypeShown &showing)
     {
-        bool cannot = whyATypeCannotBeSaved(gameData, listed).has_value();
-        if (cannot)
-            ImGui::PushStyleColor(ImGuiCol_Text, CannotSaveColour);
-
+        inspector::Marked marked(false, whyATypeCannotBeSaved(gameData, listed).has_value());
         if (ImGui::Selectable(labelOf(listed).c_str(), showing == listed))
             showing = listed;
-
-        if (cannot)
-            ImGui::PopStyleColor();
     }
 
     std::set<std::string> statesLitBy(const Level *live, const std::string &type)

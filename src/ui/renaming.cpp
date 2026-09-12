@@ -9,10 +9,10 @@
 #include <string_view>
 #include <vector>
 #include <imgui.h>
+#include "ui/marked_label.hpp"
 #include "ui/renaming.hpp"
 #include "ui/level_rewriting.hpp"
 #include "ui/renames.hpp"
-#include "ui/unsaved_colours.hpp"
 #include "game/levels.hpp"
 #include "game/level_data.hpp"
 
@@ -88,7 +88,7 @@ std::optional<Renamed> Renaming::draw(
     std::optional<std::string> why =
         whyNotARename(what, shownName(selected), typing, taken(typing));
     if (why)
-        drawWrapped(CannotSaveColour, *why);
+        inspector::drawRefusal(*why);
     else
         drawWhatTheLevelsNeed();
 
@@ -104,7 +104,7 @@ std::optional<Renamed> Renaming::draw(
 void Renaming::drawWhatTheLevelsNeed() const
 {
     if (std::optional<std::string> cannot = cannotSaveBecause())
-        drawWrapped(CannotSaveColour, *cannot);
+        inspector::drawRefusal(*cannot);
     else if (std::string levels = whatTheLevelsNeed(); !levels.empty())
         drawWrapped(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled), levels);
 }

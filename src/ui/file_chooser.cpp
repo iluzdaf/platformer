@@ -7,7 +7,7 @@
 #include "ui/marked_label.hpp"
 #include "ui/file_chooser.hpp"
 #include "ui/inspector_edited.hpp"
-#include "ui/unsaved_colours.hpp"
+#include <optional>
 #include "assets/asset_paths.hpp"
 
 inspector::Edited drawFileChooser(
@@ -25,9 +25,16 @@ inspector::Edited drawFileChooser(
     std::string_view folder,
     const std::vector<std::string> &offered)
 {
+    std::string where(folder);
+    std::optional<std::string> cannot;
+    if (path.empty())
+        cannot = "names no file under " + where;
+    else if (std::find(offered.begin(), offered.end(), path) == offered.end())
+        cannot = "no such file under " + where;
+
     bool picked = false;
 
-    inspector::drawLabel(label);
+    inspector::drawLabel(label, inspector::markedHere(), cannot.has_value());
     ImGui::SameLine();
     ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::BeginCombo(
@@ -43,11 +50,8 @@ inspector::Edited drawFileChooser(
         ImGui::EndCombo();
     }
 
-    std::string where(folder);
-    if (path.empty())
-        ImGui::TextColored(CannotSaveColour, "names no file under %s", where.c_str());
-    else if (std::find(offered.begin(), offered.end(), path) == offered.end())
-        ImGui::TextColored(CannotSaveColour, "no such file under %s", where.c_str());
+    if (cannot)
+        inspector::drawRefusal(*cannot);
 
     return {picked, picked};
 }

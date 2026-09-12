@@ -28,7 +28,9 @@
 #include "ui/imgui_manager.hpp"
 #include "ui/debug_aabb_overlay.hpp"
 #include "ui/unsaved_colours.hpp"
+#include "ui/marked_label.hpp"
 #include "ui/section_mark.hpp"
+#include "ui/section_problems.hpp"
 #include "ui/panel_placement.hpp"
 
 void EditorUi::draw(
@@ -58,6 +60,7 @@ void EditorUi::draw(
         saving[at] = savingIn(EditorSections[at].first, subject);
 
     drawSectionTabs(saving);
+    drawProblems(saving);
     drawSaveRow(saving);
     drawUndoRow(subject);
 
@@ -343,6 +346,20 @@ void EditorUi::update(
         commands);
 }
 
+void EditorUi::drawProblems(const std::array<SectionSaving, EditorSections.size()> &saving)
+{
+    std::array<std::optional<std::string>, EditorSections.size()> whyNotSaved;
+    for (std::size_t at = 0; at < EditorSections.size(); ++at)
+        whyNotSaved[at] = saving[at].cannotBecause;
+
+    for (const SectionProblem &problem : problemsAmong(whyNotSaved))
+    {
+        inspector::Marked marked(false, true);
+        if (ImGui::Selectable((std::string(problem.name) + ": " + problem.because).c_str()))
+            show(problem.section);
+    }
+}
+
 void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving)
 {
     bool anyUnsaved = false;
@@ -385,13 +402,6 @@ void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()
         ImGui::SameLine();
         if (ImGui::SmallButton("revert") && thing.revert)
             thing.revert();
-
-        if (thing.cannotBecause)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, CannotSaveColour);
-            ImGui::TextWrapped("%s", thing.cannotBecause->c_str());
-            ImGui::PopStyleColor();
-        }
 
         ImGui::PopID();
     }

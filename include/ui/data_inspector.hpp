@@ -90,34 +90,38 @@ namespace inspector
         return std::string("##") + std::string(name);
     }
 
-    inline Edited drawNamed(std::string_view name, float &value, bool changed)
+    inline Edited drawNamed(std::string_view name, float &value, bool changed, bool refused = false)
     {
-        drawLabel(name, changed);
+        drawLabel(name, changed, refused);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         return justEdited(ImGui::DragFloat(labelled(name).c_str(), &value, 0.5f));
     }
 
-    inline Edited drawNamed(std::string_view name, int &value, bool changed)
+    inline Edited drawNamed(std::string_view name, int &value, bool changed, bool refused = false)
     {
-        drawLabel(name, changed);
+        drawLabel(name, changed, refused);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         return justEdited(ImGui::DragInt(labelled(name).c_str(), &value));
     }
 
-    inline Edited drawNamed(std::string_view name, bool &value, bool changed)
+    inline Edited drawNamed(std::string_view name, bool &value, bool changed, bool refused = false)
     {
-        Marked marked(changed);
+        Marked marked(changed, refused);
         return justEdited(ImGui::Checkbox(std::string(name).c_str(), &value));
     }
 
-    inline Edited drawNamed(std::string_view name, std::string &value, bool changed)
+    inline Edited drawNamed(
+        std::string_view name,
+        std::string &value,
+        bool changed,
+        bool refused = false)
     {
         std::array<char, 256> buffer{};
         value.copy(buffer.data(), std::min(value.size(), buffer.size() - 1));
 
-        drawLabel(name, changed);
+        drawLabel(name, changed, refused);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         bool typed = ImGui::InputText(labelled(name).c_str(), buffer.data(), buffer.size());
@@ -128,17 +132,25 @@ namespace inspector
         return edited;
     }
 
-    inline Edited drawNamed(std::string_view name, glm::vec2 &value, bool changed)
+    inline Edited drawNamed(
+        std::string_view name,
+        glm::vec2 &value,
+        bool changed,
+        bool refused = false)
     {
-        drawLabel(name, changed);
+        drawLabel(name, changed, refused);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         return justEdited(ImGui::DragFloat2(labelled(name).c_str(), &value.x, 0.5f));
     }
 
-    inline Edited drawNamed(std::string_view name, glm::ivec2 &value, bool changed)
+    inline Edited drawNamed(
+        std::string_view name,
+        glm::ivec2 &value,
+        bool changed,
+        bool refused = false)
     {
-        drawLabel(name, changed);
+        drawLabel(name, changed, refused);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-FLT_MIN);
         return justEdited(ImGui::DragInt2(labelled(name).c_str(), &value.x));
@@ -169,13 +181,13 @@ namespace inspector
     }
 
     template <class Shown, class Held>
-    Edited drawAs(std::string_view name, Shown &shown, const Held &held)
+    Edited drawAs(std::string_view name, Shown &shown, const Held &held, bool refused = false)
     {
         InField here(name);
         const bool changed = changedHere(held);
         Marking marking(changed);
 
-        return drawNamed(name, shown, changed);
+        return drawNamed(name, shown, changed, refused);
     }
 
     template <class T> Edited drawHere(std::string_view name, T &value, bool changed)

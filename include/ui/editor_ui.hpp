@@ -25,7 +25,7 @@
 
 struct AbilityStates;
 struct Observed;
-struct ActorState;
+struct Appearance;
 struct GameData;
 class Camera2D;
 class ImGuiManager;
@@ -57,7 +57,7 @@ struct EditorSubject
     const AbilityStates &playerAbilityStates;
     const Observed &playerObserved;
     glm::vec2 playerFeet;
-    const ActorState &playerState;
+    const Appearance &playerAppearance;
     const Camera2D &camera;
     bool paused = false;
 };

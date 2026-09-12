@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
 
-struct ActorState
+struct Appearance
 {
     glm::vec2 size = glm::vec2(16.0f);
     int currentFrame = 0;

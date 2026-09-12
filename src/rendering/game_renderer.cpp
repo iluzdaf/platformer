@@ -18,7 +18,7 @@
 #include "game/game_data.hpp"
 #include "actor/actor.hpp"
 #include "pickups/pickup.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "assets/sheet_data.hpp"
 #include "assets/asset_paths.hpp"
 
@@ -114,13 +114,13 @@ void GameRenderer::draw(
 
     auto drawActor = [&](const Actor &actor)
     {
-        const ActorState &actorState = actor.state();
+        const Appearance &appearance = actor.appearance();
         const SheetData &sheet = actor.drawnFrom();
         const Texture2D &texture = textures.get(sheet.texture.path);
         auto [uvStart, uvEnd] = frameUvRangeIn(
             static_cast<int>(texture.getWidth()),
             static_cast<int>(texture.getHeight()),
-            actorState.currentFrame,
+            appearance.currentFrame,
             sheet.cellSize.x,
             sheet.cellSize.y);
 
@@ -129,7 +129,7 @@ void GameRenderer::draw(
             texture,
             projection,
             actor.body().position(),
-            actorState.size,
+            appearance.size,
             uvStart,
             uvEnd,
             actor.observed().facingLeft);

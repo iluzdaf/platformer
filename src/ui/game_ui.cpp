@@ -46,7 +46,7 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.player.abilityStates(),
             subject.player.observed(),
             subject.player.feet(),
-            subject.player.state(),
+            subject.player.appearance(),
             subject.camera,
             subject.paused},
         subject.showEditors);

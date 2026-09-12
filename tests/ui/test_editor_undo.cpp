@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/game_data.hpp"
 #include "game/level.hpp"
@@ -47,7 +47,7 @@ namespace
         TextureCache textures;
         AbilityStates states;
         Observed observed;
-        ActorState playerState;
+        Appearance playerAppearance;
         Camera2D camera{gameData.cameraData, 800, 600};
         std::string levelPath = "levels/being_edited.json";
 
@@ -63,7 +63,7 @@ namespace
                 states,
                 observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, FloorLevelStanding)),
-                playerState,
+                playerAppearance,
                 camera,
                 false};
         }

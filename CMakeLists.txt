@@ -465,6 +465,7 @@ add_executable(tests
     tests/combat/test_strike.cpp
     tests/actor/test_fading_facts.cpp
     tests/actor/test_declared_facts.cpp
+    tests/actor/test_facing.cpp
     tests/actor/test_cues.cpp
 
     tests/actor/test_actor_animations.cpp

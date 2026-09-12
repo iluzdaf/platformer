@@ -46,7 +46,7 @@
 #include "ui/mouse_on_the_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "ui/tile_palettes_ui.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "actor/observed.hpp"
 #include "cameras/camera2d.hpp"
 #include "game/level.hpp"
@@ -502,7 +502,7 @@ TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[Inspe
     Camera2D camera{gameData.cameraData, 800, 600};
     EditorHistory history;
     std::optional<Armed> armed;
-    ActorState playerState;
+    Appearance playerAppearance;
     Observed observed;
     std::string levelPath = "levels/being_edited.json";
 
@@ -550,7 +550,7 @@ TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[Inspe
                  gameData.playerData.actorData.animationData,
                  observed,
                  levelData.playerFeet,
-                 playerState,
+                 playerAppearance,
                  gameData.npcData,
                  armed,
                  commands);

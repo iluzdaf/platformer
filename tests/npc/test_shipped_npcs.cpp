@@ -18,7 +18,7 @@
 #include "game/game_data.hpp"
 #include "helpers/scripted_npcs.hpp"
 #include "helpers/shipped.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "npc/npc.hpp"
 #include "player/player.hpp"
 #include "game/exchanging_strikes.hpp"
@@ -354,7 +354,7 @@ TEST_CASE("The shipped spider climbs the wall above the ledge", "[Npc][Level][Cl
             reachedTheTopAt = step;
         if (reachedTheTopAt >= 0 && footOf(npc).y >= theLedge - 1.0f)
             cameBackDown = true;
-        if (npc.state().currentAnimation == "climb")
+        if (npc.appearance().currentAnimation == "climb")
             showedTheClimb = true;
     }
 
@@ -723,7 +723,7 @@ TEST_CASE("The spider shows its pounce clip while its pounce state is on", "[Shi
         npc.beginFrame();
         npc.fixedUpdate(0.01f, level, {.threatFeet = you});
         bool inPounce = npc.stateName() == "pounce";
-        bool onFilm = npc.state().currentAnimation == "pounce";
+        bool onFilm = npc.appearance().currentAnimation == "pounce";
         if (inPounce && onFilm)
             pouncedOnFilm = true;
         if (inPounce && !onFilm)

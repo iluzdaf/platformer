@@ -12,7 +12,7 @@
 #include "ui/actors_in_level.hpp"
 #include "ui/armed.hpp"
 #include "actor/observed.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "game/level.hpp"
 #include "navigation/navigation_place.hpp"
 #include "npc/npc.hpp"
@@ -103,7 +103,7 @@ namespace
 
     void drawAnimatorOfThePlayer(
         const std::optional<AnimatorData> &animations,
-        const ActorState &state)
+        const Appearance &state)
     {
         if (!animations)
             return;
@@ -187,7 +187,7 @@ namespace
             return;
 
         if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
-            drawAnimatorRules(*animations, npc.state().currentAnimation);
+            drawAnimatorRules(*animations, npc.appearance().currentAnimation);
     }
 
     void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)
@@ -310,7 +310,7 @@ ActorAsked drawActorsInLevel(
     const std::optional<AnimatorData> &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
-    const ActorState &playerState,
+    const Appearance &playerAppearance,
     const std::map<std::string, NpcData> &npcTypes,
     ActorShown showing,
     std::optional<Armed> &armed)
@@ -347,7 +347,7 @@ ActorAsked drawActorsInLevel(
             ImGui::EndTable();
         }
 
-        drawAnimatorOfThePlayer(playerAnimations, playerState);
+        drawAnimatorOfThePlayer(playerAnimations, playerAppearance);
         break;
 
     case ActorShown::What::Npc: {

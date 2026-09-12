@@ -34,7 +34,7 @@ struct AABB;
 struct AbilityStates;
 struct AnimatorData;
 struct Observed;
-struct ActorState;
+struct Appearance;
 class Npc;
 
 struct EditorCommands;
@@ -70,7 +70,7 @@ public:
         const std::optional<AnimatorData> &playerAnimations,
         const Observed &playerObserved,
         const glm::vec2 &playerFeet,
-        const ActorState &playerState,
+        const Appearance &playerAppearance,
         const std::map<std::string, NpcData> &npcData,
         std::optional<Armed> &armed,
         EditorCommands &commands);
@@ -121,7 +121,7 @@ private:
         const std::optional<AnimatorData> &playerAnimations,
         const Observed &playerObserved,
         const glm::vec2 &playerFeet,
-        const ActorState &playerState,
+        const Appearance &playerAppearance,
         const std::map<std::string, NpcData> &npcData,
         std::optional<Armed> &armed,
         EditorCommands &commands);

@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 #include "events/event.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/abilities/abilities.hpp"
@@ -39,7 +39,7 @@ public:
     void beginFrame();
     void fixedUpdate(float deltaTime, const Level &level, const Perceived &perceived = {});
     virtual void postFixedUpdate();
-    const ActorState &state() const;
+    const Appearance &appearance() const;
     const AbilityStates &abilityStates() const;
     const Observed &observed() const;
     const PhysicsBody &body() const;
@@ -91,7 +91,7 @@ private:
     Observed observations;
     PhysicsBody physicsBody;
     std::optional<Animator> animator;
-    ActorState actorState;
+    Appearance shown;
     SheetData sheet;
     NavigationProfile navigationProfile;
     Health hp;

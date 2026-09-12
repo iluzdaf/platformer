@@ -134,7 +134,7 @@ void EditorUi::draw(
                 subject.gameData.playerData.actorData.animationData,
                 subject.playerObserved,
                 subject.playerFeet,
-                subject.playerState,
+                subject.playerAppearance,
                 subject.gameData.npcData,
                 armed,
                 commands);

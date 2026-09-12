@@ -9,7 +9,7 @@
 
 struct AnimatorData;
 struct Observed;
-struct ActorState;
+struct Appearance;
 struct NpcData;
 class Level;
 class Npc;
@@ -44,7 +44,7 @@ ActorAsked drawActorsInLevel(
     const std::optional<AnimatorData> &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
-    const ActorState &playerState,
+    const Appearance &playerAppearance,
     const std::map<std::string, NpcData> &npcTypes,
     ActorShown showing,
     std::optional<Armed> &armed);

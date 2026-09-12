@@ -8,10 +8,10 @@
 Health::Health(const HealthData &data) : data(data), left(data.maximum)
 {
     if (data.maximum < 1)
-        throw std::runtime_error("A health of less than one point is nobody alive");
+        throw std::runtime_error("Health needs a maximum above 0");
 
     if (data.invulnerableFor < 0.0f)
-        throw std::runtime_error("An invulnerable window cannot be negative");
+        throw std::runtime_error("Health needs an invulnerable window of 0 or longer");
 }
 
 bool Health::takeHit(const Hit &hit)

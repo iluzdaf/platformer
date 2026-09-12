@@ -141,6 +141,8 @@ TEST_CASE("Painting sets the tile under the mouse while the button is down", "[L
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -162,6 +164,8 @@ TEST_CASE("Painting waits for the button", "[LevelUi]")
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -180,7 +184,15 @@ TEST_CASE("A click that belongs to the panel does not reach the map", "[LevelUi]
     MouseOnTheMap mouse = holding(editing.level, target);
     mouse.overTheUi = true;
     levelUi.update(
-        mouse, editing.level, editing.levelData, LevelPath, AABB{}, armed, editing.commands);
+        mouse,
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
+        armed,
+        editing.commands);
 
     editing.commands.drain();
     REQUIRE_FALSE(editing.edited);
@@ -197,7 +209,15 @@ TEST_CASE("A click outside the map changes nothing", "[LevelUi]")
     mouse.worldPosition = glm::vec2(-40.0f, -40.0f);
     mouse.heldDown = true;
     levelUi.update(
-        mouse, editing.level, editing.levelData, LevelPath, AABB{}, armed, editing.commands);
+        mouse,
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
+        armed,
+        editing.commands);
 
     editing.commands.drain();
     REQUIRE_FALSE(editing.edited);
@@ -217,6 +237,8 @@ TEST_CASE("Nothing happens when nothing is armed", "[LevelUi]")
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -238,6 +260,8 @@ TEST_CASE("Picking the player start moves it and puts the pick down", "[LevelUi]
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -258,6 +282,8 @@ TEST_CASE("A pick waits for the click rather than the hold", "[LevelUi]")
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -280,6 +306,8 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
     REQUIRE(editing.asked().npcs.front().feet == feetOf(target));
@@ -326,6 +354,8 @@ TEST_CASE("Picking a pickup's spawn moves it and says the level changed", "[Leve
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -346,6 +376,8 @@ TEST_CASE("A pick naming a pickup the level lost is put down, not acted on", "[L
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
     editing.commands.drain();
@@ -371,6 +403,8 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -395,6 +429,8 @@ TEST_CASE("The first end picked of an absent beat becomes both of them", "[Level
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -414,10 +450,107 @@ TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[Lev
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands));
 
     editing.commands.drain();
+    REQUIRE_FALSE(editing.edited);
+    REQUIRE_FALSE(armed);
+}
+
+TEST_CASE("A click places what is armed where it lands", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing;
+    std::optional<Armed> armed = PlaceOne{PlaceOne::What::Pickup, "coin"};
+    glm::ivec2 target(5, Standing);
+
+    levelUi.update(
+        clicking(editing.level, target),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
+        armed,
+        editing.commands);
+
+    const LevelData &asked = editing.asked();
+    REQUIRE(asked.pickups.size() == 1);
+    REQUIRE(asked.pickups.front().type == "coin");
+    REQUIRE(asked.pickups.front().feet == feetOf(target));
+    REQUIRE(levelUi.shown() == ActorShown{ActorShown::What::Pickup, 0});
+}
+
+TEST_CASE("What is placed stays armed, so another can be placed", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing;
+    std::optional<Armed> armed = PlaceOne{PlaceOne::What::Pickup, "coin"};
+
+    levelUi.update(
+        clicking(editing.level, glm::ivec2(5, Standing)),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
+        armed,
+        editing.commands);
+
+    REQUIRE(armed == std::optional<Armed>(PlaceOne{PlaceOne::What::Pickup, "coin"}));
+}
+
+TEST_CASE("A creature placed is given the run it stands on", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing;
+    const std::string &kind = shippedNpcData().begin()->first;
+    std::optional<Armed> armed = PlaceOne{PlaceOne::What::Npc, kind};
+
+    levelUi.update(
+        clicking(editing.level, glm::ivec2(5, Standing)),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
+        armed,
+        editing.commands);
+
+    const LevelData &asked = editing.asked();
+    REQUIRE(asked.npcs.size() == 1);
+    REQUIRE(asked.npcs.front().type == kind);
+    REQUIRE(asked.npcs.front().patrol);
+}
+
+TEST_CASE("A type the cast no longer has puts the arm down", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing;
+    std::optional<Armed> armed = PlaceOne{PlaceOne::What::Npc, "nobody"};
+
+    levelUi.update(
+        clicking(editing.level, glm::ivec2(5, Standing)),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
+        armed,
+        editing.commands);
+    editing.commands.drain();
+
     REQUIRE_FALSE(editing.edited);
     REQUIRE_FALSE(armed);
 }
@@ -435,6 +568,8 @@ TEST_CASE("A click with nothing armed shows what is under it", "[LevelUi]")
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -455,6 +590,8 @@ TEST_CASE("A click where nothing stands shows nobody", "[LevelUi]")
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
     REQUIRE(levelUi.shown() == ActorShown{ActorShown::What::Npc, 0});
@@ -465,6 +602,8 @@ TEST_CASE("A click where nothing stands shows nobody", "[LevelUi]")
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -484,6 +623,8 @@ TEST_CASE("A click while something is armed places it rather than showing", "[Le
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 
@@ -508,6 +649,8 @@ TEST_CASE("Delete takes away what is shown", "[LevelUi]")
         editing.levelData,
         LevelPath,
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
     REQUIRE(levelUi.shown() == ActorShown{ActorShown::What::Npc, 0});
@@ -624,7 +767,15 @@ namespace
         std::optional<Armed> &armed)
     {
         levelUi.update(
-            mouse, editing.level, editing.levelData, LevelPath, AABB{}, armed, editing.commands);
+            mouse,
+            editing.level,
+            editing.levelData,
+            LevelPath,
+            AABB{},
+            shippedNpcData(),
+            shippedPickupData(),
+            armed,
+            editing.commands);
     }
 
     MouseOnTheMap lettingGo()
@@ -729,6 +880,8 @@ TEST_CASE("Moving to another level forgets what the last one was", "[LevelUi]")
         editing.levelData,
         "levels/somewhere_else.json",
         AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
         armed,
         editing.commands);
 

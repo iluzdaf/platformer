@@ -1,184 +1,240 @@
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include "actor/abilities/wall_jump_ability.hpp"
 #include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
-#include "actor/abilities/wall_jump_ability.hpp"
+#include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
 
 using Catch::Approx;
 
-TEST_CASE("WallJumpAbility basic movement behaviour", "[WallJumpAbility]")
+namespace
 {
+    WallJumpAbilityData timedAs(float duration, float buffer, float coyote)
+    {
+        WallJumpAbilityData data;
+        data.wallJumpDuration = duration;
+        data.wallJumpBufferDuration = buffer;
+        data.wallJumpCoyoteDuration = coyote;
+        return data;
+    }
+
+    bool ended(const Decided &decided)
+    {
+        return !decided.wallJump.active;
+    }
+}
+
+TEST_CASE(
+    "A wall jump pushes up and away from a wall it grips, when jump is held pressing away",
+    "[WallJumpAbility]")
+{
+    WallJumpAbilityData data;
+
+    WallJumpAbility offTheLeft(data);
+    Decided fromTheLeft;
+    tick(offTheLeft, holdingJump(1.0f), onAWall(WallSide::Left), fromTheLeft);
+    REQUIRE(fromTheLeft.wallJump.active);
+    REQUIRE(fromTheLeft.wallJump.velocity.x == Approx(data.wallJumpHorizontalSpeed));
+    REQUIRE(fromTheLeft.wallJump.velocity.y == Approx(data.wallJumpSpeed));
+
+    WallJumpAbility offTheRight(data);
+    Decided fromTheRight;
+    tick(offTheRight, holdingJump(-1.0f), onAWall(WallSide::Right), fromTheRight);
+    REQUIRE(fromTheRight.wallJump.active);
+    REQUIRE(fromTheRight.wallJump.velocity.x == Approx(-data.wallJumpHorizontalSpeed));
+    REQUIRE(fromTheRight.wallJump.velocity.y == Approx(data.wallJumpSpeed));
+}
+
+TEST_CASE("A wall jump says so once", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(WallJumpAbilityData{});
     Decided decided;
-    Observed observed;
-    InputIntentions inputIntentions;
-    WallJumpAbilityData wallJumpAbilityData;
-    WallJumpAbility wallJumpAbility(wallJumpAbilityData);
 
-    SECTION("Can wall jump")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = true;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.wallJump.velocity.y == Approx(wallJumpAbilityData.wallJumpSpeed));
-        REQUIRE(decided.wallJump.velocity.x == Approx(wallJumpAbilityData.wallJumpHorizontalSpeed));
-        REQUIRE(decided.wallJump.active);
-        REQUIRE(decided.wallJump.direction == 1);
-    }
+    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), decided);
+    REQUIRE(decided.wallJump.emit);
 
-    SECTION("Cannot wall jump if correct direction not pressed")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = true;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 0.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE_FALSE(decided.wallJump.active);
-        REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
-        REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
-    }
+    tick(wallJump, holdingJump(1.0f), inTheAir(), decided);
+    REQUIRE(decided.wallJump.active);
+    REQUIRE_FALSE(decided.wallJump.emit);
+}
 
-    SECTION("Can wall jump if jump request is buffered")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = false;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE_FALSE(decided.wallJump.active);
-        REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
-        REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = true;
-        inputIntentions = InputIntentions();
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.wallJump.active);
-        REQUIRE(decided.wallJump.velocity.y == Approx(wallJumpAbilityData.wallJumpSpeed));
-        REQUIRE(decided.wallJump.velocity.x == Approx(wallJumpAbilityData.wallJumpHorizontalSpeed));
-    }
+TEST_CASE("Pressing toward the wall, or nowhere, is not a wall jump", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(WallJumpAbilityData{});
+    Decided decided;
 
-    SECTION("Can wall jump during coyote time")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = true;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        observed.contacts.touchingLeftWall = false;
-        observed.contacts.grippableLeftWall = false;
-        observed.contacts.wasLastWallLeft = true;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE(decided.wallJump.active);
-        REQUIRE(decided.wallJump.velocity.y == Approx(wallJumpAbilityData.wallJumpSpeed));
-        REQUIRE(decided.wallJump.velocity.x == Approx(wallJumpAbilityData.wallJumpHorizontalSpeed));
-    }
+    tick(wallJump, holdingJump(0.0f), onAWall(WallSide::Left), decided);
+    REQUIRE_FALSE(decided.wallJump.active);
 
-    SECTION("Wall jump ends after duration")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = true;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(
-            wallJumpAbilityData.wallJumpDuration + 0.01f, inputIntentions, observed, decided);
-        REQUIRE_FALSE(decided.wallJump.active);
-        REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
-        REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
-    }
+    tick(wallJump, holdingJump(-1.0f), onAWall(WallSide::Left), decided);
+    REQUIRE_FALSE(decided.wallJump.active);
+    REQUIRE(decided.wallJump.velocity == glm::vec2(0.0f));
+}
 
-    SECTION("Wall jump ends when switching sides")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = true;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        observed.contacts.touchingLeftWall = false;
-        observed.contacts.grippableLeftWall = false;
-        observed.contacts.touchingRightWall = true;
-        inputIntentions = InputIntentions();
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = -1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE_FALSE(decided.wallJump.active);
-        REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
-        REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
-    }
+TEST_CASE("A wall it cannot grip is not jumped from, whichever way it presses", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(WallJumpAbilityData{});
+    Decided decided;
+    Observed rememberingThatWall = onASlipperyWall(WallSide::Left);
+    rememberingThatWall.contacts.wasLastWallLeft = true;
 
-    SECTION("Cannot wall jump from a wall it cannot grip")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = false;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE_FALSE(decided.wallJump.active);
-        REQUIRE(decided.wallJump.velocity.y == Approx(0.0f));
-        REQUIRE(decided.wallJump.velocity.x == Approx(0.0f));
-    }
+    tick(wallJump, holdingJump(1.0f), onASlipperyWall(WallSide::Left), decided);
+    REQUIRE_FALSE(decided.wallJump.active);
 
-    SECTION("Coyote time does not arm on a wall it cannot grip")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = false;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        observed.contacts.touchingLeftWall = false;
-        observed.contacts.wasLastWallLeft = true;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE_FALSE(decided.wallJump.active);
-    }
+    tick(wallJump, holdingJump(1.0f), rememberingThatWall, decided);
+    REQUIRE_FALSE(decided.wallJump.active);
+}
 
-    SECTION("Cannot wall jump from a wall it cannot grip even facing away from it")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = false;
-        observed.contacts.wasLastWallLeft = true;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
-        REQUIRE_FALSE(decided.wallJump.active);
-    }
+TEST_CASE("A wall jump is not made from the ground", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(WallJumpAbilityData{});
+    Decided decided;
+    Observed standingAgainstIt = onAWall(WallSide::Left);
+    standingAgainstIt.contacts.onGround = true;
 
-    SECTION("A coyote jump pushes away from the wall it remembers, not one it cannot grip")
-    {
-        observed.contacts.onGround = false;
-        observed.contacts.touchingLeftWall = true;
-        observed.contacts.grippableLeftWall = true;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
+    tick(wallJump, holdingJump(1.0f), standingAgainstIt, decided);
 
-        observed.contacts.touchingLeftWall = false;
-        observed.contacts.grippableLeftWall = false;
-        observed.contacts.touchingRightWall = true;
-        observed.contacts.wasLastWallLeft = true;
-        inputIntentions.jumpHeld = true;
-        inputIntentions.direction.x = 1.0f;
-        wallJumpAbility.decide(0.01f, inputIntentions, observed, decided);
+    REQUIRE_FALSE(decided.wallJump.active);
+}
 
-        REQUIRE(decided.wallJump.emit);
-        REQUIRE(decided.wallJump.direction == 1);
-    }
+TEST_CASE("A wall jump held just before reaching a wall goes on reaching it", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(timedAs(0.2f, 0.045f, 0.045f));
+    Decided decided;
+    tick(wallJump, holdingJump(1.0f), inTheAir(), decided);
+    tick(wallJump, InputIntentions{}, inTheAir(), decided, 3);
+
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
+
+    REQUIRE(decided.wallJump.active);
+    REQUIRE(decided.wallJump.direction == 1.0f);
+}
+
+TEST_CASE("A wall jump held too long before reaching a wall is forgotten", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(timedAs(0.2f, 0.045f, 0.045f));
+    Decided decided;
+    tick(wallJump, holdingJump(1.0f), inTheAir(), decided);
+    tick(wallJump, InputIntentions{}, inTheAir(), decided, 4);
+
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
+
+    REQUIRE_FALSE(decided.wallJump.active);
+}
+
+TEST_CASE("A wall jump can still be made just after leaving a wall", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(timedAs(0.2f, 0.045f, 0.045f));
+    Decided decided;
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
+    tick(wallJump, InputIntentions{}, justOffAWall(WallSide::Left), decided, 3);
+
+    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided);
+
+    REQUIRE(decided.wallJump.active);
+    REQUIRE(decided.wallJump.direction == 1.0f);
+}
+
+TEST_CASE("Too long after leaving a wall, a wall jump is not made", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(timedAs(0.2f, 0.045f, 0.045f));
+    Decided decided;
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
+    tick(wallJump, InputIntentions{}, justOffAWall(WallSide::Left), decided, 4);
+
+    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided);
+
+    REQUIRE_FALSE(decided.wallJump.active);
+}
+
+TEST_CASE("Leaving a wall it cannot grip gives no time to jump from it", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(WallJumpAbilityData{});
+    Decided decided;
+    tick(wallJump, InputIntentions{}, onASlipperyWall(WallSide::Left), decided);
+
+    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided);
+
+    REQUIRE_FALSE(decided.wallJump.active);
+}
+
+TEST_CASE(
+    "A wall jump just after leaving a wall pushes away from it, not from one it cannot grip",
+    "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(WallJumpAbilityData{});
+    Decided decided;
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
+    Observed nowAgainstASlipperyOne = justOffAWall(WallSide::Left);
+    nowAgainstASlipperyOne.contacts.touchingRightWall = true;
+
+    tick(wallJump, holdingJump(1.0f), nowAgainstASlipperyOne, decided);
+
+    REQUIRE(decided.wallJump.emit);
+    REQUIRE(decided.wallJump.direction == 1.0f);
+}
+
+TEST_CASE("A wall jump uses up the leeway for leaving the wall", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(timedAs(0.045f, 0.1f, 0.1f));
+    Decided decided;
+    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), decided);
+    ticksUntil(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided, ended);
+
+    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided);
+
+    REQUIRE_FALSE(decided.wallJump.active);
+}
+
+TEST_CASE("A wall jump lasts as long as it says, and then ends", "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(timedAs(0.045f, 0.1f, 0.1f));
+    Decided decided;
+    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), decided);
+
+    int ticksUntilItEnds = ticksUntil(wallJump, holdingJump(1.0f), inTheAir(), decided, ended);
+
+    REQUIRE(ticksUntilItEnds == 4);
+    REQUIRE(decided.wallJump.velocity == glm::vec2(0.0f));
+}
+
+TEST_CASE(
+    "A wall jump ends when it meets a wall on the side it is heading for",
+    "[WallJumpAbility]")
+{
+    WallJumpAbility wallJump(WallJumpAbilityData{});
+    Decided decided;
+    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), decided);
+
+    tick(wallJump, holdingJump(-1.0f), onASlipperyWall(WallSide::Right), decided);
+
+    REQUIRE_FALSE(decided.wallJump.active);
+    REQUIRE(decided.wallJump.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE("A wall jump that does not go up and away is refused", "[WallJumpAbility]")
 {
     WallJumpAbilityData downwards;
     downwards.wallJumpSpeed = 0.0f;
-    REQUIRE_THROWS(WallJumpAbility(downwards));
+    REQUIRE_THROWS_WITH(
+        WallJumpAbility(downwards), Catch::Matchers::ContainsSubstring("wallJumpSpeed"));
 
     WallJumpAbilityData intoTheWall;
     intoTheWall.wallJumpHorizontalSpeed = 0.0f;
-    REQUIRE_THROWS(WallJumpAbility(intoTheWall));
+    REQUIRE_THROWS_WITH(
+        WallJumpAbility(intoTheWall),
+        Catch::Matchers::ContainsSubstring("wallJumpHorizontalSpeed"));
+}
+
+TEST_CASE("A wall jump whose press or wall is forgiven for no time is refused", "[WallJumpAbility]")
+{
+    REQUIRE_THROWS_WITH(
+        WallJumpAbility(timedAs(0.2f, 0.0f, 0.1f)),
+        Catch::Matchers::ContainsSubstring("grace period"));
+    REQUIRE_THROWS_WITH(
+        WallJumpAbility(timedAs(0.2f, 0.1f, 0.0f)),
+        Catch::Matchers::ContainsSubstring("grace period"));
 }

@@ -98,7 +98,6 @@ namespace
                         level.getTileMap().tileUnderFeet(level.getPlayerStart())),
                     playerState,
                     shippedNpcData(),
-                    shippedPickupData(),
                     showing,
                     armed);
             });

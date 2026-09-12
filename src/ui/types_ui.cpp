@@ -6,6 +6,8 @@
 #include <vector>
 #include <glaze/glaze.hpp>
 #include <imgui.h>
+#include <tuple>
+#include "ui/armed.hpp"
 #include "ui/types_ui.hpp"
 #include "ui/saved_in_scope.hpp"
 #include "ui/type_shown.hpp"
@@ -90,7 +92,42 @@ TypesUi::TypesUi(
 {
 }
 
-void TypesUi::drawChooser(GameData &gameData)
+namespace
+{
+    void drawPlaceArm(const TypeShown &showing, std::optional<Armed> &armed)
+    {
+        if (showing.what == TypeShown::What::Player || showing.name.empty())
+        {
+            ImGui::BeginDisabled();
+            std::ignore = ImGui::Button("place");
+            ImGui::EndDisabled();
+
+            return;
+        }
+
+        PlaceOne placing{
+            showing.what == TypeShown::What::Npc ? PlaceOne::What::Npc : PlaceOne::What::Pickup,
+            showing.name};
+        bool isArmed = armed && *armed == Armed{placing};
+
+        if (isArmed)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ArmedColour);
+        }
+
+        bool clicked = ImGui::Button("place");
+
+        if (isArmed)
+            ImGui::PopStyleColor(3);
+
+        if (clicked)
+            armed = isArmed ? std::nullopt : std::optional<Armed>(placing);
+    }
+}
+
+void TypesUi::drawChooser(GameData &gameData, std::optional<Armed> &armed)
 {
     ImGui::SetNextItemWidth(-ButtonsWidth);
     if (ImGui::BeginCombo("##type", labelOf(showing).c_str()))
@@ -99,6 +136,9 @@ void TypesUi::drawChooser(GameData &gameData)
             offer(gameData, listed, showing);
         ImGui::EndCombo();
     }
+
+    ImGui::SameLine();
+    drawPlaceArm(showing, armed);
 
     ImGui::SameLine();
     if (ImGui::Button("add"))
@@ -251,10 +291,11 @@ void TypesUi::draw(
     GameData &gameData,
     const TextureCache &textures,
     EditorCommands &commands,
+    std::optional<Armed> &armed,
     const Level *live)
 {
     TypeShown wasShowing = showing;
-    drawChooser(gameData);
+    drawChooser(gameData, armed);
     if (showing != wasShowing)
         machineShown = MachineShown{};
 

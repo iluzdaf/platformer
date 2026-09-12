@@ -6,8 +6,6 @@
 #include <string_view>
 #include "actor/actor.hpp"
 #include "actor/fading_facts.hpp"
-#include "animations/animator_data.hpp"
-#include "animations/animator_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/hit.hpp"
 #include "actor/hurting.hpp"

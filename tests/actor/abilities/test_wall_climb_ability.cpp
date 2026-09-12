@@ -61,5 +61,6 @@ TEST_CASE("A climb that goes nowhere is refused", "[WallClimbAbility]")
     noSpeed.climbSpeed = 0.0f;
 
     REQUIRE_THROWS_WITH(
-        WallClimbAbility(noSpeed), Catch::Matchers::ContainsSubstring("climbSpeed"));
+        WallClimbAbility(noSpeed),
+        Catch::Matchers::ContainsSubstring("A climb needs a speed above 0"));
 }

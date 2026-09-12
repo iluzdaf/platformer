@@ -1,11 +1,13 @@
 #include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include "actor/abilities/grace_period.hpp"
 
-GracePeriod::GracePeriod(float length) : length(length)
+GracePeriod::GracePeriod(float length, std::string_view whose) : length(length)
 {
     if (length <= 0.0f)
-        throw std::runtime_error("A grace period needs a length above 0");
+        throw std::runtime_error(std::string(whose) + " needs a length above 0");
 }
 
 void GracePeriod::start(float direction)

@@ -104,5 +104,6 @@ TEST_CASE("A slide that does not slide is refused", "[WallSlideAbility]")
     noSpeed.slideSpeed = 0.0f;
 
     REQUIRE_THROWS_WITH(
-        WallSlideAbility(noSpeed), Catch::Matchers::ContainsSubstring("slideSpeed"));
+        WallSlideAbility(noSpeed),
+        Catch::Matchers::ContainsSubstring("A slide needs a speed above 0"));
 }

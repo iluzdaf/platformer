@@ -94,8 +94,12 @@ TEST_CASE("A grace period started with no direction has none", "[GracePeriod]")
     REQUIRE(grace.direction() == 0.0f);
 }
 
-TEST_CASE("A grace period with no length is refused", "[GracePeriod]")
+TEST_CASE("A grace period with no length is refused, saying whose it is", "[GracePeriod]")
 {
-    REQUIRE_THROWS_WITH(GracePeriod(0.0f), Catch::Matchers::ContainsSubstring("above 0"));
-    REQUIRE_THROWS_WITH(GracePeriod(-0.1f), Catch::Matchers::ContainsSubstring("above 0"));
+    REQUIRE_THROWS_WITH(
+        GracePeriod(0.0f),
+        Catch::Matchers::ContainsSubstring("A grace period needs a length above 0"));
+    REQUIRE_THROWS_WITH(
+        GracePeriod(-0.1f, "A roll's buffer"),
+        Catch::Matchers::ContainsSubstring("A roll's buffer needs a length above 0"));
 }

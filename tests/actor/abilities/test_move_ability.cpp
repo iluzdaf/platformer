@@ -51,5 +51,6 @@ TEST_CASE("A move that goes nowhere is refused", "[MoveAbility]")
     MoveAbilityData noSpeed;
     noSpeed.moveSpeed = 0.0f;
 
-    REQUIRE_THROWS_WITH(MoveAbility(noSpeed), Catch::Matchers::ContainsSubstring("moveSpeed"));
+    REQUIRE_THROWS_WITH(
+        MoveAbility(noSpeed), Catch::Matchers::ContainsSubstring("A move needs a speed above 0"));
 }

@@ -191,13 +191,16 @@ TEST_CASE("A jump that does not go up is refused", "[JumpAbility]")
     JumpAbilityData downwards;
     downwards.jumpSpeed = 0.0f;
 
-    REQUIRE_THROWS_WITH(JumpAbility(downwards), Catch::Matchers::ContainsSubstring("jumpSpeed"));
+    REQUIRE_THROWS_WITH(
+        JumpAbility(downwards), Catch::Matchers::ContainsSubstring("A jump needs a speed upward"));
 }
 
 TEST_CASE("A jump whose press or ledge is forgiven for no time is refused", "[JumpAbility]")
 {
     REQUIRE_THROWS_WITH(
-        JumpAbility(timedAs(0.2f, 0.0f, 0.1f)), Catch::Matchers::ContainsSubstring("grace period"));
+        JumpAbility(timedAs(0.2f, 0.0f, 0.1f)),
+        Catch::Matchers::ContainsSubstring("A jump's buffer needs a length above 0"));
     REQUIRE_THROWS_WITH(
-        JumpAbility(timedAs(0.2f, 0.1f, 0.0f)), Catch::Matchers::ContainsSubstring("grace period"));
+        JumpAbility(timedAs(0.2f, 0.1f, 0.0f)),
+        Catch::Matchers::ContainsSubstring("A jump's leeway off a ledge needs a length above 0"));
 }

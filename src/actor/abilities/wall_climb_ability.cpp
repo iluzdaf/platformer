@@ -8,7 +8,7 @@
 WallClimbAbility::WallClimbAbility(const WallClimbAbilityData &data) : data(data)
 {
     if (data.climbSpeed <= 0)
-        throw std::runtime_error("climbSpeed must be greater than 0");
+        throw std::runtime_error("A climb needs a speed above 0");
 }
 
 void WallClimbAbility::decide(

@@ -220,21 +220,23 @@ TEST_CASE("A wall jump that does not go up and away is refused", "[WallJumpAbili
     WallJumpAbilityData downwards;
     downwards.wallJumpSpeed = 0.0f;
     REQUIRE_THROWS_WITH(
-        WallJumpAbility(downwards), Catch::Matchers::ContainsSubstring("wallJumpSpeed"));
+        WallJumpAbility(downwards),
+        Catch::Matchers::ContainsSubstring("A wall jump needs a speed upward"));
 
     WallJumpAbilityData intoTheWall;
     intoTheWall.wallJumpHorizontalSpeed = 0.0f;
     REQUIRE_THROWS_WITH(
         WallJumpAbility(intoTheWall),
-        Catch::Matchers::ContainsSubstring("wallJumpHorizontalSpeed"));
+        Catch::Matchers::ContainsSubstring("A wall jump needs a speed away from the wall"));
 }
 
 TEST_CASE("A wall jump whose press or wall is forgiven for no time is refused", "[WallJumpAbility]")
 {
     REQUIRE_THROWS_WITH(
         WallJumpAbility(timedAs(0.2f, 0.0f, 0.1f)),
-        Catch::Matchers::ContainsSubstring("grace period"));
+        Catch::Matchers::ContainsSubstring("A wall jump's buffer needs a length above 0"));
     REQUIRE_THROWS_WITH(
         WallJumpAbility(timedAs(0.2f, 0.1f, 0.0f)),
-        Catch::Matchers::ContainsSubstring("grace period"));
+        Catch::Matchers::ContainsSubstring(
+            "A wall jump's leeway off a wall needs a length above 0"));
 }

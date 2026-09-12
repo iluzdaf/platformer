@@ -8,7 +8,7 @@
 MoveAbility::MoveAbility(const MoveAbilityData &data) : data(data)
 {
     if (data.moveSpeed <= 0)
-        throw std::runtime_error("moveSpeed must be greater than 0");
+        throw std::runtime_error("A move needs a speed above 0");
 }
 
 void MoveAbility::decide(

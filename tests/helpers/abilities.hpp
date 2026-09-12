@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/gtc/matrix_transform.hpp>
+#include "actor/abilities/abilities.hpp"
 #include "actor/abilities/ability.hpp"
 #include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
@@ -115,6 +117,19 @@ inline void tick(
 {
     for (int time = 0; time < times; ++time)
         ability.decide(Step, asked, observed, states);
+}
+
+inline glm::vec2 settle(
+    Abilities &abilities,
+    const InputIntentions &asked,
+    Observed &observed,
+    AbilityStates &states,
+    int times = 1)
+{
+    for (int time = 0; time < times; ++time)
+        observed.velocity = abilities.decide(Step, asked, observed, states);
+
+    return observed.velocity;
 }
 
 template <class Until>

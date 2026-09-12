@@ -66,6 +66,14 @@ inline InputIntentions holdingJump(float x = 0.0f)
     return intentions;
 }
 
+inline InputIntentions pressingDash(float x)
+{
+    InputIntentions intentions;
+    intentions.dashRequested = true;
+    intentions.direction.x = x;
+    return intentions;
+}
+
 inline void tick(
     Ability &ability,
     const InputIntentions &asked,

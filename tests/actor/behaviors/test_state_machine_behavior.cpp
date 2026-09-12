@@ -13,6 +13,8 @@
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/senses_data.hpp"
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "conditions/asked.hpp"
 #include "conditions/facts.hpp"
 #include "input/input_intentions.hpp"
@@ -500,4 +502,41 @@ TEST_CASE("A machine told nothing of its abilities is not charging", "[StateMach
     behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 192.0f}));
 
     REQUIRE(behavior.getStateName() == "stunned");
+}
+
+TEST_CASE(
+    "A transition asking how close the threat is needs a sense of it",
+    "[StateMachineBehavior]")
+{
+    StateMachineBehaviorData data = setupData();
+    data.transitions.front().when["threatClose"] = true;
+    data.transitions.front().when["threatInReach"] = true;
+
+    REQUIRE_THROWS_WITH(
+        StateMachineBehavior(data, std::nullopt, knowingNear()),
+        Catch::Matchers::ContainsSubstring("its senses say nothing of close"));
+    REQUIRE_THROWS_WITH(
+        StateMachineBehavior(data, std::nullopt, knowingNear(), SensesData{40.0f, std::nullopt}),
+        Catch::Matchers::ContainsSubstring("its senses say nothing of reach"));
+    REQUIRE_NOTHROW(
+        StateMachineBehavior(data, std::nullopt, knowingNear(), SensesData{40.0f, 24.0f}));
+}
+
+TEST_CASE("How close is close is the machine's own sense of it", "[StateMachineBehavior]")
+{
+    StateMachineBehaviorData data = setupData();
+    data.transitions.front().when.clear();
+    data.transitions.front().when["threatClose"] = true;
+    NavigationGraph navigationGraph = aWalkRun();
+    FactsData calm = knowingNear();
+    ActorBehaviorContext thirtyAway =
+        told(calm, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(222.0f, 192.0f)));
+
+    StateMachineBehavior keen(data, std::nullopt, knowingNear(), SensesData{40.0f, std::nullopt});
+    keen.decide(0.01f, thirtyAway);
+    REQUIRE(keen.getStateName() == "flee");
+
+    StateMachineBehavior dull(data, std::nullopt, knowingNear(), SensesData{20.0f, std::nullopt});
+    dull.decide(0.01f, thirtyAway);
+    REQUIRE(dull.getStateName() == "patrol");
 }

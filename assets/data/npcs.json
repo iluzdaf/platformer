@@ -79,13 +79,7 @@
                 {"from":"pounce","to":"flee","when":{"onGround":true},"after":0.1}
             ]
         },
-        "facts":{
-            "cornered":false,
-            "threatClose":false,
-            "threatInReach":false,
-            "threatOnMySurface":false
-        },
-        "tuning":{"close":40,"reach":24},
+        "senses":{"close":40,"reach":24},
         "script":"scripts/npcs/rat.lua"
     },
     "spider":{
@@ -143,8 +137,7 @@
                 {"from":"pounce","to":"chase","when":{"onGround":true},"after":0.1}
             ]
         },
-        "facts":{"threatClose":false,"threatInReach":false,"threatOnMySurface":false},
-        "tuning":{"close":64,"reach":40},
+        "senses":{"close":64,"reach":40},
         "script":"scripts/npcs/spider.lua"
     }
 }

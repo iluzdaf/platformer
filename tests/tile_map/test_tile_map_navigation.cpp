@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "actor/behaviors/senses_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/abilities/abilities_data.hpp"
 #include "combat/health_data.hpp"
@@ -88,6 +89,7 @@ namespace
                  std::nullopt,
                  FactsData{},
                  std::map<std::string, float>{},
+                 SensesData{},
                  ScriptPathData{}}}};
         std::map<std::string, PickupData> pickups = {{"coin", PickupData{}}};
 

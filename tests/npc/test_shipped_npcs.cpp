@@ -662,7 +662,7 @@ TEST_CASE("The shipped spider pounces only once you are within its reach", "[Npc
 
     INFO("pounced from " << reachAtThePounce);
     REQUIRE(reachAtThePounce >= 0.0f);
-    REQUIRE(reachAtThePounce <= shippedNpcData().at("spider").tuning.at("reach") + 2.0f);
+    REQUIRE(reachAtThePounce <= shippedNpcData().at("spider").senses.reach.value() + 2.0f);
 }
 
 TEST_CASE(

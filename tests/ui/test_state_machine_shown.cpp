@@ -61,12 +61,12 @@ TEST_CASE("A transition says when it fires, every condition in one line", "[Stat
     transition.when["threatInReach"] = true;
     transition.when["threatOnMySurface"] = true;
     transition.when["cornered"] = true;
-    REQUIRE(whenOf(transition) == "cornered, threatInReach, threatOnMySurface");
+    REQUIRE(whenOf(transition) == "cornered, threat in reach, threat on my surface");
 
     BehaviorTransitionData back = aTransition("flee", "patrol");
     back.when["threatOnMySurface"] = false;
     back.after = 1.5f;
-    REQUIRE(whenOf(back) == "not threatOnMySurface, after 1.5 s");
+    REQUIRE(whenOf(back) == "threat not on my surface, after 1.5 s");
 
     BehaviorTransitionData landed = aTransition("pounce", "chase");
     landed.when["onGround"] = true;

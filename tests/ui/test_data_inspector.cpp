@@ -288,10 +288,10 @@ TEST_CASE(
     transition.from = "chase";
     transition.to = "pounce";
     transition.when["hits"] = 3.0f;
-    transition.when["threatOnMySurface"] = true;
+    transition.when["heard"] = true;
     FactsData declared;
     declared["hits"] = 0.0f;
-    declared["threatOnMySurface"] = false;
+    declared["heard"] = false;
 
     REQUIRE_NOTHROW(gui.frame(
         [&]

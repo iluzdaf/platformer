@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <string_view>
 #include <cstddef>
+#include "actor/behaviors/senses_data.hpp"
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/actor_behavior_context.hpp"
@@ -20,7 +21,8 @@ public:
     explicit StateMachineBehavior(
         const StateMachineBehaviorData &data,
         std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween = std::nullopt,
-        const FactsData &declared = FactsData{});
+        const FactsData &declared = FactsData{},
+        const SensesData &senses = SensesData{});
     void reset() override;
     InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
     std::string_view getStateName() const override;
@@ -30,6 +32,7 @@ public:
 
 private:
     StateMachineBehaviorData data;
+    SensesData senses;
 
     std::vector<std::unique_ptr<ActorBehavior>> states;
     std::size_t activeState = 0;

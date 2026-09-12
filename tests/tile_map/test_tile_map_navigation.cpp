@@ -88,7 +88,6 @@ namespace
                  std::nullopt,
                  FactsData{},
                  std::map<std::string, float>{},
-                 0,
                  ScriptPathData{}}}};
         std::map<std::string, PickupData> pickups = {{"coin", PickupData{}}};
 

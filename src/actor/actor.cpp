@@ -10,8 +10,7 @@
 #include "combat/hit.hpp"
 #include "combat/hurting.hpp"
 #include "combat/strike.hpp"
-#include "actor/abilities/pounce_ability_state.hpp"
-#include "actor/abilities/charge_ability_state.hpp"
+#include "actor/hurting_from.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "physics/aabb.hpp"
 #include "actor/observing.hpp"
@@ -321,35 +320,12 @@ bool Actor::takeHit(const Hit &hit)
     return true;
 }
 
-std::optional<AABB> Actor::swingBox() const
-{
-    const SwingAbilityState &swing = states.swing;
-    if (!swing.striking())
-        return std::nullopt;
-
-    AABB collider = physicsBody.aabb();
-    float x = swing.direction < 0.0f ? collider.left() - swing.reach.x : collider.right();
-    return AABB{glm::vec2(x, collider.center().y - swing.reach.y * 0.5f), swing.reach};
-}
-
 std::optional<Hurting> Actor::hurting() const
 {
     if (!alive())
         return std::nullopt;
 
-    const SwingAbilityState &swing = states.swing;
-    if (std::optional<AABB> reach = swingBox())
-        return Hurting{*reach, swing.damage, swing.direction};
-
-    const PounceAbilityState &pounce = states.pounce;
-    if (pounce.active)
-        return Hurting{physicsBody.aabb(), pounce.damage, pounce.direction};
-
-    const ChargeAbilityState &charge = states.charge;
-    if (charge.active)
-        return Hurting{physicsBody.aabb(), charge.damage, charge.direction};
-
-    return std::nullopt;
+    return hurtingFrom(states, physicsBody.aabb());
 }
 
 bool Actor::strike(Actor &target)

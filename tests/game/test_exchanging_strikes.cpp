@@ -7,6 +7,7 @@
 #include <vector>
 #include "actor/abilities/charge_ability_data.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
+#include "actor/abilities/bite_ability_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
@@ -105,11 +106,30 @@ namespace
 
     constexpr glm::ivec2 Here{4, 5};
 
-    std::unique_ptr<Npc> anNpcThatBites(int damage, glm::ivec2 tile = Here)
+    NpcData aBiterOf(int damage)
     {
         NpcData biting = setupNpcData();
-        biting.contactDamage = damage;
-        return std::make_unique<Npc>(spawnAt("biter", tile), biting);
+        if (damage > 0)
+            biting.actorData.abilities.bite = BiteAbilityData{damage};
+        return biting;
+    }
+
+    const Level &aFloorTheBitersKnow()
+    {
+        static const Level level(
+            aFloorLevelPlacing({}),
+            theOnlyPalette(aPaletteWithASolidTile()),
+            PlayerData(),
+            {{"safe", aBiterOf(0)}, {"biter", aBiterOf(1)}, {"hard biter", aBiterOf(2)}},
+            {});
+        return level;
+    }
+
+    std::unique_ptr<Npc> anNpcThatBites(int damage, glm::ivec2 tile = Here)
+    {
+        auto npc = std::make_unique<Npc>(spawnAt("biter", tile), aBiterOf(damage));
+        stepNpc(*npc, aFloorTheBitersKnow(), 1);
+        return npc;
     }
 
     std::vector<std::unique_ptr<Npc>> oneNpcThatBites(int damage, glm::ivec2 tile = Here)

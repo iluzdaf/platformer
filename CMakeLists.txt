@@ -168,6 +168,7 @@ add_library(platformer_lib OBJECT
     src/actor/fading_facts.cpp
     src/combat/health.cpp
     src/combat/strike.cpp
+    src/actor/hurting_from.cpp
     src/ui/health_ui.cpp
 
     src/assets/asset_paths.cpp
@@ -234,6 +235,7 @@ add_library(platformer_lib OBJECT
     src/actor/abilities/swing_ability.cpp
     src/actor/abilities/pounce_ability.cpp
     src/actor/abilities/charge_ability.cpp
+    src/actor/abilities/bite_ability.cpp
 
     src/actor/abilities/move_ability.cpp
     src/actor/abilities/wall_slide_ability.cpp
@@ -450,12 +452,14 @@ add_executable(tests
     tests/actor/abilities/test_swing_ability.cpp
     tests/actor/abilities/test_pounce_ability.cpp
     tests/actor/abilities/test_charge_ability.cpp
+    tests/actor/abilities/test_bite_ability.cpp
 
     tests/actor/abilities/test_move_ability.cpp
     tests/actor/abilities/test_wall_slide_ability.cpp
     tests/actor/abilities/test_wall_jump_ability.cpp
     tests/actor/test_observing.cpp
     tests/actor/test_taking_hits.cpp
+    tests/actor/test_hurting_from.cpp
     tests/combat/test_health.cpp
     tests/combat/test_strike.cpp
     tests/actor/test_fading_facts.cpp

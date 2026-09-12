@@ -1,5 +1,6 @@
 #include <string>
 #include <catch2/catch_test_macros.hpp>
+#include "actor/abilities/bite_ability_data.hpp"
 #include "game/game_data.hpp"
 #include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
@@ -220,13 +221,15 @@ TEST_CASE("Game data changing only in the cast re-makes that kind and nobody els
     playing.world.getPlayer().standAt(you);
 
     GameData onDisk = playing.gameData;
-    onDisk.npcData.at("spider").contactDamage = 2;
+    onDisk.npcData.at("spider").actorData.abilities.bite = BiteAbilityData{2};
     reloads::gameDataChanged(playing.world, playing.editorUi, playing.gameData, onDisk);
 
     REQUIRE(playing.world.getLevel().getNpcs()[0]->feet() == ratWas);
     REQUIRE(
         playing.world.getLevel().getNpcs()[1]->feet() == feetOf(glm::ivec2(6, FloorLevelStanding)));
-    REQUIRE(playing.world.getLevel().getNpcs()[1]->builtFrom().contactDamage == 2);
+    REQUIRE(
+        playing.world.getLevel().getNpcs()[1]->builtFrom().actorData.abilities.bite ==
+        BiteAbilityData{2});
     REQUIRE(playing.world.getPlayer().feet() == you);
 }
 

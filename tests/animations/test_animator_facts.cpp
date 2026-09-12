@@ -138,7 +138,8 @@ TEST_CASE("Every ability that can be active is a fact, or says why it is not", "
     const std::map<std::string_view, std::string_view> notAFactBecause{
         {"jump", "rising already says it; a jump is not a picture of its own"},
         {"wallJump", "it is a jump"},
-        {"mantle", "there is no mantle picture yet; add a row when there is"}};
+        {"mantle", "there is no mantle picture yet; add a row when there is"},
+        {"bite", "a bite is always ready, so it could never choose a picture"}};
 
     std::vector<std::string_view> flagged =
         abilitiesThatCanBeActive(std::make_index_sequence<glz::reflect<AbilityStates>::size>{});

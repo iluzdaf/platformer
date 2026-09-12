@@ -14,6 +14,7 @@
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/abilities/charge_ability_data.hpp"
+#include "actor/abilities/bite_ability_data.hpp"
 
 struct AbilitiesData
 {
@@ -30,6 +31,7 @@ struct AbilitiesData
     std::optional<SwingAbilityData> swing;
     std::optional<PounceAbilityData> pounce;
     std::optional<ChargeAbilityData> charge;
+    std::optional<BiteAbilityData> bite;
 
     bool operator==(const AbilitiesData &) const = default;
 };

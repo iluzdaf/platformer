@@ -15,6 +15,5 @@ struct NpcData
     std::optional<StateMachineBehaviorData> stateMachineBehaviorData;
     FactsData facts;
     std::map<std::string, float> tuning;
-    int contactDamage = 0;
     ScriptPathData script;
 };

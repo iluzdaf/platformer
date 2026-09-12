@@ -13,6 +13,7 @@
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
+#include "actor/abilities/bite_ability_state.hpp"
 
 struct AbilityStates
 {
@@ -29,4 +30,5 @@ struct AbilityStates
     SwingAbilityState swing;
     PounceAbilityState pounce;
     ChargeAbilityState charge;
+    BiteAbilityState bite;
 };

@@ -6,13 +6,13 @@
 #include "input/input_intentions.hpp"
 
 WallJumpAbility::WallJumpAbility(const WallJumpAbilityData &data)
-    : data(data), wallJumpBuffer(data.wallJumpBufferDuration),
-      wallJumpCoyote(data.wallJumpCoyoteDuration)
+    : data(data), wallJumpBuffer(data.wallJumpBufferDuration, "A wall jump's buffer"),
+      wallJumpCoyote(data.wallJumpCoyoteDuration, "A wall jump's leeway off a wall")
 {
     if (data.wallJumpSpeed >= 0)
-        throw std::runtime_error("wallJumpSpeed must be negative");
+        throw std::runtime_error("A wall jump needs a speed upward, below 0");
     if (data.wallJumpHorizontalSpeed <= 0)
-        throw std::runtime_error("wallJumpHorizontalSpeed must be greater than 0");
+        throw std::runtime_error("A wall jump needs a speed away from the wall above 0");
 }
 
 void WallJumpAbility::decide(

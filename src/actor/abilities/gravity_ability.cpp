@@ -4,9 +4,15 @@
 #include "actor/abilities/gravity_ability.hpp"
 #include "input/input_intentions.hpp"
 #include <algorithm>
+#include <stdexcept>
 
 GravityAbility::GravityAbility(const GravityAbilityData &data) : data(data)
 {
+    if (data.gravity <= 0.0f)
+        throw std::runtime_error("Gravity needs a pull above 0");
+
+    if (data.maxFallSpeed <= 0.0f)
+        throw std::runtime_error("Gravity needs a fastest fall above 0");
 }
 
 void GravityAbility::decide(

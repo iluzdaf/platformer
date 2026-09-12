@@ -9,11 +9,12 @@
 DashAbility::DashAbility(const DashAbilityData &data) : data(data)
 {
     if (data.dashSpeed <= 0)
-        throw std::runtime_error("dashSpeed must be > 0");
+        throw std::runtime_error("A dash needs a speed above 0");
     if (data.dashDuration <= 0)
-        throw std::runtime_error("dashDuration must be > 0");
+        throw std::runtime_error("A dash needs a duration above 0");
     if (data.airborneFraction <= 0 || data.airborneFraction > 1)
-        throw std::runtime_error("airborneFraction must be within (0, 1]");
+        throw std::runtime_error(
+            "A dash in the air needs a fraction of its duration above 0 and at most 1");
 }
 
 void DashAbility::decide(

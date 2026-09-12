@@ -188,16 +188,20 @@ TEST_CASE("A dash that goes nowhere or takes no time is refused", "[DashAbility]
 {
     DashAbilityData noSpeed;
     noSpeed.dashSpeed = 0.0f;
-    REQUIRE_THROWS_WITH(DashAbility{noSpeed}, Catch::Matchers::ContainsSubstring("dashSpeed"));
+    REQUIRE_THROWS_WITH(
+        DashAbility{noSpeed}, Catch::Matchers::ContainsSubstring("A dash needs a speed above 0"));
 
     REQUIRE_THROWS_WITH(
-        DashAbility{timedAs(0.0f)}, Catch::Matchers::ContainsSubstring("dashDuration"));
+        DashAbility{timedAs(0.0f)},
+        Catch::Matchers::ContainsSubstring("A dash needs a duration above 0"));
 }
 
 TEST_CASE("A dash refuses a fraction it cannot use", "[DashAbility]")
 {
     REQUIRE_THROWS_WITH(
-        DashAbility{timedAs(0.2f, 0.0f)}, Catch::Matchers::ContainsSubstring("airborneFraction"));
+        DashAbility{timedAs(0.2f, 0.0f)},
+        Catch::Matchers::ContainsSubstring("A dash in the air needs a fraction"));
     REQUIRE_THROWS_WITH(
-        DashAbility{timedAs(0.2f, 1.5f)}, Catch::Matchers::ContainsSubstring("airborneFraction"));
+        DashAbility{timedAs(0.2f, 1.5f)},
+        Catch::Matchers::ContainsSubstring("A dash in the air needs a fraction"));
 }

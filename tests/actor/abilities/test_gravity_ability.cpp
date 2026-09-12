@@ -1,5 +1,6 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "actor/abilities/gravity_ability.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/ability_states.hpp"
@@ -81,4 +82,18 @@ TEST_CASE(
     knockedBack.knockback.active = true;
     tick(gravity, InputIntentions{}, inTheAir(), knockedBack);
     REQUIRE(knockedBack.gravity.velocity.y == 0.0f);
+}
+
+TEST_CASE("Gravity that does not pull, or a fall that goes nowhere, is refused", "[GravityAbility]")
+{
+    GravityAbilityData noPull;
+    noPull.gravity = 0.0f;
+    REQUIRE_THROWS_WITH(
+        GravityAbility(noPull), Catch::Matchers::ContainsSubstring("Gravity needs a pull above 0"));
+
+    GravityAbilityData noFall;
+    noFall.maxFallSpeed = 0.0f;
+    REQUIRE_THROWS_WITH(
+        GravityAbility(noFall),
+        Catch::Matchers::ContainsSubstring("Gravity needs a fastest fall above 0"));
 }

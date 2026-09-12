@@ -8,9 +8,9 @@
 MantleAbility::MantleAbility(const MantleAbilityData &data) : data(data)
 {
     if (data.mantleSpeed <= 0)
-        throw std::runtime_error("mantleSpeed must be greater than 0");
+        throw std::runtime_error("A mantle needs a speed above 0");
     if (data.mantleDuration <= 0)
-        throw std::runtime_error("mantleDuration must be greater than 0");
+        throw std::runtime_error("A mantle needs a duration above 0");
 }
 
 void MantleAbility::decide(

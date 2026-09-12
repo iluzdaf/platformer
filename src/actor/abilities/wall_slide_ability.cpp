@@ -8,7 +8,7 @@
 WallSlideAbility::WallSlideAbility(const WallSlideAbilityData &data) : data(data)
 {
     if (data.slideSpeed <= 0)
-        throw std::runtime_error("slideSpeed must be positive");
+        throw std::runtime_error("A slide needs a speed above 0");
 }
 
 void WallSlideAbility::decide(

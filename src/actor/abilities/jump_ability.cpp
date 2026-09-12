@@ -6,10 +6,11 @@
 #include "input/input_intentions.hpp"
 
 JumpAbility::JumpAbility(const JumpAbilityData &data)
-    : data(data), jumpBuffer(data.jumpBufferDuration), coyoteTime(data.jumpCoyoteDuration)
+    : data(data), jumpBuffer(data.jumpBufferDuration, "A jump's buffer"),
+      coyoteTime(data.jumpCoyoteDuration, "A jump's leeway off a ledge")
 {
     if (data.jumpSpeed >= 0)
-        throw std::runtime_error("jumpSpeed must be negative");
+        throw std::runtime_error("A jump needs a speed upward, below 0");
 }
 
 void JumpAbility::decide(

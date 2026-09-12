@@ -129,8 +129,11 @@ TEST_CASE("A mantle that goes nowhere or takes no time is refused", "[MantleAbil
 {
     MantleAbilityData noSpeed;
     noSpeed.mantleSpeed = 0.0f;
-    REQUIRE_THROWS_WITH(MantleAbility(noSpeed), Catch::Matchers::ContainsSubstring("mantleSpeed"));
+    REQUIRE_THROWS_WITH(
+        MantleAbility(noSpeed),
+        Catch::Matchers::ContainsSubstring("A mantle needs a speed above 0"));
 
     REQUIRE_THROWS_WITH(
-        MantleAbility(lasting(0.0f)), Catch::Matchers::ContainsSubstring("mantleDuration"));
+        MantleAbility(lasting(0.0f)),
+        Catch::Matchers::ContainsSubstring("A mantle needs a duration above 0"));
 }

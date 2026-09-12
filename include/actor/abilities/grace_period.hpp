@@ -1,9 +1,11 @@
 #pragma once
 
+#include <string_view>
+
 class GracePeriod
 {
 public:
-    explicit GracePeriod(float length);
+    explicit GracePeriod(float length, std::string_view whose = "A grace period");
 
     void start(float direction = 0.0f);
     void update(float deltaTime);

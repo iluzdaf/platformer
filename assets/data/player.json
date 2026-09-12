@@ -33,20 +33,18 @@
                 "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
                 "wallSlide":{"frames":[9],"frameDuration":1}
             },
-            "ladder":{
-                "transitions":[
-                    {"to":"dead","when":{"alive":false}},
-                    {"to":"knockback","when":{"knockback":true}},
-                    {"to":"attack","when":{"swinging":true}},
-                    {"to":"dash","when":{"dashing":true}},
-                    {"to":"climb","when":{"climbing":true,"onGround":false}},
-                    {"to":"wallSlide","when":{"onGround":false,"onWall":true}},
-                    {"to":"jump","when":{"onGround":false,"rising":true}},
-                    {"to":"fall","when":{"falling":true,"onGround":false}},
-                    {"to":"walk","when":{"moving":true,"onGround":true}},
-                    {"to":"idle","when":{"onGround":true}}
-                ]
-            },
+            "rules":[
+                {"show":"dead","when":{"alive":false}},
+                {"show":"knockback","when":{"knockback":true}},
+                {"show":"attack","when":{"swinging":true}},
+                {"show":"dash","when":{"dashing":true}},
+                {"show":"climb","when":{"climbing":true,"onGround":false}},
+                {"show":"wallSlide","when":{"onGround":false,"onWall":true}},
+                {"show":"jump","when":{"onGround":false,"rising":true}},
+                {"show":"fall","when":{"falling":true,"onGround":false}},
+                {"show":"walk","when":{"moving":true,"onGround":true}},
+                {"show":"idle","when":{"onGround":true}}
+            ],
             "startClip":"idle"
         },
         "healthData":{"maximum":3,"invulnerableFor":1}

@@ -109,7 +109,7 @@ namespace
             return;
 
         if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
-            drawAnimatorGraph(*animations, {state.currentAnimation}, MachineShown{});
+            drawAnimatorRules(*animations, state.currentAnimation);
     }
 
     void drawCannotGetBack(const Level &level, const Npc *npc)
@@ -187,7 +187,7 @@ namespace
             return;
 
         if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
-            drawAnimatorGraph(*animations, {npc.state().currentAnimation}, MachineShown{});
+            drawAnimatorRules(*animations, npc.state().currentAnimation);
     }
 
     void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)

@@ -24,8 +24,6 @@ namespace
     constexpr float ArrowLength = 8.0f;
     constexpr float ArrowWidth = 5.0f;
     constexpr float HandleRadius = 4.0f;
-    constexpr float StartMarkLength = 16.0f;
-    constexpr float StartDotRadius = 3.5f;
     constexpr float PickWithin = 6.0f;
     constexpr ImU32 BackgroundColour = IM_COL32(24, 24, 28, 255);
     constexpr ImU32 FrameColour = IM_COL32(70, 70, 80, 255);
@@ -167,15 +165,6 @@ namespace
         drawList->AddRectFilled(low, high, lit ? NodeLitFillColour : NodeFillColour, NodeRounding);
         ImU32 border = selected ? SelectedColour : lit ? NodeLitBorderColour : NodeBorderColour;
         drawList->AddRect(low, high, border, NodeRounding, 0, selected || lit ? 2.0f : 1.0f);
-
-        if (shown.start)
-        {
-            glm::vec2 side = node.centre - glm::vec2(node.half.x, 0.0f);
-            glm::vec2 tail = side - glm::vec2(StartMarkLength, 0.0f);
-            drawList->AddCircleFilled(screen(tail), StartDotRadius, border);
-            drawList->AddLine(screen(tail), screen(side), border, 1.5f);
-            drawArrowHead(drawList, side, glm::vec2(1.0f, 0.0f), border);
-        }
 
         ImVec2 nameSize = ImGui::CalcTextSize(shown.name.c_str());
         drawList->AddText(

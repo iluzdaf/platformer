@@ -19,7 +19,7 @@ TEST_CASE("A clip is found by its name, and a name nobody drew is nobody's", "[A
     REQUIRE(clipNamed(animations, "somersault") == nullptr);
 }
 
-TEST_CASE("An actor with pictures to choose from and no ladder is refused", "[ActorAnimations]")
+TEST_CASE("A clip it neither starts in nor has a rule to show is refused", "[ActorAnimations]")
 {
     PlayerData playerData;
     AnimatorData &animations = playerData.actorData.animationData.emplace();
@@ -29,11 +29,10 @@ TEST_CASE("An actor with pictures to choose from and no ladder is refused", "[Ac
 
     REQUIRE_THROWS_WITH(
         Player(playerData, noIntentions()),
-        Catch::Matchers::ContainsSubstring(
-            "\"walk\" is neither where it starts nor on the ladder"));
+        Catch::Matchers::ContainsSubstring("never shows \"walk\""));
 }
 
-TEST_CASE("An actor with only an idle picture needs no ladder", "[ActorAnimations]")
+TEST_CASE("An actor with only the clip it starts in needs no rules", "[ActorAnimations]")
 {
     PlayerData playerData;
     AnimatorData &animations = playerData.actorData.animationData.emplace();
@@ -43,7 +42,7 @@ TEST_CASE("An actor with only an idle picture needs no ladder", "[ActorAnimation
     REQUIRE_NOTHROW(Player(playerData, noIntentions()));
 }
 
-TEST_CASE("A ladder naming a clip the actor does not have is refused", "[ActorAnimations]")
+TEST_CASE("A rule showing a clip the actor does not have is refused", "[ActorAnimations]")
 {
     PlayerData playerData;
     AnimatorData &animations = playerData.actorData.animationData.emplace();
@@ -52,18 +51,12 @@ TEST_CASE("A ladder naming a clip the actor does not have is refused", "[ActorAn
     animations.clips["walk"] = FrameAnimationData({1}, 1.0f);
     AnimationWhenData moving;
     moving["moving"] = true;
-    animations.ladder = AnimationLadderData{{{"", "walk", moving}, {"", "somersault", moving}}};
-
-    REQUIRE_THROWS_WITH(
-        Player(playerData, noIntentions()),
-        Catch::Matchers::ContainsSubstring("goes to \"somersault\", and there is no such clip"));
-
-    animations.ladder = AnimationLadderData{{{"somersault", "walk", moving}}};
+    animations.rules = {{"walk", moving}, {"somersault", moving}};
 
     REQUIRE_THROWS_WITH(
         Player(playerData, noIntentions()),
         Catch::Matchers::ContainsSubstring(
-            "leaves from \"somersault\", and there is no such clip"));
+            "a rule showing \"somersault\", and there is no such clip"));
 }
 
 TEST_CASE("A creature named with a clip nobody else has can show it", "[ActorAnimations]")
@@ -75,12 +68,12 @@ TEST_CASE("A creature named with a clip nobody else has can show it", "[ActorAni
     animations.clips["somersault"] = FrameAnimationData({1}, 1.0f);
     AnimationWhenData airborne;
     airborne["onGround"] = false;
-    animations.ladder = AnimationLadderData{{{"", "somersault", airborne}}};
+    animations.rules = {{"somersault", airborne}};
 
     REQUIRE_NOTHROW(Player(playerData, noIntentions()));
 }
 
-TEST_CASE("A rung asking about a fact nobody publishes is refused", "[ActorAnimations]")
+TEST_CASE("A rule asking about a fact nobody publishes is refused", "[ActorAnimations]")
 {
     PlayerData playerData;
     AnimatorData &animations = playerData.actorData.animationData.emplace();
@@ -89,7 +82,7 @@ TEST_CASE("A rung asking about a fact nobody publishes is refused", "[ActorAnima
     animations.clips["walk"] = FrameAnimationData({1}, 1.0f);
     AnimationWhenData snowing;
     snowing["snowing"] = true;
-    animations.ladder = AnimationLadderData{{{"", "walk", snowing}}};
+    animations.rules = {{"walk", snowing}};
 
     REQUIRE_THROWS_WITH(
         Player(playerData, noIntentions()),

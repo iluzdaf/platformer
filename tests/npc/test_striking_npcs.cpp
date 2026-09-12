@@ -51,7 +51,7 @@ namespace
         animations.clips["dead"] = FrameAnimationData({7}, 1.0f);
         AnimationWhenData dead;
         dead["alive"] = false;
-        animations.ladder = AnimationLadderData{{{"", "dead", dead}}};
+        animations.rules = {{"dead", dead}};
         return rat;
     }
 

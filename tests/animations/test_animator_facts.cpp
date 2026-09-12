@@ -96,7 +96,7 @@ TEST_CASE("Climbing is a hang that is moving, and a wall is a slide or a hang", 
 }
 
 TEST_CASE(
-    "The animator's rows are the facts a rung may ask about, in the order they are worded",
+    "The animator's rows are the facts a rule may ask about, in the order they are worded",
     "[AnimatorFacts]")
 {
     std::string names;

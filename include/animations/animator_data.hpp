@@ -4,13 +4,14 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include "animations/animation_ladder_data.hpp"
+#include <vector>
+#include "animations/animation_rule_data.hpp"
 #include "animations/frame_animation_data.hpp"
 
 struct AnimatorData
 {
     std::map<std::string, FrameAnimationData> clips;
-    AnimationLadderData ladder;
+    std::vector<AnimationRuleData> rules;
     std::string startClip;
 };
 

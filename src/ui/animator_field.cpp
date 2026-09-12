@@ -1,164 +1,84 @@
-#include <array>
 #include <cstddef>
-#include <set>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 #include <imgui.h>
-#include "ui/marked_label.hpp"
 #include "ui/animator_field.hpp"
-#include "ui/saved_in_scope.hpp"
-#include "ui/selection_in_scope.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/graph_shown.hpp"
-#include "ui/graph_view.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
-#include "ui/state_machine_shown.hpp"
-#include "animations/animation_ladder_data.hpp"
+#include "ui/marked_label.hpp"
+#include "ui/saved_in_scope.hpp"
+#include "animations/animation_rule_data.hpp"
 #include "animations/animator_data.hpp"
-#include "animations/animator_data.hpp"
-#include "animations/frame_animation_data.hpp"
 
 namespace
 {
-    MachineShown rememberedSelection()
+    constexpr ImVec4 ShowingColour{0.5f, 1.0f, 0.6f, 1.0f};
+
+    inspector::Edited drawRules(std::vector<AnimationRuleData> &rules)
     {
-        if (const MachineShown *asked = selectionInScope())
-            return *asked;
+        inspector::InField here("rules");
+        const bool changed = inspector::changedHere(rules);
+        inspector::Marking marking(changed);
+        if (!inspector::drawFold("rules", changed))
+            return {};
 
-        ImGuiStorage *storage = ImGui::GetStateStorage();
-        int what = storage->GetInt(ImGui::GetID("shownWhat"), 0);
-        int index = storage->GetInt(ImGui::GetID("shownIndex"), 0);
-        return MachineShown{static_cast<MachineShown::What>(what), static_cast<std::size_t>(index)};
-    }
-
-    void remember(MachineShown shown)
-    {
-        if (selectionInScope())
-            return;
-
-        ImGuiStorage *storage = ImGui::GetStateStorage();
-        storage->SetInt(ImGui::GetID("shownWhat"), static_cast<int>(shown.what));
-        storage->SetInt(ImGui::GetID("shownIndex"), static_cast<int>(shown.index));
-    }
-
-    const std::string &clipNameShown(const GraphShown &graph, MachineShown shown)
-    {
-        static const std::string none;
-        if (shown.what != MachineShown::What::State)
-            return none;
-
-        return graph.nodes[shown.index].name;
-    }
-
-    bool drawAddingAClip(AnimatorData &animations, MachineShown &shown)
-    {
-        if (ImGui::SmallButton("add clip"))
-            ImGui::OpenPopup("##addClip");
-
-        bool added = false;
-        if (ImGui::BeginPopup("##addClip"))
+        ImGui::TextDisabled("the first rule that holds is shown, else the start clip");
+        inspector::Edited edited;
+        std::optional<std::size_t> takeAway;
+        std::optional<std::size_t> raise;
+        for (std::size_t index = 0; index < rules.size(); ++index)
         {
-            static std::array<char, 64> asked{};
-            ImGui::SetNextItemWidth(120.0f);
-            ImGui::InputTextWithHint("##clipName", "name", asked.data(), asked.size());
-            std::string wanted = asked.data();
+            ImGui::PushID(static_cast<int>(index));
+            if (ImGui::SmallButton("-"))
+                takeAway = index;
+
             ImGui::SameLine();
-            ImGui::BeginDisabled(wanted.empty() || animations.clips.contains(wanted));
-            if (ImGui::Button("add"))
-            {
-                animations.clips.emplace(wanted, FrameAnimationData{});
-                asked.fill(0);
-                added = true;
-                shown = MachineShown{};
-                ImGui::CloseCurrentPopup();
-            }
+            ImGui::BeginDisabled(index == 0);
+            if (ImGui::SmallButton("^"))
+                raise = index;
 
             ImGui::EndDisabled();
-            ImGui::EndPopup();
+            ImGui::SameLine();
+            edited |= inspector::draw(std::to_string(index), rules[index]);
+            ImGui::PopID();
         }
 
-        return added;
+        bool addAsked = ImGui::SmallButton("+");
+
+        if (takeAway)
+            rules.erase(rules.begin() + static_cast<std::ptrdiff_t>(*takeAway));
+        else if (raise)
+            std::swap(rules[*raise - 1], rules[*raise]);
+        else if (addAsked)
+            rules.emplace_back();
+
+        if (takeAway || raise || addAsked)
+            edited |= inspector::Edited{true, true};
+
+        ImGui::TreePop();
+        return edited;
     }
 
-    bool drawAddingARung(AnimatorData &animations, const GraphShown &graph, MachineShown &shown)
+    void drawLine(const std::string &line, bool showing)
     {
-        ImGui::SameLine();
-        ImGui::BeginDisabled(animations.clips.empty());
-        bool add = ImGui::SmallButton("add rung");
-        ImGui::EndDisabled();
-        if (!add)
-            return false;
-
-        const std::string &chosen = clipNameShown(graph, shown);
-        AnimationTransitionData rung;
-        rung.to = chosen.empty() || chosen == AnyNode ? animations.startClip : chosen;
-        animations.ladder.transitions.push_back(rung);
-        shown = showingTransition(animations.ladder.transitions.size() - 1);
-        return true;
-    }
-
-    bool drawRemoving(AnimatorData &animations, const GraphShown &graph, MachineShown &shown)
-    {
-        ImGui::SameLine();
-        bool removable =
-            shown.what == MachineShown::What::Transition ||
-            (shown.what == MachineShown::What::State && clipNameShown(graph, shown) != AnyNode);
-        ImGui::BeginDisabled(!removable);
-        bool remove = ImGui::SmallButton("remove");
-        ImGui::EndDisabled();
-        if (!remove)
-            return false;
-
-        if (shown.what == MachineShown::What::State)
-            animations.clips.erase(clipNameShown(graph, shown));
+        if (showing)
+            ImGui::TextColored(ShowingColour, "%s", line.c_str());
         else
-            animations.ladder.transitions.erase(
-                animations.ladder.transitions.begin() + static_cast<std::ptrdiff_t>(shown.index));
-
-        shown = MachineShown{};
-        return true;
-    }
-
-    inspector::Edited drawShown(
-        AnimatorData &animations,
-        const GraphShown &graph,
-        MachineShown shown)
-    {
-        ImGui::Separator();
-        if (shown.what == MachineShown::What::Transition)
-        {
-            inspector::InField ladder("ladder");
-            inspector::InField transitions("transitions");
-            inspector::InField rung(std::to_string(shown.index));
-            return inspector::drawFields(animations.ladder.transitions[shown.index]);
-        }
-
-        if (shown.what == MachineShown::What::State)
-        {
-            const std::string &name = clipNameShown(graph, shown);
-            if (name == AnyNode)
-            {
-                ImGui::TextDisabled("rungs from here fire from whatever clip is playing");
-                return {};
-            }
-
-            inspector::InField clips("clips");
-            inspector::InField clip(name);
-            return drawCustomField(name, animations.clips.at(name));
-        }
-
-        ImGui::TextDisabled("pick a clip or a rung");
-        return {};
+            ImGui::TextUnformatted(line.c_str());
     }
 }
 
-MachineShown drawAnimatorGraph(
-    const AnimatorData &animations,
-    const std::set<std::string> &litClips,
-    MachineShown selected)
+void drawAnimatorRules(const AnimatorData &animations, const std::string &showing)
 {
-    return drawGraph("##animatorGraph", graphOf(animations), litClips, selected);
+    for (const AnimationRuleData &rule : animations.rules)
+        drawLine(rule.show + " when " + whenOf(rule.when), rule.show == showing);
+
+    drawLine("otherwise " + animations.startClip, animations.startClip == showing);
 }
 
 inspector::Edited drawCustomField(std::string_view name, AnimatorData &value)
@@ -167,23 +87,9 @@ inspector::Edited drawCustomField(std::string_view name, AnimatorData &value)
         return {};
 
     inspector::Edited edited;
-    MachineShown shown = rememberedSelection();
-    GraphShown graph = graphOf(value);
-    shown = stillAmong(shown, graph);
-
-    bool changed = drawAddingAClip(value, shown);
-    changed = drawAddingARung(value, graph, shown) || changed;
-    changed = drawRemoving(value, graph, shown) || changed;
-    if (changed)
-    {
-        edited |= inspector::Edited{true, true};
-        graph = graphOf(value);
-        shown = stillAmong(shown, graph);
-    }
-
-    shown = drawGraph("##animatorGraph", graph, {}, shown);
-    edited |= drawShown(value, graph, shown);
-    remember(shown);
+    edited |= inspector::draw("clips", value.clips);
+    edited |= drawRules(value.rules);
+    edited |= inspector::draw("startClip", value.startClip);
 
     ImGui::TreePop();
     return edited;

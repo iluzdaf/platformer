@@ -18,13 +18,13 @@
 #include "actor/health.hpp"
 #include "actor/hit.hpp"
 #include "helpers/actors.hpp"
-#include "helpers/ladders.hpp"
+#include "helpers/rules.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/tiles.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
-#include "animations/animation_ladder_data.hpp"
+#include "animations/animation_rule_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "conditions/asked.hpp"
@@ -246,8 +246,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[StrikingPlayer
     animations.clips["attack"] = anAttackClip();
     AnimationWhenData whileSwinging;
     whileSwinging["swinging"] = true;
-    animations.ladder = AnimationLadderData{
-        {AnimationTransitionData{"", "attack", whileSwinging}, idleTransition()}};
+    animations.rules = {AnimationRuleData{"attack", whileSwinging}, idleRule()};
 
     BehaviorStateData swinging;
     swinging.name = "swing";

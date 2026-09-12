@@ -357,7 +357,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
     for (int step = 0; step < 20; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, footOf(npc) + glm::vec2(8.0f, 0.0f));
+        npc.fixedUpdate(0.01f, level, {.threatFeet = footOf(npc) + glm::vec2(8.0f, 0.0f)});
     }
 
     REQUIRE((npc.stateName() == "flee" || npc.stateName() == "pounce"));
@@ -365,7 +365,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
     for (int step = 0; step < 400; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, glm::vec2(112.0f, 192.0f));
+        npc.fixedUpdate(0.01f, level, {.threatFeet = glm::vec2(112.0f, 192.0f)});
     }
 
     REQUIRE(npc.stateName() == "patrol");
@@ -511,7 +511,7 @@ TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
     for (int step = 0; step < 20; ++step)
     {
         level.beginFrame();
-        level.fixedUpdate(0.01f, footOf(npc) + glm::vec2(8.0f, 0.0f));
+        level.fixedUpdate(0.01f, {.threatFeet = footOf(npc) + glm::vec2(8.0f, 0.0f)});
     }
 
     REQUIRE((npc.stateName() == "flee" || npc.stateName() == "pounce"));
@@ -528,7 +528,7 @@ TEST_CASE("A level drives the npcs it holds", "[Npc][Level]")
     for (int step = 0; step < 200; ++step)
     {
         level.beginFrame();
-        level.fixedUpdate(0.01f, glm::vec2(112.0f, 192.0f));
+        level.fixedUpdate(0.01f, {.threatFeet = glm::vec2(112.0f, 192.0f)});
         level.postFixedUpdate();
     }
 
@@ -545,7 +545,7 @@ namespace
         for (int step = 0; step < steps; ++step)
         {
             level.beginFrame();
-            level.fixedUpdate(0.01f, glm::vec2(1000.0f, 1000.0f));
+            level.fixedUpdate(0.01f, {.threatFeet = glm::vec2(1000.0f, 1000.0f)});
             level.postFixedUpdate();
             leftmost = std::min(leftmost, footOf(npc).x);
         }

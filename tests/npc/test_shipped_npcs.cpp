@@ -116,7 +116,7 @@ TEST_CASE("The shipped rat, cornered, pounces through you and bites", "[Npc][Lev
     for (int step = 0; step < 300 && bittenAt < 0; ++step)
     {
         rats.front()->beginFrame();
-        rats.front()->fixedUpdate(0.01f, level, player.feet());
+        rats.front()->fixedUpdate(0.01f, level, {.threatFeet = player.feet()});
         exchangeStrikes(player, rats);
         if (player.health().points() < 3)
         {
@@ -194,7 +194,7 @@ TEST_CASE("The shipped rat runs from the player and settles once it is gone", "[
     for (int step = 0; step < 300; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, crowding);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = crowding});
     }
 
     REQUIRE(footOf(npc).x < startedAt);
@@ -230,7 +230,7 @@ TEST_CASE("The shipped rat never freezes out in the open on its platform", "[Npc
     for (int step = 0; step < 500; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, chasing);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = chasing});
 
         chasing.x = std::max(16.0f, chasing.x - 1.1f);
 
@@ -256,7 +256,7 @@ TEST_CASE("The shipped rat holds its ground while the player shares its platform
     for (int step = 0; step < 600; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, cornering);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = cornering});
     }
 
     float cowering = footOf(npc).x;
@@ -266,7 +266,7 @@ TEST_CASE("The shipped rat holds its ground while the player shares its platform
     for (int step = 0; step < 400; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, cornering);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = cornering});
         wandered = std::max(wandered, footOf(npc).x);
     }
 
@@ -275,7 +275,7 @@ TEST_CASE("The shipped rat holds its ground while the player shares its platform
     for (int step = 0; step < 600; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, glm::vec2(112.0f, 192.0f));
+        npc.fixedUpdate(0.01f, level, {.threatFeet = glm::vec2(112.0f, 192.0f)});
     }
 
     REQUIRE(footOf(npc).x > cowering + 16.0f);
@@ -297,7 +297,7 @@ TEST_CASE("The shipped rat does not shuffle on the spot once it is cornered", "[
     for (int step = 0; step < 600; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, driving);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = driving});
 
         if (npc.observed().facingLeft != wasFacingLeft)
             ++flips;
@@ -321,7 +321,7 @@ TEST_CASE("The shipped rat pays no mind to a player on the platform below", "[Np
     for (int step = 0; step < 1200; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, glm::vec2(footOf(npc).x, 128.0f));
+        npc.fixedUpdate(0.01f, level, {.threatFeet = glm::vec2(footOf(npc).x, 128.0f)});
 
         leftMost = std::min(leftMost, footOf(npc).x);
         rightMost = std::max(rightMost, footOf(npc).x);
@@ -414,7 +414,7 @@ namespace
         for (int step = 0; step < steps; ++step)
         {
             npc.beginFrame();
-            npc.fixedUpdate(0.01f, level, threatFeet);
+            npc.fixedUpdate(0.01f, level, {.threatFeet = threatFeet});
         }
     }
 
@@ -456,7 +456,7 @@ TEST_CASE("The shipped spider follows you down off its ledge", "[Npc][Level][Cha
     for (int hunt = 0; hunt < 400 && !reachedTheGroundHunting; ++hunt)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, below);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = below});
         reachedTheGroundHunting =
             hunting(npc) && std::abs(footOf(npc).y - surfaceOf(GroundRow)) <= 1.0f;
     }
@@ -495,7 +495,7 @@ TEST_CASE(
     for (int hunt = 0; hunt < 300 && !cameDownBesideYou; ++hunt)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, you);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = you});
         cameDownBesideYou = hunting(npc) && std::abs(footOf(npc).y - surfaceOf(LedgeRow)) <= 1.0f &&
                             std::abs(footOf(npc).x - you.x) <= 40.0f;
     }
@@ -561,7 +561,7 @@ TEST_CASE(
     for (int step = 0; step < 500; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, you);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = you});
         bool pouncing = npc.stateName() == "pounce";
         if (pouncing && !wasPouncing)
         {
@@ -596,7 +596,7 @@ TEST_CASE("The shipped spider bites while pouncing and at no other time", "[Npc]
     for (int step = 0; step < 300; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, you);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = you});
         if (npc.hurting())
             (npc.stateName() == "pounce" ? bitWhilePouncing : bitOtherwise) = true;
     }
@@ -623,7 +623,7 @@ TEST_CASE(
     for (int step = 0; step < 600 && bittenAt < 0; ++step)
     {
         spiders.front()->beginFrame();
-        spiders.front()->fixedUpdate(0.01f, level, player.feet());
+        spiders.front()->fixedUpdate(0.01f, level, {.threatFeet = player.feet()});
         exchangeStrikes(player, spiders);
         if (player.health().points() < 3)
         {
@@ -655,7 +655,7 @@ TEST_CASE("The shipped spider pounces only once you are within its reach", "[Npc
     {
         float before = glm::distance(footOf(npc), you);
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, you);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = you});
         if (npc.stateName() == "pounce")
             reachAtThePounce = before;
     }
@@ -679,20 +679,20 @@ TEST_CASE(
     for (int settle = 0; settle < 30; ++settle)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, you);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = you});
     }
     REQUIRE(npc.stateName() == "sleep");
 
     std::vector<Noise> landing{{std::string(LandingNoise), you}};
     npc.beginFrame();
-    npc.fixedUpdate(0.01f, level, you, landing);
+    npc.fixedUpdate(0.01f, level, {.threatFeet = you, .noises = landing});
     REQUIRE(npc.stateName() == "charge");
 
     int stunnedAt = -1;
     for (int step = 0; step < 300 && stunnedAt < 0; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, you);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = you});
         if (npc.stateName() == "stunned")
             stunnedAt = step;
     }
@@ -721,7 +721,7 @@ TEST_CASE("The spider shows its pounce clip while its pounce state is on", "[Shi
     for (int step = 0; step < 400; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, you);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = you});
         bool inPounce = npc.stateName() == "pounce";
         bool onFilm = npc.state().currentAnimation == "pounce";
         if (inPounce && onFilm)
@@ -771,20 +771,20 @@ namespace
         for (int settle = 0; settle < 30; ++settle)
         {
             npc.beginFrame();
-            npc.fixedUpdate(0.01f, level, you);
+            npc.fixedUpdate(0.01f, level, {.threatFeet = you});
         }
         REQUIRE(npc.stateName() == "sleep");
 
         std::vector<Noise> landing{{std::string(LandingNoise), you}};
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, you, landing);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = you, .noises = landing});
         REQUIRE(npc.stateName() == "charge");
 
         Charged charged;
         for (int step = 0; step < 300 && charged.stunnedAt < 0; ++step)
         {
             npc.beginFrame();
-            npc.fixedUpdate(0.01f, level, you);
+            npc.fixedUpdate(0.01f, level, {.threatFeet = you});
             if (npc.stateName() == "stunned")
                 charged.stunnedAt = step;
         }

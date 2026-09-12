@@ -39,7 +39,7 @@ namespace
         for (int step = 0; step < steps; ++step)
         {
             npc.beginFrame();
-            npc.fixedUpdate(0.01f, level, threat);
+            npc.fixedUpdate(0.01f, level, {.threatFeet = threat});
             glm::vec2 foot = footOf(npc);
             reached.minX = std::min(reached.minX, foot.x);
             reached.maxX = std::max(reached.maxX, foot.x);

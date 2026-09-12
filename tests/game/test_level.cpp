@@ -408,7 +408,7 @@ namespace
     void tick(Level &level)
     {
         level.beginFrame();
-        level.fixedUpdate(0.01f, glm::vec2(0.0f));
+        level.fixedUpdate(0.01f, {.threatFeet = glm::vec2(0.0f)});
     }
 }
 

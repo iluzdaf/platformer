@@ -59,7 +59,7 @@ namespace
     void tick(Npc &npc, const Level &level, std::optional<glm::vec2> threat = std::nullopt)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level, threat);
+        npc.fixedUpdate(0.01f, level, {.threatFeet = threat});
     }
 }
 
@@ -137,7 +137,7 @@ TEST_CASE("A fact said lasts, and an event lasts the tick it is heard in", "[Sen
 
     std::vector<Noise> aLanding{{std::string(LandingNoise), npc.feet()}};
     npc.beginFrame();
-    npc.fixedUpdate(0.01f, level, std::nullopt, aLanding);
+    npc.fixedUpdate(0.01f, level, {.noises = aLanding});
     REQUIRE(heardDuringTheTick == std::vector<Asked>{false, true});
     REQUIRE(npc.facts().at("heard") == Asked{false});
 
@@ -158,7 +158,7 @@ TEST_CASE("What an event said lingers after the tick, and then is gone", "[Sense
 
     std::vector<Noise> aLanding{{std::string(LandingNoise), npc.feet()}};
     npc.beginFrame();
-    npc.fixedUpdate(0.01f, level, std::nullopt, aLanding);
+    npc.fixedUpdate(0.01f, level, {.noises = aLanding});
 
     REQUIRE(npc.facts().at("heard") == Asked{false});
     REQUIRE(npc.saidLately().all().at("heard").value == Asked{true});
@@ -226,11 +226,11 @@ TEST_CASE(
     glm::vec2 you = feetOf(glm::ivec2(6, GroundRow - 1));
     std::vector<Noise> onTheLedge{{std::string(LandingNoise), feetOf(LedgeRightEnd)}};
     npc.beginFrame();
-    npc.fixedUpdate(0.01f, level, you, onTheLedge);
+    npc.fixedUpdate(0.01f, level, {.threatFeet = you, .noises = onTheLedge});
     REQUIRE(npc.stateName() == "sleep");
 
     std::vector<Noise> onMyGround{{std::string(LandingNoise), you}};
     npc.beginFrame();
-    npc.fixedUpdate(0.01f, level, you, onMyGround);
+    npc.fixedUpdate(0.01f, level, {.threatFeet = you, .noises = onMyGround});
     REQUIRE(npc.stateName() == "charge");
 }

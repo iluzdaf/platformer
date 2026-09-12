@@ -17,7 +17,6 @@
             "swingAbilityData":{}
         },
         "animationData":{
-            "startClip":"idle",
             "clips":{
                 "attack":{
                     "frames":[12,13,14],
@@ -47,7 +46,8 @@
                     {"to":"walk","when":{"moving":true,"onGround":true}},
                     {"to":"idle","when":{"onGround":true}}
                 ]
-            }
+            },
+            "startClip":"idle"
         },
         "healthData":{"maximum":3,"invulnerableFor":1}
     },

@@ -34,6 +34,18 @@ TEST_CASE("AABB intersection and center", "[AABB]")
     }
 }
 
+TEST_CASE("A box covers where it starts and not where it ends", "[AABB]")
+{
+    AABB box{glm::vec2(10.0f, 20.0f), glm::vec2(4.0f, 6.0f)};
+
+    REQUIRE(box.covers(glm::vec2(10.0f, 20.0f)));
+    REQUIRE(box.covers(glm::vec2(13.9f, 25.9f)));
+    REQUIRE_FALSE(box.covers(glm::vec2(14.0f, 23.0f)));
+    REQUIRE_FALSE(box.covers(glm::vec2(12.0f, 26.0f)));
+    REQUIRE_FALSE(box.covers(glm::vec2(9.9f, 23.0f)));
+    REQUIRE_FALSE(box.covers(glm::vec2(12.0f, 19.9f)));
+}
+
 TEST_CASE("AABB expandToInclude", "[AABB]")
 {
     SECTION("Expands to include overlapping AABB")

@@ -12,6 +12,7 @@ struct AABB
     float top() const;
     float bottom() const;
     bool intersects(const AABB &other) const;
+    bool covers(glm::vec2 point) const;
     glm::vec2 center() const;
     glm::vec2 bottomCenter() const;
     void expandToInclude(const AABB &other);

@@ -26,6 +26,10 @@
 #include "helpers/tiles.hpp"
 #include "helpers/levels.hpp"
 #include "game/level_resizing.hpp"
+#include "physics/aabb.hpp"
+#include "physics/physics_body.hpp"
+#include "npc/npc.hpp"
+#include "ui/actors_in_level.hpp"
 
 namespace
 {
@@ -105,6 +109,16 @@ namespace
         return mouse;
     }
 
+    MouseOnTheMap clickingAt(glm::vec2 worldPosition)
+    {
+        MouseOnTheMap mouse;
+        mouse.worldPosition = worldPosition;
+        mouse.heldDown = true;
+        mouse.justClicked = true;
+
+        return mouse;
+    }
+
     MouseOnTheMap clicking(const Level &level, glm::ivec2 tilePosition)
     {
         MouseOnTheMap mouse = holding(level, tilePosition);
@@ -126,6 +140,7 @@ TEST_CASE("Painting sets the tile under the mouse while the button is down", "[L
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
 
@@ -146,6 +161,7 @@ TEST_CASE("Painting waits for the button", "[LevelUi]")
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
 
@@ -163,7 +179,8 @@ TEST_CASE("A click that belongs to the panel does not reach the map", "[LevelUi]
 
     MouseOnTheMap mouse = holding(editing.level, target);
     mouse.overTheUi = true;
-    levelUi.update(mouse, editing.level, editing.levelData, LevelPath, armed, editing.commands);
+    levelUi.update(
+        mouse, editing.level, editing.levelData, LevelPath, AABB{}, armed, editing.commands);
 
     editing.commands.drain();
     REQUIRE_FALSE(editing.edited);
@@ -179,7 +196,8 @@ TEST_CASE("A click outside the map changes nothing", "[LevelUi]")
     MouseOnTheMap mouse;
     mouse.worldPosition = glm::vec2(-40.0f, -40.0f);
     mouse.heldDown = true;
-    levelUi.update(mouse, editing.level, editing.levelData, LevelPath, armed, editing.commands);
+    levelUi.update(
+        mouse, editing.level, editing.levelData, LevelPath, AABB{}, armed, editing.commands);
 
     editing.commands.drain();
     REQUIRE_FALSE(editing.edited);
@@ -198,6 +216,7 @@ TEST_CASE("Nothing happens when nothing is armed", "[LevelUi]")
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
 
@@ -218,6 +237,7 @@ TEST_CASE("Picking the player start moves it and puts the pick down", "[LevelUi]
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
 
@@ -237,6 +257,7 @@ TEST_CASE("A pick waits for the click rather than the hold", "[LevelUi]")
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
 
@@ -258,6 +279,7 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
     REQUIRE(editing.asked().npcs.front().feet == feetOf(target));
@@ -303,6 +325,7 @@ TEST_CASE("Picking a pickup's spawn moves it and says the level changed", "[Leve
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
 
@@ -322,6 +345,7 @@ TEST_CASE("A pick naming a pickup the level lost is put down, not acted on", "[L
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
     editing.commands.drain();
@@ -346,6 +370,7 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
 
@@ -369,6 +394,7 @@ TEST_CASE("The first end picked of an absent beat becomes both of them", "[Level
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands);
 
@@ -387,12 +413,126 @@ TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[Lev
         editing.level,
         editing.levelData,
         LevelPath,
+        AABB{},
         armed,
         editing.commands));
 
     editing.commands.drain();
     REQUIRE_FALSE(editing.edited);
     REQUIRE_FALSE(armed);
+}
+
+TEST_CASE("A click with nothing armed shows what is under it", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    std::optional<Armed> armed;
+
+    levelUi.update(
+        clickingAt(editing.level.getNpcs().front()->body().aabb().center()),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        armed,
+        editing.commands);
+
+    REQUIRE(levelUi.shown() == ActorShown{ActorShown::What::Npc, 0});
+}
+
+TEST_CASE("A click where nothing stands shows nobody", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    std::optional<Armed> armed;
+    const Level &level = editing.level;
+
+    levelUi.update(
+        clickingAt(level.getNpcs().front()->body().aabb().center()),
+        level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        armed,
+        editing.commands);
+    REQUIRE(levelUi.shown() == ActorShown{ActorShown::What::Npc, 0});
+
+    levelUi.update(
+        clickingAt(level.getTileMap().feetOnTile(glm::ivec2(8, 1))),
+        level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        armed,
+        editing.commands);
+
+    REQUIRE(levelUi.shown() == ActorShown{});
+}
+
+TEST_CASE("A click while something is armed places it rather than showing", "[LevelUi]")
+{
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 0};
+
+    levelUi.update(
+        clickingAt(editing.level.getNpcs().front()->body().aabb().center()),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        armed,
+        editing.commands);
+
+    REQUIRE(levelUi.shown() == ActorShown{});
+    REQUIRE_FALSE(armed);
+}
+
+TEST_CASE("Delete takes away what is shown", "[LevelUi]")
+{
+    HeadlessImGui gui;
+    EditorHistory history;
+    LevelUi levelUi{history};
+    Editing editing({aVillagerAt(glm::ivec2(2, Standing)), aVillagerAt(glm::ivec2(5, Standing))});
+    std::optional<Armed> armed;
+    AnimatorData animations;
+    Observed observed;
+    ActorState playerState;
+
+    levelUi.update(
+        clickingAt(editing.level.getNpcs().front()->body().aabb().center()),
+        editing.level,
+        editing.levelData,
+        LevelPath,
+        AABB{},
+        armed,
+        editing.commands);
+    REQUIRE(levelUi.shown() == ActorShown{ActorShown::What::Npc, 0});
+
+    ImGui::GetIO().AddKeyEvent(ImGuiKey_Delete, true);
+    gui.frame(
+        [&]
+        {
+            ImGui::TreeNodeSetOpen(ImGui::GetID("Cast"), true);
+            levelUi.draw(
+                editing.level,
+                editing.levelData,
+                animations,
+                observed,
+                editing.levelData.playerFeet,
+                playerState,
+                shippedNpcData(),
+                shippedPickupData(),
+                armed,
+                editing.commands);
+        });
+    ImGui::GetIO().AddKeyEvent(ImGuiKey_Delete, false);
+
+    REQUIRE(editing.asked().npcs.size() == 1);
+    REQUIRE(levelUi.shown() == ActorShown{});
 }
 
 TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
@@ -411,7 +551,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
     REQUIRE_NOTHROW(gui.frame(
         [&]
         {
-            ImGui::TreeNodeSetOpen(ImGui::GetID("Actors"), true);
+            ImGui::TreeNodeSetOpen(ImGui::GetID("Cast"), true);
             levelUi.draw(
                 level,
                 levelData,
@@ -483,7 +623,8 @@ namespace
         const MouseOnTheMap &mouse,
         std::optional<Armed> &armed)
     {
-        levelUi.update(mouse, editing.level, editing.levelData, LevelPath, armed, editing.commands);
+        levelUi.update(
+            mouse, editing.level, editing.levelData, LevelPath, AABB{}, armed, editing.commands);
     }
 
     MouseOnTheMap lettingGo()
@@ -587,6 +728,7 @@ TEST_CASE("Moving to another level forgets what the last one was", "[LevelUi]")
         editing.level,
         editing.levelData,
         "levels/somewhere_else.json",
+        AABB{},
         armed,
         editing.commands);
 

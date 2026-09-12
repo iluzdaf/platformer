@@ -11,6 +11,7 @@
 
 struct GameData;
 class Camera2D;
+struct AABB;
 class Level;
 class Npc;
 class Player;
@@ -44,7 +45,8 @@ public:
         const Level &level,
         const LevelData &levelData,
         const std::string &levelPath,
-        const Camera2D &camera);
+        const Camera2D &camera,
+        const AABB &playerBox);
     void resize(int width, int height);
     bool wantsKeyboard() const;
     EditorUi &editor();

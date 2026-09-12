@@ -37,6 +37,8 @@
 #include "tile_map/tile_palette_data.hpp"
 #include "ui/picking_in_level.hpp"
 #include "ui/size_buttons.hpp"
+#include <exception>
+#include "game/game_data.hpp"
 #include "game/level_resizing.hpp"
 #include "cameras/camera2d.hpp"
 
@@ -456,12 +458,29 @@ void LevelUi::update(
 }
 
 std::optional<std::string> LevelUi::cannotSaveBecause(
-    const Level &level,
     const LevelData &levelData,
-    const std::map<std::string, NpcData> &npcs)
+    const GameData &gameData)
 {
     return walkGate.to(
-        asItWouldBeSaved(levelData) + asJson(npcs), [&] { return npcsThatCannotGetBack(level); });
+        asItWouldBeSaved(levelData) + asJson(gameData),
+        [&]() -> std::optional<std::string>
+        {
+            try
+            {
+                Level built(
+                    levelData,
+                    gameData.tilePalettes,
+                    gameData.playerData,
+                    gameData.npcData,
+                    gameData.pickupData);
+
+                return npcsThatCannotGetBack(built);
+            }
+            catch (const std::exception &refused)
+            {
+                return refused.what();
+            }
+        });
 }
 
 bool LevelUi::takesTheDisk(const LevelData &current, const std::string &levelPath)

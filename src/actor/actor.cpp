@@ -15,7 +15,7 @@
 #include "physics/aabb.hpp"
 #include "actor/observing.hpp"
 #include "actor/observed.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
@@ -87,10 +87,10 @@ void Actor::fixedUpdate(
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
-    abilities.decide(deltaTime, inputIntentions, observations, decisions);
+    glm::vec2 velocity = abilities.decide(deltaTime, inputIntentions, observations, states);
     observations.hits.clear();
 
-    physicsBody.setVelocity(decisions.targetVelocity);
+    physicsBody.setVelocity(velocity);
     physicsBody.stepPhysics(deltaTime, tileMap);
 
     observations.contacts = contactsAfterStep(observations.contacts, physicsBody, tileMap);
@@ -100,9 +100,9 @@ void Actor::fixedUpdate(
     lately.update(deltaTime);
 
     if (animator)
-        animator->animate(deltaTime, decisions, observations, stateName());
+        animator->animate(deltaTime, states, observations, stateName());
 
-    if (!decisions.knockback.active)
+    if (!states.knockback.active)
         actorState.facingLeft = observations.velocity.x > 0
                                     ? false
                                     : (observations.velocity.x < 0 ? true : actorState.facingLeft);
@@ -240,9 +240,9 @@ const ActorState &Actor::state() const
     return actorState;
 }
 
-const Decided &Actor::decided() const
+const AbilityStates &Actor::abilityStates() const
 {
-    return decisions;
+    return states;
 }
 
 const Observed &Actor::observed() const
@@ -320,7 +320,7 @@ bool Actor::takeHit(const Hit &hit)
 
 std::optional<AABB> Actor::swingBox() const
 {
-    const SwingAbilityState &swing = decisions.swing;
+    const SwingAbilityState &swing = states.swing;
     if (!swing.striking())
         return std::nullopt;
 
@@ -334,15 +334,15 @@ std::optional<Hurting> Actor::hurting() const
     if (!alive())
         return std::nullopt;
 
-    const SwingAbilityState &swing = decisions.swing;
+    const SwingAbilityState &swing = states.swing;
     if (std::optional<AABB> reach = swingBox())
         return Hurting{*reach, swing.damage, swing.direction};
 
-    const PounceAbilityState &pounce = decisions.pounce;
+    const PounceAbilityState &pounce = states.pounce;
     if (pounce.active)
         return Hurting{physicsBody.aabb(), pounce.damage, pounce.direction};
 
-    const ChargeAbilityState &charge = decisions.charge;
+    const ChargeAbilityState &charge = states.charge;
     if (charge.active)
         return Hurting{physicsBody.aabb(), charge.damage, charge.direction};
 
@@ -355,7 +355,7 @@ bool Actor::strike(Actor &target)
     if (!hurting || &target == this)
         return false;
 
-    SwingAbilityState &swing = decisions.swing;
+    SwingAbilityState &swing = states.swing;
     if (swing.striking() && std::ranges::find(swing.struck, &target) != swing.struck.end())
         return false;
 
@@ -394,5 +394,5 @@ ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGra
         threat,
         observations.contacts,
         &known,
-        &decisions};
+        &states};
 }

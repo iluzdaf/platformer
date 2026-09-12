@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "actor/abilities/jump_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/jump_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -16,40 +16,40 @@ void JumpAbility::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
-    decided.jump.velocity = glm::vec2(0.0f);
+    states.jump.velocity = glm::vec2(0.0f);
 
     jumpBuffer.update(deltaTime);
     coyoteTime.update(deltaTime);
     if (observed.contacts.onGround)
         coyoteTime.start();
 
-    if (!decided.jump.active)
+    if (!states.jump.active)
     {
         if (inputIntentions.jumpRequested)
             jumpBuffer.start();
 
         if (jumpBuffer.running() && (observed.contacts.onGround || coyoteTime.running()))
         {
-            decided.jump.active = true;
-            decided.jump.holdTime = 0.0f;
+            states.jump.active = true;
+            states.jump.holdTime = 0.0f;
             jumpBuffer.consume();
             coyoteTime.consume();
         }
     }
 
-    if (decided.jump.active)
+    if (states.jump.active)
     {
-        decided.jump.holdTime += deltaTime;
+        states.jump.holdTime += deltaTime;
 
-        bool stillGoingUp = decided.jump.holdTime <= data.jumpDuration &&
+        bool stillGoingUp = states.jump.holdTime <= data.jumpDuration &&
                             (inputIntentions.jumpHeld || inputIntentions.jumpRequested) &&
                             !observed.contacts.hitCeiling;
 
         if (stillGoingUp)
-            decided.jump.velocity.y = data.jumpSpeed;
+            states.jump.velocity.y = data.jumpSpeed;
         else
-            decided.jump.active = false;
+            states.jump.active = false;
     }
 }

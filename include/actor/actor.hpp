@@ -11,7 +11,7 @@
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/abilities/abilities.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_behavior.hpp"
 #include "animations/animator.hpp"
@@ -44,7 +44,7 @@ public:
         std::span<const Noise> noises = {});
     virtual void postFixedUpdate();
     const ActorState &state() const;
-    const Decided &decided() const;
+    const AbilityStates &abilityStates() const;
     const Observed &observed() const;
     const PhysicsBody &body() const;
     const NavigationProfile &profile() const;
@@ -98,7 +98,7 @@ private:
     float highestSinceTheGround = std::numeric_limits<float>::max();
     std::optional<glm::vec2> threat;
     Abilities abilities;
-    Decided decisions;
+    AbilityStates states;
     Observed observations;
     PhysicsBody physicsBody;
     std::optional<Animator> animator;

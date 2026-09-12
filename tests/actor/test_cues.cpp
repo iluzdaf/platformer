@@ -2,7 +2,7 @@
 #include "input/input_intentions.hpp"
 #include "input/intention_source.hpp"
 #include "actor/actor_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include <algorithm>
 #include <string>
@@ -114,10 +114,10 @@ TEST_CASE(
         INFO(
             "step " << step << ": shown last tick " << shownLastTick << ", now "
                     << player.state().currentFrame);
-        if (player.decided().swing.swinging())
-            REQUIRE(player.decided().swing.striking() == (shownLastTick == 13));
-        ticksStriking += player.decided().swing.striking();
-        if (step > 5 && !player.decided().swing.swinging())
+        if (player.abilityStates().swing.swinging())
+            REQUIRE(player.abilityStates().swing.striking() == (shownLastTick == 13));
+        ticksStriking += player.abilityStates().swing.striking();
+        if (step > 5 && !player.abilityStates().swing.swinging())
             rested = true;
         shownLastTick = player.state().currentFrame;
     }
@@ -144,8 +144,8 @@ TEST_CASE("A swing strikes without an animator to show it", "[Actor][Cues]")
     {
         player.beginFrame();
         player.fixedUpdate(0.01f, level);
-        ticksStriking += player.decided().swing.striking();
-        if (step > 5 && !player.decided().swing.swinging())
+        ticksStriking += player.abilityStates().swing.striking();
+        if (step > 5 && !player.abilityStates().swing.swinging())
             rested = true;
     }
 

@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include "actor/abilities/dash_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/dash_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -20,47 +20,47 @@ void DashAbility::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
-    decided.dash.emit = false;
-    decided.dash.velocity = glm::vec2(0.0f);
+    states.dash.emit = false;
+    states.dash.velocity = glm::vec2(0.0f);
 
-    if (observed.contacts.onGround && decided.dash.timeLeft <= 0.0f)
-        decided.dash.available = true;
+    if (observed.contacts.onGround && states.dash.timeLeft <= 0.0f)
+        states.dash.available = true;
 
     if (inputIntentions.dashRequested && std::abs(inputIntentions.direction.x) > 0.0f &&
-        decided.dash.available && !observed.contacts.touchingLeftWall &&
+        states.dash.available && !observed.contacts.touchingLeftWall &&
         !observed.contacts.touchingRightWall)
     {
-        decided.dash.direction = inputIntentions.direction.x;
-        decided.dash.timeLeft = observed.contacts.onGround
-                                    ? data.dashDuration
-                                    : data.dashDuration * data.airborneFraction;
-        decided.dash.available = false;
-        decided.dash.emit = true;
-        decided.dash.active = true;
+        states.dash.direction = inputIntentions.direction.x;
+        states.dash.timeLeft = observed.contacts.onGround
+                                   ? data.dashDuration
+                                   : data.dashDuration * data.airborneFraction;
+        states.dash.available = false;
+        states.dash.emit = true;
+        states.dash.active = true;
     }
 
-    if (decided.dash.timeLeft > 0.0f && decided.dash.active)
+    if (states.dash.timeLeft > 0.0f && states.dash.active)
     {
         if (observed.contacts.touchingWall())
         {
-            decided.dash.timeLeft = 0.0f;
-            decided.dash.active = false;
+            states.dash.timeLeft = 0.0f;
+            states.dash.active = false;
         }
         else
         {
-            decided.dash.timeLeft -= deltaTime;
+            states.dash.timeLeft -= deltaTime;
 
-            if (decided.dash.timeLeft > 0.0f)
-                decided.dash.velocity.x = data.dashSpeed * decided.dash.direction;
+            if (states.dash.timeLeft > 0.0f)
+                states.dash.velocity.x = data.dashSpeed * states.dash.direction;
             else
             {
-                decided.dash.timeLeft = 0.0f;
-                decided.dash.active = false;
+                states.dash.timeLeft = 0.0f;
+                states.dash.active = false;
             }
         }
     }
-    else if (decided.dash.timeLeft <= 0.0f)
-        decided.dash.active = false;
+    else if (states.dash.timeLeft <= 0.0f)
+        states.dash.active = false;
 }

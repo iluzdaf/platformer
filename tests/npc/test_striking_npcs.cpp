@@ -5,7 +5,7 @@
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/actor_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/health.hpp"
 #include "actor/health_data.hpp"
 #include "actor/hit.hpp"
@@ -95,7 +95,7 @@ TEST_CASE("A swing in front of the player costs the npc the swing's damage", "[S
 {
     Duel duel(3, PlayerTile + glm::ivec2(1, 0));
     duel.swingFor(0.1f);
-    REQUIRE(duel.player.decided().swing.striking());
+    REQUIRE(duel.player.abilityStates().swing.striking());
 
     strikeNpcs(duel.player, duel.level.getNpcs());
 
@@ -110,7 +110,7 @@ TEST_CASE("A swing lands once, however long the npc stays in reach", "[StrikingN
 
     strikeNpcs(duel.player, duel.level.getNpcs());
     duel.swingFor(0.05f);
-    REQUIRE(duel.player.decided().swing.striking());
+    REQUIRE(duel.player.abilityStates().swing.striking());
     strikeNpcs(duel.player, duel.level.getNpcs());
 
     REQUIRE(duel.rat().health().points() == 2);

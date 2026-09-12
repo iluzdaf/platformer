@@ -9,7 +9,7 @@
 #include <glaze/glaze.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/swing_ability_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "animations/animator_facts.hpp"
 #include "conditions/asked.hpp"
@@ -20,79 +20,79 @@ namespace
     bool fact(
         const char *name,
         const Asked &asked,
-        const Decided &decided,
+        const AbilityStates &states,
         const Observed &observed,
         bool finished = false)
     {
         return rowNamed(animatorRows(), name)
-            ->holds(asked, AnimatorFacts{decided, observed, finished, ""});
+            ->holds(asked, AnimatorFacts{states, observed, finished, ""});
     }
 }
 
 TEST_CASE("Each fact follows the one thing it watches", "[AnimatorFacts]")
 {
-    Decided decided;
+    AbilityStates states;
     Observed observed;
 
-    REQUIRE(fact("alive", true, decided, observed));
+    REQUIRE(fact("alive", true, states, observed));
     observed.alive = false;
-    REQUIRE(fact("alive", false, decided, observed));
+    REQUIRE(fact("alive", false, states, observed));
     observed.alive = true;
 
-    decided.knockback.active = true;
-    REQUIRE(fact("knockback", true, decided, observed));
-    decided.knockback.active = false;
+    states.knockback.active = true;
+    REQUIRE(fact("knockback", true, states, observed));
+    states.knockback.active = false;
 
-    decided.swing.phase = SwingPhase::Windup;
-    REQUIRE(fact("swinging", true, decided, observed));
-    decided.swing.phase = SwingPhase::Idle;
+    states.swing.phase = SwingPhase::Windup;
+    REQUIRE(fact("swinging", true, states, observed));
+    states.swing.phase = SwingPhase::Idle;
 
-    decided.dash.active = true;
-    REQUIRE(fact("dashing", true, decided, observed));
-    decided.dash.active = false;
+    states.dash.active = true;
+    REQUIRE(fact("dashing", true, states, observed));
+    states.dash.active = false;
 
-    decided.pounce.active = true;
-    REQUIRE(fact("pouncing", true, decided, observed));
-    REQUIRE(fact("dashing", false, decided, observed));
-    decided.pounce.active = false;
+    states.pounce.active = true;
+    REQUIRE(fact("pouncing", true, states, observed));
+    REQUIRE(fact("dashing", false, states, observed));
+    states.pounce.active = false;
 
     observed.velocity = glm::vec2(0.0f, -40.0f);
-    REQUIRE(fact("rising", true, decided, observed));
-    REQUIRE(fact("falling", false, decided, observed));
+    REQUIRE(fact("rising", true, states, observed));
+    REQUIRE(fact("falling", false, states, observed));
 
     observed.velocity = glm::vec2(0.0f, 40.0f);
-    REQUIRE(fact("falling", true, decided, observed));
-    REQUIRE(fact("rising", false, decided, observed));
+    REQUIRE(fact("falling", true, states, observed));
+    REQUIRE(fact("rising", false, states, observed));
 
     observed.velocity = glm::vec2(0.2f, 0.0f);
-    REQUIRE(fact("moving", true, decided, observed));
+    REQUIRE(fact("moving", true, states, observed));
     observed.velocity = glm::vec2(0.05f, 0.0f);
-    REQUIRE(fact("moving", false, decided, observed));
+    REQUIRE(fact("moving", false, states, observed));
 
-    REQUIRE(fact("finished", true, decided, observed, true));
-    REQUIRE(fact("finished", false, decided, observed, false));
+    REQUIRE(fact("finished", true, states, observed, true));
+    REQUIRE(fact("finished", false, states, observed, false));
 }
 
 TEST_CASE("Climbing is a hang that is moving, and a wall is a slide or a hang", "[AnimatorFacts]")
 {
-    Decided decided;
+    AbilityStates states;
     Observed observed;
 
-    decided.wallSlide.active = true;
-    REQUIRE(fact("onWall", true, decided, observed));
-    REQUIRE(fact("climbing", false, decided, observed));
-    decided.wallSlide.active = false;
+    states.wallSlide.active = true;
+    REQUIRE(fact("onWall", true, states, observed));
+    REQUIRE(fact("climbing", false, states, observed));
+    states.wallSlide.active = false;
 
-    decided.wallHang.active = true;
-    REQUIRE(fact("onWall", true, decided, observed));
-    REQUIRE(fact("climbing", false, decided, observed));
+    states.wallHang.active = true;
+    REQUIRE(fact("onWall", true, states, observed));
+    REQUIRE(fact("climbing", false, states, observed));
 
-    decided.wallClimb.velocity.y = -40.0f;
-    REQUIRE(fact("climbing", true, decided, observed));
+    states.wallClimb.velocity.y = -40.0f;
+    REQUIRE(fact("climbing", true, states, observed));
 
-    decided.wallHang.active = false;
-    decided.wallSlide.active = true;
-    REQUIRE(fact("climbing", false, decided, observed));
+    states.wallHang.active = false;
+    states.wallSlide.active = true;
+    REQUIRE(fact("climbing", false, states, observed));
 }
 
 TEST_CASE(
@@ -125,8 +125,8 @@ namespace
         (
             [&]
             {
-                if constexpr (CanBeActive<typename glz::reflect<Decided>::template type<I>>)
-                    names.push_back(glz::reflect<Decided>::keys[I]);
+                if constexpr (CanBeActive<typename glz::reflect<AbilityStates>::template type<I>>)
+                    names.push_back(glz::reflect<AbilityStates>::keys[I]);
             }(),
             ...);
         return names;
@@ -141,7 +141,7 @@ TEST_CASE("Every ability that can be active is a fact, or says why it is not", "
         {"mantle", "there is no mantle picture yet; add a row when there is"}};
 
     std::vector<std::string_view> flagged =
-        abilitiesThatCanBeActive(std::make_index_sequence<glz::reflect<Decided>::size>{});
+        abilitiesThatCanBeActive(std::make_index_sequence<glz::reflect<AbilityStates>::size>{});
     REQUIRE_FALSE(flagged.empty());
 
     for (std::string_view ability : flagged)
@@ -162,8 +162,8 @@ TEST_CASE("A row that says it watches a flag really reads it", "[AnimatorFacts]"
         if (row.covers.empty())
             continue;
 
-        Decided off;
-        Decided on;
+        AbilityStates off;
+        AbilityStates on;
         if (row.covers == "dash")
             on.dash.active = true;
         else if (row.covers == "knockback")

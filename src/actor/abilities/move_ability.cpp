@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "actor/abilities/move_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/move_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -15,12 +15,12 @@ void MoveAbility::decide(
     float,
     const InputIntentions &inputIntentions,
     const Observed &,
-    Decided &decided)
+    AbilityStates &states)
 {
-    decided.move.velocity = glm::vec2(0.0f);
+    states.move.velocity = glm::vec2(0.0f);
 
     if (inputIntentions.direction.x > 0)
-        decided.move.velocity.x = data.moveSpeed;
+        states.move.velocity.x = data.moveSpeed;
     else if (inputIntentions.direction.x < 0)
-        decided.move.velocity.x = -data.moveSpeed;
+        states.move.velocity.x = -data.moveSpeed;
 }

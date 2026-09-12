@@ -1,6 +1,5 @@
 #pragma once
 
-#include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/move_ability_state.hpp"
 #include "actor/abilities/dash_ability_state.hpp"
 #include "actor/abilities/jump_ability_state.hpp"
@@ -15,11 +14,8 @@
 #include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
 
-struct Decided
+struct AbilityStates
 {
-
-    glm::vec2 targetVelocity = glm::vec2(0.0f);
-
     MoveAbilityState move;
     DashAbilityState dash;
     JumpAbilityState jump;

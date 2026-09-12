@@ -4,7 +4,7 @@
 #include <tuple>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"
@@ -45,7 +45,7 @@ namespace
             gameData.npcData,
             gameData.pickupData};
         TextureCache textures;
-        Decided decided;
+        AbilityStates states;
         Observed observed;
         ActorState playerState;
         Camera2D camera{gameData.cameraData, 800, 600};
@@ -60,7 +60,7 @@ namespace
                 levelPath,
                 textures,
                 levels,
-                decided,
+                states,
                 observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, FloorLevelStanding)),
                 playerState,

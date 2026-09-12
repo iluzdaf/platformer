@@ -1,7 +1,7 @@
 #pragma once
 
 #include "actor/abilities/ability.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 
@@ -74,11 +74,11 @@ inline InputIntentions pressingDown()
     return pressing(0.0f, 1.0f);
 }
 
-inline Decided hanging()
+inline AbilityStates hanging()
 {
-    Decided decided;
-    decided.wallHang.active = true;
-    return decided;
+    AbilityStates states;
+    states.wallHang.active = true;
+    return states;
 }
 
 inline InputIntentions pressingJump(float x = 0.0f)
@@ -110,11 +110,11 @@ inline void tick(
     Ability &ability,
     const InputIntentions &asked,
     const Observed &observed,
-    Decided &decided,
+    AbilityStates &states,
     int times = 1)
 {
     for (int time = 0; time < times; ++time)
-        ability.decide(Step, asked, observed, decided);
+        ability.decide(Step, asked, observed, states);
 }
 
 template <class Until>
@@ -122,14 +122,14 @@ int ticksUntil(
     Ability &ability,
     const InputIntentions &asked,
     const Observed &observed,
-    Decided &decided,
+    AbilityStates &states,
     Until until)
 {
     constexpr int AtMost = 1000;
     for (int ticks = 1; ticks <= AtMost; ++ticks)
     {
-        ability.decide(Step, asked, observed, decided);
-        if (until(decided))
+        ability.decide(Step, asked, observed, states);
+        if (until(states))
             return ticks;
     }
 

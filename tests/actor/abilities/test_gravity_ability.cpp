@@ -2,7 +2,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "actor/abilities/gravity_ability.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
 
@@ -10,11 +10,11 @@ using Catch::Approx;
 
 namespace
 {
-    Decided fallingFor(GravityAbility &gravity, int ticks)
+    AbilityStates fallingFor(GravityAbility &gravity, int ticks)
     {
-        Decided decided;
-        tick(gravity, InputIntentions{}, inTheAir(), decided, ticks);
-        return decided;
+        AbilityStates states;
+        tick(gravity, InputIntentions{}, inTheAir(), states, ticks);
+        return states;
     }
 }
 
@@ -22,13 +22,13 @@ TEST_CASE("Gravity pulls harder every tick in the air", "[GravityAbility]")
 {
     GravityAbilityData data;
     GravityAbility gravity(data);
-    Decided decided;
+    AbilityStates states;
 
-    tick(gravity, InputIntentions{}, inTheAir(), decided);
-    REQUIRE(decided.gravity.velocity.y == Approx(data.gravity * Step));
+    tick(gravity, InputIntentions{}, inTheAir(), states);
+    REQUIRE(states.gravity.velocity.y == Approx(data.gravity * Step));
 
-    tick(gravity, InputIntentions{}, inTheAir(), decided);
-    REQUIRE(decided.gravity.velocity.y == Approx(2.0f * data.gravity * Step));
+    tick(gravity, InputIntentions{}, inTheAir(), states);
+    REQUIRE(states.gravity.velocity.y == Approx(2.0f * data.gravity * Step));
 }
 
 TEST_CASE("A fall gets no faster than its most", "[GravityAbility]")
@@ -36,9 +36,9 @@ TEST_CASE("A fall gets no faster than its most", "[GravityAbility]")
     GravityAbilityData data;
     GravityAbility gravity(data);
 
-    Decided decided = fallingFor(gravity, 1000);
+    AbilityStates states = fallingFor(gravity, 1000);
 
-    REQUIRE(decided.gravity.velocity.y == Approx(data.maxFallSpeed));
+    REQUIRE(states.gravity.velocity.y == Approx(data.maxFallSpeed));
 }
 
 TEST_CASE(
@@ -47,13 +47,13 @@ TEST_CASE(
 {
     GravityAbilityData data;
     GravityAbility gravity(data);
-    Decided decided = fallingFor(gravity, 10);
+    AbilityStates states = fallingFor(gravity, 10);
 
-    tick(gravity, InputIntentions{}, onTheGround(), decided);
-    REQUIRE(decided.gravity.velocity.y == 0.0f);
+    tick(gravity, InputIntentions{}, onTheGround(), states);
+    REQUIRE(states.gravity.velocity.y == 0.0f);
 
-    tick(gravity, InputIntentions{}, inTheAir(), decided);
-    REQUIRE(decided.gravity.velocity.y == Approx(data.gravity * Step));
+    tick(gravity, InputIntentions{}, inTheAir(), states);
+    REQUIRE(states.gravity.velocity.y == Approx(data.gravity * Step));
 }
 
 TEST_CASE(
@@ -62,22 +62,22 @@ TEST_CASE(
 {
     GravityAbility gravity(GravityAbilityData{});
 
-    Decided hanging = fallingFor(gravity, 10);
+    AbilityStates hanging = fallingFor(gravity, 10);
     hanging.wallHang.active = true;
     tick(gravity, InputIntentions{}, inTheAir(), hanging);
     REQUIRE(hanging.gravity.velocity.y == 0.0f);
 
-    Decided sliding = fallingFor(gravity, 10);
+    AbilityStates sliding = fallingFor(gravity, 10);
     sliding.wallSlide.active = true;
     tick(gravity, InputIntentions{}, inTheAir(), sliding);
     REQUIRE(sliding.gravity.velocity.y == 0.0f);
 
-    Decided mantling = fallingFor(gravity, 10);
+    AbilityStates mantling = fallingFor(gravity, 10);
     mantling.mantle.active = true;
     tick(gravity, InputIntentions{}, inTheAir(), mantling);
     REQUIRE(mantling.gravity.velocity.y == 0.0f);
 
-    Decided knockedBack = fallingFor(gravity, 10);
+    AbilityStates knockedBack = fallingFor(gravity, 10);
     knockedBack.knockback.active = true;
     tick(gravity, InputIntentions{}, inTheAir(), knockedBack);
     REQUIRE(knockedBack.gravity.velocity.y == 0.0f);

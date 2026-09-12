@@ -3,7 +3,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "actor/abilities/dash_ability.hpp"
 #include "actor/abilities/dash_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
@@ -20,17 +20,17 @@ namespace
         return data;
     }
 
-    bool ended(const Decided &decided)
+    bool ended(const AbilityStates &states)
     {
-        return !decided.dash.active;
+        return !states.dash.active;
     }
 
     int ticksADashLasts(const DashAbilityData &data, const Observed &from)
     {
         DashAbility dash(data);
-        Decided decided;
-        tick(dash, pressingDash(1.0f), from, decided);
-        return ticksUntil(dash, InputIntentions{}, from, decided, ended);
+        AbilityStates states;
+        tick(dash, pressingDash(1.0f), from, states);
+        return ticksUntil(dash, InputIntentions{}, from, states, ended);
     }
 }
 
@@ -39,7 +39,7 @@ TEST_CASE("A dash sets off the way it is pressed, at its speed, and keeps going"
     DashAbilityData data;
 
     DashAbility right(data);
-    Decided goingRight;
+    AbilityStates goingRight;
     tick(right, pressingDash(1.0f), onTheGround(), goingRight);
     REQUIRE(goingRight.dash.active);
     REQUIRE(goingRight.dash.velocity.x == Approx(data.dashSpeed));
@@ -48,7 +48,7 @@ TEST_CASE("A dash sets off the way it is pressed, at its speed, and keeps going"
     REQUIRE(goingRight.dash.velocity.x == Approx(data.dashSpeed));
 
     DashAbility left(data);
-    Decided goingLeft;
+    AbilityStates goingLeft;
     tick(left, pressingDash(-1.0f), onTheGround(), goingLeft);
     REQUIRE(goingLeft.dash.velocity.x == Approx(-data.dashSpeed));
 
@@ -59,37 +59,37 @@ TEST_CASE("A dash sets off the way it is pressed, at its speed, and keeps going"
 TEST_CASE("A dash says so once", "[DashAbility]")
 {
     DashAbility dash(DashAbilityData{});
-    Decided decided;
+    AbilityStates states;
 
-    tick(dash, pressingDash(1.0f), onTheGround(), decided);
-    REQUIRE(decided.dash.emit);
+    tick(dash, pressingDash(1.0f), onTheGround(), states);
+    REQUIRE(states.dash.emit);
 
-    tick(dash, InputIntentions{}, onTheGround(), decided);
-    REQUIRE(decided.dash.active);
-    REQUIRE_FALSE(decided.dash.emit);
+    tick(dash, InputIntentions{}, onTheGround(), states);
+    REQUIRE(states.dash.active);
+    REQUIRE_FALSE(states.dash.emit);
 }
 
 TEST_CASE("A dash needs a direction to go in", "[DashAbility]")
 {
     DashAbility dash(DashAbilityData{});
-    Decided decided;
+    AbilityStates states;
 
-    tick(dash, pressingDash(0.0f), onTheGround(), decided);
+    tick(dash, pressingDash(0.0f), onTheGround(), states);
 
-    REQUIRE_FALSE(decided.dash.active);
-    REQUIRE(decided.dash.velocity.x == 0.0f);
+    REQUIRE_FALSE(states.dash.active);
+    REQUIRE(states.dash.velocity.x == 0.0f);
 }
 
 TEST_CASE("A dash lasts as long as it says, and then ends", "[DashAbility]")
 {
     DashAbility dash(timedAs(0.045f));
-    Decided decided;
-    tick(dash, pressingDash(1.0f), onTheGround(), decided);
+    AbilityStates states;
+    tick(dash, pressingDash(1.0f), onTheGround(), states);
 
-    int ticksUntilItEnds = ticksUntil(dash, InputIntentions{}, onTheGround(), decided, ended);
+    int ticksUntilItEnds = ticksUntil(dash, InputIntentions{}, onTheGround(), states, ended);
 
     REQUIRE(ticksUntilItEnds == 4);
-    REQUIRE(decided.dash.velocity.x == 0.0f);
+    REQUIRE(states.dash.velocity.x == 0.0f);
 }
 
 TEST_CASE("A dash begun in the air is the shorter one", "[DashAbility]")
@@ -113,12 +113,12 @@ TEST_CASE("Pressing dash again mid-dash does not make it last longer", "[DashAbi
     DashAbilityData data = timedAs(0.045f);
 
     DashAbility pressedOnce(data);
-    Decided once;
+    AbilityStates once;
     tick(pressedOnce, pressingDash(1.0f), onTheGround(), once);
     int onceFor = ticksUntil(pressedOnce, InputIntentions{}, onTheGround(), once, ended);
 
     DashAbility pressedAgain(data);
-    Decided again;
+    AbilityStates again;
     tick(pressedAgain, pressingDash(1.0f), onTheGround(), again);
     int againFor = ticksUntil(pressedAgain, pressingDash(1.0f), onTheGround(), again, ended);
 
@@ -128,13 +128,13 @@ TEST_CASE("Pressing dash again mid-dash does not make it last longer", "[DashAbi
 TEST_CASE("A dash ends when it meets a wall", "[DashAbility]")
 {
     DashAbility dash(DashAbilityData{});
-    Decided decided;
-    tick(dash, pressingDash(-1.0f), inTheAir(), decided);
+    AbilityStates states;
+    tick(dash, pressingDash(-1.0f), inTheAir(), states);
 
-    tick(dash, InputIntentions{}, onAWall(WallSide::Left), decided);
+    tick(dash, InputIntentions{}, onAWall(WallSide::Left), states);
 
-    REQUIRE_FALSE(decided.dash.active);
-    REQUIRE(decided.dash.velocity.x == 0.0f);
+    REQUIRE_FALSE(states.dash.active);
+    REQUIRE(states.dash.velocity.x == 0.0f);
 }
 
 TEST_CASE(
@@ -142,46 +142,46 @@ TEST_CASE(
     "[DashAbility]")
 {
     DashAbility dash(DashAbilityData{});
-    Decided decided;
+    AbilityStates states;
 
-    tick(dash, pressingDash(-1.0f), onAWall(WallSide::Left), decided);
-    REQUIRE_FALSE(decided.dash.active);
-    REQUIRE_FALSE(decided.dash.emit);
+    tick(dash, pressingDash(-1.0f), onAWall(WallSide::Left), states);
+    REQUIRE_FALSE(states.dash.active);
+    REQUIRE_FALSE(states.dash.emit);
 
-    tick(dash, pressingDash(1.0f), onAWall(WallSide::Left), decided);
-    REQUIRE_FALSE(decided.dash.active);
-    REQUIRE_FALSE(decided.dash.emit);
-    REQUIRE(decided.dash.velocity.x == 0.0f);
+    tick(dash, pressingDash(1.0f), onAWall(WallSide::Left), states);
+    REQUIRE_FALSE(states.dash.active);
+    REQUIRE_FALSE(states.dash.emit);
+    REQUIRE(states.dash.velocity.x == 0.0f);
 
-    tick(dash, pressingDash(1.0f), inTheAir(), decided);
-    REQUIRE(decided.dash.active);
+    tick(dash, pressingDash(1.0f), inTheAir(), states);
+    REQUIRE(states.dash.active);
 }
 
 TEST_CASE("A dash taken in the air is not taken again until the ground is touched", "[DashAbility]")
 {
     DashAbility dash(timedAs(0.045f));
-    Decided decided;
-    tick(dash, pressingDash(1.0f), inTheAir(), decided);
-    ticksUntil(dash, InputIntentions{}, inTheAir(), decided, ended);
+    AbilityStates states;
+    tick(dash, pressingDash(1.0f), inTheAir(), states);
+    ticksUntil(dash, InputIntentions{}, inTheAir(), states, ended);
 
-    tick(dash, pressingDash(1.0f), inTheAir(), decided);
-    REQUIRE_FALSE(decided.dash.active);
+    tick(dash, pressingDash(1.0f), inTheAir(), states);
+    REQUIRE_FALSE(states.dash.active);
 
-    tick(dash, InputIntentions{}, onTheGround(), decided);
-    tick(dash, pressingDash(1.0f), inTheAir(), decided);
-    REQUIRE(decided.dash.active);
+    tick(dash, InputIntentions{}, onTheGround(), states);
+    tick(dash, pressingDash(1.0f), inTheAir(), states);
+    REQUIRE(states.dash.active);
 }
 
 TEST_CASE("On the ground a dash can be taken again as soon as one ends", "[DashAbility]")
 {
     DashAbility dash(timedAs(0.045f));
-    Decided decided;
-    tick(dash, pressingDash(1.0f), onTheGround(), decided);
-    ticksUntil(dash, InputIntentions{}, onTheGround(), decided, ended);
+    AbilityStates states;
+    tick(dash, pressingDash(1.0f), onTheGround(), states);
+    ticksUntil(dash, InputIntentions{}, onTheGround(), states, ended);
 
-    tick(dash, pressingDash(1.0f), onTheGround(), decided);
+    tick(dash, pressingDash(1.0f), onTheGround(), states);
 
-    REQUIRE(decided.dash.active);
+    REQUIRE(states.dash.active);
 }
 
 TEST_CASE("A dash that goes nowhere or takes no time is refused", "[DashAbility]")

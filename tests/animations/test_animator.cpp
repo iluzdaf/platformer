@@ -5,7 +5,7 @@
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
 #include "conditions/asked.hpp"
@@ -36,7 +36,7 @@ TEST_CASE("Plays the animation for the state it is in", "[Animator]")
     data.rules = {walkRule(), idleRule()};
     Animator animator(data);
 
-    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround());
 
     REQUIRE(animator.state() == "walk");
 }
@@ -49,7 +49,7 @@ TEST_CASE("Falls back to idle for a state it has no animation for", "[Animator]"
     data.rules = {idleRule()};
     Animator animator(data);
 
-    REQUIRE_NOTHROW(animator.animate(0.01f, Decided{}, walkingOnGround()));
+    REQUIRE_NOTHROW(animator.animate(0.01f, AbilityStates{}, walkingOnGround()));
     REQUIRE(animator.state() == "idle");
 }
 
@@ -61,17 +61,17 @@ TEST_CASE("An actor without airborne animations survives being airborne", "[Anim
     data.rules = {idleRule()};
     Animator animator(data);
 
-    Decided decided;
+    AbilityStates states;
 
     Observed observed;
     observed.contacts.onGround = false;
     observed.velocity = glm::vec2(0.0f, 40.0f);
 
-    REQUIRE_NOTHROW(animator.animate(0.01f, decided, observed));
+    REQUIRE_NOTHROW(animator.animate(0.01f, states, observed));
     REQUIRE(animator.state() == "idle");
 
-    decided.dash.active = true;
-    REQUIRE_NOTHROW(animator.animate(0.01f, decided, observed));
+    states.dash.active = true;
+    REQUIRE_NOTHROW(animator.animate(0.01f, states, observed));
     REQUIRE(animator.state() == "idle");
 }
 
@@ -88,11 +88,11 @@ TEST_CASE("Off the ground, the observed velocity says whether it is a jump or a 
     airborne.contacts.onGround = false;
 
     airborne.velocity = glm::vec2(0.0f, -40.0f);
-    animator.animate(0.01f, Decided{}, airborne);
+    animator.animate(0.01f, AbilityStates{}, airborne);
     REQUIRE(animator.state() == "jump");
 
     airborne.velocity = glm::vec2(0.0f, 40.0f);
-    animator.animate(0.01f, Decided{}, airborne);
+    animator.animate(0.01f, AbilityStates{}, airborne);
     REQUIRE(animator.state() == "fall");
 }
 
@@ -106,7 +106,7 @@ TEST_CASE("A swing shows the attack, and a corpse shows dead, over everything el
     data.clips["dead"] = animationDataOfFrame(4);
     data.rules = {deadRule(), swingRule(), dashRule(), idleRule()};
     Animator animator(data);
-    Decided swingingWhileDashing;
+    AbilityStates swingingWhileDashing;
     swingingWhileDashing.dash.active = true;
     swingingWhileDashing.swing.phase = SwingPhase::Windup;
 
@@ -129,7 +129,7 @@ TEST_CASE("A knockback shows over a swing, a dash and the ground", "[Animator]")
     data.clips["knockback"] = animationDataOfFrame(5);
     data.rules = {knockbackRule(), swingRule(), dashRule(), idleRule()};
     Animator animator(data);
-    Decided pushedWhileSwinging;
+    AbilityStates pushedWhileSwinging;
     pushedWhileSwinging.dash.active = true;
     pushedWhileSwinging.swing.phase = SwingPhase::Windup;
     pushedWhileSwinging.knockback.active = true;
@@ -148,7 +148,7 @@ TEST_CASE("A corpse shows dead even while it is still being pushed", "[Animator]
     data.clips["dead"] = animationDataOfFrame(4);
     data.rules = {deadRule(), knockbackRule(), idleRule()};
     Animator animator(data);
-    Decided pushed;
+    AbilityStates pushed;
     pushed.knockback.active = true;
     Observed dead = walkingOnGround();
     dead.alive = false;
@@ -172,7 +172,7 @@ TEST_CASE("Hanging shows the climb only while it is moving", "[Animator]")
     };
     Animator animator(data);
     Observed offTheGround;
-    Decided hanging;
+    AbilityStates hanging;
     hanging.wallHang.active = true;
 
     animator.animate(0.01f, hanging, offTheGround);
@@ -197,7 +197,7 @@ TEST_CASE("A slide that is not a hang never shows the climb", "[Animator]")
     data.rules = {climbRule(), wallSlideRule(), idleRule()};
     Animator animator(data);
     Observed offTheGround;
-    Decided sliding;
+    AbilityStates sliding;
     sliding.wallSlide.active = true;
     sliding.wallClimb.velocity.y = -40.0f;
 
@@ -215,7 +215,7 @@ TEST_CASE("Entering a state says its clip's opening cue", "[Animator]")
     data.rules = {walkRule(), idleRule()};
     Animator animator(data);
 
-    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround());
 
     REQUIRE(animator.takeCues() == std::vector<std::string>{"onFootstep"});
 }
@@ -228,10 +228,10 @@ TEST_CASE("Staying in a state does not repeat its opening cue", "[Animator]")
     data.clips["walk"] = FrameAnimationData({2}, 1.0f, {FrameCueData{0, "onFootstep"}});
     data.rules = {walkRule(), idleRule()};
     Animator animator(data);
-    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround());
     animator.takeCues();
 
-    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround());
 
     REQUIRE(animator.takeCues().empty());
 }
@@ -246,10 +246,10 @@ TEST_CASE("The animator says when the clip it is playing has finished", "[Animat
     Animator animator(data);
     data.clips["walk"].loops = false;
 
-    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround());
     REQUIRE_FALSE(animator.finished());
 
-    animator.animate(0.3f, Decided{}, walkingOnGround());
+    animator.animate(0.3f, AbilityStates{}, walkingOnGround());
     REQUIRE(animator.finished());
 }
 
@@ -264,15 +264,15 @@ TEST_CASE("The first rule that holds is shown, and the start clip when none does
     data.rules = {{"walk", moving}};
     Animator animator(data);
 
-    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround());
     REQUIRE(animator.state() == "walk");
 
     Observed airborne;
     airborne.velocity = glm::vec2(0.0f, -40.0f);
-    animator.animate(0.01f, Decided{}, airborne);
+    animator.animate(0.01f, AbilityStates{}, airborne);
     REQUIRE(animator.state() == "idle");
 
-    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround());
     REQUIRE(animator.state() == "walk");
 }
 
@@ -289,12 +289,12 @@ TEST_CASE("A rule above wins over one below it that holds as well", "[Animator]"
 
     data.rules = {{"jump", always}, {"walk", moving}};
     Animator jumpFirst(data);
-    jumpFirst.animate(0.01f, Decided{}, walkingOnGround());
+    jumpFirst.animate(0.01f, AbilityStates{}, walkingOnGround());
     REQUIRE(jumpFirst.state() == "jump");
 
     data.rules = {{"walk", moving}, {"jump", always}};
     Animator walkFirst(data);
-    walkFirst.animate(0.01f, Decided{}, walkingOnGround());
+    walkFirst.animate(0.01f, AbilityStates{}, walkingOnGround());
     REQUIRE(walkFirst.state() == "walk");
 }
 
@@ -311,12 +311,12 @@ TEST_CASE("A rule may ask which state the machine is in", "[Animator]")
     data.rules = {{"sleep", asleep}, {"idle", otherwise}};
     Animator animator(data);
 
-    animator.animate(0.01f, Decided{}, walkingOnGround(), "sleep");
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround(), "sleep");
     REQUIRE(animator.state() == "sleep");
 
-    animator.animate(0.01f, Decided{}, walkingOnGround(), "charge");
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround(), "charge");
     REQUIRE(animator.state() == "idle");
 
-    animator.animate(0.01f, Decided{}, walkingOnGround());
+    animator.animate(0.01f, AbilityStates{}, walkingOnGround());
     REQUIRE(animator.state() == "idle");
 }

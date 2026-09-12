@@ -2,7 +2,7 @@
 #include "actor/abilities/pounce_ability.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 
@@ -19,12 +19,12 @@ void PounceAbility::decide(
     float,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
-    PounceAbilityState &pounce = decided.pounce;
+    PounceAbilityState &pounce = states.pounce;
     pounce.emit = false;
 
-    if (decided.knockback.active)
+    if (states.knockback.active)
     {
         pounce.active = false;
         return;
@@ -41,7 +41,7 @@ void PounceAbility::decide(
         }
 
         pounce.velocity =
-            glm::vec2(data.leap.x * pounce.direction, data.leap.y + decided.gravity.velocity.y);
+            glm::vec2(data.leap.x * pounce.direction, data.leap.y + states.gravity.velocity.y);
         return;
     }
 

@@ -5,7 +5,7 @@
 
 struct InputIntentions;
 struct Observed;
-struct Decided;
+struct AbilityStates;
 
 class WallClimbAbility : public Ability
 {
@@ -15,7 +15,7 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        Decided &decided) override;
+        AbilityStates &states) override;
 
 private:
     WallClimbAbilityData data;

@@ -6,7 +6,7 @@
 #include "conditions/facts.hpp"
 
 class NavigationGraph;
-struct Decided;
+struct AbilityStates;
 
 struct ActorBehaviorContext
 {
@@ -17,5 +17,5 @@ struct ActorBehaviorContext
 
     ActorContactState contacts;
     const FactsData *facts = nullptr;
-    const Decided *decided = nullptr;
+    const AbilityStates *abilityStates = nullptr;
 };

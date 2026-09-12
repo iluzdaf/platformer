@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "actor/abilities/mantle_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/mantle_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -17,31 +17,31 @@ void MantleAbility::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
-    decided.mantle.velocity = glm::vec2(0.0f);
+    states.mantle.velocity = glm::vec2(0.0f);
 
-    if (!decided.mantle.active)
+    if (!states.mantle.active)
     {
         bool atLedge = observed.contacts.ledgeOnLeft || observed.contacts.ledgeOnRight;
-        if (!decided.wallHang.active || !atLedge || inputIntentions.direction.y >= 0.0f)
+        if (!states.wallHang.active || !atLedge || inputIntentions.direction.y >= 0.0f)
             return;
 
-        decided.mantle.direction = observed.contacts.ledgeOnLeft ? -1.0f : 1.0f;
-        decided.mantle.timeLeft = data.mantleDuration;
-        decided.mantle.active = true;
+        states.mantle.direction = observed.contacts.ledgeOnLeft ? -1.0f : 1.0f;
+        states.mantle.timeLeft = data.mantleDuration;
+        states.mantle.active = true;
     }
 
-    decided.mantle.timeLeft -= deltaTime;
-    if (decided.mantle.timeLeft <= 0.0f)
+    states.mantle.timeLeft -= deltaTime;
+    if (states.mantle.timeLeft <= 0.0f)
     {
-        decided.mantle.timeLeft = 0.0f;
-        decided.mantle.active = false;
+        states.mantle.timeLeft = 0.0f;
+        states.mantle.active = false;
         return;
     }
 
-    bool pullingUp = decided.mantle.timeLeft > data.mantleDuration * 0.5f;
-    decided.mantle.velocity = pullingUp
-                                  ? glm::vec2(0.0f, -data.mantleSpeed)
-                                  : glm::vec2(data.mantleSpeed * decided.mantle.direction, 0.0f);
+    bool pullingUp = states.mantle.timeLeft > data.mantleDuration * 0.5f;
+    states.mantle.velocity = pullingUp
+                                 ? glm::vec2(0.0f, -data.mantleSpeed)
+                                 : glm::vec2(data.mantleSpeed * states.mantle.direction, 0.0f);
 }

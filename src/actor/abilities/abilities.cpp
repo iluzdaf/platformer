@@ -1,5 +1,5 @@
 #include "actor/actor_motion_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/abilities.hpp"
 #include "actor/abilities/move_ability.hpp"
@@ -47,39 +47,39 @@ Abilities::Abilities(const ActorMotionData &data)
         abilities.push_back(std::make_unique<SwingAbility>(data.swingAbilityData.value()));
 }
 
-void Abilities::decide(
+glm::vec2 Abilities::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
     for (auto &ability : abilities)
-        ability->decide(deltaTime, inputIntentions, observed, decided);
+        ability->decide(deltaTime, inputIntentions, observed, states);
 
-    glm::vec2 finalVelocity = decided.gravity.velocity;
-    if (decided.knockback.active)
-        finalVelocity = decided.knockback.velocity;
-    else if (decided.dash.active)
-        finalVelocity = decided.dash.velocity;
-    else if (decided.mantle.active)
-        finalVelocity = decided.mantle.velocity;
-    else if (decided.pounce.active)
-        finalVelocity = decided.pounce.velocity;
-    else if (decided.charge.active)
-        finalVelocity = decided.charge.velocity;
+    glm::vec2 velocity = states.gravity.velocity;
+    if (states.knockback.active)
+        velocity = states.knockback.velocity;
+    else if (states.dash.active)
+        velocity = states.dash.velocity;
+    else if (states.mantle.active)
+        velocity = states.mantle.velocity;
+    else if (states.pounce.active)
+        velocity = states.pounce.velocity;
+    else if (states.charge.active)
+        velocity = states.charge.velocity;
     else
     {
-        finalVelocity.x = decided.move.velocity.x;
+        velocity.x = states.move.velocity.x;
 
-        if (decided.jump.active)
-            finalVelocity.y = decided.jump.velocity.y;
-        else if (decided.wallJump.active)
-            finalVelocity = decided.wallJump.velocity;
-        else if (decided.wallHang.active)
-            finalVelocity.y = decided.wallClimb.velocity.y;
-        else if (decided.wallSlide.active)
-            finalVelocity.y = decided.wallSlide.velocity.y;
+        if (states.jump.active)
+            velocity.y = states.jump.velocity.y;
+        else if (states.wallJump.active)
+            velocity = states.wallJump.velocity;
+        else if (states.wallHang.active)
+            velocity.y = states.wallClimb.velocity.y;
+        else if (states.wallSlide.active)
+            velocity.y = states.wallSlide.velocity.y;
     }
 
-    decided.targetVelocity = finalVelocity;
+    return velocity;
 }

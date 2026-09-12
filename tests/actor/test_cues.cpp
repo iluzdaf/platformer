@@ -4,7 +4,6 @@
 #include "actor/actor_state.hpp"
 #include "actor/decided.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
-#include <catch2/matchers/catch_matchers_string.hpp>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -57,29 +56,11 @@ namespace
     PlayerData aPlayerWithAnAttackClip()
     {
         PlayerData playerData = playerDataWithEveryAbility();
-        playerData.actorData.animationData->clips["attack"] = FrameAnimationData{
-            {12, 13, 14}, 0.1f, {{1, std::string(StrikeCue)}, {2, std::string(RecoverCue)}}};
+        playerData.actorData.animationData->clips["attack"] =
+            FrameAnimationData{{12, 13, 14}, 0.1f};
         playerData.actorData.animationData->clips.at("attack").loops = false;
         return playerData;
     }
-}
-
-TEST_CASE("A swing is refused without a strike cue", "[Actor][Cues]")
-{
-    PlayerData playerData = aPlayerWithAnAttackClip();
-    playerData.actorData.animationData->clips.at("attack").cues.clear();
-
-    REQUIRE_THROWS_WITH(
-        Player(playerData, noIntentions()), Catch::Matchers::ContainsSubstring("onStrike"));
-}
-
-TEST_CASE("A swing is refused when its clip loops", "[Actor][Cues]")
-{
-    PlayerData playerData = aPlayerWithAnAttackClip();
-    playerData.actorData.animationData->clips.at("attack").loops = true;
-
-    REQUIRE_THROWS_WITH(
-        Player(playerData, noIntentions()), Catch::Matchers::ContainsSubstring("plays once"));
 }
 
 namespace
@@ -109,7 +90,9 @@ namespace
     };
 }
 
-TEST_CASE("A swing strikes one tick behind the frame that shows the blade", "[Actor][Cues]")
+TEST_CASE(
+    "A swing timed like its clip strikes one tick behind the frame that shows the blade",
+    "[Actor][Cues]")
 {
     PlayerData playerData = aPlayerWithAnAttackClip();
     PressingAttackOnce once;
@@ -137,6 +120,33 @@ TEST_CASE("A swing strikes one tick behind the frame that shows the blade", "[Ac
         if (step > 5 && !player.decided().swing.swinging())
             rested = true;
         shownLastTick = player.state().currentFrame;
+    }
+
+    REQUIRE(ticksStriking == 10);
+    REQUIRE(rested);
+}
+
+TEST_CASE("A swing strikes without an animator to show it", "[Actor][Cues]")
+{
+    PlayerData playerData = playerDataWithEveryAbility();
+    playerData.actorData.animationData.reset();
+    PressingAttackOnce once;
+    Player player(playerData, once);
+    Level level(
+        aFloorLevelPlacing({}), theOnlyPalette(aPaletteWithASolidTile()), playerData, {}, {});
+    FixedTimeStep timestepper;
+    runFor(player, level, 0.3f, timestepper);
+    once.arm();
+
+    int ticksStriking = 0;
+    bool rested = false;
+    for (int step = 0; step < 60; ++step)
+    {
+        player.beginFrame();
+        player.fixedUpdate(0.01f, level);
+        ticksStriking += player.decided().swing.striking();
+        if (step > 5 && !player.decided().swing.swinging())
+            rested = true;
     }
 
     REQUIRE(ticksStriking == 10);

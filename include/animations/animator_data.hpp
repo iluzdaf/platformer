@@ -7,8 +7,6 @@
 #include "animations/animation_ladder_data.hpp"
 #include "animations/frame_animation_data.hpp"
 
-inline constexpr std::string_view AttackClip = "attack";
-
 struct AnimatorData
 {
     std::map<std::string, FrameAnimationData> clips;

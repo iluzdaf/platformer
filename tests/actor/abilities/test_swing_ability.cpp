@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <string>
-#include <utility>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/swing_ability.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
@@ -22,18 +21,19 @@ namespace
         return intentions;
     }
 
-    Observed clipSaying(std::string cue)
+    SwingAbilityData timedAs(float windup, float strike, float recovery)
     {
-        Observed observed;
-        observed.cues.push_back(std::move(cue));
-        return observed;
+        SwingAbilityData data;
+        data.windupDuration = windup;
+        data.strikeDuration = strike;
+        data.recoveryDuration = recovery;
+        return data;
     }
 
-    Observed clipFinished()
+    void wait(SwingAbility &ability, Decided &decided, int steps)
     {
-        Observed observed;
-        observed.animationFinished = true;
-        return observed;
+        for (int step = 0; step < steps; ++step)
+            ability.decide(Step, InputIntentions{}, Observed{}, decided);
     }
 
     Observed facingLeft()
@@ -45,58 +45,56 @@ namespace
 }
 
 TEST_CASE(
-    "A swing winds up, strikes on cue, recovers on cue and rests when the clip ends",
+    "A swing winds up, strikes, recovers and rests, each for as long as it says",
     "[SwingAbility]")
 {
     Decided decided;
-    InputIntentions nothing;
-    SwingAbility ability(SwingAbilityData{});
+    SwingAbility ability(timedAs(0.045f, 0.1f, 0.03f));
 
     ability.decide(Step, pressingAttack(), Observed{}, decided);
     REQUIRE(decided.swing.phase == SwingPhase::Windup);
     REQUIRE(decided.swing.swinging());
     REQUIRE_FALSE(decided.swing.striking());
 
-    ability.decide(Step, nothing, clipSaying(std::string(StrikeCue)), decided);
+    wait(ability, decided, 4);
+    REQUIRE(decided.swing.phase == SwingPhase::Windup);
+    wait(ability, decided, 1);
     REQUIRE(decided.swing.striking());
 
-    ability.decide(Step, nothing, clipSaying(std::string(RecoverCue)), decided);
+    wait(ability, decided, 9);
+    REQUIRE(decided.swing.striking());
+    wait(ability, decided, 1);
     REQUIRE(decided.swing.phase == SwingPhase::Recovery);
     REQUIRE(decided.swing.swinging());
 
-    ability.decide(Step, nothing, clipFinished(), decided);
+    wait(ability, decided, 2);
+    REQUIRE(decided.swing.phase == SwingPhase::Recovery);
+    wait(ability, decided, 1);
     REQUIRE(decided.swing.phase == SwingPhase::Idle);
     REQUIRE_FALSE(decided.swing.swinging());
 }
 
-TEST_CASE(
-    "A swing strikes on the strike cue and not before, however long the wait",
-    "[SwingAbility]")
+TEST_CASE("A swing with no windup strikes on the tick after it starts", "[SwingAbility]")
 {
     Decided decided;
-    InputIntentions nothing;
-    SwingAbility ability(SwingAbilityData{});
-    ability.decide(Step, pressingAttack(), Observed{}, decided);
+    SwingAbility ability(timedAs(0.0f, 0.1f, 0.1f));
 
-    for (int step = 0; step < 100; ++step)
-        ability.decide(Step, nothing, Observed{}, decided);
+    ability.decide(Step, pressingAttack(), Observed{}, decided);
     REQUIRE(decided.swing.phase == SwingPhase::Windup);
 
-    ability.decide(Step, nothing, clipSaying(std::string(StrikeCue)), decided);
+    wait(ability, decided, 1);
     REQUIRE(decided.swing.striking());
 }
 
-TEST_CASE("A swing ends with its clip even mid-strike", "[SwingAbility]")
+TEST_CASE("A long tick carries a swing through every phase it covers", "[SwingAbility]")
 {
     Decided decided;
-    InputIntentions nothing;
-    SwingAbility ability(SwingAbilityData{});
+    SwingAbility ability(timedAs(0.05f, 0.05f, 0.05f));
     ability.decide(Step, pressingAttack(), Observed{}, decided);
-    ability.decide(Step, nothing, clipSaying(std::string(StrikeCue)), decided);
 
-    ability.decide(Step, nothing, clipFinished(), decided);
+    ability.decide(0.12f, InputIntentions{}, Observed{}, decided);
 
-    REQUIRE(decided.swing.phase == SwingPhase::Idle);
+    REQUIRE(decided.swing.phase == SwingPhase::Recovery);
 }
 
 TEST_CASE("A swing says so once, and pressing again mid-swing starts nothing", "[SwingAbility]")
@@ -107,12 +105,11 @@ TEST_CASE("A swing says so once, and pressing again mid-swing starts nothing", "
     ability.decide(Step, pressingAttack(), Observed{}, decided);
     REQUIRE(decided.swing.emit);
 
-    ability.decide(Step, pressingAttack(), clipSaying(std::string(StrikeCue)), decided);
-    REQUIRE_FALSE(decided.swing.emit);
-    REQUIRE(decided.swing.striking());
-
-    ability.decide(Step, pressingAttack(), Observed{}, decided);
-    REQUIRE_FALSE(decided.swing.emit);
+    for (int step = 0; step < 15; ++step)
+    {
+        ability.decide(Step, pressingAttack(), Observed{}, decided);
+        REQUIRE_FALSE(decided.swing.emit);
+    }
     REQUIRE(decided.swing.striking());
 }
 
@@ -160,7 +157,7 @@ TEST_CASE("A swing cannot start while dashing, and a knockback cuts one short", 
 
     Decided knocked;
     ability.decide(Step, pressingAttack(), Observed{}, knocked);
-    ability.decide(Step, InputIntentions{}, clipSaying(std::string(StrikeCue)), knocked);
+    wait(ability, knocked, 11);
     REQUIRE(knocked.swing.striking());
     knocked.knockback.active = true;
     ability.decide(Step, InputIntentions{}, Observed{}, knocked);
@@ -176,6 +173,13 @@ TEST_CASE("A swing with nothing to it is refused", "[SwingAbility]")
     SwingAbilityData noDamage;
     noDamage.damage = 0;
     REQUIRE_THROWS_WITH(SwingAbility(noDamage), Catch::Matchers::ContainsSubstring("damage"));
+
+    REQUIRE_THROWS_WITH(
+        SwingAbility(timedAs(0.1f, 0.0f, 0.1f)), Catch::Matchers::ContainsSubstring("strike"));
+    REQUIRE_THROWS_WITH(
+        SwingAbility(timedAs(-0.1f, 0.1f, 0.1f)), Catch::Matchers::ContainsSubstring("wind up"));
+    REQUIRE_THROWS_WITH(
+        SwingAbility(timedAs(0.1f, 0.1f, -0.1f)), Catch::Matchers::ContainsSubstring("recover"));
 }
 
 TEST_CASE("A swing is not started by an attack that is not a swing", "[SwingAbility]")

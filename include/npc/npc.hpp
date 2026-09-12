@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <optional>
 #include <string>
-#include "actor/hurting.hpp"
+#include "combat/hurting.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "actor/actor.hpp"

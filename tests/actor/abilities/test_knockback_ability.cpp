@@ -6,7 +6,7 @@
 #include "actor/abilities/knockback_ability_state.hpp"
 #include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
-#include "actor/hit.hpp"
+#include "combat/hit.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/tile_positions.hpp"
 #include "helpers/floor_level.hpp"

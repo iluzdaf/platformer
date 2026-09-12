@@ -1,7 +1,7 @@
 #include <cstdint>
 #include <imgui.h>
 #include "ui/health_ui.hpp"
-#include "actor/health.hpp"
+#include "combat/health.hpp"
 #include "game/health_icon_data.hpp"
 #include "rendering/texture2d.hpp"
 

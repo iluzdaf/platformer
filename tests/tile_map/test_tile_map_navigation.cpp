@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "actor/actor_data.hpp"
 #include "actor/actor_motion_data.hpp"
-#include "actor/health_data.hpp"
+#include "combat/health_data.hpp"
 #include "animations/animation_rule_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"

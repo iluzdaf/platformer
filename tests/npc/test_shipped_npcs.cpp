@@ -22,7 +22,7 @@
 #include "npc/npc.hpp"
 #include "player/player.hpp"
 #include "npc/striking_player.hpp"
-#include "actor/health.hpp"
+#include "combat/health.hpp"
 #include <vector>
 #include <memory>
 #include "npc/npc_spawn_data.hpp"

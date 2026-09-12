@@ -2,7 +2,7 @@
 #include "tile_map/touching_tiles.hpp"
 #include "physics/aabb.hpp"
 #include "player/player.hpp"
-#include "actor/hit.hpp"
+#include "combat/hit.hpp"
 #include "tile_map/tile.hpp"
 #include "tile_map/tile_map.hpp"
 

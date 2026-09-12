@@ -1,9 +1,9 @@
 #include <optional>
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/hit.hpp"
-#include "actor/hurting.hpp"
-#include "actor/strike.hpp"
+#include "combat/hit.hpp"
+#include "combat/hurting.hpp"
+#include "combat/strike.hpp"
 #include "physics/aabb.hpp"
 
 namespace

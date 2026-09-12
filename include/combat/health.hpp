@@ -1,8 +1,8 @@
 #pragma once
 
 #include <optional>
-#include "actor/health_data.hpp"
-#include "actor/hit.hpp"
+#include "combat/health_data.hpp"
+#include "combat/hit.hpp"
 
 class Health
 {

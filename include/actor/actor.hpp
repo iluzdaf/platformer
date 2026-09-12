@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <optional>
-#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -13,6 +12,7 @@
 #include "actor/abilities/abilities.hpp"
 #include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
+#include "actor/perceived.hpp"
 #include "actor/actor_behavior.hpp"
 #include "animations/animator.hpp"
 #include "physics/physics_body.hpp"
@@ -37,11 +37,7 @@ class Actor
 public:
     virtual ~Actor() = default;
     void beginFrame();
-    void fixedUpdate(
-        float deltaTime,
-        const Level &level,
-        std::optional<glm::vec2> threatFeet = std::nullopt,
-        std::span<const Noise> noises = {});
+    void fixedUpdate(float deltaTime, const Level &level, const Perceived &perceived = {});
     virtual void postFixedUpdate();
     const ActorState &state() const;
     const AbilityStates &abilityStates() const;

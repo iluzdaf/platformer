@@ -222,7 +222,7 @@ TEST_CASE("A corpse stops deciding, shows it, and takes no more hits", "[Exchang
     REQUIRE_FALSE(duel.rat().alive());
 
     duel.rat().beginFrame();
-    duel.rat().fixedUpdate(0.01f, duel.level, duel.player.feet());
+    duel.rat().fixedUpdate(0.01f, duel.level, {.threatFeet = duel.player.feet()});
 
     REQUIRE(duel.rat().stateName() == std::string_view{});
     REQUIRE(duel.rat().state().currentAnimation == "dead");
@@ -391,7 +391,8 @@ TEST_CASE(
     for (int step = 0; step < 3; ++step)
     {
         npcs.front()->beginFrame();
-        npcs.front()->fixedUpdate(0.01f, level, player.feet() + glm::vec2(4.0f, 0.0f));
+        npcs.front()->fixedUpdate(
+            0.01f, level, {.threatFeet = player.feet() + glm::vec2(4.0f, 0.0f)});
     }
     REQUIRE(npcs.front()->abilityStates().pounce.active);
     REQUIRE(npcs.front()->hurting().has_value());
@@ -433,7 +434,8 @@ TEST_CASE("A creature bites while it charges, and not while it stands", "[Exchan
     for (int step = 0; step < 2; ++step)
     {
         npcs.front()->beginFrame();
-        npcs.front()->fixedUpdate(0.01f, level, player.feet() + glm::vec2(4.0f, 0.0f));
+        npcs.front()->fixedUpdate(
+            0.01f, level, {.threatFeet = player.feet() + glm::vec2(4.0f, 0.0f)});
     }
     REQUIRE(npcs.front()->abilityStates().charge.active);
     REQUIRE(npcs.front()->hurting().has_value());
@@ -475,7 +477,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[ExchangingStri
     for (int step = 0; step < 60 && !npcs.front()->hurting(); ++step)
     {
         npcs.front()->beginFrame();
-        npcs.front()->fixedUpdate(0.01f, level, player.feet());
+        npcs.front()->fixedUpdate(0.01f, level, {.threatFeet = player.feet()});
     }
     REQUIRE(npcs.front()->hurting().has_value());
     REQUIRE(npcs.front()->hurting()->box.left() == npcs.front()->body().aabb().right());

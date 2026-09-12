@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <optional>
+#include "actor/perceived.hpp"
 #include "game/level_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "npc/npc_data.hpp"
@@ -17,8 +18,6 @@
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
 #include <memory>
-#include <span>
-#include "game/noise.hpp"
 
 class Npc;
 struct AABB;
@@ -46,10 +45,7 @@ public:
     const std::vector<Pickup> &getPickups() const;
 
     void beginFrame();
-    void fixedUpdate(
-        float deltaTime,
-        const glm::vec2 &playerPosition,
-        std::span<const Noise> noises = {});
+    void fixedUpdate(float deltaTime, const Perceived &perceived);
     void postFixedUpdate();
     void update(float deltaTime);
     std::vector<Pickup> takePickupsTouching(const AABB &reach);

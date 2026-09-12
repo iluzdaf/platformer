@@ -7,7 +7,7 @@
 #include <utility>
 #include <map>
 #include "game/level.hpp"
-#include "game/noise.hpp"
+#include "actor/perceived.hpp"
 #include "game/beat_between.hpp"
 #include "game/level_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
@@ -29,7 +29,6 @@
 #include "serialization/only_what_differs.hpp"
 #include "actor/actor.hpp"
 #include <memory>
-#include <span>
 #include <set>
 
 namespace
@@ -237,13 +236,10 @@ void Level::beginFrame()
         npc->beginFrame();
 }
 
-void Level::fixedUpdate(
-    float deltaTime,
-    const glm::vec2 &playerPosition,
-    std::span<const Noise> noises)
+void Level::fixedUpdate(float deltaTime, const Perceived &perceived)
 {
     for (const std::unique_ptr<Npc> &npc : npcs)
-        npc->fixedUpdate(deltaTime, *this, playerPosition, noises);
+        npc->fixedUpdate(deltaTime, *this, perceived);
 }
 
 void Level::postFixedUpdate()

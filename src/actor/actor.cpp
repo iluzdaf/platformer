@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <stdexcept>
 #include <optional>
-#include <span>
 #include <string>
 #include <string_view>
 #include "actor/actor.hpp"
@@ -15,6 +14,7 @@
 #include "physics/aabb.hpp"
 #include "actor/observing.hpp"
 #include "actor/observed.hpp"
+#include "actor/perceived.hpp"
 #include "actor/abilities/ability_states.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
@@ -62,18 +62,14 @@ void Actor::beginFrame()
     observations.contacts = contactsForANewFrame(observations.contacts);
 }
 
-void Actor::fixedUpdate(
-    float deltaTime,
-    const Level &level,
-    std::optional<glm::vec2> threatFeet,
-    std::span<const Noise> noises)
+void Actor::fixedUpdate(float deltaTime, const Level &level, const Perceived &perceived)
 {
     const TileMap &tileMap = level.getTileMap();
     hp.update(deltaTime);
     observations.alive = hp.alive();
     walks(level.graphFor(navigationProfile));
-    threat = threatFeet;
-    for (const Noise &noise : noises)
+    threat = perceived.threatFeet;
+    for (const Noise &noise : perceived.noises)
         onNoise(noise);
     onTick(deltaTime);
 

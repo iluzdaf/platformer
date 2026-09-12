@@ -2,7 +2,6 @@
 #include <vector>
 #include "game/level_data.hpp"
 #include "tile_map/tile_map_data.hpp"
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -12,6 +11,7 @@
 #include "game/catalogue.hpp"
 #include <cstddef>
 #include "actor/observed.hpp"
+#include "actor/perceived.hpp"
 #include "game/noise.hpp"
 #include "game/level_data_file.hpp"
 #include "game/game_data.hpp"
@@ -173,9 +173,9 @@ void World::beginFrame()
 
 void World::fixedUpdate(float deltaTime)
 {
-    level->fixedUpdate(deltaTime, player->feet(), heardThisTick);
+    level->fixedUpdate(deltaTime, Perceived{.threatFeet = player->feet(), .noises = heardThisTick});
     heardThisTick.clear();
-    player->fixedUpdate(deltaTime, *level.get(), std::nullopt);
+    player->fixedUpdate(deltaTime, *level.get());
     hearWhereItLands();
 
     exchangeStrikes(*player.get(), level->getNpcs());

@@ -25,7 +25,6 @@
 #include "game/noise.hpp"
 #include "combat/health.hpp"
 #include "combat/hurting.hpp"
-#include "physics/aabb.hpp"
 
 class TileMap;
 class Level;
@@ -57,7 +56,7 @@ public:
     const Health &health() const;
     bool alive() const;
     bool takeHit(const Hit &hit);
-    virtual std::optional<Hurting> hurting() const;
+    std::optional<Hurting> hurting() const;
     bool strike(Actor &target);
     Event<Actor> onHurt, onDeath;
     Event<Actor, const std::string &> onCue;
@@ -85,7 +84,6 @@ protected:
     ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
 
 private:
-    std::optional<AABB> swingBox() const;
     const NavigationGraph &graphWalked() const;
     void say(const std::string &name, const Asked &value);
     void forgetTheTick();

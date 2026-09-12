@@ -15,6 +15,7 @@
 #include "actor/abilities/swing_ability.hpp"
 #include "actor/abilities/pounce_ability.hpp"
 #include "actor/abilities/charge_ability.hpp"
+#include "actor/abilities/bite_ability.hpp"
 #include <memory>
 
 Abilities::Abilities(const AbilitiesData &data)
@@ -41,6 +42,8 @@ Abilities::Abilities(const AbilitiesData &data)
         abilities.push_back(std::make_unique<PounceAbility>(data.pounce.value()));
     if (data.charge)
         abilities.push_back(std::make_unique<ChargeAbility>(data.charge.value()));
+    if (data.bite)
+        abilities.push_back(std::make_unique<BiteAbility>(data.bite.value()));
     if (data.knockback)
         abilities.push_back(std::make_unique<KnockbackAbility>(data.knockback.value()));
     if (data.swing)

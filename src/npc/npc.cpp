@@ -15,8 +15,6 @@
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
-#include "combat/hurting.hpp"
-#include "physics/physics_body.hpp"
 
 namespace
 {
@@ -84,15 +82,4 @@ float Npc::tuning(const std::string &name) const
 void Npc::died()
 {
     setBehavior(nullptr);
-}
-
-std::optional<Hurting> Npc::hurting() const
-{
-    if (std::optional<Hurting> attacking = Actor::hurting())
-        return attacking;
-
-    if (!alive() || npcData.contactDamage <= 0)
-        return std::nullopt;
-
-    return Hurting{body().aabb(), npcData.contactDamage, 0.0f};
 }

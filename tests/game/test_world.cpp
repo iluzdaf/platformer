@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+#include "actor/abilities/bite_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include <optional>
 #include "game/level_data.hpp"
@@ -537,7 +538,7 @@ TEST_CASE("Bumping into an npc that bites costs the player a point", "[World]")
     GameData gameData = aFloorWorldWithCoins();
     gameData.playerData = playerDataWithHealth(3, 1.0f);
     NpcData biter = setupNpcData();
-    biter.contactDamage = 1;
+    biter.actorData.abilities.bite = BiteAbilityData{1};
     gameData.npcData = {{"biter", biter}};
     LevelData levelData = aFloorLevelPlacing({spawnAt("biter", glm::ivec2(1, FloorLevelStanding))});
     std::filesystem::path quiet =
@@ -880,7 +881,7 @@ TEST_CASE("A re-made creature is wired to its script, and the old one is forgott
         "floor.json", aFloorLevelPlacing({spawnAt("rat", glm::ivec2(3, FloorLevelStanding))}));
     world.loadLevel(levels.pathOf("floor.json"));
 
-    gameData.npcData.at("rat").contactDamage = 2;
+    gameData.npcData.at("rat").actorData.abilities.bite = BiteAbilityData{2};
     world.castChanged();
     world.getLevel().getNpcs().front()->takeHit(Hit{1, glm::vec2(0.0f), false});
 
@@ -911,7 +912,7 @@ TEST_CASE("A coroutine the old creature started is dropped when it is re-made", 
     world.loadLevel(levels.pathOf("floor.json"));
 
     world.getLevel().getNpcs().front()->takeHit(Hit{1, glm::vec2(0.0f), false});
-    gameData.npcData.at("rat").contactDamage = 2;
+    gameData.npcData.at("rat").actorData.abilities.bite = BiteAbilityData{2};
     world.castChanged();
     luaScriptSystem.update(0.2f);
 

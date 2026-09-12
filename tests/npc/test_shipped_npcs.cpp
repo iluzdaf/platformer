@@ -292,16 +292,16 @@ TEST_CASE("The shipped rat does not shuffle on the spot once it is cornered", "[
 
     glm::vec2 driving(8.0f, 96.0f);
     int flips = 0;
-    bool wasFacingLeft = npc.state().facingLeft;
+    bool wasFacingLeft = npc.observed().facingLeft;
 
     for (int step = 0; step < 600; ++step)
     {
         npc.beginFrame();
         npc.fixedUpdate(0.01f, level, driving);
 
-        if (npc.state().facingLeft != wasFacingLeft)
+        if (npc.observed().facingLeft != wasFacingLeft)
             ++flips;
-        wasFacingLeft = npc.state().facingLeft;
+        wasFacingLeft = npc.observed().facingLeft;
     }
 
     REQUIRE(footOf(npc).x > 96.0f);

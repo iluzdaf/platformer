@@ -93,12 +93,12 @@ namespace
         ImGui::TextUnformatted(value.c_str());
     }
 
-    void drawThePlayer(const Observed &observed, const glm::vec2 &feet, const ActorState &state)
+    void drawThePlayer(const Observed &observed, const glm::vec2 &feet)
     {
         drawRow(
             "Velocity", std::format("{:.2f}, {:.2f}", observed.velocity.x, observed.velocity.y));
         drawRow("Feet", std::format("{:.2f}, {:.2f}", feet.x, feet.y));
-        drawRow("Facing Left", state.facingLeft ? "true" : "false");
+        drawRow("Facing Left", observed.facingLeft ? "true" : "false");
     }
 
     void drawAnimatorOfThePlayer(
@@ -343,7 +343,7 @@ ActorAsked drawActorsInLevel(
         {
             nameThenValue();
             drawPlayerEditing(level.getTileMap().tileUnderFeet(level.getPlayerStart()), armed);
-            drawThePlayer(playerObserved, playerFeet, playerState);
+            drawThePlayer(playerObserved, playerFeet);
             ImGui::EndTable();
         }
 

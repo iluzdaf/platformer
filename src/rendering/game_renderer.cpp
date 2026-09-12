@@ -132,7 +132,7 @@ void GameRenderer::draw(
             actorState.size,
             uvStart,
             uvEnd,
-            actorState.facingLeft);
+            actor.observed().facingLeft);
     };
 
     for (const std::unique_ptr<Npc> &npc : npcs)

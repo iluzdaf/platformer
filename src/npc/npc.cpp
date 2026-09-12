@@ -1,5 +1,6 @@
 #include <memory>
 #include <optional>
+#include <tuple>
 #include <string>
 #include <utility>
 #include <variant>
@@ -53,6 +54,7 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
     }
 
     standAt(this->spawn.feet);
+    std::ignore = onDeath.connect([this] { setBehavior(nullptr); });
 }
 
 const NpcSpawnData &Npc::getSpawn() const
@@ -77,9 +79,4 @@ float Npc::tuning(const std::string &name) const
         throw std::runtime_error("\"" + spawn.type + "\" has no tuning called \"" + name + "\"");
 
     return found->second;
-}
-
-void Npc::died()
-{
-    setBehavior(nullptr);
 }

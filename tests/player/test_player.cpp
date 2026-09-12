@@ -137,8 +137,8 @@ TEST_CASE("A player faces the way it last moved", "[Player]")
 
     SECTION("Starts facing right")
     {
-        const ActorState &playerState = player.state();
-        REQUIRE_FALSE(playerState.facingLeft);
+        const Observed &playerObserved = player.observed();
+        REQUIRE_FALSE(playerObserved.facingLeft);
     }
 
     SECTION("Moves left and faces left")
@@ -146,10 +146,10 @@ TEST_CASE("A player faces the way it last moved", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = -1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        const ActorState &playerState = player.state();
-        REQUIRE(playerState.facingLeft);
+        const Observed &playerObserved = player.observed();
+        REQUIRE(playerObserved.facingLeft);
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE(playerState.facingLeft);
+        REQUIRE(playerObserved.facingLeft);
     }
 
     SECTION("Moves right and faces right")
@@ -157,10 +157,10 @@ TEST_CASE("A player faces the way it last moved", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        const ActorState &playerState = player.state();
-        REQUIRE_FALSE(playerState.facingLeft);
+        const Observed &playerObserved = player.observed();
+        REQUIRE_FALSE(playerObserved.facingLeft);
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE_FALSE(playerState.facingLeft);
+        REQUIRE_FALSE(playerObserved.facingLeft);
     }
 }
 

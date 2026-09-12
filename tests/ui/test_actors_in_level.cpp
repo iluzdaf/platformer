@@ -4,7 +4,7 @@
 #include <vector>
 #include "animations/animator_data.hpp"
 #include "actor/observed.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -71,7 +71,7 @@ namespace
     {
         AnimatorData animations;
         Observed observed;
-        ActorState playerState;
+        Appearance playerAppearance;
         ActorAsked asked;
 
         gui.frame(
@@ -83,7 +83,7 @@ namespace
                     observed,
                     level.getTileMap().feetOnTile(
                         level.getTileMap().tileUnderFeet(level.getPlayerStart())),
-                    playerState,
+                    playerAppearance,
                     shippedNpcData(),
                     showing,
                     armed);

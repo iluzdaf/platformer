@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
@@ -97,7 +97,7 @@ struct Editing
     TextureCache textures;
     AbilityStates states;
     Observed observed;
-    ActorState playerState;
+    Appearance playerAppearance;
     Camera2D camera{gameData.cameraData, 800, 600};
 
     EditorSubject subject()
@@ -112,7 +112,7 @@ struct Editing
             states,
             observed,
             level.getTileMap().feetOnTile(glm::ivec2(1, 1)),
-            playerState,
+            playerAppearance,
             camera,
             false};
     }

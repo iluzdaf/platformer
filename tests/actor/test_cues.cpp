@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "input/input_intentions.hpp"
 #include "input/intention_source.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "actor/abilities/ability_states.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include <algorithm>
@@ -103,7 +103,7 @@ TEST_CASE(
     runFor(player, level, 0.3f, timestepper);
     once.arm();
 
-    int shownLastTick = player.state().currentFrame;
+    int shownLastTick = player.appearance().currentFrame;
     int ticksStriking = 0;
     bool rested = false;
     for (int step = 0; step < 60; ++step)
@@ -113,13 +113,13 @@ TEST_CASE(
 
         INFO(
             "step " << step << ": shown last tick " << shownLastTick << ", now "
-                    << player.state().currentFrame);
+                    << player.appearance().currentFrame);
         if (player.abilityStates().swing.swinging())
             REQUIRE(player.abilityStates().swing.striking() == (shownLastTick == 13));
         ticksStriking += player.abilityStates().swing.striking();
         if (step > 5 && !player.abilityStates().swing.swinging())
             rested = true;
-        shownLastTick = player.state().currentFrame;
+        shownLastTick = player.appearance().currentFrame;
     }
 
     REQUIRE(ticksStriking == 10);

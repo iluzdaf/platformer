@@ -19,7 +19,7 @@
 #include <imgui_internal.h>
 #include "animations/animator_data.hpp"
 #include "actor/observed.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "helpers/headless_imgui.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
@@ -641,7 +641,7 @@ TEST_CASE("Delete takes away what is shown", "[LevelUi]")
     std::optional<Armed> armed;
     AnimatorData animations;
     Observed observed;
-    ActorState playerState;
+    Appearance playerAppearance;
 
     levelUi.update(
         clickingAt(editing.level.getNpcs().front()->body().aabb().center()),
@@ -665,7 +665,7 @@ TEST_CASE("Delete takes away what is shown", "[LevelUi]")
                 animations,
                 observed,
                 editing.levelData.playerFeet,
-                playerState,
+                playerAppearance,
                 shippedNpcData(),
                 armed,
                 editing.commands);
@@ -685,7 +685,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
     Level level = levelOf(levelData);
     AnimatorData animations;
     Observed observed;
-    ActorState playerState;
+    Appearance playerAppearance;
     std::optional<Armed> armed;
     EditorCommands commands;
 
@@ -698,7 +698,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
                 animations,
                 observed,
                 level.getTileMap().feetOnTile(glm::ivec2(1, FloorLevelStanding)),
-                playerState,
+                playerAppearance,
                 shippedNpcData(),
                 armed,
                 commands);

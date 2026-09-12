@@ -52,7 +52,7 @@ void LevelUi::draw(
     const std::optional<AnimatorData> &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
-    const ActorState &playerState,
+    const Appearance &playerAppearance,
     const std::map<std::string, NpcData> &npcData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
@@ -65,7 +65,7 @@ void LevelUi::draw(
         playerAnimations,
         playerObserved,
         playerFeet,
-        playerState,
+        playerAppearance,
         npcData,
         armed,
         commands);
@@ -77,7 +77,7 @@ void LevelUi::drawActors(
     const std::optional<AnimatorData> &playerAnimations,
     const Observed &playerObserved,
     const glm::vec2 &playerFeet,
-    const ActorState &playerState,
+    const Appearance &playerAppearance,
     const std::map<std::string, NpcData> &npcData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
@@ -88,7 +88,7 @@ void LevelUi::drawActors(
         playerAnimations,
         playerObserved,
         playerFeet,
-        playerState,
+        playerAppearance,
         npcData,
         showingActor,
         armed);

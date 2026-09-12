@@ -13,6 +13,7 @@
 #include "actor/abilities/swing_ability_state.hpp"
 #include "physics/aabb.hpp"
 #include "actor/observing.hpp"
+#include "actor/facing.hpp"
 #include "actor/observed.hpp"
 #include "actor/perceived.hpp"
 #include "actor/abilities/ability_states.hpp"
@@ -44,12 +45,12 @@ Actor::Actor(const ActorData &data)
     if (data.animationData)
         animator.emplace(*data.animationData);
 
-    actorState.currentAnimation = animator ? animator->state() : std::string();
-    actorState.currentFrame = animator ? animator->playing().frame() : 0;
+    shown.currentAnimation = animator ? animator->state() : std::string();
+    shown.currentFrame = animator ? animator->playing().frame() : 0;
 
     sheet = data.sheet;
-    actorState.size = drawnSizeOf(data);
-    if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
+    shown.size = drawnSizeOf(data);
+    if (shown.size.x <= 0.0f || shown.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
 }
 
@@ -94,16 +95,13 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, const Perceived &pe
     if (animator)
         animator->animate(deltaTime, states, observations, stateName());
 
-    if (!states.knockback.active)
-        observations.facingLeft =
-            observations.velocity.x > 0
-                ? false
-                : (observations.velocity.x < 0 ? true : observations.facingLeft);
+    observations.facingLeft =
+        facingLeftAfter(observations.facingLeft, observations.velocity.x, states.knockback.active);
 
     if (animator)
     {
-        actorState.currentFrame = animator->playing().frame();
-        actorState.currentAnimation = animator->state();
+        shown.currentFrame = animator->playing().frame();
+        shown.currentAnimation = animator->state();
         for (const std::string &cue : animator->takeCues())
             onCue(cue);
     }
@@ -198,9 +196,9 @@ const SheetData &Actor::drawnFrom() const
     return sheet;
 }
 
-const ActorState &Actor::state() const
+const Appearance &Actor::appearance() const
 {
-    return actorState;
+    return shown;
 }
 
 const AbilityStates &Actor::abilityStates() const

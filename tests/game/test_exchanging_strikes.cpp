@@ -13,7 +13,7 @@
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/abilities/ability_states.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "animations/animation_rule_data.hpp"
@@ -225,7 +225,7 @@ TEST_CASE("A corpse stops deciding, shows it, and takes no more hits", "[Exchang
     duel.rat().fixedUpdate(0.01f, duel.level, {.threatFeet = duel.player.feet()});
 
     REQUIRE(duel.rat().stateName() == std::string_view{});
-    REQUIRE(duel.rat().state().currentAnimation == "dead");
+    REQUIRE(duel.rat().appearance().currentAnimation == "dead");
     REQUIRE_FALSE(duel.player.strike(duel.rat()));
 }
 

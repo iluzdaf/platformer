@@ -9,7 +9,7 @@
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "actor/abilities/ability_states.hpp"
-#include "actor/actor_state.hpp"
+#include "actor/appearance.hpp"
 #include "combat/hit.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
@@ -100,7 +100,7 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
     SECTION("Player is idle by default")
     {
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE(player.state().currentAnimation == "idle");
+        REQUIRE(player.appearance().currentAnimation == "idle");
     }
 
     SECTION("Player walking triggers walk animation")
@@ -108,13 +108,13 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.state().currentAnimation == "walk");
+        REQUIRE(player.appearance().currentAnimation == "walk");
         simulatePlayer(player, input, tileMap, 0.1f);
-        REQUIRE(player.state().currentAnimation == "idle");
+        REQUIRE(player.appearance().currentAnimation == "idle");
         inputIntentions = InputIntentions();
         inputIntentions.direction.x = -1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        REQUIRE(player.state().currentAnimation == "walk");
+        REQUIRE(player.appearance().currentAnimation == "walk");
     }
 
     SECTION("Animation frame advances over time")
@@ -122,9 +122,9 @@ TEST_CASE("A player's animation follows what it is doing", "[Player]")
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        int frameBefore = player.state().currentFrame;
+        int frameBefore = player.appearance().currentFrame;
         simulatePlayer(player, input, tileMap, 0.1f, inputIntentions);
-        int frameAfter = player.state().currentFrame;
+        int frameAfter = player.appearance().currentFrame;
         REQUIRE(frameBefore != frameAfter);
     }
 }
@@ -248,8 +248,8 @@ TEST_CASE("An actor plays each animation under the state it was given for", "[Pl
 
     simulatePlayer(player, input, tileMap, 0.05f);
 
-    REQUIRE(player.state().currentAnimation == "dead");
-    REQUIRE(player.state().currentFrame == 9);
+    REQUIRE(player.appearance().currentAnimation == "dead");
+    REQUIRE(player.appearance().currentFrame == 9);
 }
 
 TEST_CASE("An actor said nothing about is drawn as big as its cell", "[Player]")
@@ -258,7 +258,7 @@ TEST_CASE("An actor said nothing about is drawn as big as its cell", "[Player]")
     playerData.actorData.sheet.cellSize = glm::ivec2(32, 24);
     Player player(playerData, noIntentions());
 
-    REQUIRE(player.state().size == glm::vec2(32.0f, 24.0f));
+    REQUIRE(player.appearance().size == glm::vec2(32.0f, 24.0f));
 }
 
 TEST_CASE("An actor given a size is drawn at it, whatever its cell", "[Player]")
@@ -268,7 +268,7 @@ TEST_CASE("An actor given a size is drawn at it, whatever its cell", "[Player]")
     playerData.actorData.size = glm::vec2(16.0f);
     Player player(playerData, noIntentions());
 
-    REQUIRE(player.state().size == glm::vec2(16.0f));
+    REQUIRE(player.appearance().size == glm::vec2(16.0f));
 }
 
 TEST_CASE("An actor drawn as nothing is refused", "[Player]")

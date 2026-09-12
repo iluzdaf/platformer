@@ -25,7 +25,9 @@ void WallJumpAbility::decide(
     decided.wallJump.velocity = glm::vec2(0.0f);
 
     wallJumpBuffer.update(deltaTime);
-    wallJumpCoyote.update(observed.contacts.grippableWall(), deltaTime);
+    wallJumpCoyote.update(deltaTime);
+    if (observed.contacts.grippableWall())
+        wallJumpCoyote.start();
 
     if (observed.contacts.onGround)
     {
@@ -36,12 +38,9 @@ void WallJumpAbility::decide(
     if (!decided.wallJump.active)
     {
         if (inputIntentions.jumpHeld)
-        {
-            wallJumpBuffer.press();
-            wallJumpDirectionBuffer.press(inputIntentions.direction.x);
-        }
+            wallJumpBuffer.start(inputIntentions.direction.x);
 
-        if (wallJumpBuffer.isBuffered())
+        if (wallJumpBuffer.running())
         {
             int desiredDirection = 0;
             if (observed.contacts.grippableLeftWall)
@@ -51,10 +50,10 @@ void WallJumpAbility::decide(
             else
                 desiredDirection = observed.contacts.wasLastWallLeft ? 1 : -1;
 
-            float bufferedDirection = wallJumpDirectionBuffer.getBufferedDirectionX();
+            float bufferedDirection = wallJumpBuffer.direction();
             bool jumpInputCorrect = desiredDirection * bufferedDirection > 0;
             bool grippableWallNow = observed.contacts.grippableWall();
-            if (jumpInputCorrect && (grippableWallNow || wallJumpCoyote.isCoyoteAvailable()))
+            if (jumpInputCorrect && (grippableWallNow || wallJumpCoyote.running()))
                 startWallJump(decided, desiredDirection);
         }
     }
@@ -91,6 +90,5 @@ void WallJumpAbility::startWallJump(Decided &decided, int direction)
     decided.wallJump.active = true;
     decided.wallJump.emit = true;
     wallJumpBuffer.consume();
-    wallJumpDirectionBuffer.consume();
     wallJumpCoyote.consume();
 }

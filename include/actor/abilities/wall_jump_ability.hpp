@@ -2,9 +2,7 @@
 
 #include "actor/abilities/ability.hpp"
 #include "actor/abilities/wall_jump_ability_data.hpp"
-#include "actor/abilities/action_buffer.hpp"
-#include "actor/abilities/coyote_time.hpp"
-#include "actor/abilities/direction_buffer.hpp"
+#include "actor/abilities/grace_period.hpp"
 
 struct InputIntentions;
 struct Observed;
@@ -22,9 +20,8 @@ public:
 
 private:
     WallJumpAbilityData data;
-    ActionBuffer wallJumpBuffer;
-    DirectionBuffer wallJumpDirectionBuffer;
-    CoyoteTime wallJumpCoyote;
+    GracePeriod wallJumpBuffer;
+    GracePeriod wallJumpCoyote;
 
     void startWallJump(Decided &decided, int direction);
 };

@@ -21,15 +21,16 @@ void JumpAbility::decide(
     decided.jump.velocity = glm::vec2(0.0f);
 
     jumpBuffer.update(deltaTime);
-    coyoteTime.update(observed.contacts.onGround, deltaTime);
+    coyoteTime.update(deltaTime);
+    if (observed.contacts.onGround)
+        coyoteTime.start();
 
     if (!decided.jump.active)
     {
         if (inputIntentions.jumpRequested)
-            jumpBuffer.press();
+            jumpBuffer.start();
 
-        if (jumpBuffer.isBuffered() &&
-            (observed.contacts.onGround || coyoteTime.isCoyoteAvailable()))
+        if (jumpBuffer.running() && (observed.contacts.onGround || coyoteTime.running()))
         {
             decided.jump.active = true;
             decided.jump.holdTime = 0.0f;

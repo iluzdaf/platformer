@@ -102,6 +102,7 @@ public:
     SectionSaving savingIn(EditorSection listed, const EditorSubject &subject);
 
 private:
+    void drawProblems(const std::array<SectionSaving, EditorSections.size()> &saving);
     void drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving);
     void drawSectionTabs(const std::array<SectionSaving, EditorSections.size()> &saving);
     void drawUndoRow(const EditorSubject &subject);

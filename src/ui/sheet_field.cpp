@@ -6,7 +6,7 @@
 #include "ui/sheet_field.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/data_inspector.hpp"
-#include "ui/unsaved_colours.hpp"
+#include <string>
 #include "assets/sheet_data.hpp"
 
 inspector::Edited drawSheetFields(SheetData &value)
@@ -22,16 +22,15 @@ inspector::Edited drawSquareSheetFields(SheetData &value)
     inspector::Edited edited = inspector::draw("texture", value.texture);
 
     int side = value.cellSize.x;
-    inspector::Edited squared = inspector::drawAs("cellSize", side, value.cellSize);
+    const bool notSquare = value.cellSize.x != value.cellSize.y;
+    inspector::Edited squared = inspector::drawAs("cellSize", side, value.cellSize, notSquare);
     if (squared)
         value.cellSize = glm::ivec2(side);
 
-    if (value.cellSize.x != value.cellSize.y)
-        ImGui::TextColored(
-            CannotSaveColour,
-            "cells %d by %d, and a tile map lays out squares",
-            value.cellSize.x,
-            value.cellSize.y);
+    if (notSquare)
+        inspector::drawRefusal(
+            "cells " + std::to_string(value.cellSize.x) + " by " +
+            std::to_string(value.cellSize.y) + ", and a tile map lays out squares");
 
     return edited |= squared;
 }

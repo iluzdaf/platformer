@@ -35,7 +35,6 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/marked_label.hpp"
 #include "tile_map/tile_palette_data.hpp"
-#include "ui/unsaved_colours.hpp"
 #include "ui/picking_in_level.hpp"
 #include "ui/size_buttons.hpp"
 #include "game/level_resizing.hpp"
@@ -154,8 +153,9 @@ namespace
     {
         inspector::InField here("tilePalette");
         const bool changed = inspector::changedHere(shown);
+        const bool noSuchPalette = !tilePalettes.contains(shown);
         inspector::Marking marking(changed);
-        inspector::drawLabel("tilePalette", changed);
+        inspector::drawLabel("tilePalette", changed, noSuchPalette);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(-ButtonsWidth);
 
@@ -172,8 +172,8 @@ namespace
             ImGui::EndCombo();
         }
 
-        if (!tilePalettes.contains(shown))
-            ImGui::TextColored(CannotSaveColour, "no palette called %s", shown.c_str());
+        if (noSuchPalette)
+            inspector::drawRefusal("no palette called " + shown);
 
         return edited;
     }

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <optional>
 #include <string_view>
+#include <imgui.h>
 
 namespace inspector
 {
@@ -8,6 +10,7 @@ namespace inspector
     {
     public:
         explicit Marked(bool changed);
+        Marked(bool changed, bool refused);
         ~Marked();
         Marked(const Marked &) = delete;
         Marked &operator=(const Marked &) = delete;
@@ -15,7 +18,7 @@ namespace inspector
         Marked &operator=(Marked &&) = delete;
 
     private:
-        bool marked = false;
+        std::optional<ImVec4> marked;
     };
 
     class Marking
@@ -35,7 +38,10 @@ namespace inspector
     bool markedHere();
 
     void drawLabel(std::string_view name, bool changed);
+    void drawLabel(std::string_view name, bool changed, bool refused);
     void drawLabel(std::string_view name);
+
+    void drawRefusal(std::string_view why);
 
     bool drawFold(std::string_view name, bool changed);
     bool drawFold(std::string_view name);

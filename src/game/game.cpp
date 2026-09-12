@@ -114,7 +114,13 @@ void Game::frame(float deltaTime)
     luaScriptSystem.update(deltaTime);
     camera.update(deltaTime);
     screenTransition.update(deltaTime);
-    gameUi.update(deltaTime, world.getLevel(), world.getLevelData(), world.getLevelPath(), camera);
+    gameUi.update(
+        deltaTime,
+        world.getLevel(),
+        world.getLevelData(),
+        world.getLevelPath(),
+        camera,
+        world.getPlayer().body().aabb());
 
     playback.advance(
         deltaTime,

@@ -77,7 +77,8 @@ public:
         const Camera2D &camera,
         const Level &level,
         const LevelData &levelData,
-        const std::string &levelPath);
+        const std::string &levelPath,
+        const AABB &playerBox);
 
     EditorCommands commands;
 

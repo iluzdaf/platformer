@@ -120,7 +120,8 @@ void Game::frame(float deltaTime)
         world.getLevelData(),
         world.getLevelPath(),
         camera,
-        world.getPlayer().body().aabb());
+        world.getPlayer().body().aabb(),
+        gameData);
 
     playback.advance(
         deltaTime,

@@ -36,7 +36,26 @@ inline std::string pickId(PickTile pick)
     return std::to_string(static_cast<int>(pick.what)) + "-" + std::to_string(pick.index);
 }
 
-using Armed = std::variant<PaintTile, PickTile>;
+struct PlaceOne
+{
+    enum class What
+    {
+        Npc,
+        Pickup
+    };
+
+    What what = What::Npc;
+    std::string type;
+
+    bool operator==(const PlaceOne &) const = default;
+};
+
+using Armed = std::variant<PaintTile, PickTile, PlaceOne>;
+
+inline const PlaceOne *beingPlaced(const std::optional<Armed> &armed)
+{
+    return armed ? std::get_if<PlaceOne>(&*armed) : nullptr;
+}
 
 inline std::optional<int> paintedTile(const std::optional<Armed> &armed)
 {

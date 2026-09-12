@@ -20,6 +20,7 @@
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "conditions/asked.hpp"
+#include "actor/declared_facts.hpp"
 #include "actor/fading_facts.hpp"
 #include "conditions/facts.hpp"
 #include "game/noise.hpp"
@@ -85,13 +86,8 @@ protected:
 
 private:
     const NavigationGraph &graphWalked() const;
-    void say(const std::string &name, const Asked &value);
-    void forgetTheTick();
     float howFarItFell();
-    FactsData declared;
-    FadingFacts lately;
-    FactsData known;
-    std::vector<std::string> saidForTheTick;
+    DeclaredFacts declaredFacts;
     const NavigationGraph *walking = nullptr;
     float highestSinceTheGround = std::numeric_limits<float>::max();
     std::optional<glm::vec2> threat;

@@ -809,13 +809,13 @@ TEST_CASE(
     glm::vec2 spiderWas = playing.spider().feet();
     REQUIRE(spiderWas != feetOf(glm::ivec2(6, FloorLevelStanding)));
 
-    playing.gameData.npcData.at("spider").actorData.motionData.moveAbilityData->moveSpeed = 90.0f;
+    playing.gameData.npcData.at("spider").actorData.abilities.move->moveSpeed = 90.0f;
     playing.world.castChanged();
 
     REQUIRE(&playing.rat() == ratBefore);
     REQUIRE(playing.rat().feet() == ratWas);
     REQUIRE(playing.spider().feet() == feetOf(glm::ivec2(6, FloorLevelStanding)));
-    REQUIRE(playing.spider().builtFrom().actorData.motionData.moveAbilityData->moveSpeed == 90.0f);
+    REQUIRE(playing.spider().builtFrom().actorData.abilities.move->moveSpeed == 90.0f);
 }
 
 TEST_CASE("A cast change naming a creature the cast no longer has is refused by name", "[World]")

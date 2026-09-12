@@ -37,7 +37,7 @@ namespace
     {
         JumpAttempt attempt = simulateJumpAgainst(
             tileMap,
-            profile.motionData,
+            profile.abilities,
             profile.physicsBodyData,
             takeOff,
             direction,
@@ -186,7 +186,7 @@ namespace navigation
             {
                 JumpAttempt attempt = simulateJumpAgainst(
                     tileMap,
-                    profile.motionData,
+                    profile.abilities,
                     profile.physicsBodyData,
                     from,
                     towards,

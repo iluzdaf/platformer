@@ -4,7 +4,7 @@
 #include "actor/abilities/knockback_ability.hpp"
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "combat/hit.hpp"
 #include "helpers/actors.hpp"

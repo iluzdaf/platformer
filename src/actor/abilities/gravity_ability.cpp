@@ -1,5 +1,5 @@
 #include "actor/abilities/gravity_ability_data.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "input/input_intentions.hpp"

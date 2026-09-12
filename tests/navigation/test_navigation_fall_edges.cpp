@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/actor_motion_data.hpp"
+#include "actor/abilities/abilities_data.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/navigation_maps.hpp"
@@ -47,7 +47,7 @@ TEST_CASE("Falling is not offered where you could walk", "[NavigationGraphBuilde
 TEST_CASE("A profile that cannot move still falls", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = aLedgeAboveAFloor();
-    NavigationProfile profile = profileThatMoves(13.0f, fallerMotionData());
+    NavigationProfile profile = profileThatMoves(13.0f, fallerAbilities());
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profile);
 
@@ -57,8 +57,8 @@ TEST_CASE("A profile that cannot move still falls", "[NavigationGraphBuilder][Fa
 
 TEST_CASE("A slow actor can still step off a ledge", "[NavigationGraphBuilder][Fall]")
 {
-    ActorMotionData slow = jumperMotionData();
-    slow.moveAbilityData->moveSpeed = 60.0f;
+    AbilitiesData slow = jumperAbilities();
+    slow.move->moveSpeed = 60.0f;
 
     NavigationProfile profile = profileThatMoves(13.0f, slow);
     TileMap tileMap = aLedgeAboveAFloor();

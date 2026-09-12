@@ -9,7 +9,7 @@
 #include <glaze/glaze.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/swing_ability_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "animations/animator_facts.hpp"
 #include "conditions/asked.hpp"

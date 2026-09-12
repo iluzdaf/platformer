@@ -11,7 +11,7 @@
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/abilities/abilities.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_behavior.hpp"
 #include "animations/animator.hpp"

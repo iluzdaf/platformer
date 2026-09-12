@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/abilities.hpp"
 #include "actor/abilities/ability.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 

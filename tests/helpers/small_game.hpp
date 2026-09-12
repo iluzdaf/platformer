@@ -4,7 +4,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
@@ -37,7 +37,7 @@ inline GameData aSmallGame()
 
     NpcData rat = setupNpcData();
     rat.actorData.sheet.texture.path = SomeSheet;
-    rat.actorData.motionData.pounceAbilityData = PounceAbilityData{};
+    rat.actorData.abilities.pounce = PounceAbilityData{};
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{std::string(PounceAttack)};

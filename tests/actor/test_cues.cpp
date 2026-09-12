@@ -2,7 +2,7 @@
 #include "input/input_intentions.hpp"
 #include "input/intention_source.hpp"
 #include "actor/actor_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include <algorithm>
 #include <string>

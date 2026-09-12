@@ -4,11 +4,7 @@
             "sheet":{"texture":"textures/boar.png","cellSize":[32,32]},
             "size":[16,16],
             "physicsBodyData":{"colliderSize":[14,10],"colliderOffset":[2,6]},
-            "motionData":{
-                "moveAbilityData":{"moveSpeed":180},
-                "gravityAbilityData":{},
-                "chargeAbilityData":{}
-            },
+            "abilities":{"move":{"moveSpeed":180},"gravity":{},"charge":{}},
             "animationData":{
                 "clips":{
                     "dead":{"frames":[7],"frameDuration":1,"loops":false},
@@ -49,11 +45,7 @@
             "sheet":{"texture":"textures/rat.png","cellSize":[32,32]},
             "size":[8,8],
             "physicsBodyData":{"colliderSize":[5,4],"colliderOffset":[2,4],"stepHeight":1},
-            "motionData":{
-                "moveAbilityData":{"moveSpeed":60},
-                "gravityAbilityData":{},
-                "pounceAbilityData":{"leap":[120,-60]}
-            },
+            "abilities":{"move":{"moveSpeed":60},"gravity":{},"pounce":{"leap":[120,-60]}},
             "animationData":{
                 "clips":{
                     "dead":{"frames":[7],"frameDuration":1,"loops":false},
@@ -101,14 +93,14 @@
             "sheet":{"texture":"textures/spider.png","cellSize":[32,32]},
             "size":[16,16],
             "physicsBodyData":{"colliderSize":[8,8],"colliderOffset":[4,8]},
-            "motionData":{
-                "moveAbilityData":{"moveSpeed":90},
-                "jumpAbilityData":{"jumpSpeed":-320},
-                "wallHangAbilityData":{},
-                "wallClimbAbilityData":{"climbSpeed":70},
-                "mantleAbilityData":{},
-                "gravityAbilityData":{},
-                "pounceAbilityData":{}
+            "abilities":{
+                "move":{"moveSpeed":90},
+                "jump":{"jumpSpeed":-320},
+                "wallHang":{},
+                "wallClimb":{"climbSpeed":70},
+                "mantle":{},
+                "gravity":{},
+                "pounce":{}
             },
             "animationData":{
                 "clips":{

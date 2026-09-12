@@ -5,7 +5,7 @@
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation_data.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
 #include "conditions/asked.hpp"

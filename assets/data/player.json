@@ -3,18 +3,18 @@
         "sheet":{"texture":"textures/player.png","cellSize":[32,32]},
         "size":[16,16],
         "physicsBodyData":{"colliderSize":[8,13],"colliderOffset":[4,3]},
-        "motionData":{
-            "moveAbilityData":{"moveSpeed":110},
-            "jumpAbilityData":{"jumpSpeed":-280},
-            "dashAbilityData":{"dashSpeed":400,"dashDuration":0.15,"airborneFraction":0.6},
-            "wallSlideAbilityData":{},
-            "wallJumpAbilityData":{},
-            "wallHangAbilityData":{},
-            "wallClimbAbilityData":{},
-            "mantleAbilityData":{},
-            "gravityAbilityData":{},
-            "knockbackAbilityData":{},
-            "swingAbilityData":{}
+        "abilities":{
+            "move":{"moveSpeed":110},
+            "jump":{"jumpSpeed":-280},
+            "dash":{"dashSpeed":400,"dashDuration":0.15,"airborneFraction":0.6},
+            "wallSlide":{},
+            "wallJump":{},
+            "wallHang":{},
+            "wallClimb":{},
+            "mantle":{},
+            "gravity":{},
+            "knockback":{},
+            "swing":{}
         },
         "animationData":{
             "clips":{

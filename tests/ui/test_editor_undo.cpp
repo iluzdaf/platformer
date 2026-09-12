@@ -4,7 +4,7 @@
 #include <tuple>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_state.hpp"
 #include "cameras/camera2d.hpp"

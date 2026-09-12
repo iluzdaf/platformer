@@ -2,25 +2,24 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
-#include "actor/actor_motion_data.hpp"
+#include "actor/abilities/abilities_data.hpp"
 #include "physics/physics_body_data.hpp"
 #include "navigation/jump_arc.hpp"
 
 struct NavigationProfile
 {
     std::vector<JumpArc> jumpArcs;
-    ActorMotionData motionData;
+    AbilitiesData abilities;
     PhysicsBodyData physicsBodyData;
 
     bool falls() const
     {
-        return motionData.gravityAbilityData.has_value();
+        return abilities.gravity.has_value();
     }
 
     bool climbs() const
     {
-        return motionData.wallHangAbilityData.has_value() &&
-               motionData.wallClimbAbilityData.has_value();
+        return abilities.wallHang.has_value() && abilities.wallClimb.has_value();
     }
 
     bool operator==(const NavigationProfile &) const = default;

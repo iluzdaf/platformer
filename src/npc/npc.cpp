@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
-#include "actor/actor_motion_data.hpp"
+#include "actor/abilities/abilities_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/abilities/charge_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
@@ -20,14 +20,14 @@
 
 namespace
 {
-    bool canAttackWith(const ActorMotionData &motion, const std::string &attack)
+    bool canAttackWith(const AbilitiesData &abilities, const std::string &attack)
     {
         if (attack == SwingAttack)
-            return motion.swingAbilityData.has_value();
+            return abilities.swing.has_value();
         if (attack == PounceAttack)
-            return motion.pounceAbilityData.has_value();
+            return abilities.pounce.has_value();
         if (attack == ChargeAttack)
-            return motion.chargeAbilityData.has_value();
+            return abilities.charge.has_value();
         return false;
     }
 }
@@ -40,7 +40,7 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
     {
         for (const BehaviorStateData &state : npcData.stateMachineBehaviorData->states)
             if (const auto *attack = std::get_if<AttackBehaviorData>(&state.does);
-                attack && !canAttackWith(npcData.actorData.motionData, attack->with))
+                attack && !canAttackWith(npcData.actorData.abilities, attack->with))
                 throw std::runtime_error(
                     "\"" + spawn.type + "\" attacks with \"" + attack->with + "\" in state \"" +
                     state.name + "\", and has no such ability");

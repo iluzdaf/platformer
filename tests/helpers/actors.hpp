@@ -17,7 +17,7 @@
 #include "actor/abilities/wall_slide_ability_data.hpp"
 #include "actor/actor_data.hpp"
 #include "combat/health_data.hpp"
-#include "actor/actor_motion_data.hpp"
+#include "actor/abilities/abilities_data.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "animations/animator_data.hpp"
@@ -65,17 +65,17 @@ inline PlayerData playerDataWithEveryAbility()
 {
     PlayerData playerData;
 
-    playerData.actorData.motionData.moveAbilityData = MoveAbilityData();
-    playerData.actorData.motionData.jumpAbilityData = JumpAbilityData();
-    playerData.actorData.motionData.dashAbilityData = DashAbilityData();
-    playerData.actorData.motionData.wallSlideAbilityData = WallSlideAbilityData();
-    playerData.actorData.motionData.wallJumpAbilityData = WallJumpAbilityData();
-    playerData.actorData.motionData.wallHangAbilityData = WallHangAbilityData();
-    playerData.actorData.motionData.wallClimbAbilityData = WallClimbAbilityData();
-    playerData.actorData.motionData.mantleAbilityData = MantleAbilityData();
-    playerData.actorData.motionData.gravityAbilityData = GravityAbilityData();
-    playerData.actorData.motionData.knockbackAbilityData = KnockbackAbilityData();
-    playerData.actorData.motionData.swingAbilityData = SwingAbilityData();
+    playerData.actorData.abilities.move = MoveAbilityData();
+    playerData.actorData.abilities.jump = JumpAbilityData();
+    playerData.actorData.abilities.dash = DashAbilityData();
+    playerData.actorData.abilities.wallSlide = WallSlideAbilityData();
+    playerData.actorData.abilities.wallJump = WallJumpAbilityData();
+    playerData.actorData.abilities.wallHang = WallHangAbilityData();
+    playerData.actorData.abilities.wallClimb = WallClimbAbilityData();
+    playerData.actorData.abilities.mantle = MantleAbilityData();
+    playerData.actorData.abilities.gravity = GravityAbilityData();
+    playerData.actorData.abilities.knockback = KnockbackAbilityData();
+    playerData.actorData.abilities.swing = SwingAbilityData();
 
     AnimatorData &animations = playerData.actorData.animationData.emplace();
     animations.startClip = "idle";
@@ -116,34 +116,34 @@ inline ActorData anActorOfHeight(float height)
     return actorData;
 }
 
-inline ActorMotionData jumperMotionData()
+inline AbilitiesData jumperAbilities()
 {
-    ActorMotionData motionData;
-    motionData.moveAbilityData = MoveAbilityData{};
-    motionData.gravityAbilityData = GravityAbilityData{};
-    motionData.jumpAbilityData = JumpAbilityData{};
-    return motionData;
+    AbilitiesData abilitiesData;
+    abilitiesData.move = MoveAbilityData{};
+    abilitiesData.gravity = GravityAbilityData{};
+    abilitiesData.jump = JumpAbilityData{};
+    return abilitiesData;
 }
 
-inline ActorMotionData fallerMotionData()
+inline AbilitiesData fallerAbilities()
 {
-    ActorMotionData motionData;
-    motionData.gravityAbilityData = GravityAbilityData{};
-    return motionData;
+    AbilitiesData abilitiesData;
+    abilitiesData.gravity = GravityAbilityData{};
+    return abilitiesData;
 }
 
-inline ActorMotionData climberMotionData()
+inline AbilitiesData climberAbilities()
 {
-    ActorMotionData motionData;
-    motionData.wallHangAbilityData = WallHangAbilityData();
-    motionData.wallClimbAbilityData = WallClimbAbilityData();
-    return motionData;
+    AbilitiesData abilitiesData;
+    abilitiesData.wallHang = WallHangAbilityData();
+    abilitiesData.wallClimb = WallClimbAbilityData();
+    return abilitiesData;
 }
 
-inline NavigationProfile profileThatMoves(float height, const ActorMotionData &motionData)
+inline NavigationProfile profileThatMoves(float height, const AbilitiesData &abilitiesData)
 {
     ActorData actorData = anActorOfHeight(height);
-    actorData.motionData = motionData;
+    actorData.abilities = abilitiesData;
     return buildNavigationProfile(actorData);
 }
 
@@ -159,10 +159,10 @@ inline NavigationProfile standardProfile()
 
 inline NavigationProfile jumperProfile()
 {
-    return profileThatMoves(13.0f, jumperMotionData());
+    return profileThatMoves(13.0f, jumperAbilities());
 }
 
 inline NavigationProfile climberProfile()
 {
-    return profileThatMoves(13.0f, climberMotionData());
+    return profileThatMoves(13.0f, climberAbilities());
 }

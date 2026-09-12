@@ -1071,9 +1071,9 @@ TEST_CASE("An edit committed in the cast panel asks for the cast to change", "[T
         {
             ImGui::TreeNodeSetOpen(ImGui::GetID("actorData"), true);
             ImGui::PushOverrideID(ImGui::GetID("actorData"));
-            ImGui::TreeNodeSetOpen(ImGui::GetID("motionData"), true);
-            ImGui::PushOverrideID(ImGui::GetID("motionData"));
-            ImGui::ActivateItemByID(ImGui::GetID("jumpAbilityData"));
+            ImGui::TreeNodeSetOpen(ImGui::GetID("abilities"), true);
+            ImGui::PushOverrideID(ImGui::GetID("abilities"));
+            ImGui::ActivateItemByID(ImGui::GetID("jump"));
             ImGui::PopID();
             ImGui::PopID();
             drawing();
@@ -1082,7 +1082,7 @@ TEST_CASE("An edit committed in the cast panel asks for the cast to change", "[T
     gui.frame(drawing);
     renaming.commands.drain();
 
-    REQUIRE(gameData.npcData.at("rat").actorData.motionData.jumpAbilityData.has_value());
+    REQUIRE(gameData.npcData.at("rat").actorData.abilities.jump.has_value());
     REQUIRE(castChanged == 1);
 }
 

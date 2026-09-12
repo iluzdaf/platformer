@@ -11,7 +11,7 @@
 #include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/actor_state.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
@@ -47,7 +47,7 @@ namespace
     PlayerData aSwordsman()
     {
         PlayerData playerData = playerDataWithEveryAbility();
-        SwingAbilityData &swing = *playerData.actorData.motionData.swingAbilityData;
+        SwingAbilityData &swing = *playerData.actorData.abilities.swing;
         swing.windupDuration = 0.05f;
         swing.strikeDuration = 0.2f;
         swing.recoveryDuration = 0.05f;
@@ -190,7 +190,7 @@ TEST_CASE("A swing reaches out from the collider on the side it faces", "[Exchan
     AABB reach = duel.player.hurting().value().box;
 
     REQUIRE(reach.left() == collider.right());
-    REQUIRE(reach.size == duel.playerData.actorData.motionData.swingAbilityData->reach);
+    REQUIRE(reach.size == duel.playerData.actorData.abilities.swing->reach);
     REQUIRE(reach.center().y == collider.center().y);
 }
 
@@ -345,7 +345,7 @@ TEST_CASE(
     player.standAt(feetOf(SpawnTile));
 
     NpcData pouncer = setupNpcData();
-    pouncer.actorData.motionData.pounceAbilityData = PounceAbilityData{};
+    pouncer.actorData.abilities.pounce = PounceAbilityData{};
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
@@ -387,7 +387,7 @@ TEST_CASE("A creature bites while it charges, and not while it stands", "[Exchan
     player.standAt(feetOf(SpawnTile));
 
     NpcData charger = setupNpcData();
-    charger.actorData.motionData.chargeAbilityData = ChargeAbilityData{};
+    charger.actorData.abilities.charge = ChargeAbilityData{};
     BehaviorStateData charging;
     charging.name = "charge";
     charging.does = AttackBehaviorData{std::string(ChargeAttack)};
@@ -433,7 +433,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[ExchangingStri
     AnimatorData &animations = swinger.actorData.animationData.emplace();
     animations.startClip = "idle";
     animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
-    swinger.actorData.motionData.swingAbilityData = SwingAbilityData{};
+    swinger.actorData.abilities.swing = SwingAbilityData{};
     animations.clips["attack"] = anAttackClip();
     AnimationWhenData whileSwinging;
     whileSwinging["swinging"] = true;

@@ -584,9 +584,9 @@ namespace
     {
         NpcData data = setupNpcData();
         if (able && with == PounceAttack)
-            data.actorData.motionData.pounceAbilityData = PounceAbilityData{};
+            data.actorData.abilities.pounce = PounceAbilityData{};
         if (able && with == ChargeAttack)
-            data.actorData.motionData.chargeAbilityData = ChargeAbilityData{};
+            data.actorData.abilities.charge = ChargeAbilityData{};
         BehaviorStateData attacking;
         attacking.name = "attack";
         attacking.does = AttackBehaviorData{with};

@@ -262,12 +262,12 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   now on disk, a clean section takes the disk value, and either way the baseline
   moves to the disk value so revert means what is on disk now.
 
-**Movement is a set of abilities, each optional in the data, each owning one slot of the
-motion state.**
+**Movement is a set of abilities, each optional in the data, each owning one slot of
+`AbilityStates`.**
 
-- `ActorMotionData` holds an `optional` per ability. An actor has exactly the abilities
-  its data names, so an npc that should not jump has no `jumpAbilityData`, and a
-  mechanic is granted or withheld in json rather than by a flag or a counter.
+- `AbilitiesData` holds an `optional` per ability. An actor has exactly the abilities
+  its data names, so an npc that should not jump has no `jump`, and a mechanic is
+  granted or withheld in json rather than by a flag or a counter.
 - Each ability reads anything and writes only its own slot: a velocity, an `active`
   flag, and an `emit` flag for the tick it started. It may read contacts, the velocity
   physics produced, and other abilities' slots. Gravity is zero while hanging, sliding

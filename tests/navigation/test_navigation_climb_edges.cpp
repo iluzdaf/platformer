@@ -54,7 +54,7 @@ TEST_CASE("Hanging without climbing is no way up", "[NavigationGraphBuilder][Cli
 {
     TileMap tileMap = aWallFromTheFloor();
     NavigationProfile hangsOnly = climberProfile();
-    hangsOnly.motionData.wallClimbAbilityData.reset();
+    hangsOnly.abilities.wallClimb.reset();
 
     REQUIRE(rowsJoinedByClimbing(buildNavigationGraph(tileMap, hangsOnly), tileMap).empty());
 }

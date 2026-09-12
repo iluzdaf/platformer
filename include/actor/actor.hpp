@@ -10,13 +10,12 @@
 #include "actor/actor_state.hpp"
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/abilities/abilities.hpp"
+#include "actor/mover.hpp"
 #include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/actor_behavior.hpp"
 #include "animations/animator.hpp"
 #include "physics/physics_body.hpp"
-#include <limits>
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "conditions/asked.hpp"
@@ -89,19 +88,14 @@ private:
     const NavigationGraph &graphWalked() const;
     void say(const std::string &name, const Asked &value);
     void forgetTheTick();
-    float howFarItFell();
     FactsData declared;
     FadingFacts lately;
     FactsData known;
     std::vector<std::string> saidForTheTick;
     const NavigationGraph *walking = nullptr;
-    float highestSinceTheGround = std::numeric_limits<float>::max();
     std::optional<glm::vec2> threat;
-    Abilities abilities;
-    AbilityStates states;
+    Mover mover;
     std::vector<const Actor *> struckThisSwing;
-    Observed observations;
-    PhysicsBody physicsBody;
     std::optional<Animator> animator;
     ActorState actorState;
     SheetData sheet;

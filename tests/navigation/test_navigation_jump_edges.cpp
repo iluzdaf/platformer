@@ -1,11 +1,24 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
+#include <filesystem>
+#include <optional>
+#include <string>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
+#include "actor/actor_data.hpp"
+#include "game/game_data.hpp"
+#include "game/level.hpp"
+#include "game/level_data_file.hpp"
 #include "helpers/actors.hpp"
+#include "helpers/asset_path.hpp"
+#include "helpers/route_jumps.hpp"
+#include "helpers/shipped.hpp"
+#include "navigation/named_navigation_graph.hpp"
+#include "player/player_data.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/navigation_maps.hpp"
 #include "helpers/graph_queries.hpp"
@@ -354,4 +367,56 @@ TEST_CASE(
     navigation::addJumpEdges(graph, tileMap, 1, jumps);
 
     REQUIRE(graph.getEdges().empty());
+}
+
+TEST_CASE(
+    "Every jump edge in a shipped level lands the actor that walks it where the edge ends",
+    "[NavigationGraphBuilder][Jump]")
+{
+    PlayerData playerData = loadGameData().playerData;
+    int jumpsChecked = 0;
+
+    for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
+    {
+        if (entry.path().extension() != ".json")
+            continue;
+
+        Level level(
+            readLevelData(entry.path().string()),
+            shippedPalettes(),
+            playerData,
+            shippedNpcData(),
+            shippedPickupData());
+
+        for (const NamedNavigationGraph &named : level.getGraphs())
+        {
+            std::string walker = named.name.substr(0, named.name.find(','));
+            const ActorData &actorData =
+                walker == "player" ? playerData.actorData : shippedNpcData().at(walker).actorData;
+
+            for (const NavigationEdge &edge : named.graph.getEdges())
+            {
+                if (edge.type != EdgeType::Jump)
+                    continue;
+
+                glm::vec2 from = named.graph.getNode(edge.fromId).feet;
+                glm::vec2 to = named.graph.getNode(edge.toId).feet;
+                std::optional<glm::vec2> landed = whereARouteJumpLands(
+                    level, actorData, from, to.x > from.x ? 1.0f : -1.0f, edge.holdDuration);
+
+                INFO(
+                    entry.path().filename().string()
+                    << " " << named.name << " jumping from " << from.x << "," << from.y << " to "
+                    << to.x << "," << to.y);
+                REQUIRE(landed.has_value());
+                REQUIRE(landed->x == Catch::Approx(edge.path.back().x).margin(1.0f));
+                REQUIRE(
+                    level.getTileMap().tileStoodOnAt(*landed) ==
+                    level.getTileMap().tileStoodOnAt(edge.path.back()));
+                ++jumpsChecked;
+            }
+        }
+    }
+
+    REQUIRE(jumpsChecked > 0);
 }

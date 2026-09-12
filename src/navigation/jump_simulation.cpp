@@ -5,46 +5,61 @@
 #include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/abilities.hpp"
+#include "actor/mover.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/jump_arc.hpp"
-#include "physics/physics_body.hpp"
+#include "physics/physics_body_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "timing/fixed_time_step.hpp"
 
 namespace
 {
     constexpr int MaximumSteps = 1000;
+    constexpr int MaximumSettlingSteps = 30;
     constexpr float HoldFractions[] = {1.0f, 0.75f, 0.5f, 0.25f};
 
-    InputIntentions holdingJumpAndRunning()
+    float holdDurationOf(const AbilitiesData &abilitiesData, float holdFraction)
     {
-        InputIntentions inputIntentions;
-        inputIntentions.direction.x = 1.0f;
-        inputIntentions.jumpRequested = true;
-        inputIntentions.jumpHeld = true;
-        return inputIntentions;
+        return abilitiesData.jump ? abilitiesData.jump->jumpDuration * holdFraction : 0.0f;
     }
 
-    AbilitiesData releasedAfter(const AbilitiesData &abilitiesData, float holdFraction)
+    class HoldingJump
     {
-        AbilitiesData shortened = abilitiesData;
-        if (shortened.jump)
-            shortened.jump->jumpDuration *= holdFraction;
-        return shortened;
-    }
+    public:
+        HoldingJump(float direction, float holdFor) : direction(direction), holdFor(holdFor)
+        {
+        }
+
+        InputIntentions next(float deltaTime)
+        {
+            InputIntentions inputIntentions;
+            inputIntentions.direction.x = direction;
+            if (heldFor < holdFor)
+            {
+                inputIntentions.jumpRequested = true;
+                inputIntentions.jumpHeld = true;
+                heldFor += deltaTime;
+            }
+            return inputIntentions;
+        }
+
+    private:
+        float direction = 0.0f;
+        float holdFor = 0.0f;
+        float heldFor = 0.0f;
+    };
 }
 
 JumpArc simulateJumpArc(const AbilitiesData &abilitiesData, float holdFraction)
 {
-    AbilitiesData shortened = releasedAfter(abilitiesData, holdFraction);
-    float holdDuration = shortened.jump ? shortened.jump->jumpDuration : 0.0f;
-    Abilities abilities(shortened);
+    float holdDuration = holdDurationOf(abilitiesData, holdFraction);
+    Abilities abilities(abilitiesData);
     AbilityStates states;
     Observed observed;
-    InputIntentions inputIntentions = holdingJumpAndRunning();
+    HoldingJump holding(1.0f, holdDuration);
 
     observed.contacts.onGround = true;
-    glm::vec2 takeOff = abilities.decide(PhysicsStep, inputIntentions, observed, states);
+    glm::vec2 takeOff = abilities.decide(PhysicsStep, holding.next(PhysicsStep), observed, states);
     if (takeOff.y >= 0.0f)
         return {};
 
@@ -55,7 +70,8 @@ JumpArc simulateJumpArc(const AbilitiesData &abilitiesData, float holdFraction)
     observed.contacts.onGround = false;
     for (int step = 1; step < MaximumSteps; ++step)
     {
-        offset += abilities.decide(PhysicsStep, inputIntentions, observed, states) * PhysicsStep;
+        offset += abilities.decide(PhysicsStep, holding.next(PhysicsStep), observed, states) *
+                  PhysicsStep;
         offsets.push_back(offset);
 
         if (offset.y >= 0.0f)
@@ -87,38 +103,25 @@ JumpAttempt simulateJumpAgainst(
     float direction,
     float holdFraction)
 {
-    AbilitiesData shortened = releasedAfter(abilitiesData, holdFraction);
-    Abilities abilities(shortened);
-    AbilityStates states;
-    Observed observed;
+    Mover mover(abilitiesData, physicsBodyData);
+    mover.standAt(takeOffFeet);
+    mover.lookAround(tileMap);
+    for (int settling = 0; settling < MaximumSettlingSteps && !mover.observed().contacts.onGround;
+         ++settling)
+        mover.step(PhysicsStep, InputIntentions{}, tileMap);
 
-    PhysicsBody physicsBody(physicsBodyData);
-    physicsBody.setPosition(takeOffFeet - physicsBody.bottomCenterOffset());
-
-    InputIntentions inputIntentions = holdingJumpAndRunning();
-    inputIntentions.direction.x = direction;
-
-    auto feet = [&] { return physicsBody.aabb().bottomCenter(); };
-
+    HoldingJump holding(direction, holdDurationOf(abilitiesData, holdFraction));
     JumpAttempt attempt;
-    attempt.path.push_back(feet());
+    attempt.path.push_back(takeOffFeet);
 
-    observed.contacts.onGround = true;
     for (int step = 0; step < MaximumSteps; ++step)
     {
-        physicsBody.setVelocity(abilities.decide(PhysicsStep, inputIntentions, observed, states));
-        physicsBody.stepPhysics(PhysicsStep, tileMap);
+        mover.step(PhysicsStep, holding.next(PhysicsStep), tileMap);
 
-        observed.contacts.onGround = physicsBody.contactWithGround(tileMap);
-        observed.contacts.hitCeiling = physicsBody.contactWithCeiling(tileMap);
-        observed.contacts.touchingLeftWall = physicsBody.contactWithLeftWall(tileMap);
-        observed.contacts.touchingRightWall = physicsBody.contactWithRightWall(tileMap);
-        observed.velocity = physicsBody.velocity();
-
-        attempt.path.push_back(feet());
+        attempt.path.push_back(mover.feet());
         attempt.steps = step + 1;
 
-        if (step > 0 && observed.contacts.onGround)
+        if (step > 0 && mover.observed().contacts.onGround)
         {
             float tileSize = static_cast<float>(tileMap.getTileSize());
             attempt.path.back().y = std::round(attempt.path.back().y / tileSize) * tileSize;

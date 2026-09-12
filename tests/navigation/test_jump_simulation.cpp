@@ -4,6 +4,18 @@
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
+#include "actor/abilities/wall_slide_ability_data.hpp"
+#include "actor/abilities/abilities.hpp"
+#include "actor/abilities/ability_states.hpp"
+#include "actor/observed.hpp"
+#include "game/level.hpp"
+#include "helpers/actors.hpp"
+#include "helpers/levels.hpp"
+#include "helpers/route_jumps.hpp"
+#include "helpers/tile_positions.hpp"
+#include "input/input_intentions.hpp"
+#include "player/player_data.hpp"
+#include "timing/fixed_time_step.hpp"
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_build_report.hpp"
 #include "actor/abilities/abilities_data.hpp"
@@ -13,6 +25,7 @@
 #include "tile_map/tile_map.hpp"
 #include <cstddef>
 #include "tile_map/tile_map_data.hpp"
+#include <optional>
 #include <vector>
 #include <cmath>
 
@@ -23,13 +36,6 @@ namespace
         AbilitiesData abilitiesData;
         abilitiesData.move = MoveAbilityData{};
         abilitiesData.gravity = GravityAbilityData{};
-        return abilitiesData;
-    }
-
-    AbilitiesData jumperAbilities()
-    {
-        AbilitiesData abilitiesData = walkerAbilities();
-        abilitiesData.jump = JumpAbilityData{};
         return abilitiesData;
     }
 
@@ -195,13 +201,7 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
     REQUIRE(landedSomewhere);
 }
 
-#include "actor/abilities/abilities.hpp"
-#include "actor/abilities/ability_states.hpp"
-#include "actor/observed.hpp"
-#include "input/input_intentions.hpp"
-#include "timing/fixed_time_step.hpp"
-
-TEST_CASE("An arc the builder simulates is the path the game's own steps take", "[JumpArc]")
+TEST_CASE("An arc is the path the abilities alone give, with nothing to touch", "[JumpArc]")
 {
     AbilitiesData abilitiesData = jumperAbilities();
     std::vector<glm::vec2> arc = simulateJumpArc(abilitiesData).offsets;
@@ -277,4 +277,111 @@ TEST_CASE("A report adds up what its attempts cost", "[JumpArc]")
     report.noting(capped);
 
     REQUIRE(report == NavigationBuildReport{1012, 1});
+}
+
+namespace
+{
+    constexpr int SceneWidthTiles = 30;
+    constexpr int SceneHeightTiles = 14;
+    constexpr int SceneFloorRow = 12;
+    constexpr glm::ivec2 TakeOffTile{2, SceneFloorRow - 1};
+    constexpr int HangingWallColumn = 9;
+    constexpr int HangingWallTopRow = 6;
+    constexpr int HangingWallBottomRow = 9;
+
+    Placed aFloorAcrossTheScene()
+    {
+        Placed laid;
+        layRow(laid, SceneFloorRow, 0, SceneWidthTiles - 1);
+        return laid;
+    }
+
+    Placed aFloorAndAWallTheFallRunsInto()
+    {
+        Placed laid = aFloorAcrossTheScene();
+        layColumn(laid, HangingWallColumn, HangingWallTopRow, HangingWallBottomRow);
+        return laid;
+    }
+
+    PlayerData aJumperThatSlides()
+    {
+        PlayerData playerData;
+        playerData.actorData.abilities = jumperAbilities();
+        playerData.actorData.abilities.wallSlide = WallSlideAbilityData{};
+        return playerData;
+    }
+
+    struct BothLandings
+    {
+        glm::vec2 simulated;
+        glm::vec2 actual;
+    };
+
+    BothLandings jumpBothWays(const Placed &tiles)
+    {
+        PlayerData playerData = aJumperThatSlides();
+        Level level(
+            aLevelPlacing(tiles, SceneWidthTiles, SceneHeightTiles, TakeOffTile, {}),
+            theOnlyPalette(aPaletteWithASolidTile()),
+            playerData,
+            {},
+            {});
+        JumpArc arc = simulateJumpArc(playerData.actorData.abilities);
+        JumpAttempt attempt = simulateJumpAgainst(
+            level.getTileMap(),
+            playerData.actorData.abilities,
+            playerData.actorData.physicsBodyData,
+            feetOf(TakeOffTile),
+            1.0f,
+            arc.holdFraction);
+        REQUIRE(attempt.landed);
+
+        std::optional<glm::vec2> actual = whereARouteJumpLands(
+            level, playerData.actorData, feetOf(TakeOffTile), 1.0f, arc.holdDuration);
+        REQUIRE(actual.has_value());
+
+        return {attempt.path.back(), *actual};
+    }
+}
+
+TEST_CASE("On open ground, a simulated jump lands where the actor doing it lands", "[JumpArc]")
+{
+    BothLandings landed = jumpBothWays(aFloorAcrossTheScene());
+
+    INFO(
+        "simulated " << landed.simulated.x << "," << landed.simulated.y << " actual "
+                     << landed.actual.x << "," << landed.actual.y);
+    REQUIRE(landed.actual.y == landed.simulated.y);
+    REQUIRE(landed.actual.x == Catch::Approx(landed.simulated.x).margin(1.0f));
+}
+
+TEST_CASE(
+    "Brushing a wall it grips, a simulated jump lands where the actor doing it lands",
+    "[JumpArc]")
+{
+    BothLandings landed = jumpBothWays(aFloorAndAWallTheFallRunsInto());
+
+    INFO(
+        "simulated " << landed.simulated.x << "," << landed.simulated.y << " actual "
+                     << landed.actual.x << "," << landed.actual.y);
+    REQUIRE(landed.actual.y == landed.simulated.y);
+    REQUIRE(landed.actual.x == Catch::Approx(landed.simulated.x).margin(1.0f));
+}
+
+TEST_CASE(
+    "A jump asked of a pixel above the floor settles onto it first, as a walker arriving would",
+    "[JumpArc]")
+{
+    TileMap tileMap = aTileMap(aFloorAcrossTheScene(), SceneWidthTiles, SceneHeightTiles);
+    glm::vec2 aPixelAbove = feetOf(TakeOffTile) - glm::vec2(0.0f, 1.0f);
+
+    JumpAttempt attempt =
+        simulateJumpAgainst(tileMap, jumperAbilities(), PhysicsBodyData{}, aPixelAbove, 1.0f, 1.0f);
+
+    float highest = aPixelAbove.y;
+    for (const glm::vec2 &feet : attempt.path)
+        highest = std::min(highest, feet.y);
+
+    REQUIRE(attempt.landed);
+    REQUIRE(aPixelAbove.y - highest > 48.0f);
 }

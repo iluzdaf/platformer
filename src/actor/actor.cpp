@@ -45,8 +45,8 @@ namespace
 }
 
 Actor::Actor(const ActorData &data)
-    : abilities(data.abilities), physicsBody(data.physicsBodyData),
-      navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
+    : mover(data.abilities, data.physicsBodyData), navigationProfile(buildNavigationProfile(data)),
+      hp(data.healthData)
 {
     if (data.animationData)
         animator.emplace(*data.animationData);
@@ -66,7 +66,7 @@ void Actor::postFixedUpdate()
 
 void Actor::beginFrame()
 {
-    observations.contacts = contactsForANewFrame(observations.contacts);
+    mover.beginFrame();
 }
 
 void Actor::fixedUpdate(
@@ -77,7 +77,7 @@ void Actor::fixedUpdate(
 {
     const TileMap &tileMap = level.getTileMap();
     hp.update(deltaTime);
-    observations.alive = hp.alive();
+    mover.observeAlive(hp.alive());
     walks(level.graphFor(navigationProfile));
     threat = threatFeet;
     for (const Noise &noise : noises)
@@ -88,28 +88,16 @@ void Actor::fixedUpdate(
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, context) : InputIntentions();
 
-    glm::vec2 velocity = abilities.decide(deltaTime, inputIntentions, observations, states);
-    observations.hits.clear();
-    if (!states.swing.striking())
+    mover.step(deltaTime, inputIntentions, tileMap);
+    if (!mover.states().swing.striking())
         struckThisSwing.clear();
 
-    physicsBody.setVelocity(velocity);
-    physicsBody.stepPhysics(deltaTime, tileMap);
-
-    observations.contacts = contactsAfterStep(observations.contacts, physicsBody, tileMap);
-    observations.previousVelocity = observations.velocity;
-    observations.velocity = physicsBody.velocity();
-    observations.fell = howFarItFell();
     lately.update(deltaTime);
 
     if (animator)
-        animator->animate(deltaTime, states, observations, stateName());
+        animator->animate(deltaTime, mover.states(), mover.observed(), stateName());
 
-    if (!states.knockback.active)
-        actorState.facingLeft = observations.velocity.x > 0
-                                    ? false
-                                    : (observations.velocity.x < 0 ? true : actorState.facingLeft);
-    observations.facingLeft = actorState.facingLeft;
+    actorState.facingLeft = mover.observed().facingLeft;
 
     if (animator)
     {
@@ -120,20 +108,6 @@ void Actor::fixedUpdate(
     }
 
     forgetTheTick();
-}
-
-float Actor::howFarItFell()
-{
-    if (!observations.contacts.onGround)
-    {
-        highestSinceTheGround = std::min(highestSinceTheGround, feet().y);
-        return 0.0f;
-    }
-
-    float fell = observations.contacts.wasOnGround ? 0.0f : feet().y - highestSinceTheGround;
-    highestSinceTheGround = feet().y;
-
-    return fell;
 }
 
 void Actor::forgetTheTick()
@@ -225,12 +199,12 @@ bool Actor::onSameSurfaceAs(glm::vec2 at) const
 
 bool Actor::corneredBy(glm::vec2 at) const
 {
-    return ::corneredBy(graphWalked(), feet(), at, physicsBody.colliderSize().x);
+    return ::corneredBy(graphWalked(), feet(), at, mover.body().colliderSize().x);
 }
 
 bool Actor::onGround() const
 {
-    return observations.contacts.onGround;
+    return mover.observed().contacts.onGround;
 }
 
 const SheetData &Actor::drawnFrom() const
@@ -245,17 +219,17 @@ const ActorState &Actor::state() const
 
 const AbilityStates &Actor::abilityStates() const
 {
-    return states;
+    return mover.states();
 }
 
 const Observed &Actor::observed() const
 {
-    return observations;
+    return mover.observed();
 }
 
 const PhysicsBody &Actor::body() const
 {
-    return physicsBody;
+    return mover.body();
 }
 
 const NavigationProfile &Actor::profile() const
@@ -280,12 +254,12 @@ std::optional<int> Actor::targetNodeId() const
 
 glm::vec2 Actor::feet() const
 {
-    return physicsBody.aabb().bottomCenter();
+    return mover.feet();
 }
 
 void Actor::standAt(const glm::vec2 &newFeet)
 {
-    physicsBody.setPosition(newFeet - physicsBody.bottomCenterOffset());
+    mover.standAt(newFeet);
 
     if (behavior)
         behavior->reset();
@@ -308,7 +282,7 @@ bool Actor::takeHit(const Hit &hit)
 
     if (hp.alive())
     {
-        observations.hits.push_back(hit);
+        mover.observe(hit);
         hurt();
         onHurt();
     }
@@ -323,11 +297,11 @@ bool Actor::takeHit(const Hit &hit)
 
 std::optional<AABB> Actor::swingBox() const
 {
-    const SwingAbilityState &swing = states.swing;
+    const SwingAbilityState &swing = mover.states().swing;
     if (!swing.striking())
         return std::nullopt;
 
-    AABB collider = physicsBody.aabb();
+    AABB collider = mover.body().aabb();
     float x = swing.direction < 0.0f ? collider.left() - swing.reach.x : collider.right();
     return AABB{glm::vec2(x, collider.center().y - swing.reach.y * 0.5f), swing.reach};
 }
@@ -337,17 +311,18 @@ std::optional<Hurting> Actor::hurting() const
     if (!alive())
         return std::nullopt;
 
+    const AbilityStates &states = mover.states();
     const SwingAbilityState &swing = states.swing;
     if (std::optional<AABB> reach = swingBox())
         return Hurting{*reach, swing.damage, swing.direction};
 
     const PounceAbilityState &pounce = states.pounce;
     if (pounce.active)
-        return Hurting{physicsBody.aabb(), pounce.damage, pounce.direction};
+        return Hurting{mover.body().aabb(), pounce.damage, pounce.direction};
 
     const ChargeAbilityState &charge = states.charge;
     if (charge.active)
-        return Hurting{physicsBody.aabb(), charge.damage, charge.direction};
+        return Hurting{mover.body().aabb(), charge.damage, charge.direction};
 
     return std::nullopt;
 }
@@ -358,7 +333,7 @@ bool Actor::strike(Actor &target)
     if (!hurting || &target == this)
         return false;
 
-    bool swinging = states.swing.striking();
+    bool swinging = mover.states().swing.striking();
     if (swinging && std::ranges::find(struckThisSwing, &target) != struckThisSwing.end())
         return false;
 
@@ -389,9 +364,9 @@ ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGra
     return ActorBehaviorContext{
         navigationGraph,
         feet(),
-        physicsBody.colliderSize(),
+        mover.body().colliderSize(),
         threat,
-        observations.contacts,
+        mover.observed().contacts,
         &known,
-        &states};
+        &mover.states()};
 }

@@ -17,6 +17,7 @@
 #include "ui/in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "ui/sheet_preview.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "actor/actor_data.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
@@ -260,12 +261,15 @@ void TypesUi::drawShown(
 
 void TypesUi::drawActorPreview(const SheetInScope &scope, const ActorData &actorData)
 {
+    static const FrameAnimationData nothingDrawnYet{};
     if (!scope.texture)
         return;
 
-    std::vector<NamedAnimation> offered = animationsOf(actorData.animationData);
-    const NamedAnimation &shown = animationNamed(offered, previewing);
-    ImVec2 at = drawAnimationPreview(scope, *shown.animation);
+    std::vector<NamedAnimation> offered = actorData.animationData
+                                              ? animationsOf(*actorData.animationData)
+                                              : std::vector<NamedAnimation>{};
+    const NamedAnimation *shown = offered.empty() ? nullptr : &animationNamed(offered, previewing);
+    ImVec2 at = drawAnimationPreview(scope, shown ? *shown->animation : nothingDrawnYet);
 
     glm::vec2 drawn = drawnSizeOf(actorData);
     if (drawn.x > 0.0f)
@@ -275,13 +279,16 @@ void TypesUi::drawActorPreview(const SheetInScope &scope, const ActorData &actor
             actorData.physicsBodyData.colliderOffset,
             actorData.physicsBodyData.colliderSize);
 
+    if (!shown)
+        return;
+
     ImGui::SameLine();
     ImGui::SetNextItemWidth(PreviewChooserWidth);
-    if (!ImGui::BeginCombo("##previewing", shown.name.c_str()))
+    if (!ImGui::BeginCombo("##previewing", shown->name.c_str()))
         return;
 
     for (const NamedAnimation &animation : offered)
-        if (ImGui::Selectable(animation.name.c_str(), animation.name == shown.name))
+        if (ImGui::Selectable(animation.name.c_str(), animation.name == shown->name))
             previewing = animation.name;
 
     ImGui::EndCombo();

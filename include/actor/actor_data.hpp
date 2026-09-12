@@ -15,7 +15,7 @@ struct ActorData
     std::optional<glm::vec2> size;
     PhysicsBodyData physicsBodyData;
     ActorMotionData motionData;
-    AnimatorData animationData;
+    std::optional<AnimatorData> animationData;
     HealthData healthData;
 };
 

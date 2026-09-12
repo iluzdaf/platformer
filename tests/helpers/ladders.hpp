@@ -2,9 +2,7 @@
 
 #include <string>
 #include <utility>
-#include "animations/animator_data.hpp"
 #include "conditions/asked.hpp"
-#include "animations/animator_data.hpp"
 #include "animations/animation_ladder_data.hpp"
 
 inline AnimationTransitionData fromAnyTo(std::string to, AnimationWhenData when)
@@ -12,53 +10,77 @@ inline AnimationTransitionData fromAnyTo(std::string to, AnimationWhenData when)
     return AnimationTransitionData{std::string(), std::move(to), when};
 }
 
-inline AnimationLadderData everyPictureLadder()
+inline AnimationTransitionData deadTransition()
 {
     AnimationWhenData dead;
     dead["alive"] = false;
+    return fromAnyTo("dead", dead);
+}
+
+inline AnimationTransitionData knockbackTransition()
+{
     AnimationWhenData pushed;
     pushed["knockback"] = true;
+    return fromAnyTo("knockback", pushed);
+}
+
+inline AnimationTransitionData swingTransition()
+{
     AnimationWhenData swinging;
     swinging["swinging"] = true;
+    return fromAnyTo("attack", swinging);
+}
+
+inline AnimationTransitionData dashTransition()
+{
     AnimationWhenData dashing;
     dashing["dashing"] = true;
+    return fromAnyTo("dash", dashing);
+}
+
+inline AnimationTransitionData climbTransition()
+{
     AnimationWhenData climbing;
     climbing["onGround"] = false;
     climbing["climbing"] = true;
+    return fromAnyTo("climb", climbing);
+}
+
+inline AnimationTransitionData wallSlideTransition()
+{
     AnimationWhenData onWall;
     onWall["onGround"] = false;
     onWall["onWall"] = true;
+    return fromAnyTo("wallSlide", onWall);
+}
+
+inline AnimationTransitionData jumpTransition()
+{
     AnimationWhenData rising;
     rising["onGround"] = false;
     rising["rising"] = true;
+    return fromAnyTo("jump", rising);
+}
+
+inline AnimationTransitionData fallTransition()
+{
     AnimationWhenData falling;
     falling["onGround"] = false;
     falling["falling"] = true;
-    AnimationWhenData walking;
-    walking["onGround"] = true;
-    walking["moving"] = true;
-    AnimationWhenData standing;
-    standing["onGround"] = true;
-
-    return AnimationLadderData{
-        {fromAnyTo("dead", dead),
-         fromAnyTo("knockback", pushed),
-         fromAnyTo("attack", swinging),
-         fromAnyTo("dash", dashing),
-         fromAnyTo("climb", climbing),
-         fromAnyTo("wallSlide", onWall),
-         fromAnyTo("jump", rising),
-         fromAnyTo("fall", falling),
-         fromAnyTo("walk", walking),
-         fromAnyTo("idle", standing)}};
+    return fromAnyTo("fall", falling);
 }
 
-inline AnimationLadderData ladderOfWhatItHas(const AnimatorData &animations)
+inline AnimationTransitionData walkTransition()
 {
-    AnimationLadderData trimmed;
-    for (const AnimationTransitionData &rung : everyPictureLadder().transitions)
-        if (animations.clips.contains(rung.to))
-            trimmed.transitions.push_back(rung);
+    AnimationWhenData moving;
+    moving["onGround"] = true;
+    moving["moving"] = true;
+    return fromAnyTo("walk", moving);
+}
 
-    return trimmed;
+inline AnimationTransitionData idleTransition()
+{
+    AnimationWhenData standing;
+    standing["onGround"] = true;
+    return fromAnyTo("idle", standing);
 }

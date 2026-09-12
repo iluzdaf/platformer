@@ -6,13 +6,13 @@
 #include "animations/animation_ladder_data.hpp"
 #include "animations/frame_animation_data.hpp"
 
-inline constexpr std::string_view IdleClip = "idle";
 inline constexpr std::string_view AttackClip = "attack";
 
 struct AnimatorData
 {
     std::map<std::string, FrameAnimationData> clips;
     AnimationLadderData ladder;
+    std::string startClip;
 };
 
 inline const FrameAnimationData *clipNamed(const AnimatorData &animations, std::string_view name)
@@ -20,3 +20,5 @@ inline const FrameAnimationData *clipNamed(const AnimatorData &animations, std::
     auto found = animations.clips.find(std::string(name));
     return found == animations.clips.end() ? nullptr : &found->second;
 }
+
+std::optional<std::string> whyNotAnAnimator(const AnimatorData &data);

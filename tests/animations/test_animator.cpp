@@ -3,7 +3,6 @@
 #include <string>
 #include "animations/animator.hpp"
 #include "animations/frame_animation_data.hpp"
-#include "animations/frame_animation.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
@@ -14,9 +13,9 @@
 
 namespace
 {
-    FrameAnimation animationOfFrame(int frame)
+    FrameAnimationData animationDataOfFrame(int frame)
     {
-        return FrameAnimation(FrameAnimationData({frame}, 1.0f));
+        return FrameAnimationData({frame}, 1.0f);
     }
 
     Observed walkingOnGround()
@@ -30,9 +29,12 @@ namespace
 
 TEST_CASE("Plays the animation for the state it is in", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("walk", animationOfFrame(2));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["walk"] = animationDataOfFrame(2);
+    data.ladder = AnimationLadderData{{walkTransition(), idleTransition()}};
+    Animator animator(data);
 
     animator.animate(0.01f, Decided{}, walkingOnGround());
 
@@ -41,8 +43,11 @@ TEST_CASE("Plays the animation for the state it is in", "[Animator]")
 
 TEST_CASE("Falls back to idle for a state it has no animation for", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.ladder = AnimationLadderData{{idleTransition()}};
+    Animator animator(data);
 
     REQUIRE_NOTHROW(animator.animate(0.01f, Decided{}, walkingOnGround()));
     REQUIRE(animator.state() == "idle");
@@ -50,8 +55,11 @@ TEST_CASE("Falls back to idle for a state it has no animation for", "[Animator]"
 
 TEST_CASE("An actor without airborne animations survives being airborne", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.ladder = AnimationLadderData{{idleTransition()}};
+    Animator animator(data);
 
     Decided decided;
 
@@ -69,10 +77,13 @@ TEST_CASE("An actor without airborne animations survives being airborne", "[Anim
 
 TEST_CASE("Off the ground, the observed velocity says whether it is a jump or a fall", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("jump", animationOfFrame(2));
-    animator.add("fall", animationOfFrame(3));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["jump"] = animationDataOfFrame(2);
+    data.clips["fall"] = animationDataOfFrame(3);
+    data.ladder = AnimationLadderData{{jumpTransition(), fallTransition(), idleTransition()}};
+    Animator animator(data);
     Observed airborne;
     airborne.contacts.onGround = false;
 
@@ -87,11 +98,15 @@ TEST_CASE("Off the ground, the observed velocity says whether it is a jump or a 
 
 TEST_CASE("A swing shows the attack, and a corpse shows dead, over everything else", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("dash", animationOfFrame(2));
-    animator.add("attack", animationOfFrame(3));
-    animator.add("dead", animationOfFrame(4));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["dash"] = animationDataOfFrame(2);
+    data.clips["attack"] = animationDataOfFrame(3);
+    data.clips["dead"] = animationDataOfFrame(4);
+    data.ladder = AnimationLadderData{
+        {deadTransition(), swingTransition(), dashTransition(), idleTransition()}};
+    Animator animator(data);
     Decided swingingWhileDashing;
     swingingWhileDashing.dash.active = true;
     swingingWhileDashing.swing.phase = SwingPhase::Windup;
@@ -107,11 +122,15 @@ TEST_CASE("A swing shows the attack, and a corpse shows dead, over everything el
 
 TEST_CASE("A knockback shows over a swing, a dash and the ground", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("dash", animationOfFrame(2));
-    animator.add("attack", animationOfFrame(3));
-    animator.add("knockback", animationOfFrame(5));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["dash"] = animationDataOfFrame(2);
+    data.clips["attack"] = animationDataOfFrame(3);
+    data.clips["knockback"] = animationDataOfFrame(5);
+    data.ladder = AnimationLadderData{
+        {knockbackTransition(), swingTransition(), dashTransition(), idleTransition()}};
+    Animator animator(data);
     Decided pushedWhileSwinging;
     pushedWhileSwinging.dash.active = true;
     pushedWhileSwinging.swing.phase = SwingPhase::Windup;
@@ -124,10 +143,13 @@ TEST_CASE("A knockback shows over a swing, a dash and the ground", "[Animator]")
 
 TEST_CASE("A corpse shows dead even while it is still being pushed", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("knockback", animationOfFrame(5));
-    animator.add("dead", animationOfFrame(4));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["knockback"] = animationDataOfFrame(5);
+    data.clips["dead"] = animationDataOfFrame(4);
+    data.ladder = AnimationLadderData{{deadTransition(), knockbackTransition(), idleTransition()}};
+    Animator animator(data);
     Decided pushed;
     pushed.knockback.active = true;
     Observed dead = walkingOnGround();
@@ -140,10 +162,17 @@ TEST_CASE("A corpse shows dead even while it is still being pushed", "[Animator]
 
 TEST_CASE("Hanging shows the climb only while it is moving", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("wallSlide", animationOfFrame(2));
-    animator.add("climb", animationOfFrame(6));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["wallSlide"] = animationDataOfFrame(2);
+    data.clips["climb"] = animationDataOfFrame(6);
+    data.ladder = AnimationLadderData{{
+        climbTransition(),
+        wallSlideTransition(),
+        idleTransition(),
+    }};
+    Animator animator(data);
     Observed offTheGround;
     Decided hanging;
     hanging.wallHang.active = true;
@@ -162,10 +191,13 @@ TEST_CASE("Hanging shows the climb only while it is moving", "[Animator]")
 
 TEST_CASE("A slide that is not a hang never shows the climb", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("wallSlide", animationOfFrame(2));
-    animator.add("climb", animationOfFrame(6));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["wallSlide"] = animationDataOfFrame(2);
+    data.clips["climb"] = animationDataOfFrame(6);
+    data.ladder = AnimationLadderData{{climbTransition(), wallSlideTransition(), idleTransition()}};
+    Animator animator(data);
     Observed offTheGround;
     Decided sliding;
     sliding.wallSlide.active = true;
@@ -178,9 +210,12 @@ TEST_CASE("A slide that is not a hang never shows the climb", "[Animator]")
 
 TEST_CASE("Entering a state says its clip's opening cue", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("walk", FrameAnimation(FrameAnimationData{{2}, 1.0f, {{0, "onFootstep"}}}));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["walk"] = FrameAnimationData({2}, 1.0f, {FrameCueData{0, "onFootstep"}});
+    data.ladder = AnimationLadderData{{walkTransition(), idleTransition()}};
+    Animator animator(data);
 
     animator.animate(0.01f, Decided{}, walkingOnGround());
 
@@ -189,9 +224,12 @@ TEST_CASE("Entering a state says its clip's opening cue", "[Animator]")
 
 TEST_CASE("Staying in a state does not repeat its opening cue", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    animator.add("walk", FrameAnimation(FrameAnimationData{{2}, 1.0f, {{0, "onFootstep"}}}));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["walk"] = FrameAnimationData({2}, 1.0f, {FrameCueData{0, "onFootstep"}});
+    data.ladder = AnimationLadderData{{walkTransition(), idleTransition()}};
+    Animator animator(data);
     animator.animate(0.01f, Decided{}, walkingOnGround());
     animator.takeCues();
 
@@ -202,11 +240,13 @@ TEST_CASE("Staying in a state does not repeat its opening cue", "[Animator]")
 
 TEST_CASE("The animator says when the clip it is playing has finished", "[Animator]")
 {
-    Animator animator(everyPictureLadder());
-    animator.add("idle", animationOfFrame(1));
-    FrameAnimationData once{{2, 3}, 0.1f};
-    once.loops = false;
-    animator.add("walk", FrameAnimation(once));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["walk"] = FrameAnimationData({2, 3}, 0.1f, {}, false);
+    data.ladder = AnimationLadderData{{walkTransition(), idleTransition()}};
+    Animator animator(data);
+    data.clips["walk"].loops = false;
 
     animator.animate(0.01f, Decided{}, walkingOnGround());
     REQUIRE_FALSE(animator.finished());
@@ -217,15 +257,16 @@ TEST_CASE("The animator says when the clip it is playing has finished", "[Animat
 
 TEST_CASE("A ladder given as data drives the animator", "[Animator]")
 {
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["walk"] = animationDataOfFrame(2);
     AnimationWhenData moving;
     moving["moving"] = true;
-    AnimationWhenData still;
-    still["moving"] = false;
-    AnimationLadderData ladder{{{"", "walk", moving}, {"walk", "idle", still}}};
-    Animator animator(ladder);
-    animator.add("idle", animationOfFrame(1));
-    animator.add("walk", animationOfFrame(2));
-    animator.add("jump", animationOfFrame(3));
+    AnimationWhenData notMoving;
+    notMoving["moving"] = false;
+    data.ladder = AnimationLadderData{{fromAnyTo("walk", moving), {"walk", "idle", notMoving}}};
+    Animator animator(data);
 
     animator.animate(0.01f, Decided{}, walkingOnGround());
     REQUIRE(animator.state() == "walk");
@@ -243,21 +284,17 @@ TEST_CASE("A rung with a from only fires from that state", "[Animator]")
 {
     AnimationWhenData always;
     AnimationLadderData ladder{{{"walk", "jump", always}}};
-    Animator animator(ladder);
-    animator.add("idle", animationOfFrame(1));
-    animator.add("walk", animationOfFrame(2));
-    animator.add("jump", animationOfFrame(3));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["walk"] = animationDataOfFrame(2);
+    data.clips["jump"] = animationDataOfFrame(3);
+    data.ladder = ladder;
+    Animator animator(data);
 
     animator.animate(0.01f, Decided{}, walkingOnGround());
 
     REQUIRE(animator.state() == "idle");
-}
-
-TEST_CASE("The animator can say the ladder it walks", "[Animator]")
-{
-    Animator animator(everyPictureLadder());
-
-    REQUIRE(animator.ladder() == everyPictureLadder());
 }
 
 TEST_CASE("A rung may ask which state the machine is in", "[Animator]")
@@ -267,9 +304,12 @@ TEST_CASE("A rung may ask which state the machine is in", "[Animator]")
     AnimationWhenData otherwise;
     otherwise["onGround"] = true;
     AnimationLadderData ladder{{{"", "sleep", asleep}, {"", "idle", otherwise}}};
-    Animator animator(ladder);
-    animator.add("idle", animationOfFrame(1));
-    animator.add("sleep", animationOfFrame(2));
+    AnimatorData data;
+    data.startClip = "idle";
+    data.clips["idle"] = animationDataOfFrame(1);
+    data.clips["sleep"] = animationDataOfFrame(2);
+    data.ladder = ladder;
+    Animator animator(data);
 
     animator.animate(0.01f, Decided{}, walkingOnGround(), "sleep");
     REQUIRE(animator.state() == "sleep");

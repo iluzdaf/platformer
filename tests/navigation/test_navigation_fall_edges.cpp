@@ -111,8 +111,7 @@ TEST_CASE(
 {
     Placed laid;
     layRow(laid, FloorBelowRow, 0, 19);
-    for (int x = 0; x < 20; ++x)
-        laid.push_back({glm::ivec2(x, PlatformRow + 1), SpikeTileIndex});
+    layRow(laid, PlatformRow + 1, 0, 19, SpikeTile);
     layRow(laid, PlatformRow, 0, LeftPlatformEnd);
     TileMap tileMap = aTileMap(laid, 20, WideMapHeightTiles, 16, aPaletteWithSpikes());
 

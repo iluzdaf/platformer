@@ -10,12 +10,10 @@
 #include "actor/actor_contact_state.hpp"
 #include "actor/decided.hpp"
 #include "actor/actor_state.hpp"
-#include "animations/frame_animation_data.hpp"
 #include "actor/hit.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "helpers/actors.hpp"
-#include "helpers/ladders.hpp"
 #include "helpers/player_fixtures.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
@@ -241,10 +239,6 @@ TEST_CASE("A player beside a wall knows which side it is on", "[Player]")
 TEST_CASE("An actor plays each animation under the state it was given for", "[Player]")
 {
     PlayerData playerData = playerDataWithEveryAbility();
-    playerData.actorData.animationData.clips["idle"] = FrameAnimationData({5}, 1.0f);
-    playerData.actorData.animationData.clips["dead"] = FrameAnimationData({9}, 1.0f);
-    playerData.actorData.animationData.ladder =
-        ladderOfWhatItHas(playerData.actorData.animationData);
     ScriptedIntentions input;
     Player player(playerData, input);
     TileMap tileMap = aTileMap({{{0, 1}, 1}});

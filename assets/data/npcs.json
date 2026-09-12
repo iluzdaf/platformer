@@ -10,6 +10,7 @@
                 "chargeAbilityData":{}
             },
             "animationData":{
+                "startClip":"sleep",
                 "clips":{
                     "dead":{"frames":[7],"frameDuration":1,"loops":false},
                     "idle":{"frames":[0],"frameDuration":1},
@@ -56,6 +57,7 @@
                 "pounceAbilityData":{"leap":[120,-60]}
             },
             "animationData":{
+                "startClip":"idle",
                 "clips":{
                     "dead":{"frames":[7],"frameDuration":1,"loops":false},
                     "fall":{"frames":[6],"frameDuration":1},
@@ -113,6 +115,7 @@
                 "pounceAbilityData":{}
             },
             "animationData":{
+                "startClip":"idle",
                 "clips":{
                     "climb":{"frames":[8,9],"frameDuration":0.15},
                     "dead":{"frames":[10],"frameDuration":1,"loops":false},

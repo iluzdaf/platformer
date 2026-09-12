@@ -34,7 +34,7 @@ namespace
     PlayerData aSwordsman()
     {
         PlayerData playerData = playerDataWithEveryAbility();
-        playerData.actorData.animationData.clips["attack"] = anAttackClip(4, 0.05f);
+        playerData.actorData.animationData->clips["attack"] = anAttackClip(4, 0.05f);
         return playerData;
     }
 
@@ -42,10 +42,13 @@ namespace
     {
         NpcData rat = setupNpcData();
         rat.actorData.healthData = HealthData{points, 0.0f};
-        rat.actorData.animationData.clips["dead"] = FrameAnimationData({7}, 1.0f);
+        AnimatorData &animations = rat.actorData.animationData.emplace();
+        animations.startClip = "idle";
+        animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
+        animations.clips["dead"] = FrameAnimationData({7}, 1.0f);
         AnimationWhenData dead;
         dead["alive"] = false;
-        rat.actorData.animationData.ladder = AnimationLadderData{{{"", "dead", dead}}};
+        animations.ladder = AnimationLadderData{{{"", "dead", dead}}};
         return rat;
     }
 

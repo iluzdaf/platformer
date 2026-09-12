@@ -19,6 +19,7 @@
 #include "player/player.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/editor_ui.hpp"
+#include "helpers/npc_fixtures.hpp"
 
 namespace
 {

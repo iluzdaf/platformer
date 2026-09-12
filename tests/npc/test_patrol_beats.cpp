@@ -14,11 +14,14 @@
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "conditions/asked.hpp"
 #include "game/level.hpp"
+#include "helpers/levels.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/tiles.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+
+using namespace ledgeAndWall;
 
 namespace
 {

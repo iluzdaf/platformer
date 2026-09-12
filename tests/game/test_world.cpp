@@ -565,7 +565,7 @@ TEST_CASE("A cue reaches the player's script by its name", "[World][Cues]")
            "who:alive() end }\n";
 
     GameData gameData = aFloorWorldWithCoins();
-    gameData.playerData.actorData.animationData.clips["idle"] =
+    gameData.playerData.actorData.animationData->clips["idle"] =
         FrameAnimationData{{0, 1}, 0.05f, {{0, "onFootstep"}}};
     gameData.playerData.script.path = playerScript.string();
     LuaScriptSystem luaScriptSystem(shared.string());
@@ -601,7 +601,9 @@ TEST_CASE("A cue reaches the creature's own script, not the player's", "[World][
     GameData gameData = aFloorWorldWithCoins();
     gameData.playerData.script.path = playerScript.string();
     NpcData rat = setupNpcData();
-    rat.actorData.animationData.clips["idle"] = FrameAnimationData{{0}, 0.05f, {{0, "onSkitter"}}};
+    AnimatorData &animations = rat.actorData.animationData.emplace();
+    animations.startClip = "idle";
+    animations.clips["idle"] = FrameAnimationData{{0}, 0.05f, {{0, "onSkitter"}}};
     rat.script.path = ratScript.string();
     gameData.npcData = {{"rat", rat}};
     LuaScriptSystem luaScriptSystem(shared.string());

@@ -4,15 +4,19 @@
 #include "animations/animation_ladder_data.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
-#include "conditions/fact_rows.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
 
-Animator::Animator(const AnimationLadderData &ladder) : data(ladder)
+Animator::Animator(const AnimatorData &data) : ladder(data.ladder), currentState(data.startClip)
 {
+    if (std::optional<std::string> why = whyNotAnAnimator(data))
+        throw std::runtime_error("An animator" + *why);
+
+    for (const auto &[name, clip] : data.clips)
+        animations.insert_or_assign(name, FrameAnimation(clip));
 }
 
 const std::string &Animator::wanted(
@@ -21,7 +25,7 @@ const std::string &Animator::wanted(
     std::string_view inState) const
 {
     AnimatorFacts facts{decided, observed, finished(), inState};
-    for (const AnimationTransitionData &rung : data.transitions)
+    for (const AnimationTransitionData &rung : ladder.transitions)
     {
         if (!rung.from.empty() && rung.from != currentState)
             continue;
@@ -40,8 +44,6 @@ void Animator::animate(
     std::string_view inState)
 {
     std::string newState = wanted(decided, observed, inState);
-    if (!animations.contains(newState))
-        newState = std::string(IdleClip);
 
     if (newState != currentState)
     {
@@ -62,11 +64,6 @@ const std::string &Animator::state() const
     return currentState;
 }
 
-void Animator::add(const std::string &name, const FrameAnimation &animation)
-{
-    animations.insert_or_assign(name, animation);
-}
-
 std::vector<std::string> Animator::takeCues()
 {
     auto playingNow = animations.find(currentState);
@@ -78,9 +75,4 @@ bool Animator::finished() const
 {
     auto playingNow = animations.find(currentState);
     return playingNow != animations.end() && playingNow->second.finished();
-}
-
-const AnimationLadderData &Animator::ladder() const
-{
-    return data;
 }

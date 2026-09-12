@@ -101,7 +101,7 @@ private:
     Decided decisions;
     Observed observations;
     PhysicsBody physicsBody;
-    Animator animator;
+    std::optional<Animator> animator;
     ActorState actorState;
     SheetData sheet;
     NavigationProfile navigationProfile;

@@ -47,6 +47,7 @@ TEST_CASE("Standing in an npc that bites costs its damage", "[StrikingPlayer]")
 {
     Player player(playerDataWithHealth(3, 1.0f), noIntentions());
     player.standAt(feetOf(Here));
+
     std::vector<std::unique_ptr<Npc>> npcs = oneNpcThatBites(2);
 
     strikePlayer(player, npcs);
@@ -234,11 +235,17 @@ TEST_CASE("A creature with a swing strikes the player with it", "[StrikingPlayer
     player.standAt(feetOf(SpawnTile + glm::ivec2(1, 0)));
 
     NpcData swinger = setupNpcData();
+
+    AnimatorData &animations = swinger.actorData.animationData.emplace();
+    animations.startClip = "idle";
+    animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
     swinger.actorData.motionData.swingAbilityData = SwingAbilityData{};
-    swinger.actorData.animationData.clips["attack"] = anAttackClip();
+    animations.clips["attack"] = anAttackClip();
     AnimationWhenData whileSwinging;
     whileSwinging["swinging"] = true;
-    swinger.actorData.animationData.ladder = AnimationLadderData{{{"", "attack", whileSwinging}}};
+    animations.ladder = AnimationLadderData{
+        {AnimationTransitionData{"", "attack", whileSwinging}, idleTransition()}};
+
     BehaviorStateData swinging;
     swinging.name = "swing";
     swinging.does = AttackBehaviorData{std::string(SwingAttack)};

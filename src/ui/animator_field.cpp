@@ -92,7 +92,7 @@ namespace
 
         const std::string &chosen = clipNameShown(graph, shown);
         AnimationTransitionData rung;
-        rung.to = chosen.empty() || chosen == AnyNode ? std::string(IdleClip) : chosen;
+        rung.to = chosen.empty() || chosen == AnyNode ? animations.startClip : chosen;
         animations.ladder.transitions.push_back(rung);
         shown = showingTransition(animations.ladder.transitions.size() - 1);
         return true;

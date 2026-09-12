@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility>
-#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
@@ -12,14 +10,6 @@ constexpr int CeilingRow = 4;
 constexpr int MapWidthTiles = 10;
 constexpr int HighCeilingRow = 2;
 constexpr int PinchColumn = 5;
-
-using Placed = std::vector<std::pair<glm::ivec2, int>>;
-
-inline void layRow(Placed &laid, int row, int fromX, int toX)
-{
-    for (int x = fromX; x <= toX; ++x)
-        laid.push_back({glm::ivec2(x, row), 1});
-}
 
 inline Placed floorTiles()
 {
@@ -44,7 +34,7 @@ inline TileMap aCorridorThatPinches()
 {
     Placed laid = floorTiles();
     layRow(laid, HighCeilingRow, 0, MapWidthTiles - 1);
-    laid.push_back({glm::ivec2(PinchColumn, FloorRow - 2), 1});
+    laid.push_back({glm::ivec2(PinchColumn, FloorRow - 2), SolidTile});
     return aTileMap(laid);
 }
 
@@ -95,8 +85,7 @@ inline TileMap aLedgeAboveAFloor()
 inline TileMap aLedgeAboveSpikes()
 {
     Placed laid;
-    for (int x = 0; x < 20; ++x)
-        laid.push_back({glm::ivec2(x, FloorBelowRow), SpikeTileIndex});
+    layRow(laid, FloorBelowRow, 0, 19, SpikeTile);
     layRow(laid, PlatformRow, 0, LeftPlatformEnd);
 
     return aTileMap(laid, 20, WideMapHeightTiles, 16, aPaletteWithSpikes());
@@ -126,8 +115,7 @@ inline Placed wallFromTheFloor()
 {
     Placed laid;
     layRow(laid, ClimbFloorRow, 0, 9);
-    for (int y = ClimbWallTopRow; y < ClimbFloorRow; ++y)
-        laid.push_back({glm::ivec2(ClimbWallX, y), 1});
+    layColumn(laid, ClimbWallX, ClimbWallTopRow, ClimbFloorRow - 1);
     return laid;
 }
 

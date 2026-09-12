@@ -23,8 +23,8 @@
 #include "actor/fading_facts.hpp"
 #include "conditions/facts.hpp"
 #include "game/noise.hpp"
-#include "actor/health.hpp"
-#include "actor/hurting.hpp"
+#include "combat/health.hpp"
+#include "combat/hurting.hpp"
 #include "physics/aabb.hpp"
 
 class TileMap;

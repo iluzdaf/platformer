@@ -7,7 +7,7 @@
 #include "actor/actor_motion_data.hpp"
 #include "animations/animator_data.hpp"
 #include "physics/physics_body_data.hpp"
-#include "actor/health_data.hpp"
+#include "combat/health_data.hpp"
 
 struct ActorData
 {

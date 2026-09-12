@@ -16,7 +16,7 @@
 #include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/abilities/wall_slide_ability_data.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/health_data.hpp"
+#include "combat/health_data.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_profile_builder.hpp"

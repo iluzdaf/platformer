@@ -3,7 +3,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_contact_state.hpp"
-#include "actor/hit.hpp"
+#include "combat/hit.hpp"
 
 struct Observed
 {

@@ -38,13 +38,13 @@
 #include "helpers/palettes.hpp"
 #include "helpers/temporary_levels.hpp"
 #include "helpers/npc_fixtures.hpp"
-#include "actor/health.hpp"
+#include "combat/health.hpp"
 #include "actor/behaviors/idle_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "actor/health_data.hpp"
+#include "combat/health_data.hpp"
 #include "npc/npc_data.hpp"
-#include "actor/hit.hpp"
+#include "combat/hit.hpp"
 #include "player/player_data.hpp"
 #include <filesystem>
 #include <fstream>

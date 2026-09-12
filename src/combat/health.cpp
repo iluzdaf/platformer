@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <optional>
 #include <stdexcept>
-#include "actor/health.hpp"
-#include "actor/health_data.hpp"
-#include "actor/hit.hpp"
+#include "combat/health.hpp"
+#include "combat/health_data.hpp"
+#include "combat/hit.hpp"
 
 Health::Health(const HealthData &data) : data(data), left(data.maximum)
 {

@@ -15,7 +15,7 @@
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
-#include "actor/hurting.hpp"
+#include "combat/hurting.hpp"
 #include "physics/physics_body.hpp"
 
 namespace

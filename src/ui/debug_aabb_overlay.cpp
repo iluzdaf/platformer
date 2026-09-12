@@ -16,7 +16,7 @@
 #include "npc/npc_spawn_data.hpp"
 #include "npc/npc.hpp"
 #include "actor/actor.hpp"
-#include "actor/hurting.hpp"
+#include "combat/hurting.hpp"
 #include "ui/actors_in_level.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "physics/physics_body.hpp"

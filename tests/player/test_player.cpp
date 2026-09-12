@@ -10,7 +10,7 @@
 #include "actor/actor_contact_state.hpp"
 #include "actor/ability_states.hpp"
 #include "actor/actor_state.hpp"
-#include "actor/hit.hpp"
+#include "combat/hit.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "helpers/actors.hpp"

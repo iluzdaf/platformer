@@ -1,8 +1,8 @@
 #include <optional>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/hit.hpp"
-#include "actor/hurting.hpp"
-#include "actor/strike.hpp"
+#include "combat/hit.hpp"
+#include "combat/hurting.hpp"
+#include "combat/strike.hpp"
 #include "physics/aabb.hpp"
 
 std::optional<Hit> hitFrom(

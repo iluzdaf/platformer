@@ -19,7 +19,7 @@
 #include "actor/abilities/wall_slide_ability_data.hpp"
 #include "actor/ability_states.hpp"
 #include "actor/actor_motion_data.hpp"
-#include "actor/hit.hpp"
+#include "combat/hit.hpp"
 #include "actor/observed.hpp"
 #include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"

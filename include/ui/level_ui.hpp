@@ -29,6 +29,7 @@ class Level;
 class Camera2D;
 struct NpcData;
 struct PickupData;
+struct GameData;
 struct AABB;
 struct Decided;
 struct AnimatorData;
@@ -97,9 +98,8 @@ public:
     void save(const LevelData &levelData, const std::string &levelPath);
     bool unsavedSince(const LevelData &levelData, const std::string &levelPath);
     std::optional<std::string> cannotSaveBecause(
-        const Level &level,
         const LevelData &levelData,
-        const std::map<std::string, NpcData> &npcs);
+        const GameData &gameData);
     bool takesTheDisk(const LevelData &current, const std::string &levelPath);
 
 private:

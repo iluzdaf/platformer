@@ -17,7 +17,6 @@ public:
     float tuning(const std::string &name) const;
 
 private:
-    void died() override;
     NpcSpawnData spawn;
     NpcData npcData;
 };

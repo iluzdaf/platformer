@@ -199,10 +199,10 @@ TEST_CASE("A knocked back actor keeps facing the way it was", "[KnockbackAbility
     player.standAt(feetOf(glm::ivec2(4, FloorLevelStanding)));
     FixedTimeStep timestepper;
     runFor(player, level, 0.1f, timestepper);
-    bool facedLeft = player.state().facingLeft;
+    bool facedLeft = player.observed().facingLeft;
 
     player.takeHit(aHitPushing(facedLeft ? 1.0f : -1.0f));
     runFor(player, level, 0.05f, timestepper);
 
-    REQUIRE(player.state().facingLeft == facedLeft);
+    REQUIRE(player.observed().facingLeft == facedLeft);
 }

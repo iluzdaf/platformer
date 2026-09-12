@@ -99,10 +99,10 @@ void Actor::fixedUpdate(
         animator->animate(deltaTime, states, observations, stateName());
 
     if (!states.knockback.active)
-        actorState.facingLeft = observations.velocity.x > 0
-                                    ? false
-                                    : (observations.velocity.x < 0 ? true : actorState.facingLeft);
-    observations.facingLeft = actorState.facingLeft;
+        observations.facingLeft =
+            observations.velocity.x > 0
+                ? false
+                : (observations.velocity.x < 0 ? true : observations.facingLeft);
 
     if (animator)
     {
@@ -273,14 +273,10 @@ bool Actor::takeHit(const Hit &hit)
     if (hp.alive())
     {
         observations.hits.push_back(hit);
-        hurt();
         onHurt();
     }
     else
-    {
-        died();
         onDeath();
-    }
 
     return true;
 }
@@ -310,14 +306,6 @@ bool Actor::strike(Actor &target)
     if (swinging)
         struckThisSwing.push_back(&target);
     return true;
-}
-
-void Actor::hurt()
-{
-}
-
-void Actor::died()
-{
 }
 
 void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)

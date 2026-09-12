@@ -80,8 +80,6 @@ protected:
     explicit Actor(const ActorData &data);
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
     void declare(const FactsData &facts);
-    virtual void hurt();
-    virtual void died();
     ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
 
 private:

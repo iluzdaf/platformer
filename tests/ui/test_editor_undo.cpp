@@ -14,7 +14,7 @@
 #include "game/levels_data.hpp"
 #include "rendering/texture_cache.hpp"
 #include "tile_map/tile_palette_data.hpp"
-#include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/palettes.hpp"
 #include "ui/editor_commands.hpp"

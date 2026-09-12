@@ -11,7 +11,7 @@
 #include "animations/frame_animation_data.hpp"
 #include "game/level.hpp"
 #include "helpers/actors.hpp"
-#include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/player_fixtures.hpp"
 #include "player/player.hpp"

@@ -9,7 +9,7 @@
 #include "game/level.hpp"
 #include "timing/fixed_time_step.hpp"
 #include "helpers/player_fixtures.hpp"
-#include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/palettes.hpp"
 
 namespace

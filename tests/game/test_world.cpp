@@ -3,7 +3,9 @@
 #include "actor/abilities/swing_ability_data.hpp"
 #include <optional>
 #include "game/level_data.hpp"
-#include "helpers/tiles.hpp"
+#include "helpers/tile_positions.hpp"
+#include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/actors.hpp"
 #include <cstddef>
 #include <memory>
@@ -33,7 +35,6 @@
 #include "game/score.hpp"
 #include "pickups/pickup_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
-#include "helpers/levels.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/temporary_levels.hpp"
 #include "helpers/npc_fixtures.hpp"
@@ -232,7 +233,7 @@ TEST_CASE("A spawn moved in the level data is where the npc stands", "[World]")
     world.loadLevel("levels/level6.json");
 
     glm::vec2 spawnAt = spawnsIn(world.getLevel())[1].feet;
-    glm::vec2 movedTo{spawnAt.x - TestTileSize, spawnAt.y};
+    glm::vec2 movedTo{spawnAt.x - static_cast<float>(TestTileSize), spawnAt.y};
 
     LevelData edited = world.getLevelData();
     edited.npcs[1].feet = movedTo;

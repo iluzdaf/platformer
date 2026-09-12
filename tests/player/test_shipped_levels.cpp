@@ -8,7 +8,7 @@
 #include "helpers/actors.hpp"
 #include "helpers/asset_path.hpp"
 #include "helpers/player_fixtures.hpp"
-#include "helpers/tiles.hpp"
+#include "helpers/tile_positions.hpp"
 #include "input/input_intentions.hpp"
 #include "player/player.hpp"
 #include "tile_map/tile_map.hpp"

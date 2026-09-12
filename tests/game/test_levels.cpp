@@ -7,9 +7,10 @@
 #include "game/game_data.hpp"
 #include "ui/saveable.hpp"
 #include "helpers/asset_path.hpp"
+#include "helpers/tile_positions.hpp"
 #include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/temporary_levels.hpp"
-#include "helpers/tiles.hpp"
 #include "game/empty_level.hpp"
 #include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
@@ -55,11 +56,11 @@ TEST_CASE("A level path nobody has taken is free of the folder and of what is he
 
 TEST_CASE("An empty level is the size of the one it was made from", "[Levels]")
 {
-    LevelData playing = aFloorLevelPlacing({aVillagerAt(glm::ivec2(2, FloorLevelStanding))});
+    LevelData playing = aFloorLevelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     playing.tileMapData.tilePalette = "cavern";
     playing.nextLevel = "levels/level3.json";
 
-    LevelData made = anEmptyLevelLike(playing, static_cast<int>(TestTileSize));
+    LevelData made = anEmptyLevelLike(playing, TestTileSize);
 
     REQUIRE(made.tileMapData.indices.size() == playing.tileMapData.indices.size());
     REQUIRE(made.tileMapData.indices.front().size() == playing.tileMapData.indices.front().size());
@@ -77,7 +78,7 @@ TEST_CASE("An empty level stands the player on its bottom row", "[Levels]")
 {
     LevelData playing = aFloorLevelPlacing({});
 
-    LevelData made = anEmptyLevelLike(playing, static_cast<int>(TestTileSize));
+    LevelData made = anEmptyLevelLike(playing, TestTileSize);
 
     REQUIRE(made.playerFeet == feetOf(glm::ivec2(0, FloorLevelTiles - 1)));
 }

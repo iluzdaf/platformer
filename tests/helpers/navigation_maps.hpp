@@ -1,8 +1,14 @@
 #pragma once
 
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <glm/gtc/matrix_transform.hpp>
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
+#include "navigation/navigation_edge.hpp"
+#include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_node.hpp"
 #include "tile_map/tile_map.hpp"
 
 constexpr int FloorRow = 6;
@@ -122,4 +128,61 @@ inline Placed wallFromTheFloor()
 inline TileMap aWallFromTheFloor()
 {
     return aTileMap(wallFromTheFloor(), 10, 12);
+}
+
+inline size_t nodesOnTheFloor(const NavigationGraph &graph, const TileMap &tileMap)
+{
+    float floorY = static_cast<float>(FloorRow * tileMap.getTileSize());
+    size_t count = 0;
+    for (const auto &[id, node] : graph.getNodes())
+        if (node.feet.y == floorY)
+            ++count;
+    return count;
+}
+
+inline bool walksTheFloorEndToEnd(const NavigationGraph &graph, const TileMap &tileMap)
+{
+    float floorY = static_cast<float>(FloorRow * tileMap.getTileSize());
+    for (const auto &edge : graph.getEdges())
+    {
+        if (edge.type != EdgeType::Walk)
+            continue;
+
+        NavigationNode from = graph.getNode(edge.fromId);
+        NavigationNode to = graph.getNode(edge.toId);
+        if (from.feet.y == floorY && to.feet.y == floorY)
+            return true;
+    }
+    return false;
+}
+
+inline int nodeJustPastTheLedge(const NavigationGraph &graph, float floorY)
+{
+    float ledgeEdgeX = static_cast<float>(LeftPlatformEnd + 1) * 16.0f;
+    for (const auto &[id, node] : graph.getNodes())
+        if (std::abs(node.feet.y - floorY) < 0.5f && node.feet.x > ledgeEdgeX &&
+            node.feet.x < ledgeEdgeX + 8.0f)
+            return id;
+
+    return -1;
+}
+
+inline bool anEdgeSpansThePinch(const NavigationGraph &graph, const TileMap &tileMap)
+{
+    float tileSize = static_cast<float>(tileMap.getTileSize());
+    float pinchX = (static_cast<float>(PinchColumn) + 0.5f) * tileSize;
+    float floorY = static_cast<float>(FloorRow) * tileSize;
+    for (const auto &edge : graph.getEdges())
+    {
+        NavigationNode from = graph.getNode(edge.fromId);
+        NavigationNode to = graph.getNode(edge.toId);
+        if (from.feet.y != floorY || to.feet.y != floorY)
+            continue;
+
+        float low = std::min(from.feet.x, to.feet.x);
+        float high = std::max(from.feet.x, to.feet.x);
+        if (low < pinchX && high > pinchX)
+            return true;
+    }
+    return false;
 }

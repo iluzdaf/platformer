@@ -3,9 +3,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "game/level.hpp"
 #include "game/level_data.hpp"
+#include "helpers/tile_positions.hpp"
 #include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/palettes.hpp"
-#include "helpers/tiles.hpp"
 #include "helpers/shipped.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -45,7 +46,7 @@ TEST_CASE("Nothing is at a place nothing stands", "[PickingInLevel]")
 
 TEST_CASE("A creature is picked out of the place it stands", "[PickingInLevel]")
 {
-    Level level = levelHolding({aVillagerAt(glm::ivec2(2, FloorLevelStanding))}, {});
+    Level level = levelHolding({aRatAt(glm::ivec2(2, FloorLevelStanding))}, {});
     glm::vec2 middle = level.getNpcs().front()->body().aabb().center();
 
     REQUIRE(whatIsAt(level, Nowhere, middle) == ActorShown{ActorShown::What::Npc, 0});
@@ -82,7 +83,7 @@ TEST_CASE("The player is picked before whatever stands where they do", "[Picking
 TEST_CASE("The creature in front is the one picked", "[PickingInLevel]")
 {
     glm::ivec2 sameTile(2, FloorLevelStanding);
-    Level level = levelHolding({aVillagerAt(sameTile), aVillagerAt(sameTile)}, {});
+    Level level = levelHolding({aRatAt(sameTile), aRatAt(sameTile)}, {});
     glm::vec2 middle = level.getNpcs().front()->body().aabb().center();
 
     REQUIRE(whatIsAt(level, Nowhere, middle) == ActorShown{ActorShown::What::Npc, 1});

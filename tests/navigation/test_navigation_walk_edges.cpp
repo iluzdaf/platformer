@@ -7,9 +7,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "helpers/asset_path.hpp"
 #include "helpers/actors.hpp"
-#include "helpers/maps.hpp"
-#include "helpers/graph_queries.hpp"
 #include "helpers/tiles.hpp"
+#include "helpers/navigation_maps.hpp"
+#include "helpers/shipped.hpp"
+#include "helpers/graph_queries.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_graph_builder.hpp"

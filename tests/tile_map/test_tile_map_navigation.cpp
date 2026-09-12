@@ -30,6 +30,7 @@
 #include "game/level_data_file.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
+#include "helpers/tile_positions.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/asset_path.hpp"

@@ -54,15 +54,9 @@ inline const IntentionSource &noIntentions()
     return source;
 }
 
-inline FrameAnimationData anAttackClip(int strikeFrames = 1, float frameDuration = 0.1f)
+inline FrameAnimationData anAttackClip()
 {
-    std::vector<int> frames{12};
-    for (int held = 0; held < strikeFrames; ++held)
-        frames.push_back(13);
-    frames.push_back(14);
-
-    FrameAnimationData clip{frames, frameDuration, {{1, std::string(StrikeCue)}}};
-    clip.cues.push_back({static_cast<int>(frames.size()) - 1, std::string(RecoverCue)});
+    FrameAnimationData clip{{12, 13, 14}, 0.1f};
     clip.loops = false;
     return clip;
 }

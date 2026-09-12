@@ -2,11 +2,11 @@
 
 #include "actor/abilities/ability.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
+#include "actor/abilities/swing_ability_state.hpp"
 
 struct InputIntentions;
 struct Observed;
 struct Decided;
-struct SwingAbilityState;
 
 class SwingAbility : public Ability
 {
@@ -20,5 +20,6 @@ public:
 
 private:
     SwingAbilityData data;
-    void followTheClip(const Observed &observed, SwingAbilityState &swing);
+    float lengthOf(SwingPhase phase) const;
+    void keepTime(float deltaTime, SwingAbilityState &swing) const;
 };

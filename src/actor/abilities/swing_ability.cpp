@@ -1,6 +1,4 @@
-#include <algorithm>
 #include <stdexcept>
-#include <string_view>
 #include "actor/abilities/swing_ability.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
@@ -10,9 +8,20 @@
 
 namespace
 {
-    bool said(const Observed &observed, std::string_view cue)
+    SwingPhase after(SwingPhase phase)
     {
-        return std::ranges::find(observed.cues, cue) != observed.cues.end();
+        switch (phase)
+        {
+        case SwingPhase::Windup:
+            return SwingPhase::Active;
+        case SwingPhase::Active:
+            return SwingPhase::Recovery;
+        case SwingPhase::Recovery:
+        case SwingPhase::Idle:
+            break;
+        }
+
+        return SwingPhase::Idle;
     }
 }
 
@@ -23,24 +32,43 @@ SwingAbility::SwingAbility(const SwingAbilityData &data) : data(data)
 
     if (data.damage <= 0)
         throw std::runtime_error("A swing needs damage above 0");
+
+    if (data.strikeDuration <= 0.0f)
+        throw std::runtime_error("A swing needs a strike that lasts above 0");
+
+    if (data.windupDuration < 0.0f || data.recoveryDuration < 0.0f)
+        throw std::runtime_error("A swing cannot wind up or recover for less than no time");
 }
 
-void SwingAbility::followTheClip(const Observed &observed, SwingAbilityState &swing)
+float SwingAbility::lengthOf(SwingPhase phase) const
 {
-    if (observed.animationFinished)
+    switch (phase)
     {
-        swing.phase = SwingPhase::Idle;
-        return;
+    case SwingPhase::Windup:
+        return data.windupDuration;
+    case SwingPhase::Active:
+        return data.strikeDuration;
+    case SwingPhase::Recovery:
+        return data.recoveryDuration;
+    case SwingPhase::Idle:
+        break;
     }
 
-    if (swing.phase == SwingPhase::Windup && said(observed, StrikeCue))
-        swing.phase = SwingPhase::Active;
-    else if (swing.phase == SwingPhase::Active && said(observed, RecoverCue))
-        swing.phase = SwingPhase::Recovery;
+    return 0.0f;
+}
+
+void SwingAbility::keepTime(float deltaTime, SwingAbilityState &swing) const
+{
+    swing.elapsed += deltaTime;
+    while (swing.phase != SwingPhase::Idle && swing.elapsed >= lengthOf(swing.phase))
+    {
+        swing.elapsed -= lengthOf(swing.phase);
+        swing.phase = after(swing.phase);
+    }
 }
 
 void SwingAbility::decide(
-    float,
+    float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
     Decided &decided)
@@ -56,7 +84,7 @@ void SwingAbility::decide(
 
     if (swing.phase != SwingPhase::Idle)
     {
-        followTheClip(observed, swing);
+        keepTime(deltaTime, swing);
         return;
     }
 
@@ -64,6 +92,7 @@ void SwingAbility::decide(
         return;
 
     swing.phase = SwingPhase::Windup;
+    swing.elapsed = 0.0f;
     swing.emit = true;
     if (inputIntentions.direction.x != 0.0f)
         swing.direction = inputIntentions.direction.x < 0.0f ? -1.0f : 1.0f;

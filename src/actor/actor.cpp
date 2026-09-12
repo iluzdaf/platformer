@@ -8,7 +8,6 @@
 #include "actor/fading_facts.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/animator_data.hpp"
-#include "actor/abilities/swing_ability_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/hit.hpp"
 #include "actor/hurting.hpp"
@@ -19,7 +18,6 @@
 #include "actor/observing.hpp"
 #include "actor/observed.hpp"
 #include "actor/decided.hpp"
-#include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
@@ -45,17 +43,6 @@
 namespace
 {
     constexpr float SaidLingersFor = 0.5f;
-
-    bool attackClipSaysWhenToStrike(const std::optional<AnimatorData> &animations)
-    {
-        const FrameAnimationData *attack =
-            animations ? clipNamed(*animations, AttackClip) : nullptr;
-        if (!attack || attack->loops)
-            return false;
-
-        return std::ranges::any_of(
-            attack->cues, [](const FrameCueData &cue) { return cue.name == StrikeCue; });
-    }
 }
 
 Actor::Actor(const ActorData &data)
@@ -72,11 +59,6 @@ Actor::Actor(const ActorData &data)
     actorState.size = drawnSizeOf(data);
     if (actorState.size.x <= 0.0f || actorState.size.y <= 0.0f)
         throw std::runtime_error("An actor drawn as nothing is one nobody can see");
-
-    const std::optional<SwingAbilityData> &swing = data.motionData.swingAbilityData;
-    if (swing && !attackClipSaysWhenToStrike(data.animationData))
-        throw std::runtime_error(
-            "A swing needs an attack clip that plays once and cues " + std::string(StrikeCue));
 }
 
 void Actor::postFixedUpdate()
@@ -132,12 +114,9 @@ void Actor::fixedUpdate(
     {
         actorState.currentFrame = animator->playing().frame();
         actorState.currentAnimation = animator->state();
-        observations.cues = animator->takeCues();
-        observations.animationFinished = animator->finished();
+        for (const std::string &cue : animator->takeCues())
+            onCue(cue);
     }
-
-    for (const std::string &cue : observations.cues)
-        onCue(cue);
 
     forgetTheTick();
 }

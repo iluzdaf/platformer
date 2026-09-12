@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include "animations/animator.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "actor/decided.hpp"

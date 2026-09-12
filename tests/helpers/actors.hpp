@@ -20,6 +20,7 @@
 #include "actor/actor_motion_data.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_profile_builder.hpp"
+#include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "helpers/ladders.hpp"
 #include "game/level.hpp"

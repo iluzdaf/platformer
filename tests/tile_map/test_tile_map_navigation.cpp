@@ -1,5 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
+#include "actor/actor_data.hpp"
+#include "actor/actor_motion_data.hpp"
+#include "actor/health_data.hpp"
+#include "animations/animation_ladder_data.hpp"
+#include "animations/animator_data.hpp"
+#include "animations/frame_animation_data.hpp"
+#include "assets/sheet_data.hpp"
+#include "conditions/facts.hpp"
 #include "game/level_data.hpp"
+#include "physics/physics_body_data.hpp"
 #include <utility>
 #include <vector>
 #include <catch2/matchers/catch_matchers_string.hpp>

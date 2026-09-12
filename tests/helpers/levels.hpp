@@ -66,7 +66,7 @@ inline LevelData aFloorLevelPlacing(
         laid, FloorLevelTiles, FloorLevelTiles, glm::ivec2(1, FloorLevelStanding), npcs);
 }
 
-namespace ledgeAndWall
+namespace ledge_and_wall
 {
     inline constexpr int LedgeWidthTiles = 20;
     inline constexpr int LedgeHeightTiles = 14;
@@ -90,7 +90,7 @@ inline Level levelWithALedgeAndAWall(
     const std::vector<NpcSpawnData> &npcs,
     const std::map<std::string, NpcData> &npcData)
 {
-    using namespace ledgeAndWall;
+    using namespace ledge_and_wall;
 
     Placed laid;
     layColumn(laid, 0, 0, GroundRow - 1);

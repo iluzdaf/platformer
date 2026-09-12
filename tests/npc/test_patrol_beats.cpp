@@ -21,7 +21,7 @@
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 
-using namespace ledgeAndWall;
+using namespace ledge_and_wall;
 
 namespace
 {

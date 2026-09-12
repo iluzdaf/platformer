@@ -33,7 +33,7 @@
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
 
-using namespace ledgeAndWall;
+using namespace ledge_and_wall;
 
 namespace
 {

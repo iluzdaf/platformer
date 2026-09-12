@@ -20,6 +20,7 @@
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "actor/behaviors/attack_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/senses_data.hpp"
 #include "input/input_intentions.hpp"
 #include "actor/behaviors/behavior_facts.hpp"
 #include "conditions/asked.hpp"
@@ -70,16 +71,22 @@ namespace
 StateMachineBehavior::StateMachineBehavior(
     const StateMachineBehaviorData &data,
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween,
-    const FactsData &declared)
-    : data(data), heldFor(data.transitions.size(), 0.0f), sinceLeft(data.states.size(), 1e9f)
+    const FactsData &declared,
+    const SensesData &senses)
+    : data(data), senses(senses), heldFor(data.transitions.size(), 0.0f),
+      sinceLeft(data.states.size(), 1e9f)
 {
     for (const BehaviorTransitionData &transition : this->data.transitions)
         for (const auto &[name, asked] : transition.when)
-            if (std::optional<std::string> why =
-                    whyNotAsked(name, asked, kindKnown(name, declared)))
+        {
+            std::optional<std::string> why = whyNotAsked(name, asked, kindKnown(name, declared));
+            if (!why)
+                why = whyNotSensed(name, senses);
+            if (why)
                 throw std::runtime_error(
                     "The transition from \"" + transition.from + "\" to \"" + transition.to +
                     "\" " + *why);
+        }
 
     for (const BehaviorStateData &state : this->data.states)
         states.push_back(
@@ -170,7 +177,9 @@ InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorBehavio
     for (float &since : sinceLeft)
         since += deltaTime;
 
-    takeATransition(deltaTime, context);
+    ActorBehaviorContext sensing = context;
+    sensing.senses = &senses;
+    takeATransition(deltaTime, sensing);
 
     if (!states[activeState])
         return InputIntentions();

@@ -50,7 +50,7 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
 
         setBehavior(
             std::make_unique<StateMachineBehavior>(
-                npcData.stateMachineBehaviorData.value(), walk, npcData.facts));
+                npcData.stateMachineBehaviorData.value(), walk, npcData.facts, npcData.senses));
     }
 
     standAt(this->spawn.feet);

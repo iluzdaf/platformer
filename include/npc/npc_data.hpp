@@ -3,6 +3,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include "actor/behaviors/senses_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "conditions/facts.hpp"
@@ -15,5 +16,6 @@ struct NpcData
     std::optional<StateMachineBehaviorData> stateMachineBehaviorData;
     FactsData facts;
     std::map<std::string, float> tuning;
+    SensesData senses;
     ScriptPathData script;
 };

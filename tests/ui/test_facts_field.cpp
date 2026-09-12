@@ -8,6 +8,7 @@
 #include "ui/inspector_fields.hpp"
 #include "ui/when_field.hpp"
 #include "conditions/asked.hpp"
+#include <string_view>
 #include <vector>
 
 namespace
@@ -116,17 +117,20 @@ TEST_CASE(
 
     std::vector<FactOffered> offered = factsOffered(&facts);
 
-    REQUIRE(offered.size() == 5);
-    REQUIRE(offered[0].name == "onGround");
-    REQUIRE(offered[0].kind == AskedKind::YesOrNo);
-    REQUIRE(offered[1].name == "charging");
-    REQUIRE(offered[1].kind == AskedKind::YesOrNo);
-    REQUIRE(offered[2].name == "hits");
-    REQUIRE(offered[2].kind == AskedKind::Number);
-    REQUIRE(offered[3].name == "mood");
-    REQUIRE(offered[3].kind == AskedKind::Name);
-    REQUIRE(offered[4].name == "near");
-    REQUIRE(offered[4].kind == AskedKind::YesOrNo);
+    std::vector<std::string_view> answered{
+        "onGround", "charging", "threatOnMySurface", "cornered", "threatClose", "threatInReach"};
+    REQUIRE(offered.size() == answered.size() + 3);
+    for (std::size_t at = 0; at < answered.size(); ++at)
+    {
+        REQUIRE(offered[at].name == answered[at]);
+        REQUIRE(offered[at].kind == AskedKind::YesOrNo);
+    }
+    REQUIRE(offered[6].name == "hits");
+    REQUIRE(offered[6].kind == AskedKind::Number);
+    REQUIRE(offered[7].name == "mood");
+    REQUIRE(offered[7].kind == AskedKind::Name);
+    REQUIRE(offered[8].name == "near");
+    REQUIRE(offered[8].kind == AskedKind::YesOrNo);
 
-    REQUIRE(factsOffered(nullptr).size() == 2);
+    REQUIRE(factsOffered(nullptr).size() == answered.size());
 }

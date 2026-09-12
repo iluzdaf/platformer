@@ -7,6 +7,7 @@
 
 class NavigationGraph;
 struct AbilityStates;
+struct SensesData;
 
 struct ActorBehaviorContext
 {
@@ -18,4 +19,5 @@ struct ActorBehaviorContext
     ActorContactState contacts;
     const FactsData *facts = nullptr;
     const AbilityStates *abilityStates = nullptr;
+    const SensesData *senses = nullptr;
 };

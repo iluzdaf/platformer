@@ -7,7 +7,6 @@ struct PlayerData
 {
     ActorData actorData;
 
-    float fallFromHeightThreshold = 180;
     float heardAfterFalling = 2;
     ScriptPathData script;
 };

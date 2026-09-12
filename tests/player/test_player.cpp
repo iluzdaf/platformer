@@ -280,7 +280,7 @@ TEST_CASE("An actor drawn as nothing is refused", "[Player]")
         Player(playerData, noIntentions()), Catch::Matchers::ContainsSubstring("nobody can see"));
 }
 
-TEST_CASE("A player raises the events for what it does", "[Player]")
+TEST_CASE("A player cues what it does", "[Player]")
 {
     std::vector<std::pair<glm::ivec2, int>> laid;
     for (int x = 0; x < 10; ++x)
@@ -294,7 +294,8 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
     {
         player.standAt(feetOf(glm::ivec2(0, 0)));
         bool fallFromHeightTriggered = false;
-        player.onFallFromHeight.connect([&] { fallFromHeightTriggered = true; });
+        player.onCue.connect([&](const std::string &cue)
+                             { fallFromHeightTriggered |= cue == "onFallFromHeight"; });
         simulatePlayer(player, input, tileMap, 1.5f);
         REQUIRE(fallFromHeightTriggered);
     }
@@ -305,7 +306,8 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
         player.standAt(feetOf(glm::ivec2(2, 4)));
         simulatePlayer(player, input, ceiling, 0.01f);
         bool hitCeilingTriggered = false;
-        player.onHitCeiling.connect([&] { hitCeilingTriggered = true; });
+        player.onCue.connect([&](const std::string &cue)
+                             { hitCeilingTriggered |= cue == "onHitCeiling"; });
         InputIntentions inputIntentions;
         inputIntentions.jumpRequested = true;
         simulatePlayer(player, input, ceiling, 0.1f, inputIntentions);
@@ -317,7 +319,7 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
         player.standAt(feetOf(glm::ivec2(1, 18)));
         simulatePlayer(player, input, tileMap, 0.1f);
         bool dashTriggered = false;
-        player.onDash.connect([&] { dashTriggered = true; });
+        player.onCue.connect([&](const std::string &cue) { dashTriggered |= cue == "onDash"; });
         InputIntentions inputIntentions;
         inputIntentions.direction.x = 1.0f;
         inputIntentions.dashRequested = true;
@@ -330,7 +332,12 @@ TEST_CASE("A player raises the events for what it does", "[Player]")
         player.standAt(feetOf(glm::ivec2(1, 18)));
         simulatePlayer(player, input, tileMap, 0.1f);
         int attacks = 0;
-        player.onAttack.connect([&] { ++attacks; });
+        player.onCue.connect(
+            [&](const std::string &cue)
+            {
+                if (cue == "onAttack")
+                    ++attacks;
+            });
         InputIntentions inputIntentions;
         inputIntentions.attack = std::string(SwingAttack);
         simulatePlayer(player, input, tileMap, 0.05f, inputIntentions);
@@ -411,7 +418,6 @@ TEST_CASE("Sliding into the bottom corner of a wall does not wedge the player", 
     {
         input.set(intentions);
         player.fixedUpdate(0.01f, level);
-        player.postFixedUpdate();
     }
 
     float colliderTop = player.body().position().y + player.body().colliderOffset().y;
@@ -517,7 +523,6 @@ TEST_CASE("A ceiling bump is heard once, whichever step of the frame it lands in
             [&](float dt)
             {
                 player.fixedUpdate(dt, level);
-                player.postFixedUpdate();
                 if (player.observed().contacts.hitCeiling)
                     ++stepsTouchingCeiling;
             });

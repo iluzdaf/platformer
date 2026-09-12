@@ -280,12 +280,14 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   Contacts are what physics found at the end of the previous tick.
 - Buffers and coyote windows belong to the ability that needs them, so a jump buffer
   and a wall jump buffer are two objects with two durations, not one shared timer.
-- Abilities do not raise signals. `Player::postFixedUpdate` reads the `emit` flags and
-  raises `onDash`, `onWallJump` and `onWallSliding`, which is where Lua hears them. An
-  ability depends on its data, the intentions and the state, and a signal would make it
-  depend on an owner, of which there are two and one has no signals. A flag is state: a
-  test reads it, and an npc ignores it. And by then the tick is over, so whoever hears
-  sees the actor where physics left it.
+- Abilities do not raise signals. At the end of its tick an actor names what its body
+  and abilities did, from the `emit` flags and its contacts (`cuesOf`), and says each
+  as a cue, the way it says a clip's cues: `onDash`, `onAttack`, `onWallJump`,
+  `onWallSliding`, `onFallFromHeight`, `onHitCeiling`. A script hears a cue by its
+  name, the player's and an npc's alike. An ability depends on its data, the
+  intentions and the state, and a signal would make it depend on an owner. A flag is
+  state that a test can read. And by then the body has stepped, so whoever hears sees
+  the actor where physics left it.
 - `Player` and `Npc` share the pipeline, and differ only in where `InputIntentions`
   come from: the keyboard, or a behaviour walking a navigation graph. What an npc can
   traverse is a profile derived from the same ability data.

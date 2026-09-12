@@ -206,7 +206,6 @@ namespace
             {
                 world.beginFrame();
                 world.fixedUpdate(0.01f);
-                world.postFixedUpdate();
             }
         }
     };

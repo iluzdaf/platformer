@@ -167,6 +167,7 @@ add_library(platformer_lib OBJECT
     src/actor/actor.cpp
     src/actor/fading_facts.cpp
     src/actor/declared_facts.cpp
+    src/actor/cues.cpp
     src/combat/health.cpp
     src/combat/strike.cpp
     src/actor/hurting_from.cpp

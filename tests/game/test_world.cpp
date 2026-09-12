@@ -70,13 +70,7 @@ namespace
         for (int frame = 0; frame < frames; ++frame)
         {
             world.beginFrame();
-            timestepper.run(
-                1.0f / 60.0f,
-                [&](float dt)
-                {
-                    world.fixedUpdate(dt);
-                    world.postFixedUpdate();
-                });
+            timestepper.run(1.0f / 60.0f, [&](float dt) { world.fixedUpdate(dt); });
         }
     }
 
@@ -437,7 +431,7 @@ TEST_CASE("An npc's own script hears it hurt and killed, and no other npc's does
         std::filesystem::temp_directory_path() / "platformer_world_rat.lua";
     std::ofstream(ratScript) << "return {\n"
                                 "  onHurt = function(rat) seen.hurt = rat:type() end,\n"
-                                "  onDied = function(rat) seen.dead = rat:type() end,\n"
+                                "  onDeath = function(rat) seen.dead = rat:type() end,\n"
                                 "}\n";
 
     std::filesystem::path spiderScript =
@@ -511,7 +505,7 @@ TEST_CASE("A swing that kills an npc reaches that npc's own script", "[World]")
     std::ofstream(script) << "seen = {}\n";
     std::filesystem::path ratScript =
         std::filesystem::temp_directory_path() / "platformer_world_swing_rat.lua";
-    std::ofstream(ratScript) << "return { onDied = function(rat) seen.dead = rat:type() end }\n";
+    std::ofstream(ratScript) << "return { onDeath = function(rat) seen.dead = rat:type() end }\n";
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
     rat.script.path = ratScript.string();
@@ -580,7 +574,6 @@ TEST_CASE("A cue reaches the player's script by its name", "[World][Cues]")
     {
         world.beginFrame();
         world.fixedUpdate(0.01f);
-        world.postFixedUpdate();
     }
 
     sol::table seen = luaScriptSystem.getLua()["seen"];
@@ -619,7 +612,6 @@ TEST_CASE("A cue reaches the creature's own script, not the player's", "[World][
     {
         world.beginFrame();
         world.fixedUpdate(0.01f);
-        world.postFixedUpdate();
     }
 
     sol::table seen = luaScriptSystem.getLua()["seen"];
@@ -839,7 +831,7 @@ TEST_CASE(
     playing.world.castChanged();
     REQUIRE(&playing.world.getPlayer() == before);
 
-    playing.gameData.playerData.fallFromHeightThreshold += 1.0f;
+    playing.gameData.playerData.actorData.fallFromHeightThreshold += 1.0f;
     playing.world.castChanged();
 
     REQUIRE(&playing.world.getPlayer() != before);

@@ -17,6 +17,7 @@ struct ActorData
     AbilitiesData abilities;
     std::optional<AnimatorData> animationData;
     HealthData healthData;
+    float fallFromHeightThreshold = 180;
 };
 
 inline glm::vec2 drawnSizeOf(const ActorData &actorData)

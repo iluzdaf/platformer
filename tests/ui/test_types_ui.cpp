@@ -407,7 +407,7 @@ TEST_CASE("The player that changes leaves the cast unsaved", "[TypesUi]")
     GameData gameData = twoOfEach();
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-    gameData.playerData.fallFromHeightThreshold += 1.0f;
+    gameData.playerData.actorData.fallFromHeightThreshold += 1.0f;
 
     REQUIRE(typesUi.unsavedSince(gameData));
 }
@@ -416,14 +416,14 @@ TEST_CASE("Reverting puts the player back", "[TypesUi]")
 {
     TypesUi typesUi;
     GameData gameData = twoOfEach();
-    float was = gameData.playerData.fallFromHeightThreshold;
+    float was = gameData.playerData.actorData.fallFromHeightThreshold;
 
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
-    gameData.playerData.fallFromHeightThreshold += 1.0f;
+    gameData.playerData.actorData.fallFromHeightThreshold += 1.0f;
 
     typesUi.revert(gameData);
 
-    REQUIRE(gameData.playerData.fallFromHeightThreshold == was);
+    REQUIRE(gameData.playerData.actorData.fallFromHeightThreshold == was);
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 }
 
@@ -443,11 +443,13 @@ TEST_CASE("Saving the cast writes the player only when they changed", "[TypesUi]
     typesUi.save(gameData, playing);
     REQUIRE_FALSE(written.has_value());
 
-    gameData.playerData.fallFromHeightThreshold += 1.0f;
+    gameData.playerData.actorData.fallFromHeightThreshold += 1.0f;
     typesUi.save(gameData, playing);
 
     REQUIRE(written.has_value());
-    REQUIRE(written->fallFromHeightThreshold == gameData.playerData.fallFromHeightThreshold);
+    REQUIRE(
+        written->actorData.fallFromHeightThreshold ==
+        gameData.playerData.actorData.fallFromHeightThreshold);
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 }
 
@@ -456,20 +458,21 @@ TEST_CASE("A reload keeps an unsaved player edit and follows the disk otherwise"
     TypesUi typesUi;
     GameData gameData = twoOfEach();
     GameData onDisk = gameData;
-    onDisk.playerData.fallFromHeightThreshold += 50.0f;
+    onDisk.playerData.actorData.fallFromHeightThreshold += 50.0f;
 
     typesUi.reloaded(gameData, onDisk);
     REQUIRE(
-        gameData.playerData.fallFromHeightThreshold == onDisk.playerData.fallFromHeightThreshold);
+        gameData.playerData.actorData.fallFromHeightThreshold ==
+        onDisk.playerData.actorData.fallFromHeightThreshold);
     REQUIRE_FALSE(typesUi.unsavedSince(gameData));
 
-    gameData.playerData.fallFromHeightThreshold += 1.0f;
-    float edited = gameData.playerData.fallFromHeightThreshold;
-    onDisk.playerData.fallFromHeightThreshold += 50.0f;
+    gameData.playerData.actorData.fallFromHeightThreshold += 1.0f;
+    float edited = gameData.playerData.actorData.fallFromHeightThreshold;
+    onDisk.playerData.actorData.fallFromHeightThreshold += 50.0f;
 
     typesUi.reloaded(gameData, onDisk);
 
-    REQUIRE(gameData.playerData.fallFromHeightThreshold == edited);
+    REQUIRE(gameData.playerData.actorData.fallFromHeightThreshold == edited);
     REQUIRE(typesUi.unsavedSince(gameData));
 }
 

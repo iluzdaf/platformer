@@ -14,7 +14,7 @@ return {
         camera:startShake(0.1, 1.2)
     end,
 
-    onDied = function(spider)
+    onDeath = function(spider)
         camera:startShake(0.25, 2)
     end,
 }

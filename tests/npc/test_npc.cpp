@@ -529,7 +529,6 @@ TEST_CASE("A level drives the npcs it holds", "[Npc][Level]")
     {
         level.beginFrame();
         level.fixedUpdate(0.01f, {.threatFeet = glm::vec2(112.0f, 192.0f)});
-        level.postFixedUpdate();
     }
 
     REQUIRE(footOf(npc).x != setOffAt.x);
@@ -546,7 +545,6 @@ namespace
         {
             level.beginFrame();
             level.fixedUpdate(0.01f, {.threatFeet = glm::vec2(1000.0f, 1000.0f)});
-            level.postFixedUpdate();
             leftmost = std::min(leftmost, footOf(npc).x);
         }
 

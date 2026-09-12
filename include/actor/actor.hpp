@@ -38,7 +38,6 @@ public:
     virtual ~Actor() = default;
     void beginFrame();
     void fixedUpdate(float deltaTime, const Level &level, const Perceived &perceived = {});
-    virtual void postFixedUpdate();
     const Appearance &appearance() const;
     const AbilityStates &abilityStates() const;
     const Observed &observed() const;
@@ -84,6 +83,7 @@ private:
     DeclaredFacts declaredFacts;
     const NavigationGraph *walking = nullptr;
     float highestSinceTheGround = std::numeric_limits<float>::max();
+    float fallFromHeightThreshold = 0.0f;
     std::optional<glm::vec2> threat;
     Abilities abilities;
     AbilityStates states;

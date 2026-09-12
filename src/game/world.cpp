@@ -131,12 +131,6 @@ void World::makePlayerAt(glm::vec2 feet)
     hear(player->onLevelComplete, "onLevelComplete");
     hear(player->onDeath, "onDeath");
     hear(player->onHurt, "onHurt");
-    hear(player->onWallJump, "onWallJump");
-    hear(player->onDash, "onDash");
-    hear(player->onAttack, "onAttack");
-    hear(player->onWallSliding, "onWallSliding");
-    hear(player->onFallFromHeight, "onFallFromHeight");
-    hear(player->onHitCeiling, "onHitCeiling");
     player->onCue.connect([this, who = player.get()](const std::string &cue)
                           { luaScriptSystem.emitTo(PlayerScript, cue, nullptr, who); });
     luaScriptSystem.bindPlayer(player.get());
@@ -189,12 +183,6 @@ void World::hearWhereItLands()
 {
     if (player->observed().fell > gameData.playerData.heardAfterFalling)
         heardThisTick.push_back(Noise{std::string(LandingNoise), player->feet()});
-}
-
-void World::postFixedUpdate()
-{
-    level->postFixedUpdate();
-    player->postFixedUpdate();
 }
 
 void World::update(float deltaTime)

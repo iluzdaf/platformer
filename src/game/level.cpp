@@ -242,12 +242,6 @@ void Level::fixedUpdate(float deltaTime, const Perceived &perceived)
         npc->fixedUpdate(deltaTime, *this, perceived);
 }
 
-void Level::postFixedUpdate()
-{
-    for (const std::unique_ptr<Npc> &npc : npcs)
-        npc->postFixedUpdate();
-}
-
 void Level::update(float deltaTime)
 {
     tileMap.update(deltaTime);

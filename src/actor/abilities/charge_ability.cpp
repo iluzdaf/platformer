@@ -3,7 +3,7 @@
 #include "actor/abilities/charge_ability_data.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 

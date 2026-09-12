@@ -18,8 +18,8 @@ inline NpcData setupNpcData()
 
     npcData.actorData.size = glm::vec2(16.0f);
 
-    npcData.actorData.motionData.moveAbilityData = MoveAbilityData{60.0f};
-    npcData.actorData.motionData.gravityAbilityData = GravityAbilityData{};
+    npcData.actorData.abilities.move = MoveAbilityData{60.0f};
+    npcData.actorData.abilities.gravity = GravityAbilityData{};
 
     npcData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
     npcData.actorData.physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);

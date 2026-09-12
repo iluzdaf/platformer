@@ -9,7 +9,7 @@
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator_data.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "conditions/fact_rows.hpp"
 

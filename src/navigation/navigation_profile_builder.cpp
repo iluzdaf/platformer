@@ -13,5 +13,5 @@ NavigationProfile buildNavigationProfile(const ActorData &actorData)
         throw std::runtime_error("A body " + *why);
 
     return NavigationProfile{
-        simulateJumpArcs(actorData.motionData), actorData.motionData, actorData.physicsBodyData};
+        simulateJumpArcs(actorData.abilities), actorData.abilities, actorData.physicsBodyData};
 }

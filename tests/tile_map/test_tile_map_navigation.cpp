@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "actor/actor_data.hpp"
-#include "actor/actor_motion_data.hpp"
+#include "actor/abilities/abilities_data.hpp"
 #include "combat/health_data.hpp"
 #include "animations/animation_rule_data.hpp"
 #include "animations/animator_data.hpp"
@@ -79,7 +79,7 @@ namespace
                      SheetData{},
                      std::nullopt,
                      PhysicsBodyData{},
-                     ActorMotionData{},
+                     AbilitiesData{},
                      AnimatorData{
                          {{"idle", FrameAnimationData({0}, 1.0f)}},
                          std::vector<AnimationRuleData>{},

@@ -17,8 +17,8 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/abilities/wall_jump_ability_data.hpp"
 #include "actor/abilities/wall_slide_ability_data.hpp"
-#include "actor/ability_states.hpp"
-#include "actor/actor_motion_data.hpp"
+#include "actor/abilities/ability_states.hpp"
+#include "actor/abilities/abilities_data.hpp"
 #include "combat/hit.hpp"
 #include "actor/observed.hpp"
 #include "helpers/abilities.hpp"
@@ -28,23 +28,23 @@ using Catch::Approx;
 
 namespace
 {
-    ActorMotionData everyAbility()
+    AbilitiesData everyAbility()
     {
-        ActorMotionData motion;
-        motion.moveAbilityData = MoveAbilityData{};
-        motion.jumpAbilityData = JumpAbilityData{};
-        motion.dashAbilityData = DashAbilityData{};
-        motion.wallSlideAbilityData = WallSlideAbilityData{};
-        motion.wallJumpAbilityData = WallJumpAbilityData{};
-        motion.wallHangAbilityData = WallHangAbilityData{};
-        motion.wallClimbAbilityData = WallClimbAbilityData{};
-        motion.mantleAbilityData = MantleAbilityData{};
-        motion.gravityAbilityData = GravityAbilityData{};
-        motion.pounceAbilityData = PounceAbilityData{};
-        motion.chargeAbilityData = ChargeAbilityData{};
-        motion.knockbackAbilityData = KnockbackAbilityData{};
-        motion.swingAbilityData = SwingAbilityData{};
-        return motion;
+        AbilitiesData data;
+        data.move = MoveAbilityData{};
+        data.jump = JumpAbilityData{};
+        data.dash = DashAbilityData{};
+        data.wallSlide = WallSlideAbilityData{};
+        data.wallJump = WallJumpAbilityData{};
+        data.wallHang = WallHangAbilityData{};
+        data.wallClimb = WallClimbAbilityData{};
+        data.mantle = MantleAbilityData{};
+        data.gravity = GravityAbilityData{};
+        data.pounce = PounceAbilityData{};
+        data.charge = ChargeAbilityData{};
+        data.knockback = KnockbackAbilityData{};
+        data.swing = SwingAbilityData{};
+        return data;
     }
 
     InputIntentions askingToClimb(InputIntentions intentions = InputIntentions{})
@@ -69,15 +69,15 @@ namespace
 
 TEST_CASE("Walking and jumping at once goes along at the walk and up at the jump", "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = onTheGround();
 
     glm::vec2 velocity = settle(abilities, pressingJump(1.0f), observed, states);
 
-    REQUIRE(velocity.x == Approx(motion.moveAbilityData->moveSpeed));
-    REQUIRE(velocity.y == Approx(motion.jumpAbilityData->jumpSpeed));
+    REQUIRE(velocity.x == Approx(data.move->moveSpeed));
+    REQUIRE(velocity.y == Approx(data.jump->jumpSpeed));
 }
 
 TEST_CASE(
@@ -85,21 +85,21 @@ TEST_CASE(
     "it goes along",
     "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = inTheAir();
 
     glm::vec2 velocity = settle(abilities, pressing(1.0f), observed, states, 3);
 
-    REQUIRE(velocity.x == Approx(motion.moveAbilityData->moveSpeed));
-    REQUIRE(velocity.y == Approx(motion.gravityAbilityData->gravity * Step * 3.0f));
+    REQUIRE(velocity.x == Approx(data.move->moveSpeed));
+    REQUIRE(velocity.y == Approx(data.gravity->gravity * Step * 3.0f));
 }
 
 TEST_CASE("A dash owns the velocity over walking, jumping and gravity", "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = onTheGround();
     settle(abilities, pressingDash(1.0f), observed, states);
@@ -108,15 +108,15 @@ TEST_CASE("A dash owns the velocity over walking, jumping and gravity", "[Abilit
     glm::vec2 velocity = settle(abilities, pressingJump(-1.0f), observed, states);
 
     REQUIRE(states.jump.active);
-    REQUIRE(velocity == glm::vec2(motion.dashAbilityData->dashSpeed, 0.0f));
+    REQUIRE(velocity == glm::vec2(data.dash->dashSpeed, 0.0f));
 }
 
 TEST_CASE(
     "Gravity gathers through a dash in the air, and the fall comes when the dash ends",
     "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = inTheAir();
     settle(abilities, pressingDash(1.0f), observed, states);
@@ -130,8 +130,7 @@ TEST_CASE(
 
     REQUIRE_FALSE(states.dash.active);
     REQUIRE(
-        observed.velocity.y ==
-        Approx(motion.gravityAbilityData->gravity * Step * static_cast<float>(ticks)));
+        observed.velocity.y == Approx(data.gravity->gravity * Step * static_cast<float>(ticks)));
 }
 
 TEST_CASE("A knockback owns the velocity over everything, a dash included", "[Abilities]")
@@ -151,24 +150,24 @@ TEST_CASE("A knockback owns the velocity over everything, a dash included", "[Ab
 
 TEST_CASE("A mantle owns the velocity over walking, climbing and gravity", "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = atALedge(WallSide::Right);
 
     glm::vec2 velocity = settle(abilities, askingToClimb(pressing(-1.0f, -1.0f)), observed, states);
 
     REQUIRE(states.mantle.active);
-    REQUIRE(velocity == glm::vec2(0.0f, -motion.mantleAbilityData->mantleSpeed));
+    REQUIRE(velocity == glm::vec2(0.0f, -data.mantle->mantleSpeed));
 }
 
 TEST_CASE("A pounce owns the velocity over walking, and gravity bends it", "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = onTheGround();
-    glm::vec2 leap = motion.pounceAbilityData->leap;
+    glm::vec2 leap = data.pounce->leap;
 
     glm::vec2 velocity = settle(abilities, askingTo(PounceAttack, 1.0f), observed, states);
     REQUIRE(velocity == leap);
@@ -176,28 +175,28 @@ TEST_CASE("A pounce owns the velocity over walking, and gravity bends it", "[Abi
     observed.contacts = inTheAir().contacts;
     velocity = settle(abilities, pressing(-1.0f), observed, states);
     REQUIRE(velocity.x == Approx(leap.x));
-    REQUIRE(velocity.y == Approx(leap.y + motion.gravityAbilityData->gravity * Step));
+    REQUIRE(velocity.y == Approx(leap.y + data.gravity->gravity * Step));
 }
 
 TEST_CASE("A wall jump owns both ways the actor goes, over walking", "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    motion.wallJumpAbilityData->wallJumpHorizontalSpeed = 400.0f;
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    data.wallJump->wallJumpHorizontalSpeed = 400.0f;
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = onAWall(WallSide::Left);
 
     glm::vec2 velocity = settle(abilities, holdingJump(1.0f), observed, states);
 
-    REQUIRE(velocity == glm::vec2(400.0f, motion.wallJumpAbilityData->wallJumpSpeed));
+    REQUIRE(velocity == glm::vec2(400.0f, data.wallJump->wallJumpSpeed));
 }
 
 TEST_CASE(
     "Hanging on a wall it would slide down, the climb says how fast it goes, not the slide",
     "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = onAWall(WallSide::Left);
     observed.velocity.y = 100.0f;
@@ -207,13 +206,13 @@ TEST_CASE(
     REQUIRE(velocity.y == 0.0f);
 
     velocity = settle(abilities, askingToClimb(pressingUp()), observed, states);
-    REQUIRE(velocity.y == Approx(-motion.wallClimbAbilityData->climbSpeed));
+    REQUIRE(velocity.y == Approx(-data.wallClimb->climbSpeed));
 }
 
 TEST_CASE("Sliding down a wall, the slide says how fast it falls, not gravity", "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = onAWall(WallSide::Left);
     settle(abilities, InputIntentions{}, observed, states);
@@ -221,7 +220,7 @@ TEST_CASE("Sliding down a wall, the slide says how fast it falls, not gravity", 
     glm::vec2 velocity = settle(abilities, InputIntentions{}, observed, states);
 
     REQUIRE(states.wallSlide.active);
-    REQUIRE(velocity.y == Approx(motion.wallSlideAbilityData->slideSpeed));
+    REQUIRE(velocity.y == Approx(data.wallSlide->slideSpeed));
 }
 
 TEST_CASE("A dash and a swing pressed together dash, and do not swing", "[Abilities]")
@@ -242,33 +241,32 @@ TEST_CASE(
     "A jump beside a wall comes down it as a slide, and jumping away from it there wall jumps",
     "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = onAWall(WallSide::Left);
     observed.contacts.onGround = true;
 
     glm::vec2 velocity = settle(abilities, pressingJump(), observed, states);
-    REQUIRE(velocity == glm::vec2(0.0f, motion.jumpAbilityData->jumpSpeed));
+    REQUIRE(velocity == glm::vec2(0.0f, data.jump->jumpSpeed));
 
     observed.contacts = onAWall(WallSide::Left).contacts;
     settleUntilSliding(abilities, observed, states);
     REQUIRE(states.wallSlide.active);
-    REQUIRE(observed.velocity.y == Approx(motion.wallSlideAbilityData->slideSpeed));
+    REQUIRE(observed.velocity.y == Approx(data.wallSlide->slideSpeed));
 
     velocity = settle(abilities, holdingJump(1.0f), observed, states);
     REQUIRE(
-        velocity == glm::vec2(
-                        motion.wallJumpAbilityData->wallJumpHorizontalSpeed,
-                        motion.wallJumpAbilityData->wallJumpSpeed));
+        velocity ==
+        glm::vec2(data.wallJump->wallJumpHorizontalSpeed, data.wallJump->wallJumpSpeed));
 }
 
 TEST_CASE(
     "A dash into a wall stops there, slides down it, and can jump away from it",
     "[Abilities]")
 {
-    ActorMotionData motion = everyAbility();
-    Abilities abilities(motion);
+    AbilitiesData data = everyAbility();
+    Abilities abilities(data);
     AbilityStates states;
     Observed observed = inTheAir();
     settle(abilities, pressingDash(-1.0f), observed, states);
@@ -284,5 +282,5 @@ TEST_CASE(
 
     velocity = settle(abilities, holdingJump(1.0f), observed, states);
     REQUIRE(states.wallJump.active);
-    REQUIRE(velocity.x == Approx(motion.wallJumpAbilityData->wallJumpHorizontalSpeed));
+    REQUIRE(velocity.x == Approx(data.wallJump->wallJumpHorizontalSpeed));
 }

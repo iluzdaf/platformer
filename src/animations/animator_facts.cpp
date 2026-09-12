@@ -12,7 +12,7 @@
 #include "actor/abilities/wall_hang_ability_state.hpp"
 #include "actor/abilities/wall_slide_ability_state.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"

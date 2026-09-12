@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/actor_state.hpp"
 #include "combat/hit.hpp"
 #include "game/level.hpp"

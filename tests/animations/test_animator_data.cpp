@@ -1,6 +1,6 @@
 #include <string>
 #include <catch2/catch_test_macros.hpp>
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "animations/animator_facts.hpp"
 #include "conditions/asked.hpp"

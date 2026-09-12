@@ -7,8 +7,8 @@
 #include "actor/abilities/charge_ability_data.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
 #include "actor/abilities/move_ability_data.hpp"
-#include "actor/actor_motion_data.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/abilities_data.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 
@@ -173,10 +173,10 @@ TEST_CASE("A charge with nothing to it is refused", "[ChargeAbility]")
 
 TEST_CASE("A charge carries the actor, whatever its legs were asked", "[ChargeAbility][Abilities]")
 {
-    ActorMotionData motion;
-    motion.moveAbilityData = MoveAbilityData{60.0f};
-    motion.chargeAbilityData = aChargeOf(150.0f);
-    Abilities abilities(motion);
+    AbilitiesData data;
+    data.move = MoveAbilityData{60.0f};
+    data.charge = aChargeOf(150.0f);
+    Abilities abilities(data);
     AbilityStates states;
 
     REQUIRE(abilities.decide(Step, askingToCharge(1.0f), onTheGround(), states).x == 150.0f);

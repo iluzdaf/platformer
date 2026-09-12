@@ -4,7 +4,7 @@
 #include <vector>
 #include "navigation/jump_arc.hpp"
 
-struct ActorMotionData;
+struct AbilitiesData;
 struct PhysicsBodyData;
 class TileMap;
 
@@ -16,13 +16,13 @@ struct JumpAttempt
     bool capped = false;
 };
 
-JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction = 1.0f);
+JumpArc simulateJumpArc(const AbilitiesData &abilitiesData, float holdFraction = 1.0f);
 
-std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData);
+std::vector<JumpArc> simulateJumpArcs(const AbilitiesData &abilitiesData);
 
 JumpAttempt simulateJumpAgainst(
     const TileMap &tileMap,
-    const ActorMotionData &motionData,
+    const AbilitiesData &abilitiesData,
     const PhysicsBodyData &physicsBodyData,
     glm::vec2 takeOffFeet,
     float direction,

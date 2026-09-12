@@ -184,7 +184,7 @@ TEST_CASE("The shipped player's jump and dash together are worth five tiles", "[
     REQUIRE(getsAcross(gameData, 4, Pit::Spikes, true, true));
     REQUIRE_FALSE(getsAcross(gameData, 5, Pit::Spikes, true, true));
 
-    REQUIRE(gameData.playerData.actorData.motionData.dashAbilityData->airborneFraction < 1.0f);
+    REQUIRE(gameData.playerData.actorData.abilities.dash->airborneFraction < 1.0f);
 }
 
 namespace

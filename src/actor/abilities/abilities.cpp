@@ -1,5 +1,5 @@
-#include "actor/actor_motion_data.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/abilities_data.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/abilities.hpp"
 #include "actor/abilities/move_ability.hpp"
@@ -17,34 +17,34 @@
 #include "actor/abilities/charge_ability.hpp"
 #include <memory>
 
-Abilities::Abilities(const ActorMotionData &data)
+Abilities::Abilities(const AbilitiesData &data)
 {
-    if (data.moveAbilityData)
-        abilities.push_back(std::make_unique<MoveAbility>(data.moveAbilityData.value()));
-    if (data.jumpAbilityData)
-        abilities.push_back(std::make_unique<JumpAbility>(data.jumpAbilityData.value()));
-    if (data.dashAbilityData)
-        abilities.push_back(std::make_unique<DashAbility>(data.dashAbilityData.value()));
-    if (data.wallSlideAbilityData)
-        abilities.push_back(std::make_unique<WallSlideAbility>(data.wallSlideAbilityData.value()));
-    if (data.wallJumpAbilityData)
-        abilities.push_back(std::make_unique<WallJumpAbility>(data.wallJumpAbilityData.value()));
-    if (data.wallHangAbilityData)
-        abilities.push_back(std::make_unique<WallHangAbility>(data.wallHangAbilityData.value()));
-    if (data.wallClimbAbilityData)
-        abilities.push_back(std::make_unique<WallClimbAbility>(data.wallClimbAbilityData.value()));
-    if (data.mantleAbilityData)
-        abilities.push_back(std::make_unique<MantleAbility>(data.mantleAbilityData.value()));
-    if (data.gravityAbilityData)
-        abilities.push_back(std::make_unique<GravityAbility>(data.gravityAbilityData.value()));
-    if (data.pounceAbilityData)
-        abilities.push_back(std::make_unique<PounceAbility>(data.pounceAbilityData.value()));
-    if (data.chargeAbilityData)
-        abilities.push_back(std::make_unique<ChargeAbility>(data.chargeAbilityData.value()));
-    if (data.knockbackAbilityData)
-        abilities.push_back(std::make_unique<KnockbackAbility>(data.knockbackAbilityData.value()));
-    if (data.swingAbilityData)
-        abilities.push_back(std::make_unique<SwingAbility>(data.swingAbilityData.value()));
+    if (data.move)
+        abilities.push_back(std::make_unique<MoveAbility>(data.move.value()));
+    if (data.jump)
+        abilities.push_back(std::make_unique<JumpAbility>(data.jump.value()));
+    if (data.dash)
+        abilities.push_back(std::make_unique<DashAbility>(data.dash.value()));
+    if (data.wallSlide)
+        abilities.push_back(std::make_unique<WallSlideAbility>(data.wallSlide.value()));
+    if (data.wallJump)
+        abilities.push_back(std::make_unique<WallJumpAbility>(data.wallJump.value()));
+    if (data.wallHang)
+        abilities.push_back(std::make_unique<WallHangAbility>(data.wallHang.value()));
+    if (data.wallClimb)
+        abilities.push_back(std::make_unique<WallClimbAbility>(data.wallClimb.value()));
+    if (data.mantle)
+        abilities.push_back(std::make_unique<MantleAbility>(data.mantle.value()));
+    if (data.gravity)
+        abilities.push_back(std::make_unique<GravityAbility>(data.gravity.value()));
+    if (data.pounce)
+        abilities.push_back(std::make_unique<PounceAbility>(data.pounce.value()));
+    if (data.charge)
+        abilities.push_back(std::make_unique<ChargeAbility>(data.charge.value()));
+    if (data.knockback)
+        abilities.push_back(std::make_unique<KnockbackAbility>(data.knockback.value()));
+    if (data.swing)
+        abilities.push_back(std::make_unique<SwingAbility>(data.swing.value()));
 }
 
 glm::vec2 Abilities::decide(

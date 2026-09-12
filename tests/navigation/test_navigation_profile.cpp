@@ -17,22 +17,22 @@ TEST_CASE("Climbing takes both holding on and moving", "[NavigationProfile]")
 
     SECTION("Holding on without moving is not climbing")
     {
-        actorData.motionData.wallHangAbilityData = WallHangAbilityData();
+        actorData.abilities.wallHang = WallHangAbilityData();
 
         REQUIRE_FALSE(buildNavigationProfile(actorData).climbs());
     }
 
     SECTION("Moving without holding on is not climbing, it is falling off")
     {
-        actorData.motionData.wallClimbAbilityData = WallClimbAbilityData();
+        actorData.abilities.wallClimb = WallClimbAbilityData();
 
         REQUIRE_FALSE(buildNavigationProfile(actorData).climbs());
     }
 
     SECTION("Both is climbing")
     {
-        actorData.motionData.wallHangAbilityData = WallHangAbilityData();
-        actorData.motionData.wallClimbAbilityData = WallClimbAbilityData();
+        actorData.abilities.wallHang = WallHangAbilityData();
+        actorData.abilities.wallClimb = WallClimbAbilityData();
 
         REQUIRE(buildNavigationProfile(actorData).climbs());
     }

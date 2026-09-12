@@ -532,7 +532,7 @@ TEST_CASE("The shipped spider's patience outlasts its own climb on level 6", "[N
                 std::max(tallestClimb, std::abs(spawn.patrol->from.y - spawn.patrol->to.y));
     REQUIRE(tallestClimb > 0.0f);
 
-    float climbSpeed = spider.actorData.motionData.wallClimbAbilityData->climbSpeed;
+    float climbSpeed = spider.actorData.abilities.wallClimb->climbSpeed;
     float givesUpAfter = 0.0f;
     for (const BehaviorTransitionData &transition : spider.stateMachineBehaviorData->transitions)
         if (transition.from == "chase" && transition.to == "patrol")

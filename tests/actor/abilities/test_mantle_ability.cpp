@@ -3,7 +3,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "actor/abilities/mantle_ability.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
 

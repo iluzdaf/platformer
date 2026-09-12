@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/ability.hpp"
 
-struct ActorMotionData;
+struct AbilitiesData;
 struct AbilityStates;
 struct InputIntentions;
 struct Observed;
@@ -13,7 +13,7 @@ struct Observed;
 class Abilities
 {
 public:
-    explicit Abilities(const ActorMotionData &motionData);
+    explicit Abilities(const AbilitiesData &data);
     glm::vec2 decide(
         float deltaTime,
         const InputIntentions &inputIntentions,

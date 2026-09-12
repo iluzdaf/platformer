@@ -249,7 +249,7 @@ TEST_CASE("The cast section refuses what a creature refuses when it is built", "
     REQUIRE_FALSE(editorUi.savingIn(EditorSection::Level, subject).cannotBecause.has_value());
 
     NpcData &rat = editing.gameData.npcData.at("rat");
-    rat.actorData.motionData.pounceAbilityData.reset();
+    rat.actorData.abilities.pounce.reset();
     std::string creatureSays;
     try
     {

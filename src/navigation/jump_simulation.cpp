@@ -1,8 +1,8 @@
 #include <cmath>
 #include <vector>
 #include "navigation/jump_simulation.hpp"
-#include "actor/actor_motion_data.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/abilities_data.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/abilities.hpp"
 #include "input/input_intentions.hpp"
@@ -25,19 +25,19 @@ namespace
         return inputIntentions;
     }
 
-    ActorMotionData releasedAfter(const ActorMotionData &motionData, float holdFraction)
+    AbilitiesData releasedAfter(const AbilitiesData &abilitiesData, float holdFraction)
     {
-        ActorMotionData shortened = motionData;
-        if (shortened.jumpAbilityData)
-            shortened.jumpAbilityData->jumpDuration *= holdFraction;
+        AbilitiesData shortened = abilitiesData;
+        if (shortened.jump)
+            shortened.jump->jumpDuration *= holdFraction;
         return shortened;
     }
 }
 
-JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
+JumpArc simulateJumpArc(const AbilitiesData &abilitiesData, float holdFraction)
 {
-    ActorMotionData shortened = releasedAfter(motionData, holdFraction);
-    float holdDuration = shortened.jumpAbilityData ? shortened.jumpAbilityData->jumpDuration : 0.0f;
+    AbilitiesData shortened = releasedAfter(abilitiesData, holdFraction);
+    float holdDuration = shortened.jump ? shortened.jump->jumpDuration : 0.0f;
     Abilities abilities(shortened);
     AbilityStates states;
     Observed observed;
@@ -65,13 +65,13 @@ JumpArc simulateJumpArc(const ActorMotionData &motionData, float holdFraction)
     return {};
 }
 
-std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData)
+std::vector<JumpArc> simulateJumpArcs(const AbilitiesData &abilitiesData)
 {
     std::vector<JumpArc> arcs;
 
     for (float holdFraction : HoldFractions)
     {
-        JumpArc arc = simulateJumpArc(motionData, holdFraction);
+        JumpArc arc = simulateJumpArc(abilitiesData, holdFraction);
         if (!arc.offsets.empty())
             arcs.push_back(arc);
     }
@@ -81,13 +81,13 @@ std::vector<JumpArc> simulateJumpArcs(const ActorMotionData &motionData)
 
 JumpAttempt simulateJumpAgainst(
     const TileMap &tileMap,
-    const ActorMotionData &motionData,
+    const AbilitiesData &abilitiesData,
     const PhysicsBodyData &physicsBodyData,
     glm::vec2 takeOffFeet,
     float direction,
     float holdFraction)
 {
-    ActorMotionData shortened = releasedAfter(motionData, holdFraction);
+    AbilitiesData shortened = releasedAfter(abilitiesData, holdFraction);
     Abilities abilities(shortened);
     AbilityStates states;
     Observed observed;

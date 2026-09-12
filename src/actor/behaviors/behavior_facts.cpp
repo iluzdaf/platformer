@@ -4,7 +4,7 @@
 #include "actor/actor_behavior_context.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "actor/abilities/wall_hang_ability.hpp"
 #include "actor/abilities/wall_hang_ability_data.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
 

@@ -16,7 +16,7 @@
 #include "physics/aabb.hpp"
 #include "actor/observing.hpp"
 #include "actor/observed.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
@@ -45,7 +45,7 @@ namespace
 }
 
 Actor::Actor(const ActorData &data)
-    : abilities(data.motionData), physicsBody(data.physicsBodyData),
+    : abilities(data.abilities), physicsBody(data.physicsBodyData),
       navigationProfile(buildNavigationProfile(data)), hp(data.healthData)
 {
     if (data.animationData)

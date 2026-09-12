@@ -68,9 +68,9 @@ namespace
     NpcData aClimber()
     {
         NpcData data = setupNpcData();
-        data.actorData.motionData.jumpAbilityData = JumpAbilityData{};
-        data.actorData.motionData.wallHangAbilityData = WallHangAbilityData{};
-        data.actorData.motionData.wallClimbAbilityData = WallClimbAbilityData{};
+        data.actorData.abilities.jump = JumpAbilityData{};
+        data.actorData.abilities.wallHang = WallHangAbilityData{};
+        data.actorData.abilities.wallClimb = WallClimbAbilityData{};
         return data;
     }
 
@@ -80,10 +80,10 @@ namespace
         data.actorData.size = glm::vec2(16.0f);
         data.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 8.0f);
         data.actorData.physicsBodyData.colliderOffset = glm::vec2(4.0f, 8.0f);
-        data.actorData.motionData.moveAbilityData = MoveAbilityData{90.0f};
-        data.actorData.motionData.jumpAbilityData = JumpAbilityData{-320.0f};
-        data.actorData.motionData.wallClimbAbilityData = WallClimbAbilityData{70.0f};
-        data.actorData.motionData.mantleAbilityData = MantleAbilityData{};
+        data.actorData.abilities.move = MoveAbilityData{90.0f};
+        data.actorData.abilities.jump = JumpAbilityData{-320.0f};
+        data.actorData.abilities.wallClimb = WallClimbAbilityData{70.0f};
+        data.actorData.abilities.mantle = MantleAbilityData{};
         return data;
     }
 

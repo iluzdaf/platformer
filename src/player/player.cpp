@@ -5,7 +5,7 @@
 #include "actor/actor.hpp"
 #include <memory>
 #include "actor/behaviors/input_behavior.hpp"
-#include "actor/ability_states.hpp"
+#include "actor/abilities/ability_states.hpp"
 
 Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
     : Actor(data.actorData), data(data)

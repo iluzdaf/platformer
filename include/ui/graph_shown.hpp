@@ -9,17 +9,13 @@
 #include "ui/state_machine_shown.hpp"
 
 struct StateMachineBehaviorData;
-struct AnimatorData;
 struct AnimationWhenData;
-
-inline constexpr std::string_view AnyNode = "any";
 
 struct GraphNode
 {
     std::string name;
     std::string words;
     bool hub = false;
-    bool start = false;
 
     bool operator==(const GraphNode &) const = default;
 };
@@ -56,5 +52,3 @@ std::vector<glm::vec2> placedAround(const GraphShown &graph, glm::vec2 centre, g
 std::string whenOf(const AnimationWhenData &when);
 
 GraphShown graphOf(const StateMachineBehaviorData &machine);
-
-GraphShown graphOf(const AnimatorData &animations);

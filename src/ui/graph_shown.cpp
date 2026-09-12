@@ -2,7 +2,6 @@
 #include <cmath>
 #include <cstddef>
 #include <numbers>
-#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -10,38 +9,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/graph_shown.hpp"
 #include "ui/state_machine_shown.hpp"
-#include "animations/animation_ladder_data.hpp"
-#include "animations/animator_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "animations/animator_data.hpp"
 #include "animations/animator_facts.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
-#include "animations/frame_animation_data.hpp"
 
 namespace
 {
     constexpr float LeastGraphHeight = 220.0f;
     constexpr float RoomPerNode = 44.0f;
-
-    std::string wordsOf(const FrameAnimationData &clip)
-    {
-        return std::format(
-            "{} frame{}, {} s each{}",
-            clip.frames.size(),
-            clip.frames.size() == 1 ? "" : "s",
-            clip.frameDuration,
-            clip.loops ? "" : ", once");
-    }
-
-    bool anyRungLeavesFromAnywhere(const AnimationLadderData &ladder)
-    {
-        for (const AnimationTransitionData &rung : ladder.transitions)
-            if (rung.from.empty())
-                return true;
-
-        return false;
-    }
 }
 
 std::optional<std::size_t> indexOfNode(const GraphShown &graph, std::string_view name)
@@ -125,23 +101,6 @@ GraphShown graphOf(const StateMachineBehaviorData &machine)
     graph.edges.reserve(machine.transitions.size());
     for (const BehaviorTransitionData &transition : machine.transitions)
         graph.edges.push_back({transition.from, transition.to, whenOf(transition)});
-
-    return graph;
-}
-
-GraphShown graphOf(const AnimatorData &animations)
-{
-    GraphShown graph;
-    for (const auto &[name, clip] : animations.clips)
-        graph.nodes.push_back({name, wordsOf(clip), false, name == animations.startClip});
-
-    if (anyRungLeavesFromAnywhere(animations.ladder))
-        graph.nodes.push_back({std::string(AnyNode), "from whatever is playing", true});
-
-    graph.edges.reserve(animations.ladder.transitions.size());
-    for (const AnimationTransitionData &rung : animations.ladder.transitions)
-        graph.edges.push_back(
-            {rung.from.empty() ? std::string(AnyNode) : rung.from, rung.to, whenOf(rung.when)});
 
     return graph;
 }

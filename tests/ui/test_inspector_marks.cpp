@@ -25,7 +25,7 @@
 #include "npc/npc_data.hpp"
 #include "scripting/script_path_data.hpp"
 #include "pickups/pickup_data.hpp"
-#include "animations/animation_ladder_data.hpp"
+#include "animations/animation_rule_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
@@ -291,7 +291,7 @@ namespace
         everyFieldOf(value, asItWasSaved<T>(asJson(value)));
     }
 
-    AnimatorData someClipsAndARung()
+    AnimatorData someClipsAndARule()
     {
         AnimatorData animations;
         animations.startClip = "idle";
@@ -299,11 +299,10 @@ namespace
         animations.clips["run"] = FrameAnimationData{{1, 2, 3}, 0.1f};
         animations.clips["run"].cues.push_back(FrameCueData{1, "step"});
 
-        AnimationTransitionData rung;
-        rung.from = "idle";
-        rung.to = "run";
-        rung.when["moving"] = true;
-        animations.ladder.transitions.push_back(rung);
+        AnimationRuleData rule;
+        rule.show = "run";
+        rule.when["moving"] = true;
+        animations.rules.push_back(rule);
 
         return animations;
     }
@@ -312,10 +311,10 @@ namespace
     {
         GameData gameData;
         gameData.playerData = playerDataWithEveryAbility();
-        gameData.playerData.actorData.animationData = someClipsAndARung();
+        gameData.playerData.actorData.animationData = someClipsAndARule();
 
         NpcData rat = setupNpcData();
-        rat.actorData.animationData = someClipsAndARung();
+        rat.actorData.animationData = someClipsAndARule();
         rat.facts["heard"] = false;
         rat.tuning["range"] = 200.0f;
         gameData.npcData = {{"rat", rat}};
@@ -423,21 +422,11 @@ namespace
 
     std::vector<GraphShown> graphsDrawnFor(GameData &gameData, const TypeShown &type)
     {
-        if (type.what == TypeShown::What::Player)
-        {
-            const std::optional<AnimatorData> &animations =
-                gameData.playerData.actorData.animationData;
-            return animations ? std::vector<GraphShown>{graphOf(*animations)}
-                              : std::vector<GraphShown>{};
-        }
-
         if (type.what != TypeShown::What::Npc)
             return {};
 
         NpcData &npc = gameData.npcData.at(type.name);
         std::vector<GraphShown> graphs;
-        if (npc.actorData.animationData)
-            graphs.push_back(graphOf(*npc.actorData.animationData));
         if (npc.stateMachineBehaviorData)
             graphs.push_back(graphOf(*npc.stateMachineBehaviorData));
 

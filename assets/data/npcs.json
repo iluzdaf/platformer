@@ -17,15 +17,13 @@
                     "sleep":{"frames":[1,2],"frameDuration":0.6},
                     "stunned":{"frames":[8,9],"frameDuration":0.3}
                 },
-                "ladder":{
-                    "transitions":[
-                        {"to":"dead","when":{"alive":false}},
-                        {"to":"sleep","when":{"inState":"sleep"}},
-                        {"to":"stunned","when":{"inState":"stunned"}},
-                        {"to":"run","when":{"moving":true,"onGround":true}},
-                        {"to":"idle","when":{"onGround":true}}
-                    ]
-                },
+                "rules":[
+                    {"show":"dead","when":{"alive":false}},
+                    {"show":"sleep","when":{"inState":"sleep"}},
+                    {"show":"stunned","when":{"inState":"stunned"}},
+                    {"show":"run","when":{"moving":true,"onGround":true}},
+                    {"show":"idle","when":{"onGround":true}}
+                ],
                 "startClip":"sleep"
             }
         },
@@ -63,14 +61,12 @@
                     "idle":{"frames":[0,1],"frameDuration":0.5},
                     "walk":{"frames":[2,3,4,5],"frameDuration":0.12}
                 },
-                "ladder":{
-                    "transitions":[
-                        {"to":"dead","when":{"alive":false}},
-                        {"to":"fall","when":{"falling":true,"onGround":false}},
-                        {"to":"walk","when":{"moving":true,"onGround":true}},
-                        {"to":"idle","when":{"onGround":true}}
-                    ]
-                },
+                "rules":[
+                    {"show":"dead","when":{"alive":false}},
+                    {"show":"fall","when":{"falling":true,"onGround":false}},
+                    {"show":"walk","when":{"moving":true,"onGround":true}},
+                    {"show":"idle","when":{"onGround":true}}
+                ],
                 "startClip":"idle"
             }
         },
@@ -125,18 +121,16 @@
                     "walk":{"frames":[2,3,4,5],"frameDuration":0.12},
                     "wallSlide":{"frames":[7],"frameDuration":1}
                 },
-                "ladder":{
-                    "transitions":[
-                        {"to":"dead","when":{"alive":false}},
-                        {"to":"pounce","when":{"inState":"pounce"}},
-                        {"to":"climb","when":{"climbing":true,"onGround":false}},
-                        {"to":"wallSlide","when":{"onGround":false,"onWall":true}},
-                        {"to":"jump","when":{"onGround":false,"rising":true}},
-                        {"to":"fall","when":{"falling":true,"onGround":false}},
-                        {"to":"walk","when":{"moving":true,"onGround":true}},
-                        {"to":"idle","when":{"onGround":true}}
-                    ]
-                },
+                "rules":[
+                    {"show":"dead","when":{"alive":false}},
+                    {"show":"pounce","when":{"inState":"pounce"}},
+                    {"show":"climb","when":{"climbing":true,"onGround":false}},
+                    {"show":"wallSlide","when":{"onGround":false,"onWall":true}},
+                    {"show":"jump","when":{"onGround":false,"rising":true}},
+                    {"show":"fall","when":{"falling":true,"onGround":false}},
+                    {"show":"walk","when":{"moving":true,"onGround":true}},
+                    {"show":"idle","when":{"onGround":true}}
+                ],
                 "startClip":"idle"
             }
         },

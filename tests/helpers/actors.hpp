@@ -22,7 +22,7 @@
 #include "navigation/navigation_profile_builder.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
-#include "helpers/ladders.hpp"
+#include "helpers/rules.hpp"
 #include "game/level.hpp"
 #include "input/input_intentions.hpp"
 #include "input/intention_source.hpp"
@@ -83,8 +83,7 @@ inline PlayerData playerDataWithEveryAbility()
     animations.clips["walk"] = FrameAnimationData({1, 2, 3}, 0.1f);
     animations.clips["attack"] = anAttackClip();
     animations.clips["dead"] = FrameAnimationData({9}, 1.0f);
-    animations.ladder = AnimationLadderData{
-        {deadTransition(), swingTransition(), walkTransition(), idleTransition()}};
+    animations.rules = {deadRule(), swingRule(), walkRule(), idleRule()};
 
     return playerData;
 }

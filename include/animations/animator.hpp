@@ -6,7 +6,7 @@
 #include <vector>
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
-#include "animations/animation_ladder_data.hpp"
+#include "animations/animation_rule_data.hpp"
 
 struct Decided;
 struct Observed;
@@ -27,12 +27,13 @@ public:
     bool finished() const;
 
 private:
-    const std::string &wanted(
+    const std::string &shown(
         const Decided &decided,
         const Observed &observed,
         std::string_view inState) const;
 
-    AnimationLadderData ladder;
+    std::vector<AnimationRuleData> rules;
+    std::string startClip;
     std::string currentState;
     std::unordered_map<std::string, FrameAnimation> animations;
 };

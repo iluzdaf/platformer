@@ -28,7 +28,7 @@
 #include "animations/animator_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "conditions/asked.hpp"
-#include "animations/animation_ladder_data.hpp"
+#include "animations/animation_rule_data.hpp"
 
 namespace
 {
@@ -261,7 +261,7 @@ TEST_CASE(
     REQUIRE(std::holds_alternative<ChaseBehaviorData>(chasing.does));
 }
 
-TEST_CASE("An actor's animation data draws as a graph of its clips and rungs", "[DataInspector]")
+TEST_CASE("An actor's animation data draws as its clips and its rules", "[DataInspector]")
 {
     HeadlessImGui gui;
     AnimatorData animations;
@@ -269,7 +269,7 @@ TEST_CASE("An actor's animation data draws as a graph of its clips and rungs", "
     animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
     AnimationWhenData moving;
     moving["moving"] = true;
-    animations.ladder = AnimationLadderData{{{"", "walk", moving}}};
+    animations.rules = {{"walk", moving}};
 
     REQUIRE_NOTHROW(gui.frame([&] { inspector::draw("animationData", animations); }));
     REQUIRE(animations.clips.size() == 2);
@@ -280,10 +280,10 @@ TEST_CASE(
     "[DataInspector]")
 {
     HeadlessImGui gui;
-    AnimationTransitionData rung;
-    rung.to = "pounce";
-    rung.when["onGround"] = false;
-    rung.when["inState"] = std::string("pounce");
+    AnimationRuleData rule;
+    rule.show = "pounce";
+    rule.when["onGround"] = false;
+    rule.when["inState"] = std::string("pounce");
     BehaviorTransitionData transition;
     transition.from = "chase";
     transition.to = "pounce";
@@ -297,8 +297,8 @@ TEST_CASE(
         [&]
         {
             ImGui::TreeNodeSetOpen(ImGui::GetID("when"), true);
-            ImGui::PushID("rung");
-            inspector::drawFields(rung);
+            ImGui::PushID("rule");
+            inspector::drawFields(rule);
             ImGui::PopID();
 
             ImGui::PushID("transition");
@@ -306,6 +306,6 @@ TEST_CASE(
             inspector::drawFields(transition);
             ImGui::PopID();
         }));
-    REQUIRE(rung.when.size() == 2);
+    REQUIRE(rule.when.size() == 2);
     REQUIRE(transition.when.size() == 2);
 }

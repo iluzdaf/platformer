@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include "animations/animation_ladder_data.hpp"
+#include "animations/animation_rule_data.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
 #include "animations/animator_data.hpp"
@@ -13,31 +13,27 @@
 #include "actor/observed.hpp"
 #include "conditions/fact_rows.hpp"
 
-Animator::Animator(const AnimatorData &data) : ladder(data.ladder), currentState(data.startClip)
+Animator::Animator(const AnimatorData &data)
+    : rules(data.rules), startClip(data.startClip), currentState(data.startClip)
 {
     if (std::optional<std::string> why = whyNotAnAnimator(data))
-        throw std::runtime_error("An animator" + *why);
+        throw std::runtime_error("An animator " + *why);
 
     for (const auto &[name, clip] : data.clips)
         animations.insert_or_assign(name, FrameAnimation(clip));
 }
 
-const std::string &Animator::wanted(
+const std::string &Animator::shown(
     const Decided &decided,
     const Observed &observed,
     std::string_view inState) const
 {
     AnimatorFacts facts{decided, observed, finished(), inState};
-    for (const AnimationTransitionData &rung : ladder.transitions)
-    {
-        if (!rung.from.empty() && rung.from != currentState)
-            continue;
+    for (const AnimationRuleData &rule : rules)
+        if (holds(rule.when, animatorRows(), facts))
+            return rule.show;
 
-        if (holds(rung.when, animatorRows(), facts))
-            return rung.to;
-    }
-
-    return currentState;
+    return startClip;
 }
 
 void Animator::animate(
@@ -46,7 +42,7 @@ void Animator::animate(
     const Observed &observed,
     std::string_view inState)
 {
-    std::string newState = wanted(decided, observed, inState);
+    std::string newState = shown(decided, observed, inState);
 
     if (newState != currentState)
     {

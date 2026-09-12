@@ -2,7 +2,7 @@
 #include "actor/actor_data.hpp"
 #include "actor/actor_motion_data.hpp"
 #include "actor/health_data.hpp"
-#include "animations/animation_ladder_data.hpp"
+#include "animations/animation_rule_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "assets/sheet_data.hpp"
@@ -81,7 +81,7 @@ namespace
                      ActorMotionData{},
                      AnimatorData{
                          {{"idle", FrameAnimationData({0}, 1.0f)}},
-                         AnimationLadderData{},
+                         std::vector<AnimationRuleData>{},
                          "idle"},
                      HealthData{}},
                  std::nullopt,

@@ -2,8 +2,7 @@
 
 #include "actor/abilities/ability.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
-#include "actor/abilities/action_buffer.hpp"
-#include "actor/abilities/coyote_time.hpp"
+#include "actor/abilities/grace_period.hpp"
 
 struct InputIntentions;
 struct Observed;
@@ -21,6 +20,6 @@ public:
 
 private:
     JumpAbilityData data;
-    ActionBuffer jumpBuffer;
-    CoyoteTime coyoteTime;
+    GracePeriod jumpBuffer;
+    GracePeriod coyoteTime;
 };

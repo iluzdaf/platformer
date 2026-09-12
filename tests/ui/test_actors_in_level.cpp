@@ -118,7 +118,6 @@ TEST_CASE("A pickup in the level is shown the way an npc is", "[ActorsInLevel]")
 
     REQUIRE(asked.show == showing);
     REQUIRE_FALSE(asked.removeShown);
-    REQUIRE_FALSE(asked.addPickupOfType);
 }
 
 TEST_CASE("A pickup the level no longer has stops being shown", "[ActorsInLevel]")
@@ -144,7 +143,6 @@ TEST_CASE("Left alone, the actors panel asks for nothing", "[ActorsInLevel]")
     REQUIRE(asked.show == showing);
     REQUIRE_FALSE(asked.removeShown);
     REQUIRE_FALSE(asked.clearShownBeat);
-    REQUIRE_FALSE(asked.addNpcOfType);
     REQUIRE_FALSE(armed);
 }
 
@@ -196,7 +194,6 @@ TEST_CASE("Showing nobody draws nobody and asks for nothing", "[ActorsInLevel]")
     ActorAsked asked = askedFor(gui, level, ActorShown{}, armed);
 
     REQUIRE(asked.show == ActorShown{});
-    REQUIRE_FALSE(asked.addNpcOfType);
 }
 
 TEST_CASE("A pick already armed survives being drawn", "[ActorsInLevel]")

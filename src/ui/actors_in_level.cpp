@@ -205,6 +205,48 @@ namespace
             armed = isArmed ? std::nullopt : std::optional<Armed>(pick);
     }
 
+    void drawPlacing(
+        const std::map<std::string, NpcData> &npcTypes,
+        const std::map<std::string, PickupData> &pickupTypes,
+        std::optional<Armed> &armed)
+    {
+        const PlaceOne *placing = beingPlaced(armed);
+        std::string label = placing ? "place " + placing->type : std::string("place");
+
+        if (placing)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ArmedColour);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ArmedColour);
+        }
+
+        bool clicked = ImGui::Button(label.c_str());
+
+        if (placing)
+            ImGui::PopStyleColor(3);
+
+        if (clicked && placing)
+            armed.reset();
+        else if (clicked)
+            ImGui::OpenPopup("##placing");
+
+        if (!ImGui::BeginPopup("##placing"))
+            return;
+
+        for (const auto &[type, npcData] : npcTypes)
+            if (ImGui::Selectable(type.c_str()))
+                armed = PlaceOne{PlaceOne::What::Npc, type};
+
+        ImGui::Separator();
+        ImGui::PushID("pickups");
+        for (const auto &[type, pickupData] : pickupTypes)
+            if (ImGui::Selectable(type.c_str()))
+                armed = PlaceOne{PlaceOne::What::Pickup, type};
+
+        ImGui::PopID();
+        ImGui::EndPopup();
+    }
+
     std::string asTile(glm::ivec2 tile)
     {
         return std::to_string(tile.x) + "," + std::to_string(tile.y);
@@ -319,7 +361,7 @@ ActorAsked drawActorsInLevel(
     if (showing.what == ActorShown::What::Pickup && showing.index >= pickups.size())
         showing = ActorShown{};
 
-    ActorAsked asked{showing, false, false, std::nullopt, std::nullopt};
+    ActorAsked asked{showing, false, false};
 
     const ImGuiStyle &style = ImGui::GetStyle();
     float buttons = ImGui::CalcTextSize("add").x + ImGui::CalcTextSize("remove").x +
@@ -352,24 +394,7 @@ ActorAsked drawActorsInLevel(
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("add"))
-        ImGui::OpenPopup("##addNpc");
-
-    if (ImGui::BeginPopup("##addNpc"))
-    {
-        for (const auto &[type, npcData] : npcTypes)
-            if (ImGui::Selectable(type.c_str()))
-                asked.addNpcOfType = type;
-
-        ImGui::Separator();
-        ImGui::PushID("pickups");
-        for (const auto &[type, pickupData] : pickupTypes)
-            if (ImGui::Selectable(type.c_str()))
-                asked.addPickupOfType = type;
-        ImGui::PopID();
-
-        ImGui::EndPopup();
-    }
+    drawPlacing(npcTypes, pickupTypes, armed);
 
     ImGui::SameLine();
     ImGui::BeginDisabled(

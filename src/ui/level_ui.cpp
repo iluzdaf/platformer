@@ -27,7 +27,6 @@
 #include "tile_map/tile_map.hpp"
 #include "game/level.hpp"
 #include "navigation/navigation_profile_builder.hpp"
-#include "game/catalogue.hpp"
 #include "npc/npc_data.hpp"
 #include "pickups/pickup_data.hpp"
 #include "pickups/pickup_spawn_data.hpp"
@@ -103,31 +102,7 @@ void LevelUi::drawActors(
     const bool deleted = ImGui::IsKeyPressed(ImGuiKey_Delete) && !ImGui::IsAnyItemActive();
     asked.removeShown = asked.removeShown || deleted;
 
-    if (asked.addNpcOfType)
-    {
-        const NpcData &kind = oneNamed(npcData, "npc", *asked.addNpcOfType);
-        NpcSpawnData placing{*asked.addNpcOfType, levelData.playerFeet, std::nullopt};
-        placing.patrol = level.runBeneath(buildNavigationProfile(kind.actorData), placing.feet);
-
-        LevelData edited = levelData;
-        edited.npcs.push_back(placing);
-
-        showingActor = ActorShown{ActorShown::What::Npc, edited.npcs.size() - 1};
-        history.remembers(levelData);
-        commands.onLevelEdited(edited);
-    }
-    else if (asked.addPickupOfType)
-    {
-        std::ignore = oneNamed(pickupData, "pickup", *asked.addPickupOfType);
-
-        LevelData edited = levelData;
-        edited.pickups.push_back(PickupSpawnData{*asked.addPickupOfType, levelData.playerFeet});
-
-        showingActor = ActorShown{ActorShown::What::Pickup, edited.pickups.size() - 1};
-        history.remembers(levelData);
-        commands.onLevelEdited(edited);
-    }
-    else if (asked.removeShown && showingActor.what == ActorShown::What::Npc)
+    if (asked.removeShown && showingActor.what == ActorShown::What::Npc)
     {
         LevelData edited = levelData;
         edited.npcs.erase(edited.npcs.begin() + static_cast<std::ptrdiff_t>(showingActor.index));
@@ -347,6 +322,8 @@ void LevelUi::update(
     const LevelData &levelData,
     const std::string &levelPath,
     const AABB &playerBox,
+    const std::map<std::string, NpcData> &npcData,
+    const std::map<std::string, PickupData> &pickupData,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
@@ -379,6 +356,45 @@ void LevelUi::update(
     glm::ivec2 tilePosition = tileMap.tileContaining(mouse.worldPosition);
     if (!tileMap.validTilePosition(tilePosition))
         return;
+
+    if (const PlaceOne *placing = beingPlaced(armed))
+    {
+        if (!mouse.justClicked)
+            return;
+
+        LevelData edited = levelData;
+        glm::vec2 feet = tileMap.feetOnTile(tilePosition);
+        if (placing->what == PlaceOne::What::Npc)
+        {
+            auto kind = npcData.find(placing->type);
+            if (kind == npcData.end())
+            {
+                armed.reset();
+                return;
+            }
+
+            NpcSpawnData spawn{placing->type, feet, std::nullopt};
+            spawn.patrol = level.runBeneath(buildNavigationProfile(kind->second.actorData), feet);
+            edited.npcs.push_back(spawn);
+            showingActor = ActorShown{ActorShown::What::Npc, edited.npcs.size() - 1};
+        }
+        else
+        {
+            if (!pickupData.contains(placing->type))
+            {
+                armed.reset();
+                return;
+            }
+
+            edited.pickups.push_back(PickupSpawnData{placing->type, feet});
+            showingActor = ActorShown{ActorShown::What::Pickup, edited.pickups.size() - 1};
+        }
+
+        history.remembers(levelData);
+        commands.onLevelEdited(edited);
+
+        return;
+    }
 
     if (const PaintTile *painting = std::get_if<PaintTile>(&*armed))
     {

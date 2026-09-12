@@ -83,6 +83,8 @@ public:
         const LevelData &levelData,
         const std::string &levelPath,
         const AABB &playerBox,
+        const std::map<std::string, NpcData> &npcData,
+        const std::map<std::string, PickupData> &pickupData,
         std::optional<Armed> &armed,
         EditorCommands &commands);
 

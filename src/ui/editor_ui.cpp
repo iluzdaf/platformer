@@ -318,7 +318,8 @@ void EditorUi::update(
     const Level &level,
     const LevelData &levelData,
     const std::string &levelPath,
-    const AABB &playerBox)
+    const AABB &playerBox,
+    const GameData &gameData)
 {
     playerOverlayUi.update(deltaTime);
     MouseOnTheMap mouse{
@@ -328,7 +329,16 @@ void EditorUi::update(
         ImGui::IsMouseDown(ImGuiMouseButton_Left),
         ImGui::IsMouseClicked(ImGuiMouseButton_Left)};
 
-    levelUi.update(mouse, level, levelData, levelPath, playerBox, armed, commands);
+    levelUi.update(
+        mouse,
+        level,
+        levelData,
+        levelPath,
+        playerBox,
+        gameData.npcData,
+        gameData.pickupData,
+        armed,
+        commands);
 }
 
 void EditorUi::drawSaveRow(const std::array<SectionSaving, EditorSections.size()> &saving)

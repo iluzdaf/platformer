@@ -21,7 +21,7 @@
 #include "actor/actor_state.hpp"
 #include "npc/npc.hpp"
 #include "player/player.hpp"
-#include "npc/striking_player.hpp"
+#include "game/exchanging_strikes.hpp"
 #include "combat/health.hpp"
 #include <vector>
 #include <memory>
@@ -95,7 +95,7 @@ TEST_CASE("The shipped rat is safe to stand in while it patrols", "[Npc]")
     std::vector<std::unique_ptr<Npc>> rats;
     rats.push_back(std::make_unique<Npc>(spawnAt("rat", SpawnTile), shippedNpcData().at("rat")));
 
-    strikePlayer(player, rats);
+    exchangeStrikes(player, rats);
 
     REQUIRE(player.health().points() == 3);
 }
@@ -117,7 +117,7 @@ TEST_CASE("The shipped rat, cornered, pounces through you and bites", "[Npc][Lev
     {
         rats.front()->beginFrame();
         rats.front()->fixedUpdate(0.01f, level, player.feet());
-        strikePlayer(player, rats);
+        exchangeStrikes(player, rats);
         if (player.health().points() < 3)
         {
             bittenAt = step;
@@ -624,7 +624,7 @@ TEST_CASE(
     {
         spiders.front()->beginFrame();
         spiders.front()->fixedUpdate(0.01f, level, player.feet());
-        strikePlayer(player, spiders);
+        exchangeStrikes(player, spiders);
         if (player.health().points() < 3)
         {
             bittenAt = step;

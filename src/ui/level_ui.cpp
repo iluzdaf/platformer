@@ -37,6 +37,7 @@
 #include "ui/marked_label.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "ui/unsaved_colours.hpp"
+#include "ui/picking_in_level.hpp"
 #include "ui/size_buttons.hpp"
 #include "game/level_resizing.hpp"
 #include "cameras/camera2d.hpp"
@@ -98,6 +99,9 @@ void LevelUi::drawActors(
         pickupData,
         showingActor,
         armed);
+
+    const bool deleted = ImGui::IsKeyPressed(ImGuiKey_Delete) && !ImGui::IsAnyItemActive();
+    asked.removeShown = asked.removeShown || deleted;
 
     if (asked.addNpcOfType)
     {
@@ -273,6 +277,11 @@ void LevelUi::drawLevel(const Level &level, const LevelData &levelData, EditorCo
     ImGui::TreePop();
 }
 
+ActorShown LevelUi::shown() const
+{
+    return showingActor;
+}
+
 void LevelUi::resizes(
     Resize resize,
     const LevelData &levelData,
@@ -337,6 +346,7 @@ void LevelUi::update(
     const Level &level,
     const LevelData &levelData,
     const std::string &levelPath,
+    const AABB &playerBox,
     std::optional<Armed> &armed,
     EditorCommands &commands)
 {
@@ -354,8 +364,16 @@ void LevelUi::update(
     if (!mouse.heldDown)
         paintingAStroke = false;
 
-    if (!armed || mouse.overTheUi)
+    if (mouse.overTheUi)
         return;
+
+    if (!armed)
+    {
+        if (mouse.justClicked)
+            showingActor = whatIsAt(level, playerBox, mouse.worldPosition);
+
+        return;
+    }
 
     const TileMap &tileMap = level.getTileMap();
     glm::ivec2 tilePosition = tileMap.tileContaining(mouse.worldPosition);

@@ -29,6 +29,7 @@ class Level;
 class Camera2D;
 struct NpcData;
 struct PickupData;
+struct AABB;
 struct Decided;
 struct AnimatorData;
 struct Observed;
@@ -81,8 +82,11 @@ public:
         const Level &level,
         const LevelData &levelData,
         const std::string &levelPath,
+        const AABB &playerBox,
         std::optional<Armed> &armed,
         EditorCommands &commands);
+
+    ActorShown shown() const;
 
     void resizes(Resize resize, const LevelData &levelData, int tileSize, EditorCommands &commands);
     bool undo(EditorCommands &commands);

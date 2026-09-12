@@ -62,9 +62,10 @@ void GameUi::update(
     const Level &level,
     const LevelData &levelData,
     const std::string &levelPath,
-    const Camera2D &camera)
+    const Camera2D &camera,
+    const AABB &playerBox)
 {
-    editorUi.update(deltaTime, imGuiManager, camera, level, levelData, levelPath);
+    editorUi.update(deltaTime, imGuiManager, camera, level, levelData, levelPath, playerBox);
 }
 
 void GameUi::resize(int width, int height)

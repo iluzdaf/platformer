@@ -27,6 +27,11 @@ bool AABB::intersects(const AABB &other) const
         top() >= other.bottom());
 }
 
+bool AABB::covers(glm::vec2 point) const
+{
+    return point.x >= left() && point.x < right() && point.y >= top() && point.y < bottom();
+}
+
 glm::vec2 AABB::center() const
 {
     return position + size * 0.5f;

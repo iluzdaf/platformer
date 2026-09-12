@@ -137,6 +137,7 @@ add_library(platformer_lib OBJECT
     src/ui/switching_level.cpp
     src/ui/renaming.cpp
     src/ui/level_rewriting.cpp
+    src/ui/picking_in_level.cpp
     src/ui/tile_picker.cpp
     src/ui/size_buttons.cpp
     src/ui/facts_field.cpp
@@ -334,6 +335,7 @@ add_executable(tests
     tests/ui/test_armed.cpp
     tests/ui/test_tile_map_shown.cpp
     tests/ui/test_size_buttons.cpp
+    tests/ui/test_picking_in_level.cpp
     tests/ui/test_tile_picker.cpp
     tests/ui/test_level_ui_update.cpp
     tests/ui/test_editor_history.cpp

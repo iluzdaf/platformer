@@ -57,6 +57,7 @@
 #include "rendering/texture_cache.hpp"
 #include "helpers/headless_imgui.hpp"
 #include <imgui.h>
+#include "physics/aabb.hpp"
 
 namespace
 {
@@ -514,7 +515,7 @@ TEST_CASE("Nothing the panel draws reads as changed until it is edited", "[Inspe
     std::ignore = palettesUi.unsavedSince(gameData.tilePalettes);
     std::ignore = levelsUi.unsavedSince(gameData.levels);
     std::ignore = levelUi.unsavedSince(levelData, levelPath);
-    levelUi.update(MouseOnTheMap{}, level, levelData, levelPath, armed, commands);
+    levelUi.update(MouseOnTheMap{}, level, levelData, levelPath, AABB{}, armed, commands);
 
     std::vector<Drawn> drawn;
     drawn.push_back({"camera", [&] { cameraUi.draw(gameData, camera, commands); }});

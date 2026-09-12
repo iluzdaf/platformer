@@ -355,6 +355,7 @@ add_executable(tests
     tests/ui/test_types_ui.cpp
     tests/ui/test_renaming.cpp
     tests/ui/test_section_mark.cpp
+    tests/ui/test_refusal_agreement.cpp
     tests/ui/test_section_problems.cpp
     tests/ui/test_sheet_field.cpp
     tests/ui/test_path_fields.cpp

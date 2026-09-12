@@ -124,8 +124,8 @@ TEST_CASE("Health of less than a point, or a negative window, is refused", "[Hea
 {
     REQUIRE_THROWS_WITH(
         Health(HealthData{0, 0.0f}),
-        Catch::Matchers::ContainsSubstring("A health of less than one point is nobody alive"));
+        Catch::Matchers::ContainsSubstring("Health needs a maximum above 0"));
     REQUIRE_THROWS_WITH(
         Health(HealthData{1, -1.0f}),
-        Catch::Matchers::ContainsSubstring("An invulnerable window cannot be negative"));
+        Catch::Matchers::ContainsSubstring("Health needs an invulnerable window of 0 or longer"));
 }

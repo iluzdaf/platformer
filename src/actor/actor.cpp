@@ -20,7 +20,6 @@
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
 #include "actor/behaviors/behavior_facts.hpp"
-#include "conditions/fact_rows.hpp"
 #include "actor/actor_behavior_context.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_place.hpp"
@@ -37,11 +36,6 @@
 #include <memory>
 #include <utility>
 #include <vector>
-
-namespace
-{
-    constexpr float SaidLingersFor = 0.5f;
-}
 
 Actor::Actor(const ActorData &data)
     : abilities(data.abilities), physicsBody(data.physicsBodyData),
@@ -99,7 +93,7 @@ void Actor::fixedUpdate(
     observations.previousVelocity = observations.velocity;
     observations.velocity = physicsBody.velocity();
     observations.fell = howFarItFell();
-    lately.update(deltaTime);
+    declaredFacts.fade(deltaTime);
 
     if (animator)
         animator->animate(deltaTime, states, observations, stateName());
@@ -118,7 +112,7 @@ void Actor::fixedUpdate(
             onCue(cue);
     }
 
-    forgetTheTick();
+    declaredFacts.forgetTheTick();
 }
 
 float Actor::howFarItFell()
@@ -135,63 +129,34 @@ float Actor::howFarItFell()
     return fell;
 }
 
-void Actor::forgetTheTick()
-{
-    for (const std::string &name : saidForTheTick)
-        known[name] = declared.at(name);
-
-    saidForTheTick.clear();
-}
-
 void Actor::declare(const FactsData &facts)
 {
-    for (const auto &[name, value] : facts)
-        if (rowNamed(behaviorRows(), name))
-            throw std::runtime_error(
-                "\"" + name + "\" is a fact the engine answers, and cannot be declared");
-
-    declared = facts;
-    known = facts;
-    saidForTheTick.clear();
+    declaredFacts = DeclaredFacts(facts);
 }
 
 const FactsData &Actor::facts() const
 {
-    return known;
+    return declaredFacts.all();
 }
 
 const Asked &Actor::fact(const std::string &name) const
 {
-    auto found = known.find(name);
-    if (found == known.end())
-        throw std::runtime_error("\"" + name + "\" is not a declared fact");
-
-    return found->second;
-}
-
-void Actor::say(const std::string &name, const Asked &value)
-{
-    if (std::optional<std::string> why = whyNotDeclared(declared, name, value))
-        throw std::runtime_error(*why);
-
-    known[name] = value;
+    return declaredFacts.fact(name);
 }
 
 void Actor::fact(const std::string &name, const Asked &value)
 {
-    say(name, value);
+    declaredFacts.fact(name, value);
 }
 
 void Actor::event(const std::string &name, const Asked &value)
 {
-    say(name, value);
-    saidForTheTick.push_back(name);
-    lately.said(name, value, SaidLingersFor);
+    declaredFacts.event(name, value);
 }
 
 const FadingFacts &Actor::saidLately() const
 {
-    return lately;
+    return declaredFacts.saidLately();
 }
 
 void Actor::walks(const NavigationGraph &navigationGraph)
@@ -368,6 +333,6 @@ ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGra
         physicsBody.colliderSize(),
         threat,
         observations.contacts,
-        &known,
+        &declaredFacts.all(),
         &states};
 }

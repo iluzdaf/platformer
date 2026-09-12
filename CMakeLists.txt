@@ -166,6 +166,7 @@ add_library(platformer_lib OBJECT
     src/player/player.cpp
     src/actor/actor.cpp
     src/actor/fading_facts.cpp
+    src/actor/declared_facts.cpp
     src/combat/health.cpp
     src/combat/strike.cpp
     src/actor/hurting_from.cpp
@@ -463,6 +464,7 @@ add_executable(tests
     tests/combat/test_health.cpp
     tests/combat/test_strike.cpp
     tests/actor/test_fading_facts.cpp
+    tests/actor/test_declared_facts.cpp
     tests/actor/test_cues.cpp
 
     tests/actor/test_actor_animations.cpp

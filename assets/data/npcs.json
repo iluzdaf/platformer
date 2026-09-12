@@ -10,7 +10,6 @@
                 "chargeAbilityData":{}
             },
             "animationData":{
-                "startClip":"sleep",
                 "clips":{
                     "dead":{"frames":[7],"frameDuration":1,"loops":false},
                     "idle":{"frames":[0],"frameDuration":1},
@@ -26,7 +25,8 @@
                         {"to":"run","when":{"moving":true,"onGround":true}},
                         {"to":"idle","when":{"onGround":true}}
                     ]
-                }
+                },
+                "startClip":"sleep"
             }
         },
         "stateMachineBehaviorData":{
@@ -57,7 +57,6 @@
                 "pounceAbilityData":{"leap":[120,-60]}
             },
             "animationData":{
-                "startClip":"idle",
                 "clips":{
                     "dead":{"frames":[7],"frameDuration":1,"loops":false},
                     "fall":{"frames":[6],"frameDuration":1},
@@ -71,7 +70,8 @@
                         {"to":"walk","when":{"moving":true,"onGround":true}},
                         {"to":"idle","when":{"onGround":true}}
                     ]
-                }
+                },
+                "startClip":"idle"
             }
         },
         "stateMachineBehaviorData":{
@@ -115,7 +115,6 @@
                 "pounceAbilityData":{}
             },
             "animationData":{
-                "startClip":"idle",
                 "clips":{
                     "climb":{"frames":[8,9],"frameDuration":0.15},
                     "dead":{"frames":[10],"frameDuration":1,"loops":false},
@@ -137,7 +136,8 @@
                         {"to":"walk","when":{"moving":true,"onGround":true}},
                         {"to":"idle","when":{"onGround":true}}
                     ]
-                }
+                },
+                "startClip":"idle"
             }
         },
         "stateMachineBehaviorData":{

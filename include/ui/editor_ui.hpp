@@ -78,7 +78,8 @@ public:
         const Level &level,
         const LevelData &levelData,
         const std::string &levelPath,
-        const AABB &playerBox);
+        const AABB &playerBox,
+        const GameData &gameData);
 
     EditorCommands commands;
 

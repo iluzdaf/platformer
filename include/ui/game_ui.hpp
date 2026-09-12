@@ -46,7 +46,8 @@ public:
         const LevelData &levelData,
         const std::string &levelPath,
         const Camera2D &camera,
-        const AABB &playerBox);
+        const AABB &playerBox,
+        const GameData &gameData);
     void resize(int width, int height);
     bool wantsKeyboard() const;
     EditorUi &editor();

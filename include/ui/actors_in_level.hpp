@@ -36,8 +36,6 @@ struct ActorAsked
     ActorShown show;
     bool removeShown = false;
     bool clearShownBeat = false;
-    std::optional<std::string> addNpcOfType;
-    std::optional<std::string> addPickupOfType;
 };
 
 std::optional<std::string> npcsThatCannotGetBack(const Level &level);

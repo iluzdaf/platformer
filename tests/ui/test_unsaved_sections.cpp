@@ -122,6 +122,7 @@ TEST_CASE("The levels section reports unsaved once the first level changes", "[U
 #include "ui/level_ui.hpp"
 #include "ui/mouse_on_the_map.hpp"
 #include "physics/aabb.hpp"
+#include "helpers/shipped.hpp"
 
 TEST_CASE("A level edited with the inspector shut still reports unsaved", "[UnsavedSections]")
 {
@@ -141,7 +142,16 @@ TEST_CASE("A level edited with the inspector shut still reports unsaved", "[Unsa
     EditorCommands commands;
     MouseOnTheMap still{true, glm::vec2(0.0f), false, false};
 
-    levelUi.update(still, level, levelData, levelPath, AABB{}, armed, commands);
+    levelUi.update(
+        still,
+        level,
+        levelData,
+        levelPath,
+        AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
+        armed,
+        commands);
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
     LevelData edited = levelData;
@@ -172,7 +182,16 @@ TEST_CASE("A level painted from another section reports unsaved", "[UnsavedSecti
         commands.onTilesChanged.connect([&painted](const TileMapData &now) { painted = now; });
     MouseOnTheMap mouse{false, level.getTileMap().feetOnTile(glm::ivec2(2, 2)), true, false};
 
-    levelUi.update(mouse, level, levelData, levelPath, AABB{}, armed, commands);
+    levelUi.update(
+        mouse,
+        level,
+        levelData,
+        levelPath,
+        AABB{},
+        shippedNpcData(),
+        shippedPickupData(),
+        armed,
+        commands);
     REQUIRE_FALSE(levelUi.unsavedSince(levelData, levelPath));
 
     commands.drain();

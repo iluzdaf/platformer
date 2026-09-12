@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include "conditions/asked.hpp"
 #include "animations/animation_rule_data.hpp"
 

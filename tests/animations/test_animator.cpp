@@ -8,7 +8,6 @@
 #include "actor/decided.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
-#include "animations/animation_rule_data.hpp"
 #include "conditions/asked.hpp"
 #include "helpers/rules.hpp"
 

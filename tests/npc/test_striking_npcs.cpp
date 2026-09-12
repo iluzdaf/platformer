@@ -117,6 +117,21 @@ TEST_CASE("A swing lands once, however long the npc stays in reach", "[StrikingN
     REQUIRE(duel.rat().health().points() == 2);
 }
 
+TEST_CASE("The next swing lands again on an npc the last one struck", "[StrikingNpcs]")
+{
+    Duel duel(3, PlayerTile + glm::ivec2(1, 0));
+    duel.swingFor(0.1f);
+    strikeNpcs(duel.player, duel.level.getNpcs());
+    runFor(duel.player, duel.level, 0.25f, duel.timestepper);
+    REQUIRE_FALSE(duel.player.abilityStates().swing.swinging());
+
+    duel.swingFor(0.1f);
+    REQUIRE(duel.player.abilityStates().swing.striking());
+    strikeNpcs(duel.player, duel.level.getNpcs());
+
+    REQUIRE(duel.rat().health().points() == 1);
+}
+
 TEST_CASE("A swing behind the player misses", "[StrikingNpcs]")
 {
     Duel duel(3, PlayerTile - glm::ivec2(1, 0));

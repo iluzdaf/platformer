@@ -179,14 +179,15 @@ namespace
     void drawAnimatorOf(const std::map<std::string, NpcData> &npcTypes, const Npc &npc)
     {
         auto type = npcTypes.find(npc.type());
-        if (type == npcTypes.end() || !type->second.actorData.animationData)
+        if (type == npcTypes.end())
+            return;
+
+        const std::optional<AnimatorData> &animations = type->second.actorData.animationData;
+        if (!animations)
             return;
 
         if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
-            drawAnimatorGraph(
-                *type->second.actorData.animationData,
-                {npc.state().currentAnimation},
-                MachineShown{});
+            drawAnimatorGraph(*animations, {npc.state().currentAnimation}, MachineShown{});
     }
 
     void drawArmButton(const char *label, PickTile pick, std::optional<Armed> &armed)

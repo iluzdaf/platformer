@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <optional>
 #include <string>
+#include "animations/animation_ladder_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/animator_facts.hpp"
 #include "conditions/fact_rows.hpp"

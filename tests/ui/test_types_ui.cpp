@@ -31,7 +31,6 @@
 #include "game/level_data_file.hpp"
 #include "helpers/asset_path.hpp"
 #include "helpers/temporary_levels.hpp"
-#include "helpers/npc_fixtures.hpp"
 #include "helpers/levels.hpp"
 
 namespace
@@ -108,7 +107,7 @@ TEST_CASE(
     HeadlessImGui gui;
     TypesUi typesUi;
     GameData gameData = loadGameData();
-    Level level = levelWithALedgeAndAWall({spawnAt("rat", ledgeAndWall::LedgeRightEnd)});
+    Level level = levelWithALedgeAndAWall({spawnAt("rat", ledge_and_wall::LedgeRightEnd)});
     TextureCache textures;
     EditorCommands commands;
     typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});

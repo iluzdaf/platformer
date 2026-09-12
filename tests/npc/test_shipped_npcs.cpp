@@ -14,7 +14,6 @@
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/palettes.hpp"
 #include "game/game_data.hpp"
-#include "tile_map/tile_map_data.hpp"
 #include "helpers/scripted_npcs.hpp"
 #include "helpers/shipped.hpp"
 #include "actor/actor_state.hpp"
@@ -33,7 +32,7 @@
 #include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
 
-using namespace ledgeAndWall;
+using namespace ledge_and_wall;
 
 namespace
 {

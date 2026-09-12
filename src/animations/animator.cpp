@@ -1,3 +1,5 @@
+#include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -9,6 +11,7 @@
 #include "animations/animator_data.hpp"
 #include "actor/decided.hpp"
 #include "actor/observed.hpp"
+#include "conditions/fact_rows.hpp"
 
 Animator::Animator(const AnimatorData &data) : ladder(data.ladder), currentState(data.startClip)
 {

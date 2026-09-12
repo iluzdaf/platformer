@@ -6,10 +6,7 @@
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "animations/animation_ladder_data.hpp"
-#include "animations/frame_animation_data.hpp"
 #include "game/level.hpp"
-#include "helpers/ladders.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 

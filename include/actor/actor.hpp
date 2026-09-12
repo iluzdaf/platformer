@@ -99,6 +99,7 @@ private:
     std::optional<glm::vec2> threat;
     Abilities abilities;
     AbilityStates states;
+    std::vector<const Actor *> struckThisSwing;
     Observed observations;
     PhysicsBody physicsBody;
     std::optional<Animator> animator;

@@ -169,6 +169,7 @@ add_library(platformer_lib OBJECT
     src/actor/actor.cpp
     src/actor/fading_facts.cpp
     src/actor/health.cpp
+    src/actor/strike.cpp
     src/ui/health_ui.cpp
 
     src/assets/asset_paths.cpp
@@ -457,6 +458,7 @@ add_executable(tests
     tests/actor/abilities/test_wall_jump_ability.cpp
     tests/actor/test_observing.cpp
     tests/actor/test_health.cpp
+    tests/actor/test_strike.cpp
     tests/actor/test_fading_facts.cpp
     tests/actor/test_cues.cpp
 

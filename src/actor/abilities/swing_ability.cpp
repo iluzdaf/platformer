@@ -100,5 +100,4 @@ void SwingAbility::decide(
         swing.direction = observed.facingLeft ? -1.0f : 1.0f;
     swing.reach = data.reach;
     swing.damage = data.damage;
-    swing.struck.clear();
 }

@@ -1,9 +1,6 @@
 #pragma once
 
-#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-
-class Actor;
 
 enum class SwingPhase
 {
@@ -21,7 +18,6 @@ struct SwingAbilityState
     bool emit = false;
     glm::vec2 reach = glm::vec2(0.0f);
     int damage = 0;
-    std::vector<const Actor *> struck;
 
     bool swinging() const
     {

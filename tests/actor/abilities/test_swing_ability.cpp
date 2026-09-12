@@ -130,20 +130,18 @@ TEST_CASE("A swing goes where it was asked, else where the actor faces", "[Swing
     REQUIRE(ahead.swing.direction == 1.0f);
 }
 
-TEST_CASE("A swing carries its reach and damage and forgets who it struck", "[SwingAbility]")
+TEST_CASE("A swing carries its reach and damage", "[SwingAbility]")
 {
     SwingAbilityData data;
     data.reach = glm::vec2(20.0f, 6.0f);
     data.damage = 3;
     SwingAbility ability(data);
     AbilityStates states;
-    states.swing.struck.push_back(nullptr);
 
     ability.decide(Step, pressingAttack(), Observed{}, states);
 
     REQUIRE(states.swing.reach == glm::vec2(20.0f, 6.0f));
     REQUIRE(states.swing.damage == 3);
-    REQUIRE(states.swing.struck.empty());
 }
 
 TEST_CASE("A swing cannot start while dashing, and a knockback cuts one short", "[SwingAbility]")

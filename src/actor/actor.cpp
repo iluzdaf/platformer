@@ -9,6 +9,7 @@
 #include "actor/actor_data.hpp"
 #include "actor/hit.hpp"
 #include "actor/hurting.hpp"
+#include "actor/strike.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
@@ -89,6 +90,8 @@ void Actor::fixedUpdate(
 
     glm::vec2 velocity = abilities.decide(deltaTime, inputIntentions, observations, states);
     observations.hits.clear();
+    if (!states.swing.striking())
+        struckThisSwing.clear();
 
     physicsBody.setVelocity(velocity);
     physicsBody.stepPhysics(deltaTime, tileMap);
@@ -355,20 +358,16 @@ bool Actor::strike(Actor &target)
     if (!hurting || &target == this)
         return false;
 
-    SwingAbilityState &swing = states.swing;
-    if (swing.striking() && std::ranges::find(swing.struck, &target) != swing.struck.end())
+    bool swinging = states.swing.striking();
+    if (swinging && std::ranges::find(struckThisSwing, &target) != struckThisSwing.end())
         return false;
 
-    if (!hurting->box.intersects(target.body().touchBox()))
+    std::optional<Hit> hit = hitFrom(*hurting, feet(), target.body().touchBox(), target.feet());
+    if (!hit || !target.takeHit(*hit))
         return false;
 
-    float away = target.feet().x < feet().x ? -1.0f : 1.0f;
-    float direction = hurting->direction != 0.0f ? hurting->direction : away;
-    if (!target.takeHit(Hit{hurting->damage, glm::vec2(direction, 0.0f), false}))
-        return false;
-
-    if (swing.striking())
-        swing.struck.push_back(&target);
+    if (swinging)
+        struckThisSwing.push_back(&target);
     return true;
 }
 

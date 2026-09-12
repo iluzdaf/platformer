@@ -245,7 +245,7 @@ TEST_CASE("Undo shows the section the edit was made in", "[EditorUndo]")
     EditorUi editorUi;
     Editing editing;
 
-    editorUi.show(EditorSection::Cast);
+    editorUi.show(EditorSection::Level);
     looksAt(editorUi, editing);
     editing.gameData.npcData.at("rat").actorData.size = glm::vec2(24.0f);
     looksAt(editorUi, editing);
@@ -253,7 +253,7 @@ TEST_CASE("Undo shows the section the edit was made in", "[EditorUndo]")
     editorUi.show(EditorSection::Runtime);
     REQUIRE(editorUi.undo(editing.subject()));
 
-    REQUIRE(editorUi.shown() == EditorSection::Cast);
+    REQUIRE(editorUi.shown() == EditorSection::Level);
 }
 
 TEST_CASE("Undoing a paint asks for the tiles, not for the level again", "[EditorUndo]")

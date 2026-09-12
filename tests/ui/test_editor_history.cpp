@@ -19,7 +19,7 @@ namespace
 
     EditorStep aCastStep(const std::string &gameData)
     {
-        return EditorStep{EditorSection::Cast, gameData, std::nullopt, glm::vec2(0.0f)};
+        return EditorStep{EditorSection::Level, gameData, std::nullopt, glm::vec2(0.0f)};
     }
 }
 
@@ -54,7 +54,7 @@ TEST_CASE("A step back is the game data as it was, and where it was edited", "[E
 
     std::optional<EditorStep> back = history.stepBack();
     REQUIRE(back);
-    REQUIRE(back->section == EditorSection::Cast);
+    REQUIRE(back->section == EditorSection::Level);
     REQUIRE(back->gameData == "{\"npcData\":{}}");
     REQUIRE_FALSE(back->levelData);
 }

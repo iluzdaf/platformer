@@ -36,6 +36,8 @@
 
 namespace
 {
+    std::optional<Armed> armedForTypes;
+
     GameData twoOfEach()
     {
         GameData gameData;
@@ -70,7 +72,7 @@ namespace
 
         auto drawing(TypesUi &typesUi, GameData &gameData)
         {
-            return [&] { typesUi.draw(gameData, textures, commands); };
+            return [&] { typesUi.draw(gameData, textures, commands, armedForTypes); };
         }
     };
 }
@@ -96,7 +98,7 @@ TEST_CASE("The types section draws with nothing picked", "[TypesUi]")
     TextureCache textures;
     EditorCommands commands;
 
-    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands); }));
+    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands, armedForTypes); }));
 }
 
 TEST_CASE(
@@ -111,8 +113,9 @@ TEST_CASE(
     EditorCommands commands;
     typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
 
-    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands, &level); }));
-    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands); }));
+    REQUIRE_NOTHROW(
+        gui.frame([&] { typesUi.draw(gameData, textures, commands, armedForTypes, &level); }));
+    REQUIRE_NOTHROW(gui.frame([&] { typesUi.draw(gameData, textures, commands, armedForTypes); }));
 }
 
 TEST_CASE("Nothing is unsaved before a type is touched", "[TypesUi]")
@@ -481,7 +484,7 @@ TEST_CASE("The cast starts on the player", "[TypesUi]")
 
     std::string asked;
     commands.onWarmTexture.connect([&](const std::string &texture) { asked = texture; });
-    gui.frame([&] { typesUi.draw(gameData, textures, commands); });
+    gui.frame([&] { typesUi.draw(gameData, textures, commands, armedForTypes); });
     commands.drain();
 
     REQUIRE(asked == "textures/hero.png");
@@ -522,7 +525,7 @@ TEST_CASE("Editing a type asks for the sheet it draws from", "[TypesUi]")
     gameData.pickupData["coin"].sheet.texture.path = "textures/coin.png";
     typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
 
-    gui.frame([&] { typesUi.draw(gameData, textures, commands); });
+    gui.frame([&] { typesUi.draw(gameData, textures, commands, armedForTypes); });
     commands.drain();
 
     REQUIRE(asked == "textures/coin.png");
@@ -539,7 +542,7 @@ TEST_CASE("A sheet is only in scope while a type is being drawn", "[TypesUi]")
     typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
 
     REQUIRE(sheetInScope() == nullptr);
-    gui.frame([&] { typesUi.draw(gameData, textures, commands); });
+    gui.frame([&] { typesUi.draw(gameData, textures, commands, armedForTypes); });
     REQUIRE(sheetInScope() == nullptr);
 }
 
@@ -960,6 +963,7 @@ TEST_CASE("A type rename cannot be saved while a level cannot be read", "[TypesU
 
 #include "helpers/pictures_drawn.hpp"
 #include "ui/sheet_preview.hpp"
+#include "ui/armed.hpp"
 
 TEST_CASE("An actor's preview shows the collider its body will have", "[TypesUi]")
 {
@@ -974,7 +978,7 @@ TEST_CASE("An actor's preview shows the collider its body will have", "[TypesUi]
     gameData.playerData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
     textures.warm(std::string(assets::PlayerTexture));
     typesUi.show(thePlayer());
-    auto drawing = [&] { typesUi.draw(gameData, textures, commands); };
+    auto drawing = [&] { typesUi.draw(gameData, textures, commands, armedForTypes); };
 
     REQUIRE(drawsAPictureWide(gui, PreviewSize * 8.0f / 16.0f, drawing));
 }
@@ -992,7 +996,7 @@ TEST_CASE("A pickup's preview shows the reach that collects it", "[TypesUi]")
     coin.colliderSize = glm::vec2(6.0f);
     textures.warm(std::string(assets::PlayerTexture));
     typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
-    auto drawing = [&] { typesUi.draw(gameData, textures, commands); };
+    auto drawing = [&] { typesUi.draw(gameData, textures, commands, armedForTypes); };
 
     REQUIRE(drawsAPictureWide(gui, PreviewSize * 6.0f / 16.0f, drawing));
 }
@@ -1006,7 +1010,7 @@ TEST_CASE("The types section previews an npc above its fields", "[TypesUi]")
     EditorCommands commands;
     gameData.npcData["rat"].actorData.sheet.texture.path = std::string(assets::PlayerTexture);
     typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});
-    auto drawing = [&] { typesUi.draw(gameData, textures, commands); };
+    auto drawing = [&] { typesUi.draw(gameData, textures, commands, armedForTypes); };
 
     REQUIRE_FALSE(drawsAPictureWide(gui, PreviewSize, drawing));
 
@@ -1026,8 +1030,8 @@ TEST_CASE("The types section previews the player above their fields", "[TypesUi]
     textures.warm(std::string(assets::PlayerTexture));
     typesUi.show(thePlayer());
 
-    REQUIRE(
-        drawsAPictureWide(gui, PreviewSize, [&] { typesUi.draw(gameData, textures, commands); }));
+    REQUIRE(drawsAPictureWide(
+        gui, PreviewSize, [&] { typesUi.draw(gameData, textures, commands, armedForTypes); }));
 }
 
 TEST_CASE("The types section previews a pickup above its fields", "[TypesUi]")
@@ -1041,8 +1045,8 @@ TEST_CASE("The types section previews a pickup above its fields", "[TypesUi]")
     textures.warm(std::string(assets::PlayerTexture));
     typesUi.show(TypeShown{TypeShown::What::Pickup, "coin"});
 
-    REQUIRE(
-        drawsAPictureWide(gui, PreviewSize, [&] { typesUi.draw(gameData, textures, commands); }));
+    REQUIRE(drawsAPictureWide(
+        gui, PreviewSize, [&] { typesUi.draw(gameData, textures, commands, armedForTypes); }));
 }
 
 #endif

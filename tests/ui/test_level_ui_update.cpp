@@ -23,8 +23,9 @@
 #include "helpers/headless_imgui.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
-#include "helpers/tiles.hpp"
+#include "helpers/tile_positions.hpp"
 #include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "game/level_resizing.hpp"
 #include "physics/aabb.hpp"
 #include "physics/physics_body.hpp"
@@ -35,9 +36,6 @@ namespace
 {
     const std::string LevelPath = "levels/being_edited.json";
 
-    constexpr int MapTiles = 10;
-    constexpr int FloorRow = 6;
-    constexpr int Standing = FloorRow - 1;
     constexpr int PaintedTile = 1;
 
     LevelData dataPlacing(
@@ -252,7 +250,7 @@ TEST_CASE("Picking the player start moves it and puts the pick down", "[LevelUi]
     LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
-    glm::ivec2 target(4, Standing);
+    glm::ivec2 target(4, FloorLevelStanding);
 
     levelUi.update(
         clicking(editing.level, target),
@@ -277,7 +275,7 @@ TEST_CASE("A pick waits for the click rather than the hold", "[LevelUi]")
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
 
     levelUi.update(
-        holding(editing.level, glm::ivec2(4, Standing)),
+        holding(editing.level, glm::ivec2(4, FloorLevelStanding)),
         editing.level,
         editing.levelData,
         LevelPath,
@@ -296,9 +294,9 @@ TEST_CASE("Picking an npc's spawn moves it and says the npcs changed", "[LevelUi
 {
     EditorHistory history;
     LevelUi levelUi{history};
-    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 0};
-    glm::ivec2 target(5, Standing);
+    glm::ivec2 target(5, FloorLevelStanding);
 
     levelUi.update(
         clicking(editing.level, target),
@@ -344,9 +342,9 @@ TEST_CASE("Picking a pickup's spawn moves it and says the level changed", "[Leve
 {
     EditorHistory history;
     LevelUi levelUi{history};
-    Editing editing({}, {PickupSpawnData{"coin", feetOf(glm::ivec2(2, Standing))}});
+    Editing editing({}, {PickupSpawnData{"coin", feetOf(glm::ivec2(2, FloorLevelStanding))}});
     std::optional<Armed> armed = PickTile{PickTile::For::PickupSpawn, 0};
-    glm::ivec2 target(5, Standing);
+    glm::ivec2 target(5, FloorLevelStanding);
 
     levelUi.update(
         clicking(editing.level, target),
@@ -371,7 +369,7 @@ TEST_CASE("A pick naming a pickup the level lost is put down, not acted on", "[L
     std::optional<Armed> armed = PickTile{PickTile::For::PickupSpawn, 0};
 
     levelUi.update(
-        clicking(editing.level, glm::ivec2(5, Standing)),
+        clicking(editing.level, glm::ivec2(5, FloorLevelStanding)),
         editing.level,
         editing.levelData,
         LevelPath,
@@ -390,12 +388,12 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
 {
     EditorHistory history;
     LevelUi levelUi{history};
-    NpcSpawnData walking = aVillagerAt(glm::ivec2(2, Standing));
-    walking.patrol = beatOf(glm::ivec2(1, Standing), glm::ivec2(8, Standing));
+    NpcSpawnData walking = aRatAt(glm::ivec2(2, FloorLevelStanding));
+    walking.patrol = beatOf(glm::ivec2(1, FloorLevelStanding), glm::ivec2(8, FloorLevelStanding));
     Editing editing({walking});
 
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolTo, 0};
-    glm::ivec2 target(5, Standing);
+    glm::ivec2 target(5, FloorLevelStanding);
 
     levelUi.update(
         clicking(editing.level, target),
@@ -410,18 +408,19 @@ TEST_CASE("Picking one end of a beat leaves the other where it was", "[LevelUi]"
 
     REQUIRE(editing.asked().npcs.front().patrol->to == beatOf(target, target).to);
     REQUIRE(
-        editing.asked().npcs.front().patrol->from == beatOf(glm::ivec2(1, Standing), target).from);
+        editing.asked().npcs.front().patrol->from ==
+        beatOf(glm::ivec2(1, FloorLevelStanding), target).from);
 }
 
 TEST_CASE("The first end picked of an absent beat becomes both of them", "[LevelUi]")
 {
     EditorHistory history;
     LevelUi levelUi{history};
-    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     REQUIRE_FALSE(editing.levelData.npcs.front().patrol);
 
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolFrom, 0};
-    glm::ivec2 target(5, Standing);
+    glm::ivec2 target(5, FloorLevelStanding);
 
     levelUi.update(
         clicking(editing.level, target),
@@ -441,11 +440,11 @@ TEST_CASE("A pick naming an npc the level lost is put down, not acted on", "[Lev
 {
     EditorHistory history;
     LevelUi levelUi{history};
-    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 4};
 
     REQUIRE_NOTHROW(levelUi.update(
-        clicking(editing.level, glm::ivec2(5, Standing)),
+        clicking(editing.level, glm::ivec2(5, FloorLevelStanding)),
         editing.level,
         editing.levelData,
         LevelPath,
@@ -466,7 +465,7 @@ TEST_CASE("A click places what is armed where it lands", "[LevelUi]")
     LevelUi levelUi{history};
     Editing editing;
     std::optional<Armed> armed = PlaceOne{PlaceOne::What::Pickup, "coin"};
-    glm::ivec2 target(5, Standing);
+    glm::ivec2 target(5, FloorLevelStanding);
 
     levelUi.update(
         clicking(editing.level, target),
@@ -494,7 +493,7 @@ TEST_CASE("What is placed stays armed, so another can be placed", "[LevelUi]")
     std::optional<Armed> armed = PlaceOne{PlaceOne::What::Pickup, "coin"};
 
     levelUi.update(
-        clicking(editing.level, glm::ivec2(5, Standing)),
+        clicking(editing.level, glm::ivec2(5, FloorLevelStanding)),
         editing.level,
         editing.levelData,
         LevelPath,
@@ -516,7 +515,7 @@ TEST_CASE("A creature placed is given the run it stands on", "[LevelUi]")
     std::optional<Armed> armed = PlaceOne{PlaceOne::What::Npc, kind};
 
     levelUi.update(
-        clicking(editing.level, glm::ivec2(5, Standing)),
+        clicking(editing.level, glm::ivec2(5, FloorLevelStanding)),
         editing.level,
         editing.levelData,
         LevelPath,
@@ -540,7 +539,7 @@ TEST_CASE("A type the cast no longer has puts the arm down", "[LevelUi]")
     std::optional<Armed> armed = PlaceOne{PlaceOne::What::Npc, "nobody"};
 
     levelUi.update(
-        clicking(editing.level, glm::ivec2(5, Standing)),
+        clicking(editing.level, glm::ivec2(5, FloorLevelStanding)),
         editing.level,
         editing.levelData,
         LevelPath,
@@ -559,7 +558,7 @@ TEST_CASE("A click with nothing armed shows what is under it", "[LevelUi]")
 {
     EditorHistory history;
     LevelUi levelUi{history};
-    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed;
 
     levelUi.update(
@@ -580,7 +579,7 @@ TEST_CASE("A click where nothing stands shows nobody", "[LevelUi]")
 {
     EditorHistory history;
     LevelUi levelUi{history};
-    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed;
     const Level &level = editing.level;
 
@@ -614,7 +613,7 @@ TEST_CASE("A click while something is armed places it rather than showing", "[Le
 {
     EditorHistory history;
     LevelUi levelUi{history};
-    Editing editing({aVillagerAt(glm::ivec2(2, Standing))});
+    Editing editing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed = PickTile{PickTile::For::NpcSpawn, 0};
 
     levelUi.update(
@@ -637,7 +636,8 @@ TEST_CASE("Delete takes away what is shown", "[LevelUi]")
     HeadlessImGui gui;
     EditorHistory history;
     LevelUi levelUi{history};
-    Editing editing({aVillagerAt(glm::ivec2(2, Standing)), aVillagerAt(glm::ivec2(5, Standing))});
+    Editing editing(
+        {aRatAt(glm::ivec2(2, FloorLevelStanding)), aRatAt(glm::ivec2(5, FloorLevelStanding))});
     std::optional<Armed> armed;
     AnimatorData animations;
     Observed observed;
@@ -681,7 +681,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
     HeadlessImGui gui;
     EditorHistory history;
     LevelUi levelUi{history};
-    LevelData levelData = dataPlacing({aVillagerAt(glm::ivec2(3, Standing))});
+    LevelData levelData = dataPlacing({aRatAt(glm::ivec2(3, FloorLevelStanding))});
     Level level = levelOf(levelData);
     AnimatorData animations;
     Observed observed;
@@ -697,7 +697,7 @@ TEST_CASE("The level section draws without a tile sheet", "[LevelUi]")
                 levelData,
                 animations,
                 observed,
-                level.getTileMap().feetOnTile(glm::ivec2(1, Standing)),
+                level.getTileMap().feetOnTile(glm::ivec2(1, FloorLevelStanding)),
                 playerState,
                 shippedNpcData(),
                 armed,
@@ -732,7 +732,7 @@ TEST_CASE("A column on the left is asked for with the shift that moves the playe
 {
     Resized asked = resizedBy(Resize{Side::Left, true});
 
-    REQUIRE(asked.level.tileMapData.indices[0].size() == MapTiles + 1);
+    REQUIRE(asked.level.tileMapData.indices[0].size() == FloorLevelTiles + 1);
     REQUIRE(asked.shift == glm::vec2(16.0f, 0.0f));
 }
 
@@ -742,7 +742,7 @@ TEST_CASE(
 {
     Resized asked = resizedBy(Resize{Side::Left, false});
 
-    REQUIRE(asked.level.tileMapData.indices[0].size() == MapTiles - 1);
+    REQUIRE(asked.level.tileMapData.indices[0].size() == FloorLevelTiles - 1);
     REQUIRE(asked.shift == glm::vec2(-16.0f, 0.0f));
 }
 
@@ -750,7 +750,7 @@ TEST_CASE("A row below is asked for with no shift", "[LevelUi]")
 {
     Resized asked = resizedBy(Resize{Side::Below, true});
 
-    REQUIRE(asked.level.tileMapData.indices.size() == MapTiles + 1);
+    REQUIRE(asked.level.tileMapData.indices.size() == FloorLevelTiles + 1);
     REQUIRE(asked.shift == glm::vec2(0.0f));
 }
 
@@ -823,7 +823,7 @@ TEST_CASE("The player start is remembered where it stood", "[LevelUi]")
     std::optional<Armed> armed = PickTile{PickTile::For::PlayerStart, 0};
     glm::vec2 stood = editing.levelData.playerFeet;
 
-    paints(levelUi, editing, clicking(editing.level, glm::ivec2(4, Standing)), armed);
+    paints(levelUi, editing, clicking(editing.level, glm::ivec2(4, FloorLevelStanding)), armed);
     REQUIRE(editing.asked().playerFeet != stood);
 
     REQUIRE(history.stepBack()->levelData->playerFeet == stood);
@@ -840,11 +840,11 @@ TEST_CASE("A resize is remembered with the shift that moves the player back", "[
 
     levelUi.resizes(Resize{Side::Left, true}, editing.levelData, 16, editing.commands);
     editing.commands.drain();
-    REQUIRE(asked->level.tileMapData.indices[0].size() == MapTiles + 1);
+    REQUIRE(asked->level.tileMapData.indices[0].size() == FloorLevelTiles + 1);
 
     std::optional<EditorStep> back = history.stepBack();
     REQUIRE(back);
-    REQUIRE(back->levelData->tileMapData.indices[0].size() == MapTiles);
+    REQUIRE(back->levelData->tileMapData.indices[0].size() == FloorLevelTiles);
     REQUIRE(back->movingThePlayerBack == glm::vec2(-16.0f, 0.0f));
 }
 
@@ -855,7 +855,7 @@ TEST_CASE("A level nobody has edited leaves the history empty", "[LevelUi]")
     Editing editing;
     std::optional<Armed> armed;
 
-    paints(levelUi, editing, clicking(editing.level, glm::ivec2(4, Standing)), armed);
+    paints(levelUi, editing, clicking(editing.level, glm::ivec2(4, FloorLevelStanding)), armed);
 
     REQUIRE_FALSE(history.anythingToUndo());
 }

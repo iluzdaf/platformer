@@ -17,7 +17,7 @@
 #include "player/player_data.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
-#include "helpers/tiles.hpp"
+#include "helpers/tile_positions.hpp"
 
 namespace
 {

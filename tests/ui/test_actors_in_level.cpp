@@ -15,15 +15,12 @@
 #include "helpers/headless_imgui.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/shipped.hpp"
-#include "helpers/tiles.hpp"
+#include "helpers/tile_positions.hpp"
 #include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 
 namespace
 {
-    constexpr int MapTiles = 10;
-    constexpr int FloorRow = 6;
-    constexpr int Standing = FloorRow - 1;
-
     Level levelPlacing(const std::vector<NpcSpawnData> &npcs)
     {
         return Level(
@@ -41,19 +38,9 @@ namespace
 
     Level levelWithAnIsland(const std::vector<NpcSpawnData> &npcs)
     {
-        LevelData levelData;
-        levelData.playerFeet = feetOf(glm::ivec2(0, 0));
-        levelData.tileMapData.tilePalette = "default";
-        levelData.tileMapData.indices =
-            std::vector<std::vector<int>>(MapTiles, std::vector<int>(MapTiles, 0));
-        for (int x = 0; x < MapTiles; ++x)
-            levelData.tileMapData.indices[FloorRow][x] = 1;
-
-        for (int x = IslandFirstTile; x < MapTiles; ++x)
-            levelData.tileMapData.indices[IslandRow][x] = 1;
-
-        levelData.playerFeet = feetOf(glm::ivec2(1, Standing));
-        levelData.npcs = npcs;
+        LevelData levelData = aFloorLevelPlacing(npcs);
+        for (int x = IslandFirstTile; x < FloorLevelTiles; ++x)
+            levelData.tileMapData.indices[IslandRow][x] = SolidTile;
 
         return Level(
             levelData,
@@ -109,7 +96,8 @@ namespace
 TEST_CASE("A pickup in the level is shown the way an npc is", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    Level level = levelHolding({PickupSpawnData{"coin", feetOf(glm::ivec2(2, Standing))}});
+    Level level =
+        levelHolding({PickupSpawnData{"coin", feetOf(glm::ivec2(2, FloorLevelStanding))}});
     std::optional<Armed> armed;
 
     ActorShown showing{ActorShown::What::Pickup, 0};
@@ -122,7 +110,8 @@ TEST_CASE("A pickup in the level is shown the way an npc is", "[ActorsInLevel]")
 TEST_CASE("A pickup the level no longer has stops being shown", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    Level level = levelHolding({PickupSpawnData{"coin", feetOf(glm::ivec2(2, Standing))}});
+    Level level =
+        levelHolding({PickupSpawnData{"coin", feetOf(glm::ivec2(2, FloorLevelStanding))}});
     std::optional<Armed> armed;
 
     ActorAsked asked = askedFor(gui, level, ActorShown{ActorShown::What::Pickup, 7}, armed);
@@ -133,7 +122,7 @@ TEST_CASE("A pickup the level no longer has stops being shown", "[ActorsInLevel]
 TEST_CASE("Left alone, the actors panel asks for nothing", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    Level level = levelPlacing({aVillagerAt(glm::ivec2(2, Standing))});
+    Level level = levelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed;
 
     ActorShown showing{ActorShown::What::Npc, 0};
@@ -148,7 +137,7 @@ TEST_CASE("Left alone, the actors panel asks for nothing", "[ActorsInLevel]")
 TEST_CASE("An npc the level no longer has stops being shown", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    Level level = levelPlacing({aVillagerAt(glm::ivec2(2, Standing))});
+    Level level = levelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed;
 
     ActorAsked asked = askedFor(gui, level, ActorShown{ActorShown::What::Npc, 7}, armed);
@@ -160,8 +149,8 @@ TEST_CASE("An npc the level no longer has stops being shown", "[ActorsInLevel]")
 TEST_CASE("An npc with a beat it cannot walk is still drawn", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    NpcSpawnData reachingTooHigh = aVillagerAt(glm::ivec2(2, Standing));
-    reachingTooHigh.patrol = beatOf(glm::ivec2(1, Standing), glm::ivec2(8, 1));
+    NpcSpawnData reachingTooHigh = aRatAt(glm::ivec2(2, FloorLevelStanding));
+    reachingTooHigh.patrol = beatOf(glm::ivec2(1, FloorLevelStanding), glm::ivec2(8, 1));
 
     Level level = levelPlacing({reachingTooHigh});
     std::optional<Armed> armed;
@@ -180,14 +169,14 @@ TEST_CASE("The player is drawn whether or not the level has npcs", "[ActorsInLev
     Level empty = levelPlacing({});
     REQUIRE(askedFor(gui, empty, showing, armed).show == showing);
 
-    Level peopled = levelPlacing({aVillagerAt(glm::ivec2(2, Standing))});
+    Level peopled = levelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     REQUIRE(askedFor(gui, peopled, showing, armed).show == showing);
 }
 
 TEST_CASE("Showing nobody draws nobody and asks for nothing", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    Level level = levelPlacing({aVillagerAt(glm::ivec2(2, Standing))});
+    Level level = levelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed;
 
     ActorAsked asked = askedFor(gui, level, ActorShown{}, armed);
@@ -198,7 +187,7 @@ TEST_CASE("Showing nobody draws nobody and asks for nothing", "[ActorsInLevel]")
 TEST_CASE("A pick already armed survives being drawn", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    Level level = levelPlacing({aVillagerAt(glm::ivec2(2, Standing))});
+    Level level = levelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolFrom, 0};
 
     askedFor(gui, level, ActorShown{ActorShown::What::Npc, 0}, armed);
@@ -208,8 +197,8 @@ TEST_CASE("A pick already armed survives being drawn", "[ActorsInLevel]")
 
 TEST_CASE("A level whose beats can all be walked stops no save", "[ActorsInLevel]")
 {
-    NpcSpawnData walkable = aVillagerAt(glm::ivec2(2, Standing));
-    walkable.patrol = beatOf(glm::ivec2(1, Standing), glm::ivec2(8, Standing));
+    NpcSpawnData walkable = aRatAt(glm::ivec2(2, FloorLevelStanding));
+    walkable.patrol = beatOf(glm::ivec2(1, FloorLevelStanding), glm::ivec2(8, FloorLevelStanding));
 
     REQUIRE_FALSE(npcsThatCannotGetBack(levelPlacing({walkable})));
     REQUIRE_FALSE(npcsThatCannotGetBack(levelPlacing({})));
@@ -217,14 +206,14 @@ TEST_CASE("A level whose beats can all be walked stops no save", "[ActorsInLevel
 
 TEST_CASE("An npc with no beat at all stops no save", "[ActorsInLevel]")
 {
-    REQUIRE_FALSE(npcsThatCannotGetBack(levelPlacing({aVillagerAt(glm::ivec2(2, Standing))})));
+    REQUIRE_FALSE(npcsThatCannotGetBack(levelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))})));
 }
 
 TEST_CASE("A beat that cannot be walked names the npc it belongs to", "[ActorsInLevel]")
 {
-    NpcSpawnData strandedHalfway = aVillagerAt(glm::ivec2(2, Standing));
+    NpcSpawnData strandedHalfway = aRatAt(glm::ivec2(2, FloorLevelStanding));
     strandedHalfway.patrol =
-        beatOf(glm::ivec2(1, Standing), glm::ivec2(IslandFirstTile + 1, IslandRow - 1));
+        beatOf(glm::ivec2(1, FloorLevelStanding), glm::ivec2(IslandFirstTile + 1, IslandRow - 1));
 
     std::optional<std::string> fault = npcsThatCannotGetBack(levelWithAnIsland({strandedHalfway}));
 
@@ -236,14 +225,14 @@ TEST_CASE("Every npc that cannot get back is named", "[ActorsInLevel]")
 {
     constexpr glm::ivec2 OnTheIsland{IslandFirstTile + 1, IslandRow - 1};
 
-    NpcSpawnData walkable = aVillagerAt(glm::ivec2(2, Standing));
-    walkable.patrol = beatOf(glm::ivec2(1, Standing), glm::ivec2(5, Standing));
+    NpcSpawnData walkable = aRatAt(glm::ivec2(2, FloorLevelStanding));
+    walkable.patrol = beatOf(glm::ivec2(1, FloorLevelStanding), glm::ivec2(5, FloorLevelStanding));
 
-    NpcSpawnData stranded = aVillagerAt(glm::ivec2(3, Standing));
-    stranded.patrol = beatOf(glm::ivec2(1, Standing), OnTheIsland);
+    NpcSpawnData stranded = aRatAt(glm::ivec2(3, FloorLevelStanding));
+    stranded.patrol = beatOf(glm::ivec2(1, FloorLevelStanding), OnTheIsland);
 
-    NpcSpawnData alsoStranded = aVillagerAt(glm::ivec2(4, Standing));
-    alsoStranded.patrol = beatOf(glm::ivec2(2, Standing), OnTheIsland);
+    NpcSpawnData alsoStranded = aRatAt(glm::ivec2(4, FloorLevelStanding));
+    alsoStranded.patrol = beatOf(glm::ivec2(2, FloorLevelStanding), OnTheIsland);
 
     std::optional<std::string> fault =
         npcsThatCannotGetBack(levelWithAnIsland({walkable, stranded, alsoStranded}));
@@ -255,8 +244,9 @@ TEST_CASE("Every npc that cannot get back is named", "[ActorsInLevel]")
 TEST_CASE("A beat whose ends share a tile still draws both", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    NpcSpawnData bothAtOnce = aVillagerAt(glm::ivec2(2, Standing));
-    bothAtOnce.patrol = beatOf(glm::ivec2(4, Standing), glm::ivec2(4, Standing));
+    NpcSpawnData bothAtOnce = aRatAt(glm::ivec2(2, FloorLevelStanding));
+    bothAtOnce.patrol =
+        beatOf(glm::ivec2(4, FloorLevelStanding), glm::ivec2(4, FloorLevelStanding));
 
     Level level = levelPlacing({bothAtOnce});
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolTo, 0};
@@ -269,7 +259,7 @@ TEST_CASE("A beat whose ends share a tile still draws both", "[ActorsInLevel]")
 TEST_CASE("An npc with no beat still offers both ends to place", "[ActorsInLevel]")
 {
     HeadlessImGui gui;
-    Level level = levelPlacing({aVillagerAt(glm::ivec2(2, Standing))});
+    Level level = levelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
     std::optional<Armed> armed = PickTile{PickTile::For::PatrolFrom, 0};
 
     ActorAsked asked = askedFor(gui, level, ActorShown{ActorShown::What::Npc, 0}, armed);

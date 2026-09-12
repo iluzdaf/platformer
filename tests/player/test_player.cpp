@@ -16,6 +16,7 @@
 #include "helpers/actors.hpp"
 #include "helpers/player_fixtures.hpp"
 #include "helpers/palettes.hpp"
+#include "helpers/tile_positions.hpp"
 #include "helpers/tiles.hpp"
 #include "input/input_intentions.hpp"
 #include "player/player.hpp"

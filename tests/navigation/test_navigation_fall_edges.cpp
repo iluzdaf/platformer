@@ -3,10 +3,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_motion_data.hpp"
 #include "helpers/actors.hpp"
-#include "helpers/maps.hpp"
+#include "helpers/tiles.hpp"
+#include "helpers/navigation_maps.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/graph_queries.hpp"
-#include "helpers/tiles.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_graph_builder.hpp"

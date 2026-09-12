@@ -24,8 +24,10 @@
 #include "pickups/pickup_spawn_data.hpp"
 #include "player/player_data.hpp"
 #include "helpers/palettes.hpp"
+#include "helpers/tile_positions.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/actors.hpp"
 
 namespace

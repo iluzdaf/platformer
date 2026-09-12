@@ -11,9 +11,9 @@
 #include "game/level_data.hpp"
 #include "game/level_data_file.hpp"
 #include "game/levels_data.hpp"
-#include "helpers/levels.hpp"
+#include "helpers/tile_positions.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/temporary_levels.hpp"
-#include "helpers/tiles.hpp"
 #include "ui/editor_commands.hpp"
 #include "assets/asset_paths.hpp"
 #include <imgui.h>
@@ -100,8 +100,6 @@ TEST_CASE("Saving then picking goes straight there", "[LevelsUi]")
 
 namespace
 {
-    constexpr int TileSize = static_cast<int>(TestTileSize);
-
     LevelData aLevelWhoseNextIs(const std::string &nextLevel)
     {
         LevelData levelData = aFloorLevelPlacing({});
@@ -149,7 +147,7 @@ TEST_CASE("A level added is an empty one under a name nobody has taken", "[Level
 {
     Editing editing;
 
-    std::string made = editing.levelsUi.add(editing.playing(), TileSize, editing.commands);
+    std::string made = editing.levelsUi.add(editing.playing(), TestTileSize, editing.commands);
     editing.commands.drain();
 
     REQUIRE(made != editing.named("level1.json"));
@@ -163,7 +161,7 @@ TEST_CASE("A level added is offered before it has a file", "[LevelsUi]")
 {
     Editing editing;
 
-    std::string made = editing.levelsUi.add(editing.playing(), TileSize, editing.commands);
+    std::string made = editing.levelsUi.add(editing.playing(), TestTileSize, editing.commands);
     std::vector<std::string> offers = editing.levelsUi.offered();
 
     REQUIRE(std::find(offers.begin(), offers.end(), made) != offers.end());
@@ -173,8 +171,8 @@ TEST_CASE("Two levels added do not take the same name", "[LevelsUi]")
 {
     Editing editing;
 
-    std::string first = editing.levelsUi.add(editing.playing(), TileSize, editing.commands);
-    std::string second = editing.levelsUi.add(editing.playing(), TileSize, editing.commands);
+    std::string first = editing.levelsUi.add(editing.playing(), TestTileSize, editing.commands);
+    std::string second = editing.levelsUi.add(editing.playing(), TestTileSize, editing.commands);
 
     REQUIRE(first != second);
 }
@@ -183,7 +181,7 @@ TEST_CASE("A level added and removed before a save is offered no more", "[Levels
 {
     Editing editing;
 
-    std::string made = editing.levelsUi.add(editing.playing(), TileSize, editing.commands);
+    std::string made = editing.levelsUi.add(editing.playing(), TestTileSize, editing.commands);
     editing.levelsUi.remove(made, editing.commands);
 
     std::vector<std::string> offers = editing.levelsUi.offered();
@@ -266,7 +264,7 @@ TEST_CASE("Reverting puts back a level that was removed", "[LevelsUi]")
 TEST_CASE("Reverting an added level goes back to one that has a file", "[LevelsUi]")
 {
     Editing editing;
-    std::string made = editing.levelsUi.add(editing.playing(), TileSize, editing.commands);
+    std::string made = editing.levelsUi.add(editing.playing(), TestTileSize, editing.commands);
 
     std::string playing = editing.levelsUi.revert(editing.levels, made);
 
@@ -290,7 +288,7 @@ TEST_CASE("The levels section shares no item with the palettes beneath it", "[Le
             editing.levels,
             playing,
             editing.named("level1.json"),
-            TileSize,
+            TestTileSize,
             editing.commands,
             false);
         tilePalettesUi.draw(palettes, textures, editing.commands, armed);

@@ -32,6 +32,7 @@
 #include "helpers/asset_path.hpp"
 #include "helpers/temporary_levels.hpp"
 #include "helpers/levels.hpp"
+#include "helpers/ledge_and_wall.hpp"
 
 namespace
 {

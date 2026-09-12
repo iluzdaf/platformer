@@ -18,6 +18,7 @@
 #include "game/game_data.hpp"
 #include "game/level_data.hpp"
 #include "helpers/levels.hpp"
+#include "helpers/floor_level.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "assets/texture_path_data.hpp"
 #include "conditions/asked.hpp"
@@ -337,7 +338,7 @@ TEST_CASE("Every field of the game data says when it is edited", "[InspectorMark
 
 TEST_CASE("Every field of a level says when it is edited", "[InspectorMarks]")
 {
-    LevelData levelData = aFloorLevelPlacing({aVillagerAt(glm::ivec2(2, FloorLevelStanding))});
+    LevelData levelData = aFloorLevelPlacing({aRatAt(glm::ivec2(2, FloorLevelStanding))});
 
     everyFieldOf(levelData);
 }

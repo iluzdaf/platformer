@@ -2,7 +2,7 @@
 
 struct InputIntentions;
 struct Observed;
-struct Decided;
+struct AbilityStates;
 
 class Ability
 {
@@ -12,5 +12,5 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        Decided &decided) = 0;
+        AbilityStates &states) = 0;
 };

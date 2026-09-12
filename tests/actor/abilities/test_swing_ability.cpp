@@ -5,7 +5,7 @@
 #include "actor/abilities/swing_ability.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 
@@ -30,10 +30,10 @@ namespace
         return data;
     }
 
-    void wait(SwingAbility &ability, Decided &decided, int steps)
+    void wait(SwingAbility &ability, AbilityStates &states, int steps)
     {
         for (int step = 0; step < steps; ++step)
-            ability.decide(Step, InputIntentions{}, Observed{}, decided);
+            ability.decide(Step, InputIntentions{}, Observed{}, states);
     }
 
     Observed facingLeft()
@@ -48,84 +48,84 @@ TEST_CASE(
     "A swing winds up, strikes, recovers and rests, each for as long as it says",
     "[SwingAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     SwingAbility ability(timedAs(0.045f, 0.1f, 0.03f));
 
-    ability.decide(Step, pressingAttack(), Observed{}, decided);
-    REQUIRE(decided.swing.phase == SwingPhase::Windup);
-    REQUIRE(decided.swing.swinging());
-    REQUIRE_FALSE(decided.swing.striking());
+    ability.decide(Step, pressingAttack(), Observed{}, states);
+    REQUIRE(states.swing.phase == SwingPhase::Windup);
+    REQUIRE(states.swing.swinging());
+    REQUIRE_FALSE(states.swing.striking());
 
-    wait(ability, decided, 4);
-    REQUIRE(decided.swing.phase == SwingPhase::Windup);
-    wait(ability, decided, 1);
-    REQUIRE(decided.swing.striking());
+    wait(ability, states, 4);
+    REQUIRE(states.swing.phase == SwingPhase::Windup);
+    wait(ability, states, 1);
+    REQUIRE(states.swing.striking());
 
-    wait(ability, decided, 9);
-    REQUIRE(decided.swing.striking());
-    wait(ability, decided, 1);
-    REQUIRE(decided.swing.phase == SwingPhase::Recovery);
-    REQUIRE(decided.swing.swinging());
+    wait(ability, states, 9);
+    REQUIRE(states.swing.striking());
+    wait(ability, states, 1);
+    REQUIRE(states.swing.phase == SwingPhase::Recovery);
+    REQUIRE(states.swing.swinging());
 
-    wait(ability, decided, 2);
-    REQUIRE(decided.swing.phase == SwingPhase::Recovery);
-    wait(ability, decided, 1);
-    REQUIRE(decided.swing.phase == SwingPhase::Idle);
-    REQUIRE_FALSE(decided.swing.swinging());
+    wait(ability, states, 2);
+    REQUIRE(states.swing.phase == SwingPhase::Recovery);
+    wait(ability, states, 1);
+    REQUIRE(states.swing.phase == SwingPhase::Idle);
+    REQUIRE_FALSE(states.swing.swinging());
 }
 
 TEST_CASE("A swing with no windup strikes on the tick after it starts", "[SwingAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     SwingAbility ability(timedAs(0.0f, 0.1f, 0.1f));
 
-    ability.decide(Step, pressingAttack(), Observed{}, decided);
-    REQUIRE(decided.swing.phase == SwingPhase::Windup);
+    ability.decide(Step, pressingAttack(), Observed{}, states);
+    REQUIRE(states.swing.phase == SwingPhase::Windup);
 
-    wait(ability, decided, 1);
-    REQUIRE(decided.swing.striking());
+    wait(ability, states, 1);
+    REQUIRE(states.swing.striking());
 }
 
 TEST_CASE("A long tick carries a swing through every phase it covers", "[SwingAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     SwingAbility ability(timedAs(0.05f, 0.05f, 0.05f));
-    ability.decide(Step, pressingAttack(), Observed{}, decided);
+    ability.decide(Step, pressingAttack(), Observed{}, states);
 
-    ability.decide(0.12f, InputIntentions{}, Observed{}, decided);
+    ability.decide(0.12f, InputIntentions{}, Observed{}, states);
 
-    REQUIRE(decided.swing.phase == SwingPhase::Recovery);
+    REQUIRE(states.swing.phase == SwingPhase::Recovery);
 }
 
 TEST_CASE("A swing says so once, and pressing again mid-swing starts nothing", "[SwingAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     SwingAbility ability(SwingAbilityData{});
 
-    ability.decide(Step, pressingAttack(), Observed{}, decided);
-    REQUIRE(decided.swing.emit);
+    ability.decide(Step, pressingAttack(), Observed{}, states);
+    REQUIRE(states.swing.emit);
 
     for (int step = 0; step < 15; ++step)
     {
-        ability.decide(Step, pressingAttack(), Observed{}, decided);
-        REQUIRE_FALSE(decided.swing.emit);
+        ability.decide(Step, pressingAttack(), Observed{}, states);
+        REQUIRE_FALSE(states.swing.emit);
     }
-    REQUIRE(decided.swing.striking());
+    REQUIRE(states.swing.striking());
 }
 
 TEST_CASE("A swing goes where it was asked, else where the actor faces", "[SwingAbility]")
 {
     SwingAbility ability(SwingAbilityData{});
 
-    Decided asked;
+    AbilityStates asked;
     ability.decide(Step, pressingAttack(-1.0f), Observed{}, asked);
     REQUIRE(asked.swing.direction == -1.0f);
 
-    Decided facing;
+    AbilityStates facing;
     ability.decide(Step, pressingAttack(), facingLeft(), facing);
     REQUIRE(facing.swing.direction == -1.0f);
 
-    Decided ahead;
+    AbilityStates ahead;
     ability.decide(Step, pressingAttack(), Observed{}, ahead);
     REQUIRE(ahead.swing.direction == 1.0f);
 }
@@ -136,26 +136,26 @@ TEST_CASE("A swing carries its reach and damage and forgets who it struck", "[Sw
     data.reach = glm::vec2(20.0f, 6.0f);
     data.damage = 3;
     SwingAbility ability(data);
-    Decided decided;
-    decided.swing.struck.push_back(nullptr);
+    AbilityStates states;
+    states.swing.struck.push_back(nullptr);
 
-    ability.decide(Step, pressingAttack(), Observed{}, decided);
+    ability.decide(Step, pressingAttack(), Observed{}, states);
 
-    REQUIRE(decided.swing.reach == glm::vec2(20.0f, 6.0f));
-    REQUIRE(decided.swing.damage == 3);
-    REQUIRE(decided.swing.struck.empty());
+    REQUIRE(states.swing.reach == glm::vec2(20.0f, 6.0f));
+    REQUIRE(states.swing.damage == 3);
+    REQUIRE(states.swing.struck.empty());
 }
 
 TEST_CASE("A swing cannot start while dashing, and a knockback cuts one short", "[SwingAbility]")
 {
     SwingAbility ability(SwingAbilityData{});
 
-    Decided dashing;
+    AbilityStates dashing;
     dashing.dash.active = true;
     ability.decide(Step, pressingAttack(), Observed{}, dashing);
     REQUIRE(dashing.swing.phase == SwingPhase::Idle);
 
-    Decided knocked;
+    AbilityStates knocked;
     ability.decide(Step, pressingAttack(), Observed{}, knocked);
     wait(ability, knocked, 11);
     REQUIRE(knocked.swing.striking());
@@ -185,11 +185,11 @@ TEST_CASE("A swing with nothing to it is refused", "[SwingAbility]")
 TEST_CASE("A swing is not started by an attack that is not a swing", "[SwingAbility]")
 {
     SwingAbility ability(SwingAbilityData{});
-    Decided decided;
+    AbilityStates states;
     InputIntentions pouncing;
     pouncing.attack = "pounce";
 
-    ability.decide(Step, pouncing, Observed{}, decided);
+    ability.decide(Step, pouncing, Observed{}, states);
 
-    REQUIRE(decided.swing.phase == SwingPhase::Idle);
+    REQUIRE(states.swing.phase == SwingPhase::Idle);
 }

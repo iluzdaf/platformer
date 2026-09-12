@@ -3,7 +3,7 @@
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <string>
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/abilities/pounce_ability_state.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/abilities/charge_ability_data.hpp"
@@ -182,7 +182,7 @@ TEST_CASE(
         npcs.front()->beginFrame();
         npcs.front()->fixedUpdate(0.01f, level, player.feet() + glm::vec2(4.0f, 0.0f));
     }
-    REQUIRE(npcs.front()->decided().pounce.active);
+    REQUIRE(npcs.front()->abilityStates().pounce.active);
     REQUIRE(npcs.front()->hurting().has_value());
     REQUIRE(npcs.front()->hurting()->box.position == npcs.front()->body().aabb().position);
     strikePlayer(player, npcs);
@@ -224,7 +224,7 @@ TEST_CASE("A creature bites while it charges, and not while it stands", "[Striki
         npcs.front()->beginFrame();
         npcs.front()->fixedUpdate(0.01f, level, player.feet() + glm::vec2(4.0f, 0.0f));
     }
-    REQUIRE(npcs.front()->decided().charge.active);
+    REQUIRE(npcs.front()->abilityStates().charge.active);
     REQUIRE(npcs.front()->hurting().has_value());
     REQUIRE(npcs.front()->hurting()->box.position == npcs.front()->body().aabb().position);
     strikePlayer(player, npcs);

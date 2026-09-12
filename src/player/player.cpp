@@ -5,7 +5,7 @@
 #include "actor/actor.hpp"
 #include <memory>
 #include "actor/behaviors/input_behavior.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 
 Player::Player(const PlayerData &data, const IntentionSource &intentionSource)
     : Actor(data.actorData), data(data)
@@ -30,16 +30,16 @@ void Player::completeLevel()
 void Player::postFixedUpdate()
 {
     const ActorContactState &contacts = observed().contacts;
-    if (decided().dash.emit)
+    if (abilityStates().dash.emit)
         onDash();
 
-    if (decided().swing.emit)
+    if (abilityStates().swing.emit)
         onAttack();
 
-    if (decided().wallJump.emit)
+    if (abilityStates().wallJump.emit)
         onWallJump();
 
-    if (decided().wallSlide.emit)
+    if (abilityStates().wallSlide.emit)
         onWallSliding();
 
     if (observed().fell > data.fallFromHeightThreshold)

@@ -9,7 +9,7 @@
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "conditions/fact_rows.hpp"
 
@@ -24,11 +24,11 @@ Animator::Animator(const AnimatorData &data)
 }
 
 const std::string &Animator::shown(
-    const Decided &decided,
+    const AbilityStates &abilityStates,
     const Observed &observed,
     std::string_view inState) const
 {
-    AnimatorFacts facts{decided, observed, finished(), inState};
+    AnimatorFacts facts{abilityStates, observed, finished(), inState};
     for (const AnimationRuleData &rule : rules)
         if (holds(rule.when, animatorRows(), facts))
             return rule.show;
@@ -38,11 +38,11 @@ const std::string &Animator::shown(
 
 void Animator::animate(
     float deltaTime,
-    const Decided &decided,
+    const AbilityStates &abilityStates,
     const Observed &observed,
     std::string_view inState)
 {
-    std::string newState = shown(decided, observed, inState);
+    std::string newState = shown(abilityStates, observed, inState);
 
     if (newState != currentState)
     {

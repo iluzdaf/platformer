@@ -196,7 +196,7 @@ TEST_CASE("A jump comes to rest on the surface, not beside it", "[JumpArc]")
 }
 
 #include "actor/abilities/abilities.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 #include "timing/fixed_time_step.hpp"
@@ -208,7 +208,7 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
     REQUIRE(arc.size() > 2);
 
     Abilities abilities(motionData);
-    Decided decided;
+    AbilityStates states;
     Observed observed;
     InputIntentions holding;
     holding.direction.x = 1.0f;
@@ -222,8 +222,7 @@ TEST_CASE("An arc the builder simulates is the path the game's own steps take", 
         PhysicsStep * static_cast<float>(arc.size() - 1),
         [&](float dt)
         {
-            abilities.decide(dt, holding, observed, decided);
-            walked.push_back(walked.back() + decided.targetVelocity * dt);
+            walked.push_back(walked.back() + abilities.decide(dt, holding, observed, states) * dt);
             observed.contacts.onGround = false;
         });
 

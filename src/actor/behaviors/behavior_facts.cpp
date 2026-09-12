@@ -4,7 +4,7 @@
 #include "actor/actor_behavior_context.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 
@@ -26,7 +26,7 @@ namespace
             "not charging",
             [](const Asked &asked, const ActorBehaviorContext &context)
             {
-                bool charging = context.decided && context.decided->charge.active;
+                bool charging = context.abilityStates && context.abilityStates->charge.active;
                 return std::get<bool>(asked) == charging;
             },
             "charge"},

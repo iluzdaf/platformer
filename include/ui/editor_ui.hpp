@@ -23,7 +23,7 @@
 #include "ui/levels_ui.hpp"
 #include "ui/tile_palettes_ui.hpp"
 
-struct Decided;
+struct AbilityStates;
 struct Observed;
 struct ActorState;
 struct GameData;
@@ -54,7 +54,7 @@ struct EditorSubject
     const std::string &levelPath;
     const TextureCache &textures;
     LevelsData &levels;
-    const Decided &playerDecided;
+    const AbilityStates &playerAbilityStates;
     const Observed &playerObserved;
     glm::vec2 playerFeet;
     const ActorState &playerState;

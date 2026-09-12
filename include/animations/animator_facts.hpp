@@ -4,12 +4,12 @@
 #include <string_view>
 #include "conditions/fact_rows.hpp"
 
-struct Decided;
+struct AbilityStates;
 struct Observed;
 
 struct AnimatorFacts
 {
-    const Decided &decided;
+    const AbilityStates &abilityStates;
     const Observed &observed;
     bool finished;
     std::string_view inState;

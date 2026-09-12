@@ -3,7 +3,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "actor/abilities/wall_slide_ability.hpp"
 #include "actor/abilities/wall_slide_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
@@ -23,79 +23,79 @@ TEST_CASE("A slide goes down a wall it grips at its speed, while falling", "[Wal
 {
     WallSlideAbilityData data;
     WallSlideAbility slide(data);
-    Decided decided;
+    AbilityStates states;
 
-    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left)), decided);
-    REQUIRE(decided.wallSlide.active);
-    REQUIRE(decided.wallSlide.velocity.y == Approx(data.slideSpeed));
+    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left)), states);
+    REQUIRE(states.wallSlide.active);
+    REQUIRE(states.wallSlide.velocity.y == Approx(data.slideSpeed));
 
-    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Right)), decided);
-    REQUIRE(decided.wallSlide.active);
+    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Right)), states);
+    REQUIRE(states.wallSlide.active);
 }
 
 TEST_CASE("A slide says it is sliding every tick it slides", "[WallSlideAbility]")
 {
     WallSlideAbility slide(WallSlideAbilityData{});
-    Decided decided;
+    AbilityStates states;
 
-    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left)), decided);
-    REQUIRE(decided.wallSlide.emit);
+    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left)), states);
+    REQUIRE(states.wallSlide.emit);
 
-    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left)), decided);
-    REQUIRE(decided.wallSlide.emit);
+    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left)), states);
+    REQUIRE(states.wallSlide.emit);
 
-    tick(slide, InputIntentions{}, movingDown(inTheAir()), decided);
-    REQUIRE_FALSE(decided.wallSlide.emit);
+    tick(slide, InputIntentions{}, movingDown(inTheAir()), states);
+    REQUIRE_FALSE(states.wallSlide.emit);
 }
 
 TEST_CASE("A wall it cannot grip is not slid down", "[WallSlideAbility]")
 {
     WallSlideAbility slide(WallSlideAbilityData{});
-    Decided decided;
+    AbilityStates states;
 
-    tick(slide, InputIntentions{}, movingDown(onASlipperyWall(WallSide::Left)), decided);
+    tick(slide, InputIntentions{}, movingDown(onASlipperyWall(WallSide::Left)), states);
 
-    REQUIRE_FALSE(decided.wallSlide.active);
-    REQUIRE(decided.wallSlide.velocity.y == 0.0f);
+    REQUIRE_FALSE(states.wallSlide.active);
+    REQUIRE(states.wallSlide.velocity.y == 0.0f);
 }
 
 TEST_CASE("Nothing is slid down away from a wall, or on the ground", "[WallSlideAbility]")
 {
     WallSlideAbility slide(WallSlideAbilityData{});
-    Decided decided;
+    AbilityStates states;
     Observed standingAgainstIt = movingDown(onAWall(WallSide::Left));
     standingAgainstIt.contacts.onGround = true;
 
-    tick(slide, InputIntentions{}, movingDown(inTheAir()), decided);
-    REQUIRE_FALSE(decided.wallSlide.active);
+    tick(slide, InputIntentions{}, movingDown(inTheAir()), states);
+    REQUIRE_FALSE(states.wallSlide.active);
 
-    tick(slide, InputIntentions{}, standingAgainstIt, decided);
-    REQUIRE_FALSE(decided.wallSlide.active);
-    REQUIRE(decided.wallSlide.velocity.y == 0.0f);
+    tick(slide, InputIntentions{}, standingAgainstIt, states);
+    REQUIRE_FALSE(states.wallSlide.active);
+    REQUIRE(states.wallSlide.velocity.y == 0.0f);
 }
 
 TEST_CASE("Going up or holding still against a wall is not a slide", "[WallSlideAbility]")
 {
     WallSlideAbility slide(WallSlideAbilityData{});
-    Decided decided;
+    AbilityStates states;
 
-    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left), -100.0f), decided);
-    REQUIRE_FALSE(decided.wallSlide.active);
+    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left), -100.0f), states);
+    REQUIRE_FALSE(states.wallSlide.active);
 
-    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left), 0.0f), decided);
-    REQUIRE_FALSE(decided.wallSlide.active);
+    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left), 0.0f), states);
+    REQUIRE_FALSE(states.wallSlide.active);
 }
 
 TEST_CASE("A slide stops as soon as it is not falling against the wall", "[WallSlideAbility]")
 {
     WallSlideAbility slide(WallSlideAbilityData{});
-    Decided decided;
-    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left)), decided);
+    AbilityStates states;
+    tick(slide, InputIntentions{}, movingDown(onAWall(WallSide::Left)), states);
 
-    tick(slide, InputIntentions{}, movingDown(justOffAWall(WallSide::Left)), decided);
+    tick(slide, InputIntentions{}, movingDown(justOffAWall(WallSide::Left)), states);
 
-    REQUIRE_FALSE(decided.wallSlide.active);
-    REQUIRE(decided.wallSlide.velocity.y == 0.0f);
+    REQUIRE_FALSE(states.wallSlide.active);
+    REQUIRE(states.wallSlide.velocity.y == 0.0f);
 }
 
 TEST_CASE("A slide that does not slide is refused", "[WallSlideAbility]")

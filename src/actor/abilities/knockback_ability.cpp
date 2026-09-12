@@ -3,7 +3,7 @@
 #include "actor/abilities/knockback_ability.hpp"
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/hit.hpp"
 #include "actor/observed.hpp"
 
@@ -23,9 +23,9 @@ void KnockbackAbility::decide(
     float deltaTime,
     const InputIntentions &,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
-    KnockbackAbilityState &knockback = decided.knockback;
+    KnockbackAbilityState &knockback = states.knockback;
     knockback.emit = false;
     knockback.velocity = glm::vec2(0.0f);
 

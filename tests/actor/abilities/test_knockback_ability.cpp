@@ -4,7 +4,7 @@
 #include "actor/abilities/knockback_ability.hpp"
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/knockback_ability_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/hit.hpp"
 #include "helpers/actors.hpp"
@@ -31,87 +31,87 @@ namespace
 
 TEST_CASE("A push starts a knockback away from the hit, up and along", "[KnockbackAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
     KnockbackAbility ability(data);
     observed.hits.push_back(Hit{1, glm::vec2(-1.0f, 0.0f), false});
 
-    ability.decide(Step, nothing, observed, decided);
+    ability.decide(Step, nothing, observed, states);
 
-    REQUIRE(decided.knockback.active);
-    REQUIRE(decided.knockback.emit);
-    REQUIRE(decided.knockback.velocity.x == Approx(-data.speed));
-    REQUIRE(decided.knockback.velocity.y == Approx(data.lift));
+    REQUIRE(states.knockback.active);
+    REQUIRE(states.knockback.emit);
+    REQUIRE(states.knockback.velocity.x == Approx(-data.speed));
+    REQUIRE(states.knockback.velocity.y == Approx(data.lift));
 }
 
 TEST_CASE("A knockback says so once and lasts its duration", "[KnockbackAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
     KnockbackAbility ability(data);
     observed.hits = {aHitPushing(1.0f)};
 
-    ability.decide(Step, nothing, observed, decided);
+    ability.decide(Step, nothing, observed, states);
     observed.hits.clear();
-    ability.decide(Step, nothing, observed, decided);
-    REQUIRE_FALSE(decided.knockback.emit);
-    REQUIRE(decided.knockback.active);
+    ability.decide(Step, nothing, observed, states);
+    REQUIRE_FALSE(states.knockback.emit);
+    REQUIRE(states.knockback.active);
 
-    ability.decide(data.duration, nothing, observed, decided);
+    ability.decide(data.duration, nothing, observed, states);
 
-    REQUIRE_FALSE(decided.knockback.active);
-    REQUIRE(decided.knockback.velocity == glm::vec2(0.0f));
+    REQUIRE_FALSE(states.knockback.active);
+    REQUIRE(states.knockback.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE("Nothing pushed, nothing moves", "[KnockbackAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbility ability{KnockbackAbilityData{}};
 
-    ability.decide(Step, nothing, observed, decided);
+    ability.decide(Step, nothing, observed, states);
 
-    REQUIRE_FALSE(decided.knockback.active);
-    REQUIRE(decided.knockback.velocity == glm::vec2(0.0f));
+    REQUIRE_FALSE(states.knockback.active);
+    REQUIRE(states.knockback.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE("A push with no side to it keeps the last direction", "[KnockbackAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
     KnockbackAbility ability(data);
     observed.hits.push_back(Hit{1, glm::vec2(-1.0f, 0.0f), false});
-    ability.decide(Step, nothing, observed, decided);
-    ability.decide(data.duration, nothing, observed, decided);
+    ability.decide(Step, nothing, observed, states);
+    ability.decide(data.duration, nothing, observed, states);
 
     observed.hits = {aHitPushing(0.0f)};
-    ability.decide(Step, nothing, observed, decided);
+    ability.decide(Step, nothing, observed, states);
 
-    REQUIRE(decided.knockback.velocity.x == Approx(-data.speed));
+    REQUIRE(states.knockback.velocity.x == Approx(-data.speed));
 }
 
 TEST_CASE("A second push restarts the knockback", "[KnockbackAbility]")
 {
-    Decided decided;
+    AbilityStates states;
     Observed observed;
     InputIntentions nothing;
     KnockbackAbilityData data;
     KnockbackAbility ability(data);
     observed.hits = {aHitPushing(1.0f)};
-    ability.decide(data.duration * 0.5f, nothing, observed, decided);
+    ability.decide(data.duration * 0.5f, nothing, observed, states);
 
     observed.hits.push_back(Hit{1, glm::vec2(-1.0f, 0.0f), false});
-    ability.decide(Step, nothing, observed, decided);
+    ability.decide(Step, nothing, observed, states);
 
-    REQUIRE(decided.knockback.velocity.x == Approx(-data.speed));
-    REQUIRE(decided.knockback.timeLeft == Approx(data.duration - Step));
+    REQUIRE(states.knockback.velocity.x == Approx(-data.speed));
+    REQUIRE(states.knockback.timeLeft == Approx(data.duration - Step));
 }
 
 TEST_CASE("Knockback data that cannot push is refused", "[KnockbackAbility]")
@@ -161,7 +161,7 @@ TEST_CASE("A hit is observed for one step, so it pushes once", "[KnockbackAbilit
     for (int step = 0; step < 10; ++step)
     {
         runFor(player, level, Step, timestepper);
-        if (player.decided().knockback.emit)
+        if (player.abilityStates().knockback.emit)
             ++starts;
     }
 
@@ -184,7 +184,7 @@ TEST_CASE("A lethal hit does not push a corpse", "[KnockbackAbility]")
     player.takeHit(lethalHit());
     runFor(player, level, Step, timestepper);
 
-    REQUIRE_FALSE(player.decided().knockback.active);
+    REQUIRE_FALSE(player.abilityStates().knockback.active);
 }
 
 TEST_CASE("A knocked back actor keeps facing the way it was", "[KnockbackAbility]")

@@ -1,11 +1,12 @@
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
+#include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/ability.hpp"
 
 struct ActorMotionData;
-struct Decided;
+struct AbilityStates;
 struct InputIntentions;
 struct Observed;
 
@@ -13,11 +14,11 @@ class Abilities
 {
 public:
     explicit Abilities(const ActorMotionData &motionData);
-    void decide(
+    glm::vec2 decide(
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        Decided &decided);
+        AbilityStates &states);
 
 private:
     std::vector<std::unique_ptr<Ability>> abilities;

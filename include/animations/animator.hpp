@@ -8,7 +8,7 @@
 #include "animations/frame_animation.hpp"
 #include "animations/animation_rule_data.hpp"
 
-struct Decided;
+struct AbilityStates;
 struct Observed;
 
 class Animator
@@ -18,7 +18,7 @@ public:
 
     void animate(
         float deltaTime,
-        const Decided &decided,
+        const AbilityStates &abilityStates,
         const Observed &observed,
         std::string_view inState = {});
     const FrameAnimation &playing() const;
@@ -28,7 +28,7 @@ public:
 
 private:
     const std::string &shown(
-        const Decided &decided,
+        const AbilityStates &abilityStates,
         const Observed &observed,
         std::string_view inState) const;
 

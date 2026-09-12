@@ -3,7 +3,7 @@
 #include "actor/abilities/charge_ability_data.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 
@@ -31,12 +31,12 @@ void ChargeAbility::decide(
     float,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
-    ChargeAbilityState &charge = decided.charge;
+    ChargeAbilityState &charge = states.charge;
     charge.emit = false;
 
-    if (decided.knockback.active)
+    if (states.knockback.active)
     {
         charge.active = false;
         return;
@@ -50,7 +50,7 @@ void ChargeAbility::decide(
             return;
         }
 
-        charge.velocity = glm::vec2(data.speed * charge.direction, decided.gravity.velocity.y);
+        charge.velocity = glm::vec2(data.speed * charge.direction, states.gravity.velocity.y);
         return;
     }
 
@@ -68,5 +68,5 @@ void ChargeAbility::decide(
     charge.active = true;
     charge.emit = true;
     charge.damage = data.damage;
-    charge.velocity = glm::vec2(data.speed * charge.direction, decided.gravity.velocity.y);
+    charge.velocity = glm::vec2(data.speed * charge.direction, states.gravity.velocity.y);
 }

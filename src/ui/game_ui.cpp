@@ -43,7 +43,7 @@ void GameUi::draw(const GameUiSubject &subject)
             subject.levelPath,
             subject.textures,
             subject.levels,
-            subject.player.decided(),
+            subject.player.abilityStates(),
             subject.player.observed(),
             subject.player.feet(),
             subject.player.state(),

@@ -3,7 +3,7 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "actor/abilities/wall_jump_ability.hpp"
 #include "actor/abilities/wall_jump_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "helpers/abilities.hpp"
 #include "input/input_intentions.hpp"
@@ -21,9 +21,9 @@ namespace
         return data;
     }
 
-    bool ended(const Decided &decided)
+    bool ended(const AbilityStates &states)
     {
-        return !decided.wallJump.active;
+        return !states.wallJump.active;
     }
 }
 
@@ -34,14 +34,14 @@ TEST_CASE(
     WallJumpAbilityData data;
 
     WallJumpAbility offTheLeft(data);
-    Decided fromTheLeft;
+    AbilityStates fromTheLeft;
     tick(offTheLeft, holdingJump(1.0f), onAWall(WallSide::Left), fromTheLeft);
     REQUIRE(fromTheLeft.wallJump.active);
     REQUIRE(fromTheLeft.wallJump.velocity.x == Approx(data.wallJumpHorizontalSpeed));
     REQUIRE(fromTheLeft.wallJump.velocity.y == Approx(data.wallJumpSpeed));
 
     WallJumpAbility offTheRight(data);
-    Decided fromTheRight;
+    AbilityStates fromTheRight;
     tick(offTheRight, holdingJump(-1.0f), onAWall(WallSide::Right), fromTheRight);
     REQUIRE(fromTheRight.wallJump.active);
     REQUIRE(fromTheRight.wallJump.velocity.x == Approx(-data.wallJumpHorizontalSpeed));
@@ -51,114 +51,114 @@ TEST_CASE(
 TEST_CASE("A wall jump says so once", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(WallJumpAbilityData{});
-    Decided decided;
+    AbilityStates states;
 
-    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), decided);
-    REQUIRE(decided.wallJump.emit);
+    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), states);
+    REQUIRE(states.wallJump.emit);
 
-    tick(wallJump, holdingJump(1.0f), inTheAir(), decided);
-    REQUIRE(decided.wallJump.active);
-    REQUIRE_FALSE(decided.wallJump.emit);
+    tick(wallJump, holdingJump(1.0f), inTheAir(), states);
+    REQUIRE(states.wallJump.active);
+    REQUIRE_FALSE(states.wallJump.emit);
 }
 
 TEST_CASE("Pressing toward the wall, or nowhere, is not a wall jump", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(WallJumpAbilityData{});
-    Decided decided;
+    AbilityStates states;
 
-    tick(wallJump, holdingJump(0.0f), onAWall(WallSide::Left), decided);
-    REQUIRE_FALSE(decided.wallJump.active);
+    tick(wallJump, holdingJump(0.0f), onAWall(WallSide::Left), states);
+    REQUIRE_FALSE(states.wallJump.active);
 
-    tick(wallJump, holdingJump(-1.0f), onAWall(WallSide::Left), decided);
-    REQUIRE_FALSE(decided.wallJump.active);
-    REQUIRE(decided.wallJump.velocity == glm::vec2(0.0f));
+    tick(wallJump, holdingJump(-1.0f), onAWall(WallSide::Left), states);
+    REQUIRE_FALSE(states.wallJump.active);
+    REQUIRE(states.wallJump.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE("A wall it cannot grip is not jumped from, whichever way it presses", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(WallJumpAbilityData{});
-    Decided decided;
+    AbilityStates states;
     Observed rememberingThatWall = onASlipperyWall(WallSide::Left);
     rememberingThatWall.contacts.wasLastWallLeft = true;
 
-    tick(wallJump, holdingJump(1.0f), onASlipperyWall(WallSide::Left), decided);
-    REQUIRE_FALSE(decided.wallJump.active);
+    tick(wallJump, holdingJump(1.0f), onASlipperyWall(WallSide::Left), states);
+    REQUIRE_FALSE(states.wallJump.active);
 
-    tick(wallJump, holdingJump(1.0f), rememberingThatWall, decided);
-    REQUIRE_FALSE(decided.wallJump.active);
+    tick(wallJump, holdingJump(1.0f), rememberingThatWall, states);
+    REQUIRE_FALSE(states.wallJump.active);
 }
 
 TEST_CASE("A wall jump is not made from the ground", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(WallJumpAbilityData{});
-    Decided decided;
+    AbilityStates states;
     Observed standingAgainstIt = onAWall(WallSide::Left);
     standingAgainstIt.contacts.onGround = true;
 
-    tick(wallJump, holdingJump(1.0f), standingAgainstIt, decided);
+    tick(wallJump, holdingJump(1.0f), standingAgainstIt, states);
 
-    REQUIRE_FALSE(decided.wallJump.active);
+    REQUIRE_FALSE(states.wallJump.active);
 }
 
 TEST_CASE("A wall jump held just before reaching a wall goes on reaching it", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(timedAs(0.2f, 0.045f, 0.045f));
-    Decided decided;
-    tick(wallJump, holdingJump(1.0f), inTheAir(), decided);
-    tick(wallJump, InputIntentions{}, inTheAir(), decided, 3);
+    AbilityStates states;
+    tick(wallJump, holdingJump(1.0f), inTheAir(), states);
+    tick(wallJump, InputIntentions{}, inTheAir(), states, 3);
 
-    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), states);
 
-    REQUIRE(decided.wallJump.active);
-    REQUIRE(decided.wallJump.direction == 1.0f);
+    REQUIRE(states.wallJump.active);
+    REQUIRE(states.wallJump.direction == 1.0f);
 }
 
 TEST_CASE("A wall jump held too long before reaching a wall is forgotten", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(timedAs(0.2f, 0.045f, 0.045f));
-    Decided decided;
-    tick(wallJump, holdingJump(1.0f), inTheAir(), decided);
-    tick(wallJump, InputIntentions{}, inTheAir(), decided, 4);
+    AbilityStates states;
+    tick(wallJump, holdingJump(1.0f), inTheAir(), states);
+    tick(wallJump, InputIntentions{}, inTheAir(), states, 4);
 
-    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), states);
 
-    REQUIRE_FALSE(decided.wallJump.active);
+    REQUIRE_FALSE(states.wallJump.active);
 }
 
 TEST_CASE("A wall jump can still be made just after leaving a wall", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(timedAs(0.2f, 0.045f, 0.045f));
-    Decided decided;
-    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
-    tick(wallJump, InputIntentions{}, justOffAWall(WallSide::Left), decided, 3);
+    AbilityStates states;
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), states);
+    tick(wallJump, InputIntentions{}, justOffAWall(WallSide::Left), states, 3);
 
-    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided);
+    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), states);
 
-    REQUIRE(decided.wallJump.active);
-    REQUIRE(decided.wallJump.direction == 1.0f);
+    REQUIRE(states.wallJump.active);
+    REQUIRE(states.wallJump.direction == 1.0f);
 }
 
 TEST_CASE("Too long after leaving a wall, a wall jump is not made", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(timedAs(0.2f, 0.045f, 0.045f));
-    Decided decided;
-    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
-    tick(wallJump, InputIntentions{}, justOffAWall(WallSide::Left), decided, 4);
+    AbilityStates states;
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), states);
+    tick(wallJump, InputIntentions{}, justOffAWall(WallSide::Left), states, 4);
 
-    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided);
+    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), states);
 
-    REQUIRE_FALSE(decided.wallJump.active);
+    REQUIRE_FALSE(states.wallJump.active);
 }
 
 TEST_CASE("Leaving a wall it cannot grip gives no time to jump from it", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(WallJumpAbilityData{});
-    Decided decided;
-    tick(wallJump, InputIntentions{}, onASlipperyWall(WallSide::Left), decided);
+    AbilityStates states;
+    tick(wallJump, InputIntentions{}, onASlipperyWall(WallSide::Left), states);
 
-    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided);
+    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), states);
 
-    REQUIRE_FALSE(decided.wallJump.active);
+    REQUIRE_FALSE(states.wallJump.active);
 }
 
 TEST_CASE(
@@ -166,39 +166,39 @@ TEST_CASE(
     "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(WallJumpAbilityData{});
-    Decided decided;
-    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), decided);
+    AbilityStates states;
+    tick(wallJump, InputIntentions{}, onAWall(WallSide::Left), states);
     Observed nowAgainstASlipperyOne = justOffAWall(WallSide::Left);
     nowAgainstASlipperyOne.contacts.touchingRightWall = true;
 
-    tick(wallJump, holdingJump(1.0f), nowAgainstASlipperyOne, decided);
+    tick(wallJump, holdingJump(1.0f), nowAgainstASlipperyOne, states);
 
-    REQUIRE(decided.wallJump.emit);
-    REQUIRE(decided.wallJump.direction == 1.0f);
+    REQUIRE(states.wallJump.emit);
+    REQUIRE(states.wallJump.direction == 1.0f);
 }
 
 TEST_CASE("A wall jump uses up the leeway for leaving the wall", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(timedAs(0.045f, 0.1f, 0.1f));
-    Decided decided;
-    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), decided);
-    ticksUntil(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided, ended);
+    AbilityStates states;
+    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), states);
+    ticksUntil(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), states, ended);
 
-    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), decided);
+    tick(wallJump, holdingJump(1.0f), justOffAWall(WallSide::Left), states);
 
-    REQUIRE_FALSE(decided.wallJump.active);
+    REQUIRE_FALSE(states.wallJump.active);
 }
 
 TEST_CASE("A wall jump lasts as long as it says, and then ends", "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(timedAs(0.045f, 0.1f, 0.1f));
-    Decided decided;
-    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), decided);
+    AbilityStates states;
+    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), states);
 
-    int ticksUntilItEnds = ticksUntil(wallJump, holdingJump(1.0f), inTheAir(), decided, ended);
+    int ticksUntilItEnds = ticksUntil(wallJump, holdingJump(1.0f), inTheAir(), states, ended);
 
     REQUIRE(ticksUntilItEnds == 4);
-    REQUIRE(decided.wallJump.velocity == glm::vec2(0.0f));
+    REQUIRE(states.wallJump.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE(
@@ -206,13 +206,13 @@ TEST_CASE(
     "[WallJumpAbility]")
 {
     WallJumpAbility wallJump(WallJumpAbilityData{});
-    Decided decided;
-    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), decided);
+    AbilityStates states;
+    tick(wallJump, holdingJump(1.0f), onAWall(WallSide::Left), states);
 
-    tick(wallJump, holdingJump(-1.0f), onASlipperyWall(WallSide::Right), decided);
+    tick(wallJump, holdingJump(-1.0f), onASlipperyWall(WallSide::Right), states);
 
-    REQUIRE_FALSE(decided.wallJump.active);
-    REQUIRE(decided.wallJump.velocity == glm::vec2(0.0f));
+    REQUIRE_FALSE(states.wallJump.active);
+    REQUIRE(states.wallJump.velocity == glm::vec2(0.0f));
 }
 
 TEST_CASE("A wall jump that does not go up and away is refused", "[WallJumpAbility]")

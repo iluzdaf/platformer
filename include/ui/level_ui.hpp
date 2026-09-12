@@ -31,7 +31,7 @@ struct NpcData;
 struct PickupData;
 struct GameData;
 struct AABB;
-struct Decided;
+struct AbilityStates;
 struct AnimatorData;
 struct Observed;
 struct ActorState;

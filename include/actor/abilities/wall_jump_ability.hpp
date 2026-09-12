@@ -6,7 +6,7 @@
 
 struct InputIntentions;
 struct Observed;
-struct Decided;
+struct AbilityStates;
 
 class WallJumpAbility : public Ability
 {
@@ -16,12 +16,12 @@ public:
         float deltaTime,
         const InputIntentions &inputIntentions,
         const Observed &observed,
-        Decided &decided) override;
+        AbilityStates &states) override;
 
 private:
     WallJumpAbilityData data;
     GracePeriod wallJumpBuffer;
     GracePeriod wallJumpCoyote;
 
-    void startWallJump(Decided &decided, int direction);
+    void startWallJump(AbilityStates &states, int direction);
 };

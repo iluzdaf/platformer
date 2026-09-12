@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "actor/abilities/wall_climb_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/wall_climb_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -15,15 +15,15 @@ void WallClimbAbility::decide(
     float,
     const InputIntentions &inputIntentions,
     const Observed &,
-    Decided &decided)
+    AbilityStates &states)
 {
-    decided.wallClimb.velocity = glm::vec2(0.0f);
+    states.wallClimb.velocity = glm::vec2(0.0f);
 
-    if (!decided.wallHang.active)
+    if (!states.wallHang.active)
         return;
 
     if (inputIntentions.direction.y < 0)
-        decided.wallClimb.velocity.y = -data.climbSpeed;
+        states.wallClimb.velocity.y = -data.climbSpeed;
     else if (inputIntentions.direction.y > 0)
-        decided.wallClimb.velocity.y = data.climbSpeed;
+        states.wallClimb.velocity.y = data.climbSpeed;
 }

@@ -3,7 +3,7 @@
 #include <string>
 #include "actor/abilities/pounce_ability_data.hpp"
 #include "actor/abilities/charge_ability_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include <optional>
 #include "actor/actor_behavior_context.hpp"
 #include "helpers/behaviour_context.hpp"
@@ -471,15 +471,15 @@ TEST_CASE(
     spent.to = "stunned";
     spent.when["charging"] = false;
     StateMachineBehavior behavior(StateMachineBehaviorData{{charging, stunned}, {spent}});
-    Decided decided;
-    decided.charge.active = true;
+    AbilityStates states;
+    states.charge.active = true;
     ActorBehaviorContext midCharge = standingAt(navigationGraph, {96.0f, 192.0f});
-    midCharge.decided = &decided;
+    midCharge.abilityStates = &states;
 
     behavior.decide(0.01f, midCharge);
     REQUIRE(behavior.getStateName() == "charge");
 
-    decided.charge.active = false;
+    states.charge.active = false;
     behavior.decide(0.01f, midCharge);
     REQUIRE(behavior.getStateName() == "stunned");
 }

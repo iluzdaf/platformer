@@ -2,7 +2,7 @@
 #include "actor/abilities/swing_ability.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 
@@ -71,12 +71,12 @@ void SwingAbility::decide(
     float deltaTime,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
-    SwingAbilityState &swing = decided.swing;
+    SwingAbilityState &swing = states.swing;
     swing.emit = false;
 
-    if (decided.knockback.active)
+    if (states.knockback.active)
     {
         swing.phase = SwingPhase::Idle;
         return;
@@ -88,7 +88,7 @@ void SwingAbility::decide(
         return;
     }
 
-    if (inputIntentions.attack != SwingAttack || decided.dash.active)
+    if (inputIntentions.attack != SwingAttack || states.dash.active)
         return;
 
     swing.phase = SwingPhase::Windup;

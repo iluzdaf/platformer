@@ -12,7 +12,7 @@
 #include "actor/abilities/wall_hang_ability_state.hpp"
 #include "actor/abilities/wall_slide_ability_state.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
@@ -41,35 +41,35 @@ namespace
             "knocked back",
             "not knocked back",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.knockback.active; },
+            { return yes(asked) == facts.abilityStates.knockback.active; },
             "knockback"},
         Row{"swinging",
             AskedKind::YesOrNo,
             "swinging",
             "not swinging",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.swing.swinging(); },
+            { return yes(asked) == facts.abilityStates.swing.swinging(); },
             ""},
         Row{"dashing",
             AskedKind::YesOrNo,
             "dashing",
             "not dashing",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.dash.active; },
+            { return yes(asked) == facts.abilityStates.dash.active; },
             "dash"},
         Row{"pouncing",
             AskedKind::YesOrNo,
             "pouncing",
             "not pouncing",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.pounce.active; },
+            { return yes(asked) == facts.abilityStates.pounce.active; },
             "pounce"},
         Row{"charging",
             AskedKind::YesOrNo,
             "charging",
             "not charging",
             [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.decided.charge.active; },
+            { return yes(asked) == facts.abilityStates.charge.active; },
             "charge"},
         Row{"onGround",
             AskedKind::YesOrNo,
@@ -84,8 +84,8 @@ namespace
             "not climbing",
             [](const Asked &asked, const AnimatorFacts &facts)
             {
-                bool climbing =
-                    facts.decided.wallHang.active && facts.decided.wallClimb.velocity.y != 0.0f;
+                bool climbing = facts.abilityStates.wallHang.active &&
+                                facts.abilityStates.wallClimb.velocity.y != 0.0f;
                 return yes(asked) == climbing;
             },
             "wallHang"},
@@ -95,7 +95,8 @@ namespace
             "off the wall",
             [](const Asked &asked, const AnimatorFacts &facts)
             {
-                bool onWall = facts.decided.wallSlide.active || facts.decided.wallHang.active;
+                bool onWall =
+                    facts.abilityStates.wallSlide.active || facts.abilityStates.wallHang.active;
                 return yes(asked) == onWall;
             },
             "wallSlide"},

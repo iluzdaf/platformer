@@ -1,5 +1,5 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
-#include "actor/decided.hpp"
+#include "actor/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/abilities/wall_hang_ability.hpp"
 #include "input/input_intentions.hpp"
@@ -12,9 +12,9 @@ void WallHangAbility::decide(
     float,
     const InputIntentions &inputIntentions,
     const Observed &observed,
-    Decided &decided)
+    AbilityStates &states)
 {
-    decided.wallHang.active = false;
+    states.wallHang.active = false;
 
     if (!inputIntentions.climbRequested)
         return;
@@ -22,5 +22,5 @@ void WallHangAbility::decide(
     if (!observed.contacts.grippableWall())
         return;
 
-    decided.wallHang.active = true;
+    states.wallHang.active = true;
 }

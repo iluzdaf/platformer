@@ -8,6 +8,6 @@ return {
     end,
 
     states = {
-        patrol = include('scripts/steering/patrol.lua'),
+        patrol = include('scripts/behaviors/patrol.lua'),
     },
 }

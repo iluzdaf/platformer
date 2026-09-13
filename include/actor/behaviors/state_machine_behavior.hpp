@@ -29,7 +29,7 @@ public:
 
 private:
     StateMachine<ActorFacts> machine;
-    std::vector<std::unique_ptr<ActorBehavior>> steering;
+    std::vector<std::unique_ptr<ActorBehavior>> behaviors;
 
-    ActorBehavior *steeringNow() const;
+    ActorBehavior *behaviorNow() const;
 };

@@ -249,3 +249,24 @@ TEST_CASE("A creature's scripted state is run by its own script", "[LuaStateScri
     REQUIRE(lua.getLua()["seen"]["enteredAs"].get<std::string>() == "walker");
     REQUIRE(npc.feet().x > startedAt);
 }
+
+TEST_CASE(
+    "A creature whose script lacks a state it runs is reported when hooked",
+    "[LuaStateScript]")
+{
+    NpcData lurker = setupNpcData();
+    BehaviorStateData lurking;
+    lurking.name = "lurk";
+    lurking.does = ScriptedBehaviorData{"lurk"};
+    lurker.stateMachineBehaviorData = StateMachineBehaviorData{{lurking}, {}};
+    lurker.script.path = "scripts/npcs/lurker.lua";
+    Npc npc(spawnAt("lurker", ledge_and_wall::OnTheGround), lurker);
+    LuaScriptSystem lua(writeScript("platformer_lua_states_lurk_shared.lua", "\n").string());
+    lua.use(
+        scriptOf("lurker"),
+        writeScript("platformer_lua_states_lurker.lua", "return {}\n").string());
+
+    connectNpcHooks(lua, npc);
+
+    REQUIRE(lua.errorsReported() == 1);
+}

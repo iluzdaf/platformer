@@ -1,5 +1,8 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include "assets/asset_paths.hpp"
+#include "scripting/npc_hooks.hpp"
+#include "scripting/lua_script_system.hpp"
 #include <cmath>
 #include <filesystem>
 #include <glm/geometric.hpp>
@@ -816,4 +819,20 @@ TEST_CASE(
     INFO("stunned at step " << charged.stunnedAt << ", foot x " << charged.footX);
     REQUIRE(charged.stunnedAt >= 0);
     REQUIRE(charged.footX < feetOf(glm::ivec2(1, GroundRow - 1)).x);
+}
+
+TEST_CASE("Every shipped creature's script has the states it runs", "[ShippedNpcs]")
+{
+    for (const auto &[type, npcData] : shippedNpcData())
+    {
+        Npc npc(spawnAt(type, glm::ivec2(0, 0)), npcData);
+        LuaScriptSystem lua;
+        if (!npcData.script.path.empty())
+            lua.use(scriptOf(type), assets::pathTo(npcData.script.path));
+
+        connectNpcHooks(lua, npc);
+
+        INFO(type);
+        REQUIRE(lua.errorsReported() == 0);
+    }
 }

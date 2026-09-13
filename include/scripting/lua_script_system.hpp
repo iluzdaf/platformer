@@ -2,6 +2,7 @@
 
 #include "assets/asset_paths.hpp"
 #include <map>
+#include <set>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -94,6 +95,7 @@ public:
         return wanted;
     }
     void startStateAfresh(const void *owner, const std::string &state);
+    void expectStates(std::string_view name, std::set<std::string> states);
     void forget(const void *owner);
     void bindLevel(const Level *level);
     sol::state &getLua();
@@ -106,12 +108,14 @@ private:
     sol::state lua;
     std::map<std::string, NamedScript> scripts;
     std::map<std::pair<const void *, std::string>, sol::table> stateSelves;
+    std::map<std::string, std::set<std::string>> expectedStates;
     const void *startedBy = nullptr;
     int reported = 0;
     void report(std::string_view what, std::string_view why);
     void reload(NamedScript &script, std::string_view name);
     sol::object stateHook(std::string_view name, const std::string &state, std::string_view hook);
     sol::table selfOf(const void *owner, const std::string &state);
+    void checkStates(std::string_view name);
     std::optional<float> resume(sol::protected_function &co, std::string_view what);
     std::optional<float> settle(sol::protected_function_result result, std::string_view what);
     std::vector<WaitingCoroutine> waitingCoroutines;

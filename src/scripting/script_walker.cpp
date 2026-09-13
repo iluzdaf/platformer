@@ -70,7 +70,17 @@ std::vector<int> ScriptWalker::walkableFrom(int node) const
     return ::walkableFrom(facts.navigationGraph, node);
 }
 
-bool ScriptWalker::standsAt(glm::vec2 point) const
+bool ScriptWalker::standsAt(glm::vec2 point, float atLeast) const
 {
-    return walker.standsAt(facts, point);
+    return walker.standsAt(facts, point, atLeast);
+}
+
+std::vector<int> ScriptWalker::roundTripFrom(int node) const
+{
+    return ::roundTripFrom(facts.navigationGraph, node);
+}
+
+float ScriptWalker::arrivesWithin() const
+{
+    return walker.arrivesWithin();
 }

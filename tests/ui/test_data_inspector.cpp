@@ -23,7 +23,7 @@
 #include "ui/in_scope.hpp"
 #include "ui/sheet_in_scope.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/animator_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
@@ -257,12 +257,12 @@ TEST_CASE(
     "[DataInspector]")
 {
     HeadlessImGui gui;
-    BehaviorStateData chasing;
-    chasing.name = "chase";
-    chasing.does = ChaseBehaviorData{};
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.does = AttackBehaviorData{"pounce"};
 
-    REQUIRE_NOTHROW(gui.frame([&] { inspector::drawFields(chasing); }));
-    REQUIRE(std::holds_alternative<ChaseBehaviorData>(chasing.does));
+    REQUIRE_NOTHROW(gui.frame([&] { inspector::drawFields(pouncing); }));
+    REQUIRE(std::holds_alternative<AttackBehaviorData>(pouncing.does));
 }
 
 TEST_CASE("An actor's animation data draws as its clips and its rules", "[DataInspector]")

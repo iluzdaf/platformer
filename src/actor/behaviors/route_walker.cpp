@@ -250,14 +250,19 @@ bool RouteWalker::withinReachOf(const ActorFacts &context, int nodeId) const
     return standsAt(context, context.navigationGraph.getNode(nodeId).feet);
 }
 
-bool RouteWalker::standsAt(const ActorFacts &context, glm::vec2 point) const
+bool RouteWalker::standsAt(const ActorFacts &context, glm::vec2 point, float atLeast) const
 {
     if (!feetSettledOn(context.feet.y, point.y))
         return false;
 
-    float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
+    float reach = std::max(context.colliderSize.x * 0.5f + arrivalThreshold, atLeast);
 
     return std::abs(point.x - context.feet.x) <= reach;
+}
+
+float RouteWalker::arrivesWithin() const
+{
+    return arrivalThreshold;
 }
 
 bool RouteWalker::hasArrived(const ActorFacts &context, int setOffAt, int headingFor) const

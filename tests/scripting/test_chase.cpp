@@ -3,14 +3,15 @@
 #include <optional>
 #include "actor/actor_facts.hpp"
 #include "helpers/actor_facts.hpp"
-#include "actor/behaviors/chase_behavior.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
+#include "helpers/behavior_file.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 
 namespace
 {
+    constexpr const char *Chase = "scripts/behaviors/chase.lua";
+
     constexpr float Reach = 8.0f * 0.5f + 2.0f;
 
     NavigationGraph setupRunWithAOneWayCrossing()
@@ -25,15 +26,8 @@ namespace
         return navigationGraph;
     }
 
-    ChaseBehaviorData setupData()
-    {
-        ChaseBehaviorData data;
-        data.arrivalThreshold = 2.0f;
-        return data;
-    }
-
     glm::vec2 closeIn(
-        ChaseBehavior &behavior,
+        BehaviorFile &behavior,
         const NavigationGraph &navigationGraph,
         glm::vec2 start,
         std::optional<glm::vec2> threatFeet,
@@ -55,31 +49,31 @@ namespace
     }
 }
 
-TEST_CASE("Closes on a threat standing further along its run", "[ChaseBehavior]")
+TEST_CASE("Closes on a threat standing further along its run", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
     glm::vec2 threat(384.0f, 192.0f);
 
     glm::vec2 endedAt = closeIn(behavior, navigationGraph, {96.0f, 192.0f}, threat);
 
     REQUIRE(beside(endedAt, threat));
-    REQUIRE(behavior.getCurrentNodeId() == 3);
+    REQUIRE(behavior.getCurrentNodeId() == 4);
 }
 
-TEST_CASE("Comes back the other way when the threat is behind it", "[ChaseBehavior]")
+TEST_CASE("Comes back the other way when the threat is behind it", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
     glm::vec2 threat(0.0f, 192.0f);
 
     REQUIRE(beside(closeIn(behavior, navigationGraph, {288.0f, 192.0f}, threat), threat));
 }
 
-TEST_CASE("Stops beside the threat instead of running through it", "[ChaseBehavior]")
+TEST_CASE("Stops beside the threat instead of running through it", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
     glm::vec2 threat(200.0f, 192.0f);
 
     glm::vec2 endedAt = closeIn(behavior, navigationGraph, {96.0f, 192.0f}, threat);
@@ -89,10 +83,10 @@ TEST_CASE("Stops beside the threat instead of running through it", "[ChaseBehavi
     REQUIRE(holding.direction.x == 0.0f);
 }
 
-TEST_CASE("Follows a threat that moves on", "[ChaseBehavior]")
+TEST_CASE("Follows a threat that moves on", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
 
     glm::vec2 caughtAt =
         closeIn(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(200.0f, 192.0f));
@@ -106,10 +100,10 @@ TEST_CASE("Follows a threat that moves on", "[ChaseBehavior]")
     REQUIRE(beside(closeIn(behavior, navigationGraph, caughtAt, movedOn), movedOn));
 }
 
-TEST_CASE("Turns the moment the threat doubles back behind it", "[ChaseBehavior]")
+TEST_CASE("Turns the moment the threat doubles back behind it", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
 
     glm::vec2 midway =
         closeIn(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(384.0f, 192.0f), 40);
@@ -122,10 +116,10 @@ TEST_CASE("Turns the moment the threat doubles back behind it", "[ChaseBehavior]
     REQUIRE(turning.direction.x == -1.0f);
 }
 
-TEST_CASE("Stands still while there is nothing to chase", "[ChaseBehavior]")
+TEST_CASE("Stands still while there is nothing to chase", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
 
     InputIntentions inputIntentions =
         behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 192.0f}, std::nullopt));
@@ -134,10 +128,10 @@ TEST_CASE("Stands still while there is nothing to chase", "[ChaseBehavior]")
     REQUIRE_FALSE(behavior.getTargetNodeId().has_value());
 }
 
-TEST_CASE("Sets off again once a threat appears", "[ChaseBehavior]")
+TEST_CASE("Sets off again once a threat appears", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
 
     behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 192.0f}, std::nullopt));
     InputIntentions inputIntentions = behavior.decide(
@@ -146,10 +140,10 @@ TEST_CASE("Sets off again once a threat appears", "[ChaseBehavior]")
     REQUIRE(inputIntentions.direction.x == 1.0f);
 }
 
-TEST_CASE("Will not chase somewhere it cannot get back from", "[ChaseBehavior]")
+TEST_CASE("Will not chase somewhere it cannot get back from", "[Chase]")
 {
     NavigationGraph navigationGraph = setupRunWithAOneWayCrossing();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
 
     glm::vec2 endedAt =
         closeIn(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(576.0f, 192.0f));
@@ -158,11 +152,11 @@ TEST_CASE("Will not chase somewhere it cannot get back from", "[ChaseBehavior]")
     REQUIRE(std::abs(endedAt.x - 384.0f) <= Reach);
 }
 
-TEST_CASE("Waits below a threat it has no way up to", "[ChaseBehavior]")
+TEST_CASE("Waits below a threat it has no way up to", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
     navigationGraph.addNode(5, {192.0f, 96.0f});
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
     glm::vec2 threat(192.0f, 96.0f);
 
     glm::vec2 endedAt = closeIn(behavior, navigationGraph, {0.0f, 192.0f}, threat);
@@ -172,13 +166,13 @@ TEST_CASE("Waits below a threat it has no way up to", "[ChaseBehavior]")
     REQUIRE(waiting.direction.x == 0.0f);
 }
 
-TEST_CASE("Keeps going for a threat on a ledge it can jump to", "[ChaseBehavior]")
+TEST_CASE("Keeps going for a threat on a ledge it can jump to", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
     navigationGraph.addNode(5, {192.0f, 96.0f});
     navigationGraph.addEdge({2, 5, EdgeType::Jump, {}, 0.2f});
     navigationGraph.addEdge(5, 2, EdgeType::Fall);
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
     glm::vec2 threat(192.0f, 96.0f);
 
     glm::vec2 endedAt = closeIn(behavior, navigationGraph, {0.0f, 192.0f}, threat);
@@ -189,11 +183,11 @@ TEST_CASE("Keeps going for a threat on a ledge it can jump to", "[ChaseBehavior]
     REQUIRE(leaping.jumpRequested);
 }
 
-TEST_CASE("Has nothing to do on a graph with no edges at all", "[ChaseBehavior]")
+TEST_CASE("Has nothing to do on a graph with no edges at all", "[Chase]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {0.0f, 192.0f});
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
 
     InputIntentions inputIntentions = behavior.decide(
         0.01f, standingAt(navigationGraph, {0.0f, 192.0f}, glm::vec2(96.0f, 192.0f)));
@@ -202,10 +196,10 @@ TEST_CASE("Has nothing to do on a graph with no edges at all", "[ChaseBehavior]"
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
 }
 
-TEST_CASE("Catches up with feet settled a pixel below the run", "[ChaseBehavior]")
+TEST_CASE("Catches up with feet settled a pixel below the run", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehavior behavior(setupData());
+    BehaviorFile behavior(Chase);
     glm::vec2 threat(200.0f, 192.0f);
 
     glm::vec2 position(96.0f, 193.5f);
@@ -221,12 +215,10 @@ TEST_CASE("Catches up with feet settled a pixel below the run", "[ChaseBehavior]
     REQUIRE(holding.direction.x == 0.0f);
 }
 
-TEST_CASE("Holds off at its standoff rather than closing to arm's reach", "[ChaseBehavior]")
+TEST_CASE("Holds off at its standoff rather than closing to arm's reach", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ChaseBehaviorData data = setupData();
-    data.standoff = 28.0f;
-    ChaseBehavior behavior(data);
+    BehaviorFile behavior(Chase, std::nullopt, {{"standoff", 28.0f}});
     glm::vec2 threat(200.0f, 192.0f);
 
     glm::vec2 heldAt = closeIn(behavior, navigationGraph, {96.0f, 192.0f}, threat);

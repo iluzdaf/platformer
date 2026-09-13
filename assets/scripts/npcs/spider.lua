@@ -9,5 +9,6 @@ return {
 
     states = {
         patrol = include('scripts/behaviors/patrol.lua'),
+        chase = include('scripts/behaviors/chase.lua'),
     },
 }

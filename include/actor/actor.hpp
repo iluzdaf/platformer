@@ -28,6 +28,7 @@
 #include "game/noise.hpp"
 #include "combat/health.hpp"
 #include "combat/hurting.hpp"
+#include <map>
 
 class StateScript;
 class TileMap;
@@ -80,6 +81,7 @@ protected:
     void declare(const FactsData &facts);
     void setSenses(const SensesData &newSenses);
     void setBeat(const std::optional<PatrolData> &newBeat);
+    void setTuning(const std::map<std::string, float> &newTuning);
     void scriptBehaviorWith(StateScript *script);
 
 private:
@@ -89,6 +91,7 @@ private:
     DeclaredFacts declaredFacts;
     SensesData senses;
     std::optional<PatrolData> beat;
+    std::map<std::string, float> tuned;
     const NavigationGraph *walking = nullptr;
     float highestSinceTheGround = std::numeric_limits<float>::max();
     float fallFromHeightThreshold = 0.0f;

@@ -10,7 +10,7 @@
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/wall_climb_ability_data.hpp"
 #include "actor/abilities/wall_hang_ability_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "game/level.hpp"
 #include "helpers/tile_positions.hpp"
@@ -23,6 +23,7 @@
 #include "npc/npc_spawn_data.hpp"
 #include "state_machines/state_machine_data.hpp"
 #include "conditions/when_data.hpp"
+#include "helpers/creature_scripts.hpp"
 
 using namespace ledge_and_wall;
 
@@ -54,9 +55,12 @@ namespace
     NpcData aWalkerThatChases()
     {
         NpcData data = thatPatrols(setupNpcData());
+        data.script.path = aScriptThatRuns(
+            std::vector<std::string>{
+                "scripts/behaviors/patrol.lua", "scripts/behaviors/chase.lua"});
         BehaviorStateData chasing;
         chasing.name = "chase";
-        chasing.does = ChaseBehaviorData{};
+        chasing.does = ScriptedBehaviorData{"chase"};
         data.stateMachineBehaviorData->states.push_back(chasing);
         data.stateMachineBehaviorData->transitions = {
             TransitionData{"patrol", "chase", WhenData{{{"threatNear", true}}}, 0.0f},

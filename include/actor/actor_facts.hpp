@@ -1,6 +1,8 @@
 #pragma once
 
+#include <map>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_contact_state.hpp"
@@ -23,6 +25,7 @@ struct ActorFacts
     const AbilityStates *abilityStates = nullptr;
     const SensesData *senses = nullptr;
     const PatrolData *beat = nullptr;
+    const std::map<std::string, float> *tuning = nullptr;
     glm::vec2 velocity = glm::vec2(0.0f);
     bool alive = true;
 

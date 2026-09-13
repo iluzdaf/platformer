@@ -7,7 +7,6 @@
 #include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/behaviors/idle_behavior_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation_data.hpp"
@@ -51,7 +50,6 @@ namespace
         sleeping.does = IdleBehaviorData{};
         BehaviorStateData charging;
         charging.name = "charge";
-        charging.does = ChaseBehaviorData{};
         TransitionData woken;
         woken.from = "sleep";
         woken.to = "charge";

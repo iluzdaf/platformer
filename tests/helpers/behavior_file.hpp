@@ -1,6 +1,8 @@
 #pragma once
 
 #include <filesystem>
+#include <map>
+#include <utility>
 #include <optional>
 #include <string>
 #include "actor/actor_facts.hpp"
@@ -15,9 +17,13 @@
 class BehaviorFile
 {
 public:
-    explicit BehaviorFile(const std::string &path, std::optional<PatrolData> beat = std::nullopt)
+    explicit BehaviorFile(
+        const std::string &path,
+        std::optional<PatrolData> beat = std::nullopt,
+        std::map<std::string, float> tuning = {})
         : script(lua, "tested", nullptr),
-          behavior(ScriptedBehaviorData{std::filesystem::path(path).stem().string()}), beat(beat)
+          behavior(ScriptedBehaviorData{std::filesystem::path(path).stem().string()}), beat(beat),
+          tuning(std::move(tuning))
     {
         lua.use("tested", aScriptThatRuns(path));
         behavior.scriptWith(&script);
@@ -26,6 +32,7 @@ public:
     InputIntentions decide(float deltaTime, ActorFacts facts)
     {
         facts.beat = beat ? &*beat : nullptr;
+        facts.tuning = &tuning;
         return behavior.decide(deltaTime, facts);
     }
 
@@ -54,4 +61,5 @@ private:
     LuaStateScript script;
     ScriptedBehavior behavior;
     std::optional<PatrolData> beat;
+    std::map<std::string, float> tuning;
 };

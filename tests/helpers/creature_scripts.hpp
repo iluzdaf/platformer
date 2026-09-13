@@ -3,15 +3,27 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
+
+inline std::string aScriptThatRuns(const std::vector<std::string> &behaviors)
+{
+    std::string name = "platformer_runs";
+    std::string states;
+    for (const std::string &behavior : behaviors)
+    {
+        std::string state = std::filesystem::path(behavior).stem().string();
+        name += "_" + state;
+        states += state + " = include('" + behavior + "'), ";
+    }
+
+    std::filesystem::path path = std::filesystem::temp_directory_path() / (name + ".lua");
+    std::ofstream(path) << "return { states = { " << states << "} }\n";
+    return path.string();
+}
 
 inline std::string aScriptThatRuns(const std::string &behavior)
 {
-    std::string state = std::filesystem::path(behavior).stem().string();
-    std::filesystem::path path =
-        std::filesystem::temp_directory_path() / ("platformer_runs_" + state + ".lua");
-    std::ofstream(path) << "return { states = { " << state << " = include('" << behavior
-                        << "') } }\n";
-    return path.string();
+    return aScriptThatRuns(std::vector<std::string>{behavior});
 }
 
 inline std::string aScriptThatWalksRight()

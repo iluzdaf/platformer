@@ -9,9 +9,7 @@
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/actor_facts.hpp"
-#include "actor/behaviors/chase_behavior.hpp"
 #include "actor/behaviors/attack_behavior.hpp"
 #include "actor/behaviors/scripted_behavior.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
@@ -41,9 +39,7 @@ StateMachineBehavior::StateMachineBehavior(
                 [](const auto &does) -> std::unique_ptr<ActorBehavior>
                 {
                     using Does = std::remove_cvref_t<decltype(does)>;
-                    if constexpr (std::is_same_v<Does, ChaseBehaviorData>)
-                        return std::make_unique<ChaseBehavior>(does);
-                    else if constexpr (std::is_same_v<Does, AttackBehaviorData>)
+                    if constexpr (std::is_same_v<Does, AttackBehaviorData>)
                         return std::make_unique<AttackBehavior>(does);
                     else if constexpr (std::is_same_v<Does, ScriptedBehaviorData>)
                         return std::make_unique<ScriptedBehavior>(does);

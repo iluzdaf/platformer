@@ -10,7 +10,6 @@
 #include "game/level_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
 #include "serialization/json_format.hpp"
@@ -173,12 +172,6 @@ TEST_CASE(
     "A state is written with the kind of what it does, then only what differs inside",
     "[OnlyWhatDiffers]")
 {
-    BehaviorStateData chasing;
-    chasing.name = "chase";
-    ChaseBehaviorData chase;
-    chase.standoff = 28.0f;
-    chasing.does = chase;
-
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{"pounce"};
@@ -188,8 +181,6 @@ TEST_CASE(
     patrolling.name = "patrol";
     patrolling.does = ScriptedBehaviorData{"patrol"};
 
-    REQUIRE(
-        onlyWhatDiffers(chasing) == R"({"name":"chase","does":{"kind":"chase","standoff":28}})");
     REQUIRE(
         onlyWhatDiffers(pouncing) ==
         R"({"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":2})");
@@ -215,14 +206,13 @@ TEST_CASE(
 
 TEST_CASE("What a state does survives a round trip through its kind", "[OnlyWhatDiffers]")
 {
-    BehaviorStateData chasing;
-    chasing.name = "chase";
-    ChaseBehaviorData chase;
-    chase.standoff = 28.0f;
-    chasing.does = chase;
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.does = AttackBehaviorData{"pounce"};
+    pouncing.cooldown = 2.0f;
 
     BehaviorStateData back;
     REQUIRE_FALSE(
-        glz::read<glz::opts{.error_on_unknown_keys = true}>(back, onlyWhatDiffers(chasing)));
-    REQUIRE(back == chasing);
+        glz::read<glz::opts{.error_on_unknown_keys = true}>(back, onlyWhatDiffers(pouncing)));
+    REQUIRE(back == pouncing);
 }

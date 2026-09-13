@@ -23,7 +23,9 @@ public:
     std::optional<PlaceOnThePath> placeOnThePath(glm::vec2 point) const;
     int endOfThePathBeyond(const PlaceOnThePath &place, glm::vec2 comingFrom) const;
     std::vector<int> walkableFrom(int node) const;
-    bool standsAt(glm::vec2 point) const;
+    bool standsAt(glm::vec2 point, float atLeast = 0.0f) const;
+    std::vector<int> roundTripFrom(int node) const;
+    float arrivesWithin() const;
 
 private:
     RouteWalker &walker;

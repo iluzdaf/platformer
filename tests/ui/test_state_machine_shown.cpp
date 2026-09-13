@@ -8,7 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "state_machines/state_machine_data.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
@@ -33,12 +32,6 @@ namespace
 
 TEST_CASE("A state says what it does in words", "[StateMachineShown]")
 {
-    BehaviorStateData chasing = aState("chase");
-    ChaseBehaviorData chase;
-    chase.standoff = 28.0f;
-    chasing.does = chase;
-    REQUIRE(behaviourOf(chasing) == "chase, standoff 28");
-
     BehaviorStateData pouncing = aState("pounce");
     pouncing.does = AttackBehaviorData{"pounce"};
     pouncing.cooldown = 2.0f;

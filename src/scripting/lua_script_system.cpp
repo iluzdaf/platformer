@@ -102,7 +102,16 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         "onGround",
         sol::readonly_property([](const ActorFacts &facts) { return facts.contacts.onGround; }),
         "beat",
-        sol::readonly_property([](const ActorFacts &facts) { return facts.beat; }));
+        sol::readonly_property([](const ActorFacts &facts) { return facts.beat; }),
+        "tuning",
+        [](const ActorFacts &facts, const std::string &name) -> std::optional<float>
+        {
+            if (!facts.tuning)
+                return std::nullopt;
+
+            auto found = facts.tuning->find(name);
+            return found == facts.tuning->end() ? std::nullopt : std::optional(found->second);
+        });
     lua.new_usertype<PatrolData>(
         "Beat",
         sol::no_constructor,
@@ -142,7 +151,15 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         [](const ScriptWalker &walker, int node)
         { return sol::as_table(walker.walkableFrom(node)); },
         "standsAt",
-        &ScriptWalker::standsAt);
+        sol::overload(
+            [](const ScriptWalker &walker, glm::vec2 point) { return walker.standsAt(point); },
+            [](const ScriptWalker &walker, glm::vec2 point, float atLeast)
+            { return walker.standsAt(point, atLeast); }),
+        "roundTripFrom",
+        [](const ScriptWalker &walker, int node)
+        { return sol::as_table(walker.roundTripFrom(node)); },
+        "arrivesWithin",
+        &ScriptWalker::arrivesWithin);
 
     lua.set_function(
         "include",

@@ -270,3 +270,32 @@ TEST_CASE(
 
     REQUIRE(lua.errorsReported() == 1);
 }
+
+TEST_CASE("A creature's tuning reaches the facts its scripts decide on", "[LuaStateScript]")
+{
+    NpcData tuned = setupNpcData();
+    BehaviorStateData reading;
+    reading.name = "read";
+    reading.does = ScriptedBehaviorData{"read"};
+    tuned.stateMachineBehaviorData = StateMachineBehaviorData{{reading}, {}};
+    tuned.tuning["standoff"] = 28.0f;
+    tuned.script.path = writeScript(
+                            "platformer_lua_states_tuned.lua",
+                            "return { states = { read = { decide = function(self, npc, facts)\n"
+                            "    seen.standoff = facts:tuning('standoff')\n"
+                            "    seen.untuned = facts:tuning('patience') == nil\n"
+                            "end } } }\n")
+                            .string();
+    NpcSpawnData spawn = spawnAt("tuned", ledge_and_wall::OnTheGround);
+    Level level = levelWithALedgeAndAWall({spawn}, {{"tuned", tuned}});
+    Npc npc(spawn, tuned);
+    LuaScriptSystem lua(
+        writeScript("platformer_lua_states_tuned_shared.lua", "seen = {}\n").string());
+    lua.use(scriptOf("tuned"), tuned.script.path);
+    connectNpcHooks(lua, npc);
+
+    stepNpc(npc, level, 1);
+
+    REQUIRE(lua.getLua()["seen"]["standoff"].get<float>() == 28.0f);
+    REQUIRE(lua.getLua()["seen"]["untuned"].get<bool>());
+}

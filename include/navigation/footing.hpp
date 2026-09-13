@@ -1,13 +1,22 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 
-// A body at rest does not sit exactly on the line the navigation graph drew.
-// Physics leaves the level 6 spider's feet at 161.000015 on a run at 161, so
-// any question of the form "am I on this surface" has to allow a settle.
-inline constexpr float SettlingTolerance = 4.0f;
+// A climber counts as having reached a node on its wall once its feet are this close.
+inline constexpr float ClimbArrivesWithin = 1.0f;
 
-inline bool feetSettledOn(float feetY, float surfaceY)
+// A body at rest sits on the collider beneath it, give or take float noise. But a run
+// crosses steps up to the body's stepHeight, so its feet can be a step from a node of the
+// run, or from another body on it, and a climber stops within ClimbArrivesWithin of its
+// node. Any question of the form "am I on this surface" allows for both.
+inline float settlingTolerance(float stepHeight)
 {
-    return std::abs(feetY - surfaceY) <= SettlingTolerance;
+    constexpr float FloatNoise = 0.5f;
+    return std::max(stepHeight, ClimbArrivesWithin) + FloatNoise;
+}
+
+inline bool feetSettledOn(float feetY, float surfaceY, float stepHeight)
+{
+    return std::abs(feetY - surfaceY) <= settlingTolerance(stepHeight);
 }

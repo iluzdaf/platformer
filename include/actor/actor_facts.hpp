@@ -18,6 +18,7 @@ struct ActorFacts
     const NavigationGraph &navigationGraph;
     glm::vec2 feet;
     glm::vec2 colliderSize;
+    float stepHeight;
     std::optional<glm::vec2> threatFeet;
 
     ActorContactState contacts;

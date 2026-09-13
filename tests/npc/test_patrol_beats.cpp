@@ -18,6 +18,11 @@
 #include "helpers/ledge_and_wall.hpp"
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/scripted_npcs.hpp"
+#include "player/player_data.hpp"
+#include "helpers/tiles.hpp"
+#include "helpers/palettes.hpp"
+#include "tile_map/tile_data.hpp"
+#include "tile_map/tile_collider_data.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -110,6 +115,50 @@ TEST_CASE("A patrol stays between its beats on a flat run", "[Npc][Patrol]")
     REQUIRE(reached.minX >= feetOf(LeftBeat).x - Slack);
     REQUIRE(reached.maxX <= feetOf(RightBeat).x + Slack);
     REQUIRE(reached.maxX - reached.minX > 100.0f);
+}
+
+TEST_CASE("A patrol turns at a beat just past a step in its run", "[Npc][Patrol]")
+{
+    constexpr int Floor = 9;
+    constexpr int Lower = 2;
+    TileData lower;
+    lower.solid = lower.grippable = true;
+    lower.collider = TileColliderData{{0.0f, 3.0f}, {16.0f, 13.0f}};
+    TileData solid = lower;
+    solid.collider.reset();
+    Placed laid;
+    layColumn(laid, 0, 0, Floor);
+    layColumn(laid, 13, 0, Floor);
+    layRow(laid, Floor, 1, 3);
+    layRow(laid, Floor, 4, 12, Lower);
+    std::map<std::string, NpcData> walkers{{"walker", thatPatrols(setupNpcData())}};
+    NpcSpawnData spawn = patrolling("walker", {2, Floor - 1}, {1, Floor - 1}, {4, Floor - 1});
+    Level level(
+        aLevelPlacing(laid, 14, 10, {2, Floor - 1}, {spawn}),
+        theOnlyPalette(paletteOf({{EmptyTile, TileData{}}, {SolidTile, solid}, {Lower, lower}})),
+        PlayerData(),
+        walkers,
+        {});
+    Npc npc(spawn, walkers.at("walker"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
+
+    int turnedAtTheStep = 0;
+    bool pastTheStep = false;
+    float furthest = 0.0f;
+    for (int step = 0; step < 3000; ++step)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level);
+        glm::vec2 foot = footOf(npc);
+        furthest = std::max(furthest, foot.x);
+        turnedAtTheStep += pastTheStep && foot.x < 64.0f;
+        pastTheStep = foot.x >= 64.0f;
+    }
+
+    INFO("went as far as " << furthest << " and turned back " << turnedAtTheStep << " times");
+    REQUIRE(furthest <= spawn.patrol->to.x + Slack);
+    REQUIRE(turnedAtTheStep >= 2);
 }
 
 TEST_CASE("A patrol resumed after a chase stays between its beats", "[Npc][Patrol][Chase]")

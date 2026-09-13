@@ -326,6 +326,7 @@ ActorFacts Actor::factsNow() const
         graphWalked(),
         feet(),
         physicsBody.colliderSize(),
+        physicsBody.stepHeight(),
         threat,
         observations.contacts,
         &declaredFacts.all(),

@@ -596,12 +596,12 @@ TEST_CASE("A beat in the far half of a single edge is not overshot either", "[Pa
     REQUIRE(leftMost > 200.0f - 16.0f);
 }
 
-TEST_CASE("A patrol reaches both beats with feet settled a pixel below the run", "[Patrol]")
+TEST_CASE("A patrol reaches both beats with feet a step below the run", "[Patrol]")
 {
     NavigationGraph navigationGraph = aWalkRun();
     BehaviorFile behavior(Patrol, between({96.0f, 192.0f}, {288.0f, 192.0f}));
 
-    glm::vec2 position(150.0f, 193.5f);
+    glm::vec2 position(150.0f, 195.0f);
     float furthest = position.x, nearest = position.x;
     for (int step = 0; step < 600; ++step)
     {

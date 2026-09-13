@@ -47,6 +47,11 @@ glm::vec2 PhysicsBody::colliderSize() const
     return data.colliderSize;
 }
 
+float PhysicsBody::stepHeight() const
+{
+    return data.stepHeight;
+}
+
 AABB PhysicsBody::aabb() const
 {
     return AABB(now.position + colliderOffset(), colliderSize());

@@ -36,13 +36,19 @@ inline ActorFacts standingAt(
     glm::vec2 worldPosition,
     std::optional<glm::vec2> threatFeet = std::nullopt)
 {
-    return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), threatFeet, standing(), {}};
+    return {
+        navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), 3.0f, threatFeet, standing(), {}};
 }
 
 inline ActorFacts airborneAt(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
 {
     return {
-        navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt, ActorContactState{}};
+        navigationGraph,
+        worldPosition,
+        glm::vec2(8.0f, 13.0f),
+        3.0f,
+        std::nullopt,
+        ActorContactState{}};
 }
 
 inline ActorFacts factsOf(
@@ -51,7 +57,8 @@ inline ActorFacts factsOf(
     std::string_view inState = {})
 {
     static const NavigationGraph nowhere;
-    ActorFacts facts{nowhere, glm::vec2(0.0f), glm::vec2(0.0f), std::nullopt, observed.contacts};
+    ActorFacts facts{
+        nowhere, glm::vec2(0.0f), glm::vec2(0.0f), 0.0f, std::nullopt, observed.contacts};
     facts.abilityStates = &states;
     facts.velocity = observed.velocity;
     facts.alive = observed.alive;

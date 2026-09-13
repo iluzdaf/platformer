@@ -4,19 +4,14 @@
 #include <span>
 #include <string>
 #include <string_view>
-#include <vector>
 #include <imgui.h>
 #include "ui/when_field.hpp"
+#include "ui/facts_offered_in_scope.hpp"
+#include "conditions/when_data.hpp"
 #include "ui/data_inspector.hpp"
-#include "ui/facts_in_scope.hpp"
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
-#include "animations/animator_facts.hpp"
-#include "actor/actor_facts.hpp"
-#include "actor/actor_fact_rows.hpp"
 #include "conditions/asked.hpp"
-#include "conditions/fact_rows.hpp"
-#include "conditions/facts.hpp"
 
 namespace when_field
 {
@@ -65,25 +60,8 @@ namespace when_field
     }
 }
 
-std::vector<FactOffered> factsOffered(const FactsData *declared)
+inspector::Edited drawCustomField(std::string_view name, WhenData &value)
 {
-    std::vector<FactOffered> offered;
-    for (const FactRow<ActorFacts> &row : actorRows())
-        offered.push_back({std::string(row.name), row.kind});
-
-    if (declared)
-        for (const auto &[name, value] : *declared)
-            offered.push_back({name, kindOf(value)});
-
-    return offered;
-}
-
-inspector::Edited drawCustomField(std::string_view name, AnimationWhenData &value)
-{
-    return drawWhen(name, value, animatorRows());
-}
-
-inspector::Edited drawCustomField(std::string_view name, TransitionWhenData &value)
-{
-    return drawWhen(name, value, factsOffered(factsInScope()));
+    const FactsOffered *offered = factsOfferedInScope();
+    return drawWhen(name, value, offered ? *offered : FactsOffered{});
 }

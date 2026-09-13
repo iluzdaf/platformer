@@ -2,13 +2,13 @@
 
 #include <string>
 #include <vector>
-#include "conditions/asked.hpp"
+#include "conditions/when_data.hpp"
 
 struct TransitionData
 {
     std::string from;
     std::string to;
-    TransitionWhenData when;
+    WhenData when;
     float after = 0.0f;
 
     bool operator==(const TransitionData &) const = default;

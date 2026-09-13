@@ -8,9 +8,9 @@
 #include "actor/abilities/ability_states.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
-#include "conditions/asked.hpp"
 #include "helpers/actor_facts.hpp"
 #include "helpers/rules.hpp"
+#include "conditions/when_data.hpp"
 
 namespace
 {
@@ -256,13 +256,13 @@ TEST_CASE("The animator says when the clip it is playing has finished", "[Animat
 
 TEST_CASE("A rule may wait for the clip it is playing to finish", "[Animator]")
 {
-    AnimationWhenData finished;
+    WhenData finished;
     finished["finished"] = true;
     AnimatorData data;
     data.startClip = "wake";
     data.clips["wake"] = FrameAnimationData({1, 2}, 0.1f, {}, false);
     data.clips["idle"] = animationDataOfFrame(3);
-    data.rules = {{"idle", finished}, {"wake", AnimationWhenData{}}};
+    data.rules = {{"idle", finished}, {"wake", WhenData{}}};
     Animator animator(data);
 
     animator.animate(0.3f, factsOf(AbilityStates{}, walkingOnGround()));
@@ -278,7 +278,7 @@ TEST_CASE("The first rule that holds is shown, and the start clip when none does
     data.startClip = "idle";
     data.clips["idle"] = animationDataOfFrame(1);
     data.clips["walk"] = animationDataOfFrame(2);
-    AnimationWhenData moving;
+    WhenData moving;
     moving["moving"] = true;
     data.rules = {{"walk", moving}};
     Animator animator(data);
@@ -297,8 +297,8 @@ TEST_CASE("The first rule that holds is shown, and the start clip when none does
 
 TEST_CASE("A rule above wins over one below it that holds as well", "[Animator]")
 {
-    AnimationWhenData always;
-    AnimationWhenData moving;
+    WhenData always;
+    WhenData moving;
     moving["moving"] = true;
     AnimatorData data;
     data.startClip = "idle";
@@ -319,9 +319,9 @@ TEST_CASE("A rule above wins over one below it that holds as well", "[Animator]"
 
 TEST_CASE("A rule may ask which state the machine is in", "[Animator]")
 {
-    AnimationWhenData asleep;
+    WhenData asleep;
     asleep["inState"] = std::string("sleep");
-    AnimationWhenData otherwise;
+    WhenData otherwise;
     otherwise["onGround"] = true;
     AnimatorData data;
     data.startClip = "idle";

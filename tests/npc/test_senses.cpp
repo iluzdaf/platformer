@@ -23,6 +23,7 @@
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "state_machines/state_machine_data.hpp"
+#include "conditions/when_data.hpp"
 
 using namespace ledge_and_wall;
 
@@ -75,7 +76,7 @@ namespace
         watcher.stateMachineBehaviorData =
             StateMachineBehaviorData{{watching, alarmed}, {startled}};
 
-        AnimationWhenData threatClose;
+        WhenData threatClose;
         threatClose["threatClose"] = true;
         AnimatorData looks;
         looks.startClip = "calm";

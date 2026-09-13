@@ -11,6 +11,7 @@
 #include "conditions/fact_rows.hpp"
 #include "conditions/facts.hpp"
 #include "state_machines/state_machine_data.hpp"
+#include "conditions/when_data.hpp"
 
 template <class Context> class StateMachine
 {
@@ -120,8 +121,7 @@ private:
         return std::nullopt;
     }
 
-    bool holds(const TransitionWhenData &when, const Context &context, const FactsData &declared)
-        const
+    bool holds(const WhenData &when, const Context &context, const FactsData &declared) const
     {
         for (const auto &[name, asked] : when)
         {

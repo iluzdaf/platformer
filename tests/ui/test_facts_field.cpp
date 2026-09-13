@@ -9,7 +9,7 @@
 #include "helpers/headless_imgui.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_fields.hpp"
-#include "ui/when_field.hpp"
+#include "ui/facts_offered_in_scope.hpp"
 #include "conditions/asked.hpp"
 #include <span>
 #include <vector>
@@ -113,12 +113,12 @@ TEST_CASE("Asking to declare opens the chooser and declares nothing by itself", 
 }
 
 TEST_CASE(
-    "A condition is offered what the engine answers about the actor, then what is declared",
+    "The facts offered are the rows the engine answers, then what is declared",
     "[FactsField]")
 {
     FactsData facts = threeFacts();
 
-    std::vector<FactOffered> offered = factsOffered(&facts);
+    FactsOffered offered = factsOffered(actorRows(), &facts);
 
     std::span<const FactRow<ActorFacts>> answered = actorRows();
     REQUIRE(offered.size() == answered.size() + 3);
@@ -135,5 +135,5 @@ TEST_CASE(
     REQUIRE(offered[declared + 2].name == "near");
     REQUIRE(offered[declared + 2].kind == AskedKind::YesOrNo);
 
-    REQUIRE(factsOffered(nullptr).size() == answered.size());
+    REQUIRE(factsOffered(actorRows()).size() == answered.size());
 }

@@ -23,7 +23,6 @@
 #include "combat/health_data.hpp"
 #include "combat/hit.hpp"
 #include "combat/hurting.hpp"
-#include "conditions/asked.hpp"
 #include "game/exchanging_strikes.hpp"
 #include "game/level.hpp"
 #include "helpers/actors.hpp"
@@ -40,6 +39,7 @@
 #include "player/player.hpp"
 #include "player/player_data.hpp"
 #include "timing/fixed_time_step.hpp"
+#include "conditions/when_data.hpp"
 
 namespace
 {
@@ -63,7 +63,7 @@ namespace
         animations.startClip = "idle";
         animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
         animations.clips["dead"] = FrameAnimationData({7}, 1.0f);
-        AnimationWhenData dead;
+        WhenData dead;
         dead["alive"] = false;
         animations.rules = {{"dead", dead}};
         return rat;
@@ -457,7 +457,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[ExchangingStri
     animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
     swinger.actorData.abilities.swing = SwingAbilityData{};
     animations.clips["attack"] = anAttackClip();
-    AnimationWhenData whileSwinging;
+    WhenData whileSwinging;
     whileSwinging["swinging"] = true;
     animations.rules = {AnimationRuleData{"attack", whileSwinging}, idleRule()};
 

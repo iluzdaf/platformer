@@ -10,16 +10,6 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/marked_label.hpp"
 
-struct FactsData;
-
-struct FactOffered
-{
-    std::string name;
-    AskedKind kind;
-};
-
-std::vector<FactOffered> factsOffered(const FactsData *declared);
-
 namespace when_field
 {
     inspector::Edited drawAsked(std::string_view name, AskedKind kind, Asked &asked);

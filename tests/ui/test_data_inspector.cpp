@@ -27,9 +27,12 @@
 #include "animations/animator_data.hpp"
 #include "animations/animator_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "conditions/asked.hpp"
 #include "animations/animation_rule_data.hpp"
 #include "state_machines/state_machine_data.hpp"
+#include "ui/facts_offered_in_scope.hpp"
+#include "animations/animator_facts.hpp"
+#include "actor/actor_fact_rows.hpp"
+#include "conditions/when_data.hpp"
 
 namespace
 {
@@ -268,7 +271,7 @@ TEST_CASE("An actor's animation data draws as its clips and its rules", "[DataIn
     AnimatorData animations;
     animations.clips["idle"] = FrameAnimationData{{0}, 0.5f};
     animations.clips["walk"] = FrameAnimationData{{1, 2}, 0.1f};
-    AnimationWhenData moving;
+    WhenData moving;
     moving["moving"] = true;
     animations.rules = {{"walk", moving}};
 
@@ -299,11 +302,14 @@ TEST_CASE(
         {
             ImGui::TreeNodeSetOpen(ImGui::GetID("when"), true);
             ImGui::PushID("rule");
+            const FactsOffered toARule = factsOffered(animatorRows());
+            InScope offeringToARule(toARule);
             inspector::drawFields(rule);
             ImGui::PopID();
 
             ImGui::PushID("transition");
-            InScope offering(declared);
+            const FactsOffered toATransition = factsOffered(actorRows(), &declared);
+            InScope offeringToATransition(toATransition);
             inspector::drawFields(transition);
             ImGui::PopID();
         }));

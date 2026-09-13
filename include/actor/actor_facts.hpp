@@ -25,6 +25,5 @@ struct ActorFacts
     bool alive = true;
 
     std::string_view inState = {};
-    // The animator fills this in from the clip it is playing.
     bool finished = false;
 };

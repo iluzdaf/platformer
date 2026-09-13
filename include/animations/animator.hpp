@@ -6,13 +6,18 @@
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animation_rule_data.hpp"
+#include "actor/behaviors/senses_data.hpp"
+#include "conditions/facts.hpp"
 
 struct ActorFacts;
 
 class Animator
 {
 public:
-    explicit Animator(const AnimatorData &data);
+    explicit Animator(
+        const AnimatorData &data,
+        const FactsData &declared = FactsData{},
+        const SensesData &senses = SensesData{});
 
     void animate(float deltaTime, const ActorFacts &facts);
     const FrameAnimation &playing() const;

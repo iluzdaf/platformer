@@ -7,11 +7,9 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 #include "conditions/facts.hpp"
 #include "state_machines/state_machine_data.hpp"
-#include "conditions/when_data.hpp"
 
 template <class Context> class StateMachine
 {
@@ -28,12 +26,10 @@ public:
             states.push_back({state.name, state.cooldown});
 
         for (const TransitionData &transition : transitions)
-            for (const auto &[name, asked] : transition.when)
-                if (std::optional<std::string> why =
-                        whyNotAsked(name, asked, kindKnown(name, declared)))
-                    throw std::runtime_error(
-                        "The transition from \"" + transition.from + "\" to \"" + transition.to +
-                        "\" " + *why);
+            if (std::optional<std::string> why = whyNotAsked(transition.when, rows, declared))
+                throw std::runtime_error(
+                    "The transition from \"" + transition.from + "\" to \"" + transition.to +
+                    "\" " + *why);
     }
 
     std::optional<std::size_t> advance(
@@ -53,7 +49,7 @@ public:
             if (transition.from != states[activeState].name)
                 continue;
 
-            if (!holds(transition.when, context, declared))
+            if (!holds(transition.when, rows, context, declared))
             {
                 heldFor[index] = 0.0f;
                 continue;
@@ -108,42 +104,6 @@ private:
     std::size_t activeState = 0;
     std::vector<float> heldFor;
     std::vector<float> sinceLeft;
-
-    std::optional<AskedKind> kindKnown(const std::string &name, const FactsData &declared) const
-    {
-        if (const FactRow<Context> *row = rowNamed(rows, name))
-            return row->kind;
-
-        auto fact = declared.find(name);
-        if (fact != declared.end())
-            return kindOf(fact->second);
-
-        return std::nullopt;
-    }
-
-    bool holds(const WhenData &when, const Context &context, const FactsData &declared) const
-    {
-        for (const auto &[name, asked] : when)
-        {
-            if (const FactRow<Context> *row = rowNamed(rows, name))
-            {
-                if (!row->holds(asked, context))
-                    return false;
-
-                continue;
-            }
-
-            auto fact = declared.find(name);
-            if (fact == declared.end())
-                throw std::runtime_error(
-                    "A condition asks about \"" + name + "\", and there is no such fact");
-
-            if (fact->second != asked)
-                return false;
-        }
-
-        return true;
-    }
 
     std::optional<std::size_t> stateNamed(std::string_view name) const
     {

@@ -76,10 +76,11 @@ public:
     void walks(const NavigationGraph &navigationGraph);
 
 protected:
-    explicit Actor(const ActorData &data);
+    explicit Actor(
+        const ActorData &data,
+        const FactsData &declared = FactsData{},
+        const SensesData &senses = SensesData{});
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
-    void declare(const FactsData &facts);
-    void setSenses(const SensesData &newSenses);
     void setBeat(const std::optional<PatrolData> &newBeat);
     void setTuning(const std::map<std::string, float> &newTuning);
     void scriptBehaviorWith(StateScript *script);

@@ -13,6 +13,7 @@
 #include "ui/marked_label.hpp"
 #include "ui/saved_in_scope.hpp"
 #include "ui/facts_offered_in_scope.hpp"
+#include "ui/facts_in_scope.hpp"
 #include "ui/in_scope.hpp"
 #include "animations/animator_facts.hpp"
 #include "animations/animation_rule_data.hpp"
@@ -31,7 +32,7 @@ namespace
             return {};
 
         ImGui::TextDisabled("the first rule that holds is shown, else the start clip");
-        const FactsOffered offered = factsOffered(animatorRows());
+        const FactsOffered offered = factsOffered(animatorRows(), factsInScope());
         InScope offering(offered);
         inspector::Edited edited;
         std::optional<std::size_t> takeAway;

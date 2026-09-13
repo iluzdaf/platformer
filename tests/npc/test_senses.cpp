@@ -4,6 +4,7 @@
 #include <variant>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/behaviors/idle_behavior_data.hpp"
@@ -300,4 +301,56 @@ TEST_CASE("A creature's animations sense the threat as its machine does", "[Sens
 
     tick(npc, level, npc.feet() + glm::vec2(60.0f, 0.0f));
     REQUIRE(npc.appearance().currentAnimation == "calm");
+}
+
+namespace
+{
+    NpcData aListenerThatLooksAlertWhen(const std::string &fact)
+    {
+        NpcData listener = aListener();
+        WhenData asked;
+        asked[fact] = true;
+        AnimatorData looks;
+        looks.startClip = "calm";
+        looks.clips["calm"] = FrameAnimationData({0}, 1.0f);
+        looks.clips["alert"] = FrameAnimationData({1}, 1.0f);
+        looks.rules = {{"alert", asked}};
+        listener.actorData.animationData = looks;
+        return listener;
+    }
+}
+
+TEST_CASE("A creature's animations answer to what it declares", "[Senses]")
+{
+    NpcData listener = aListenerThatLooksAlertWhen("heard");
+    NpcSpawnData spawn = spawnAt("listener", OnTheGround);
+    Level level = levelWithALedgeAndAWall({spawn}, {{"listener", listener}});
+    Npc npc(spawn, listener);
+    tick(npc, level);
+    REQUIRE(npc.appearance().currentAnimation == "calm");
+
+    npc.fact("heard", true);
+    tick(npc, level);
+
+    REQUIRE(npc.appearance().currentAnimation == "alert");
+}
+
+TEST_CASE("A creature whose animations ask what it never declared is refused", "[Senses]")
+{
+    NpcData listener = aListenerThatLooksAlertWhen("startled");
+
+    REQUIRE_THROWS_WITH(
+        Npc(spawnAt("listener", OnTheGround), listener),
+        Catch::Matchers::ContainsSubstring("\"startled\", and there is no such fact"));
+}
+
+TEST_CASE(
+    "A creature whose animations ask how close the threat is, and senses no close, is refused",
+    "[Senses]")
+{
+    NpcData listener = aListenerThatLooksAlertWhen("threatClose");
+
+    REQUIRE_THROWS_WITH(
+        Npc(spawnAt("listener", OnTheGround), listener),
+        Catch::Matchers::ContainsSubstring("its senses say nothing of close"));
 }

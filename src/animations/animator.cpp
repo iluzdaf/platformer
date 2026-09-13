@@ -10,11 +10,12 @@
 #include "animations/animator_data.hpp"
 #include "actor/actor_facts.hpp"
 #include "conditions/fact_rows.hpp"
+#include "conditions/facts.hpp"
 
-Animator::Animator(const AnimatorData &data)
+Animator::Animator(const AnimatorData &data, const FactsData &declared, const SensesData &senses)
     : rules(data.rules), startClip(data.startClip), currentState(data.startClip)
 {
-    if (std::optional<std::string> why = whyNotAnAnimator(data))
+    if (std::optional<std::string> why = whyNotAnAnimator(data, declared, senses))
         throw std::runtime_error("An animator " + *why);
 
     for (const auto &[name, clip] : data.clips)
@@ -23,10 +24,11 @@ Animator::Animator(const AnimatorData &data)
 
 const std::string &Animator::shown(const ActorFacts &facts) const
 {
+    static const FactsData nothingDeclared;
     ActorFacts asked = facts;
     asked.finished = finished();
     for (const AnimationRuleData &rule : rules)
-        if (holds(rule.when, animatorRows(), asked))
+        if (holds(rule.when, animatorRows(), asked, facts.facts ? *facts.facts : nothingDeclared))
             return rule.show;
 
     return startClip;

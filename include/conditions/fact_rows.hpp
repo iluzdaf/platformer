@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include "conditions/asked.hpp"
+#include "conditions/facts.hpp"
 
 template <class Context> struct FactRow
 {
@@ -46,17 +47,28 @@ inline std::optional<std::string> whyNotAsked(
 }
 
 template <class Context>
+std::optional<AskedKind> kindKnown(
+    const std::string &name,
+    std::span<const FactRow<Context>> rows,
+    const FactsData &declared)
+{
+    if (const FactRow<Context> *row = rowNamed(rows, name))
+        return row->kind;
+
+    auto fact = declared.find(name);
+    return fact == declared.end() ? std::nullopt : std::optional(kindOf(fact->second));
+}
+
+template <class Context>
 std::optional<std::string> whyNotAsked(
     const std::map<std::string, Asked> &when,
-    std::span<const FactRow<Context>> rows)
+    std::span<const FactRow<Context>> rows,
+    const FactsData &declared = FactsData{})
 {
     for (const auto &[name, asked] : when)
-    {
-        const FactRow<Context> *row = rowNamed(rows, name);
         if (std::optional<std::string> why =
-                whyNotAsked(name, asked, row ? std::optional(row->kind) : std::nullopt))
+                whyNotAsked(name, asked, kindKnown(name, rows, declared)))
             return why;
-    }
 
     return std::nullopt;
 }
@@ -65,16 +77,25 @@ template <class Context>
 bool holds(
     const std::map<std::string, Asked> &when,
     std::span<const FactRow<Context>> rows,
-    const Context &context)
+    const Context &context,
+    const FactsData &declared = FactsData{})
 {
     for (const auto &[name, asked] : when)
     {
-        const FactRow<Context> *row = rowNamed(rows, name);
-        if (!row)
+        if (const FactRow<Context> *row = rowNamed(rows, name))
+        {
+            if (!row->holds(asked, context))
+                return false;
+
+            continue;
+        }
+
+        auto fact = declared.find(name);
+        if (fact == declared.end())
             throw std::runtime_error(
                 "A condition asks about \"" + name + "\", and there is no such fact");
 
-        if (!row->holds(asked, context))
+        if (fact->second != asked)
             return false;
     }
 

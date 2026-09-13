@@ -357,3 +357,23 @@ TEST_CASE("The states a script is told replace the ones it was told before", "[L
 
     REQUIRE(luaScriptSystem.errorsReported() == 1);
 }
+
+TEST_CASE("A dropped script answers no hook", "[LuaScriptSystem]")
+{
+    LuaScriptSystem luaScriptSystem(
+        writeScript("platformer_lua_drop_shared.lua", "seen = seen or {asked = 0}\n").string());
+    luaScriptSystem.use(
+        "dropped",
+        writeScript(
+            "platformer_lua_dropped.lua",
+            "return { onAsked = function() seen.asked = seen.asked + 1 end }\n")
+            .string());
+    luaScriptSystem.emitTo("dropped", "onAsked", nullptr);
+
+    luaScriptSystem.drop("dropped");
+    luaScriptSystem.emitTo("dropped", "onAsked", nullptr);
+    luaScriptSystem.loadScripts();
+    luaScriptSystem.emitTo("dropped", "onAsked", nullptr);
+
+    REQUIRE(luaScriptSystem.getLua()["seen"]["asked"].get<int>() == 1);
+}

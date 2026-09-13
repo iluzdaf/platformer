@@ -54,6 +54,7 @@ public:
         settle(call(std::forward<Args>(args)...), hook);
     }
     void use(std::string_view name, const std::string &path);
+    void drop(std::string_view name);
     template <typename... Args>
     void emitTo(std::string_view name, std::string_view hook, const void *owner, Args &&...args)
     {

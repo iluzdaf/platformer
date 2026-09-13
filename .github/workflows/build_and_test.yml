@@ -114,7 +114,7 @@ jobs:
           Expand-Archive "$env:RUNNER_TEMP\sccache.zip" -DestinationPath "$env:RUNNER_TEMP"
           "$env:RUNNER_TEMP\$name" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Configure & Build for Windows
+      - name: Configure for Windows
         if: runner.os == 'Windows'
         shell: cmd
         run: |
@@ -127,16 +127,8 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DSKIP_OPENGL_TESTS=ON
-          cmake --build build/release
 
-      - name: Compiler cache stats for Windows
-        if: always() && runner.os == 'Windows'
-        shell: cmd
-        run: |
-          sccache --show-stats
-          sccache --stop-server
-
-      - name: Configure & Build for macOS and Linux
+      - name: Configure for macOS and Linux
         if: runner.os != 'Windows'
         shell: bash
         run: |
@@ -161,7 +153,36 @@ jobs:
               -DSKIP_OPENGL_TESTS=ON
           fi
 
-          cmake --build build/release --config Release
+      - name: Build platformer for Windows
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do set VSPATH=%%i
+          call "%VSPATH%\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
+          cmake --build build/release --config Release --target platformer
+
+      - name: Build platformer for macOS and Linux
+        if: runner.os != 'Windows'
+        run: cmake --build build/release --config Release --target platformer
+
+      - name: Build tests for Windows
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do set VSPATH=%%i
+          call "%VSPATH%\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
+          cmake --build build/release --config Release --target tests
+
+      - name: Build tests for macOS and Linux
+        if: runner.os != 'Windows'
+        run: cmake --build build/release --config Release --target tests
+
+      - name: Compiler cache stats for Windows
+        if: always() && runner.os == 'Windows'
+        shell: cmd
+        run: |
+          sccache --show-stats
+          sccache --stop-server
 
       - name: Run tests for Windows
         if: runner.os == 'Windows'
@@ -235,7 +256,7 @@ jobs:
             ccache
           Xvfb :99 -screen 0 1024x768x24 &
 
-      - name: Build instrumented
+      - name: Configure instrumented build
         run: |
           cmake -G Ninja -B build/coverage \
             -DCMAKE_BUILD_TYPE=Debug \
@@ -248,7 +269,12 @@ jobs:
             -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${LLVM} \
             -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
             -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
-          cmake --build build/coverage
+
+      - name: Build instrumented platformer
+        run: cmake --build build/coverage --target platformer
+
+      - name: Build instrumented tests
+        run: cmake --build build/coverage --target tests
 
       - name: Say what the tests never run
         env:

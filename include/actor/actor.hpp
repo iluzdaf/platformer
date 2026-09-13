@@ -9,14 +9,13 @@
 #include "actor/appearance.hpp"
 #include "assets/sheet_data.hpp"
 #include "actor/actor_data.hpp"
-#include "actor/abilities/abilities.hpp"
+#include "actor/mover.hpp"
 #include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "actor/perceived.hpp"
 #include "actor/behaviors/actor_behavior.hpp"
 #include "animations/animator.hpp"
 #include "physics/physics_body.hpp"
-#include <limits>
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/senses_data.hpp"
@@ -88,20 +87,15 @@ protected:
 private:
     const NavigationGraph &graphWalked() const;
     ActorFacts factsNow() const;
-    float howFarItFell();
     DeclaredFacts declaredFacts;
     SensesData senses;
     std::optional<PatrolData> beat;
     std::map<std::string, float> tuned;
     const NavigationGraph *walking = nullptr;
-    float highestSinceTheGround = std::numeric_limits<float>::max();
     float fallFromHeightThreshold = 0.0f;
     std::optional<glm::vec2> threat;
-    Abilities abilities;
-    AbilityStates states;
+    Mover mover;
     std::vector<const Actor *> struckThisSwing;
-    Observed observations;
-    PhysicsBody physicsBody;
     std::optional<Animator> animator;
     Appearance shown;
     SheetData sheet;

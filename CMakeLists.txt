@@ -165,6 +165,7 @@ add_library(platformer_lib OBJECT
 
     src/player/player.cpp
     src/actor/actor.cpp
+    src/actor/mover.cpp
     src/actor/fading_facts.cpp
     src/actor/declared_facts.cpp
     src/actor/cues.cpp

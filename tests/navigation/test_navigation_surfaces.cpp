@@ -244,21 +244,16 @@ TEST_CASE("Ground is only where a solid tile's collider is", "[NavigationSurface
 TEST_CASE("A jump that comes down a hair above a collider rests on its top", "[NavigationSurfaces]")
 {
     Placed laid;
-    layRow(laid, Floor, 0, 29, APixelLower);
-    layRow(laid, 6, 12, 16, APixelLower);
+    layRow(laid, Floor, 0, 29, Full);
+    layRow(laid, 5, 0, 4, Full);
     TileMap tileMap = aMapOf(laid, 30, 12);
     NavigationProfile profile = jumperProfile();
 
     JumpAttempt attempt = simulateJumpAgainst(
-        tileMap,
-        profile.abilities,
-        profile.physicsBodyData,
-        glm::vec2(135.07f, FloorTop + 1.0f),
-        1.0f,
-        0.5f);
+        tileMap, profile.abilities, profile.physicsBodyData, glm::vec2(80.0f, 80.0f), 1.0f, 0.25f);
 
     REQUIRE(attempt.landed);
-    REQUIRE(attempt.path.back().y == FloorTop + 1.0f);
+    REQUIRE(attempt.path.back().y == FloorTop);
 }
 
 TEST_CASE("A landing is governed by a node of its own height", "[NavigationSurfaces]")

@@ -60,8 +60,8 @@ namespace
         {"level2.json", {2411, "2026-09-06, when the report was added"}},
         {"level3.json", {2590, "2026-09-06, when the report was added"}},
         {"level4.json", {2164, "2026-09-06, when the report was added"}},
-        {"level5.json", {6542, "2026-09-06, when the report was added"}},
-        {"level6.json", {19268, "2026-09-06, when the report was added"}},
+        {"level5.json", {10481, "2026-09-13, when a simulated jump began to slide down walls"}},
+        {"level6.json", {24503, "2026-09-13, when a simulated jump began to slide down walls"}},
     };
 }
 

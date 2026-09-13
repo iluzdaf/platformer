@@ -308,6 +308,17 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   down is still one run.
 - Feet placed on a tile in the editor stand on the collider beneath it too.
 
+**A simulated jump moves as the actor does.**
+
+- `Mover` is the part of an actor that input moves: its abilities decide, its body
+  steps, and it observes contacts, velocity, the fall and facing. `Actor` wraps one, and
+  the jump simulation drives one, so what navigation predicts is what the actor does.
+- The simulation jumps the way a route walker does: it holds jump for the arc's hold
+  and lets go, and it asks for no climb. A jump that brushes a grippable wall slides
+  down it, as a player who does not ask to grip does.
+- A take-off first settles onto the ground under the node. A node whose feet are more
+  than a settle above the ground it settles onto is not jumped from.
+
 **A state can be scripted, and walking stays in C++.**
 
 - A state that does `{"kind": "script", "call": "flee"}` is run by `states.flee` in its

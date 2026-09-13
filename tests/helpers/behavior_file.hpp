@@ -1,42 +1,25 @@
 #pragma once
 
+#include <filesystem>
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include "actor/actor_facts.hpp"
 #include "actor/behaviors/patrol_data.hpp"
 #include "actor/behaviors/scripted_behavior.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
-#include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "assets/asset_paths.hpp"
-#include "helpers/shipped.hpp"
+#include "helpers/creature_scripts.hpp"
 #include "input/input_intentions.hpp"
 #include "scripting/lua_script_system.hpp"
 #include "scripting/lua_state_script.hpp"
 
-inline ScriptedBehaviorData shippedScriptedState(
-    const std::string &creature,
-    const std::string &state)
-{
-    for (const BehaviorStateData &each :
-         shippedNpcData().at(creature).stateMachineBehaviorData->states)
-        if (each.name == state)
-            return std::get<ScriptedBehaviorData>(each.does);
-
-    throw std::runtime_error("the shipped " + creature + " has no state called " + state);
-}
-
-class ShippedBehavior
+class BehaviorFile
 {
 public:
-    ShippedBehavior(
-        const std::string &creature,
-        const std::string &state,
-        std::optional<PatrolData> beat = std::nullopt)
-        : script(lua, creature, nullptr), behavior(shippedScriptedState(creature, state)),
-          beat(beat)
+    explicit BehaviorFile(const std::string &path, std::optional<PatrolData> beat = std::nullopt)
+        : script(lua, "tested", nullptr),
+          behavior(ScriptedBehaviorData{std::filesystem::path(path).stem().string()}), beat(beat)
     {
-        lua.use(creature, assets::pathTo(shippedNpcData().at(creature).script.path));
+        lua.use("tested", aScriptThatRuns(path));
         behavior.scriptWith(&script);
     }
 

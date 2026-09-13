@@ -420,7 +420,7 @@ add_executable(tests
     tests/navigation/test_jump_simulation.cpp
     tests/navigation/test_navigation_build_cost.cpp
     tests/actor/behaviors/test_chase_behavior.cpp
-    tests/scripting/test_rat_flees.cpp
+    tests/scripting/test_flee.cpp
     tests/scripting/test_patrol.cpp
     tests/actor/behaviors/test_attack_behavior.cpp
     tests/actor/behaviors/test_state_machine_behavior.cpp

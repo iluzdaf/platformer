@@ -297,9 +297,9 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   machine leaves the state.
 - A script that has no `decide` for a state its creatures run is reported when they are
   hooked up and whenever it reloads, rather than leaving them standing still.
-- A behavior more than one creature uses lives in `scripts/behaviors/`. A creature's script
-  takes it with `include('scripts/behaviors/patrol.lua')`, which runs the file afresh, so
-  a reload reaches it. A spawn's beat reaches `decide` as `facts.beat`.
+- Behaviors live in `scripts/behaviors/`. A creature's script takes the ones it runs with
+  `include('scripts/behaviors/patrol.lua')`, which runs the file afresh, so a reload
+  reaches it. A spawn's beat reaches `decide` as `facts.beat`.
 
 ## 🔭 Future Plans
 

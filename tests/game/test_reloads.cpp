@@ -174,7 +174,7 @@ namespace
         GameData gameData = loadGameData();
         gameData.tilePalettes = theOnlyPalette(aPaletteWithASolidTile());
         gameData.npcData = {
-            {"rat", thatPatrols(setupNpcData())}, {"spider", thatPatrols(setupNpcData())}};
+            {"rat", thatWalks(setupNpcData())}, {"spider", thatWalks(setupNpcData())}};
         return gameData;
     }
 

@@ -25,6 +25,11 @@ inline NpcData setupNpcData()
     npcData.actorData.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
     npcData.actorData.physicsBodyData.colliderOffset = glm::vec2(4.0f, 3.0f);
 
+    return npcData;
+}
+
+inline NpcData thatPatrols(NpcData npcData)
+{
     BehaviorStateData patrolling;
     patrolling.name = "patrol";
     patrolling.does = ScriptedBehaviorData{"patrol"};

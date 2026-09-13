@@ -369,7 +369,7 @@ TEST_CASE(
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
-    pouncer.stateMachineBehaviorData->states = {pouncing};
+    pouncer.stateMachineBehaviorData = StateMachineBehaviorData{{pouncing}, {}};
     std::vector<std::unique_ptr<Npc>> npcs;
     npcs.push_back(std::make_unique<Npc>(spawnAt("pouncer", SpawnTile), pouncer));
     Level level(
@@ -412,7 +412,7 @@ TEST_CASE("A creature bites while it charges, and not while it stands", "[Exchan
     BehaviorStateData charging;
     charging.name = "charge";
     charging.does = AttackBehaviorData{std::string(ChargeAttack)};
-    charger.stateMachineBehaviorData->states = {charging};
+    charger.stateMachineBehaviorData = StateMachineBehaviorData{{charging}, {}};
     std::vector<std::unique_ptr<Npc>> npcs;
     npcs.push_back(std::make_unique<Npc>(spawnAt("charger", SpawnTile), charger));
     Level level(
@@ -464,7 +464,7 @@ TEST_CASE("A creature with a swing strikes the player with it", "[ExchangingStri
     BehaviorStateData swinging;
     swinging.name = "swing";
     swinging.does = AttackBehaviorData{std::string(SwingAttack)};
-    swinger.stateMachineBehaviorData->states = {swinging};
+    swinger.stateMachineBehaviorData = StateMachineBehaviorData{{swinging}, {}};
     std::vector<std::unique_ptr<Npc>> npcs;
     npcs.push_back(std::make_unique<Npc>(spawnAt("swinger", SpawnTile), swinger));
     Level level(

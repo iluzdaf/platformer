@@ -407,7 +407,6 @@ TEST_CASE("A creature named like the player does not answer for it", "[World]")
     gameData.playerData = playerDataWithHealth(3, 0.0f);
     gameData.playerData.script.path = playerScript.string();
     NpcData impostor = setupNpcData();
-    impostor.stateMachineBehaviorData.reset();
     impostor.script.path = npcScript.string();
     gameData.npcData = {{"player", impostor}};
 
@@ -442,11 +441,9 @@ TEST_CASE("An npc's own script hears it hurt and killed, and no other npc's does
 
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
-    rat.stateMachineBehaviorData.reset();
     rat.actorData.healthData = HealthData{2, 0.0f};
     rat.script.path = ratScript.string();
     NpcData spider = setupNpcData();
-    spider.stateMachineBehaviorData.reset();
     spider.script.path = spiderScript.string();
     gameData.npcData = {{"rat", rat}, {"spider", spider}};
 
@@ -484,7 +481,6 @@ TEST_CASE("A coroutine an npc started is dropped when its level is rebuilt", "[W
 
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
-    rat.stateMachineBehaviorData.reset();
     rat.actorData.healthData = HealthData{3, 0.0f};
     rat.script.path = ratScript.string();
     gameData.npcData = {{"rat", rat}};
@@ -513,7 +509,6 @@ TEST_CASE("A swing that kills an npc reaches that npc's own script", "[World]")
     std::ofstream(ratScript) << "return { onDeath = function(rat) seen.dead = rat:type() end }\n";
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
-    rat.stateMachineBehaviorData.reset();
     rat.script.path = ratScript.string();
     gameData.npcData = {{"rat", rat}};
     ScriptedIntentions intentions;
@@ -602,7 +597,6 @@ TEST_CASE("A cue reaches the creature's own script, not the player's", "[World][
     GameData gameData = aFloorWorldWithCoins();
     gameData.playerData.script.path = playerScript.string();
     NpcData rat = setupNpcData();
-    rat.stateMachineBehaviorData.reset();
     AnimatorData &animations = rat.actorData.animationData.emplace();
     animations.startClip = "idle";
     animations.clips["idle"] = FrameAnimationData{{0}, 0.05f, {{0, "onSkitter"}}};
@@ -773,7 +767,8 @@ namespace
 
         TwoWalkers()
         {
-            gameData.npcData = {{"rat", setupNpcData()}, {"spider", setupNpcData()}};
+            gameData.npcData = {
+                {"rat", thatPatrols(setupNpcData())}, {"spider", thatPatrols(setupNpcData())}};
             world.castChanged();
             LevelData levelData = aFloorLevelPlacing(
                 {spawnAt("rat", glm::ivec2(3, FloorLevelStanding)),
@@ -871,7 +866,6 @@ TEST_CASE("A re-made creature is wired to its script, and the old one is forgott
 
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
-    rat.stateMachineBehaviorData.reset();
     rat.actorData.healthData = HealthData{3, 0.0f};
     rat.script = script.string();
     gameData.npcData = {{"rat", rat}};
@@ -902,7 +896,6 @@ TEST_CASE("A coroutine the old creature started is dropped when it is re-made", 
 
     GameData gameData = aFloorWorldWithCoins();
     NpcData rat = setupNpcData();
-    rat.stateMachineBehaviorData.reset();
     rat.actorData.healthData = HealthData{3, 0.0f};
     rat.script = script.string();
     gameData.npcData = {{"rat", rat}};

@@ -43,7 +43,7 @@ namespace
 {
     std::map<std::string, NpcData> npcCatalogue()
     {
-        return {{"rat", setupNpcData()}};
+        return {{"rat", thatPatrols(setupNpcData())}};
     }
 
     Level levelOf(const TileMap &tileMap, glm::ivec2 npcTile)
@@ -166,8 +166,8 @@ TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
     Level level = setupWalkableLevel();
     const TileMap &tileMap = level.getTileMap();
 
-    Npc left(spawnAt("rat", SpawnTile), setupNpcData());
-    Npc right(spawnAt("rat", SpawnTile), setupNpcData());
+    Npc left(spawnAt("rat", SpawnTile), thatPatrols(setupNpcData()));
+    Npc right(spawnAt("rat", SpawnTile), thatPatrols(setupNpcData()));
     ScriptedNpcs scripts;
     scripts.script(left);
     scripts.script(right);
@@ -187,7 +187,7 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
 {
     Level level = setupWalkableLevel();
     const TileMap &tileMap = level.getTileMap();
-    Npc npc(spawnAt("rat", SpawnTile), setupNpcData());
+    Npc npc(spawnAt("rat", SpawnTile), thatPatrols(setupNpcData()));
     ScriptedNpcs scripts;
     scripts.script(npc);
     standIn(npc, tileMap, SpawnTile);
@@ -217,7 +217,7 @@ TEST_CASE("Stands still in a level with nothing to walk on", "[Npc]")
     TileMap tiles = aTileMap();
     Level level = levelOf(tiles, glm::ivec2(3, 4));
 
-    Npc npc(spawnAt("rat", SpawnTile), setupNpcData());
+    Npc npc(spawnAt("rat", SpawnTile), thatPatrols(setupNpcData()));
     ScriptedNpcs scripts;
     scripts.script(npc);
     npc.standAt(feetOf(glm::ivec2(3, 4)));
@@ -230,17 +230,19 @@ TEST_CASE("Patrolling is deterministic, so where you place them is what differs"
     Level level = setupWalkableLevel();
     const TileMap &tileMap = level.getTileMap();
 
-    Npc first(spawnAt("rat", SpawnTile), setupNpcData());
-    Npc second(spawnAt("rat", SpawnTile), setupNpcData());
+    Npc first(spawnAt("rat", SpawnTile), thatPatrols(setupNpcData()));
+    Npc second(spawnAt("rat", SpawnTile), thatPatrols(setupNpcData()));
     ScriptedNpcs scripts;
     scripts.script(first);
     scripts.script(second);
     standIn(first, tileMap, SpawnTile);
     standIn(second, tileMap, SpawnTile);
 
+    glm::vec2 placed = first.body().position();
     stepNpc(first, level, 600);
     stepNpc(second, level, 600);
 
+    REQUIRE(first.body().position() != placed);
     REQUIRE(first.body().position() == second.body().position());
 }
 
@@ -300,7 +302,7 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
 {
     Level level = setupTwoTierLevel();
     const TileMap &tileMap = level.getTileMap();
-    Npc npc(spawnAt("rat", SpawnTile), setupNpcData());
+    Npc npc(spawnAt("rat", SpawnTile), thatPatrols(setupNpcData()));
     ScriptedNpcs scripts;
     scripts.script(npc);
     standIn(npc, tileMap, UnderThePlatform);
@@ -323,7 +325,7 @@ TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
 {
     Level level = setupTwoTierLevel();
     const TileMap &tileMap = level.getTileMap();
-    Npc npc(spawnAt("rat", SpawnTile), setupNpcData());
+    Npc npc(spawnAt("rat", SpawnTile), thatPatrols(setupNpcData()));
     ScriptedNpcs scripts;
     scripts.script(npc);
     standIn(npc, tileMap, UnderThePlatform);
@@ -349,7 +351,6 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     const TileMap &tileMap = level.getTileMap();
 
     NpcData npcData = setupNpcData();
-    npcData.stateMachineBehaviorData.reset();
 
     Npc npc(spawnAt("rat", SpawnTile), npcData);
     standIn(npc, tileMap, SpawnTile);
@@ -390,7 +391,6 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
 TEST_CASE("An npc with no behavior names no state", "[Npc]")
 {
     NpcData npcData = setupNpcData();
-    npcData.stateMachineBehaviorData.reset();
 
     Npc npc(spawnAt("rat", SpawnTile), npcData);
 
@@ -622,7 +622,7 @@ namespace
         BehaviorStateData attacking;
         attacking.name = "attack";
         attacking.does = AttackBehaviorData{with};
-        data.stateMachineBehaviorData->states.push_back(attacking);
+        data.stateMachineBehaviorData = StateMachineBehaviorData{{attacking}, {}};
         return data;
     }
 }

@@ -32,6 +32,7 @@
 #include "actor/fading_facts.hpp"
 #include "tile_map/tile_map.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 namespace
 {

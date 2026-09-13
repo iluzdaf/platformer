@@ -9,6 +9,7 @@
 #include "helpers/palettes.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_map_data.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 namespace
 {

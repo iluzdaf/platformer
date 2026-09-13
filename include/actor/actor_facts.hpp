@@ -9,6 +9,7 @@
 class NavigationGraph;
 struct AbilityStates;
 struct SensesData;
+struct PatrolData;
 
 struct ActorFacts
 {
@@ -21,6 +22,7 @@ struct ActorFacts
     const FactsData *facts = nullptr;
     const AbilityStates *abilityStates = nullptr;
     const SensesData *senses = nullptr;
+    const PatrolData *beat = nullptr;
     glm::vec2 velocity = glm::vec2(0.0f);
     bool alive = true;
 

@@ -133,6 +133,11 @@ void Actor::setSenses(const SensesData &newSenses)
     senses = newSenses;
 }
 
+void Actor::setBeat(const std::optional<PatrolData> &newBeat)
+{
+    beat = newBeat;
+}
+
 void Actor::scriptBehaviorWith(StateScript *script)
 {
     if (behavior)
@@ -329,6 +334,7 @@ ActorFacts Actor::factsNow() const
         &declaredFacts.all(),
         &states,
         &senses};
+    facts.beat = beat ? &*beat : nullptr;
     facts.velocity = observations.velocity;
     facts.alive = observations.alive;
     facts.inState = stateName();

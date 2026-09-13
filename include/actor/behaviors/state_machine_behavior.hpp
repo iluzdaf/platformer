@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <optional>
-#include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string_view>
@@ -19,7 +18,6 @@ class StateMachineBehavior : public ActorBehavior
 public:
     explicit StateMachineBehavior(
         const StateMachineBehaviorData &data,
-        std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween = std::nullopt,
         const FactsData &declared = FactsData{},
         const SensesData &senses = SensesData{});
     void reset() override;

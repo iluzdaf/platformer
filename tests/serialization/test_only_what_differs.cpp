@@ -12,7 +12,7 @@
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
-#include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
 #include "serialization/json_format.hpp"
 #include "serialization/only_what_differs.hpp"
 #include "tile_map/tile_collider_data.hpp"
@@ -186,14 +186,16 @@ TEST_CASE(
 
     BehaviorStateData patrolling;
     patrolling.name = "patrol";
-    patrolling.does = PatrolBehaviorData{};
+    patrolling.does = ScriptedBehaviorData{"patrol"};
 
     REQUIRE(
         onlyWhatDiffers(chasing) == R"({"name":"chase","does":{"kind":"chase","standoff":28}})");
     REQUIRE(
         onlyWhatDiffers(pouncing) ==
         R"({"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":2})");
-    REQUIRE(onlyWhatDiffers(patrolling) == R"({"name":"patrol","does":{"kind":"patrol"}})");
+    REQUIRE(
+        onlyWhatDiffers(patrolling) ==
+        R"({"name":"patrol","does":{"kind":"script","call":"patrol"}})");
 }
 
 TEST_CASE(

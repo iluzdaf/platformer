@@ -31,6 +31,8 @@ return {
     end,
 
     states = {
+        patrol = include('scripts/steering/patrol.lua'),
+
         flee = {
             decide = function(self, rat, facts, walker, dt)
                 if walker:finished() or fleeingTowardsTheThreat(facts, walker) then

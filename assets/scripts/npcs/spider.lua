@@ -6,4 +6,8 @@ return {
     onDeath = function(spider)
         camera:startShake(0.25, 2)
     end,
+
+    states = {
+        patrol = include('scripts/steering/patrol.lua'),
+    },
 }

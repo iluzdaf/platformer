@@ -49,6 +49,7 @@ public:
     const Score &getScore() const;
 
 private:
+    void useCreatureScripts();
     std::string path;
     LevelData levelData;
 

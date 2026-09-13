@@ -29,6 +29,7 @@
 #include "helpers/levels.hpp"
 #include "helpers/floor_level.hpp"
 #include "helpers/actors.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 namespace
 {

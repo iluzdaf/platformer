@@ -31,6 +31,7 @@
 #include "conditions/asked.hpp"
 #include "actor/fading_facts.hpp"
 #include "tile_map/tile_map.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
 
 namespace
 {

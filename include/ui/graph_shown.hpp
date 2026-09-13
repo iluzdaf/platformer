@@ -1,5 +1,6 @@
 #pragma once
 
+#include "actor/behaviors/state_machine_behavior_data.hpp"
 #include <cstddef>
 #include <optional>
 #include <string>
@@ -8,7 +9,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/state_machine_shown.hpp"
 
-struct StateMachineBehaviorData;
 struct AnimationWhenData;
 
 struct GraphNode

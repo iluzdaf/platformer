@@ -1,10 +1,9 @@
 #pragma once
 
+#include "actor/behaviors/state_machine_behavior_data.hpp"
 #include <set>
 #include <string>
 #include "ui/state_machine_shown.hpp"
-
-struct StateMachineBehaviorData;
 
 MachineShown drawStateMachineGraph(
     const StateMachineBehaviorData &machine,

@@ -83,7 +83,7 @@ inspector::Edited drawCustomField(std::string_view name, AnimationWhenData &valu
     return drawWhen(name, value, animatorRows());
 }
 
-inspector::Edited drawCustomField(std::string_view name, BehaviorWhenData &value)
+inspector::Edited drawCustomField(std::string_view name, TransitionWhenData &value)
 {
     return drawWhen(name, value, factsOffered(factsInScope()));
 }

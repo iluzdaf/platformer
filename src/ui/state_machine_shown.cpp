@@ -21,6 +21,7 @@
 #include "actor/actor_fact_rows.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 namespace
 {
@@ -59,7 +60,7 @@ std::string behaviourOf(const BehaviorStateData &state)
     return does;
 }
 
-std::string whenOf(const BehaviorTransitionData &transition)
+std::string whenOf(const TransitionData &transition)
 {
     std::string text;
     for (const auto &[name, asked] : transition.when)
@@ -107,9 +108,9 @@ std::optional<std::size_t> indexOfState(
     return std::nullopt;
 }
 
-bool goesBothWays(const StateMachineBehaviorData &machine, const BehaviorTransitionData &transition)
+bool goesBothWays(const StateMachineBehaviorData &machine, const TransitionData &transition)
 {
-    for (const BehaviorTransitionData &other : machine.transitions)
+    for (const TransitionData &other : machine.transitions)
         if (other.from == transition.to && other.to == transition.from)
             return true;
 

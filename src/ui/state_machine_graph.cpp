@@ -4,6 +4,7 @@
 #include "ui/graph_shown.hpp"
 #include "ui/graph_view.hpp"
 #include "ui/state_machine_shown.hpp"
+#include "actor/behaviors/state_machine_behavior_data.hpp"
 
 MachineShown drawStateMachineGraph(
     const StateMachineBehaviorData &machine,

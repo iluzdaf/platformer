@@ -13,6 +13,7 @@
 #include "animations/animator_facts.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 namespace
 {
@@ -99,7 +100,7 @@ GraphShown graphOf(const StateMachineBehaviorData &machine)
         graph.nodes.push_back({state.name, behaviourOf(state)});
 
     graph.edges.reserve(machine.transitions.size());
-    for (const BehaviorTransitionData &transition : machine.transitions)
+    for (const TransitionData &transition : machine.transitions)
         graph.edges.push_back({transition.from, transition.to, whenOf(transition)});
 
     return graph;

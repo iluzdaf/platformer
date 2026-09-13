@@ -21,6 +21,7 @@
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 using namespace ledge_and_wall;
 
@@ -57,10 +58,8 @@ namespace
         chasing.does = ChaseBehaviorData{};
         data.stateMachineBehaviorData->states.push_back(chasing);
         data.stateMachineBehaviorData->transitions = {
-            BehaviorTransitionData{
-                "patrol", "chase", BehaviorWhenData{{{"threatNear", true}}}, 0.0f},
-            BehaviorTransitionData{
-                "chase", "patrol", BehaviorWhenData{{{"threatNear", false}}}, 2.0f}};
+            TransitionData{"patrol", "chase", TransitionWhenData{{{"threatNear", true}}}, 0.0f},
+            TransitionData{"chase", "patrol", TransitionWhenData{{{"threatNear", false}}}, 2.0f}};
         data.facts["threatNear"] = false;
         return data;
     }

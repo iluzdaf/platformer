@@ -9,6 +9,7 @@
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "conditions/asked.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 namespace
 {
@@ -31,7 +32,7 @@ TEST_CASE("A machine draws as its states and its transitions, in words", "[Graph
     chasing.does = chase;
     BehaviorStateData idling;
     idling.name = "idle";
-    BehaviorTransitionData near;
+    TransitionData near;
     near.from = "idle";
     near.to = "chase";
     near.when["threatNear"] = true;

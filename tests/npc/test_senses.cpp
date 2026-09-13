@@ -22,6 +22,7 @@
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 using namespace ledge_and_wall;
 
@@ -50,7 +51,7 @@ namespace
         BehaviorStateData charging;
         charging.name = "charge";
         charging.does = ChaseBehaviorData{};
-        BehaviorTransitionData woken;
+        TransitionData woken;
         woken.from = "sleep";
         woken.to = "charge";
         woken.when["heard"] = true;
@@ -67,7 +68,7 @@ namespace
         watching.name = "watch";
         BehaviorStateData alarmed;
         alarmed.name = "alarmed";
-        BehaviorTransitionData startled;
+        TransitionData startled;
         startled.from = "watch";
         startled.to = "alarmed";
         startled.when["threatClose"] = true;

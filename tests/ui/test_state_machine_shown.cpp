@@ -12,6 +12,7 @@
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 namespace
 {
@@ -22,9 +23,9 @@ namespace
         return state;
     }
 
-    BehaviorTransitionData aTransition(const std::string &from, const std::string &to)
+    TransitionData aTransition(const std::string &from, const std::string &to)
     {
-        BehaviorTransitionData transition;
+        TransitionData transition;
         transition.from = from;
         transition.to = to;
         return transition;
@@ -57,23 +58,23 @@ TEST_CASE("A state says what it does in words", "[StateMachineShown]")
 
 TEST_CASE("A transition says when it fires, every condition in one line", "[StateMachineShown]")
 {
-    BehaviorTransitionData transition = aTransition("flee", "pounce");
+    TransitionData transition = aTransition("flee", "pounce");
     transition.when["threatInReach"] = true;
     transition.when["threatOnMySurface"] = true;
     transition.when["cornered"] = true;
     REQUIRE(whenOf(transition) == "cornered, threat in reach, threat on my surface");
 
-    BehaviorTransitionData back = aTransition("flee", "patrol");
+    TransitionData back = aTransition("flee", "patrol");
     back.when["threatOnMySurface"] = false;
     back.after = 1.5f;
     REQUIRE(whenOf(back) == "threat not on my surface, after 1.5 s");
 
-    BehaviorTransitionData landed = aTransition("pounce", "chase");
+    TransitionData landed = aTransition("pounce", "chase");
     landed.when["onGround"] = true;
     landed.after = 0.1f;
     REQUIRE(whenOf(landed) == "on ground, after 0.1 s");
 
-    BehaviorTransitionData angry = aTransition("chase", "patrol");
+    TransitionData angry = aTransition("chase", "patrol");
     angry.when["hits"] = 3.0f;
     angry.when["mood"] = std::string("angry");
     angry.when["onGround"] = false;

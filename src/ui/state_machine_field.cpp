@@ -11,6 +11,7 @@
 #include "ui/selection_in_scope.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 namespace
 {
@@ -50,7 +51,7 @@ namespace
         ImGui::EndDisabled();
         if (addTransition)
         {
-            BehaviorTransitionData transition;
+            TransitionData transition;
             transition.from = firstStateNameFor(machine, shown);
             transition.to = transition.from;
             machine.transitions.push_back(transition);

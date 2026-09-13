@@ -5,7 +5,7 @@
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
-#include "helpers/shipped.hpp"
+#include "helpers/creature_scripts.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "game/level.hpp"
 #include "npc/npc.hpp"
@@ -28,6 +28,18 @@ inline NpcData setupNpcData()
     return npcData;
 }
 
+inline NpcData thatWalks(NpcData npcData)
+{
+    BehaviorStateData walking;
+    walking.name = "walk";
+    walking.does = ScriptedBehaviorData{"walk"};
+
+    npcData.stateMachineBehaviorData = StateMachineBehaviorData{{walking}, {}};
+    npcData.script.path = aScriptThatWalksRight();
+
+    return npcData;
+}
+
 inline NpcData thatPatrols(NpcData npcData)
 {
     BehaviorStateData patrolling;
@@ -35,7 +47,7 @@ inline NpcData thatPatrols(NpcData npcData)
     patrolling.does = ScriptedBehaviorData{"patrol"};
 
     npcData.stateMachineBehaviorData = StateMachineBehaviorData{{patrolling}, {}};
-    npcData.script = shippedNpcData().at("rat").script;
+    npcData.script.path = aScriptThatRuns("scripts/behaviors/patrol.lua");
 
     return npcData;
 }

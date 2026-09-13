@@ -768,7 +768,7 @@ namespace
         TwoWalkers()
         {
             gameData.npcData = {
-                {"rat", thatPatrols(setupNpcData())}, {"spider", thatPatrols(setupNpcData())}};
+                {"rat", thatWalks(setupNpcData())}, {"spider", thatWalks(setupNpcData())}};
             world.castChanged();
             LevelData levelData = aFloorLevelPlacing(
                 {spawnAt("rat", glm::ivec2(3, FloorLevelStanding)),

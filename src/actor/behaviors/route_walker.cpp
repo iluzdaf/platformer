@@ -5,7 +5,7 @@
 #include "actor/behaviors/route_walker.hpp"
 #include "actor/behaviors/footing.hpp"
 #include "navigation/navigation_edge.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
@@ -52,7 +52,7 @@ void RouteWalker::reset()
     jumpHeldFor = 0.0f;
 }
 
-void RouteWalker::anchor(const ActorBehaviorContext &context)
+void RouteWalker::anchor(const ActorFacts &context)
 {
     float nearestDrop = 0.0f;
     float nearestDistance = 0.0f;
@@ -77,7 +77,7 @@ void RouteWalker::anchor(const ActorBehaviorContext &context)
     }
 }
 
-bool RouteWalker::hasLostTheRoute(const ActorBehaviorContext &context) const
+bool RouteWalker::hasLostTheRoute(const ActorFacts &context) const
 {
     if (!currentNodeId || !context.contacts.onGround)
         return false;
@@ -115,7 +115,7 @@ bool RouteWalker::walksGroundThatIsGone(const NavigationGraph &navigationGraph) 
     return false;
 }
 
-void RouteWalker::keepInStep(const ActorBehaviorContext &context)
+void RouteWalker::keepInStep(const ActorFacts &context)
 {
     if (walksGroundThatIsGone(context.navigationGraph) || hasLostTheRoute(context))
         reset();
@@ -134,7 +134,7 @@ bool RouteWalker::routeFinished() const
     return !targetNodeId;
 }
 
-void RouteWalker::advanceOnArrival(const ActorBehaviorContext &context)
+void RouteWalker::advanceOnArrival(const ActorFacts &context)
 {
     if (!currentNodeId || !targetNodeId || !hasArrived(context, *currentNodeId, *targetNodeId))
         return;
@@ -147,7 +147,7 @@ void RouteWalker::advanceOnArrival(const ActorBehaviorContext &context)
 }
 
 void RouteWalker::takeRouteTo(
-    const ActorBehaviorContext &context,
+    const ActorFacts &context,
     int destinationNodeId,
     std::optional<glm::vec2> stoppingShortAt)
 {
@@ -176,10 +176,7 @@ void RouteWalker::takeRouteTo(
     targetNodeId = legsLeft.front();
 }
 
-glm::vec2 RouteWalker::targetPosition(
-    const ActorBehaviorContext &context,
-    int setOffAt,
-    int headingFor) const
+glm::vec2 RouteWalker::targetPosition(const ActorFacts &context, int setOffAt, int headingFor) const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
     glm::vec2 atTheNode = navigationGraph.getNode(headingFor).feet;
@@ -199,7 +196,7 @@ glm::vec2 RouteWalker::targetPosition(
     return *stopShortAt;
 }
 
-InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext &context)
+InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
 {
     InputIntentions inputIntentions;
 
@@ -248,7 +245,7 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorBehaviorContext 
     return inputIntentions;
 }
 
-bool RouteWalker::withinReachOf(const ActorBehaviorContext &context, int nodeId) const
+bool RouteWalker::withinReachOf(const ActorFacts &context, int nodeId) const
 {
     NavigationNode node = context.navigationGraph.getNode(nodeId);
     if (!feetSettledOn(context.feet.y, node.feet.y))
@@ -259,8 +256,7 @@ bool RouteWalker::withinReachOf(const ActorBehaviorContext &context, int nodeId)
     return std::abs(node.feet.x - context.feet.x) <= reach;
 }
 
-bool RouteWalker::hasArrived(const ActorBehaviorContext &context, int setOffAt, int headingFor)
-    const
+bool RouteWalker::hasArrived(const ActorFacts &context, int setOffAt, int headingFor) const
 {
     const NavigationGraph &navigationGraph = context.navigationGraph;
     glm::vec2 target = targetPosition(context, setOffAt, headingFor);

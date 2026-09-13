@@ -6,7 +6,7 @@
 #include "actor/behaviors/chase_behavior.hpp"
 #include "actor/behaviors/footing.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
@@ -24,7 +24,7 @@ void ChaseBehavior::reset()
     lastSeenAt.reset();
 }
 
-bool ChaseBehavior::caughtUp(const ActorBehaviorContext &context) const
+bool ChaseBehavior::caughtUp(const ActorFacts &context) const
 {
     if (!context.threatFeet)
         return false;
@@ -37,7 +37,7 @@ bool ChaseBehavior::caughtUp(const ActorBehaviorContext &context) const
     return std::abs(context.threatFeet->x - context.feet.x) <= std::max(reach, data.standoff);
 }
 
-bool ChaseBehavior::threatHasMoved(const ActorBehaviorContext &context) const
+bool ChaseBehavior::threatHasMoved(const ActorFacts &context) const
 {
     if (!lastSeenAt || !context.threatFeet)
         return true;
@@ -45,7 +45,7 @@ bool ChaseBehavior::threatHasMoved(const ActorBehaviorContext &context) const
     return glm::distance(*context.threatFeet, *lastSeenAt) > data.arrivalThreshold;
 }
 
-std::optional<int> ChaseBehavior::whereToCloseIn(const ActorBehaviorContext &context) const
+std::optional<int> ChaseBehavior::whereToCloseIn(const ActorFacts &context) const
 {
     std::optional<int> from = walker.getCurrentNodeId();
     if (!from || !context.threatFeet)
@@ -76,7 +76,7 @@ std::optional<int> ChaseBehavior::whereToCloseIn(const ActorBehaviorContext &con
     return nearest;
 }
 
-void ChaseBehavior::planRoute(const ActorBehaviorContext &context)
+void ChaseBehavior::planRoute(const ActorFacts &context)
 {
     lastSeenAt = context.threatFeet;
     std::optional<int> quarry = whereToCloseIn(context);
@@ -86,7 +86,7 @@ void ChaseBehavior::planRoute(const ActorBehaviorContext &context)
     walker.takeRouteTo(context, *quarry, context.threatFeet);
 }
 
-InputIntentions ChaseBehavior::decide(float deltaTime, const ActorBehaviorContext &context)
+InputIntentions ChaseBehavior::decide(float deltaTime, const ActorFacts &context)
 {
     walker.keepInStep(context);
     if (!walker.isAnchored())

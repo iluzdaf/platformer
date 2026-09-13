@@ -14,7 +14,7 @@
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "actor/behaviors/chase_behavior.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
@@ -22,7 +22,7 @@
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/senses_data.hpp"
 #include "input/input_intentions.hpp"
-#include "actor/behaviors/behavior_facts.hpp"
+#include "actor/actor_fact_rows.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 #include "conditions/facts.hpp"
@@ -31,7 +31,7 @@ namespace
 {
     std::optional<AskedKind> kindKnown(const std::string &name, const FactsData &declared)
     {
-        if (const FactRow<ActorBehaviorContext> *row = rowNamed(behaviorRows(), name))
+        if (const FactRow<ActorFacts> *row = rowNamed(actorRows(), name))
             return row->kind;
 
         auto fact = declared.find(name);
@@ -41,13 +41,11 @@ namespace
         return std::nullopt;
     }
 
-    bool conditionHolds(
-        const BehaviorTransitionData &transition,
-        const ActorBehaviorContext &context)
+    bool conditionHolds(const BehaviorTransitionData &transition, const ActorFacts &context)
     {
         for (const auto &[name, asked] : transition.when)
         {
-            if (const FactRow<ActorBehaviorContext> *row = rowNamed(behaviorRows(), name))
+            if (const FactRow<ActorFacts> *row = rowNamed(actorRows(), name))
             {
                 if (!row->holds(asked, context))
                     return false;
@@ -73,8 +71,7 @@ StateMachineBehavior::StateMachineBehavior(
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween,
     const FactsData &declared,
     const SensesData &senses)
-    : data(data), senses(senses), heldFor(data.transitions.size(), 0.0f),
-      sinceLeft(data.states.size(), 1e9f)
+    : data(data), heldFor(data.transitions.size(), 0.0f), sinceLeft(data.states.size(), 1e9f)
 {
     for (const BehaviorTransitionData &transition : this->data.transitions)
         for (const auto &[name, asked] : transition.when)
@@ -139,7 +136,7 @@ void StateMachineBehavior::reset()
     enter(0);
 }
 
-void StateMachineBehavior::takeATransition(float deltaTime, const ActorBehaviorContext &context)
+void StateMachineBehavior::takeATransition(float deltaTime, const ActorFacts &context)
 {
     for (std::size_t index = 0; index < data.transitions.size(); ++index)
     {
@@ -169,7 +166,7 @@ void StateMachineBehavior::takeATransition(float deltaTime, const ActorBehaviorC
     }
 }
 
-InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorBehaviorContext &context)
+InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorFacts &context)
 {
     if (states.empty())
         return InputIntentions();
@@ -177,9 +174,7 @@ InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorBehavio
     for (float &since : sinceLeft)
         since += deltaTime;
 
-    ActorBehaviorContext sensing = context;
-    sensing.senses = &senses;
-    takeATransition(deltaTime, sensing);
+    takeATransition(deltaTime, context);
 
     if (!states[activeState])
         return InputIntentions();

@@ -21,8 +21,8 @@
 #include "animations/frame_animation.hpp"
 #include "animations/animator.hpp"
 #include "animations/animator_facts.hpp"
-#include "actor/behaviors/behavior_facts.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_fact_rows.hpp"
+#include "actor/actor_facts.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_place.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -72,9 +72,8 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, const Perceived &pe
         onNoise(noise);
     onTick(deltaTime);
 
-    ActorBehaviorContext context = behaviorContext(*walking);
     InputIntentions inputIntentions =
-        behavior ? behavior->decide(deltaTime, context) : InputIntentions();
+        behavior ? behavior->decide(deltaTime, factsNow()) : InputIntentions();
 
     glm::vec2 velocity = abilities.decide(deltaTime, inputIntentions, observations, states);
     observations.hits.clear();
@@ -91,7 +90,7 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, const Perceived &pe
     declaredFacts.fade(deltaTime);
 
     if (animator)
-        animator->animate(deltaTime, states, observations, stateName());
+        animator->animate(deltaTime, factsNow());
 
     observations.facingLeft =
         facingLeftAfter(observations.facingLeft, observations.velocity.x, states.knockback.active);
@@ -127,6 +126,11 @@ float Actor::howFarItFell()
 void Actor::declare(const FactsData &facts)
 {
     declaredFacts = DeclaredFacts(facts);
+}
+
+void Actor::setSenses(const SensesData &newSenses)
+{
+    senses = newSenses;
 }
 
 const FactsData &Actor::facts() const
@@ -308,14 +312,19 @@ void Actor::setBehavior(std::unique_ptr<ActorBehavior> newBehavior)
     behavior = std::move(newBehavior);
 }
 
-ActorBehaviorContext Actor::behaviorContext(const NavigationGraph &navigationGraph) const
+ActorFacts Actor::factsNow() const
 {
-    return ActorBehaviorContext{
-        navigationGraph,
+    ActorFacts facts{
+        graphWalked(),
         feet(),
         physicsBody.colliderSize(),
         threat,
         observations.contacts,
         &declaredFacts.all(),
-        &states};
+        &states,
+        &senses};
+    facts.velocity = observations.velocity;
+    facts.alive = observations.alive;
+    facts.inState = stateName();
+    return facts;
 }

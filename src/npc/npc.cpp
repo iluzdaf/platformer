@@ -35,6 +35,7 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
     : Actor(npcData.actorData), spawn(spawn), npcData(npcData)
 {
     declare(npcData.facts);
+    setSenses(npcData.senses);
     if (npcData.stateMachineBehaviorData)
     {
         for (const BehaviorStateData &state : npcData.stateMachineBehaviorData->states)

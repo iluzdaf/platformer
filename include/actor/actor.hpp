@@ -18,7 +18,8 @@
 #include "physics/physics_body.hpp"
 #include <limits>
 #include "navigation/navigation_profile.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
+#include "actor/behaviors/senses_data.hpp"
 #include "conditions/asked.hpp"
 #include "actor/declared_facts.hpp"
 #include "actor/fading_facts.hpp"
@@ -75,12 +76,14 @@ protected:
     explicit Actor(const ActorData &data);
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
     void declare(const FactsData &facts);
-    ActorBehaviorContext behaviorContext(const NavigationGraph &navigationGraph) const;
+    void setSenses(const SensesData &newSenses);
 
 private:
     const NavigationGraph &graphWalked() const;
+    ActorFacts factsNow() const;
     float howFarItFell();
     DeclaredFacts declaredFacts;
+    SensesData senses;
     const NavigationGraph *walking = nullptr;
     float highestSinceTheGround = std::numeric_limits<float>::max();
     float fallFromHeightThreshold = 0.0f;

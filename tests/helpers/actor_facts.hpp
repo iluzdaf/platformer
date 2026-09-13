@@ -1,9 +1,12 @@
 #pragma once
 
 #include <optional>
+#include <string_view>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/actor_behavior_context.hpp"
+#include "actor/abilities/ability_states.hpp"
+#include "actor/actor_facts.hpp"
 #include "actor/actor_contact_state.hpp"
+#include "actor/observed.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 
@@ -28,7 +31,7 @@ inline ActorContactState standing()
     return contacts;
 }
 
-inline ActorBehaviorContext standingAt(
+inline ActorFacts standingAt(
     const NavigationGraph &navigationGraph,
     glm::vec2 worldPosition,
     std::optional<glm::vec2> threatFeet = std::nullopt)
@@ -36,10 +39,22 @@ inline ActorBehaviorContext standingAt(
     return {navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), threatFeet, standing(), {}};
 }
 
-inline ActorBehaviorContext airborneAt(
-    const NavigationGraph &navigationGraph,
-    glm::vec2 worldPosition)
+inline ActorFacts airborneAt(const NavigationGraph &navigationGraph, glm::vec2 worldPosition)
 {
     return {
         navigationGraph, worldPosition, glm::vec2(8.0f, 13.0f), std::nullopt, ActorContactState{}};
+}
+
+inline ActorFacts factsOf(
+    const AbilityStates &states,
+    const Observed &observed,
+    std::string_view inState = {})
+{
+    static const NavigationGraph nowhere;
+    ActorFacts facts{nowhere, glm::vec2(0.0f), glm::vec2(0.0f), std::nullopt, observed.contacts};
+    facts.abilityStates = &states;
+    facts.velocity = observed.velocity;
+    facts.alive = observed.alive;
+    facts.inState = inState;
+    return facts;
 }

@@ -1,7 +1,6 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 #include <vector>
 #include "animations/animation_rule_data.hpp"
 #include "animations/animator.hpp"
@@ -9,8 +8,7 @@
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animator_data.hpp"
-#include "actor/abilities/ability_states.hpp"
-#include "actor/observed.hpp"
+#include "actor/actor_facts.hpp"
 #include "conditions/fact_rows.hpp"
 
 Animator::Animator(const AnimatorData &data)
@@ -23,26 +21,20 @@ Animator::Animator(const AnimatorData &data)
         animations.insert_or_assign(name, FrameAnimation(clip));
 }
 
-const std::string &Animator::shown(
-    const AbilityStates &abilityStates,
-    const Observed &observed,
-    std::string_view inState) const
+const std::string &Animator::shown(const ActorFacts &facts) const
 {
-    AnimatorFacts facts{abilityStates, observed, finished(), inState};
+    ActorFacts asked = facts;
+    asked.finished = finished();
     for (const AnimationRuleData &rule : rules)
-        if (holds(rule.when, animatorRows(), facts))
+        if (holds(rule.when, animatorRows(), asked))
             return rule.show;
 
     return startClip;
 }
 
-void Animator::animate(
-    float deltaTime,
-    const AbilityStates &abilityStates,
-    const Observed &observed,
-    std::string_view inState)
+void Animator::animate(float deltaTime, const ActorFacts &facts)
 {
-    std::string newState = shown(abilityStates, observed, inState);
+    std::string newState = shown(facts);
 
     if (newState != currentState)
     {

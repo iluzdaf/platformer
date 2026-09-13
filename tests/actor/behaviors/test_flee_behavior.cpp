@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <optional>
-#include "actor/actor_behavior_context.hpp"
-#include "helpers/behaviour_context.hpp"
+#include "actor/actor_facts.hpp"
+#include "helpers/actor_facts.hpp"
 #include "actor/behaviors/flee_behavior.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"

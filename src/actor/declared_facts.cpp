@@ -1,7 +1,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include "actor/behaviors/behavior_facts.hpp"
+#include "actor/actor_fact_rows.hpp"
 #include "actor/declared_facts.hpp"
 #include "actor/fading_facts.hpp"
 #include "conditions/asked.hpp"
@@ -16,7 +16,7 @@ namespace
 DeclaredFacts::DeclaredFacts(const FactsData &declared) : declared(declared), known(declared)
 {
     for (const auto &[name, value] : declared)
-        if (rowNamed(behaviorRows(), name))
+        if (rowNamed(actorRows(), name))
             throw std::runtime_error(
                 "\"" + name + "\" is a fact the engine answers, and cannot be declared");
 }

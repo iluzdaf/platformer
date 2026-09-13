@@ -3,7 +3,7 @@
 #include <optional>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 
 class RouteWalker
@@ -11,15 +11,15 @@ class RouteWalker
 public:
     explicit RouteWalker(float arrivalThreshold);
     void reset();
-    void keepInStep(const ActorBehaviorContext &context);
+    void keepInStep(const ActorFacts &context);
     bool isAnchored() const;
-    void advanceOnArrival(const ActorBehaviorContext &context);
+    void advanceOnArrival(const ActorFacts &context);
     bool routeFinished() const;
     void takeRouteTo(
-        const ActorBehaviorContext &context,
+        const ActorFacts &context,
         int destinationNodeId,
         std::optional<glm::vec2> stopShortAt = std::nullopt);
-    InputIntentions follow(float deltaTime, const ActorBehaviorContext &context);
+    InputIntentions follow(float deltaTime, const ActorFacts &context);
     std::optional<int> getCurrentNodeId() const;
     std::optional<int> getTargetNodeId() const;
 
@@ -31,11 +31,10 @@ private:
     std::vector<int> legsLeft;
     float jumpHeldFor = 0.0f;
 
-    void anchor(const ActorBehaviorContext &context);
-    glm::vec2 targetPosition(const ActorBehaviorContext &context, int setOffAt, int headingFor)
-        const;
-    bool hasArrived(const ActorBehaviorContext &context, int setOffAt, int headingFor) const;
-    bool withinReachOf(const ActorBehaviorContext &context, int nodeId) const;
-    bool hasLostTheRoute(const ActorBehaviorContext &context) const;
+    void anchor(const ActorFacts &context);
+    glm::vec2 targetPosition(const ActorFacts &context, int setOffAt, int headingFor) const;
+    bool hasArrived(const ActorFacts &context, int setOffAt, int headingFor) const;
+    bool withinReachOf(const ActorFacts &context, int nodeId) const;
+    bool hasLostTheRoute(const ActorFacts &context) const;
     bool walksGroundThatIsGone(const NavigationGraph &navigationGraph) const;
 };

@@ -5,9 +5,9 @@
 #include <span>
 #include "conditions/fact_rows.hpp"
 
-struct ActorBehaviorContext;
+struct ActorFacts;
 struct SensesData;
 
-std::span<const FactRow<ActorBehaviorContext>> behaviorRows();
+std::span<const FactRow<ActorFacts>> actorRows();
 
 std::optional<std::string> whyNotSensed(const std::string &name, const SensesData &senses);

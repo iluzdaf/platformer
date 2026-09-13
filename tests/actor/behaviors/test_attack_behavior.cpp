@@ -3,10 +3,10 @@
 #include "actor/abilities/swing_ability_data.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <optional>
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "actor/behaviors/attack_behavior.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
-#include "helpers/behaviour_context.hpp"
+#include "helpers/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 
@@ -64,7 +64,7 @@ TEST_CASE("An attack does not ask from the air", "[AttackBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
     AttackBehavior behavior(attackingWith("pounce"));
-    ActorBehaviorContext inTheAir = airborneAt(navigationGraph, {110.0f, 170.0f});
+    ActorFacts inTheAir = airborneAt(navigationGraph, {110.0f, 170.0f});
     inTheAir.threatFeet = glm::vec2(160.0f, 192.0f);
 
     InputIntentions nothing = behavior.decide(0.01f, inTheAir);

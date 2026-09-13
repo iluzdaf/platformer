@@ -12,8 +12,8 @@
 #include "ui/inspector_edited.hpp"
 #include "ui/inspector_fields.hpp"
 #include "animations/animator_facts.hpp"
-#include "actor/actor_behavior_context.hpp"
-#include "actor/behaviors/behavior_facts.hpp"
+#include "actor/actor_facts.hpp"
+#include "actor/actor_fact_rows.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 #include "conditions/facts.hpp"
@@ -68,7 +68,7 @@ namespace when_field
 std::vector<FactOffered> factsOffered(const FactsData *declared)
 {
     std::vector<FactOffered> offered;
-    for (const FactRow<ActorBehaviorContext> &row : behaviorRows())
+    for (const FactRow<ActorFacts> &row : actorRows())
         offered.push_back({std::string(row.name), row.kind});
 
     if (declared)

@@ -100,6 +100,21 @@ namespace navigation
         return inwards;
     }
 
+    bool feetOverGround(const TileMap &tileMap, glm::vec2 feet)
+    {
+        constexpr float Settle = 0.5f;
+        int row = groundRowOf(tileMap, feet);
+        for (float across : {-Settle, Settle})
+        {
+            glm::ivec2 under(tileMap.tileContaining(feet + glm::vec2(across, 0.0f)).x, row);
+            std::optional<AABB> ground = tileMap.groundAt(under);
+            if (ground && feet.x >= ground->left() - Settle && feet.x <= ground->right() + Settle)
+                return true;
+        }
+
+        return false;
+    }
+
     bool stepsBetween(const TileMap &tileMap, glm::ivec2 from, glm::ivec2 to, float stepHeight)
     {
         std::optional<AABB> here = tileMap.groundAt(from);

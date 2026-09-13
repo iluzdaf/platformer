@@ -23,6 +23,8 @@ namespace navigation
 
     glm::ivec2 groundUnder(const TileMap &tileMap, glm::vec2 feet, float towards);
 
+    bool feetOverGround(const TileMap &tileMap, glm::vec2 feet);
+
     bool stepsBetween(const TileMap &tileMap, glm::ivec2 from, glm::ivec2 to, float stepHeight);
 
     bool isWalkableBetween(

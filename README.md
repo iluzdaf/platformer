@@ -294,6 +294,9 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - A run crosses a step no higher than the body's `stepHeight`, and a higher step splits
   it in two. A body is clear where it only overlaps what it could step onto, so a fall
   can land beside such a step.
+- A jump counts only where its feet come down over a collider, to within half a pixel. A
+  body can hang onto a corner by less than a pixel, and a walker's take-off is not that
+  precise.
 - Feet placed on a tile in the editor stand on the collider beneath it too.
 
 **A state can be scripted, and walking stays in C++.**

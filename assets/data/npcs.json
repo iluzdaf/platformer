@@ -123,7 +123,7 @@
         "stateMachineBehaviorData":{
             "states":[
                 {"name":"patrol","does":{"kind":"script","call":"patrol"}},
-                {"name":"chase","does":{"kind":"chase","standoff":28}},
+                {"name":"chase","does":{"kind":"script","call":"chase"}},
                 {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":2}
             ],
             "transitions":[
@@ -137,6 +137,7 @@
                 {"from":"pounce","to":"chase","when":{"onGround":true},"after":0.1}
             ]
         },
+        "tuning":{"standoff":28},
         "senses":{"close":64,"reach":40},
         "script":"scripts/npcs/spider.lua"
     }

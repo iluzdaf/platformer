@@ -13,7 +13,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/actor_fact_rows.hpp"
@@ -39,10 +38,7 @@ std::string behaviourOf(const BehaviorStateData &state)
         [](const auto &held) -> std::string
         {
             using Does = std::remove_cvref_t<decltype(held)>;
-            if constexpr (std::is_same_v<Does, ChaseBehaviorData>)
-                return held.standoff > 0.0f ? std::format("chase, standoff {}", held.standoff)
-                                            : "chase";
-            else if constexpr (std::is_same_v<Does, AttackBehaviorData>)
+            if constexpr (std::is_same_v<Does, AttackBehaviorData>)
                 return "attack with " + held.with;
             else if constexpr (std::is_same_v<Does, ScriptedBehaviorData>)
                 return "script " + held.call;

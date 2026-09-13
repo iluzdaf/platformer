@@ -41,7 +41,6 @@
 #include "helpers/npc_fixtures.hpp"
 #include "combat/health.hpp"
 #include "actor/behaviors/idle_behavior_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "combat/health_data.hpp"
 #include "npc/npc_data.hpp"
@@ -672,7 +671,6 @@ namespace
         sleeping.does = IdleBehaviorData{};
         BehaviorStateData charging;
         charging.name = "charge";
-        charging.does = ChaseBehaviorData{};
         TransitionData woken;
         woken.from = "sleep";
         woken.to = "charge";

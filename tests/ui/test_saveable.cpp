@@ -3,7 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <map>
 #include "cameras/camera2d_data.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "npc/npc_data.hpp"
@@ -170,21 +170,19 @@ namespace
 TEST_CASE("A state that says its kind can be put back", "[Saveable]")
 {
     Saveable saveable;
-    ChaseBehaviorData chase;
-    chase.standoff = 2.0f;
-    std::map<std::string, NpcData> npcs = aRatThat(chase);
+    std::map<std::string, NpcData> npcs = aRatThat(AttackBehaviorData{"pounce"});
     std::map<std::string, NpcData> asSaved = npcs;
     saveable.saved("npcs", asJson(npcs));
 
     BehaviorDoes &does = npcs.at("rat").stateMachineBehaviorData->states.front().does;
-    std::get<ChaseBehaviorData>(does).standoff = 4.0f;
+    std::get<AttackBehaviorData>(does).with = "bite";
     REQUIRE(saveable.unsaved("npcs", asJson(npcs)));
 
     revertTo(saveable, "npcs", npcs);
 
     const BehaviorDoes &back = npcs.at("rat").stateMachineBehaviorData->states.front().does;
-    REQUIRE(std::holds_alternative<ChaseBehaviorData>(back));
-    REQUIRE(std::get<ChaseBehaviorData>(back).standoff == 2.0f);
+    REQUIRE(std::holds_alternative<AttackBehaviorData>(back));
+    REQUIRE(std::get<AttackBehaviorData>(back).with == "pounce");
     REQUIRE(asJson(npcs) == asJson(asSaved));
 }
 
@@ -194,7 +192,7 @@ TEST_CASE("Choosing another kind counts as unsaved", "[Saveable]")
     std::map<std::string, NpcData> npcs = aRatThat(ScriptedBehaviorData{"patrol"});
     saveable.saved("npcs", asJson(npcs));
 
-    npcs.at("rat").stateMachineBehaviorData->states.front().does = ChaseBehaviorData{};
+    npcs.at("rat").stateMachineBehaviorData->states.front().does = AttackBehaviorData{"pounce"};
 
     REQUIRE(saveable.unsaved("npcs", asJson(npcs)));
 }

@@ -299,7 +299,8 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   hooked up and whenever it reloads, rather than leaving them standing still.
 - Behaviors live in `scripts/behaviors/`. A creature's script takes the ones it runs with
   `include('scripts/behaviors/patrol.lua')`, which runs the file afresh, so a reload
-  reaches it. A spawn's beat reaches `decide` as `facts.beat`.
+  reaches it. A spawn's beat and a creature's tuning reach `decide` as `facts.beat` and
+  `facts:tuning(name)`.
 
 ## 🔭 Future Plans
 

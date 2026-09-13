@@ -39,6 +39,7 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
     declare(npcData.facts);
     setSenses(npcData.senses);
     setBeat(spawn.patrol);
+    setTuning(npcData.tuning);
     if (npcData.stateMachineBehaviorData)
     {
         for (const BehaviorStateData &state : npcData.stateMachineBehaviorData->states)

@@ -22,7 +22,8 @@ public:
         int destinationNodeId,
         std::optional<glm::vec2> stopShortAt = std::nullopt);
     InputIntentions follow(float deltaTime, const ActorFacts &context);
-    bool standsAt(const ActorFacts &context, glm::vec2 point) const;
+    bool standsAt(const ActorFacts &context, glm::vec2 point, float atLeast = 0.0f) const;
+    float arrivesWithin() const;
     std::optional<int> getCurrentNodeId() const;
     std::optional<int> getTargetNodeId() const;
 

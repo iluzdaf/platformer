@@ -38,6 +38,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <map>
 
 Actor::Actor(const ActorData &data)
     : fallFromHeightThreshold(data.fallFromHeightThreshold), abilities(data.abilities),
@@ -136,6 +137,11 @@ void Actor::setSenses(const SensesData &newSenses)
 void Actor::setBeat(const std::optional<PatrolData> &newBeat)
 {
     beat = newBeat;
+}
+
+void Actor::setTuning(const std::map<std::string, float> &newTuning)
+{
+    tuned = newTuning;
 }
 
 void Actor::scriptBehaviorWith(StateScript *script)
@@ -335,6 +341,7 @@ ActorFacts Actor::factsNow() const
         &states,
         &senses};
     facts.beat = beat ? &*beat : nullptr;
+    facts.tuning = &tuned;
     facts.velocity = observations.velocity;
     facts.alive = observations.alive;
     facts.inState = stateName();

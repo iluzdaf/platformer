@@ -7,7 +7,7 @@
 #include "ui/graph_shown.hpp"
 #include "animations/animation_rule_data.hpp"
 #include "ui/state_machine_shown.hpp"
-#include "actor/behaviors/chase_behavior_data.hpp"
+#include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "state_machines/state_machine_data.hpp"
 #include "conditions/when_data.hpp"
@@ -26,24 +26,23 @@ namespace
 
 TEST_CASE("A machine draws as its states and its transitions, in words", "[GraphShown]")
 {
-    BehaviorStateData chasing;
-    chasing.name = "chase";
-    ChaseBehaviorData chase;
-    chase.standoff = 28.0f;
-    chasing.does = chase;
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.does = AttackBehaviorData{"pounce"};
+    pouncing.cooldown = 2.0f;
     BehaviorStateData idling;
     idling.name = "idle";
     TransitionData near;
     near.from = "idle";
-    near.to = "chase";
+    near.to = "pounce";
     near.when["threatNear"] = true;
-    StateMachineBehaviorData machine{{idling, chasing}, {near}};
+    StateMachineBehaviorData machine{{idling, pouncing}, {near}};
 
     GraphShown graph = graphOf(machine);
 
-    REQUIRE(namesOf(graph) == std::vector<std::string>{"idle", "chase"});
-    REQUIRE(graph.nodes[1].words == "chase, standoff 28");
-    REQUIRE(graph.edges == std::vector<GraphEdge>{{"idle", "chase", "threatNear"}});
+    REQUIRE(namesOf(graph) == std::vector<std::string>{"idle", "pounce"});
+    REQUIRE(graph.nodes[1].words == "attack with pounce, cooldown 2 s");
+    REQUIRE(graph.edges == std::vector<GraphEdge>{{"idle", "pounce", "threatNear"}});
 }
 
 TEST_CASE("A rule's words say every fact it asks about", "[GraphShown]")

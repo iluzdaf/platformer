@@ -27,7 +27,7 @@ struct AnimationWhenData : std::map<std::string, Asked>
     bool operator==(const AnimationWhenData &) const = default;
 };
 
-struct BehaviorWhenData : std::map<std::string, Asked>
+struct TransitionWhenData : std::map<std::string, Asked>
 {
-    bool operator==(const BehaviorWhenData &) const = default;
+    bool operator==(const TransitionWhenData &) const = default;
 };

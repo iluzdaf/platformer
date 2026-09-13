@@ -19,6 +19,7 @@
 #include "conditions/facts.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 namespace
 {
@@ -32,12 +33,12 @@ namespace
         fleeing.name = "flee";
         fleeing.does = FleeBehaviorData{};
 
-        BehaviorTransitionData alarmed;
+        TransitionData alarmed;
         alarmed.from = "patrol";
         alarmed.to = "flee";
         alarmed.when["near"] = true;
 
-        BehaviorTransitionData calmed;
+        TransitionData calmed;
         calmed.from = "flee";
         calmed.to = "patrol";
         calmed.when["near"] = false;
@@ -65,83 +66,6 @@ namespace
         context.facts = &facts;
         return context;
     }
-}
-
-TEST_CASE("Starts in the first state it was given", "[StateMachineBehavior]")
-{
-    StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
-
-    REQUIRE(behavior.getStateName() == "patrol");
-}
-
-TEST_CASE("Switches state once the fact it asks for is said", "[StateMachineBehavior]")
-{
-    NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
-    FactsData calm = knowingNear();
-    FactsData near = saying("near", true);
-
-    behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "patrol");
-
-    behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "flee");
-}
-
-TEST_CASE("Calms down once the fact is unsaid", "[StateMachineBehavior]")
-{
-    NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
-    FactsData calm = knowingNear();
-    FactsData near = saying("near", true);
-
-    behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "flee");
-
-    behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "patrol");
-}
-
-TEST_CASE("Waits out the calm down before going back to patrol", "[StateMachineBehavior]")
-{
-    NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(setupData(1.0f), std::nullopt, knowingNear());
-    FactsData calm = knowingNear();
-    FactsData near = saying("near", true);
-
-    behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "flee");
-
-    for (int step = 0; step < 50; ++step)
-        behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "flee");
-
-    for (int step = 0; step < 60; ++step)
-        behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "patrol");
-}
-
-TEST_CASE("A fact said again resets the calm down", "[StateMachineBehavior]")
-{
-    NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(setupData(1.0f), std::nullopt, knowingNear());
-    FactsData calm = knowingNear();
-    FactsData near = saying("near", true);
-
-    behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
-
-    for (int step = 0; step < 90; ++step)
-        behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
-
-    behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
-
-    for (int step = 0; step < 90; ++step)
-        behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "flee");
-
-    for (int step = 0; step < 20; ++step)
-        behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "patrol");
 }
 
 TEST_CASE("Runs the state it is in, not the one it left", "[StateMachineBehavior]")
@@ -172,35 +96,6 @@ TEST_CASE("Given no states at all it asks for nothing", "[StateMachineBehavior]"
     REQUIRE(inputIntentions.direction.x == 0.0f);
 }
 
-TEST_CASE(
-    "A number fact holds when it is equal, and a name when it matches",
-    "[StateMachineBehavior]")
-{
-    NavigationGraph navigationGraph = aWalkRun();
-    BehaviorStateData idling;
-    idling.name = "idle";
-    BehaviorStateData angry;
-    angry.name = "angry";
-    BehaviorTransitionData provoked;
-    provoked.from = "idle";
-    provoked.to = "angry";
-    provoked.when["hits"] = 2.0f;
-    provoked.when["mood"] = std::string("sour");
-    FactsData facts;
-    facts["hits"] = 0.0f;
-    facts["mood"] = std::string("calm");
-    StateMachineBehavior behavior(
-        StateMachineBehaviorData{{idling, angry}, {provoked}}, std::nullopt, facts);
-
-    facts["hits"] = 2.0f;
-    behavior.decide(0.01f, told(facts, standingAt(navigationGraph, {0.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "idle");
-
-    facts["mood"] = std::string("sour");
-    behavior.decide(0.01f, told(facts, standingAt(navigationGraph, {0.0f, 192.0f})));
-    REQUIRE(behavior.getStateName() == "angry");
-}
-
 TEST_CASE("A state with nothing to do asks for nothing", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
@@ -216,28 +111,6 @@ TEST_CASE("A state with nothing to do asks for nothing", "[StateMachineBehavior]
     REQUIRE(behavior.getStateName() == "idle");
     REQUIRE(asked.direction.x == 0.0f);
     REQUIRE_FALSE(asked.jumpRequested);
-}
-
-TEST_CASE("A transition to a state it does not have is ignored", "[StateMachineBehavior]")
-{
-    NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehaviorData data = setupData();
-    BehaviorTransitionData haunted;
-    haunted.from = "flee";
-    haunted.to = "ghost";
-    haunted.when["near"] = true;
-    data.transitions.push_back(haunted);
-    StateMachineBehavior behavior(data, std::nullopt, knowingNear());
-    FactsData near = saying("near", true);
-    ActorFacts threatened =
-        told(near, standingAt(navigationGraph, {0.0f, 192.0f}, glm::vec2(8.0f, 192.0f)));
-
-    behavior.decide(0.016f, threatened);
-    REQUIRE(behavior.getStateName() == "flee");
-
-    behavior.decide(0.016f, threatened);
-
-    REQUIRE(behavior.getStateName() == "flee");
 }
 
 TEST_CASE("Given no states at all, resetting is nothing", "[StateMachineBehavior]")
@@ -281,12 +154,12 @@ namespace
         pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
         pouncing.cooldown = cooldown;
 
-        BehaviorTransitionData close;
+        TransitionData close;
         close.from = "chase";
         close.to = "pounce";
         close.when["near"] = true;
 
-        BehaviorTransitionData landed;
+        TransitionData landed;
         landed.from = "pounce";
         landed.to = "chase";
         landed.when["onGround"] = true;
@@ -294,34 +167,6 @@ namespace
 
         return {{chasing, pouncing}, {close, landed}};
     }
-}
-
-TEST_CASE("A state on cooldown is not re-entered until it has passed", "[StateMachineBehavior]")
-{
-    NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(aChaseThatPounces(1.0f), std::nullopt, knowingNear());
-    FactsData near = saying("near", true);
-    ActorFacts close =
-        told(near, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(200.0f, 192.0f)));
-    auto pouncesIn = [&](int steps)
-    {
-        int pounces = 0;
-        for (int step = 0; step < steps; ++step)
-        {
-            behavior.decide(0.01f, close);
-            pounces += behavior.getStateName() == "pounce";
-        }
-        return pounces;
-    };
-
-    REQUIRE(pouncesIn(1) == 1);
-    REQUIRE(pouncesIn(10) > 0);
-    REQUIRE(behavior.getStateName() == "chase");
-
-    REQUIRE(pouncesIn(80) == 0);
-    REQUIRE(behavior.secondsSinceLeaving("pounce") < 1.0f);
-
-    REQUIRE(pouncesIn(40) > 0);
 }
 
 TEST_CASE(
@@ -376,11 +221,11 @@ TEST_CASE(
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
     pouncing.cooldown = 1.0f;
-    BehaviorTransitionData tooClose;
+    TransitionData tooClose;
     tooClose.from = "flee";
     tooClose.to = "pounce";
     tooClose.when["inReach"] = true;
-    BehaviorTransitionData landed;
+    TransitionData landed;
     landed.from = "pounce";
     landed.to = "flee";
     landed.when["onGround"] = true;
@@ -410,6 +255,75 @@ TEST_CASE(
     REQUIRE(behavior.getStateName() == "flee");
 }
 
+TEST_CASE("Each time it enters a state, that state starts afresh", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    BehaviorStateData fleeing;
+    fleeing.name = "flee";
+    fleeing.does = FleeBehaviorData{};
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
+    TransitionData tooClose;
+    tooClose.from = "flee";
+    tooClose.to = "pounce";
+    tooClose.when["inReach"] = true;
+    TransitionData backOff;
+    backOff.from = "pounce";
+    backOff.to = "flee";
+    backOff.when["inReach"] = false;
+    FactsData facts;
+    facts["inReach"] = false;
+    StateMachineBehavior behavior({{fleeing, pouncing}, {tooClose, backOff}}, std::nullopt, facts);
+    auto decide = [&](bool inReach)
+    {
+        facts["inReach"] = inReach;
+        return behavior.decide(
+            0.01f,
+            told(facts, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(176.0f, 192.0f))));
+    };
+
+    REQUIRE(decide(true).attack == PounceAttack);
+    REQUIRE(decide(true).attack.empty());
+    decide(false);
+    REQUIRE(behavior.getStateName() == "flee");
+
+    REQUIRE(decide(true).attack == PounceAttack);
+}
+
+TEST_CASE("Resetting goes back to the first state, and starts it afresh", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    BehaviorStateData pouncing;
+    pouncing.name = "pounce";
+    pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
+    BehaviorStateData fleeing;
+    fleeing.name = "flee";
+    fleeing.does = FleeBehaviorData{};
+    TransitionData backOff;
+    backOff.from = "pounce";
+    backOff.to = "flee";
+    backOff.when["inReach"] = false;
+    FactsData facts;
+    facts["inReach"] = true;
+    StateMachineBehavior behavior({{pouncing, fleeing}, {backOff}}, std::nullopt, facts);
+    auto decide = [&](bool inReach)
+    {
+        facts["inReach"] = inReach;
+        return behavior.decide(
+            0.01f,
+            told(facts, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(176.0f, 192.0f))));
+    };
+    REQUIRE(decide(true).attack == PounceAttack);
+    decide(false);
+    REQUIRE(behavior.getStateName() == "flee");
+
+    behavior.reset();
+
+    REQUIRE(behavior.getStateName() == "pounce");
+    REQUIRE(decide(true).attack == PounceAttack);
+}
+
 TEST_CASE("A state that does nothing stands still", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
@@ -423,27 +337,6 @@ TEST_CASE("A state that does nothing stands still", "[StateMachineBehavior]")
     REQUIRE(behavior.getStateName() == "idle");
     REQUIRE(standing.direction.x == 0.0f);
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
-}
-
-TEST_CASE("A transition asking about a fact nobody declares is refused", "[StateMachineBehavior]")
-{
-    StateMachineBehaviorData data = setupData();
-    data.transitions.front().when["snowing"] = true;
-
-    REQUIRE_THROWS_AS(StateMachineBehavior(data, std::nullopt, knowingNear()), std::runtime_error);
-
-    REQUIRE_THROWS_AS(StateMachineBehavior(setupData()), std::runtime_error);
-}
-
-TEST_CASE("A transition asking with the wrong kind of value is refused", "[StateMachineBehavior]")
-{
-    StateMachineBehaviorData data = setupData();
-    data.transitions.front().when["near"] = 3.0f;
-    REQUIRE_THROWS_AS(StateMachineBehavior(data, std::nullopt, knowingNear()), std::runtime_error);
-
-    data = setupData();
-    data.transitions.front().when["onGround"] = 3.0f;
-    REQUIRE_THROWS_AS(StateMachineBehavior(data, std::nullopt, knowingNear()), std::runtime_error);
 }
 
 TEST_CASE("A transition asking about a fact nobody has said is an error", "[StateMachineBehavior]")
@@ -468,7 +361,7 @@ TEST_CASE(
     charging.name = "charge";
     BehaviorStateData stunned;
     stunned.name = "stunned";
-    BehaviorTransitionData spent;
+    TransitionData spent;
     spent.from = "charge";
     spent.to = "stunned";
     spent.when["charging"] = false;
@@ -493,7 +386,7 @@ TEST_CASE("A machine told nothing of its abilities is not charging", "[StateMach
     charging.name = "charge";
     BehaviorStateData stunned;
     stunned.name = "stunned";
-    BehaviorTransitionData spent;
+    TransitionData spent;
     spent.from = "charge";
     spent.to = "stunned";
     spent.when["charging"] = false;

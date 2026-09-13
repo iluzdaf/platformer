@@ -29,6 +29,7 @@
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "conditions/asked.hpp"
 #include "animations/animation_rule_data.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 namespace
 {
@@ -284,7 +285,7 @@ TEST_CASE(
     rule.show = "pounce";
     rule.when["onGround"] = false;
     rule.when["inState"] = std::string("pounce");
-    BehaviorTransitionData transition;
+    TransitionData transition;
     transition.from = "chase";
     transition.to = "pounce";
     transition.when["hits"] = 3.0f;

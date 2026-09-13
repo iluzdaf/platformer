@@ -33,6 +33,12 @@ namespace
         return !glz::name_v<T>.starts_with("std::");
     }
 
+    template <class T> constexpr bool namedAsData()
+    {
+        std::string_view name = glz::name_v<T>;
+        return name.substr(0, name.find('<')).ends_with("Data");
+    }
+
     template <class T> constexpr std::string_view notNamedAsDataIn();
 
     template <class Variant, std::size_t... I>
@@ -67,19 +73,19 @@ namespace
             return notNamedAsDataInAny<T>(std::make_index_sequence<std::variant_size_v<T>>{});
         else if constexpr (MapLike<T>)
         {
-            if (ours<T>() && !glz::name_v<T>.ends_with("Data"))
+            if (ours<T>() && !namedAsData<T>())
                 return glz::name_v<T>;
 
             return notNamedAsDataIn<typename T::mapped_type>();
         }
         else if constexpr (glz::reflectable<T>)
         {
-            if (!glz::name_v<T>.ends_with("Data"))
+            if (!namedAsData<T>())
                 return glz::name_v<T>;
 
             return notNamedAsDataInFields<T>(std::make_index_sequence<glz::reflect<T>::size>{});
         }
-        else if constexpr (ours<T>() && !glz::name_v<T>.ends_with("Data"))
+        else if constexpr (ours<T>() && !namedAsData<T>())
             return glz::name_v<T>;
         else
             return {};
@@ -129,6 +135,16 @@ namespace naming
         std::string name;
         float size = 0.0f;
     };
+
+    template <class Inside> struct KeptData
+    {
+        Inside kept;
+    };
+
+    template <class Inside> struct Holder
+    {
+        Inside held;
+    };
 }
 
 TEST_CASE("The walk finds a badly named type however deep it hides", "[DataNaming]")
@@ -137,4 +153,12 @@ TEST_CASE("The walk finds a badly named type however deep it hides", "[DataNamin
     STATIC_REQUIRE(notNamedAsDataIn<naming::KeepingData>() == "naming::Named");
     STATIC_REQUIRE(notNamedAsDataIn<naming::FineData>().empty());
     STATIC_REQUIRE(notNamedAsDataIn<naming::Plainly>() == "naming::Plainly");
+}
+
+TEST_CASE("A template is named by its own name, not by what it holds", "[DataNaming]")
+{
+    STATIC_REQUIRE(notNamedAsDataIn<naming::KeptData<naming::FineData>>().empty());
+    STATIC_REQUIRE(notNamedAsDataIn<naming::KeptData<naming::Plainly>>() == "naming::Plainly");
+    STATIC_REQUIRE(
+        notNamedAsDataIn<naming::Holder<naming::FineData>>().starts_with("naming::Holder<"));
 }

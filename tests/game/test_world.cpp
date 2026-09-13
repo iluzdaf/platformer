@@ -49,6 +49,7 @@
 #include "player/player_data.hpp"
 #include <filesystem>
 #include <fstream>
+#include "state_machines/state_machine_data.hpp"
 
 namespace
 {
@@ -672,12 +673,12 @@ namespace
         BehaviorStateData charging;
         charging.name = "charge";
         charging.does = ChaseBehaviorData{};
-        BehaviorTransitionData woken;
+        TransitionData woken;
         woken.from = "sleep";
         woken.to = "charge";
         woken.when["heard"] = true;
         woken.when["near"] = true;
-        BehaviorTransitionData tired;
+        TransitionData tired;
         tired.from = "charge";
         tired.to = "sleep";
         tired.when["near"] = false;

@@ -1,6 +1,5 @@
-#include <string_view>
 #include <cstddef>
-#include <glm/geometric.hpp>
+#include <string_view>
 #include <optional>
 #include <stdexcept>
 #include <utility>
@@ -23,70 +22,25 @@
 #include "actor/behaviors/senses_data.hpp"
 #include "input/input_intentions.hpp"
 #include "actor/actor_fact_rows.hpp"
-#include "conditions/asked.hpp"
-#include "conditions/fact_rows.hpp"
 #include "conditions/facts.hpp"
-
-namespace
-{
-    std::optional<AskedKind> kindKnown(const std::string &name, const FactsData &declared)
-    {
-        if (const FactRow<ActorFacts> *row = rowNamed(actorRows(), name))
-            return row->kind;
-
-        auto fact = declared.find(name);
-        if (fact != declared.end())
-            return kindOf(fact->second);
-
-        return std::nullopt;
-    }
-
-    bool conditionHolds(const BehaviorTransitionData &transition, const ActorFacts &context)
-    {
-        for (const auto &[name, asked] : transition.when)
-        {
-            if (const FactRow<ActorFacts> *row = rowNamed(actorRows(), name))
-            {
-                if (!row->holds(asked, context))
-                    return false;
-
-                continue;
-            }
-
-            auto fact = context.facts ? context.facts->find(name) : FactsData::const_iterator{};
-            if (!context.facts || fact == context.facts->end())
-                throw std::runtime_error(
-                    "A condition asks about \"" + name + "\", and there is no such fact");
-
-            if (fact->second != asked)
-                return false;
-        }
-
-        return true;
-    }
-}
+#include "state_machines/state_machine_data.hpp"
 
 StateMachineBehavior::StateMachineBehavior(
     const StateMachineBehaviorData &data,
     std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween,
     const FactsData &declared,
     const SensesData &senses)
-    : data(data), heldFor(data.transitions.size(), 0.0f), sinceLeft(data.states.size(), 1e9f)
+    : machine(data, actorRows(), declared)
 {
-    for (const BehaviorTransitionData &transition : this->data.transitions)
+    for (const TransitionData &transition : data.transitions)
         for (const auto &[name, asked] : transition.when)
-        {
-            std::optional<std::string> why = whyNotAsked(name, asked, kindKnown(name, declared));
-            if (!why)
-                why = whyNotSensed(name, senses);
-            if (why)
+            if (std::optional<std::string> why = whyNotSensed(name, senses))
                 throw std::runtime_error(
                     "The transition from \"" + transition.from + "\" to \"" + transition.to +
                     "\" " + *why);
-        }
 
-    for (const BehaviorStateData &state : this->data.states)
-        states.push_back(
+    for (const BehaviorStateData &state : data.states)
+        steering.push_back(
             std::visit(
                 [&patrolBetween](const auto &does) -> std::unique_ptr<ActorBehavior>
                 {
@@ -105,102 +59,45 @@ StateMachineBehavior::StateMachineBehavior(
                 state.does));
 }
 
-std::optional<std::size_t> StateMachineBehavior::stateNamed(const std::string &name) const
+ActorBehavior *StateMachineBehavior::steeringNow() const
 {
-    for (std::size_t state = 0; state < data.states.size(); ++state)
-        if (data.states[state].name == name)
-            return state;
-
-    return std::nullopt;
-}
-
-void StateMachineBehavior::enter(std::size_t state)
-{
-    sinceLeft[activeState] = 0.0f;
-    activeState = state;
-    heldFor.assign(data.transitions.size(), 0.0f);
-
-    if (states[state])
-        states[state]->reset();
+    return steering.empty() ? nullptr : steering[machine.active()].get();
 }
 
 void StateMachineBehavior::reset()
 {
-    if (states.empty())
-        return;
+    for (const std::unique_ptr<ActorBehavior> &each : steering)
+        if (each)
+            each->reset();
 
-    for (const std::unique_ptr<ActorBehavior> &state : states)
-        if (state)
-            state->reset();
-
-    enter(0);
-}
-
-void StateMachineBehavior::takeATransition(float deltaTime, const ActorFacts &context)
-{
-    for (std::size_t index = 0; index < data.transitions.size(); ++index)
-    {
-        const BehaviorTransitionData &transition = data.transitions[index];
-        if (transition.from != data.states[activeState].name)
-            continue;
-
-        if (!conditionHolds(transition, context))
-        {
-            heldFor[index] = 0.0f;
-            continue;
-        }
-
-        heldFor[index] += deltaTime;
-        if (heldFor[index] < transition.after)
-            continue;
-
-        std::optional<std::size_t> destination = stateNamed(transition.to);
-        if (!destination || *destination == activeState)
-            continue;
-
-        if (sinceLeft[*destination] < data.states[*destination].cooldown)
-            continue;
-
-        enter(*destination);
-        return;
-    }
+    machine.reset();
 }
 
 InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorFacts &context)
 {
-    if (states.empty())
-        return InputIntentions();
+    static const FactsData nothingDeclared;
+    std::optional<std::size_t> entered =
+        machine.advance(deltaTime, context, context.facts ? *context.facts : nothingDeclared);
+    if (entered && steering[*entered])
+        steering[*entered]->reset();
 
-    for (float &since : sinceLeft)
-        since += deltaTime;
-
-    takeATransition(deltaTime, context);
-
-    if (!states[activeState])
-        return InputIntentions();
-
-    return states[activeState]->decide(deltaTime, context);
+    ActorBehavior *now = steeringNow();
+    return now ? now->decide(deltaTime, context) : InputIntentions();
 }
 
 std::string_view StateMachineBehavior::getStateName() const
 {
-    return states.empty() ? std::string_view{} : data.states[activeState].name;
+    return machine.activeName();
 }
 
 std::optional<int> StateMachineBehavior::getCurrentNodeId() const
 {
-    return states.empty() || !states[activeState] ? std::nullopt
-                                                  : states[activeState]->getCurrentNodeId();
+    ActorBehavior *now = steeringNow();
+    return now ? now->getCurrentNodeId() : std::nullopt;
 }
 
 std::optional<int> StateMachineBehavior::getTargetNodeId() const
 {
-    return states.empty() || !states[activeState] ? std::nullopt
-                                                  : states[activeState]->getTargetNodeId();
-}
-
-float StateMachineBehavior::secondsSinceLeaving(std::string_view state) const
-{
-    std::optional<std::size_t> which = stateNamed(std::string(state));
-    return which ? sinceLeft[*which] : 0.0f;
+    ActorBehavior *now = steeringNow();
+    return now ? now->getTargetNodeId() : std::nullopt;
 }

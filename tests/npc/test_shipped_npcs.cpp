@@ -33,6 +33,7 @@
 #include <variant>
 #include "npc/npc_data.hpp"
 #include "player/player_data.hpp"
+#include "state_machines/state_machine_data.hpp"
 
 using namespace ledge_and_wall;
 
@@ -534,7 +535,7 @@ TEST_CASE("The shipped spider's patience outlasts its own climb on level 6", "[N
 
     float climbSpeed = spider.actorData.abilities.wallClimb->climbSpeed;
     float givesUpAfter = 0.0f;
-    for (const BehaviorTransitionData &transition : spider.stateMachineBehaviorData->transitions)
+    for (const TransitionData &transition : spider.stateMachineBehaviorData->transitions)
         if (transition.from == "chase" && transition.to == "patrol")
             givesUpAfter = transition.after;
 

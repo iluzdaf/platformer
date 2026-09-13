@@ -3,7 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <map>
 #include "cameras/camera2d_data.hpp"
-#include "actor/behaviors/flee_behavior_data.hpp"
+#include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "npc/npc_data.hpp"
@@ -188,13 +188,13 @@ TEST_CASE("A state that says its kind can be put back", "[Saveable]")
     REQUIRE(asJson(npcs) == asJson(asSaved));
 }
 
-TEST_CASE("Choosing a kind that looks the same still counts as unsaved", "[Saveable]")
+TEST_CASE("Choosing another kind counts as unsaved", "[Saveable]")
 {
     Saveable saveable;
     std::map<std::string, NpcData> npcs = aRatThat(PatrolBehaviorData{});
     saveable.saved("npcs", asJson(npcs));
 
-    npcs.at("rat").stateMachineBehaviorData->states.front().does = FleeBehaviorData{};
+    npcs.at("rat").stateMachineBehaviorData->states.front().does = ChaseBehaviorData{};
 
     REQUIRE(saveable.unsaved("npcs", asJson(npcs)));
 }

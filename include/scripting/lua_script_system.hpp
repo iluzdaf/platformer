@@ -99,6 +99,7 @@ public:
     sol::state &getLua();
     void loadScripts();
     void bindPlayer(Player *player);
+    int errorsReported() const;
 
 private:
     std::string scriptPath;
@@ -106,6 +107,8 @@ private:
     std::map<std::string, NamedScript> scripts;
     std::map<std::pair<const void *, std::string>, sol::table> stateSelves;
     const void *startedBy = nullptr;
+    int reported = 0;
+    void report(std::string_view what, std::string_view why);
     void reload(NamedScript &script, std::string_view name);
     sol::object stateHook(std::string_view name, const std::string &state, std::string_view hook);
     sol::table selfOf(const void *owner, const std::string &state);

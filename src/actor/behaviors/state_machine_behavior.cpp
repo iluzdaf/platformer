@@ -11,11 +11,9 @@
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
-#include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/behaviors/chase_behavior.hpp"
-#include "actor/behaviors/flee_behavior.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "actor/behaviors/attack_behavior.hpp"
 #include "actor/behaviors/scripted_behavior.hpp"
@@ -49,8 +47,6 @@ StateMachineBehavior::StateMachineBehavior(
                     using Does = std::remove_cvref_t<decltype(does)>;
                     if constexpr (std::is_same_v<Does, PatrolBehaviorData>)
                         return std::make_unique<PatrolBehavior>(does, patrolBetween);
-                    else if constexpr (std::is_same_v<Does, FleeBehaviorData>)
-                        return std::make_unique<FleeBehavior>(does);
                     else if constexpr (std::is_same_v<Does, ChaseBehaviorData>)
                         return std::make_unique<ChaseBehavior>(does);
                     else if constexpr (std::is_same_v<Does, AttackBehaviorData>)

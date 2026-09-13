@@ -202,6 +202,7 @@ TEST_CASE("A decide that fails asks for nothing, and is reported", "[LuaStateScr
     REQUIRE_NOTHROW(
         asked = scripted.behavior.decide(0.01f, standingAt(navigationGraph, {0.0f, 192.0f})));
     REQUIRE(asked.direction.x == 0.0f);
+    REQUIRE(scripted.lua.errorsReported() == 1);
 }
 
 TEST_CASE("A state its script does not name asks for nothing", "[LuaStateScript]")

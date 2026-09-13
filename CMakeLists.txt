@@ -222,10 +222,10 @@ add_library(platformer_lib OBJECT
     src/navigation/jump_simulation.cpp
     src/navigation/navigation_build_report.cpp
     src/navigation/navigation_profile_builder.cpp
-    src/actor/actor_behavior.cpp
+    src/navigation/route_walker.cpp
+    src/actor/behaviors/actor_behavior.cpp
     src/actor/behaviors/input_behavior.cpp
     src/actor/behaviors/attack_behavior.cpp
-    src/actor/behaviors/route_walker.cpp
     src/actor/behaviors/state_machine_behavior.cpp
     src/npc/npc.cpp
     src/pickups/pickup.cpp
@@ -418,6 +418,7 @@ add_executable(tests
     tests/navigation/test_navigation_profile.cpp
     tests/navigation/test_jump_simulation.cpp
     tests/navigation/test_navigation_build_cost.cpp
+    tests/navigation/test_route_walker.cpp
     tests/scripting/test_chase.cpp
     tests/scripting/test_flee.cpp
     tests/scripting/test_patrol.cpp
@@ -428,7 +429,6 @@ add_executable(tests
     tests/ui/test_facts_offered.cpp
     tests/actor/behaviors/test_scripted_behavior.cpp
     tests/scripting/test_lua_state_script.cpp
-    tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/npc/test_patrol_beats.cpp
     tests/npc/test_senses.cpp

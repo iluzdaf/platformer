@@ -2,8 +2,8 @@
 
 #include <optional>
 #include <string>
-#include "actor/actor_behavior.hpp"
-#include "actor/behaviors/route_walker.hpp"
+#include "actor/behaviors/actor_behavior.hpp"
+#include "navigation/route_walker.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"

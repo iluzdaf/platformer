@@ -1,6 +1,6 @@
 #include <optional>
 #include <string_view>
-#include "actor/actor_behavior.hpp"
+#include "actor/behaviors/actor_behavior.hpp"
 
 std::string_view ActorBehavior::getStateName() const
 {

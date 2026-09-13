@@ -5,7 +5,7 @@
 #include "scripting/lua_script_system.hpp"
 #include "scripting/script_walker.hpp"
 #include "actor/actor_facts.hpp"
-#include "actor/behaviors/route_walker.hpp"
+#include "navigation/route_walker.hpp"
 #include "input/input_intentions.hpp"
 #include "npc/npc.hpp"
 

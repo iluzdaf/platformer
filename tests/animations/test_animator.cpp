@@ -10,7 +10,7 @@
 #include "actor/observed.hpp"
 #include "helpers/actor_facts.hpp"
 #include "actor/actor_facts.hpp"
-#include "actor/behaviors/senses_data.hpp"
+#include "actor/senses_data.hpp"
 #include "conditions/facts.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <optional>

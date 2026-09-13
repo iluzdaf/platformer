@@ -5,8 +5,8 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string_view>
-#include "actor/behaviors/senses_data.hpp"
-#include "actor/actor_behavior.hpp"
+#include "actor/senses_data.hpp"
+#include "actor/behaviors/actor_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/actor_facts.hpp"
 #include "conditions/facts.hpp"

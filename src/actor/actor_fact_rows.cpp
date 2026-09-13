@@ -5,7 +5,7 @@
 #include <string>
 #include <glm/geometric.hpp>
 #include "actor/actor_fact_rows.hpp"
-#include "actor/behaviors/senses_data.hpp"
+#include "actor/senses_data.hpp"
 #include "navigation/navigation_place.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/abilities/charge_ability_state.hpp"

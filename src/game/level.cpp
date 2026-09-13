@@ -30,7 +30,7 @@
 #include "actor/actor.hpp"
 #include <memory>
 #include <set>
-#include "actor/behaviors/patrol_data.hpp"
+#include "actor/patrol_data.hpp"
 
 namespace
 {

@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "actor/behaviors/senses_data.hpp"
+#include "actor/senses_data.hpp"
 #include "actor/actor_data.hpp"
 #include "actor/abilities/abilities_data.hpp"
 #include "combat/health_data.hpp"

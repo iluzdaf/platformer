@@ -5,7 +5,7 @@
 #include "animations/animator_data.hpp"
 #include "animations/animator_facts.hpp"
 #include "actor/actor_fact_rows.hpp"
-#include "actor/behaviors/senses_data.hpp"
+#include "actor/senses_data.hpp"
 #include "conditions/facts.hpp"
 #include "conditions/fact_rows.hpp"
 

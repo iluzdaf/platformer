@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/behaviors/route_walker.hpp"
+#include "navigation/route_walker.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "helpers/actors.hpp"
@@ -34,7 +34,7 @@
 #include "player/player_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
-#include "actor/behaviors/patrol_data.hpp"
+#include "actor/patrol_data.hpp"
 #include "state_machines/state_machine_data.hpp"
 #include "conditions/when_data.hpp"
 

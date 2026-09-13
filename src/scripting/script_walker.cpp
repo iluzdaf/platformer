@@ -1,7 +1,7 @@
 #include <optional>
 #include "scripting/script_walker.hpp"
 #include "actor/actor_facts.hpp"
-#include "actor/behaviors/route_walker.hpp"
+#include "navigation/route_walker.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"

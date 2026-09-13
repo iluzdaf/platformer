@@ -4,7 +4,7 @@
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include "actor/actor_facts.hpp"
-#include "actor/behaviors/route_walker.hpp"
+#include "navigation/route_walker.hpp"
 #include "actor/behaviors/scripted_behavior.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
 #include "actor/behaviors/state_script.hpp"

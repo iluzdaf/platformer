@@ -6,7 +6,7 @@
 #include "animations/animator_data.hpp"
 #include "animations/frame_animation.hpp"
 #include "animations/animation_rule_data.hpp"
-#include "actor/behaviors/senses_data.hpp"
+#include "actor/senses_data.hpp"
 #include "conditions/facts.hpp"
 
 struct ActorFacts;

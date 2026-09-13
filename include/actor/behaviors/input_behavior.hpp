@@ -1,6 +1,6 @@
 #pragma once
 
-#include "actor/actor_behavior.hpp"
+#include "actor/behaviors/actor_behavior.hpp"
 #include "input/intention_source.hpp"
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"

@@ -29,6 +29,7 @@
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_place.hpp"
 #include "npc/npc.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "player/player_data.hpp"
@@ -608,4 +609,20 @@ TEST_CASE("A creature whose state attacks with an ability it has is welcome", "[
 {
     REQUIRE_NOTHROW(Npc(spawnAt("rat", SpawnTile), aCreatureWhoseStateAttacksWith("pounce", true)));
     REQUIRE_NOTHROW(Npc(spawnAt("rat", SpawnTile), aCreatureWhoseStateAttacksWith("charge", true)));
+}
+
+TEST_CASE("A creature whose state is scripted and has no script is refused", "[Npc]")
+{
+    NpcData lurker = setupNpcData();
+    BehaviorStateData lurking;
+    lurking.name = "lurk";
+    lurking.does = ScriptedBehaviorData{"lurk"};
+    lurker.stateMachineBehaviorData = StateMachineBehaviorData{{lurking}, {}};
+
+    REQUIRE_THROWS_WITH(
+        Npc(spawnAt("lurker", SpawnTile), lurker),
+        "\"lurker\" runs its state \"lurk\" by script, and has no script");
+
+    lurker.script.path = "scripts/npcs/lurker.lua";
+    REQUIRE_NOTHROW(Npc(spawnAt("lurker", SpawnTile), lurker));
 }

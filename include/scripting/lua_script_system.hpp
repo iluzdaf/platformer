@@ -68,6 +68,32 @@ public:
         settle(handler.as<sol::protected_function>()(std::forward<Args>(args)...), hook);
         startedBy = nullptr;
     }
+    template <typename... Args>
+    sol::object callState(
+        std::string_view name,
+        const void *owner,
+        const std::string &state,
+        std::string_view hook,
+        Args &&...args)
+    {
+        sol::object handler = stateHook(name, state, hook);
+        if (!handler.is<sol::function>())
+            return sol::make_object(lua, sol::lua_nil);
+
+        startedBy = owner;
+        sol::protected_function_result result = handler.as<sol::protected_function>()(
+            selfOf(owner, state), std::forward<Args>(args)...);
+        startedBy = nullptr;
+        if (!result.valid())
+        {
+            settle(std::move(result), state + "." + std::string(hook));
+            return sol::make_object(lua, sol::lua_nil);
+        }
+
+        sol::object wanted = result;
+        return wanted;
+    }
+    void startStateAfresh(const void *owner, const std::string &state);
     void forget(const void *owner);
     void bindLevel(const Level *level);
     sol::state &getLua();
@@ -78,8 +104,11 @@ private:
     std::string scriptPath;
     sol::state lua;
     std::map<std::string, NamedScript> scripts;
+    std::map<std::pair<const void *, std::string>, sol::table> stateSelves;
     const void *startedBy = nullptr;
     void reload(NamedScript &script, std::string_view name);
+    sol::object stateHook(std::string_view name, const std::string &state, std::string_view hook);
+    sol::table selfOf(const void *owner, const std::string &state);
     std::optional<float> resume(sol::protected_function &co, std::string_view what);
     std::optional<float> settle(sol::protected_function_result result, std::string_view what);
     std::vector<WaitingCoroutine> waitingCoroutines;

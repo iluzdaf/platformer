@@ -23,6 +23,7 @@ public:
         const FactsData &declared = FactsData{},
         const SensesData &senses = SensesData{});
     void reset() override;
+    void scriptWith(StateScript *script) override;
     InputIntentions decide(float deltaTime, const ActorFacts &context) override;
     std::string_view getStateName() const override;
     std::optional<int> getCurrentNodeId() const override;

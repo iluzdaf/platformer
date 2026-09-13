@@ -5,11 +5,15 @@
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 
+class StateScript;
+
 class ActorBehavior
 {
 public:
     virtual ~ActorBehavior() = default;
     virtual void reset();
+    virtual void leave();
+    virtual void scriptWith(StateScript *script);
     virtual InputIntentions decide(float deltaTime, const ActorFacts &context) = 0;
     virtual std::string_view getStateName() const;
     virtual std::optional<int> getCurrentNodeId() const;

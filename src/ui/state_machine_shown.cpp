@@ -22,6 +22,7 @@
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 #include "state_machines/state_machine_data.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
 
 namespace
 {
@@ -49,6 +50,8 @@ std::string behaviourOf(const BehaviorStateData &state)
                                             : "chase";
             else if constexpr (std::is_same_v<Does, AttackBehaviorData>)
                 return "attack with " + held.with;
+            else if constexpr (std::is_same_v<Does, ScriptedBehaviorData>)
+                return "script " + held.call;
             else
                 return "does nothing";
         },

@@ -11,6 +11,14 @@ void ActorBehavior::reset()
 {
 }
 
+void ActorBehavior::leave()
+{
+}
+
+void ActorBehavior::scriptWith(StateScript *)
+{
+}
+
 std::optional<int> ActorBehavior::getCurrentNodeId() const
 {
     return std::nullopt;

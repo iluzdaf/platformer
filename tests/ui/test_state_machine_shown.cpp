@@ -13,6 +13,7 @@
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "state_machines/state_machine_data.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
 
 namespace
 {
@@ -52,6 +53,10 @@ TEST_CASE("A state says what it does in words", "[StateMachineShown]")
     pouncing.does = AttackBehaviorData{"pounce"};
     pouncing.cooldown = 2.0f;
     REQUIRE(behaviourOf(pouncing) == "attack with pounce, cooldown 2 s");
+
+    BehaviorStateData lurking = aState("lurk");
+    lurking.does = ScriptedBehaviorData{"lurk"};
+    REQUIRE(behaviourOf(lurking) == "script lurk");
 
     REQUIRE(behaviourOf(aState("idle")) == "does nothing");
 }

@@ -13,6 +13,10 @@
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
+#include "actor/behaviors/state_script.hpp"
+#include "actor/behaviors/route_walker.hpp"
+#include <vector>
 #include "actor/behaviors/senses_data.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "conditions/asked.hpp"
@@ -449,4 +453,78 @@ TEST_CASE("A transition cannot ask about the picture", "[StateMachineBehavior]")
             StateMachineBehavior(data, std::nullopt, knowingNear()),
             Catch::Matchers::ContainsSubstring("there is no such fact"));
     }
+}
+
+namespace
+{
+    struct Hearing : StateScript
+    {
+        std::vector<std::string> heard;
+
+        void enter(const std::string &call) override
+        {
+            heard.push_back("enter " + call);
+        }
+
+        InputIntentions decide(const std::string &call, RouteWalker &, const ActorFacts &, float)
+            override
+        {
+            heard.push_back("decide " + call);
+            return {};
+        }
+
+        void exit(const std::string &call) override
+        {
+            heard.push_back("exit " + call);
+        }
+    };
+
+    StateMachineBehaviorData aWatchThatRuns()
+    {
+        BehaviorStateData watching;
+        watching.name = "watch";
+        watching.does = ScriptedBehaviorData{"watch"};
+        BehaviorStateData running;
+        running.name = "run";
+        running.does = ScriptedBehaviorData{"run"};
+        TransitionData startled;
+        startled.from = "watch";
+        startled.to = "run";
+        startled.when["near"] = true;
+        return {{watching, running}, {startled}};
+    }
+}
+
+TEST_CASE(
+    "A scripted state hears it is left, and the one entered starts afresh",
+    "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    StateMachineBehavior behavior(aWatchThatRuns(), std::nullopt, knowingNear());
+    Hearing script;
+    behavior.scriptWith(&script);
+    FactsData calm = knowingNear();
+    FactsData near = saying("near", true);
+
+    behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
+    behavior.decide(0.01f, told(near, standingAt(navigationGraph, {192.0f, 192.0f})));
+
+    REQUIRE(
+        script.heard ==
+        std::vector<std::string>{
+            "enter watch", "decide watch", "exit watch", "enter run", "decide run"});
+}
+
+TEST_CASE("Resetting leaves the state it is in", "[StateMachineBehavior]")
+{
+    NavigationGraph navigationGraph = aWalkRun();
+    StateMachineBehavior behavior(aWatchThatRuns(), std::nullopt, knowingNear());
+    Hearing script;
+    behavior.scriptWith(&script);
+    FactsData calm = knowingNear();
+    behavior.decide(0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f})));
+
+    behavior.reset();
+
+    REQUIRE(script.heard.back() == "exit watch");
 }

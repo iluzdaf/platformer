@@ -2,8 +2,8 @@
 #include <cmath>
 #include <optional>
 #include <vector>
-#include "actor/behaviors/route_walker.hpp"
-#include "actor/behaviors/footing.hpp"
+#include "navigation/route_walker.hpp"
+#include "navigation/footing.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"

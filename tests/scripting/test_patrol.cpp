@@ -7,7 +7,7 @@
 #include <vector>
 #include "actor/actor_facts.hpp"
 #include "helpers/actor_facts.hpp"
-#include "actor/behaviors/patrol_data.hpp"
+#include "actor/patrol_data.hpp"
 #include "helpers/behavior_file.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "input/input_intentions.hpp"

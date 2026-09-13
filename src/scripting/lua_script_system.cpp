@@ -20,7 +20,7 @@
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 #include "scripting/script_walker.hpp"
-#include "actor/behaviors/patrol_data.hpp"
+#include "actor/patrol_data.hpp"
 #include "navigation/navigation_place.hpp"
 #include "assets/asset_paths.hpp"
 

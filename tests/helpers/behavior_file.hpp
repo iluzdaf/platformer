@@ -6,7 +6,7 @@
 #include <optional>
 #include <string>
 #include "actor/actor_facts.hpp"
-#include "actor/behaviors/patrol_data.hpp"
+#include "actor/patrol_data.hpp"
 #include "actor/behaviors/scripted_behavior.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
 #include "helpers/creature_scripts.hpp"

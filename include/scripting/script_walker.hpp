@@ -5,7 +5,7 @@
 #include "navigation/navigation_place.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_facts.hpp"
-#include "actor/behaviors/route_walker.hpp"
+#include "navigation/route_walker.hpp"
 #include "input/input_intentions.hpp"
 
 class ScriptWalker

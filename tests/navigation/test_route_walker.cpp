@@ -2,7 +2,7 @@
 #include <optional>
 #include "actor/actor_facts.hpp"
 #include "actor/actor_contact_state.hpp"
-#include "actor/behaviors/route_walker.hpp"
+#include "navigation/route_walker.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 

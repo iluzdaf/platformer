@@ -4,7 +4,7 @@
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
 #include "serialization/glm_vec2_meta.hpp" // IWYU pragma: keep
-#include "actor/behaviors/patrol_data.hpp"
+#include "actor/patrol_data.hpp"
 
 struct NpcSpawnData
 {

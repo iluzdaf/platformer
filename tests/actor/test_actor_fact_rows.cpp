@@ -13,7 +13,7 @@
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/actor_fact_rows.hpp"
-#include "actor/behaviors/senses_data.hpp"
+#include "actor/senses_data.hpp"
 #include "actor/observed.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"

@@ -17,7 +17,7 @@
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
 #include <memory>
-#include "actor/behaviors/patrol_data.hpp"
+#include "actor/patrol_data.hpp"
 
 class Npc;
 struct AABB;

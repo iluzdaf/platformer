@@ -7,14 +7,14 @@
 #include <variant>
 #include <string>
 #include "actor/behaviors/state_machine_behavior.hpp"
-#include "actor/actor_behavior.hpp"
+#include "actor/behaviors/actor_behavior.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/behaviors/attack_behavior.hpp"
 #include "actor/behaviors/scripted_behavior.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "actor/behaviors/senses_data.hpp"
+#include "actor/senses_data.hpp"
 #include "input/input_intentions.hpp"
 #include "actor/actor_fact_rows.hpp"
 #include "conditions/facts.hpp"

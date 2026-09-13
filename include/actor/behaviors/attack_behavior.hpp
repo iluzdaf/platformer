@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "actor/actor_behavior.hpp"
+#include "actor/behaviors/actor_behavior.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "input/input_intentions.hpp"

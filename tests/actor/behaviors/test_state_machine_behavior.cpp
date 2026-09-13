@@ -13,9 +13,9 @@
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
 #include "actor/behaviors/state_script.hpp"
-#include "actor/behaviors/route_walker.hpp"
+#include "navigation/route_walker.hpp"
 #include <vector>
-#include "actor/behaviors/senses_data.hpp"
+#include "actor/senses_data.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "conditions/asked.hpp"
 #include "conditions/facts.hpp"

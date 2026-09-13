@@ -1,6 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
-#include <cmath>
 #include <cstddef>
 #include <filesystem>
 #include <vector>
@@ -17,6 +16,8 @@
 #include "navigation/navigation_graph_steps.hpp"
 #include "navigation/navigation_node.hpp"
 #include "tile_map/tile_map.hpp"
+#include <optional>
+#include "physics/aabb.hpp"
 
 TEST_CASE("A floor gives a profile somewhere to walk", "[NavigationGraphBuilder]")
 {
@@ -138,7 +139,8 @@ TEST_CASE("A floor is one run, and a gap makes it two", "[NavigationGraphBuilder
     TileMap tileMap = aTileMap(laid);
     NavigationGraph graph = buildNavigationGraph(tileMap, standardProfile());
 
-    std::vector<std::vector<int>> runs = navigation::walkRuns(graph, tileMap, 1);
+    std::vector<std::vector<int>> runs =
+        navigation::walkRuns(graph, tileMap, 1, standardProfile().physicsBodyData.stepHeight);
 
     REQUIRE(runs.size() == 2);
     for (const std::vector<int> &run : runs)
@@ -308,7 +310,7 @@ TEST_CASE("Where a node sits on a platform", "[NavigationGraphBuilder]")
     }
 }
 
-TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder]")
+TEST_CASE("Every node stands on the top of the collider beneath it", "[NavigationGraphBuilder]")
 {
     Placed laid;
     layRow(laid, 12, 1, 18);
@@ -318,7 +320,6 @@ TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder]")
 
     NavigationGraph graph = buildNavigationGraph(tileMap, climberProfile());
 
-    float tileSize = static_cast<float>(tileMap.getTileSize());
     REQUIRE_FALSE(graph.getNodes().empty());
     for (const auto &[id, node] : graph.getNodes())
     {
@@ -326,13 +327,10 @@ TEST_CASE("Every node stands on the top of a tile", "[NavigationGraphBuilder]")
             continue;
 
         INFO("node " << id << " at " << node.feet.x << "," << node.feet.y);
-        REQUIRE(std::fmod(node.feet.y, tileSize) == 0.0f);
-
-        glm::ivec2 under = tileMap.tileContaining(node.feet + glm::vec2(0.0f, 1.0f));
-        glm::ivec2 justBehind = tileMap.tileContaining(node.feet + glm::vec2(-1.0f, 1.0f));
-        REQUIRE(
-            (tileMap.getTileAtTilePosition(under).isSolid() ||
-             tileMap.getTileAtTilePosition(justBehind).isSolid()));
+        std::optional<AABB> ground =
+            tileMap.groundAt(navigation::groundUnder(tileMap, node.feet, 0.0f));
+        REQUIRE(ground);
+        REQUIRE(node.feet.y == ground->top());
     }
 }
 
@@ -345,6 +343,10 @@ TEST_CASE("A place is not walkable to itself, nor to another row", "[NavigationG
     glm::vec2 onTheLowerFloor = tileMap.feetOnTile(glm::ivec2(2, 4));
     glm::vec2 onTheUpperFloor = tileMap.feetOnTile(glm::ivec2(5, 2));
 
-    REQUIRE_FALSE(navigation::isWalkableBetween(tileMap, onTheLowerFloor, onTheLowerFloor, 1));
-    REQUIRE_FALSE(navigation::isWalkableBetween(tileMap, onTheLowerFloor, onTheUpperFloor, 1));
+    float stepHeight = standardProfile().physicsBodyData.stepHeight;
+
+    REQUIRE_FALSE(
+        navigation::isWalkableBetween(tileMap, onTheLowerFloor, onTheLowerFloor, 1, stepHeight));
+    REQUIRE_FALSE(
+        navigation::isWalkableBetween(tileMap, onTheLowerFloor, onTheUpperFloor, 1, stepHeight));
 }

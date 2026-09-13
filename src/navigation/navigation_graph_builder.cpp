@@ -10,6 +10,7 @@
 #include "tile_map/tile.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "tile_map/tile_map.hpp"
+#include "physics/aabb.hpp"
 #include "navigation/navigation_graph_builder.hpp"
 
 namespace
@@ -22,7 +23,11 @@ namespace
         return static_cast<int>(std::ceil(profile.physicsBodyData.colliderSize.y / tileSize));
     }
 
-    void addRunEnds(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom)
+    void addRunEnds(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        int headroom,
+        float stepHeight)
     {
         int nextNodeId = 0;
 
@@ -31,38 +36,24 @@ namespace
             for (int x = 0; x < tileMap.getWidth(); ++x)
             {
                 glm::ivec2 tilePosition(x, y);
-                if (!tileMap.getTileAtTilePosition(tilePosition).isSolid())
+                std::optional<AABB> ground = tileMap.groundAt(tilePosition);
+                if (!ground || !navigation::canStandOn(tileMap, tilePosition, headroom))
                     continue;
 
-                bool canWalkAbove = navigation::canStandOn(tileMap, tilePosition, headroom);
-                if (!canWalkAbove)
+                auto walksOnto = [&](glm::ivec2 neighbour)
+                {
+                    return navigation::canStandOn(tileMap, neighbour, headroom) &&
+                           navigation::stepsBetween(tileMap, tilePosition, neighbour, stepHeight);
+                };
+                bool walksLeft = walksOnto(tilePosition + glm::ivec2(-1, 0));
+                bool walksRight = walksOnto(tilePosition + glm::ivec2(1, 0));
+                if (walksLeft && walksRight)
                     continue;
 
-                glm::ivec2 tilePositionLeft = tilePosition + glm::ivec2(-1, 0);
-                bool isLeftCliff = tileMap.validTilePosition(tilePositionLeft) &&
-                                   !tileMap.getTileAtTilePosition(tilePositionLeft).isSolid();
-                glm::ivec2 tilePositionRight = tilePosition + glm::ivec2(1, 0);
-                bool isRightCliff = tileMap.validTilePosition(tilePositionRight) &&
-                                    !tileMap.getTileAtTilePosition(tilePositionRight).isSolid();
-
-                bool canWalkAboveLeft =
-                    !isLeftCliff && navigation::canStandOn(tileMap, tilePositionLeft, headroom);
-                bool canWalkAboveRight =
-                    !isRightCliff && navigation::canStandOn(tileMap, tilePositionRight, headroom);
-
-                if (!isLeftCliff && !isRightCliff && canWalkAboveLeft && canWalkAboveRight)
-                    continue;
-
-                glm::vec2 worldPosition = tileMap.topLeftOfTile(tilePosition);
-                float tileSize = static_cast<float>(tileMap.getTileSize());
-                glm::vec2 nodeOffset(tileSize / 2.0f, 0.0f);
-
-                if (canWalkAboveLeft && !canWalkAboveRight)
-                    nodeOffset = glm::vec2(tileSize, 0.0f);
-                else if (!canWalkAboveLeft && canWalkAboveRight)
-                    nodeOffset = glm::vec2(0.0f, 0.0f);
-
-                navigationGraph.addNode(nextNodeId++, worldPosition + nodeOffset);
+                float feetX = walksLeft    ? ground->right()
+                              : walksRight ? ground->left()
+                                           : ground->center().x;
+                navigationGraph.addNode(nextNodeId++, glm::vec2(feetX, ground->top()));
             }
         }
     }
@@ -86,15 +77,49 @@ namespace navigation
         return true;
     }
 
-    bool isWalkableBetween(const TileMap &tileMap, glm::vec2 start, glm::vec2 end, int headroom)
+    int groundRowOf(const TileMap &tileMap, glm::vec2 feet)
+    {
+        return tileMap.tileContaining(feet + glm::vec2(0.0f, 1.0f)).y;
+    }
+
+    glm::ivec2 groundUnder(const TileMap &tileMap, glm::vec2 feet, float towards)
+    {
+        constexpr float Settle = 0.5f;
+        int row = groundRowOf(tileMap, feet);
+        glm::vec2 nudge(towards < 0.0f ? -NodeTileNudge : NodeTileNudge, 0.0f);
+        glm::ivec2 inwards(tileMap.tileContaining(feet + nudge).x, row);
+        glm::ivec2 outwards(tileMap.tileContaining(feet - nudge).x, row);
+
+        for (glm::ivec2 tilePosition : {inwards, outwards})
+        {
+            std::optional<AABB> ground = tileMap.groundAt(tilePosition);
+            if (ground && std::abs(ground->top() - feet.y) <= Settle)
+                return tilePosition;
+        }
+
+        return inwards;
+    }
+
+    bool stepsBetween(const TileMap &tileMap, glm::ivec2 from, glm::ivec2 to, float stepHeight)
+    {
+        std::optional<AABB> here = tileMap.groundAt(from);
+        std::optional<AABB> there = tileMap.groundAt(to);
+
+        return here && there && std::abs(here->top() - there->top()) <= stepHeight;
+    }
+
+    bool isWalkableBetween(
+        const TileMap &tileMap,
+        glm::vec2 start,
+        glm::vec2 end,
+        int headroom,
+        float stepHeight)
     {
         if (start == end)
             return false;
 
-        glm::vec2 underfoot(0.0f, 1.0f);
-        glm::vec2 inwards = glm::normalize(end - start) * NodeTileNudge;
-        glm::ivec2 startTilePosition = tileMap.tileContaining(start + inwards + underfoot);
-        glm::ivec2 endTilePosition = tileMap.tileContaining(end - inwards + underfoot);
+        glm::ivec2 startTilePosition = groundUnder(tileMap, start, end.x - start.x);
+        glm::ivec2 endTilePosition = groundUnder(tileMap, end, start.x - end.x);
 
         if (startTilePosition.y != endTilePosition.y)
             return false;
@@ -105,11 +130,14 @@ namespace navigation
         for (int x = fromX; x <= toX; ++x)
         {
             glm::ivec2 groundTilePosition(x, startTilePosition.y);
-            if (!tileMap.validTilePosition(groundTilePosition) ||
-                !tileMap.getTileAtTilePosition(groundTilePosition).isSolid())
+            if (!tileMap.groundAt(groundTilePosition))
                 return false;
 
             if (!canStandOn(tileMap, groundTilePosition, headroom))
+                return false;
+
+            glm::ivec2 before = groundTilePosition - glm::ivec2(1, 0);
+            if (x > fromX && !stepsBetween(tileMap, before, groundTilePosition, stepHeight))
                 return false;
         }
 
@@ -119,14 +147,13 @@ namespace navigation
     bool clearAt(const TileMap &tileMap, glm::vec2 feetPosition, const NavigationProfile &profile)
     {
         constexpr float Inset = 0.5f;
-        float halfWidth = profile.physicsBodyData.colliderSize.x * 0.5f - Inset;
-        glm::vec2 low(
-            feetPosition.x - halfWidth,
-            feetPosition.y - profile.physicsBodyData.colliderSize.y + Inset);
-        glm::vec2 high(feetPosition.x + halfWidth, feetPosition.y - Inset);
+        glm::vec2 size = profile.physicsBodyData.colliderSize;
+        AABB body(
+            glm::vec2(feetPosition.x - size.x * 0.5f + Inset, feetPosition.y - size.y + Inset),
+            glm::vec2(size.x - Inset * 2.0f, size.y - Inset * 2.0f));
 
-        glm::ivec2 lowTilePosition = tileMap.tileContaining(low);
-        glm::ivec2 highTilePosition = tileMap.tileContaining(high);
+        glm::ivec2 lowTilePosition = tileMap.tileContaining(body.position);
+        glm::ivec2 highTilePosition = tileMap.tileContaining(body.position + body.size);
 
         for (int y = lowTilePosition.y; y <= highTilePosition.y; ++y)
             for (int x = lowTilePosition.x; x <= highTilePosition.x; ++x)
@@ -135,8 +162,11 @@ namespace navigation
                 if (!tileMap.validTilePosition(tilePosition))
                     return false;
 
-                const Tile &tile = tileMap.getTileAtTilePosition(tilePosition);
-                if (tile.isSolid() || tile.isDeadly())
+                if (tileMap.getTileAtTilePosition(tilePosition).isDeadly())
+                    return false;
+
+                std::optional<AABB> ground = tileMap.groundAt(tilePosition);
+                if (ground && ground->intersects(body))
                     return false;
             }
 
@@ -147,7 +177,8 @@ namespace navigation
         const NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         glm::vec2 landing,
-        int headroom)
+        int headroom,
+        float stepHeight)
     {
         constexpr float SameSurface = 0.5f;
         std::optional<int> nearest;
@@ -155,11 +186,13 @@ namespace navigation
 
         for (const auto &[id, node] : navigationGraph.getNodes())
         {
-            if (std::abs(node.feet.y - landing.y) > SameSurface)
+            if (groundRowOf(tileMap, node.feet) != groundRowOf(tileMap, landing) ||
+                std::abs(node.feet.y - landing.y) > stepHeight)
                 continue;
 
             float distance = std::abs(node.feet.x - landing.x);
-            if (distance > SameSurface && !isWalkableBetween(tileMap, landing, node.feet, headroom))
+            if (distance > SameSurface &&
+                !isWalkableBetween(tileMap, landing, node.feet, headroom, stepHeight))
                 continue;
 
             if (nearest && distance >= nearestDistance)
@@ -179,18 +212,19 @@ namespace navigation
         const NavigationProfile &profile,
         int headroom)
     {
-        float tileSize = static_cast<float>(tileMap.getTileSize());
         glm::ivec2 column = tileMap.tileContaining(glm::vec2(x, below));
 
-        for (int y = column.y + 1; y < tileMap.getHeight(); ++y)
+        for (int y = column.y; y < tileMap.getHeight(); ++y)
         {
             glm::ivec2 ground(column.x, y);
             if (!tileMap.validTilePosition(ground))
                 return std::nullopt;
-            if (!tileMap.getTileAtTilePosition(ground).isSolid())
+
+            std::optional<AABB> collider = tileMap.groundAt(ground);
+            if (!collider || collider->top() <= below)
                 continue;
 
-            glm::vec2 standing(x, static_cast<float>(y) * tileSize);
+            glm::vec2 standing(x, collider->top());
             if (canStandOn(tileMap, ground, headroom) && clearAt(tileMap, standing, profile))
                 return standing;
 
@@ -206,7 +240,9 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
     NavigationGraph navigationGraph;
     int headroom = tilesOfHeadroom(tileMap, profile);
 
-    addRunEnds(navigationGraph, tileMap, headroom);
+    float stepHeight = profile.physicsBodyData.stepHeight;
+
+    addRunEnds(navigationGraph, tileMap, headroom, stepHeight);
     navigation::addFallLandingNodes(navigationGraph, tileMap, profile, headroom);
     navigation::addJumpTakeOffNodes(navigationGraph, tileMap, profile, headroom);
 
@@ -214,8 +250,8 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
         navigation::chooseJumps(navigationGraph, tileMap, profile, headroom);
     navigation::addJumpLandingNodes(navigationGraph, jumps);
 
-    navigation::addWalkEdges(navigationGraph, tileMap, headroom);
-    navigation::addJumpEdges(navigationGraph, tileMap, headroom, jumps);
+    navigation::addWalkEdges(navigationGraph, tileMap, headroom, stepHeight);
+    navigation::addJumpEdges(navigationGraph, tileMap, headroom, stepHeight, jumps);
     navigation::addFallEdges(navigationGraph, tileMap, profile, headroom);
 
     navigation::addClimbing(navigationGraph, tileMap, profile, headroom);

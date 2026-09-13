@@ -19,7 +19,18 @@ namespace navigation
 
     bool canStandOn(const TileMap &tileMap, glm::ivec2 groundTilePosition, int headroom);
 
-    bool isWalkableBetween(const TileMap &tileMap, glm::vec2 start, glm::vec2 end, int headroom);
+    int groundRowOf(const TileMap &tileMap, glm::vec2 feet);
+
+    glm::ivec2 groundUnder(const TileMap &tileMap, glm::vec2 feet, float towards);
+
+    bool stepsBetween(const TileMap &tileMap, glm::ivec2 from, glm::ivec2 to, float stepHeight);
+
+    bool isWalkableBetween(
+        const TileMap &tileMap,
+        glm::vec2 start,
+        glm::vec2 end,
+        int headroom,
+        float stepHeight);
 
     bool clearAt(const TileMap &tileMap, glm::vec2 feetPosition, const NavigationProfile &profile);
 
@@ -27,7 +38,8 @@ namespace navigation
         const NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         glm::vec2 landing,
-        int headroom);
+        int headroom,
+        float stepHeight);
 
     std::optional<glm::vec2> standingBelow(
         const TileMap &tileMap,
@@ -39,9 +51,14 @@ namespace navigation
     std::vector<std::vector<int>> walkRuns(
         const NavigationGraph &navigationGraph,
         const TileMap &tileMap,
-        int headroom);
+        int headroom,
+        float stepHeight);
 
-    void addWalkEdges(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom);
+    void addWalkEdges(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        int headroom,
+        float stepHeight);
 
     std::vector<ChosenJump> chooseJumps(
         NavigationGraph &navigationGraph,
@@ -57,6 +74,7 @@ namespace navigation
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         int headroom,
+        float stepHeight,
         const std::vector<ChosenJump> &jumps);
 
     void addFallLandingNodes(

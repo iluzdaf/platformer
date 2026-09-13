@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <utility>
-#include <cmath>
 #include <unordered_map>
 #include <vector>
 #include "navigation/navigation_graph_steps.hpp"
@@ -16,12 +15,13 @@ namespace navigation
     std::vector<std::vector<int>> walkRuns(
         const NavigationGraph &navigationGraph,
         const TileMap &tileMap,
-        int headroom)
+        int headroom,
+        float stepHeight)
     {
         std::unordered_map<int, std::vector<NavigationNode>> nodesByRow;
 
         for (const auto &[id, node] : navigationGraph.getNodes())
-            nodesByRow[static_cast<int>(std::round(node.feet.y))].push_back(node);
+            nodesByRow[groundRowOf(tileMap, node.feet)].push_back(node);
 
         std::vector<int> rows;
         rows.reserve(nodesByRow.size());
@@ -33,11 +33,13 @@ namespace navigation
         for (int y : rows)
         {
             std::vector<NavigationNode> &nodesInRow = nodesByRow[y];
+            auto along = [&](const NavigationNode &node)
+            { return std::pair(groundUnder(tileMap, node.feet, 1.0f).x, node.feet.x); };
             std::sort(
                 nodesInRow.begin(),
                 nodesInRow.end(),
-                [](const NavigationNode &left, const NavigationNode &right)
-                { return left.feet.x < right.feet.x; });
+                [&](const NavigationNode &left, const NavigationNode &right)
+                { return along(left) < along(right); });
 
             runs.push_back({nodesInRow[0].id});
             for (size_t index = 1; index < nodesInRow.size(); ++index)
@@ -45,7 +47,7 @@ namespace navigation
                 const NavigationNode &left = nodesInRow[index - 1];
                 const NavigationNode &right = nodesInRow[index];
 
-                if (!isWalkableBetween(tileMap, left.feet, right.feet, headroom))
+                if (!isWalkableBetween(tileMap, left.feet, right.feet, headroom, stepHeight))
                     runs.push_back({});
 
                 runs.back().push_back(right.id);
@@ -55,9 +57,13 @@ namespace navigation
         return runs;
     }
 
-    void addWalkEdges(NavigationGraph &navigationGraph, const TileMap &tileMap, int headroom)
+    void addWalkEdges(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        int headroom,
+        float stepHeight)
     {
-        for (const std::vector<int> &run : walkRuns(navigationGraph, tileMap, headroom))
+        for (const std::vector<int> &run : walkRuns(navigationGraph, tileMap, headroom, stepHeight))
             for (size_t index = 1; index < run.size(); ++index)
             {
                 navigationGraph.addEdge(run[index - 1], run[index], EdgeType::Walk);

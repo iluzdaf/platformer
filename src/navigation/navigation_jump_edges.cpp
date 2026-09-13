@@ -70,8 +70,10 @@ namespace navigation
         const NavigationProfile &profile,
         int headroom)
     {
+        float stepHeight = profile.physicsBodyData.stepHeight;
         std::unordered_map<int, int> components;
-        std::vector<std::vector<int>> runs = walkRuns(navigationGraph, tileMap, headroom);
+        std::vector<std::vector<int>> runs =
+            walkRuns(navigationGraph, tileMap, headroom, stepHeight);
         for (size_t run = 0; run < runs.size(); ++run)
             for (int id : runs[run])
                 components[id] = static_cast<int>(run);
@@ -89,11 +91,11 @@ namespace navigation
                 {
                     std::optional<JumpLanding> landing = jumpFrom(
                         tileMap, takeOff, arc, direction, profile, navigationGraph.building());
-                    if (!landing || landing->position.y > takeOff.y)
+                    if (!landing || landing->position.y > takeOff.y + stepHeight)
                         continue;
 
-                    std::optional<int> toId =
-                        nodeGoverning(navigationGraph, tileMap, landing->position, headroom);
+                    std::optional<int> toId = nodeGoverning(
+                        navigationGraph, tileMap, landing->position, headroom, stepHeight);
                     if (!toId || *toId == fromId)
                         continue;
 
@@ -137,12 +139,13 @@ namespace navigation
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         int headroom,
+        float stepHeight,
         const std::vector<ChosenJump> &jumps)
     {
         for (const ChosenJump &jump : jumps)
         {
             std::optional<int> toId =
-                nodeGoverning(navigationGraph, tileMap, jump.path.back(), headroom);
+                nodeGoverning(navigationGraph, tileMap, jump.path.back(), headroom, stepHeight);
             if (!toId || *toId == jump.fromId)
                 continue;
 

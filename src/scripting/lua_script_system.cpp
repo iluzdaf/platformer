@@ -110,7 +110,11 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         "currentNode",
         &ScriptWalker::currentNode,
         "targetNode",
-        &ScriptWalker::targetNode);
+        &ScriptWalker::targetNode,
+        "feetOf",
+        &ScriptWalker::feetOf,
+        "furthestRefugeFrom",
+        &ScriptWalker::furthestRefugeFrom);
 
     lua.set_function(
         "startCoroutine",
@@ -173,7 +177,7 @@ std::optional<float> LuaScriptSystem::settle(
     if (!result.valid())
     {
         sol::error error = result;
-        std::cerr << "Lua error in " << what << ": " << error.what() << '\n';
+        report(what, error.what());
         return std::nullopt;
     }
 
@@ -182,6 +186,17 @@ std::optional<float> LuaScriptSystem::settle(
         return yielded.as<float>();
 
     return std::nullopt;
+}
+
+void LuaScriptSystem::report(std::string_view what, std::string_view why)
+{
+    std::cerr << "Lua error in " << what << ": " << why << '\n';
+    ++reported;
+}
+
+int LuaScriptSystem::errorsReported() const
+{
+    return reported;
 }
 
 void LuaScriptSystem::use(std::string_view name, const std::string &path)
@@ -200,14 +215,14 @@ void LuaScriptSystem::reload(NamedScript &script, std::string_view name)
     if (!result.valid())
     {
         sol::error scriptError = result;
-        std::cerr << "Lua error in " << name << ": " << scriptError.what() << '\n';
+        report(name, scriptError.what());
         return;
     }
 
     sol::object handlers = result;
     if (!handlers.is<sol::table>())
     {
-        std::cerr << "Lua error in " << name << ": a script names no handlers to call\n";
+        report(name, "a script names no handlers to call");
         return;
     }
 

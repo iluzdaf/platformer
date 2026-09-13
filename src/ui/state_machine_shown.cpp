@@ -14,7 +14,6 @@
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
-#include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/actor_facts.hpp"
@@ -43,8 +42,6 @@ std::string behaviourOf(const BehaviorStateData &state)
             using Does = std::remove_cvref_t<decltype(held)>;
             if constexpr (std::is_same_v<Does, PatrolBehaviorData>)
                 return "patrol";
-            else if constexpr (std::is_same_v<Does, FleeBehaviorData>)
-                return "flee";
             else if constexpr (std::is_same_v<Does, ChaseBehaviorData>)
                 return held.standoff > 0.0f ? std::format("chase, standoff {}", held.standoff)
                                             : "chase";

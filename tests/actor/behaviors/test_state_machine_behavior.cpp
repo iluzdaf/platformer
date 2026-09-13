@@ -10,7 +10,6 @@
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
-#include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
@@ -33,22 +32,22 @@ namespace
         patrolling.name = "patrol";
         patrolling.does = PatrolBehaviorData{};
 
-        BehaviorStateData fleeing;
-        fleeing.name = "flee";
-        fleeing.does = FleeBehaviorData{};
+        BehaviorStateData chasing;
+        chasing.name = "chase";
+        chasing.does = ChaseBehaviorData{};
 
         TransitionData alarmed;
         alarmed.from = "patrol";
-        alarmed.to = "flee";
+        alarmed.to = "chase";
         alarmed.when["near"] = true;
 
         TransitionData calmed;
-        calmed.from = "flee";
+        calmed.from = "chase";
         calmed.to = "patrol";
         calmed.when["near"] = false;
         calmed.after = calmDown;
 
-        return {{patrolling, fleeing}, {alarmed, calmed}};
+        return {{patrolling, chasing}, {alarmed, calmed}};
     }
 
     FactsData knowingNear()
@@ -83,10 +82,10 @@ TEST_CASE("Runs the state it is in, not the one it left", "[StateMachineBehavior
         0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(0.0f, 192.0f))));
     REQUIRE(patrolling.direction.x == -1.0f);
 
-    InputIntentions fleeing = behavior.decide(
+    InputIntentions chasing = behavior.decide(
         0.01f,
-        told(near, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(160.0f, 192.0f))));
-    REQUIRE(fleeing.direction.x == 1.0f);
+        told(near, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(300.0f, 192.0f))));
+    REQUIRE(chasing.direction.x == 1.0f);
 }
 
 TEST_CASE("Given no states at all it asks for nothing", "[StateMachineBehavior]")
@@ -214,34 +213,34 @@ TEST_CASE("A state told to pounce leaps at the threat", "[StateMachineBehavior]"
 }
 
 TEST_CASE(
-    "A fleeing creature pounces when told the threat is in reach, then flees again once it lands",
+    "A chasing creature pounces when told the threat is in reach, then chases again once it lands",
     "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    BehaviorStateData fleeing;
-    fleeing.name = "flee";
-    fleeing.does = FleeBehaviorData{};
+    BehaviorStateData chasing;
+    chasing.name = "chase";
+    chasing.does = ChaseBehaviorData{};
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
     pouncing.cooldown = 1.0f;
     TransitionData tooClose;
-    tooClose.from = "flee";
+    tooClose.from = "chase";
     tooClose.to = "pounce";
     tooClose.when["inReach"] = true;
     TransitionData landed;
     landed.from = "pounce";
-    landed.to = "flee";
+    landed.to = "chase";
     landed.when["onGround"] = true;
     landed.after = 0.05f;
     FactsData facts;
     facts["inReach"] = false;
-    StateMachineBehavior behavior({{fleeing, pouncing}, {tooClose, landed}}, std::nullopt, facts);
+    StateMachineBehavior behavior({{chasing, pouncing}, {tooClose, landed}}, std::nullopt, facts);
 
     behavior.decide(
         0.01f,
         told(facts, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(150.0f, 192.0f))));
-    REQUIRE(behavior.getStateName() == "flee");
+    REQUIRE(behavior.getStateName() == "chase");
 
     facts["inReach"] = true;
     InputIntentions leap = behavior.decide(
@@ -256,29 +255,29 @@ TEST_CASE(
         behavior.decide(
             0.01f,
             told(facts, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(176.0f, 192.0f))));
-    REQUIRE(behavior.getStateName() == "flee");
+    REQUIRE(behavior.getStateName() == "chase");
 }
 
 TEST_CASE("Each time it enters a state, that state starts afresh", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    BehaviorStateData fleeing;
-    fleeing.name = "flee";
-    fleeing.does = FleeBehaviorData{};
+    BehaviorStateData chasing;
+    chasing.name = "chase";
+    chasing.does = ChaseBehaviorData{};
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
     TransitionData tooClose;
-    tooClose.from = "flee";
+    tooClose.from = "chase";
     tooClose.to = "pounce";
     tooClose.when["inReach"] = true;
     TransitionData backOff;
     backOff.from = "pounce";
-    backOff.to = "flee";
+    backOff.to = "chase";
     backOff.when["inReach"] = false;
     FactsData facts;
     facts["inReach"] = false;
-    StateMachineBehavior behavior({{fleeing, pouncing}, {tooClose, backOff}}, std::nullopt, facts);
+    StateMachineBehavior behavior({{chasing, pouncing}, {tooClose, backOff}}, std::nullopt, facts);
     auto decide = [&](bool inReach)
     {
         facts["inReach"] = inReach;
@@ -290,7 +289,7 @@ TEST_CASE("Each time it enters a state, that state starts afresh", "[StateMachin
     REQUIRE(decide(true).attack == PounceAttack);
     REQUIRE(decide(true).attack.empty());
     decide(false);
-    REQUIRE(behavior.getStateName() == "flee");
+    REQUIRE(behavior.getStateName() == "chase");
 
     REQUIRE(decide(true).attack == PounceAttack);
 }
@@ -301,16 +300,16 @@ TEST_CASE("Resetting goes back to the first state, and starts it afresh", "[Stat
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
-    BehaviorStateData fleeing;
-    fleeing.name = "flee";
-    fleeing.does = FleeBehaviorData{};
+    BehaviorStateData chasing;
+    chasing.name = "chase";
+    chasing.does = ChaseBehaviorData{};
     TransitionData backOff;
     backOff.from = "pounce";
-    backOff.to = "flee";
+    backOff.to = "chase";
     backOff.when["inReach"] = false;
     FactsData facts;
     facts["inReach"] = true;
-    StateMachineBehavior behavior({{pouncing, fleeing}, {backOff}}, std::nullopt, facts);
+    StateMachineBehavior behavior({{pouncing, chasing}, {backOff}}, std::nullopt, facts);
     auto decide = [&](bool inReach)
     {
         facts["inReach"] = inReach;
@@ -320,7 +319,7 @@ TEST_CASE("Resetting goes back to the first state, and starts it afresh", "[Stat
     };
     REQUIRE(decide(true).attack == PounceAttack);
     decide(false);
-    REQUIRE(behavior.getStateName() == "flee");
+    REQUIRE(behavior.getStateName() == "chase");
 
     behavior.reset();
 
@@ -438,7 +437,7 @@ TEST_CASE(
 
     states.knockback.active = true;
     behavior.decide(0.01f, facts);
-    REQUIRE(behavior.getStateName() == "flee");
+    REQUIRE(behavior.getStateName() == "chase");
 }
 
 TEST_CASE("A transition cannot ask about the picture", "[StateMachineBehavior]")

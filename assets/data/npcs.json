@@ -65,7 +65,7 @@
         "stateMachineBehaviorData":{
             "states":[
                 {"name":"patrol","does":{"kind":"patrol"}},
-                {"name":"flee","does":{"kind":"flee"}},
+                {"name":"flee","does":{"kind":"script","call":"flee"}},
                 {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":1}
             ],
             "transitions":[

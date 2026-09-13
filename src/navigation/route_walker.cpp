@@ -61,8 +61,9 @@ void RouteWalker::anchor(const ActorFacts &context)
         if (!hasSomewhereToGo(context.navigationGraph, id))
             continue;
 
-        float drop =
-            feetSettledOn(context.feet.y, node.feet.y) ? 0.0f : node.feet.y - context.feet.y;
+        float drop = feetSettledOn(context.feet.y, node.feet.y, context.stepHeight)
+                         ? 0.0f
+                         : node.feet.y - context.feet.y;
         if (drop < 0.0f)
             continue;
 
@@ -84,21 +85,20 @@ bool RouteWalker::hasLostTheRoute(const ActorFacts &context) const
         return false;
 
     const NavigationGraph &navigationGraph = context.navigationGraph;
-    NavigationNode node = navigationGraph.getNode(*currentNodeId);
-    if (!feetSettledOn(context.feet.y, node.feet.y))
-        return true;
-
-    float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
-    float leftEnd = node.feet.x;
-    float rightEnd = node.feet.x;
+    glm::vec2 node = navigationGraph.getNode(*currentNodeId).feet;
+    glm::vec2 nearCorner = node;
+    glm::vec2 farCorner = node;
     for (int id : walkableFrom(navigationGraph, *currentNodeId))
     {
-        float x = navigationGraph.getNode(id).feet.x;
-        leftEnd = std::min(leftEnd, x);
-        rightEnd = std::max(rightEnd, x);
+        nearCorner = glm::min(nearCorner, navigationGraph.getNode(id).feet);
+        farCorner = glm::max(farCorner, navigationGraph.getNode(id).feet);
     }
 
-    return context.feet.x < leftEnd - reach || context.feet.x > rightEnd + reach;
+    float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
+    float settle = settlingTolerance(context.stepHeight);
+
+    return context.feet.x < nearCorner.x - reach || context.feet.x > farCorner.x + reach ||
+           context.feet.y < nearCorner.y - settle || context.feet.y > farCorner.y + settle;
 }
 
 bool RouteWalker::walksGroundThatIsGone(const NavigationGraph &navigationGraph) const
@@ -253,7 +253,7 @@ bool RouteWalker::withinReachOf(const ActorFacts &context, int nodeId) const
 
 bool RouteWalker::standsAt(const ActorFacts &context, glm::vec2 point, float atLeast) const
 {
-    if (!feetSettledOn(context.feet.y, point.y))
+    if (!feetSettledOn(context.feet.y, point.y, context.stepHeight))
         return false;
 
     float reach = std::max(context.colliderSize.x * 0.5f + arrivalThreshold, atLeast);
@@ -275,7 +275,7 @@ bool RouteWalker::hasArrived(const ActorFacts &context, int setOffAt, int headin
     const NavigationEdge *leg = edgeBetween(navigationGraph, setOffAt, headingFor);
     if (leg && leg->type == EdgeType::Climb)
     {
-        if (std::abs(target.y - context.feet.y) <= SurfaceTolerance)
+        if (std::abs(target.y - context.feet.y) <= ClimbArrivesWithin)
             return true;
 
         float climbDirection = directionTowards(navigationGraph.getNode(setOffAt).feet.y, target.y);
@@ -283,7 +283,7 @@ bool RouteWalker::hasArrived(const ActorFacts &context, int setOffAt, int headin
         return directionTowards(context.feet.y, target.y) != climbDirection;
     }
 
-    if (!feetSettledOn(context.feet.y, target.y))
+    if (!feetSettledOn(context.feet.y, target.y, context.stepHeight))
         return false;
 
     if (std::abs(target.x - context.feet.x) <= reach)

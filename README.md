@@ -297,8 +297,15 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - A jump counts only where its feet come down over a collider, to within half a pixel. A
   body can hang onto a corner by less than a pixel, and a walker's take-off is not that
   precise.
-- A walker anchors to the nearest node within a settle of its feet. Runs a step apart are
-  the same level, so the node a pixel higher is not the better one.
+- A walker's feet are settled on a surface within its own `stepHeight` of it (or the
+  pixel a climb arrives within, if that is more), plus half a pixel of float noise. Its
+  feet can be a step from a node of the run they walk, and a climber stops a little short
+  of its node.
+- A walker anchors to the nearest node within that settle of its feet. Runs a step apart
+  are the same level, so the node a pixel higher is not the better one.
+- A walker has left its run when its feet are outside the run's span by more than its
+  reach across, or more than the settle above or below, so a run of several steps
+  down is still one run.
 - Feet placed on a tile in the editor stand on the collider beneath it too.
 
 **A state can be scripted, and walking stays in C++.**

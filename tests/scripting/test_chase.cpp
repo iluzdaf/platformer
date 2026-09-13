@@ -196,13 +196,13 @@ TEST_CASE("Has nothing to do on a graph with no edges at all", "[Chase]")
     REQUIRE_FALSE(behavior.getCurrentNodeId().has_value());
 }
 
-TEST_CASE("Catches up with feet settled a pixel below the run", "[Chase]")
+TEST_CASE("Catches up with feet a step below the run", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
     BehaviorFile behavior(Chase);
     glm::vec2 threat(200.0f, 192.0f);
 
-    glm::vec2 position(96.0f, 193.5f);
+    glm::vec2 position(96.0f, 195.0f);
     for (int step = 0; step < 400; ++step)
     {
         InputIntentions inputIntentions =

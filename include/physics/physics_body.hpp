@@ -15,6 +15,7 @@ public:
     glm::vec2 position() const;
     glm::vec2 velocity() const;
     glm::vec2 colliderSize() const;
+    float stepHeight() const;
     glm::vec2 colliderOffset() const;
     AABB aabb() const;
     AABB touchBox() const;

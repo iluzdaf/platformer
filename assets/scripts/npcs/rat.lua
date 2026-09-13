@@ -31,7 +31,7 @@ return {
     end,
 
     states = {
-        patrol = include('scripts/steering/patrol.lua'),
+        patrol = include('scripts/behaviors/patrol.lua'),
 
         flee = {
             decide = function(self, rat, facts, walker, dt)

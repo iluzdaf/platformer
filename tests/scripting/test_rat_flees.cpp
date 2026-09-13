@@ -2,7 +2,7 @@
 #include <optional>
 #include "actor/actor_facts.hpp"
 #include "helpers/actor_facts.hpp"
-#include "helpers/shipped_steering.hpp"
+#include "helpers/shipped_behavior.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -22,7 +22,7 @@ namespace
     }
 
     int runAway(
-        ShippedSteering &behavior,
+        ShippedBehavior &behavior,
         const NavigationGraph &navigationGraph,
         glm::vec2 start,
         std::optional<glm::vec2> threatFeet,
@@ -42,7 +42,7 @@ namespace
 TEST_CASE("Runs to the far end of the run it is on", "[RatFlees]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     REQUIRE(runAway(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(0.0f, 192.0f)) == 4);
 }
@@ -50,7 +50,7 @@ TEST_CASE("Runs to the far end of the run it is on", "[RatFlees]")
 TEST_CASE("Runs the other way when the threat comes from the other side", "[RatFlees]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     REQUIRE(runAway(behavior, navigationGraph, {288.0f, 192.0f}, glm::vec2(384.0f, 192.0f)) == 0);
 }
@@ -58,7 +58,7 @@ TEST_CASE("Runs the other way when the threat comes from the other side", "[RatF
 TEST_CASE("Turns round when the threat gets between it and its refuge", "[RatFlees]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     glm::vec2 position(96.0f, 192.0f);
     for (int step = 0; step < 40; ++step)
@@ -79,7 +79,7 @@ TEST_CASE("Turns round when the threat gets between it and its refuge", "[RatFle
 TEST_CASE("Will not escape somewhere it cannot get back from", "[RatFlees]")
 {
     NavigationGraph navigationGraph = setupRunWithAOneWayCrossing();
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     int endedAt = runAway(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(0.0f, 192.0f));
 
@@ -89,7 +89,7 @@ TEST_CASE("Will not escape somewhere it cannot get back from", "[RatFlees]")
 TEST_CASE("Stands still while nothing is chasing it", "[RatFlees]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     InputIntentions inputIntentions =
         behavior.decide(0.01f, standingAt(navigationGraph, {96.0f, 192.0f}, std::nullopt));
@@ -102,7 +102,7 @@ TEST_CASE("Stands still while nothing is chasing it", "[RatFlees]")
 TEST_CASE("Keeps to its route while it is in the air", "[RatFlees]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
     glm::vec2 position(96.0f, 192.0f);
     for (int step = 0; step < 40; ++step)
     {
@@ -123,7 +123,7 @@ TEST_CASE("Has nothing to do on a graph with no edges at all", "[RatFlees]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {0.0f, 192.0f});
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     InputIntentions inputIntentions = behavior.decide(
         0.01f, standingAt(navigationGraph, {0.0f, 192.0f}, glm::vec2(0.0f, 192.0f)));
@@ -135,7 +135,7 @@ TEST_CASE("Has nothing to do on a graph with no edges at all", "[RatFlees]")
 TEST_CASE("Will not run past the threat to reach open ground", "[RatFlees]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     REQUIRE(runAway(behavior, navigationGraph, {96.0f, 192.0f}, glm::vec2(144.0f, 192.0f)) == 0);
 }
@@ -148,7 +148,7 @@ TEST_CASE("Turns back to the node it set off from when the threat gets behind it
     navigationGraph.addEdge(0, 1, EdgeType::Walk);
     navigationGraph.addEdge(1, 0, EdgeType::Walk);
 
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     glm::vec2 position(104.0f, 96.0f);
     for (int step = 0; step < 40; ++step)
@@ -174,7 +174,7 @@ TEST_CASE("Holds its corner however close the threat comes", "[RatFlees]")
     navigationGraph.addNode(1, {112.0f, 96.0f});
     navigationGraph.addEdge(0, 1, EdgeType::Walk);
     navigationGraph.addEdge(1, 0, EdgeType::Walk);
-    ShippedSteering behavior("rat", "flee");
+    ShippedBehavior behavior("rat", "flee");
 
     glm::vec2 position(104.0f, 96.0f);
     for (int step = 0; step < 200; ++step)

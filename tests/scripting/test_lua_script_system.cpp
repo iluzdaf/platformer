@@ -270,9 +270,9 @@ TEST_CASE(
         "includer",
         writeScript(
             "platformer_lua_includer.lua",
-            "local patrol = include('scripts/steering/patrol.lua')\n"
+            "local patrol = include('scripts/behaviors/patrol.lua')\n"
             "seen.decides = type(patrol.decide) == 'function'\n"
-            "seen.afresh = include('scripts/steering/patrol.lua') ~= patrol\n"
+            "seen.afresh = include('scripts/behaviors/patrol.lua') ~= patrol\n"
             "return {}\n")
             .string());
 

@@ -26,10 +26,10 @@ inline ScriptedBehaviorData shippedScriptedState(
     throw std::runtime_error("the shipped " + creature + " has no state called " + state);
 }
 
-class ShippedSteering
+class ShippedBehavior
 {
 public:
-    ShippedSteering(
+    ShippedBehavior(
         const std::string &creature,
         const std::string &state,
         std::optional<PatrolData> beat = std::nullopt)

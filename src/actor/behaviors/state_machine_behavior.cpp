@@ -36,7 +36,7 @@ StateMachineBehavior::StateMachineBehavior(
                     "\" " + *why);
 
     for (const BehaviorStateData &state : data.states)
-        steering.push_back(
+        behaviors.push_back(
             std::visit(
                 [](const auto &does) -> std::unique_ptr<ActorBehavior>
                 {
@@ -53,17 +53,17 @@ StateMachineBehavior::StateMachineBehavior(
                 state.does));
 }
 
-ActorBehavior *StateMachineBehavior::steeringNow() const
+ActorBehavior *StateMachineBehavior::behaviorNow() const
 {
-    return steering.empty() ? nullptr : steering[machine.active()].get();
+    return behaviors.empty() ? nullptr : behaviors[machine.active()].get();
 }
 
 void StateMachineBehavior::reset()
 {
-    if (ActorBehavior *now = steeringNow())
+    if (ActorBehavior *now = behaviorNow())
         now->leave();
 
-    for (const std::unique_ptr<ActorBehavior> &each : steering)
+    for (const std::unique_ptr<ActorBehavior> &each : behaviors)
         if (each)
             each->reset();
 
@@ -73,21 +73,21 @@ void StateMachineBehavior::reset()
 InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorFacts &context)
 {
     static const FactsData nothingDeclared;
-    ActorBehavior *was = steeringNow();
+    ActorBehavior *was = behaviorNow();
     std::optional<std::size_t> entered =
         machine.advance(deltaTime, context, context.facts ? *context.facts : nothingDeclared);
     if (entered && was)
         was->leave();
-    if (entered && steering[*entered])
-        steering[*entered]->reset();
+    if (entered && behaviors[*entered])
+        behaviors[*entered]->reset();
 
-    ActorBehavior *now = steeringNow();
+    ActorBehavior *now = behaviorNow();
     return now ? now->decide(deltaTime, context) : InputIntentions();
 }
 
 void StateMachineBehavior::scriptWith(StateScript *script)
 {
-    for (const std::unique_ptr<ActorBehavior> &each : steering)
+    for (const std::unique_ptr<ActorBehavior> &each : behaviors)
         if (each)
             each->scriptWith(script);
 }
@@ -99,12 +99,12 @@ std::string_view StateMachineBehavior::getStateName() const
 
 std::optional<int> StateMachineBehavior::getCurrentNodeId() const
 {
-    ActorBehavior *now = steeringNow();
+    ActorBehavior *now = behaviorNow();
     return now ? now->getCurrentNodeId() : std::nullopt;
 }
 
 std::optional<int> StateMachineBehavior::getTargetNodeId() const
 {
-    ActorBehavior *now = steeringNow();
+    ActorBehavior *now = behaviorNow();
     return now ? now->getTargetNodeId() : std::nullopt;
 }

@@ -4,6 +4,7 @@
 #include <vector>
 #include "game/noise.hpp"
 #include <string>
+#include <string_view>
 #include "events/event.hpp"
 #include "game/score.hpp"
 #include "game/level_data.hpp"
@@ -49,7 +50,8 @@ public:
     const Score &getScore() const;
 
 private:
-    void useCreatureScripts();
+    void useScripts();
+    void useScript(std::string_view name, const std::string &scriptPath);
     std::string path;
     LevelData levelData;
 

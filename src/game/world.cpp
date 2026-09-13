@@ -40,17 +40,22 @@ World::World(
     LuaScriptSystem &luaScriptSystem)
     : gameData(gameData), intentionSource(intentionSource), luaScriptSystem(luaScriptSystem)
 {
-    if (!gameData.playerData.script.path.empty())
-        luaScriptSystem.use(PlayerScript, assets::pathTo(gameData.playerData.script.path));
-
-    useCreatureScripts();
+    useScripts();
 }
 
-void World::useCreatureScripts()
+void World::useScripts()
 {
+    useScript(PlayerScript, gameData.playerData.script.path);
     for (const auto &[type, npcData] : gameData.npcData)
-        if (!npcData.script.path.empty())
-            luaScriptSystem.use(scriptOf(type), assets::pathTo(npcData.script.path));
+        useScript(scriptOf(type), npcData.script.path);
+}
+
+void World::useScript(std::string_view name, const std::string &scriptPath)
+{
+    if (scriptPath.empty())
+        luaScriptSystem.drop(name);
+    else
+        luaScriptSystem.use(name, assets::pathTo(scriptPath));
 }
 
 World::~World() = default;
@@ -143,7 +148,7 @@ void World::makePlayerAt(glm::vec2 feet)
 
 void World::castChanged()
 {
-    useCreatureScripts();
+    useScripts();
     if (!level)
         return;
 

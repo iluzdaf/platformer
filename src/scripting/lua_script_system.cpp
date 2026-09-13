@@ -268,6 +268,12 @@ void LuaScriptSystem::use(std::string_view name, const std::string &path)
     reload(script, name);
 }
 
+void LuaScriptSystem::drop(std::string_view name)
+{
+    scripts.erase(std::string(name));
+    expectedStates.erase(std::string(name));
+}
+
 void LuaScriptSystem::reload(NamedScript &script, std::string_view name)
 {
     sol::environment fresh(lua, sol::create, lua.globals());

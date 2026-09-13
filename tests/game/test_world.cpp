@@ -1126,3 +1126,95 @@ TEST_CASE("A player set down further down the map has not fallen", "[World]")
     REQUIRE(world.getPlayer().observed().contacts.onGround);
     REQUIRE(world.noises().empty());
 }
+
+namespace
+{
+    std::string aScriptThatSays(const std::string &name, const std::string &said)
+    {
+        std::filesystem::path path = std::filesystem::temp_directory_path() / name;
+        std::ofstream(path) << "return { onHurt = function() seen.who = '" << said << "' end }\n";
+        return path.string();
+    }
+
+    struct HeardByScripts
+    {
+        std::filesystem::path shared = []
+        {
+            std::filesystem::path path =
+                std::filesystem::temp_directory_path() / "platformer_world_heard_shared.lua";
+            std::ofstream(path) << "seen = {}\n";
+            return path;
+        }();
+        GameData gameData = aFloorWorldWithCoins();
+        LuaScriptSystem luaScriptSystem{shared.string()};
+        std::optional<World> world;
+        TemporaryLevels levels{"world_heard"};
+
+        explicit HeardByScripts(const std::string &playerScript, const std::string &ratScript = "")
+        {
+            gameData.playerData = playerDataWithHealth(3, 0.0f);
+            gameData.playerData.script.path = playerScript;
+            NpcData rat = setupNpcData();
+            rat.actorData.healthData = HealthData{3, 0.0f};
+            rat.script.path = ratScript;
+            gameData.npcData = {{"rat", rat}};
+            world.emplace(gameData, noIntentions(), luaScriptSystem);
+            levels.write(
+                "floor.json",
+                aFloorLevelPlacing({spawnAt("rat", glm::ivec2(3, FloorLevelStanding))}));
+            world->loadLevel(levels.pathOf("floor.json"));
+        }
+
+        std::optional<std::string> whoHeard()
+        {
+            sol::object who = luaScriptSystem.getLua()["seen"]["who"];
+            return who.is<std::string>() ? std::optional(who.as<std::string>()) : std::nullopt;
+        }
+    };
+}
+
+TEST_CASE("A player given another script by a cast change is heard by it", "[World]")
+{
+    HeardByScripts playing(aScriptThatSays("platformer_world_first.lua", "first"));
+
+    playing.gameData.playerData.script.path =
+        aScriptThatSays("platformer_world_second.lua", "second");
+    playing.world->castChanged();
+    playing.world->getPlayer().takeHit(Hit{1, glm::vec2(0.0f), false});
+
+    REQUIRE(playing.whoHeard() == "second");
+}
+
+TEST_CASE("A player given a script only after the world was made is heard by it", "[World]")
+{
+    HeardByScripts playing("");
+
+    playing.gameData.playerData.script.path =
+        aScriptThatSays("platformer_world_later.lua", "later");
+    playing.world->castChanged();
+    playing.world->getPlayer().takeHit(Hit{1, glm::vec2(0.0f), false});
+
+    REQUIRE(playing.whoHeard() == "later");
+}
+
+TEST_CASE("A player whose script is taken away is heard by nobody", "[World]")
+{
+    HeardByScripts playing(aScriptThatSays("platformer_world_gone.lua", "gone"));
+
+    playing.gameData.playerData.script.path.clear();
+    playing.world->castChanged();
+    playing.world->getPlayer().takeHit(Hit{1, glm::vec2(0.0f), false});
+
+    REQUIRE_FALSE(playing.whoHeard().has_value());
+}
+
+TEST_CASE("A creature whose script is taken away is heard by nobody", "[World]")
+{
+    HeardByScripts playing("", aScriptThatSays("platformer_world_rat_gone.lua", "rat"));
+
+    playing.gameData.npcData.at("rat").script.path.clear();
+    playing.world->castChanged();
+    playing.world->getLevel().getNpcs().front()->takeHit(Hit{1, glm::vec2(0.0f), false});
+
+    REQUIRE_FALSE(playing.whoHeard().has_value());
+}

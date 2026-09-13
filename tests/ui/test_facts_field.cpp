@@ -2,13 +2,16 @@
 #include <string>
 #include <catch2/catch_test_macros.hpp>
 #include <imgui.h>
+#include "actor/actor_facts.hpp"
+#include "actor/actor_fact_rows.hpp"
+#include "conditions/fact_rows.hpp"
 #include "conditions/facts.hpp"
 #include "helpers/headless_imgui.hpp"
 #include "ui/data_inspector.hpp"
 #include "ui/inspector_fields.hpp"
 #include "ui/when_field.hpp"
 #include "conditions/asked.hpp"
-#include <string_view>
+#include <span>
 #include <vector>
 
 namespace
@@ -110,27 +113,27 @@ TEST_CASE("Asking to declare opens the chooser and declares nothing by itself", 
 }
 
 TEST_CASE(
-    "A condition is offered the ground the engine answers, then what is declared",
+    "A condition is offered what the engine answers about the actor, then what is declared",
     "[FactsField]")
 {
     FactsData facts = threeFacts();
 
     std::vector<FactOffered> offered = factsOffered(&facts);
 
-    std::vector<std::string_view> answered{
-        "onGround", "charging", "threatOnMySurface", "cornered", "threatClose", "threatInReach"};
+    std::span<const FactRow<ActorFacts>> answered = actorRows();
     REQUIRE(offered.size() == answered.size() + 3);
     for (std::size_t at = 0; at < answered.size(); ++at)
     {
-        REQUIRE(offered[at].name == answered[at]);
-        REQUIRE(offered[at].kind == AskedKind::YesOrNo);
+        REQUIRE(offered[at].name == answered[at].name);
+        REQUIRE(offered[at].kind == answered[at].kind);
     }
-    REQUIRE(offered[6].name == "hits");
-    REQUIRE(offered[6].kind == AskedKind::Number);
-    REQUIRE(offered[7].name == "mood");
-    REQUIRE(offered[7].kind == AskedKind::Name);
-    REQUIRE(offered[8].name == "near");
-    REQUIRE(offered[8].kind == AskedKind::YesOrNo);
+    std::size_t declared = answered.size();
+    REQUIRE(offered[declared].name == "hits");
+    REQUIRE(offered[declared].kind == AskedKind::Number);
+    REQUIRE(offered[declared + 1].name == "mood");
+    REQUIRE(offered[declared + 1].kind == AskedKind::Name);
+    REQUIRE(offered[declared + 2].name == "near");
+    REQUIRE(offered[declared + 2].kind == AskedKind::YesOrNo);
 
     REQUIRE(factsOffered(nullptr).size() == answered.size());
 }

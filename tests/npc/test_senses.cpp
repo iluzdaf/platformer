@@ -9,6 +9,8 @@
 #include "actor/behaviors/idle_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "animations/animator_data.hpp"
+#include "animations/frame_animation_data.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/facts.hpp"
 #include "game/level.hpp"
@@ -54,6 +56,33 @@ namespace
         woken.when["heard"] = true;
         sleeper.stateMachineBehaviorData = StateMachineBehaviorData{{sleeping, charging}, {woken}};
         return sleeper;
+    }
+
+    NpcData aWatcherThatSensesWithin(float close)
+    {
+        NpcData watcher = aListener();
+        watcher.senses.close = close;
+
+        BehaviorStateData watching;
+        watching.name = "watch";
+        BehaviorStateData alarmed;
+        alarmed.name = "alarmed";
+        BehaviorTransitionData startled;
+        startled.from = "watch";
+        startled.to = "alarmed";
+        startled.when["threatClose"] = true;
+        watcher.stateMachineBehaviorData =
+            StateMachineBehaviorData{{watching, alarmed}, {startled}};
+
+        AnimationWhenData threatClose;
+        threatClose["threatClose"] = true;
+        AnimatorData looks;
+        looks.startClip = "calm";
+        looks.clips["calm"] = FrameAnimationData({0}, 1.0f);
+        looks.clips["alert"] = FrameAnimationData({1}, 1.0f);
+        looks.rules = {{"alert", threatClose}};
+        watcher.actorData.animationData = looks;
+        return watcher;
     }
 
     void tick(Npc &npc, const Level &level, std::optional<glm::vec2> threat = std::nullopt)
@@ -233,4 +262,42 @@ TEST_CASE(
     npc.beginFrame();
     npc.fixedUpdate(0.01f, level, {.threatFeet = you, .noises = onMyGround});
     REQUIRE(npc.stateName() == "charge");
+}
+
+TEST_CASE("How close is close is the creature's own sense of it", "[Senses]")
+{
+    NpcSpawnData spawn = spawnAt("watcher", OnTheGround);
+    NpcData keenly = aWatcherThatSensesWithin(40.0f);
+    NpcData dully = aWatcherThatSensesWithin(20.0f);
+    Level level = levelWithALedgeAndAWall({spawn}, {{"watcher", keenly}});
+    Npc keen(spawn, keenly);
+    Npc dull(spawn, dully);
+    for (int settle = 0; settle < 30; ++settle)
+    {
+        tick(keen, level);
+        tick(dull, level);
+    }
+
+    tick(keen, level, keen.feet() + glm::vec2(30.0f, 0.0f));
+    tick(dull, level, dull.feet() + glm::vec2(30.0f, 0.0f));
+
+    REQUIRE(keen.stateName() == "alarmed");
+    REQUIRE(dull.stateName() == "watch");
+}
+
+TEST_CASE("A creature's animations sense the threat as its machine does", "[Senses]")
+{
+    NpcSpawnData spawn = spawnAt("watcher", OnTheGround);
+    NpcData watcher = aWatcherThatSensesWithin(40.0f);
+    Level level = levelWithALedgeAndAWall({spawn}, {{"watcher", watcher}});
+    Npc npc(spawn, watcher);
+    for (int settle = 0; settle < 30; ++settle)
+        tick(npc, level);
+    REQUIRE(npc.appearance().currentAnimation == "calm");
+
+    tick(npc, level, npc.feet() + glm::vec2(30.0f, 0.0f));
+    REQUIRE(npc.appearance().currentAnimation == "alert");
+
+    tick(npc, level, npc.feet() + glm::vec2(60.0f, 0.0f));
+    REQUIRE(npc.appearance().currentAnimation == "calm");
 }

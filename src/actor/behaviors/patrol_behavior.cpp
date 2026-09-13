@@ -5,7 +5,7 @@
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "actor/behaviors/footing.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_path.hpp"
@@ -20,7 +20,7 @@ PatrolBehavior::PatrolBehavior(
 }
 
 PatrolBehavior::BeatEnd PatrolBehavior::endOfTheBeat(
-    const ActorBehaviorContext &context,
+    const ActorFacts &context,
     int from,
     bool second) const
 {
@@ -45,7 +45,7 @@ PatrolBehavior::BeatEnd PatrolBehavior::endOfTheBeat(
     return BeatEnd{navigationGraph.getNode(end).feet, end};
 }
 
-bool PatrolBehavior::standingAt(const ActorBehaviorContext &context, const BeatEnd &end) const
+bool PatrolBehavior::standingAt(const ActorFacts &context, const BeatEnd &end) const
 {
     if (!feetSettledOn(context.feet.y, end.position.y))
         return false;
@@ -61,7 +61,7 @@ void PatrolBehavior::reset()
     headingForTheSecond = false;
 }
 
-InputIntentions PatrolBehavior::decide(float deltaTime, const ActorBehaviorContext &context)
+InputIntentions PatrolBehavior::decide(float deltaTime, const ActorFacts &context)
 {
     walker.keepInStep(context);
     if (!walker.isAnchored())
@@ -84,7 +84,7 @@ std::optional<int> PatrolBehavior::getTargetNodeId() const
     return walker.getTargetNodeId();
 }
 
-void PatrolBehavior::planRoute(const ActorBehaviorContext &context, int from)
+void PatrolBehavior::planRoute(const ActorFacts &context, int from)
 {
     BeatEnd destination = endOfTheBeat(context, from, headingForTheSecond);
 

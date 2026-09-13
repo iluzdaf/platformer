@@ -5,14 +5,7 @@
 #include "animations/animator_facts.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
-
-namespace
-{
-    AnimatorFacts factsOf(const AbilityStates &states, const Observed &observed)
-    {
-        return AnimatorFacts{states, observed, false, ""};
-    }
-}
+#include "helpers/actor_facts.hpp"
 
 TEST_CASE("A condition that asks nothing always holds", "[AnimationRules]")
 {
@@ -50,6 +43,6 @@ TEST_CASE("A condition may ask which state the machine is in", "[AnimationRules]
     AbilityStates states;
     Observed observed;
 
-    REQUIRE(holds(asleep, animatorRows(), AnimatorFacts{states, observed, false, "sleep"}));
-    REQUIRE_FALSE(holds(asleep, animatorRows(), AnimatorFacts{states, observed, false, "charge"}));
+    REQUIRE(holds(asleep, animatorRows(), factsOf(states, observed, "sleep")));
+    REQUIRE_FALSE(holds(asleep, animatorRows(), factsOf(states, observed, "charge")));
 }

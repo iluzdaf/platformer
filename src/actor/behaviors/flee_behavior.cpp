@@ -2,7 +2,7 @@
 #include <optional>
 #include "actor/behaviors/flee_behavior.hpp"
 #include "actor/behaviors/flee_behavior_data.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_path.hpp"
@@ -17,7 +17,7 @@ void FleeBehavior::reset()
     walker.reset();
 }
 
-std::optional<int> FleeBehavior::furthestFrom(const ActorBehaviorContext &context) const
+std::optional<int> FleeBehavior::furthestFrom(const ActorFacts &context) const
 {
     std::optional<int> from = walker.getCurrentNodeId();
     if (!from || !context.threatFeet)
@@ -27,7 +27,7 @@ std::optional<int> FleeBehavior::furthestFrom(const ActorBehaviorContext &contex
     return furthestRefugeFrom(context.navigationGraph, *from, *context.threatFeet, away);
 }
 
-bool FleeBehavior::fleeingTowardsTheThreat(const ActorBehaviorContext &context) const
+bool FleeBehavior::fleeingTowardsTheThreat(const ActorFacts &context) const
 {
     std::optional<int> destination = walker.getTargetNodeId();
     if (!destination || !context.threatFeet || !context.contacts.onGround)
@@ -39,7 +39,7 @@ bool FleeBehavior::fleeingTowardsTheThreat(const ActorBehaviorContext &context) 
            glm::distance(context.feet, *context.threatFeet);
 }
 
-void FleeBehavior::planRoute(const ActorBehaviorContext &context)
+void FleeBehavior::planRoute(const ActorFacts &context)
 {
     std::optional<int> refuge = furthestFrom(context);
     if (!refuge)
@@ -48,7 +48,7 @@ void FleeBehavior::planRoute(const ActorBehaviorContext &context)
     walker.takeRouteTo(context, *refuge);
 }
 
-InputIntentions FleeBehavior::decide(float deltaTime, const ActorBehaviorContext &context)
+InputIntentions FleeBehavior::decide(float deltaTime, const ActorFacts &context)
 {
     walker.keepInStep(context);
     if (!walker.isAnchored())

@@ -5,8 +5,8 @@
 #include <utility>
 #include <cstddef>
 #include <vector>
-#include "actor/actor_behavior_context.hpp"
-#include "helpers/behaviour_context.hpp"
+#include "actor/actor_facts.hpp"
+#include "helpers/actor_facts.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
@@ -397,7 +397,7 @@ TEST_CASE("Picks itself up again after coming off its route", "[PatrolBehavior]"
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
     REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).feet.y == 128.0f);
 
-    ActorBehaviorContext knockedDown = standingAt(navigationGraph, {288.0f, 192.0f});
+    ActorFacts knockedDown = standingAt(navigationGraph, {288.0f, 192.0f});
     behavior.decide(0.01f, knockedDown);
 
     REQUIRE(navigationGraph.getNode(*behavior.getCurrentNodeId()).feet.y == 192.0f);
@@ -449,7 +449,7 @@ TEST_CASE("Notices it is on a different platform at the same height", "[PatrolBe
     anchorAt(behavior, navigationGraph, {48.0f, 128.0f});
     REQUIRE(behavior.getCurrentNodeId() == 0);
 
-    ActorBehaviorContext elsewhere = standingAt(navigationGraph, {304.0f, 128.0f});
+    ActorFacts elsewhere = standingAt(navigationGraph, {304.0f, 128.0f});
     behavior.decide(0.01f, elsewhere);
 
     REQUIRE(behavior.getCurrentNodeId() == 3);
@@ -469,7 +469,7 @@ TEST_CASE("Tries the jump again after coming up short", "[PatrolBehavior]")
     REQUIRE(behavior.getCurrentNodeId() == 0);
     REQUIRE(behavior.getTargetNodeId() == 1);
 
-    ActorBehaviorContext backWhereItStarted = standingAt(navigationGraph, {0.0f, 128.0f});
+    ActorFacts backWhereItStarted = standingAt(navigationGraph, {0.0f, 128.0f});
     for (int step = 0; step < 40; ++step)
         behavior.decide(0.01f, backWhereItStarted);
 

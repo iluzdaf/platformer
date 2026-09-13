@@ -11,7 +11,7 @@
 #include "actor/behaviors/senses_data.hpp"
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "conditions/facts.hpp"
 #include "input/input_intentions.hpp"
 
@@ -24,7 +24,7 @@ public:
         const FactsData &declared = FactsData{},
         const SensesData &senses = SensesData{});
     void reset() override;
-    InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) override;
+    InputIntentions decide(float deltaTime, const ActorFacts &context) override;
     std::string_view getStateName() const override;
     std::optional<int> getCurrentNodeId() const override;
     std::optional<int> getTargetNodeId() const override;
@@ -32,7 +32,6 @@ public:
 
 private:
     StateMachineBehaviorData data;
-    SensesData senses;
 
     std::vector<std::unique_ptr<ActorBehavior>> states;
     std::size_t activeState = 0;
@@ -41,5 +40,5 @@ private:
 
     std::optional<std::size_t> stateNamed(const std::string &name) const;
     void enter(std::size_t state);
-    void takeATransition(float deltaTime, const ActorBehaviorContext &context);
+    void takeATransition(float deltaTime, const ActorFacts &context);
 };

@@ -17,8 +17,8 @@
 #include "actor/behaviors/flee_behavior_data.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "actor/actor_behavior_context.hpp"
-#include "actor/behaviors/behavior_facts.hpp"
+#include "actor/actor_facts.hpp"
+#include "actor/actor_fact_rows.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 
@@ -64,7 +64,7 @@ std::string whenOf(const BehaviorTransitionData &transition)
     std::string text;
     for (const auto &[name, asked] : transition.when)
     {
-        const FactRow<ActorBehaviorContext> *row = rowNamed(behaviorRows(), name);
+        const FactRow<ActorFacts> *row = rowNamed(actorRows(), name);
         text +=
             (text.empty() ? "" : ", ") + (row ? wordsOf(*row, asked) : wordsOfAFact(name, asked));
     }

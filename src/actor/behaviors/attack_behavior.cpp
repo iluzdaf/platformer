@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <string>
 #include "actor/behaviors/attack_behavior.hpp"
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "input/input_intentions.hpp"
 
@@ -16,7 +16,7 @@ void AttackBehavior::reset()
     asked = false;
 }
 
-InputIntentions AttackBehavior::decide(float, const ActorBehaviorContext &context)
+InputIntentions AttackBehavior::decide(float, const ActorFacts &context)
 {
     InputIntentions intentions;
     if (!context.threatFeet || asked || !context.contacts.onGround)

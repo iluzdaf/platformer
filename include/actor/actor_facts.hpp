@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <string_view>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_contact_state.hpp"
 #include "conditions/facts.hpp"
@@ -9,7 +10,7 @@ class NavigationGraph;
 struct AbilityStates;
 struct SensesData;
 
-struct ActorBehaviorContext
+struct ActorFacts
 {
     const NavigationGraph &navigationGraph;
     glm::vec2 feet;
@@ -20,4 +21,10 @@ struct ActorBehaviorContext
     const FactsData *facts = nullptr;
     const AbilityStates *abilityStates = nullptr;
     const SensesData *senses = nullptr;
+    glm::vec2 velocity = glm::vec2(0.0f);
+    bool alive = true;
+
+    std::string_view inState = {};
+    // The animator fills this in from the clip it is playing.
+    bool finished = false;
 };

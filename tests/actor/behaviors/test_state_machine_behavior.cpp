@@ -5,8 +5,8 @@
 #include "actor/abilities/charge_ability_state.hpp"
 #include "actor/abilities/ability_states.hpp"
 #include <optional>
-#include "actor/actor_behavior_context.hpp"
-#include "helpers/behaviour_context.hpp"
+#include "actor/actor_facts.hpp"
+#include "helpers/actor_facts.hpp"
 #include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
@@ -60,7 +60,7 @@ namespace
         return facts;
     }
 
-    ActorBehaviorContext told(const FactsData &facts, ActorBehaviorContext context)
+    ActorFacts told(const FactsData &facts, ActorFacts context)
     {
         context.facts = &facts;
         return context;
@@ -229,7 +229,7 @@ TEST_CASE("A transition to a state it does not have is ignored", "[StateMachineB
     data.transitions.push_back(haunted);
     StateMachineBehavior behavior(data, std::nullopt, knowingNear());
     FactsData near = saying("near", true);
-    ActorBehaviorContext threatened =
+    ActorFacts threatened =
         told(near, standingAt(navigationGraph, {0.0f, 192.0f}, glm::vec2(8.0f, 192.0f)));
 
     behavior.decide(0.016f, threatened);
@@ -301,7 +301,7 @@ TEST_CASE("A state on cooldown is not re-entered until it has passed", "[StateMa
     NavigationGraph navigationGraph = aWalkRun();
     StateMachineBehavior behavior(aChaseThatPounces(1.0f), std::nullopt, knowingNear());
     FactsData near = saying("near", true);
-    ActorBehaviorContext close =
+    ActorFacts close =
         told(near, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(200.0f, 192.0f)));
     auto pouncesIn = [&](int steps)
     {
@@ -336,7 +336,7 @@ TEST_CASE(
         told(near, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(200.0f, 192.0f))));
     REQUIRE(behavior.getStateName() == "pounce");
 
-    ActorBehaviorContext inTheAir = told(near, airborneAt(navigationGraph, {196.0f, 180.0f}));
+    ActorFacts inTheAir = told(near, airborneAt(navigationGraph, {196.0f, 180.0f}));
     inTheAir.threatFeet = glm::vec2(200.0f, 192.0f);
     for (int step = 0; step < 20; ++step)
         behavior.decide(0.01f, inTheAir);
@@ -475,7 +475,7 @@ TEST_CASE(
     StateMachineBehavior behavior(StateMachineBehaviorData{{charging, stunned}, {spent}});
     AbilityStates states;
     states.charge.active = true;
-    ActorBehaviorContext midCharge = standingAt(navigationGraph, {96.0f, 192.0f});
+    ActorFacts midCharge = standingAt(navigationGraph, {96.0f, 192.0f});
     midCharge.abilityStates = &states;
 
     behavior.decide(0.01f, midCharge);
@@ -522,21 +522,38 @@ TEST_CASE(
         StateMachineBehavior(data, std::nullopt, knowingNear(), SensesData{40.0f, 24.0f}));
 }
 
-TEST_CASE("How close is close is the machine's own sense of it", "[StateMachineBehavior]")
+TEST_CASE(
+    "A transition may ask what the actor is doing, as an animation can",
+    "[StateMachineBehavior]")
 {
     StateMachineBehaviorData data = setupData();
     data.transitions.front().when.clear();
-    data.transitions.front().when["threatClose"] = true;
+    data.transitions.front().when["knockback"] = true;
     NavigationGraph navigationGraph = aWalkRun();
+    StateMachineBehavior behavior(data, std::nullopt, knowingNear());
     FactsData calm = knowingNear();
-    ActorBehaviorContext thirtyAway =
-        told(calm, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(222.0f, 192.0f)));
+    AbilityStates states;
+    ActorFacts facts = told(calm, standingAt(navigationGraph, {192.0f, 192.0f}));
+    facts.abilityStates = &states;
 
-    StateMachineBehavior keen(data, std::nullopt, knowingNear(), SensesData{40.0f, std::nullopt});
-    keen.decide(0.01f, thirtyAway);
-    REQUIRE(keen.getStateName() == "flee");
+    behavior.decide(0.01f, facts);
+    REQUIRE(behavior.getStateName() == "patrol");
 
-    StateMachineBehavior dull(data, std::nullopt, knowingNear(), SensesData{20.0f, std::nullopt});
-    dull.decide(0.01f, thirtyAway);
-    REQUIRE(dull.getStateName() == "patrol");
+    states.knockback.active = true;
+    behavior.decide(0.01f, facts);
+    REQUIRE(behavior.getStateName() == "flee");
+}
+
+TEST_CASE("A transition cannot ask about the picture", "[StateMachineBehavior]")
+{
+    for (const std::string &picture : {std::string("finished"), std::string("inState")})
+    {
+        StateMachineBehaviorData data = setupData();
+        data.transitions.front().when[picture] = true;
+
+        INFO(picture);
+        REQUIRE_THROWS_WITH(
+            StateMachineBehavior(data, std::nullopt, knowingNear()),
+            Catch::Matchers::ContainsSubstring("there is no such fact"));
+    }
 }

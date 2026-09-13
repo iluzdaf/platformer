@@ -2,7 +2,7 @@
 
 #include <optional>
 #include <string_view>
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 
 class ActorBehavior
@@ -10,7 +10,7 @@ class ActorBehavior
 public:
     virtual ~ActorBehavior() = default;
     virtual void reset();
-    virtual InputIntentions decide(float deltaTime, const ActorBehaviorContext &context) = 0;
+    virtual InputIntentions decide(float deltaTime, const ActorFacts &context) = 0;
     virtual std::string_view getStateName() const;
     virtual std::optional<int> getCurrentNodeId() const;
     virtual std::optional<int> getTargetNodeId() const;

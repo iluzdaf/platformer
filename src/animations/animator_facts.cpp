@@ -1,144 +1,43 @@
 #include <array>
-#include <cmath>
 #include <span>
 #include <string>
+#include <vector>
 #include "animations/animator_facts.hpp"
-#include "actor/abilities/charge_ability_state.hpp"
-#include "actor/abilities/dash_ability_state.hpp"
-#include "actor/abilities/knockback_ability_state.hpp"
-#include "actor/abilities/pounce_ability_state.hpp"
-#include "actor/abilities/swing_ability_state.hpp"
-#include "actor/abilities/wall_climb_ability_state.hpp"
-#include "actor/abilities/wall_hang_ability_state.hpp"
-#include "actor/abilities/wall_slide_ability_state.hpp"
-#include "actor/actor_contact_state.hpp"
-#include "actor/abilities/ability_states.hpp"
-#include "actor/observed.hpp"
+#include "actor/actor_fact_rows.hpp"
+#include "actor/actor_facts.hpp"
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 
 namespace
 {
-    constexpr float StandingStill = 0.1f;
+    using Row = FactRow<ActorFacts>;
 
-    bool yes(const Asked &asked)
-    {
-        return std::get<bool>(asked);
-    }
-
-    using Row = FactRow<AnimatorFacts>;
-
-    constexpr std::array Rows{
-        Row{"alive",
-            AskedKind::YesOrNo,
-            "alive",
-            "dead",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.observed.alive; },
-            ""},
-        Row{"knockback",
-            AskedKind::YesOrNo,
-            "knocked back",
-            "not knocked back",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.abilityStates.knockback.active; },
-            "knockback"},
-        Row{"swinging",
-            AskedKind::YesOrNo,
-            "swinging",
-            "not swinging",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.abilityStates.swing.swinging(); },
-            ""},
-        Row{"dashing",
-            AskedKind::YesOrNo,
-            "dashing",
-            "not dashing",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.abilityStates.dash.active; },
-            "dash"},
-        Row{"pouncing",
-            AskedKind::YesOrNo,
-            "pouncing",
-            "not pouncing",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.abilityStates.pounce.active; },
-            "pounce"},
-        Row{"charging",
-            AskedKind::YesOrNo,
-            "charging",
-            "not charging",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.abilityStates.charge.active; },
-            "charge"},
-        Row{"onGround",
-            AskedKind::YesOrNo,
-            "on ground",
-            "in the air",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.observed.contacts.onGround; },
-            ""},
-        Row{"climbing",
-            AskedKind::YesOrNo,
-            "climbing",
-            "not climbing",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            {
-                bool climbing = facts.abilityStates.wallHang.active &&
-                                facts.abilityStates.wallClimb.velocity.y != 0.0f;
-                return yes(asked) == climbing;
-            },
-            "wallHang"},
-        Row{"onWall",
-            AskedKind::YesOrNo,
-            "on a wall",
-            "off the wall",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            {
-                bool onWall =
-                    facts.abilityStates.wallSlide.active || facts.abilityStates.wallHang.active;
-                return yes(asked) == onWall;
-            },
-            "wallSlide"},
-        Row{"rising",
-            AskedKind::YesOrNo,
-            "rising",
-            "not rising",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == (facts.observed.velocity.y < 0.0f); },
-            ""},
-        Row{"falling",
-            AskedKind::YesOrNo,
-            "falling",
-            "not falling",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == (facts.observed.velocity.y > 0.0f); },
-            ""},
-        Row{"moving",
-            AskedKind::YesOrNo,
-            "moving",
-            "still",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == (std::abs(facts.observed.velocity.x) > StandingStill); },
-            ""},
+    constexpr std::array PictureRows{
         Row{"finished",
             AskedKind::YesOrNo,
             "clip finished",
             "clip playing",
-            [](const Asked &asked, const AnimatorFacts &facts)
-            { return yes(asked) == facts.finished; },
+            [](const Asked &asked, const ActorFacts &facts)
+            { return std::get<bool>(asked) == facts.finished; },
             ""},
         Row{"inState",
             AskedKind::Name,
             "in state",
             "",
-            [](const Asked &asked, const AnimatorFacts &facts)
+            [](const Asked &asked, const ActorFacts &facts)
             { return std::get<std::string>(asked) == facts.inState; },
             ""},
     };
 }
 
-std::span<const FactRow<AnimatorFacts>> animatorRows()
+std::span<const FactRow<ActorFacts>> animatorRows()
 {
-    return Rows;
+    static const std::vector<Row> rows = []
+    {
+        std::vector<Row> all(actorRows().begin(), actorRows().end());
+        all.insert(all.end(), PictureRows.begin(), PictureRows.end());
+        return all;
+    }();
+
+    return rows;
 }

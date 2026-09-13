@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <optional>
-#include "actor/actor_behavior_context.hpp"
+#include "actor/actor_facts.hpp"
 #include "actor/actor_contact_state.hpp"
 #include "actor/behaviors/route_walker.hpp"
 #include "navigation/navigation_edge.hpp"
@@ -20,7 +20,7 @@ namespace
         return navigationGraph;
     }
 
-    ActorBehaviorContext at(const NavigationGraph &navigationGraph, glm::vec2 feet)
+    ActorFacts at(const NavigationGraph &navigationGraph, glm::vec2 feet)
     {
         ActorContactState standing;
         standing.onGround = true;
@@ -56,7 +56,7 @@ TEST_CASE("A walker above its node has not reached it", "[RouteWalker]")
 {
     NavigationGraph navigationGraph = setupPlatform();
     RouteWalker walker(ArrivalThreshold);
-    ActorBehaviorContext hangingAbove = at(navigationGraph, {0.0f, 150.0f});
+    ActorFacts hangingAbove = at(navigationGraph, {0.0f, 150.0f});
     walker.keepInStep(hangingAbove);
     REQUIRE(walker.getCurrentNodeId() == 0);
 

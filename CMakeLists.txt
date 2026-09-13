@@ -203,7 +203,7 @@ add_library(platformer_lib OBJECT
     src/animations/frame_animation.cpp
     src/animations/animator.cpp
     src/animations/animator_facts.cpp
-    src/actor/behaviors/behavior_facts.cpp
+    src/actor/actor_fact_rows.cpp
     src/conditions/asked.cpp
     src/conditions/facts.cpp
     src/scripting/lua_script_system.cpp
@@ -423,7 +423,7 @@ add_executable(tests
     tests/actor/behaviors/test_patrol_behavior.cpp
     tests/actor/behaviors/test_attack_behavior.cpp
     tests/actor/behaviors/test_state_machine_behavior.cpp
-    tests/actor/behaviors/test_behavior_facts.cpp
+    tests/actor/test_actor_fact_rows.cpp
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/npc/test_patrol_beats.cpp

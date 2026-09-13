@@ -18,6 +18,9 @@
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 #include "scripting/script_walker.hpp"
+#include "actor/behaviors/patrol_data.hpp"
+#include "navigation/navigation_place.hpp"
+#include "assets/asset_paths.hpp"
 
 namespace
 {
@@ -95,7 +98,18 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         "threatFeet",
         sol::readonly_property([](const ActorFacts &facts) { return facts.threatFeet; }),
         "onGround",
-        sol::readonly_property([](const ActorFacts &facts) { return facts.contacts.onGround; }));
+        sol::readonly_property([](const ActorFacts &facts) { return facts.contacts.onGround; }),
+        "beat",
+        sol::readonly_property([](const ActorFacts &facts) { return facts.beat; }));
+    lua.new_usertype<PatrolData>(
+        "Beat",
+        sol::no_constructor,
+        "from",
+        sol::readonly(&PatrolData::from),
+        "to",
+        sol::readonly(&PatrolData::to));
+    lua.new_usertype<PlaceOnThePath>(
+        "Place", sol::no_constructor, "feet", sol::readonly(&PlaceOnThePath::feet));
     lua.new_usertype<ScriptWalker>(
         "Walker",
         sol::no_constructor,
@@ -104,7 +118,10 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         "finished",
         &ScriptWalker::finished,
         "routeTo",
-        &ScriptWalker::routeTo,
+        sol::overload(
+            [](ScriptWalker &walker, int node) { walker.routeTo(node); },
+            [](ScriptWalker &walker, int node, glm::vec2 stopShortAt)
+            { walker.routeTo(node, stopShortAt); }),
         "follow",
         &ScriptWalker::follow,
         "currentNode",
@@ -114,7 +131,33 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
         "feetOf",
         &ScriptWalker::feetOf,
         "furthestRefugeFrom",
-        &ScriptWalker::furthestRefugeFrom);
+        &ScriptWalker::furthestRefugeFrom,
+        "placeOnThePath",
+        &ScriptWalker::placeOnThePath,
+        "endOfThePathBeyond",
+        &ScriptWalker::endOfThePathBeyond,
+        "walkableFrom",
+        [](const ScriptWalker &walker, int node)
+        { return sol::as_table(walker.walkableFrom(node)); },
+        "standsAt",
+        &ScriptWalker::standsAt);
+
+    lua.set_function(
+        "include",
+        [this](const std::string &path) -> sol::object
+        {
+            sol::environment fresh(lua, sol::create, lua.globals());
+            sol::protected_function_result included =
+                lua.safe_script_file(assets::pathTo(path), fresh, sol::script_pass_on_error);
+            if (!included.valid())
+            {
+                sol::error error = included;
+                throw std::runtime_error(error.what());
+            }
+
+            sol::object value = included;
+            return value;
+        });
 
     lua.set_function(
         "startCoroutine",

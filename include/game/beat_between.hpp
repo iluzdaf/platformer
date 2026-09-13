@@ -2,7 +2,7 @@
 
 #include <utility>
 #include <glm/gtc/matrix_transform.hpp>
-#include "npc/npc_spawn_data.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 class TileMap;
 

@@ -17,6 +17,7 @@
 #include "helpers/levels.hpp"
 #include "helpers/ledge_and_wall.hpp"
 #include "helpers/npc_fixtures.hpp"
+#include "helpers/scripted_npcs.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -96,6 +97,8 @@ TEST_CASE("A patrol stays between its beats on a flat run", "[Npc][Patrol]")
     NpcSpawnData spawn = patrolling("walker", LeftBeat, LeftBeat, RightBeat);
     Level level = levelWithALedgeAndAWall({spawn}, walkers);
     Npc npc(spawn, walkers.at("walker"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     Reached reached = whereItWent(npc, level, 3000, std::nullopt);
 
@@ -111,6 +114,8 @@ TEST_CASE("A patrol resumed after a chase stays between its beats", "[Npc][Patro
     NpcSpawnData spawn = patrolling("chaser", LeftBeat, LeftBeat, RightBeat);
     Level level = levelWithALedgeAndAWall({spawn}, chasers);
     Npc npc(spawn, chasers.at("chaser"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     noticingAThreatWithin(npc, 64.0f);
 
     glm::vec2 you(feetOf(RightBeat).x + 48.0f, feetOf(RightBeat).y);
@@ -135,6 +140,8 @@ TEST_CASE("A patrol whose beat ends part way up a wall climbs no higher", "[Npc]
     NpcSpawnData spawn = patrolling("climber", LedgeRightEnd, LedgeRightEnd, partWayUp);
     Level level = levelWithALedgeAndAWall({spawn}, climbers);
     Npc npc(spawn, climbers.at("climber"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     Reached reached = whereItWent(npc, level, 3000, std::nullopt);
 
@@ -153,6 +160,8 @@ TEST_CASE("A patrol from a platform beat up to a wall beat keeps to both", "[Npc
     NpcSpawnData spawn = patrolling("climber", onThePlatform, onThePlatform, upTheWall);
     Level level = levelWithALedgeAndAWall({spawn}, climbers);
     Npc npc(spawn, climbers.at("climber"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     Reached reached = whereItWent(npc, level, 3000, std::nullopt);
 

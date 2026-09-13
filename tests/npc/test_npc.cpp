@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/route_walker.hpp"
 #include "game/level.hpp"
 #include "game/level_data.hpp"
 #include "helpers/actors.hpp"
@@ -35,6 +35,7 @@
 #include "player/player_data.hpp"
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 using namespace ledge_and_wall;
 
@@ -125,7 +126,7 @@ namespace
 
     float reachOf(const Npc &npc)
     {
-        return npc.body().colliderSize().x * 0.5f + PatrolBehaviorData().arrivalThreshold;
+        return npc.body().colliderSize().x * 0.5f + WalkerArrivesWithin;
     }
 
     std::vector<float> patrolFootXs(Npc &npc, const Level &level, int steps)
@@ -167,6 +168,9 @@ TEST_CASE("Where an npc is placed decides which way it sets off", "[Npc]")
 
     Npc left(spawnAt("rat", SpawnTile), setupNpcData());
     Npc right(spawnAt("rat", SpawnTile), setupNpcData());
+    ScriptedNpcs scripts;
+    scripts.script(left);
+    scripts.script(right);
     standIn(left, tileMap, glm::ivec2(0, 5));
     standIn(right, tileMap, glm::ivec2(9, 5));
 
@@ -184,6 +188,8 @@ TEST_CASE("Patrols between both ends of its platform", "[Npc]")
     Level level = setupWalkableLevel();
     const TileMap &tileMap = level.getTileMap();
     Npc npc(spawnAt("rat", SpawnTile), setupNpcData());
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     standIn(npc, tileMap, SpawnTile);
 
     float lowestFootY = footOf(npc).y;
@@ -212,6 +218,8 @@ TEST_CASE("Stands still in a level with nothing to walk on", "[Npc]")
     Level level = levelOf(tiles, glm::ivec2(3, 4));
 
     Npc npc(spawnAt("rat", SpawnTile), setupNpcData());
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     npc.standAt(feetOf(glm::ivec2(3, 4)));
     stepNpc(npc, level, 100);
 
@@ -224,6 +232,9 @@ TEST_CASE("Patrolling is deterministic, so where you place them is what differs"
 
     Npc first(spawnAt("rat", SpawnTile), setupNpcData());
     Npc second(spawnAt("rat", SpawnTile), setupNpcData());
+    ScriptedNpcs scripts;
+    scripts.script(first);
+    scripts.script(second);
     standIn(first, tileMap, SpawnTile);
     standIn(second, tileMap, SpawnTile);
 
@@ -290,6 +301,8 @@ TEST_CASE("An npc on the ground patrols the ground, not the platform above it", 
     Level level = setupTwoTierLevel();
     const TileMap &tileMap = level.getTileMap();
     Npc npc(spawnAt("rat", SpawnTile), setupNpcData());
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     standIn(npc, tileMap, UnderThePlatform);
 
     float lowest = footX(npc);
@@ -311,6 +324,8 @@ TEST_CASE("Arrives at a node its collider cannot stand exactly on", "[Npc]")
     Level level = setupTwoTierLevel();
     const TileMap &tileMap = level.getTileMap();
     Npc npc(spawnAt("rat", SpawnTile), setupNpcData());
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     standIn(npc, tileMap, UnderThePlatform);
 
     std::vector<float> footXs = patrolFootXs(npc, level, 4000);
@@ -410,6 +425,8 @@ TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level
     NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("rat"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     float leftMost = footOf(npc).x, rightMost = footOf(npc).x;
     for (int step = 0; step < 3000; ++step)
@@ -434,6 +451,8 @@ TEST_CASE("A beat ending partway up a wall is climbed to and no further", "[Npc]
         patrolling("spider", LedgeRightEnd, LedgeRightEnd, glm::ivec2(1, LedgeRow - 3));
     Level level = levelWithALedgeAndAWall({spawn});
     Npc npc(spawn, shippedNpcData().at("spider"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     float highest = footOf(npc).y;
     for (int step = 0; step < 4000; ++step)
@@ -458,6 +477,8 @@ TEST_CASE("An npc drops off a platform to a beat end below its edge", "[Npc]")
     Level level = twoTierLevelWith({spawn});
 
     Npc npc(spawn, npcCatalogue().at(spawn.type));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
     standIn(npc, level.getTileMap(), glm::ivec2(PlatformFirstTile, PlatformRow - 1));
 
     const float theFloor = floorTopY(level.getTileMap());
@@ -478,6 +499,8 @@ TEST_CASE("A patrolling npc says which node it set off from and where it is head
     Level level = levelWithALedgeAndAWall({spawn});
 
     Npc npc(spawn, shippedNpcData().at(spawn.type));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
 
     REQUIRE_FALSE(npc.currentNodeId());
 
@@ -523,6 +546,8 @@ TEST_CASE("A level drives the npcs it holds", "[Npc][Level]")
     NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
     Level level = levelWithALedgeAndAWall({spawn});
     const Npc &npc = *level.getNpcs().front();
+    ScriptedNpcs scripts;
+    scripts.script(level);
 
     glm::vec2 setOffAt = footOf(npc);
 
@@ -562,6 +587,10 @@ TEST_CASE("An npc walks further when its beat is the whole ledge", "[Npc][Level]
     Level shortBeat =
         levelWithALedgeAndAWall({patrolling("rat", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)});
 
+    ScriptedNpcs scripts;
+    scripts.script(wholeLedge);
+    scripts.script(shortBeat);
+
     REQUIRE(leftmostReached(wholeLedge, 600) < leftmostReached(shortBeat, 600));
 }
 
@@ -573,6 +602,10 @@ TEST_CASE("An npc with no beat at all walks past where a beat would turn it", "[
         levelWithALedgeAndAWall({patrolling("rat", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)});
 
     Level freed = levelWithALedgeAndAWall({spawnAt("rat", LedgeRightEnd)});
+
+    ScriptedNpcs scripts;
+    scripts.script(kept);
+    scripts.script(freed);
 
     REQUIRE(leftmostReached(freed, 600) < leftmostReached(kept, 600));
 }
@@ -618,6 +651,7 @@ TEST_CASE("A creature whose state is scripted and has no script is refused", "[N
     lurking.name = "lurk";
     lurking.does = ScriptedBehaviorData{"lurk"};
     lurker.stateMachineBehaviorData = StateMachineBehaviorData{{lurking}, {}};
+    lurker.script.path.clear();
 
     REQUIRE_THROWS_WITH(
         Npc(spawnAt("lurker", SpawnTile), lurker),

@@ -11,10 +11,8 @@
 #include "combat/strike.hpp"
 #include "actor/hurting_from.hpp"
 #include "actor/abilities/swing_ability_state.hpp"
-#include "physics/aabb.hpp"
 #include "actor/observing.hpp"
 #include "actor/cues.hpp"
-#include "actor/facing.hpp"
 #include "actor/observed.hpp"
 #include "actor/perceived.hpp"
 #include "actor/abilities/ability_states.hpp"
@@ -42,8 +40,8 @@
 
 Actor::Actor(const ActorData &data, const FactsData &declared, const SensesData &senses)
     : declaredFacts(declared), senses(senses),
-      fallFromHeightThreshold(data.fallFromHeightThreshold), abilities(data.abilities),
-      physicsBody(data.physicsBodyData), navigationProfile(buildNavigationProfile(data)),
+      fallFromHeightThreshold(data.fallFromHeightThreshold),
+      mover(data.abilities, data.physicsBodyData), navigationProfile(buildNavigationProfile(data)),
       hp(data.healthData)
 {
     if (data.animationData)
@@ -60,14 +58,14 @@ Actor::Actor(const ActorData &data, const FactsData &declared, const SensesData 
 
 void Actor::beginFrame()
 {
-    observations.contacts = contactsForANewFrame(observations.contacts);
+    mover.beginFrame();
 }
 
 void Actor::fixedUpdate(float deltaTime, const Level &level, const Perceived &perceived)
 {
     const TileMap &tileMap = level.getTileMap();
     hp.update(deltaTime);
-    observations.alive = hp.alive();
+    mover.observeAlive(hp.alive());
     walks(level.graphFor(navigationProfile));
     threat = perceived.threatFeet;
     for (const Noise &noise : perceived.noises)
@@ -77,52 +75,24 @@ void Actor::fixedUpdate(float deltaTime, const Level &level, const Perceived &pe
     InputIntentions inputIntentions =
         behavior ? behavior->decide(deltaTime, factsNow()) : InputIntentions();
 
-    glm::vec2 velocity = abilities.decide(deltaTime, inputIntentions, observations, states);
-    observations.hits.clear();
-    if (!states.swing.striking())
+    mover.step(deltaTime, inputIntentions, tileMap);
+    if (!mover.states().swing.striking())
         struckThisSwing.clear();
-
-    physicsBody.setVelocity(velocity);
-    physicsBody.stepPhysics(deltaTime, tileMap);
-
-    observations.contacts = contactsAfterStep(observations.contacts, physicsBody, tileMap);
-    observations.previousVelocity = observations.velocity;
-    observations.velocity = physicsBody.velocity();
-    observations.fell = howFarItFell();
     declaredFacts.fade(deltaTime);
 
     if (animator)
-        animator->animate(deltaTime, factsNow());
-
-    observations.facingLeft =
-        facingLeftAfter(observations.facingLeft, observations.velocity.x, states.knockback.active);
-
-    if (animator)
     {
+        animator->animate(deltaTime, factsNow());
         shown.currentFrame = animator->playing().frame();
         shown.currentAnimation = animator->state();
         for (const std::string &cue : animator->takeCues())
             onCue(cue);
     }
 
-    for (std::string_view cue : cuesOf(states, observations, fallFromHeightThreshold))
+    for (std::string_view cue : cuesOf(mover.states(), mover.observed(), fallFromHeightThreshold))
         onCue(std::string(cue));
 
     declaredFacts.forgetTheTick();
-}
-
-float Actor::howFarItFell()
-{
-    if (!observations.contacts.onGround)
-    {
-        highestSinceTheGround = std::min(highestSinceTheGround, feet().y);
-        return 0.0f;
-    }
-
-    float fell = observations.contacts.wasOnGround ? 0.0f : feet().y - highestSinceTheGround;
-    highestSinceTheGround = feet().y;
-
-    return fell;
 }
 
 void Actor::setBeat(const std::optional<PatrolData> &newBeat)
@@ -196,12 +166,12 @@ bool Actor::onSameSurfaceAs(glm::vec2 at) const
 
 bool Actor::corneredBy(glm::vec2 at) const
 {
-    return ::corneredBy(graphWalked(), feet(), at, physicsBody.colliderSize().x);
+    return ::corneredBy(graphWalked(), feet(), at, body().colliderSize().x);
 }
 
 bool Actor::onGround() const
 {
-    return observations.contacts.onGround;
+    return mover.observed().contacts.onGround;
 }
 
 const SheetData &Actor::drawnFrom() const
@@ -216,17 +186,17 @@ const Appearance &Actor::appearance() const
 
 const AbilityStates &Actor::abilityStates() const
 {
-    return states;
+    return mover.states();
 }
 
 const Observed &Actor::observed() const
 {
-    return observations;
+    return mover.observed();
 }
 
 const PhysicsBody &Actor::body() const
 {
-    return physicsBody;
+    return mover.body();
 }
 
 const NavigationProfile &Actor::profile() const
@@ -251,12 +221,12 @@ std::optional<int> Actor::targetNodeId() const
 
 glm::vec2 Actor::feet() const
 {
-    return physicsBody.aabb().bottomCenter();
+    return mover.feet();
 }
 
 void Actor::standAt(const glm::vec2 &newFeet)
 {
-    physicsBody.setPosition(newFeet - physicsBody.bottomCenterOffset());
+    mover.standAt(newFeet);
 
     if (behavior)
         behavior->reset();
@@ -279,7 +249,7 @@ bool Actor::takeHit(const Hit &hit)
 
     if (hp.alive())
     {
-        observations.hits.push_back(hit);
+        mover.observe(hit);
         onHurt();
     }
     else
@@ -293,7 +263,7 @@ std::optional<Hurting> Actor::hurting() const
     if (!alive())
         return std::nullopt;
 
-    return hurtingFrom(states, physicsBody.aabb());
+    return hurtingFrom(mover.states(), body().aabb());
 }
 
 bool Actor::strike(Actor &target)
@@ -302,7 +272,7 @@ bool Actor::strike(Actor &target)
     if (!hurting || &target == this)
         return false;
 
-    bool swinging = states.swing.striking();
+    bool swinging = mover.states().swing.striking();
     if (swinging && std::ranges::find(struckThisSwing, &target) != struckThisSwing.end())
         return false;
 
@@ -325,17 +295,17 @@ ActorFacts Actor::factsNow() const
     ActorFacts facts{
         graphWalked(),
         feet(),
-        physicsBody.colliderSize(),
-        physicsBody.stepHeight(),
+        body().colliderSize(),
+        body().stepHeight(),
         threat,
-        observations.contacts,
+        mover.observed().contacts,
         &declaredFacts.all(),
-        &states,
+        &mover.states(),
         &senses};
     facts.beat = beat ? &*beat : nullptr;
     facts.tuning = &tuned;
-    facts.velocity = observations.velocity;
-    facts.alive = observations.alive;
+    facts.velocity = mover.observed().velocity;
+    facts.alive = mover.observed().alive;
     facts.inState = stateName();
     return facts;
 }

@@ -108,7 +108,8 @@ TEST_CASE(
     HeadlessImGui gui;
     TypesUi typesUi;
     GameData gameData = loadGameData();
-    Level level = levelWithALedgeAndAWall({spawnAt("rat", ledge_and_wall::LedgeRightEnd)});
+    Level level =
+        levelWithALedgeAndAWall({spawnAt("rat", ledge_and_wall::LedgeRightEnd)}, gameData.npcData);
     TextureCache textures;
     EditorCommands commands;
     typesUi.show(TypeShown{TypeShown::What::Npc, "rat"});

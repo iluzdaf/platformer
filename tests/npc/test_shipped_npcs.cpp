@@ -107,7 +107,7 @@ TEST_CASE("The shipped rat is safe to stand in while it patrols", "[Npc]")
 TEST_CASE("The shipped rat, cornered, pounces through you and bites", "[Npc][Level][Pounce]")
 {
     NpcSpawnData spawn = patrolling("rat", LedgeLeftEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     std::vector<std::unique_ptr<Npc>> rats;
     rats.push_back(std::make_unique<Npc>(spawn, shippedNpcData().at("rat")));
     ScriptedNpcs scripts;
@@ -138,7 +138,7 @@ TEST_CASE("The shipped rat, cornered, pounces through you and bites", "[Npc][Lev
 TEST_CASE("The shipped spider walks up from the ground to a ledge and back", "[Npc][Level]")
 {
     NpcSpawnData spawn = patrolling("spider", OnTheGround, OnTheGround, LedgeLeftEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
 
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
@@ -186,7 +186,7 @@ TEST_CASE("The shipped rat runs from the player and settles once it is gone", "[
         glm::ivec2(6, GroundRow - 1),
         glm::ivec2(2, GroundRow - 1),
         glm::ivec2(17, GroundRow - 1));
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
 
     Npc npc(spawn, shippedNpcData().at("rat"));
     ScriptedNpcs scripts;
@@ -217,7 +217,7 @@ TEST_CASE("The shipped rat runs from the player and settles once it is gone", "[
 TEST_CASE("The shipped rat never freezes out in the open on its platform", "[Npc][Level]")
 {
     NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
 
     Npc npc(spawn, shippedNpcData().at("rat"));
     ScriptedNpcs scripts;
@@ -250,7 +250,7 @@ TEST_CASE("The shipped rat never freezes out in the open on its platform", "[Npc
 TEST_CASE("The shipped rat holds its ground while the player shares its platform", "[Npc][Level]")
 {
     NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
 
     Npc npc(spawn, shippedNpcData().at("rat"));
     ScriptedNpcs scripts;
@@ -288,7 +288,7 @@ TEST_CASE("The shipped rat holds its ground while the player shares its platform
 TEST_CASE("The shipped rat does not shuffle on the spot once it is cornered", "[Npc][Level]")
 {
     NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
 
     Npc npc(spawn, shippedNpcData().at("rat"));
     ScriptedNpcs scripts;
@@ -315,7 +315,7 @@ TEST_CASE("The shipped rat does not shuffle on the spot once it is cornered", "[
 TEST_CASE("The shipped rat pays no mind to a player on the platform below", "[Npc][Level]")
 {
     NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
 
     Npc npc(spawn, shippedNpcData().at("rat"));
     ScriptedNpcs scripts;
@@ -337,7 +337,7 @@ TEST_CASE("The shipped rat pays no mind to a player on the platform below", "[Np
 TEST_CASE("The shipped spider climbs the wall above the ledge", "[Npc][Level][Climb]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
 
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
@@ -427,7 +427,7 @@ namespace
 TEST_CASE("The shipped spider gives chase when you step onto its ledge", "[Npc][Level][Chase]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
     scripts.script(npc);
@@ -447,7 +447,7 @@ TEST_CASE("The shipped spider gives chase when you step onto its ledge", "[Npc][
 TEST_CASE("The shipped spider follows you down off its ledge", "[Npc][Level][Chase]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
     scripts.script(npc);
@@ -473,7 +473,7 @@ TEST_CASE(
     "[Npc][Level][Chase][Climb]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
     scripts.script(npc);
@@ -510,7 +510,7 @@ TEST_CASE(
 TEST_CASE("The shipped spider ignores you on the step below its ledge", "[Npc][Level][Chase]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
     scripts.script(npc);
@@ -553,7 +553,7 @@ TEST_CASE(
     "[Npc][Level][Pounce]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
     scripts.script(npc);
@@ -585,7 +585,7 @@ TEST_CASE(
 TEST_CASE("The shipped spider bites while pouncing and at no other time", "[Npc][Level][Pounce]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
     scripts.script(npc);
@@ -614,7 +614,7 @@ TEST_CASE(
     "[Npc][Level][Pounce]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     std::vector<std::unique_ptr<Npc>> spiders;
     spiders.push_back(std::make_unique<Npc>(spawn, shippedNpcData().at("spider")));
     ScriptedNpcs scripts;
@@ -648,7 +648,7 @@ TEST_CASE(
 TEST_CASE("The shipped spider pounces only once you are within its reach", "[Npc][Level][Pounce]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
     scripts.script(npc);
@@ -675,7 +675,7 @@ TEST_CASE(
     "[Npc][Level][Charge]")
 {
     NpcSpawnData spawn = spawnAt("boar", glm::ivec2(9, GroundRow - 1));
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("boar"));
     ScriptedNpcs scripts;
     scripts.script(npc);
@@ -715,7 +715,7 @@ TEST_CASE(
 TEST_CASE("The spider shows its pounce clip while its pounce state is on", "[ShippedNpcs]")
 {
     NpcSpawnData spawn = patrolling("spider", LedgeRightEnd, LedgeRightEnd, TopOfTheWall);
-    Level level = levelWithALedgeAndAWall({spawn});
+    Level level = levelWithALedgeAndAWall({spawn}, shippedNpcData());
     Npc npc(spawn, shippedNpcData().at("spider"));
     ScriptedNpcs scripts;
     scripts.script(npc);

@@ -40,13 +40,14 @@
 #include <vector>
 #include <map>
 
-Actor::Actor(const ActorData &data)
-    : fallFromHeightThreshold(data.fallFromHeightThreshold), abilities(data.abilities),
+Actor::Actor(const ActorData &data, const FactsData &declared, const SensesData &senses)
+    : declaredFacts(declared), senses(senses),
+      fallFromHeightThreshold(data.fallFromHeightThreshold), abilities(data.abilities),
       physicsBody(data.physicsBodyData), navigationProfile(buildNavigationProfile(data)),
       hp(data.healthData)
 {
     if (data.animationData)
-        animator.emplace(*data.animationData);
+        animator.emplace(*data.animationData, declared, senses);
 
     shown.currentAnimation = animator ? animator->state() : std::string();
     shown.currentFrame = animator ? animator->playing().frame() : 0;
@@ -122,16 +123,6 @@ float Actor::howFarItFell()
     highestSinceTheGround = feet().y;
 
     return fell;
-}
-
-void Actor::declare(const FactsData &facts)
-{
-    declaredFacts = DeclaredFacts(facts);
-}
-
-void Actor::setSenses(const SensesData &newSenses)
-{
-    senses = newSenses;
 }
 
 void Actor::setBeat(const std::optional<PatrolData> &newBeat)

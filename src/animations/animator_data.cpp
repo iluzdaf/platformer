@@ -4,6 +4,9 @@
 #include "animations/animation_rule_data.hpp"
 #include "animations/animator_data.hpp"
 #include "animations/animator_facts.hpp"
+#include "actor/actor_fact_rows.hpp"
+#include "actor/behaviors/senses_data.hpp"
+#include "conditions/facts.hpp"
 #include "conditions/fact_rows.hpp"
 
 namespace
@@ -15,7 +18,10 @@ namespace
     }
 }
 
-std::optional<std::string> whyNotAnAnimator(const AnimatorData &data)
+std::optional<std::string> whyNotAnAnimator(
+    const AnimatorData &data,
+    const FactsData &declared,
+    const SensesData &senses)
 {
     if (data.clips.empty())
         return "has no clips";
@@ -31,8 +37,12 @@ std::optional<std::string> whyNotAnAnimator(const AnimatorData &data)
         if (!clipNamed(data, rule.show))
             return "has a rule showing \"" + rule.show + "\", and there is no such clip";
 
-        if (std::optional<std::string> why = whyNotAsked(rule.when, animatorRows()))
+        if (std::optional<std::string> why = whyNotAsked(rule.when, animatorRows(), declared))
             return "has a rule showing \"" + rule.show + "\" that " + *why;
+
+        for (const auto &[name, asked] : rule.when)
+            if (std::optional<std::string> why = whyNotSensed(name, senses))
+                return "has a rule showing \"" + rule.show + "\" that " + *why;
     }
 
     for (const auto &[name, clip] : data.clips)

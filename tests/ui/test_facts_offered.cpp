@@ -46,7 +46,7 @@ namespace
         return when;
     }
 
-    std::size_t drawnForARuleAsking(const WhenData &when)
+    std::size_t drawnForARuleAsking(const WhenData &when, const FactsData &declared = FactsData{})
     {
         AnimatorData animations;
         animations.startClip = "idle";
@@ -54,7 +54,12 @@ namespace
         animations.clips["sleep"] = FrameAnimationData{{1}, 0.5f};
         animations.rules = {{"sleep", when}};
 
-        return drawnUnfolded([&] { inspector::draw("animationData", animations); });
+        return drawnUnfolded(
+            [&]
+            {
+                InScope declaring(declared);
+                inspector::draw("animationData", animations);
+            });
     }
 
     std::size_t drawnForATransitionAsking(const WhenData &when, const FactsData &declared)
@@ -95,4 +100,16 @@ TEST_CASE("A transition shows what it asks about the actor and what is declared"
     REQUIRE(
         drawnForATransitionAsking(asking("cornered", true), declared) >
         drawnForATransitionAsking(WhenData{}, declared));
+}
+
+TEST_CASE(
+    "A creature's animation rule shows what it asks of what the creature declares",
+    "[FactsOffered]")
+{
+    FactsData declared;
+    declared["heard"] = false;
+
+    REQUIRE(
+        drawnForARuleAsking(asking("heard", true), declared) >
+        drawnForARuleAsking(WhenData{}, declared));
 }

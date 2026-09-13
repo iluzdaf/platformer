@@ -6,6 +6,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
+#include "conditions/facts.hpp"
 
 namespace
 {
@@ -96,4 +97,37 @@ TEST_CASE(
     std::map<std::string, Asked> wrongName{{"wind", true}};
     REQUIRE(
         whyNotAsked(wrongName, rows()) == "asks \"wind\" with a yes or no, and it wants a name");
+}
+
+TEST_CASE("A fact no row answers is looked for among what is declared", "[FactRows]")
+{
+    FactsData declared;
+    declared["mood"] = std::string("calm");
+    std::map<std::string, Asked> asked{{"raining", false}, {"mood", std::string("calm")}};
+
+    REQUIRE_FALSE(whyNotAsked(asked, rows(), declared).has_value());
+    REQUIRE(holds(asked, rows(), Weather{}, declared));
+
+    declared["mood"] = std::string("sour");
+    REQUIRE_FALSE(holds(asked, rows(), Weather{}, declared));
+}
+
+TEST_CASE("A declared fact asked with the wrong kind is refused", "[FactRows]")
+{
+    FactsData declared;
+    declared["mood"] = std::string("calm");
+    std::map<std::string, Asked> asked{{"mood", true}};
+
+    REQUIRE(
+        whyNotAsked(asked, rows(), declared) ==
+        "asks \"mood\" with a yes or no, and it wants a name");
+}
+
+TEST_CASE("A row answers before anything declared by the same name", "[FactRows]")
+{
+    FactsData declared;
+    declared["raining"] = true;
+    std::map<std::string, Asked> asked{{"raining", true}};
+
+    REQUIRE_FALSE(holds(asked, rows(), Weather{}, declared));
 }

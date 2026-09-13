@@ -34,10 +34,8 @@ namespace
 }
 
 Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
-    : Actor(npcData.actorData), spawn(spawn), npcData(npcData)
+    : Actor(npcData.actorData, npcData.facts, npcData.senses), spawn(spawn), npcData(npcData)
 {
-    declare(npcData.facts);
-    setSenses(npcData.senses);
     setBeat(spawn.patrol);
     setTuning(npcData.tuning);
     if (npcData.stateMachineBehaviorData)

@@ -7,6 +7,8 @@
 #include <vector>
 #include "animations/animation_rule_data.hpp"
 #include "animations/frame_animation_data.hpp"
+#include "actor/behaviors/senses_data.hpp"
+#include "conditions/facts.hpp"
 
 struct AnimatorData
 {
@@ -21,4 +23,7 @@ inline const FrameAnimationData *clipNamed(const AnimatorData &animations, std::
     return found == animations.clips.end() ? nullptr : &found->second;
 }
 
-std::optional<std::string> whyNotAnAnimator(const AnimatorData &data);
+std::optional<std::string> whyNotAnAnimator(
+    const AnimatorData &data,
+    const FactsData &declared = FactsData{},
+    const SensesData &senses = SensesData{});

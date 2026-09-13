@@ -9,6 +9,11 @@
 #include "actor/abilities/swing_ability_state.hpp"
 #include "actor/observed.hpp"
 #include "helpers/actor_facts.hpp"
+#include "actor/actor_facts.hpp"
+#include "actor/behaviors/senses_data.hpp"
+#include "conditions/facts.hpp"
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <optional>
 #include "helpers/rules.hpp"
 #include "conditions/when_data.hpp"
 
@@ -338,4 +343,54 @@ TEST_CASE("A rule may ask which state the machine is in", "[Animator]")
 
     animator.animate(0.01f, factsOf(AbilityStates{}, walkingOnGround()));
     REQUIRE(animator.state() == "idle");
+}
+
+namespace
+{
+    AnimatorData anAlertWhen(const std::string &fact)
+    {
+        WhenData asked;
+        asked[fact] = true;
+        AnimatorData data;
+        data.startClip = "idle";
+        data.clips["idle"] = animationDataOfFrame(1);
+        data.clips["alert"] = animationDataOfFrame(2);
+        data.rules = {{"alert", asked}};
+        return data;
+    }
+}
+
+TEST_CASE("A rule may ask what its creature declares", "[Animator]")
+{
+    FactsData declared;
+    declared["heard"] = false;
+    Animator animator(anAlertWhen("heard"), declared);
+    AbilityStates states;
+    Observed observed;
+    ActorFacts facts = factsOf(states, observed);
+    facts.facts = &declared;
+
+    animator.animate(0.01f, facts);
+    REQUIRE(animator.state() == "idle");
+
+    declared["heard"] = true;
+    animator.animate(0.01f, facts);
+    REQUIRE(animator.state() == "alert");
+}
+
+TEST_CASE("A rule asking what its creature never declared is refused", "[Animator]")
+{
+    REQUIRE_THROWS_WITH(
+        Animator(anAlertWhen("heard")),
+        "An animator has a rule showing \"alert\" that asks about \"heard\", and there is no such "
+        "fact");
+}
+
+TEST_CASE("A rule asking how close the threat is needs its creature to sense it", "[Animator]")
+{
+    REQUIRE_THROWS_WITH(
+        Animator(anAlertWhen("threatClose")),
+        Catch::Matchers::ContainsSubstring("its senses say nothing of close"));
+    REQUIRE_NOTHROW(
+        Animator(anAlertWhen("threatClose"), FactsData{}, SensesData{40.0f, std::nullopt}));
 }

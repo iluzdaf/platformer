@@ -161,6 +161,26 @@ TEST_CASE("A fall lands on the top of the collider it comes down on", "[Navigati
     REQUIRE(landed);
 }
 
+TEST_CASE("A fall lands beside a corner no higher than the body steps", "[NavigationSurfaces]")
+{
+    Placed laid;
+    layColumn(laid, 5, 2, Floor - 1, InsetFromTheLeft);
+    for (int column = 6; column <= 9; ++column)
+        layColumn(laid, column, 2, Floor - 1, Full);
+    layRow(laid, Floor, 0, 4, APixelLower);
+    layRow(laid, Floor, 5, 9, Full);
+
+    NavigationGraph graph = buildNavigationGraph(aMapOf(laid), jumperProfile());
+
+    std::optional<int> ledge = graph.nodeAtPosition({82.0f, 32.0f});
+    REQUIRE(ledge);
+    bool fallsDown = false;
+    for (const NavigationEdge &leaving : graph.getOutgoingEdges(*ledge))
+        fallsDown = fallsDown || (leaving.type == EdgeType::Fall &&
+                                  graph.getNode(leaving.toId).feet.y == FloorTop + 1.0f);
+    REQUIRE(fallsDown);
+}
+
 TEST_CASE("A jump comes to rest on the top of the collider it lands on", "[NavigationSurfaces]")
 {
     Placed laid;

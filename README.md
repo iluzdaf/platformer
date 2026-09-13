@@ -292,7 +292,8 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - A tile's collider need not fill its cell. A node's feet sit on the top of the collider
   beneath it, and a run ends at the edge of its collider.
 - A run crosses a step no higher than the body's `stepHeight`, and a higher step splits
-  it in two.
+  it in two. A body is clear where it only overlaps what it could step onto, so a fall
+  can land beside such a step.
 - Feet placed on a tile in the editor stand on the collider beneath it too.
 
 **A state can be scripted, and walking stays in C++.**

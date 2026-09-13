@@ -296,3 +296,64 @@ TEST_CASE("An include that fails fails the script that asked for it", "[LuaScrip
 
     REQUIRE(luaScriptSystem.errorsReported() == 1);
 }
+
+namespace
+{
+    const std::string RunsHere = "return { states = { here = { decide = function() end } } }\n";
+}
+
+TEST_CASE("A script reports the states its creatures run that it lacks", "[LuaScriptSystem]")
+{
+    LuaScriptSystem luaScriptSystem(writeScript("platformer_lua_expects.lua", "\n").string());
+    luaScriptSystem.use("runner", writeScript("platformer_lua_runs_here.lua", RunsHere).string());
+
+    luaScriptSystem.expectStates("runner", {"here"});
+    REQUIRE(luaScriptSystem.errorsReported() == 0);
+
+    luaScriptSystem.expectStates("runner", {"here", "gone"});
+    REQUIRE(luaScriptSystem.errorsReported() == 1);
+
+    luaScriptSystem.expectStates("runner", {"here", "gone"});
+    REQUIRE(luaScriptSystem.errorsReported() == 1);
+}
+
+TEST_CASE("A state with no decide is a state the script lacks", "[LuaScriptSystem]")
+{
+    LuaScriptSystem luaScriptSystem(writeScript("platformer_lua_expects_idle.lua", "\n").string());
+    luaScriptSystem.use(
+        "runner",
+        writeScript("platformer_lua_runs_idle.lua", "return { states = { idle = {} } }\n")
+            .string());
+
+    luaScriptSystem.expectStates("runner", {"idle"});
+
+    REQUIRE(luaScriptSystem.errorsReported() == 1);
+}
+
+TEST_CASE("A reload that loses a state a creature runs is reported", "[LuaScriptSystem]")
+{
+    LuaScriptSystem luaScriptSystem(
+        writeScript("platformer_lua_expects_reload.lua", "\n").string());
+    std::filesystem::path path = writeScript("platformer_lua_runs_reloaded.lua", RunsHere);
+    luaScriptSystem.use("runner", path.string());
+    luaScriptSystem.expectStates("runner", {"here"});
+
+    writeScript("platformer_lua_runs_reloaded.lua", "return {}\n");
+    luaScriptSystem.loadScripts();
+
+    REQUIRE(luaScriptSystem.errorsReported() == 1);
+}
+
+TEST_CASE("The states a script is told replace the ones it was told before", "[LuaScriptSystem]")
+{
+    LuaScriptSystem luaScriptSystem(writeScript("platformer_lua_expects_again.lua", "\n").string());
+    luaScriptSystem.use(
+        "runner", writeScript("platformer_lua_runs_again.lua", "return {}\n").string());
+    luaScriptSystem.expectStates("runner", {"gone"});
+    REQUIRE(luaScriptSystem.errorsReported() == 1);
+
+    luaScriptSystem.expectStates("runner", {});
+    luaScriptSystem.loadScripts();
+
+    REQUIRE(luaScriptSystem.errorsReported() == 1);
+}

@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string_view>
 #include <vector>
+#include <set>
+#include <utility>
 #include "scripting/lua_script_system.hpp"
 #include "game/world.hpp"
 #include "cameras/camera2d.hpp"
@@ -271,6 +273,28 @@ void LuaScriptSystem::reload(NamedScript &script, std::string_view name)
 
     script.environment = fresh;
     script.handlers = handlers.as<sol::table>();
+    checkStates(name);
+}
+
+void LuaScriptSystem::expectStates(std::string_view name, std::set<std::string> states)
+{
+    auto [expected, made] = expectedStates.try_emplace(std::string(name));
+    if (!made && expected->second == states)
+        return;
+
+    expected->second = std::move(states);
+    checkStates(name);
+}
+
+void LuaScriptSystem::checkStates(std::string_view name)
+{
+    auto expected = expectedStates.find(std::string(name));
+    if (expected == expectedStates.end())
+        return;
+
+    for (const std::string &state : expected->second)
+        if (!stateHook(name, state, "decide").is<sol::function>())
+            report(name, "has no states." + state + ".decide, and a creature runs it");
 }
 
 sol::object LuaScriptSystem::stateHook(

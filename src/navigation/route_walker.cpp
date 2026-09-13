@@ -61,8 +61,9 @@ void RouteWalker::anchor(const ActorFacts &context)
         if (!hasSomewhereToGo(context.navigationGraph, id))
             continue;
 
-        float drop = node.feet.y - context.feet.y;
-        if (drop < -SettlingTolerance)
+        float drop =
+            feetSettledOn(context.feet.y, node.feet.y) ? 0.0f : node.feet.y - context.feet.y;
+        if (drop < 0.0f)
             continue;
 
         float distance = std::abs(node.feet.x - context.feet.x);

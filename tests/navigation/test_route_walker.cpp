@@ -117,6 +117,24 @@ TEST_CASE("Feet settled just below a run anchor to that run, not the one beneath
     REQUIRE(onTheUpperRun(walker.getCurrentNodeId()));
 }
 
+TEST_CASE("Feet on a run anchor to it, not to a run a pixel higher elsewhere", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, Upper});
+    navigationGraph.addNode(1, {45.0f, Upper + 1.0f});
+    navigationGraph.addNode(2, {80.0f, Upper + 1.0f});
+    navigationGraph.addNode(3, {160.0f, Upper + 1.0f});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    navigationGraph.addEdge(2, 3, EdgeType::Walk);
+    navigationGraph.addEdge(3, 2, EdgeType::Walk);
+    RouteWalker walker(ArrivalThreshold);
+
+    walker.keepInStep(at(navigationGraph, {80.0f, Upper + 1.0f}));
+
+    REQUIRE(walker.getCurrentNodeId() == 2);
+}
+
 TEST_CASE("A route is not lost to feet settling a pixel or two below the run", "[RouteWalker]")
 {
     NavigationGraph navigationGraph = twoRunsOneAboveTheOther();

@@ -9,11 +9,28 @@
 #include "navigation/jump_arc.hpp"
 #include "physics/physics_body.hpp"
 #include "tile_map/tile_map.hpp"
+#include "physics/aabb.hpp"
+#include <optional>
 #include "timing/fixed_time_step.hpp"
 
 namespace
 {
     constexpr int MaximumSteps = 1000;
+    constexpr float Settle = 0.5f;
+
+    float restingOn(const TileMap &tileMap, glm::vec2 feet, float width)
+    {
+        float beneath = width * 0.5f - Settle;
+        for (float across : {0.0f, -beneath, beneath})
+        {
+            glm::ivec2 under = tileMap.tileContaining(feet + glm::vec2(across, Settle));
+            std::optional<AABB> ground = tileMap.groundAt(under);
+            if (ground && std::abs(ground->top() - feet.y) <= Settle)
+                return ground->top();
+        }
+
+        return feet.y;
+    }
     constexpr float HoldFractions[] = {1.0f, 0.75f, 0.5f, 0.25f};
 
     InputIntentions holdingJumpAndRunning()
@@ -120,8 +137,8 @@ JumpAttempt simulateJumpAgainst(
 
         if (step > 0 && observed.contacts.onGround)
         {
-            float tileSize = static_cast<float>(tileMap.getTileSize());
-            attempt.path.back().y = std::round(attempt.path.back().y / tileSize) * tileSize;
+            attempt.path.back().y =
+                restingOn(tileMap, attempt.path.back(), physicsBodyData.colliderSize.x);
 
             attempt.landed = true;
             return attempt;

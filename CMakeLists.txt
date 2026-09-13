@@ -419,6 +419,7 @@ add_executable(tests
     tests/navigation/test_jump_simulation.cpp
     tests/navigation/test_navigation_build_cost.cpp
     tests/navigation/test_route_walker.cpp
+    tests/navigation/test_navigation_surfaces.cpp
     tests/scripting/test_chase.cpp
     tests/scripting/test_flee.cpp
     tests/scripting/test_patrol.cpp

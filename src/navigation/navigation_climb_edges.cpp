@@ -9,6 +9,7 @@
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "tile_map/tile_map.hpp"
+#include "physics/aabb.hpp"
 
 namespace
 {
@@ -44,7 +45,8 @@ namespace
         int climbX,
         int wallX,
         int runTop,
-        int headroom)
+        int headroom,
+        float stepHeight)
     {
         glm::ivec2 wallTop(wallX, runTop - headroom);
         glm::ivec2 above = wallTop + glm::ivec2(0, -1);
@@ -52,7 +54,11 @@ namespace
             return std::nullopt;
 
         return navigation::nodeGoverning(
-            navigationGraph, tileMap, againstTheWall(tileMap, wallX, climbX, wallTop.y), headroom);
+            navigationGraph,
+            tileMap,
+            againstTheWall(tileMap, wallX, climbX, wallTop.y),
+            headroom,
+            stepHeight);
     }
 }
 
@@ -85,6 +91,10 @@ namespace navigation
         auto endOfTheFace = [&](int climbX, int wallX, int footRow)
         {
             glm::vec2 position = againstTheWall(tileMap, climbX, wallX, footRow);
+            if (std::optional<AABB> ground = tileMap.groundAt(glm::ivec2(climbX, footRow)))
+                position = glm::vec2(
+                    std::clamp(position.x, ground->left(), ground->right()), ground->top());
+
             std::optional<int> existing = navigationGraph.nodeAtPosition(position);
             if (existing)
                 return *existing;
@@ -115,7 +125,13 @@ namespace navigation
 
                     int runBottom = footRow - 1;
                     std::optional<int> ledgeId = ledgeAboveTheFace(
-                        navigationGraph, tileMap, climbX, wallX, *runTop, headroom);
+                        navigationGraph,
+                        tileMap,
+                        climbX,
+                        wallX,
+                        *runTop,
+                        headroom,
+                        profile.physicsBodyData.stepHeight);
 
                     if (runBottom == *runTop && !ledgeId)
                     {

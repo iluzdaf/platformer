@@ -287,6 +287,14 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   come from: the keyboard, or a behaviour walking a navigation graph. What an npc can
   traverse is a profile derived from the same ability data.
 
+**Navigation stands on colliders, not tiles.**
+
+- A tile's collider need not fill its cell. A node's feet sit on the top of the collider
+  beneath it, and a run ends at the edge of its collider.
+- A run crosses a step no higher than the body's `stepHeight`, and a higher step splits
+  it in two.
+- Feet placed on a tile in the editor stand on the collider beneath it too.
+
 **A state can be scripted, and walking stays in C++.**
 
 - A state that does `{"kind": "script", "call": "flee"}` is run by `states.flee` in its

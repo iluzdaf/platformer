@@ -49,6 +49,7 @@
 #include <filesystem>
 #include <fstream>
 #include "state_machines/state_machine_data.hpp"
+#include <algorithm>
 
 namespace
 {
@@ -115,10 +116,7 @@ TEST_CASE("The player starts standing where the level says", "[World]")
 
     glm::vec2 feet = world.getPlayer().body().aabb().bottomCenter();
 
-    REQUIRE(
-        feet ==
-        world.getLevel().getTileMap().feetOnTile(
-            world.getLevel().getTileMap().tileUnderFeet(world.getLevel().getPlayerStart())));
+    REQUIRE(feet == world.getLevel().getPlayerStart());
 }
 
 TEST_CASE("Respawning the player leaves the rest of the cast alone", "[World]")
@@ -280,10 +278,7 @@ TEST_CASE("A moved player start does not move the player until it respawns", "[W
 
     world.respawnPlayer();
 
-    const TileMap &tileMap = world.getLevel().getTileMap();
-    REQUIRE(
-        world.getPlayer().body().aabb().bottomCenter() ==
-        tileMap.feetOnTile(tileMap.tileUnderFeet(world.getLevel().getPlayerStart())));
+    REQUIRE(world.getPlayer().body().aabb().bottomCenter() == world.getLevel().getPlayerStart());
 }
 
 TEST_CASE("A rebuild with a shift moves the player once the level stands", "[World]")
@@ -999,15 +994,20 @@ TEST_CASE("A tile painted leaves no creature walking a node that is gone", "[Wor
     LuaScriptSystem luaScriptSystem;
     World world(gameData, noIntentions(), luaScriptSystem);
     world.loadLevel("levels/level6.json");
-    walkFor(world, 90);
 
     const std::vector<std::unique_ptr<Npc>> &creatures = world.getLevel().getNpcs();
     REQUIRE(creatures.size() > 1);
     const Npc &climbing = *creatures[1];
     REQUIRE(climbing.getSpawn().type == "spider");
 
+    int lastNode = 0;
+    for (const auto &[id, node] : world.getLevel().graphFor(climbing.profile()).getNodes())
+        lastNode = std::max(lastNode, id);
+    for (int step = 0; step < 1000 && climbing.targetNodeId() != lastNode; ++step)
+        walkFor(world, 1);
+
     std::optional<int> headingFor = climbing.targetNodeId();
-    REQUIRE(headingFor);
+    REQUIRE(headingFor == lastNode);
 
     TileMapData painted = world.getLevelData().tileMapData;
     painted.indices[2][1] = 6;

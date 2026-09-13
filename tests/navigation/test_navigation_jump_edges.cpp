@@ -351,7 +351,8 @@ TEST_CASE(
     glm::vec2 comesDown(takeOffPosition(tileMap).x + 40.0f, static_cast<float>(FloorBelowRow * 16));
     std::vector<navigation::ChosenJump> jumps{{0, {takeOffPosition(tileMap), comesDown}, 0.2f}};
 
-    navigation::addJumpEdges(graph, tileMap, 1, jumps);
+    navigation::addJumpEdges(
+        graph, tileMap, 1, standardProfile().physicsBodyData.stepHeight, jumps);
 
     REQUIRE(graph.getEdges().empty());
 }

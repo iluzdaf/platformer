@@ -6,11 +6,11 @@
 #include "navigation/navigation_graph_steps.hpp"
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_profile.hpp"
-#include "tile_map/tile.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "tile_map/tile_map.hpp"
+#include "physics/aabb.hpp"
 
 namespace
 {
@@ -21,7 +21,11 @@ namespace
         int headroom)
     {
         glm::ivec2 start = tileMap.tileContaining(from);
-        if (!tileMap.validTilePosition(start) || tileMap.getTileAtTilePosition(start).isSolid())
+        if (!tileMap.validTilePosition(start))
+            return std::nullopt;
+
+        std::optional<AABB> inside = tileMap.groundAt(start);
+        if (inside && inside->covers(from))
             return std::nullopt;
 
         std::optional<glm::vec2> landing =
@@ -110,8 +114,12 @@ namespace navigation
         for (const auto &[fromId, takeOff] : takeOffs)
             for (glm::vec2 landing : fallLandings(tileMap, takeOff, profile, headroom))
             {
-                std::optional<int> toId =
-                    nodeGoverning(navigationGraph, tileMap, landing, headroom);
+                std::optional<int> toId = nodeGoverning(
+                    navigationGraph,
+                    tileMap,
+                    landing,
+                    headroom,
+                    profile.physicsBodyData.stepHeight);
                 if (!toId || *toId == fromId)
                     continue;
 

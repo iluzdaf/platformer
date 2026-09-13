@@ -188,7 +188,23 @@ glm::vec2 TileMap::feetOnTile(glm::ivec2 tilePosition) const
     if (!validTilePosition(tilePosition))
         throw std::runtime_error("Tile coordinates out of bounds");
 
-    return ::feetOnTile(tilePosition, tileSize);
+    glm::vec2 feet = ::feetOnTile(tilePosition, tileSize);
+    if (std::optional<AABB> ground = groundAt(tilePosition + glm::ivec2(0, 1)))
+        feet.y = ground->position.y;
+
+    return feet;
+}
+
+std::optional<AABB> TileMap::groundAt(glm::ivec2 tilePosition) const
+{
+    if (!validTilePosition(tilePosition))
+        return std::nullopt;
+
+    const Tile &tile = getTileAtTilePosition(tilePosition);
+    if (!tile.isSolid())
+        return std::nullopt;
+
+    return tile.getAABBAt(topLeftOfTile(tilePosition));
 }
 
 glm::vec2 TileMap::middleOfTile(glm::ivec2 tilePosition) const

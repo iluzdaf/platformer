@@ -28,6 +28,20 @@ namespace
     }
 }
 
+TEST_CASE("A walker told nothing has arrived once within 2 of its reach", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = setupPlatform();
+    RouteWalker walker;
+    walker.keepInStep(at(navigationGraph, {0.0f, 192.0f}));
+    walker.takeRouteTo(at(navigationGraph, {0.0f, 192.0f}), 1);
+
+    walker.advanceOnArrival(at(navigationGraph, {89.5f, 192.0f}));
+    REQUIRE(walker.getCurrentNodeId() == 0);
+
+    walker.advanceOnArrival(at(navigationGraph, {90.5f, 192.0f}));
+    REQUIRE(walker.getCurrentNodeId() == 1);
+}
+
 TEST_CASE("A walker with no footing takes no route", "[RouteWalker]")
 {
     NavigationGraph navigationGraph = setupPlatform();

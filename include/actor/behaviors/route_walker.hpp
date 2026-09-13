@@ -9,7 +9,7 @@
 class RouteWalker
 {
 public:
-    explicit RouteWalker(float arrivalThreshold);
+    explicit RouteWalker(float arrivalThreshold = 2.0f);
     void reset();
     void keepInStep(const ActorFacts &context);
     bool isAnchored() const;

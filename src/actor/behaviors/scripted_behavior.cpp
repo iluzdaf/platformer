@@ -6,8 +6,7 @@
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 
-ScriptedBehavior::ScriptedBehavior(const ScriptedBehaviorData &data)
-    : call(data.call), walker(data.arrivalThreshold)
+ScriptedBehavior::ScriptedBehavior(const ScriptedBehaviorData &data) : call(data.call)
 {
     if (call.empty())
         throw std::runtime_error("A scripted state must say what it calls");

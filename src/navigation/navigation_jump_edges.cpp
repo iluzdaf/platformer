@@ -11,7 +11,6 @@
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_build_report.hpp"
 #include "navigation/navigation_profile.hpp"
-#include "tile_map/tile.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_edge.hpp"
@@ -91,7 +90,8 @@ namespace navigation
                 {
                     std::optional<JumpLanding> landing = jumpFrom(
                         tileMap, takeOff, arc, direction, profile, navigationGraph.building());
-                    if (!landing || landing->position.y > takeOff.y + stepHeight)
+                    if (!landing || landing->position.y > takeOff.y + stepHeight ||
+                        !feetOverGround(tileMap, landing->position))
                         continue;
 
                     std::optional<int> toId = nodeGoverning(
@@ -201,8 +201,7 @@ namespace navigation
 
                 glm::ivec2 underfoot =
                     tileMap.tileContaining(attempt.path.back() + glm::vec2(0.0f, 1.0f));
-                if (!tileMap.validTilePosition(underfoot) ||
-                    !tileMap.getTileAtTilePosition(underfoot).isSolid() ||
+                if (!feetOverGround(tileMap, attempt.path.back()) ||
                     !canStandOn(tileMap, underfoot, headroom))
                     continue;
 

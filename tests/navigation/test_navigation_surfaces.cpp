@@ -301,3 +301,54 @@ TEST_CASE("A jump across a gap reaches a platform a step lower", "[NavigationSur
                                       graph.getNode(edge.toId).feet.y == FloorTop + 1.0f);
     REQUIRE(jumpsAcross);
 }
+
+TEST_CASE("A jump comes down with its feet over the collider it lands on", "[NavigationSurfaces]")
+{
+    Placed laid;
+    layRow(laid, 5, 0, 2, Full);
+    laid.push_back({{3, 5}, InsetFromTheRight});
+    layRow(laid, Floor - 2, 5, 15, Full);
+
+    NavigationGraph graph = buildNavigationGraph(aMapOf(laid, 16, 12), jumperProfile());
+
+    bool jumpsUp = false;
+    for (const NavigationEdge &edge : graph.getEdges())
+        if (edge.type == EdgeType::Jump && edge.path.back().y == 80.0f)
+        {
+            jumpsUp = true;
+            INFO("comes down at " << edge.path.back().x << ", the collider ending at 62");
+            REQUIRE(edge.path.back().x <= 62.0f);
+        }
+    REQUIRE(jumpsUp);
+}
+
+TEST_CASE(
+    "A ledge whose collider stops short of its tile is still jumped onto",
+    "[NavigationSurfaces]")
+{
+    Placed laid;
+    layRow(laid, 4, 0, 1, Full);
+    laid.push_back({{2, 4}, InsetFromTheRight});
+    layRow(laid, Floor - 2, 5, 15, Full);
+
+    NavigationGraph graph = buildNavigationGraph(aMapOf(laid, 16, 12), jumperProfile());
+
+    bool jumpsUp = false;
+    for (const NavigationEdge &edge : graph.getEdges())
+        jumpsUp = jumpsUp || (edge.type == EdgeType::Jump && edge.path.back().y == 64.0f &&
+                              edge.path.back().x <= 46.0f);
+    REQUIRE(jumpsUp);
+}
+
+TEST_CASE("Feet are over ground to within a settle of the collider's edges", "[NavigationSurfaces]")
+{
+    TileMap tileMap = aMapOf({{{2, Floor}, Full}, {{5, Floor}, InsetFromTheRight}});
+
+    REQUIRE(navigation::feetOverGround(tileMap, {32.0f, FloorTop}));
+    REQUIRE(navigation::feetOverGround(tileMap, {48.0f, FloorTop}));
+    REQUIRE(navigation::feetOverGround(tileMap, {79.5f, FloorTop}));
+    REQUIRE(navigation::feetOverGround(tileMap, {94.5f, FloorTop}));
+    REQUIRE_FALSE(navigation::feetOverGround(tileMap, {79.0f, FloorTop}));
+    REQUIRE_FALSE(navigation::feetOverGround(tileMap, {95.0f, FloorTop}));
+    REQUIRE_FALSE(navigation::feetOverGround(tileMap, {64.0f, FloorTop}));
+}

@@ -2,11 +2,11 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "animations/animator_data.hpp"
 #include "animations/animator_data.hpp"
-#include "conditions/asked.hpp"
 #include "animations/frame_animation_data.hpp"
 #include "helpers/actors.hpp"
 #include "player/player.hpp"
 #include "player/player_data.hpp"
+#include "conditions/when_data.hpp"
 
 TEST_CASE("A clip is found by its name, and a name nobody drew is nobody's", "[ActorAnimations]")
 {
@@ -49,7 +49,7 @@ TEST_CASE("A rule showing a clip the actor does not have is refused", "[ActorAni
     animations.startClip = "idle";
     animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
     animations.clips["walk"] = FrameAnimationData({1}, 1.0f);
-    AnimationWhenData moving;
+    WhenData moving;
     moving["moving"] = true;
     animations.rules = {{"walk", moving}, {"somersault", moving}};
 
@@ -66,7 +66,7 @@ TEST_CASE("A creature named with a clip nobody else has can show it", "[ActorAni
     animations.startClip = "idle";
     animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
     animations.clips["somersault"] = FrameAnimationData({1}, 1.0f);
-    AnimationWhenData airborne;
+    WhenData airborne;
     airborne["onGround"] = false;
     animations.rules = {{"somersault", airborne}};
 
@@ -80,7 +80,7 @@ TEST_CASE("A rule asking about a fact nobody publishes is refused", "[ActorAnima
     animations.startClip = "idle";
     animations.clips["idle"] = FrameAnimationData({0}, 1.0f);
     animations.clips["walk"] = FrameAnimationData({1}, 1.0f);
-    AnimationWhenData snowing;
+    WhenData snowing;
     snowing["snowing"] = true;
     animations.rules = {{"walk", snowing}};
 

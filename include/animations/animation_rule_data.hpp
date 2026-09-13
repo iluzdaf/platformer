@@ -1,12 +1,12 @@
 #pragma once
 
 #include <string>
-#include "conditions/asked.hpp"
+#include "conditions/when_data.hpp"
 
 struct AnimationRuleData
 {
     std::string show;
-    AnimationWhenData when;
+    WhenData when;
 
     bool operator==(const AnimationRuleData &) const = default;
 };

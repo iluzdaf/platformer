@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -21,13 +20,3 @@ std::string_view nameOf(AskedKind kind);
 Asked emptyOf(AskedKind kind);
 
 std::string textOf(const Asked &asked);
-
-struct AnimationWhenData : std::map<std::string, Asked>
-{
-    bool operator==(const AnimationWhenData &) const = default;
-};
-
-struct TransitionWhenData : std::map<std::string, Asked>
-{
-    bool operator==(const TransitionWhenData &) const = default;
-};

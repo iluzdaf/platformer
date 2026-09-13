@@ -3,21 +3,21 @@
 #include "actor/abilities/ability_states.hpp"
 #include "actor/observed.hpp"
 #include "animations/animator_facts.hpp"
-#include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 #include "helpers/actor_facts.hpp"
+#include "conditions/when_data.hpp"
 
 TEST_CASE("A condition that asks nothing always holds", "[AnimationRules]")
 {
     AbilityStates states;
     Observed observed;
 
-    REQUIRE(holds(AnimationWhenData{}, animatorRows(), factsOf(states, observed)));
+    REQUIRE(holds(WhenData{}, animatorRows(), factsOf(states, observed)));
 }
 
 TEST_CASE("A condition holds only when every fact it asks about agrees", "[AnimationRules]")
 {
-    AnimationWhenData airborneAndRising;
+    WhenData airborneAndRising;
     airborneAndRising["onGround"] = false;
     airborneAndRising["rising"] = true;
     AbilityStates states;
@@ -38,7 +38,7 @@ TEST_CASE("A condition holds only when every fact it asks about agrees", "[Anima
 
 TEST_CASE("A condition may ask which state the machine is in", "[AnimationRules]")
 {
-    AnimationWhenData asleep;
+    WhenData asleep;
     asleep["inState"] = std::string("sleep");
     AbilityStates states;
     Observed observed;

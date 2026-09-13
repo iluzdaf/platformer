@@ -5,11 +5,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/graph_shown.hpp"
+#include "animations/animation_rule_data.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
-#include "conditions/asked.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "state_machines/state_machine_data.hpp"
+#include "conditions/when_data.hpp"
 
 namespace
 {
@@ -47,7 +48,7 @@ TEST_CASE("A machine draws as its states and its transitions, in words", "[Graph
 
 TEST_CASE("A rule's words say every fact it asks about", "[GraphShown]")
 {
-    AnimationWhenData when;
+    WhenData when;
     when["alive"] = true;
     when["knockback"] = false;
     when["onGround"] = false;
@@ -55,12 +56,13 @@ TEST_CASE("A rule's words say every fact it asks about", "[GraphShown]")
     when["onWall"] = false;
     when["finished"] = false;
     REQUIRE(
-        whenOf(when) == "alive, not knocked back, in the air, off the wall, rising, clip playing");
-    REQUIRE(whenOf(AnimationWhenData{}) == "always");
+        whenOf(AnimationRuleData{"jump", when}) ==
+        "alive, not knocked back, in the air, off the wall, rising, clip playing");
+    REQUIRE(whenOf(AnimationRuleData{"idle", {}}) == "always");
 
-    AnimationWhenData asleep;
+    WhenData asleep;
     asleep["inState"] = std::string("sleep");
-    REQUIRE(whenOf(asleep) == "in state \"sleep\"");
+    REQUIRE(whenOf(AnimationRuleData{"sleep", asleep}) == "in state \"sleep\"");
 }
 
 TEST_CASE(

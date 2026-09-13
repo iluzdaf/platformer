@@ -12,7 +12,6 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
-#include "conditions/asked.hpp"
 #include "game/level.hpp"
 #include "helpers/tile_positions.hpp"
 #include "helpers/levels.hpp"
@@ -22,6 +21,7 @@
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
 #include "state_machines/state_machine_data.hpp"
+#include "conditions/when_data.hpp"
 
 using namespace ledge_and_wall;
 
@@ -58,8 +58,8 @@ namespace
         chasing.does = ChaseBehaviorData{};
         data.stateMachineBehaviorData->states.push_back(chasing);
         data.stateMachineBehaviorData->transitions = {
-            TransitionData{"patrol", "chase", TransitionWhenData{{{"threatNear", true}}}, 0.0f},
-            TransitionData{"chase", "patrol", TransitionWhenData{{{"threatNear", false}}}, 2.0f}};
+            TransitionData{"patrol", "chase", WhenData{{{"threatNear", true}}}, 0.0f},
+            TransitionData{"chase", "patrol", WhenData{{{"threatNear", false}}}, 2.0f}};
         data.facts["threatNear"] = false;
         return data;
     }

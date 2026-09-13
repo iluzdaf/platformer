@@ -9,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/state_machine_shown.hpp"
 
-struct AnimationWhenData;
+struct AnimationRuleData;
 
 struct GraphNode
 {
@@ -49,6 +49,6 @@ float graphHeightFor(std::size_t ringCount);
 
 std::vector<glm::vec2> placedAround(const GraphShown &graph, glm::vec2 centre, glm::vec2 radii);
 
-std::string whenOf(const AnimationWhenData &when);
+std::string whenOf(const AnimationRuleData &rule);
 
 GraphShown graphOf(const StateMachineBehaviorData &machine);

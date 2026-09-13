@@ -425,6 +425,7 @@ add_executable(tests
     tests/actor/behaviors/test_state_machine_behavior.cpp
     tests/actor/test_actor_fact_rows.cpp
     tests/state_machines/test_state_machine.cpp
+    tests/ui/test_facts_offered.cpp
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/npc/test_patrol_beats.cpp

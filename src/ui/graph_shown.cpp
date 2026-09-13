@@ -8,10 +8,10 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ui/graph_shown.hpp"
+#include "animations/animation_rule_data.hpp"
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "animations/animator_facts.hpp"
-#include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 #include "state_machines/state_machine_data.hpp"
 
@@ -87,9 +87,9 @@ std::vector<glm::vec2> placedAround(const GraphShown &graph, glm::vec2 centre, g
     return positions;
 }
 
-std::string whenOf(const AnimationWhenData &when)
+std::string whenOf(const AnimationRuleData &rule)
 {
-    return whenOf(when, animatorRows());
+    return whenOf(rule.when, animatorRows());
 }
 
 GraphShown graphOf(const StateMachineBehaviorData &machine)

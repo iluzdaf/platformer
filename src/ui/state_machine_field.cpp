@@ -12,6 +12,10 @@
 #include "ui/state_machine_shown.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "state_machines/state_machine_data.hpp"
+#include "actor/actor_fact_rows.hpp"
+#include "ui/facts_in_scope.hpp"
+#include "ui/facts_offered_in_scope.hpp"
+#include "ui/in_scope.hpp"
 
 namespace
 {
@@ -95,6 +99,8 @@ namespace
         {
             inspector::InField transitions("transitions");
             inspector::InField transition(std::to_string(shown.index));
+            const FactsOffered offered = factsOffered(actorRows(), factsInScope());
+            InScope offering(offered);
             return inspector::drawFields(machine.transitions[shown.index]);
         }
 

@@ -12,6 +12,9 @@
 #include "ui/inspector_fields.hpp"
 #include "ui/marked_label.hpp"
 #include "ui/saved_in_scope.hpp"
+#include "ui/facts_offered_in_scope.hpp"
+#include "ui/in_scope.hpp"
+#include "animations/animator_facts.hpp"
 #include "animations/animation_rule_data.hpp"
 #include "animations/animator_data.hpp"
 
@@ -28,6 +31,8 @@ namespace
             return {};
 
         ImGui::TextDisabled("the first rule that holds is shown, else the start clip");
+        const FactsOffered offered = factsOffered(animatorRows());
+        InScope offering(offered);
         inspector::Edited edited;
         std::optional<std::size_t> takeAway;
         std::optional<std::size_t> raise;
@@ -76,7 +81,7 @@ namespace
 void drawAnimatorRules(const AnimatorData &animations, const std::string &showing)
 {
     for (const AnimationRuleData &rule : animations.rules)
-        drawLine(rule.show + " when " + whenOf(rule.when), rule.show == showing);
+        drawLine(rule.show + " when " + whenOf(rule), rule.show == showing);
 
     drawLine("otherwise " + animations.startClip, animations.startClip == showing);
 }

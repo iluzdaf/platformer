@@ -1,39 +1,39 @@
 #pragma once
 
-#include "conditions/asked.hpp"
 #include "animations/animation_rule_data.hpp"
+#include "conditions/when_data.hpp"
 
 inline AnimationRuleData deadRule()
 {
-    AnimationWhenData dead;
+    WhenData dead;
     dead["alive"] = false;
     return AnimationRuleData{"dead", dead};
 }
 
 inline AnimationRuleData knockbackRule()
 {
-    AnimationWhenData pushed;
+    WhenData pushed;
     pushed["knockback"] = true;
     return AnimationRuleData{"knockback", pushed};
 }
 
 inline AnimationRuleData swingRule()
 {
-    AnimationWhenData swinging;
+    WhenData swinging;
     swinging["swinging"] = true;
     return AnimationRuleData{"attack", swinging};
 }
 
 inline AnimationRuleData dashRule()
 {
-    AnimationWhenData dashing;
+    WhenData dashing;
     dashing["dashing"] = true;
     return AnimationRuleData{"dash", dashing};
 }
 
 inline AnimationRuleData climbRule()
 {
-    AnimationWhenData climbing;
+    WhenData climbing;
     climbing["onGround"] = false;
     climbing["climbing"] = true;
     return AnimationRuleData{"climb", climbing};
@@ -41,7 +41,7 @@ inline AnimationRuleData climbRule()
 
 inline AnimationRuleData wallSlideRule()
 {
-    AnimationWhenData onWall;
+    WhenData onWall;
     onWall["onGround"] = false;
     onWall["onWall"] = true;
     return AnimationRuleData{"wallSlide", onWall};
@@ -49,7 +49,7 @@ inline AnimationRuleData wallSlideRule()
 
 inline AnimationRuleData jumpRule()
 {
-    AnimationWhenData rising;
+    WhenData rising;
     rising["onGround"] = false;
     rising["rising"] = true;
     return AnimationRuleData{"jump", rising};
@@ -57,7 +57,7 @@ inline AnimationRuleData jumpRule()
 
 inline AnimationRuleData fallRule()
 {
-    AnimationWhenData falling;
+    WhenData falling;
     falling["onGround"] = false;
     falling["falling"] = true;
     return AnimationRuleData{"fall", falling};
@@ -65,7 +65,7 @@ inline AnimationRuleData fallRule()
 
 inline AnimationRuleData walkRule()
 {
-    AnimationWhenData moving;
+    WhenData moving;
     moving["onGround"] = true;
     moving["moving"] = true;
     return AnimationRuleData{"walk", moving};
@@ -73,7 +73,7 @@ inline AnimationRuleData walkRule()
 
 inline AnimationRuleData idleRule()
 {
-    AnimationWhenData standing;
+    WhenData standing;
     standing["onGround"] = true;
     return AnimationRuleData{"idle", standing};
 }

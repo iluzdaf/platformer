@@ -64,7 +64,7 @@
         },
         "stateMachineBehaviorData":{
             "states":[
-                {"name":"patrol","does":{"kind":"patrol"}},
+                {"name":"patrol","does":{"kind":"script","call":"patrol"}},
                 {"name":"flee","does":{"kind":"script","call":"flee"}},
                 {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":1}
             ],
@@ -122,7 +122,7 @@
         },
         "stateMachineBehaviorData":{
             "states":[
-                {"name":"patrol","does":{"kind":"patrol"}},
+                {"name":"patrol","does":{"kind":"script","call":"patrol"}},
                 {"name":"chase","does":{"kind":"chase","standoff":28}},
                 {"name":"pounce","does":{"kind":"attack","with":"pounce"},"cooldown":2}
             ],

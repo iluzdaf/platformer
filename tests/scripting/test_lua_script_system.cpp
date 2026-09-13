@@ -258,3 +258,41 @@ TEST_CASE("A reload that fails leaves the handlers that were working", "[LuaScri
     luaScriptSystem.emit("onDeath");
     REQUIRE(luaScriptSystem.getLua()["deaths"].get<int>() == 2);
 }
+
+TEST_CASE(
+    "A script includes another by its path under assets, afresh each time",
+    "[LuaScriptSystem]")
+{
+    std::filesystem::path shared = writeScript("platformer_lua_includes_shared.lua", "seen = {}\n");
+    LuaScriptSystem luaScriptSystem(shared.string());
+
+    luaScriptSystem.use(
+        "includer",
+        writeScript(
+            "platformer_lua_includer.lua",
+            "local patrol = include('scripts/steering/patrol.lua')\n"
+            "seen.decides = type(patrol.decide) == 'function'\n"
+            "seen.afresh = include('scripts/steering/patrol.lua') ~= patrol\n"
+            "return {}\n")
+            .string());
+
+    REQUIRE(luaScriptSystem.errorsReported() == 0);
+    REQUIRE(luaScriptSystem.getLua()["seen"]["decides"].get<bool>());
+    REQUIRE(luaScriptSystem.getLua()["seen"]["afresh"].get<bool>());
+}
+
+TEST_CASE("An include that fails fails the script that asked for it", "[LuaScriptSystem]")
+{
+    std::filesystem::path shared = writeScript("platformer_lua_includes_nothing.lua", "\n");
+    LuaScriptSystem luaScriptSystem(shared.string());
+
+    luaScriptSystem.use(
+        "includer",
+        writeScript(
+            "platformer_lua_bad_includer.lua",
+            "local missing = include('scripts/nowhere.lua')\n"
+            "return { onAsked = function() end }\n")
+            .string());
+
+    REQUIRE(luaScriptSystem.errorsReported() == 1);
+}

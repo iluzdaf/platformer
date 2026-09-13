@@ -7,7 +7,7 @@
 #include <optional>
 #include "actor/actor_facts.hpp"
 #include "helpers/actor_facts.hpp"
-#include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/idle_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior.hpp"
@@ -28,26 +28,26 @@ namespace
 {
     StateMachineBehaviorData setupData(float calmDown = 0.0f)
     {
-        BehaviorStateData patrolling;
-        patrolling.name = "patrol";
-        patrolling.does = PatrolBehaviorData{};
+        BehaviorStateData watching;
+        watching.name = "watch";
+        watching.does = IdleBehaviorData{};
 
         BehaviorStateData chasing;
         chasing.name = "chase";
         chasing.does = ChaseBehaviorData{};
 
         TransitionData alarmed;
-        alarmed.from = "patrol";
+        alarmed.from = "watch";
         alarmed.to = "chase";
         alarmed.when["near"] = true;
 
         TransitionData calmed;
         calmed.from = "chase";
-        calmed.to = "patrol";
+        calmed.to = "watch";
         calmed.when["near"] = false;
         calmed.after = calmDown;
 
-        return {{patrolling, chasing}, {alarmed, calmed}};
+        return {{watching, chasing}, {alarmed, calmed}};
     }
 
     FactsData knowingNear()
@@ -74,13 +74,13 @@ namespace
 TEST_CASE("Runs the state it is in, not the one it left", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
+    StateMachineBehavior behavior(setupData(), knowingNear());
     FactsData calm = knowingNear();
     FactsData near = saying("near", true);
 
-    InputIntentions patrolling = behavior.decide(
+    InputIntentions watching = behavior.decide(
         0.01f, told(calm, standingAt(navigationGraph, {192.0f, 192.0f}, glm::vec2(0.0f, 192.0f))));
-    REQUIRE(patrolling.direction.x == -1.0f);
+    REQUIRE(watching.direction.x == 0.0f);
 
     InputIntentions chasing = behavior.decide(
         0.01f,
@@ -106,7 +106,7 @@ TEST_CASE("A state with nothing to do asks for nothing", "[StateMachineBehavior]
     idle.name = "idle";
     StateMachineBehaviorData data;
     data.states = {idle};
-    StateMachineBehavior behavior(data, std::nullopt);
+    StateMachineBehavior behavior(data);
 
     InputIntentions asked =
         behavior.decide(0.016f, standingAt(navigationGraph, {0.0f, 192.0f}, std::nullopt));
@@ -119,7 +119,7 @@ TEST_CASE("A state with nothing to do asks for nothing", "[StateMachineBehavior]
 TEST_CASE("Given no states at all, resetting is nothing", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(StateMachineBehaviorData{}, std::nullopt);
+    StateMachineBehavior behavior(StateMachineBehaviorData{});
 
     behavior.reset();
 
@@ -177,7 +177,7 @@ TEST_CASE(
     "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(aChaseThatPounces(1.0f), std::nullopt, knowingNear());
+    StateMachineBehavior behavior(aChaseThatPounces(1.0f), knowingNear());
     FactsData near = saying("near", true);
     behavior.decide(
         0.01f,
@@ -235,7 +235,7 @@ TEST_CASE(
     landed.after = 0.05f;
     FactsData facts;
     facts["inReach"] = false;
-    StateMachineBehavior behavior({{chasing, pouncing}, {tooClose, landed}}, std::nullopt, facts);
+    StateMachineBehavior behavior({{chasing, pouncing}, {tooClose, landed}}, facts);
 
     behavior.decide(
         0.01f,
@@ -277,7 +277,7 @@ TEST_CASE("Each time it enters a state, that state starts afresh", "[StateMachin
     backOff.when["inReach"] = false;
     FactsData facts;
     facts["inReach"] = false;
-    StateMachineBehavior behavior({{chasing, pouncing}, {tooClose, backOff}}, std::nullopt, facts);
+    StateMachineBehavior behavior({{chasing, pouncing}, {tooClose, backOff}}, facts);
     auto decide = [&](bool inReach)
     {
         facts["inReach"] = inReach;
@@ -309,7 +309,7 @@ TEST_CASE("Resetting goes back to the first state, and starts it afresh", "[Stat
     backOff.when["inReach"] = false;
     FactsData facts;
     facts["inReach"] = true;
-    StateMachineBehavior behavior({{pouncing, chasing}, {backOff}}, std::nullopt, facts);
+    StateMachineBehavior behavior({{pouncing, chasing}, {backOff}}, facts);
     auto decide = [&](bool inReach)
     {
         facts["inReach"] = inReach;
@@ -345,7 +345,7 @@ TEST_CASE("A state that does nothing stands still", "[StateMachineBehavior]")
 TEST_CASE("A transition asking about a fact nobody has said is an error", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(setupData(), std::nullopt, knowingNear());
+    StateMachineBehavior behavior(setupData(), knowingNear());
     FactsData nothing;
 
     REQUIRE_THROWS_AS(
@@ -409,13 +409,12 @@ TEST_CASE(
     data.transitions.front().when["threatInReach"] = true;
 
     REQUIRE_THROWS_WITH(
-        StateMachineBehavior(data, std::nullopt, knowingNear()),
+        StateMachineBehavior(data, knowingNear()),
         Catch::Matchers::ContainsSubstring("its senses say nothing of close"));
     REQUIRE_THROWS_WITH(
-        StateMachineBehavior(data, std::nullopt, knowingNear(), SensesData{40.0f, std::nullopt}),
+        StateMachineBehavior(data, knowingNear(), SensesData{40.0f, std::nullopt}),
         Catch::Matchers::ContainsSubstring("its senses say nothing of reach"));
-    REQUIRE_NOTHROW(
-        StateMachineBehavior(data, std::nullopt, knowingNear(), SensesData{40.0f, 24.0f}));
+    REQUIRE_NOTHROW(StateMachineBehavior(data, knowingNear(), SensesData{40.0f, 24.0f}));
 }
 
 TEST_CASE(
@@ -426,14 +425,14 @@ TEST_CASE(
     data.transitions.front().when.clear();
     data.transitions.front().when["knockback"] = true;
     NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(data, std::nullopt, knowingNear());
+    StateMachineBehavior behavior(data, knowingNear());
     FactsData calm = knowingNear();
     AbilityStates states;
     ActorFacts facts = told(calm, standingAt(navigationGraph, {192.0f, 192.0f}));
     facts.abilityStates = &states;
 
     behavior.decide(0.01f, facts);
-    REQUIRE(behavior.getStateName() == "patrol");
+    REQUIRE(behavior.getStateName() == "watch");
 
     states.knockback.active = true;
     behavior.decide(0.01f, facts);
@@ -449,7 +448,7 @@ TEST_CASE("A transition cannot ask about the picture", "[StateMachineBehavior]")
 
         INFO(picture);
         REQUIRE_THROWS_WITH(
-            StateMachineBehavior(data, std::nullopt, knowingNear()),
+            StateMachineBehavior(data, knowingNear()),
             Catch::Matchers::ContainsSubstring("there is no such fact"));
     }
 }
@@ -499,7 +498,7 @@ TEST_CASE(
     "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(aWatchThatRuns(), std::nullopt, knowingNear());
+    StateMachineBehavior behavior(aWatchThatRuns(), knowingNear());
     Hearing script;
     behavior.scriptWith(&script);
     FactsData calm = knowingNear();
@@ -517,7 +516,7 @@ TEST_CASE(
 TEST_CASE("Resetting leaves the state it is in", "[StateMachineBehavior]")
 {
     NavigationGraph navigationGraph = aWalkRun();
-    StateMachineBehavior behavior(aWatchThatRuns(), std::nullopt, knowingNear());
+    StateMachineBehavior behavior(aWatchThatRuns(), knowingNear());
     Hearing script;
     behavior.scriptWith(&script);
     FactsData calm = knowingNear();

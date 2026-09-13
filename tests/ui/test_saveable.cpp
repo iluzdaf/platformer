@@ -4,7 +4,7 @@
 #include <map>
 #include "cameras/camera2d_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
-#include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "npc/npc_data.hpp"
 #include "ui/saveable.hpp"
@@ -170,28 +170,28 @@ namespace
 TEST_CASE("A state that says its kind can be put back", "[Saveable]")
 {
     Saveable saveable;
-    PatrolBehaviorData patrol;
-    patrol.arrivalThreshold = 2.0f;
-    std::map<std::string, NpcData> npcs = aRatThat(patrol);
+    ChaseBehaviorData chase;
+    chase.standoff = 2.0f;
+    std::map<std::string, NpcData> npcs = aRatThat(chase);
     std::map<std::string, NpcData> asSaved = npcs;
     saveable.saved("npcs", asJson(npcs));
 
     BehaviorDoes &does = npcs.at("rat").stateMachineBehaviorData->states.front().does;
-    std::get<PatrolBehaviorData>(does).arrivalThreshold = 4.0f;
+    std::get<ChaseBehaviorData>(does).standoff = 4.0f;
     REQUIRE(saveable.unsaved("npcs", asJson(npcs)));
 
     revertTo(saveable, "npcs", npcs);
 
     const BehaviorDoes &back = npcs.at("rat").stateMachineBehaviorData->states.front().does;
-    REQUIRE(std::holds_alternative<PatrolBehaviorData>(back));
-    REQUIRE(std::get<PatrolBehaviorData>(back).arrivalThreshold == 2.0f);
+    REQUIRE(std::holds_alternative<ChaseBehaviorData>(back));
+    REQUIRE(std::get<ChaseBehaviorData>(back).standoff == 2.0f);
     REQUIRE(asJson(npcs) == asJson(asSaved));
 }
 
 TEST_CASE("Choosing another kind counts as unsaved", "[Saveable]")
 {
     Saveable saveable;
-    std::map<std::string, NpcData> npcs = aRatThat(PatrolBehaviorData{});
+    std::map<std::string, NpcData> npcs = aRatThat(ScriptedBehaviorData{"patrol"});
     saveable.saved("npcs", asJson(npcs));
 
     npcs.at("rat").stateMachineBehaviorData->states.front().does = ChaseBehaviorData{};

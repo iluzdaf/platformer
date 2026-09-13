@@ -1,8 +1,8 @@
 #include <stdexcept>
 #include <utility>
 #include "game/beat_between.hpp"
-#include "npc/npc_spawn_data.hpp"
 #include "tile_map/tile_map.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 PatrolData beatBetween(glm::ivec2 fromTile, glm::ivec2 toTile, int tileSize)
 {

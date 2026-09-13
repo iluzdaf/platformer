@@ -14,10 +14,10 @@
 #include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "tile_map/tile_palette_data.hpp"
-#include "npc/npc_spawn_data.hpp"
 #include "pickups/pickup.hpp"
 #include "pickups/pickup_data.hpp"
 #include <memory>
+#include "actor/behaviors/patrol_data.hpp"
 
 class Npc;
 struct AABB;

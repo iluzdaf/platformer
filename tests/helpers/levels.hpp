@@ -9,6 +9,7 @@
 #include "helpers/tile_positions.hpp"
 #include "helpers/tiles.hpp"
 #include "npc/npc_spawn_data.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 inline PatrolData beatOf(glm::ivec2 fromTile, glm::ivec2 toTile)
 {

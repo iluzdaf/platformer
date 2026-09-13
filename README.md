@@ -295,6 +295,9 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   on. The script says where to go and when; the walker gets it there.
 - Each visit starts with a fresh `self`, which `enter` sets up. `exit` runs when the
   machine leaves the state.
+- Steering more than one creature uses lives in `scripts/steering/`. A creature's script
+  takes it with `include('scripts/steering/patrol.lua')`, which runs the file afresh, so
+  a reload reaches it. A spawn's beat reaches `decide` as `facts.beat`.
 
 ## 🔭 Future Plans
 

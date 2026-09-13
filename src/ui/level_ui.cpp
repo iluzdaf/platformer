@@ -41,6 +41,7 @@
 #include "game/game_data.hpp"
 #include "game/level_resizing.hpp"
 #include "cameras/camera2d.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 LevelUi::LevelUi(EditorHistory &history) : history(history)
 {

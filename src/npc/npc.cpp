@@ -38,6 +38,7 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
 {
     declare(npcData.facts);
     setSenses(npcData.senses);
+    setBeat(spawn.patrol);
     if (npcData.stateMachineBehaviorData)
     {
         for (const BehaviorStateData &state : npcData.stateMachineBehaviorData->states)
@@ -55,13 +56,9 @@ Npc::Npc(const NpcSpawnData &spawn, const NpcData &npcData)
                     "\" by script, and has no script");
         }
 
-        std::optional<std::pair<glm::vec2, glm::vec2>> walk;
-        if (this->spawn.patrol)
-            walk = std::pair(this->spawn.patrol->from, this->spawn.patrol->to);
-
         setBehavior(
             std::make_unique<StateMachineBehavior>(
-                npcData.stateMachineBehaviorData.value(), walk, npcData.facts, npcData.senses));
+                npcData.stateMachineBehaviorData.value(), npcData.facts, npcData.senses));
     }
 
     standAt(this->spawn.feet);

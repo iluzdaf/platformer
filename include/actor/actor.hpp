@@ -20,6 +20,7 @@
 #include "navigation/navigation_profile.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/behaviors/senses_data.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 #include "conditions/asked.hpp"
 #include "actor/declared_facts.hpp"
 #include "actor/fading_facts.hpp"
@@ -78,6 +79,7 @@ protected:
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
     void declare(const FactsData &facts);
     void setSenses(const SensesData &newSenses);
+    void setBeat(const std::optional<PatrolData> &newBeat);
     void scriptBehaviorWith(StateScript *script);
 
 private:
@@ -86,6 +88,7 @@ private:
     float howFarItFell();
     DeclaredFacts declaredFacts;
     SensesData senses;
+    std::optional<PatrolData> beat;
     const NavigationGraph *walking = nullptr;
     float highestSinceTheGround = std::numeric_limits<float>::max();
     float fallFromHeightThreshold = 0.0f;

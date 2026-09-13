@@ -4,7 +4,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/move_ability_data.hpp"
-#include "actor/behaviors/patrol_behavior_data.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
+#include "helpers/shipped.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "game/level.hpp"
 #include "npc/npc.hpp"
@@ -26,9 +27,10 @@ inline NpcData setupNpcData()
 
     BehaviorStateData patrolling;
     patrolling.name = "patrol";
-    patrolling.does = PatrolBehaviorData();
+    patrolling.does = ScriptedBehaviorData{"patrol"};
 
     npcData.stateMachineBehaviorData = StateMachineBehaviorData{{patrolling}, {}};
+    npcData.script = shippedNpcData().at("rat").script;
 
     return npcData;
 }

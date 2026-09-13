@@ -6,10 +6,12 @@
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
 
+inline constexpr float WalkerArrivesWithin = 2.0f;
+
 class RouteWalker
 {
 public:
-    explicit RouteWalker(float arrivalThreshold = 2.0f);
+    explicit RouteWalker(float arrivalThreshold = WalkerArrivesWithin);
     void reset();
     void keepInStep(const ActorFacts &context);
     bool isAnchored() const;
@@ -20,6 +22,7 @@ public:
         int destinationNodeId,
         std::optional<glm::vec2> stopShortAt = std::nullopt);
     InputIntentions follow(float deltaTime, const ActorFacts &context);
+    bool standsAt(const ActorFacts &context, glm::vec2 point) const;
     std::optional<int> getCurrentNodeId() const;
     std::optional<int> getTargetNodeId() const;
 

@@ -43,6 +43,11 @@ World::World(
     if (!gameData.playerData.script.path.empty())
         luaScriptSystem.use(PlayerScript, assets::pathTo(gameData.playerData.script.path));
 
+    useCreatureScripts();
+}
+
+void World::useCreatureScripts()
+{
     for (const auto &[type, npcData] : gameData.npcData)
         if (!npcData.script.path.empty())
             luaScriptSystem.use(scriptOf(type), assets::pathTo(npcData.script.path));
@@ -138,6 +143,7 @@ void World::makePlayerAt(glm::vec2 feet)
 
 void World::castChanged()
 {
+    useCreatureScripts();
     if (!level)
         return;
 

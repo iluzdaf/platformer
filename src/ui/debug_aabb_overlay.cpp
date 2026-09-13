@@ -26,6 +26,7 @@
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_place.hpp"
 #include "ui/navigation_overlay.hpp"
+#include "actor/behaviors/patrol_data.hpp"
 
 namespace
 {

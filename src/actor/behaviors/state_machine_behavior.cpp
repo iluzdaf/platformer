@@ -2,7 +2,6 @@
 #include <string_view>
 #include <optional>
 #include <stdexcept>
-#include <utility>
 #include <memory>
 #include <type_traits>
 #include <variant>
@@ -11,10 +10,8 @@
 #include "actor/actor_behavior.hpp"
 #include "actor/behaviors/attack_behavior_data.hpp"
 #include "actor/behaviors/chase_behavior_data.hpp"
-#include "actor/behaviors/patrol_behavior_data.hpp"
 #include "actor/actor_facts.hpp"
 #include "actor/behaviors/chase_behavior.hpp"
-#include "actor/behaviors/patrol_behavior.hpp"
 #include "actor/behaviors/attack_behavior.hpp"
 #include "actor/behaviors/scripted_behavior.hpp"
 #include "actor/behaviors/scripted_behavior_data.hpp"
@@ -27,7 +24,6 @@
 
 StateMachineBehavior::StateMachineBehavior(
     const StateMachineBehaviorData &data,
-    std::optional<std::pair<glm::vec2, glm::vec2>> patrolBetween,
     const FactsData &declared,
     const SensesData &senses)
     : machine(data, actorRows(), declared)
@@ -42,12 +38,10 @@ StateMachineBehavior::StateMachineBehavior(
     for (const BehaviorStateData &state : data.states)
         steering.push_back(
             std::visit(
-                [&patrolBetween](const auto &does) -> std::unique_ptr<ActorBehavior>
+                [](const auto &does) -> std::unique_ptr<ActorBehavior>
                 {
                     using Does = std::remove_cvref_t<decltype(does)>;
-                    if constexpr (std::is_same_v<Does, PatrolBehaviorData>)
-                        return std::make_unique<PatrolBehavior>(does, patrolBetween);
-                    else if constexpr (std::is_same_v<Does, ChaseBehaviorData>)
+                    if constexpr (std::is_same_v<Does, ChaseBehaviorData>)
                         return std::make_unique<ChaseBehavior>(does);
                     else if constexpr (std::is_same_v<Does, AttackBehaviorData>)
                         return std::make_unique<AttackBehavior>(does);

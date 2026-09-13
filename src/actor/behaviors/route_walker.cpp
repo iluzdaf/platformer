@@ -247,13 +247,17 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
 
 bool RouteWalker::withinReachOf(const ActorFacts &context, int nodeId) const
 {
-    NavigationNode node = context.navigationGraph.getNode(nodeId);
-    if (!feetSettledOn(context.feet.y, node.feet.y))
+    return standsAt(context, context.navigationGraph.getNode(nodeId).feet);
+}
+
+bool RouteWalker::standsAt(const ActorFacts &context, glm::vec2 point) const
+{
+    if (!feetSettledOn(context.feet.y, point.y))
         return false;
 
     float reach = context.colliderSize.x * 0.5f + arrivalThreshold;
 
-    return std::abs(node.feet.x - context.feet.x) <= reach;
+    return std::abs(point.x - context.feet.x) <= reach;
 }
 
 bool RouteWalker::hasArrived(const ActorFacts &context, int setOffAt, int headingFor) const

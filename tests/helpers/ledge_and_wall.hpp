@@ -4,11 +4,9 @@
 #include <string>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
-#include "game/game_data.hpp"
 #include "game/level.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/palettes.hpp"
-#include "helpers/shipped.hpp"
 #include "helpers/tiles.hpp"
 #include "npc/npc_data.hpp"
 #include "npc/npc_spawn_data.hpp"
@@ -53,12 +51,7 @@ inline Level levelWithALedgeAndAWall(
     return Level(
         aLevelPlacing(laid, LedgeWidthTiles, LedgeHeightTiles, OnTheGround, npcs),
         theOnlyPalette(aPaletteWithSlipperyTiles()),
-        loadGameData().playerData,
+        PlayerData(),
         npcData,
-        shippedPickupData());
-}
-
-inline Level levelWithALedgeAndAWall(const std::vector<NpcSpawnData> &npcs)
-{
-    return levelWithALedgeAndAWall(npcs, shippedNpcData());
+        {});
 }

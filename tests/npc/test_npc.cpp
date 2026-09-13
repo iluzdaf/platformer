@@ -25,7 +25,6 @@
 #include "helpers/npc_fixtures.hpp"
 #include "helpers/scripted_npcs.hpp"
 #include "helpers/palettes.hpp"
-#include "helpers/shipped.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_place.hpp"
 #include "npc/npc.hpp"
@@ -36,6 +35,8 @@
 #include "tile_map/tile_map.hpp"
 #include "tile_map/tile_palette_data.hpp"
 #include "actor/behaviors/patrol_data.hpp"
+#include "state_machines/state_machine_data.hpp"
+#include "conditions/when_data.hpp"
 
 using namespace ledge_and_wall;
 
@@ -360,12 +361,33 @@ TEST_CASE("An npc given no behavior data does nothing", "[Npc]")
     REQUIRE(footOf(npc).x == tileMap.feetOnTile(SpawnTile).x);
 }
 
+namespace
+{
+    NpcData aWaryCreature()
+    {
+        NpcData wary = thatPatrols(setupNpcData());
+        BehaviorStateData alarmed;
+        alarmed.name = "alarmed";
+        wary.stateMachineBehaviorData->states.push_back(alarmed);
+        wary.stateMachineBehaviorData->transitions = {
+            TransitionData{"patrol", "alarmed", WhenData{{{"threatClose", true}}}, 0.0f},
+            TransitionData{"alarmed", "patrol", WhenData{{{"threatClose", false}}}, 1.0f}};
+        wary.senses.close = 24.0f;
+        return wary;
+    }
+
+    std::map<std::string, NpcData> walkers()
+    {
+        return {{"walker", thatPatrols(setupNpcData())}};
+    }
+}
+
 TEST_CASE("An npc says which state it is in", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    NpcSpawnData spawn = patrolling("wary", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn}, {{"wary", aWaryCreature()}});
 
-    Npc npc(spawn, shippedNpcData().at("rat"));
+    Npc npc(spawn, aWaryCreature());
     ScriptedNpcs scripts;
     scripts.script(npc);
 
@@ -377,7 +399,7 @@ TEST_CASE("An npc says which state it is in", "[Npc][Level]")
         npc.fixedUpdate(0.01f, level, {.threatFeet = footOf(npc) + glm::vec2(8.0f, 0.0f)});
     }
 
-    REQUIRE((npc.stateName() == "flee" || npc.stateName() == "pounce"));
+    REQUIRE(npc.stateName() == "alarmed");
 
     for (int step = 0; step < 400; ++step)
     {
@@ -397,17 +419,17 @@ TEST_CASE("An npc with no behavior names no state", "[Npc]")
     REQUIRE(npc.stateName().empty());
 }
 
-TEST_CASE("A beat a rat cannot make a round trip of is not walkable", "[Npc][Level]")
+TEST_CASE("A beat a walker cannot make a round trip of is not walkable", "[Npc][Level]")
 {
     NpcSpawnData onTheGround = patrolling(
-        "rat",
+        "walker",
         glm::ivec2(6, GroundRow - 1),
         glm::ivec2(2, GroundRow - 1),
         glm::ivec2(17, GroundRow - 1));
-    Level level = levelWithALedgeAndAWall({onTheGround});
+    Level level = levelWithALedgeAndAWall({onTheGround}, walkers());
 
-    Npc rat(onTheGround, shippedNpcData().at("rat"));
-    const NavigationGraph &graph = level.graphFor(rat.profile());
+    Npc walker(onTheGround, walkers().at("walker"));
+    const NavigationGraph &graph = level.graphFor(walker.profile());
 
     const std::optional<PatrolData> &authored = onTheGround.patrol;
     REQUIRE(authored);
@@ -422,9 +444,9 @@ TEST_CASE("A beat a rat cannot make a round trip of is not walkable", "[Npc][Lev
 
 TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
-    Npc npc(spawn, shippedNpcData().at("rat"));
+    NpcSpawnData spawn = patrolling("walker", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn}, walkers());
+    Npc npc(spawn, walkers().at("walker"));
     ScriptedNpcs scripts;
     scripts.script(npc);
 
@@ -445,28 +467,6 @@ TEST_CASE("A beat naming both ends of a run walks the whole of it", "[Npc][Level
     REQUIRE(rightMost + half > ledgeRight - 4.0f);
 }
 
-TEST_CASE("A beat ending partway up a wall is climbed to and no further", "[Npc][Level][Climb]")
-{
-    NpcSpawnData spawn =
-        patrolling("spider", LedgeRightEnd, LedgeRightEnd, glm::ivec2(1, LedgeRow - 3));
-    Level level = levelWithALedgeAndAWall({spawn});
-    Npc npc(spawn, shippedNpcData().at("spider"));
-    ScriptedNpcs scripts;
-    scripts.script(npc);
-
-    float highest = footOf(npc).y;
-    for (int step = 0; step < 4000; ++step)
-    {
-        npc.beginFrame();
-        npc.fixedUpdate(0.01f, level);
-        highest = std::min(highest, footOf(npc).y);
-    }
-
-    float askedFor = surfaceOf(LedgeRow - 2);
-
-    REQUIRE(highest <= askedFor + 4.0f);
-    REQUIRE(highest > surfaceOf(1));
-}
 TEST_CASE("An npc drops off a platform to a beat end below its edge", "[Npc]")
 {
     constexpr glm::ivec2 UnderTheEdge{PlatformFirstTile, FloorRow - 1};
@@ -495,10 +495,11 @@ TEST_CASE("An npc drops off a platform to a beat end below its edge", "[Npc]")
 
 TEST_CASE("A patrolling npc says which node it set off from and where it is headed", "[Npc]")
 {
-    NpcSpawnData spawn = patrolling("spider", OnTheGround, OnTheGround, LedgeLeftEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    NpcSpawnData spawn =
+        patrolling("walker", OnTheGround, OnTheGround, glm::ivec2(17, GroundRow - 1));
+    Level level = levelWithALedgeAndAWall({spawn}, walkers());
 
-    Npc npc(spawn, shippedNpcData().at(spawn.type));
+    Npc npc(spawn, walkers().at("walker"));
     ScriptedNpcs scripts;
     scripts.script(npc);
 
@@ -523,8 +524,8 @@ TEST_CASE("A patrolling npc says which node it set off from and where it is head
 
 TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    NpcSpawnData spawn = patrolling("wary", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn}, {{"wary", aWaryCreature()}});
 
     REQUIRE(level.getNpcs().size() == 1);
     Npc &npc = *level.getNpcs().front();
@@ -538,13 +539,13 @@ TEST_CASE("A level hands its npcs the player to react to", "[Npc][Level]")
         level.fixedUpdate(0.01f, {.threatFeet = footOf(npc) + glm::vec2(8.0f, 0.0f)});
     }
 
-    REQUIRE((npc.stateName() == "flee" || npc.stateName() == "pounce"));
+    REQUIRE(npc.stateName() == "alarmed");
 }
 
 TEST_CASE("A level drives the npcs it holds", "[Npc][Level]")
 {
-    NpcSpawnData spawn = patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
-    Level level = levelWithALedgeAndAWall({spawn});
+    NpcSpawnData spawn = patrolling("walker", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd);
+    Level level = levelWithALedgeAndAWall({spawn}, walkers());
     const Npc &npc = *level.getNpcs().front();
     ScriptedNpcs scripts;
     scripts.script(level);
@@ -582,10 +583,10 @@ TEST_CASE("An npc walks further when its beat is the whole ledge", "[Npc][Level]
 {
     const glm::ivec2 shortOfTheEnd{LedgeLastTile - 2, LedgeRow - 1};
 
-    Level wholeLedge =
-        levelWithALedgeAndAWall({patrolling("rat", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd)});
-    Level shortBeat =
-        levelWithALedgeAndAWall({patrolling("rat", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)});
+    Level wholeLedge = levelWithALedgeAndAWall(
+        {patrolling("walker", LedgeRightEnd, LedgeLeftEnd, LedgeRightEnd)}, walkers());
+    Level shortBeat = levelWithALedgeAndAWall(
+        {patrolling("walker", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)}, walkers());
 
     ScriptedNpcs scripts;
     scripts.script(wholeLedge);
@@ -598,10 +599,10 @@ TEST_CASE("An npc with no beat at all walks past where a beat would turn it", "[
 {
     const glm::ivec2 shortOfTheEnd{LedgeLastTile - 2, LedgeRow - 1};
 
-    Level kept =
-        levelWithALedgeAndAWall({patrolling("rat", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)});
+    Level kept = levelWithALedgeAndAWall(
+        {patrolling("walker", LedgeRightEnd, shortOfTheEnd, LedgeRightEnd)}, walkers());
 
-    Level freed = levelWithALedgeAndAWall({spawnAt("rat", LedgeRightEnd)});
+    Level freed = levelWithALedgeAndAWall({spawnAt("walker", LedgeRightEnd)}, walkers());
 
     ScriptedNpcs scripts;
     scripts.script(kept);

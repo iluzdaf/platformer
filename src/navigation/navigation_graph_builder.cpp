@@ -148,9 +148,10 @@ namespace navigation
     {
         constexpr float Inset = 0.5f;
         glm::vec2 size = profile.physicsBodyData.colliderSize;
+        float stepHeight = profile.physicsBodyData.stepHeight;
         AABB body(
             glm::vec2(feetPosition.x - size.x * 0.5f + Inset, feetPosition.y - size.y + Inset),
-            glm::vec2(size.x - Inset * 2.0f, size.y - Inset * 2.0f));
+            glm::vec2(size.x - Inset * 2.0f, size.y - Inset * 2.0f - stepHeight));
 
         glm::ivec2 lowTilePosition = tileMap.tileContaining(body.position);
         glm::ivec2 highTilePosition = tileMap.tileContaining(body.position + body.size);

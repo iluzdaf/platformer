@@ -133,6 +133,12 @@ void Actor::setSenses(const SensesData &newSenses)
     senses = newSenses;
 }
 
+void Actor::scriptBehaviorWith(StateScript *script)
+{
+    if (behavior)
+        behavior->scriptWith(script);
+}
+
 const FactsData &Actor::facts() const
 {
     return declaredFacts.all();

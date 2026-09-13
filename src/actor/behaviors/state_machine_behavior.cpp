@@ -18,6 +18,8 @@
 #include "actor/behaviors/flee_behavior.hpp"
 #include "actor/behaviors/patrol_behavior.hpp"
 #include "actor/behaviors/attack_behavior.hpp"
+#include "actor/behaviors/scripted_behavior.hpp"
+#include "actor/behaviors/scripted_behavior_data.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
 #include "actor/behaviors/senses_data.hpp"
 #include "input/input_intentions.hpp"
@@ -53,6 +55,8 @@ StateMachineBehavior::StateMachineBehavior(
                         return std::make_unique<ChaseBehavior>(does);
                     else if constexpr (std::is_same_v<Does, AttackBehaviorData>)
                         return std::make_unique<AttackBehavior>(does);
+                    else if constexpr (std::is_same_v<Does, ScriptedBehaviorData>)
+                        return std::make_unique<ScriptedBehavior>(does);
                     else
                         return nullptr;
                 },
@@ -66,6 +70,9 @@ ActorBehavior *StateMachineBehavior::steeringNow() const
 
 void StateMachineBehavior::reset()
 {
+    if (ActorBehavior *now = steeringNow())
+        now->leave();
+
     for (const std::unique_ptr<ActorBehavior> &each : steering)
         if (each)
             each->reset();
@@ -76,13 +83,23 @@ void StateMachineBehavior::reset()
 InputIntentions StateMachineBehavior::decide(float deltaTime, const ActorFacts &context)
 {
     static const FactsData nothingDeclared;
+    ActorBehavior *was = steeringNow();
     std::optional<std::size_t> entered =
         machine.advance(deltaTime, context, context.facts ? *context.facts : nothingDeclared);
+    if (entered && was)
+        was->leave();
     if (entered && steering[*entered])
         steering[*entered]->reset();
 
     ActorBehavior *now = steeringNow();
     return now ? now->decide(deltaTime, context) : InputIntentions();
+}
+
+void StateMachineBehavior::scriptWith(StateScript *script)
+{
+    for (const std::unique_ptr<ActorBehavior> &each : steering)
+        if (each)
+            each->scriptWith(script);
 }
 
 std::string_view StateMachineBehavior::getStateName() const

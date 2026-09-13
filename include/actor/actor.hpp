@@ -28,6 +28,7 @@
 #include "combat/health.hpp"
 #include "combat/hurting.hpp"
 
+class StateScript;
 class TileMap;
 class Level;
 class NavigationGraph;
@@ -77,6 +78,7 @@ protected:
     void setBehavior(std::unique_ptr<ActorBehavior> newBehavior);
     void declare(const FactsData &facts);
     void setSenses(const SensesData &newSenses);
+    void scriptBehaviorWith(StateScript *script);
 
 private:
     const NavigationGraph &graphWalked() const;

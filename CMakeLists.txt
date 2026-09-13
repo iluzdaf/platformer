@@ -204,10 +204,13 @@ add_library(platformer_lib OBJECT
     src/animations/animator.cpp
     src/animations/animator_facts.cpp
     src/actor/actor_fact_rows.cpp
+    src/actor/behaviors/scripted_behavior.cpp
     src/conditions/asked.cpp
     src/conditions/facts.cpp
     src/scripting/lua_script_system.cpp
     src/scripting/npc_hooks.cpp
+    src/scripting/lua_state_script.cpp
+    src/scripting/script_walker.cpp
     src/navigation/navigation_graph.cpp
     src/navigation/navigation_graph_builder.cpp
     src/navigation/navigation_walk_edges.cpp
@@ -426,6 +429,8 @@ add_executable(tests
     tests/actor/test_actor_fact_rows.cpp
     tests/state_machines/test_state_machine.cpp
     tests/ui/test_facts_offered.cpp
+    tests/actor/behaviors/test_scripted_behavior.cpp
+    tests/scripting/test_lua_state_script.cpp
     tests/actor/behaviors/test_route_walker.cpp
     tests/npc/test_npc.cpp
     tests/npc/test_patrol_beats.cpp

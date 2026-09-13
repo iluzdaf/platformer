@@ -1,6 +1,8 @@
 #include <string>
 #include "scripting/npc_hooks.hpp"
 #include "scripting/lua_script_system.hpp"
+#include "scripting/lua_state_script.hpp"
+#include <memory>
 #include "game/noise.hpp"
 #include "npc/npc.hpp"
 
@@ -21,6 +23,7 @@ void connectNpcHooks(LuaScriptSystem &luaScriptSystem, Npc &npc)
                       { luaScriptSystem.emitTo(script, cue, it, it); });
     npc.onTick.connect([&luaScriptSystem, script, it](float deltaTime)
                        { luaScriptSystem.emitTo(script, "onTick", it, it, deltaTime); });
+    npc.scriptStatesWith(std::make_unique<LuaStateScript>(luaScriptSystem, script, &npc));
     npc.onNoise.connect(
         [&luaScriptSystem, script, it](const Noise &noise)
         { luaScriptSystem.emitTo(script, "onNoise", it, it, noise.kind, noise.at); });

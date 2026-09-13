@@ -287,6 +287,15 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   come from: the keyboard, or a behaviour walking a navigation graph. What an npc can
   traverse is a profile derived from the same ability data.
 
+**A state can be scripted, and walking stays in C++.**
+
+- A state that does `{"kind": "script", "call": "flee"}` is run by `states.flee` in its
+  npc's script, through `enter`, `decide` and `exit`. Transitions stay in data.
+- Each state has its own `RouteWalker`, lent to `decide` along with the facts it decides
+  on. The script says where to go and when; the walker gets it there.
+- Each visit starts with a fresh `self`, which `enter` sets up. `exit` runs when the
+  machine leaves the state.
+
 ## 🔭 Future Plans
 
 - Fast, precise platforming

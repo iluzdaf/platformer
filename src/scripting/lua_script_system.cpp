@@ -15,6 +15,9 @@
 #include "conditions/asked.hpp"
 #include "game/playback.hpp"
 #include "game/level.hpp"
+#include "actor/actor_facts.hpp"
+#include "input/input_intentions.hpp"
+#include "scripting/script_walker.hpp"
 
 namespace
 {
@@ -69,6 +72,45 @@ LuaScriptSystem::LuaScriptSystem(const std::string &scriptPath) : scriptPath(scr
     lua.new_usertype<Npc>(
         "Npc", "type", &Npc::type, "tuning", &Npc::tuning, sol::base_classes, sol::bases<Actor>());
     lua.new_usertype<ScreenTransition>("ScreenTransition", "start", &ScreenTransition::start);
+    lua.new_usertype<InputIntentions>(
+        "Intentions",
+        sol::constructors<InputIntentions()>(),
+        "direction",
+        &InputIntentions::direction,
+        "jumpRequested",
+        &InputIntentions::jumpRequested,
+        "jumpHeld",
+        &InputIntentions::jumpHeld,
+        "dashRequested",
+        &InputIntentions::dashRequested,
+        "climbRequested",
+        &InputIntentions::climbRequested,
+        "attack",
+        &InputIntentions::attack);
+    lua.new_usertype<ActorFacts>(
+        "ActorFacts",
+        sol::no_constructor,
+        "feet",
+        sol::readonly_property([](const ActorFacts &facts) { return facts.feet; }),
+        "threatFeet",
+        sol::readonly_property([](const ActorFacts &facts) { return facts.threatFeet; }),
+        "onGround",
+        sol::readonly_property([](const ActorFacts &facts) { return facts.contacts.onGround; }));
+    lua.new_usertype<ScriptWalker>(
+        "Walker",
+        sol::no_constructor,
+        "anchored",
+        &ScriptWalker::anchored,
+        "finished",
+        &ScriptWalker::finished,
+        "routeTo",
+        &ScriptWalker::routeTo,
+        "follow",
+        &ScriptWalker::follow,
+        "currentNode",
+        &ScriptWalker::currentNode,
+        "targetNode",
+        &ScriptWalker::targetNode);
 
     lua.set_function(
         "startCoroutine",
@@ -173,11 +215,46 @@ void LuaScriptSystem::reload(NamedScript &script, std::string_view name)
     script.handlers = handlers.as<sol::table>();
 }
 
+sol::object LuaScriptSystem::stateHook(
+    std::string_view name,
+    const std::string &state,
+    std::string_view hook)
+{
+    auto found = scripts.find(std::string(name));
+    if (found == scripts.end() || !found->second.handlers.valid())
+        return sol::make_object(lua, sol::lua_nil);
+
+    sol::object states = found->second.handlers["states"];
+    if (!states.is<sol::table>())
+        return sol::make_object(lua, sol::lua_nil);
+
+    sol::object called = states.as<sol::table>()[state];
+    if (!called.is<sol::table>())
+        return sol::make_object(lua, sol::lua_nil);
+
+    return called.as<sol::table>()[hook];
+}
+
+sol::table LuaScriptSystem::selfOf(const void *owner, const std::string &state)
+{
+    auto [self, made] = stateSelves.try_emplace({owner, state});
+    if (made)
+        self->second = lua.create_table();
+
+    return self->second;
+}
+
+void LuaScriptSystem::startStateAfresh(const void *owner, const std::string &state)
+{
+    stateSelves.erase({owner, state});
+}
+
 void LuaScriptSystem::forget(const void *owner)
 {
     std::erase_if(
         waitingCoroutines,
         [owner](const WaitingCoroutine &waiting) { return waiting.startedBy == owner; });
+    std::erase_if(stateSelves, [owner](const auto &self) { return self.first.first == owner; });
 }
 
 void LuaScriptSystem::bindLevel(const Level *level)

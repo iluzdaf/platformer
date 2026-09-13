@@ -314,7 +314,7 @@ namespace
         gameData.playerData = playerDataWithEveryAbility();
         gameData.playerData.actorData.animationData = someClipsAndARule();
 
-        NpcData rat = setupNpcData();
+        NpcData rat = thatPatrols(setupNpcData());
         rat.actorData.animationData = someClipsAndARule();
         rat.facts["heard"] = false;
         rat.tuning["range"] = 200.0f;

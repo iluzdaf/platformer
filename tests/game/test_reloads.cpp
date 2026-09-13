@@ -173,7 +173,8 @@ namespace
     {
         GameData gameData = loadGameData();
         gameData.tilePalettes = theOnlyPalette(aPaletteWithASolidTile());
-        gameData.npcData = {{"rat", setupNpcData()}, {"spider", setupNpcData()}};
+        gameData.npcData = {
+            {"rat", thatPatrols(setupNpcData())}, {"spider", thatPatrols(setupNpcData())}};
         return gameData;
     }
 
@@ -216,6 +217,7 @@ TEST_CASE("Game data changing only in the cast re-makes that kind and nobody els
     TwoKindsPlaying playing;
     playing.walk(60);
     glm::vec2 ratWas = playing.world.getLevel().getNpcs()[0]->feet();
+    REQUIRE(ratWas != feetOf(glm::ivec2(3, FloorLevelStanding)));
     glm::vec2 you = playing.world.getPlayer().feet() + glm::vec2(16.0f, 0.0f);
     playing.world.getPlayer().standAt(you);
 
@@ -236,6 +238,8 @@ TEST_CASE("Game data changing in the palettes rebuilds the level, keeping the pl
 {
     TwoKindsPlaying playing;
     playing.walk(60);
+    REQUIRE(
+        playing.world.getLevel().getNpcs()[0]->feet() != feetOf(glm::ivec2(3, FloorLevelStanding)));
     glm::vec2 you = playing.world.getPlayer().feet() + glm::vec2(16.0f, 0.0f);
     playing.world.getPlayer().standAt(you);
 
@@ -253,6 +257,7 @@ TEST_CASE("Game data changing in nothing that is placed leaves every creature wa
     TwoKindsPlaying playing;
     playing.walk(60);
     glm::vec2 ratWas = playing.world.getLevel().getNpcs()[0]->feet();
+    REQUIRE(ratWas != feetOf(glm::ivec2(3, FloorLevelStanding)));
 
     GameData onDisk = playing.gameData;
     onDisk.cameraData.zoom += 1.0f;

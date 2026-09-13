@@ -35,14 +35,14 @@ inline GameData aSmallGame()
     gameData.playerData = playerDataWithEveryAbility();
     gameData.playerData.actorData.sheet.texture.path = SomeSheet;
 
-    NpcData rat = setupNpcData();
+    NpcData rat = thatPatrols(setupNpcData());
     rat.actorData.sheet.texture.path = SomeSheet;
     rat.actorData.abilities.pounce = PounceAbilityData{};
     BehaviorStateData pouncing;
     pouncing.name = "pounce";
     pouncing.does = AttackBehaviorData{std::string(PounceAttack)};
     rat.stateMachineBehaviorData->states.push_back(pouncing);
-    NpcData spider = setupNpcData();
+    NpcData spider = thatPatrols(setupNpcData());
     spider.actorData.sheet.texture.path = SomeSheet;
     gameData.npcData = {{"rat", rat}, {"spider", spider}};
 

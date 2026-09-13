@@ -53,7 +53,7 @@ namespace
 
     NpcData aWalkerThatChases()
     {
-        NpcData data = setupNpcData();
+        NpcData data = thatPatrols(setupNpcData());
         BehaviorStateData chasing;
         chasing.name = "chase";
         chasing.does = ChaseBehaviorData{};
@@ -67,7 +67,7 @@ namespace
 
     NpcData aClimber()
     {
-        NpcData data = setupNpcData();
+        NpcData data = thatPatrols(setupNpcData());
         data.actorData.abilities.jump = JumpAbilityData{};
         data.actorData.abilities.wallHang = WallHangAbilityData{};
         data.actorData.abilities.wallClimb = WallClimbAbilityData{};
@@ -93,7 +93,7 @@ namespace
 
 TEST_CASE("A patrol stays between its beats on a flat run", "[Npc][Patrol]")
 {
-    std::map<std::string, NpcData> walkers{{"walker", setupNpcData()}};
+    std::map<std::string, NpcData> walkers{{"walker", thatPatrols(setupNpcData())}};
     NpcSpawnData spawn = patrolling("walker", LeftBeat, LeftBeat, RightBeat);
     Level level = levelWithALedgeAndAWall({spawn}, walkers);
     Npc npc(spawn, walkers.at("walker"));

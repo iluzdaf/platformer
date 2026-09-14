@@ -488,6 +488,42 @@ TEST_CASE("A player can lower itself over a ledge and climb down the wall", "[Pl
     REQUIRE(player.body().aabb().right() <= wallFace);
 }
 
+TEST_CASE("A player that walks off a ledge holding grip catches the wall below", "[Player][Lower]")
+{
+    std::vector<std::pair<glm::ivec2, int>> laid;
+    for (int x = 0; x < 12; ++x)
+        laid.push_back({glm::ivec2(x, 8), 1});
+    for (int x = 5; x < 8; ++x)
+        for (int y = 5; y < 8; ++y)
+            laid.push_back({glm::ivec2(x, y), 1});
+
+    TileMap tileMap = aTileMap(laid, 12, 10);
+
+    ScriptedIntentions input;
+    Player player = aPlayerWithEveryAbility(input);
+    float ledgeTop = 5 * 16.0f;
+    float wallFace = 5 * 16.0f;
+    player.standAt(glm::vec2(wallFace + 10.0f, ledgeTop));
+
+    InputIntentions walkingOffGripping;
+    walkingOffGripping.climbRequested = true;
+    walkingOffGripping.direction = glm::vec2(-1.0f, 0.0f);
+    simulatePlayer(player, input, tileMap, 0.3f, walkingOffGripping);
+
+    REQUIRE(player.abilityStates().wallHang.active);
+    REQUIRE(player.observed().contacts.touchingRightWall);
+    REQUIRE(player.body().aabb().right() == Approx(wallFace));
+    REQUIRE(player.body().aabb().bottom() > ledgeTop);
+
+    InputIntentions justGripping;
+    justGripping.climbRequested = true;
+    simulatePlayer(player, input, tileMap, 0.05f, justGripping);
+    simulatePlayer(player, input, tileMap, 0.1f, walkingOffGripping);
+
+    REQUIRE_FALSE(player.abilityStates().wallHang.active);
+    REQUIRE(player.body().aabb().right() < wallFace);
+}
+
 TEST_CASE("A player that lets go while lowering itself drops to the floor", "[Player][Lower]")
 {
     std::vector<std::pair<glm::ivec2, int>> laid;

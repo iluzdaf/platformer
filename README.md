@@ -273,10 +273,13 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   physics produced, and other abilities' slots. Gravity is zero while hanging, sliding,
   mantling or lowering; a mantle starts from `wallHang.active` at a ledge.
 - A lower is a mantle's reverse. It starts from standing at an edge above grippable
-  ground, asking to climb and pressing down: it carries out over the edge until it is off
+  ground, asking to climb and pressing down or towards the drop, so walking off an edge
+  while gripping catches the wall below: it carries out over the edge until it is off
   the ground, then drops straight down. Physics pushes a body out of a corner only once
   the corner is above its step height, so the lower ends when it grips the face below
-  and touches nothing on the other side, and a hang takes over.
+  and touches nothing on the other side, and a hang takes over. That hang ignores the
+  walk that took it off the edge until the walk is let go, as pressing away from a wall
+  otherwise pulls a hanging actor off it.
 - Abilities do not fight over velocity. `Abilities` runs them all, then picks with
   a fixed ladder: a knockback, a dash, a mantle, a lower or a wall jump owns the whole
   vector; otherwise move gives x, and a jump, a hang's climb or a slide gives y over

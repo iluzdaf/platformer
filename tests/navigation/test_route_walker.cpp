@@ -375,6 +375,63 @@ TEST_CASE(
     REQUIRE(stillOnTheLedge.direction.x == 1.0f);
 }
 
+namespace
+{
+    NavigationGraph aJumpThenAFall()
+    {
+        NavigationGraph navigationGraph;
+        navigationGraph.addNode(0, {0.0f, Lower});
+        navigationGraph.addNode(1, {96.0f, Upper});
+        navigationGraph.addNode(2, {160.0f, Lower});
+        InputIntentions walkingOff;
+        walkingOff.direction.x = 1.0f;
+        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.02f)});
+        navigationGraph.addEdge({1, 2, EdgeType::Fall, {}, {{0.02f, walkingOff}}});
+        return navigationGraph;
+    }
+
+    void jumpUpOnto(RouteWalker &walker, const NavigationGraph &navigationGraph, glm::vec2 landing)
+    {
+        ActorFacts inTheAir{
+            navigationGraph,
+            {50.0f, Upper - 10.0f},
+            glm::vec2(8.0f, 13.0f),
+            StepHeight,
+            std::nullopt,
+            ActorContactState{}};
+        walker.keepInStep(at(navigationGraph, {0.0f, Lower}));
+        walker.takeRouteTo(at(navigationGraph, {0.0f, Lower}), 2);
+        walker.follow(0.01f, at(navigationGraph, {0.0f, Lower}));
+        walker.follow(0.01f, inTheAir);
+        walker.follow(0.01f, inTheAir);
+        walker.advanceOnArrival(at(navigationGraph, landing));
+    }
+}
+
+TEST_CASE("A walker that lands past the take-off of its next leg goes back to it", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = aJumpThenAFall();
+    RouteWalker walker(ArrivalThreshold);
+    jumpUpOnto(walker, navigationGraph, {99.5f, Upper});
+    REQUIRE(walker.getCurrentNodeId() == 1);
+
+    REQUIRE(walker.follow(0.01f, at(navigationGraph, {99.5f, Upper})).direction.x == -1.0f);
+}
+
+TEST_CASE("A walker that jumped onto a ledge still walks on off it to fall", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = aJumpThenAFall();
+    RouteWalker walker(ArrivalThreshold);
+    jumpUpOnto(walker, navigationGraph, {96.0f, Upper});
+    REQUIRE(walker.getCurrentNodeId() == 1);
+
+    walker.follow(0.01f, at(navigationGraph, {96.0f, Upper}));
+    walker.follow(0.01f, at(navigationGraph, {97.3f, Upper}));
+    InputIntentions pastTheTakeOff = walker.follow(0.01f, at(navigationGraph, {98.6f, Upper}));
+
+    REQUIRE(pastTheTakeOff.direction.x == 1.0f);
+}
+
 TEST_CASE("A fall leg sends a direction its inputs set, not the way to its target", "[RouteWalker]")
 {
     NavigationGraph navigationGraph;

@@ -36,7 +36,16 @@ JumpAttempt simulateInputsAgainst(
     const PhysicsBodyData &physicsBodyData,
     glm::vec2 takeOffFeet,
     const InputProgram &inputs,
-    float towardsX);
+    float towardsX,
+    float wallDirection = 0.0f);
+
+JumpAttempt simulateWallJumpAgainst(
+    const TileMap &tileMap,
+    const AbilitiesData &abilitiesData,
+    const PhysicsBodyData &physicsBodyData,
+    glm::vec2 takeOffFeet,
+    float wallDirection,
+    float direction);
 
 JumpAttempt simulateFallAgainst(
     const TileMap &tileMap,

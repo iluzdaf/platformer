@@ -75,6 +75,34 @@ namespace
         return feetSettledOn(mover.feet().y, takeOffFeet.y, physicsBodyData.stepHeight);
     }
 
+    bool takeHold(Mover &mover, const TileMap &tileMap, glm::vec2 takeOffFeet, float wallDirection)
+    {
+        mover.standAt(takeOffFeet);
+        mover.lookAround(tileMap);
+        InputIntentions holding;
+        holding.climbRequested = true;
+        holding.direction.x = wallDirection;
+        for (int settling = 0; settling < MaximumSettlingSteps && !mover.states().wallHang.active;
+             ++settling)
+            mover.step(PhysicsStep, holding, tileMap);
+
+        return mover.states().wallHang.active &&
+               std::abs(mover.feet().y - takeOffFeet.y) <= ClimbArrivesWithin;
+    }
+
+    bool getReady(
+        Mover &mover,
+        const TileMap &tileMap,
+        glm::vec2 takeOffFeet,
+        float wallDirection,
+        const PhysicsBodyData &physicsBodyData)
+    {
+        if (wallDirection == 0.0f)
+            return settleOnto(mover, tileMap, takeOffFeet, physicsBodyData);
+
+        return takeHold(mover, tileMap, takeOffFeet, wallDirection);
+    }
+
     void comeToRest(JumpAttempt &attempt, const TileMap &tileMap, const PhysicsBodyData &body)
     {
         attempt.path.back().y = restingOn(tileMap, attempt.path.back(), body);
@@ -155,17 +183,36 @@ JumpAttempt simulateJumpAgainst(
         takeOffFeet.x + direction * FarAway);
 }
 
+JumpAttempt simulateWallJumpAgainst(
+    const TileMap &tileMap,
+    const AbilitiesData &abilitiesData,
+    const PhysicsBodyData &physicsBodyData,
+    glm::vec2 takeOffFeet,
+    float wallDirection,
+    float direction)
+{
+    return simulateInputsAgainst(
+        tileMap,
+        abilitiesData,
+        physicsBodyData,
+        takeOffFeet,
+        aWallJumpAwayFrom(wallDirection),
+        takeOffFeet.x + direction * FarAway,
+        wallDirection);
+}
+
 JumpAttempt simulateInputsAgainst(
     const TileMap &tileMap,
     const AbilitiesData &abilitiesData,
     const PhysicsBodyData &physicsBodyData,
     glm::vec2 takeOffFeet,
     const InputProgram &inputs,
-    float towardsX)
+    float towardsX,
+    float wallDirection)
 {
     Mover mover(abilitiesData, physicsBodyData);
     JumpAttempt attempt;
-    if (!settleOnto(mover, tileMap, takeOffFeet, physicsBodyData))
+    if (!getReady(mover, tileMap, takeOffFeet, wallDirection, physicsBodyData))
         return attempt;
 
     attempt.path.push_back(takeOffFeet);

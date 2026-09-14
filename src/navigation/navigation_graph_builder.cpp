@@ -272,6 +272,7 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
     navigation::addFallEdges(navigationGraph, tileMap, profile, headroom, falls);
 
     navigation::addClimbing(navigationGraph, tileMap, profile, headroom);
+    navigation::addWallJumps(navigationGraph, tileMap, profile, headroom);
 
     return navigationGraph;
 }

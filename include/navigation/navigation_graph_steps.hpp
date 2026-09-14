@@ -46,6 +46,11 @@ namespace navigation
 
     bool clearAt(const TileMap &tileMap, glm::vec2 feetPosition, const NavigationProfile &profile);
 
+    bool touchesDeadly(
+        const TileMap &tileMap,
+        const std::vector<glm::vec2> &path,
+        const NavigationProfile &profile);
+
     std::optional<int> nodeGoverning(
         const NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -91,7 +96,8 @@ namespace navigation
         const std::vector<glm::vec2> &path,
         const InputProgram &inputs,
         const std::unordered_map<int, int> &components,
-        int component);
+        int component,
+        float wallDirection = 0.0f);
 
     std::vector<ChosenJump> chooseJumps(
         NavigationGraph &navigationGraph,
@@ -130,6 +136,19 @@ namespace navigation
         const std::vector<ChosenFall> &falls);
 
     void addClimbing(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom);
+
+    void addWalksTo(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom,
+        int nodeId);
+
+    void addWallJumps(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,

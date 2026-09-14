@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "input/input_intentions.hpp"
 #include "navigation/input_program.hpp"
+#include "timing/fixed_time_step.hpp"
 
 namespace
 {
@@ -78,4 +79,16 @@ TEST_CASE("Steering holds off within half a stride of where the leg goes", "[Inp
     REQUIRE(replaying(nothing, 0.0f, 10.0f, 9.0f, 2.5f).direction.x == 0.0f);
     REQUIRE(replaying(nothing, 0.0f, 10.0f, 11.5f, 2.5f).direction.x == 1.0f);
     REQUIRE(replaying(nothing, 0.0f, 10.0f, 8.5f, 2.5f).direction.x == -1.0f);
+}
+
+TEST_CASE("A wall jump presses jump away from the wall for one step, then steers", "[InputProgram]")
+{
+    InputProgram kick = aWallJumpAwayFrom(-1.0f);
+    InputIntentions kicking = replaying(kick, 0.0f, 10.0f, 0.0f);
+
+    REQUIRE(kicking.jumpHeld);
+    REQUIRE(kicking.direction.x == 1.0f);
+    REQUIRE(durationOf(kick) == Catch::Approx(PhysicsStep));
+    REQUIRE_FALSE(replaying(kick, PhysicsStep, 10.0f, 0.0f).jumpHeld);
+    REQUIRE(replaying(kick, PhysicsStep, 10.0f, 0.0f).direction.x == -1.0f);
 }

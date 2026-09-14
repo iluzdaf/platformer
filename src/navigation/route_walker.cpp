@@ -36,6 +36,20 @@ namespace
 
         return nullptr;
     }
+
+    bool readyToTakeOff(
+        const ActorFacts &context,
+        NavigationNode takeOff,
+        const NavigationEdge &leg)
+    {
+        if (takeOff.kind != NodeKind::OnWall)
+            return context.contacts.onGround &&
+                   std::abs(takeOff.feet.x - context.feet.x) <= TakeOffReach;
+
+        bool holding = leg.wallDirection < 0.0f ? context.contacts.grippableLeftWall
+                                                : context.contacts.grippableRightWall;
+        return holding && std::abs(takeOff.feet.y - context.feet.y) <= ClimbArrivesWithin;
+    }
 }
 
 RouteWalker::RouteWalker(float arrivalThreshold) : arrivalThreshold(arrivalThreshold)
@@ -212,21 +226,26 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
 
     bool replayed = leg && (leg->type == EdgeType::Jump || leg->type == EdgeType::Fall);
     NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
-    bool atTheTakeOff = std::abs(takeOff.feet.x - context.feet.x) <= TakeOffReach;
+    bool ready = replayed && readyToTakeOff(context, takeOff, *leg);
 
     if (replayed && !context.contacts.onGround)
         leftTheGround = true;
 
     if (replayed && context.contacts.onGround && replayedFor >= durationOf(leg->inputs) &&
-        (leftTheGround || atTheTakeOff))
+        (leftTheGround || ready))
     {
         replayedFor = 0.0f;
         leftTheGround = false;
     }
 
-    if (replayed && replayedFor == 0.0f && !(atTheTakeOff && context.contacts.onGround))
+    if (replayed && replayedFor == 0.0f && !ready)
     {
         inputIntentions.direction.x = directionTowards(context.feet.x, takeOff.feet.x);
+        if (takeOff.kind == NodeKind::OnWall)
+        {
+            inputIntentions.climbRequested = true;
+            inputIntentions.direction.y = directionTowards(context.feet.y, takeOff.feet.y);
+        }
         return inputIntentions;
     }
 

@@ -410,8 +410,8 @@ TEST_CASE(
 
                 glm::vec2 from = named.graph.getNode(edge.fromId).feet;
                 glm::vec2 to = named.graph.getNode(edge.toId).feet;
-                std::optional<glm::vec2> landed =
-                    whereARouteJumpLands(level, actorData, from, edge.inputs, to.x);
+                std::optional<glm::vec2> landed = whereARouteJumpLands(
+                    level, actorData, from, edge.inputs, to.x, edge.wallDirection);
 
                 INFO(
                     entry.path().filename().string()

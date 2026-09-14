@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <optional>
 #include "actor/actor_facts.hpp"
 #include "actor/actor_contact_state.hpp"
@@ -526,4 +527,85 @@ TEST_CASE("A walker in the air does not push past where its leg goes", "[RouteWa
 
     REQUIRE(walker.follow(0.01f, inTheAirAt(97.0f)).direction.x == 0.0f);
     REQUIRE(walker.follow(0.01f, inTheAirAt(98.0f)).direction.x == -1.0f);
+}
+
+namespace
+{
+    constexpr float WallFaceX = 64.0f;
+    constexpr float HoldY = 112.0f;
+
+    NavigationGraph aLeapOffAWall()
+    {
+        NavigationGraph navigationGraph;
+        navigationGraph.addNode(0, {WallFaceX, HoldY}, NodeKind::OnWall);
+        navigationGraph.addNode(1, {176.0f, 128.0f});
+        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aWallJumpAwayFrom(-1.0f), -1.0f});
+        return navigationGraph;
+    }
+
+    ActorFacts onTheWall(
+        const NavigationGraph &navigationGraph,
+        float feetY,
+        bool holdingLeft,
+        bool holdingRight = false)
+    {
+        ActorContactState contacts;
+        contacts.touchingLeftWall = contacts.grippableLeftWall = holdingLeft;
+        contacts.touchingRightWall = contacts.grippableRightWall = holdingRight;
+        return {
+            navigationGraph,
+            {WallFaceX + 4.0f, feetY},
+            glm::vec2(8.0f, 13.0f),
+            StepHeight,
+            std::nullopt,
+            contacts};
+    }
+
+    RouteWalker aboutToLeap(const NavigationGraph &navigationGraph)
+    {
+        RouteWalker walker(ArrivalThreshold);
+        ActorFacts there = onTheWall(navigationGraph, HoldY, true);
+        walker.keepInStep(there);
+        walker.takeRouteTo(there, 1);
+        return walker;
+    }
+}
+
+TEST_CASE("A walker that is to leap from a wall climbs to its hold there first", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = aLeapOffAWall();
+    RouteWalker walker = aboutToLeap(navigationGraph);
+    REQUIRE(walker.getTargetNodeId() == 1);
+
+    InputIntentions climbing = walker.follow(0.01f, onTheWall(navigationGraph, HoldY + 5.0f, true));
+
+    REQUIRE(climbing.climbRequested);
+    REQUIRE(climbing.direction.y == -1.0f);
+    REQUIRE(climbing.direction.x == -1.0f);
+    REQUIRE_FALSE(climbing.jumpHeld);
+}
+
+TEST_CASE("A walker holding its wall at the take-off leaps away from it", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = aLeapOffAWall();
+    RouteWalker walker = aboutToLeap(navigationGraph);
+
+    InputIntentions leaping = walker.follow(0.01f, onTheWall(navigationGraph, HoldY + 0.5f, true));
+
+    REQUIRE(leaping.jumpHeld);
+    REQUIRE(leaping.direction.x == 1.0f);
+    REQUIRE_FALSE(leaping.climbRequested);
+}
+
+TEST_CASE("A walker at its wall take-off does not leap until it holds that wall", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph = aLeapOffAWall();
+    RouteWalker walker = aboutToLeap(navigationGraph);
+    bool holdingTheOtherWall = GENERATE(false, true);
+
+    InputIntentions waiting =
+        walker.follow(0.01f, onTheWall(navigationGraph, HoldY, false, holdingTheOtherWall));
+
+    REQUIRE_FALSE(waiting.jumpHeld);
+    REQUIRE(waiting.climbRequested);
 }

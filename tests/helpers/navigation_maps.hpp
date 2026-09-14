@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <glm/gtc/matrix_transform.hpp>
 #include "helpers/palettes.hpp"
+#include "helpers/tile_positions.hpp"
 #include "helpers/tiles.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -185,4 +186,31 @@ inline bool anEdgeSpansThePinch(const NavigationGraph &graph, const TileMap &til
             return true;
     }
     return false;
+}
+
+constexpr int ShelfSceneTiles = 16;
+constexpr int ShelfFloorRow = 15;
+constexpr int ShelfWallX = 3;
+constexpr int ShelfWallTopRow = 6;
+constexpr int ShelfRow = 8;
+constexpr int ShelfFrom = 7;
+constexpr int ShelfTo = 10;
+
+inline Placed aWallAcrossFromAShelf()
+{
+    Placed laid;
+    layRow(laid, ShelfFloorRow, 0, ShelfSceneTiles - 1, SlipperyTile);
+    layColumn(laid, ShelfWallX, ShelfWallTopRow, ShelfFloorRow - 1);
+    layRow(laid, ShelfRow, ShelfFrom, ShelfTo, SlipperyTile);
+    return laid;
+}
+
+inline TileMap aWallAcrossFromAShelfMap()
+{
+    return aTileMap(
+        aWallAcrossFromAShelf(),
+        ShelfSceneTiles,
+        ShelfSceneTiles,
+        TestTileSize,
+        aPaletteWithSlipperyTiles());
 }

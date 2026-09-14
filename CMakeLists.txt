@@ -219,6 +219,7 @@ add_library(platformer_lib OBJECT
     src/navigation/navigation_jump_edges.cpp
     src/navigation/navigation_fall_edges.cpp
     src/navigation/navigation_climb_edges.cpp
+    src/navigation/navigation_wall_jump_edges.cpp
     src/navigation/navigation_path.cpp
     src/navigation/navigation_place.cpp
     src/navigation/jump_simulation.cpp
@@ -414,6 +415,7 @@ add_executable(tests
     tests/scripting/test_lua_script_system.cpp
     tests/scripting/test_script_coroutines.cpp
     tests/navigation/test_navigation_climb_edges.cpp
+    tests/navigation/test_navigation_wall_jump_edges.cpp
     tests/navigation/test_navigation_fall_edges.cpp
     tests/navigation/test_navigation_jump_edges.cpp
     tests/navigation/test_navigation_walk_edges.cpp

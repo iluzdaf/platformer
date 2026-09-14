@@ -16,30 +16,6 @@
 
 namespace
 {
-    bool touchesDeadly(
-        const TileMap &tileMap,
-        const std::vector<glm::vec2> &path,
-        const NavigationProfile &profile)
-    {
-        constexpr float Inset = 0.5f;
-        glm::vec2 size = profile.physicsBodyData.colliderSize;
-        for (glm::vec2 feet : path)
-        {
-            AABB body(
-                glm::vec2(feet.x - size.x * 0.5f + Inset, feet.y - size.y + Inset),
-                glm::vec2(size.x - Inset * 2.0f, size.y - Inset * 2.0f));
-            glm::ivec2 low = tileMap.tileContaining(body.position);
-            glm::ivec2 high = tileMap.tileContaining(body.position + body.size);
-            for (int y = low.y; y <= high.y; ++y)
-                for (int x = low.x; x <= high.x; ++x)
-                    if (tileMap.validTilePosition({x, y}) &&
-                        tileMap.getTileAtTilePosition({x, y}).isDeadly())
-                        return true;
-        }
-
-        return false;
-    }
-
     bool outermostOfItsRun(
         const NavigationGraph &navigationGraph,
         const std::unordered_map<int, int> &runs,
@@ -84,7 +60,7 @@ namespace
                 tileMap.tileContaining(landing).x, navigation::groundRowOf(tileMap, landing));
             if (!navigation::feetOverGround(tileMap, landing) ||
                 !navigation::canStandOn(tileMap, ground, headroom) ||
-                touchesDeadly(tileMap, fall.path, profile))
+                navigation::touchesDeadly(tileMap, fall.path, profile))
                 continue;
 
             falls.push_back(std::move(fall));
@@ -96,6 +72,30 @@ namespace
 
 namespace navigation
 {
+    bool touchesDeadly(
+        const TileMap &tileMap,
+        const std::vector<glm::vec2> &path,
+        const NavigationProfile &profile)
+    {
+        constexpr float Inset = 0.5f;
+        glm::vec2 size = profile.physicsBodyData.colliderSize;
+        for (glm::vec2 feet : path)
+        {
+            AABB body(
+                glm::vec2(feet.x - size.x * 0.5f + Inset, feet.y - size.y + Inset),
+                glm::vec2(size.x - Inset * 2.0f, size.y - Inset * 2.0f));
+            glm::ivec2 low = tileMap.tileContaining(body.position);
+            glm::ivec2 high = tileMap.tileContaining(body.position + body.size);
+            for (int y = low.y; y <= high.y; ++y)
+                for (int x = low.x; x <= high.x; ++x)
+                    if (tileMap.validTilePosition({x, y}) &&
+                        tileMap.getTileAtTilePosition({x, y}).isDeadly())
+                        return true;
+        }
+
+        return false;
+    }
+
     std::vector<ChosenFall> addFallLandingNodes(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,

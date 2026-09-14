@@ -13,6 +13,8 @@ using InputProgram = std::vector<InputStep>;
 
 InputProgram aJumpHeldFor(float seconds);
 
+InputProgram aWallJumpAwayFrom(float wallDirection);
+
 float durationOf(const InputProgram &program);
 
 InputProgram cutShortAt(const InputProgram &program, float elapsed);

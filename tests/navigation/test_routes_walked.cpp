@@ -13,16 +13,21 @@
 #include "game/level.hpp"
 #include "game/level_data_file.hpp"
 #include "helpers/asset_path.hpp"
+#include "helpers/navigation_maps.hpp"
+#include "helpers/actors.hpp"
 #include "helpers/levels.hpp"
 #include "helpers/npc_fixtures.hpp"
+#include "npc/npc_data.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/routed_npc.hpp"
 #include "helpers/shipped.hpp"
 #include "helpers/tile_positions.hpp"
 #include "helpers/tiles.hpp"
+#include "navigation/footing.hpp"
 #include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_node.hpp"
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "navigation/route_walker.hpp"
@@ -106,52 +111,130 @@ TEST_CASE(
     REQUIRE(std::abs(route.feet.x - graph.getNode(destination).feet.x) <= reach);
 }
 
+namespace
+{
+    constexpr int PillarFloor = 13;
+    constexpr int PillarTop = 3;
+
+    struct WayDown
+    {
+        RouteTaken route;
+        bool climbed = false;
+        bool fell = false;
+        bool leaptOffTheWall = false;
+    };
+
+    WayDown wayDownThePillar(const PlayerData &playerData, const NpcData &spiderData, bool player)
+    {
+        Placed laid;
+        layRow(laid, PillarFloor, 0, 9);
+        for (int row = PillarTop; row < PillarFloor; ++row)
+            layRow(laid, row, 4, 5);
+        Level level(
+            aLevelPlacing(laid, 10, 16, {1, PillarFloor - 1}, {}),
+            theOnlyPalette(aPaletteWithASolidTile()),
+            playerData,
+            {{"spider", spiderData}},
+            {});
+        const ActorData &actorData = player ? playerData.actorData : spiderData.actorData;
+        const NavigationGraph &graph = level.graphFor(buildNavigationProfile(actorData));
+        int ledgeEnd = endOfTheRow(graph, surfaceOf(PillarTop));
+        int farEndOfTheFloor = endOfTheRow(graph, surfaceOf(PillarFloor));
+
+        WayDown wayDown;
+        wayDown.route =
+            takeTheRoute(level, actorData, graph.getNode(ledgeEnd).feet, farEndOfTheFloor);
+        wayDown.climbed = tookA(EdgeType::Climb, graph, wayDown.route.passedThrough);
+        wayDown.fell = tookA(EdgeType::Fall, graph, wayDown.route.passedThrough);
+        const std::vector<int> &passed = wayDown.route.passedThrough;
+        for (std::size_t leg = 1; leg < passed.size(); ++leg)
+            for (const NavigationEdge &edge : graph.getOutgoingEdges(passed[leg - 1]))
+                if (edge.toId == passed[leg] && edge.type == EdgeType::Jump &&
+                    graph.getNode(edge.fromId).kind == NodeKind::OnWall)
+                    wayDown.leaptOffTheWall = true;
+
+        return wayDown;
+    }
+
+    PlayerData withoutAWallJump(PlayerData playerData)
+    {
+        playerData.actorData.abilities.wallJump.reset();
+        return playerData;
+    }
+
+    NpcData withoutAWallJump(NpcData npcData)
+    {
+        npcData.actorData.abilities.wallJump.reset();
+        return npcData;
+    }
+}
+
 TEST_CASE(
     "Off a tall wall, a body that slides down it climbs down, and one that does not drops",
     "[RouteWalker]")
 {
-    constexpr int Floor = 13;
-    constexpr int PillarTop = 3;
-    Placed laid;
-    layRow(laid, Floor, 0, 9);
-    for (int row = PillarTop; row < Floor; ++row)
-        layRow(laid, row, 4, 5);
-    PlayerData playerData = loadGameData().playerData;
-    const ActorData &spider = shippedNpcData().at("spider").actorData;
-    Level level(
-        aLevelPlacing(laid, 10, 16, {1, Floor - 1}, {}),
-        theOnlyPalette(aPaletteWithASolidTile()),
-        playerData,
-        {{"spider", shippedNpcData().at("spider")}},
-        {});
+    PlayerData playerData = withoutAWallJump(loadGameData().playerData);
+    NpcData spiderData = withoutAWallJump(shippedNpcData().at("spider"));
     REQUIRE(playerData.actorData.abilities.wallSlide);
-    REQUIRE_FALSE(spider.abilities.wallSlide);
+    REQUIRE_FALSE(spiderData.actorData.abilities.wallSlide);
 
-    auto wayDown = [&](const ActorData &actorData)
+    WayDown player = wayDownThePillar(playerData, spiderData, true);
+    REQUIRE(player.route.arrived);
+    REQUIRE(player.climbed);
+    REQUIRE_FALSE(player.fell);
+
+    WayDown spider = wayDownThePillar(playerData, spiderData, false);
+    REQUIRE(spider.route.arrived);
+    REQUIRE_FALSE(spider.climbed);
+    REQUIRE(spider.fell);
+}
+
+TEST_CASE(
+    "Off a tall wall, a body that can wall jump lowers onto it and leaps clear, sooner",
+    "[RouteWalker]")
+{
+    PlayerData playerData = loadGameData().playerData;
+    NpcData spiderData = shippedNpcData().at("spider");
+    REQUIRE(playerData.actorData.abilities.wallJump);
+    REQUIRE(spiderData.actorData.abilities.wallJump);
+
+    for (bool player : {true, false})
     {
-        const NavigationGraph &graph = level.graphFor(buildNavigationProfile(actorData));
-        int ledgeEnd = endOfTheRow(graph, surfaceOf(PillarTop));
-        std::optional<int> farEndOfTheFloor;
-        for (const auto &[id, node] : graph.getNodes())
-            if (node.feet.y == surfaceOf(Floor) &&
-                (!farEndOfTheFloor || node.feet.x > graph.getNode(*farEndOfTheFloor).feet.x))
-                farEndOfTheFloor = id;
+        INFO((player ? "player" : "spider"));
+        WayDown leaping = wayDownThePillar(playerData, spiderData, player);
+        WayDown without =
+            wayDownThePillar(withoutAWallJump(playerData), withoutAWallJump(spiderData), player);
 
-        RouteTaken route =
-            takeTheRoute(level, actorData, graph.getNode(ledgeEnd).feet, *farEndOfTheFloor);
-        REQUIRE(route.arrived);
-        return std::pair(
-            tookA(EdgeType::Climb, graph, route.passedThrough),
-            tookA(EdgeType::Fall, graph, route.passedThrough));
-    };
+        REQUIRE(leaping.route.arrived);
+        REQUIRE(leaping.leaptOffTheWall);
+        REQUIRE(leaping.route.seconds < without.route.seconds);
+    }
+}
 
-    auto [playerClimbed, playerFell] = wayDown(playerData.actorData);
-    REQUIRE(playerClimbed);
-    REQUIRE_FALSE(playerFell);
+TEST_CASE(
+    "A walker climbs a wall and leaps from it onto a shelf nothing else reaches",
+    "[RouteWalker]")
+{
+    ActorData leaper = setupNpcData().actorData;
+    leaper.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
+    leaper.abilities = wallJumperAbilities();
+    glm::vec2 onTheFloor = feetOf({1, ShelfFloorRow - 1});
+    Level level(
+        aLevelPlacing(
+            aWallAcrossFromAShelf(), ShelfSceneTiles, ShelfSceneTiles, {1, ShelfFloorRow - 1}, {}),
+        theOnlyPalette(aPaletteWithSlipperyTiles()),
+        PlayerData(),
+        {{"routed", routedBy(leaper)}},
+        {});
+    const NavigationGraph &graph = level.graphFor(buildNavigationProfile(leaper));
+    int shelfEnd = endOfTheRow(graph, surfaceOf(ShelfRow));
 
-    auto [spiderClimbed, spiderFell] = wayDown(spider);
-    REQUIRE_FALSE(spiderClimbed);
-    REQUIRE(spiderFell);
+    RouteTaken route = takeTheRoute(level, leaper, onTheFloor, shelfEnd);
+
+    INFO("ended at " << route.feet.x << "," << route.feet.y);
+    REQUIRE(route.arrived);
+    REQUIRE(tookA(EdgeType::Climb, graph, route.passedThrough));
+    REQUIRE(tookA(EdgeType::Jump, graph, route.passedThrough));
 }
 
 TEST_CASE(
@@ -161,6 +244,7 @@ TEST_CASE(
     constexpr float AboutItsDuration = 0.15f;
     PlayerData playerData = loadGameData().playerData;
     std::map<EdgeType, int> taken;
+    int leapsOffWalls = 0;
 
     for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
     {
@@ -195,10 +279,13 @@ TEST_CASE(
                 }
 
                 bool replayed = edge.type == EdgeType::Jump || edge.type == EdgeType::Fall;
+                NavigationNode takeOff = named.graph.getNode(edge.fromId);
+                bool offTheWall = replayed && takeOff.kind == NodeKind::OnWall;
+                glm::vec2 along = offTheWall ? glm::vec2(0.0f, ClimbArrivesWithin)
+                                             : glm::vec2(TakeOffReach, 0.0f);
                 for (float offset : replayed ? std::vector{-1.0f, 0.0f, 1.0f} : std::vector{0.0f})
                 {
-                    glm::vec2 from =
-                        named.graph.getNode(edge.fromId).feet + glm::vec2(offset, 0.0f);
+                    glm::vec2 from = takeOff.feet + along * offset;
                     RouteTaken route = takeTheRoute(level, actorData, from, edge.toId);
 
                     INFO(
@@ -210,6 +297,7 @@ TEST_CASE(
                     REQUIRE(
                         std::abs(route.seconds - costOf(named.graph, edge)) <= AboutItsDuration);
                     ++taken[edge.type];
+                    leapsOffWalls += offTheWall ? 1 : 0;
                 }
             }
         }
@@ -217,4 +305,5 @@ TEST_CASE(
 
     for (EdgeType type : {EdgeType::Walk, EdgeType::Jump, EdgeType::Fall, EdgeType::Climb})
         REQUIRE(taken[type] > 0);
+    REQUIRE(leapsOffWalls > 0);
 }

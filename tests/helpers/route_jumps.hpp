@@ -4,7 +4,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_data.hpp"
 #include "game/level.hpp"
+#include "actor/abilities/ability_states.hpp"
 #include "helpers/actors.hpp"
+#include "input/input_intentions.hpp"
 #include "navigation/input_program.hpp"
 #include "player/player.hpp"
 #include "player/player_data.hpp"
@@ -15,14 +17,22 @@ inline std::optional<glm::vec2> whereARouteJumpLands(
     const ActorData &actorData,
     glm::vec2 takeOff,
     const InputProgram &inputs,
-    float towardsX)
+    float towardsX,
+    float wallDirection = 0.0f)
 {
     PlayerData playerData;
     playerData.actorData = actorData;
     ScriptedIntentions input;
     Player player(playerData, input);
-    player.standAt(takeOff);
-    for (int settling = 0; settling < 30 && !player.onGround(); ++settling)
+    float offTheWall = wallDirection * actorData.physicsBodyData.colliderSize.x * 0.5f;
+    player.standAt(takeOff - glm::vec2(offTheWall, 0.0f));
+    InputIntentions holding;
+    holding.climbRequested = true;
+    holding.direction.x = wallDirection;
+    input.set(wallDirection == 0.0f ? InputIntentions{} : holding);
+    auto ready = [&]
+    { return wallDirection == 0.0f ? player.onGround() : player.abilityStates().wallHang.active; };
+    for (int settling = 0; settling < 30 && !ready(); ++settling)
     {
         player.beginFrame();
         player.fixedUpdate(PhysicsStep, level);

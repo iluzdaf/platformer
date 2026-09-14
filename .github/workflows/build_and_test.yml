@@ -26,6 +26,7 @@ jobs:
       DISPLAY: ":99"
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       SCCACHE_DIR: ${{ github.workspace }}/.sccache
+      CACHE_TOOL: ${{ matrix.os == 'windows-latest' && 'sccache' || 'ccache' }}
 
     steps:
       - uses: actions/checkout@v7
@@ -34,8 +35,9 @@ jobs:
           submodules: false
 
       - name: Name the submodules by what they are pinned to
+        id: external
         shell: bash
-        run: echo "EXTERNAL=$(git rev-parse HEAD:external)" >> "$GITHUB_ENV"
+        run: echo "commit=$(git rev-parse HEAD:external)" >> "$GITHUB_OUTPUT"
 
       - name: Restore submodules
         id: submodules
@@ -44,7 +46,7 @@ jobs:
           path: |
             external
             .git/modules
-          key: submodules-${{ runner.os }}-${{ env.EXTERNAL }}
+          key: submodules-${{ runner.os }}-${{ steps.external.outputs.commit }}
 
       - name: Fetch submodules
         if: steps.submodules.outputs.cache-hit != 'true'
@@ -153,6 +155,11 @@ jobs:
               -DSKIP_OPENGL_TESTS=ON
           fi
 
+      - name: Reset compiler cache stats for platformer
+        shell: bash
+        run: |
+          "$CACHE_TOOL" --zero-stats
+
       - name: Build platformer for Windows
         if: runner.os == 'Windows'
         shell: cmd
@@ -164,6 +171,22 @@ jobs:
       - name: Build platformer for macOS and Linux
         if: runner.os != 'Windows'
         run: cmake --build build/release --config Release --target platformer
+
+      - name: Show compiler cache stats for platformer
+        shell: bash
+        run: |
+          {
+            echo '### Compiler cache: platformer'
+            echo
+            echo '```text'
+            "$CACHE_TOOL" --show-stats
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Reset compiler cache stats for tests
+        shell: bash
+        run: |
+          "$CACHE_TOOL" --zero-stats
 
       - name: Build tests for Windows
         if: runner.os == 'Windows'
@@ -177,12 +200,21 @@ jobs:
         if: runner.os != 'Windows'
         run: cmake --build build/release --config Release --target tests
 
-      - name: Compiler cache stats for Windows
-        if: always() && runner.os == 'Windows'
-        shell: cmd
+      - name: Show compiler cache stats for tests
+        shell: bash
         run: |
-          sccache --show-stats
-          sccache --stop-server
+          {
+            echo '### Compiler cache: tests'
+            echo
+            echo '```text'
+            "$CACHE_TOOL" --show-stats
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop sccache
+        if: always() && runner.os == 'Windows'
+        shell: bash
+        run: sccache --stop-server
 
       - name: Run tests for Windows
         if: runner.os == 'Windows'
@@ -201,6 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CACHE_TOOL: ccache
 
     steps:
       - uses: actions/checkout@v7
@@ -209,7 +242,8 @@ jobs:
           submodules: false
 
       - name: Name the submodules by what they are pinned to
-        run: echo "EXTERNAL=$(git rev-parse HEAD:external)" >> "$GITHUB_ENV"
+        id: external
+        run: echo "commit=$(git rev-parse HEAD:external)" >> "$GITHUB_OUTPUT"
 
       - name: Restore submodules
         id: submodules
@@ -218,7 +252,7 @@ jobs:
           path: |
             external
             .git/modules
-          key: submodules-${{ runner.os }}-${{ env.EXTERNAL }}
+          key: submodules-${{ runner.os }}-${{ steps.external.outputs.commit }}
 
       - name: Fetch submodules
         if: steps.submodules.outputs.cache-hit != 'true'
@@ -270,11 +304,39 @@ jobs:
             -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
             -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
 
+      - name: Reset compiler cache stats for instrumented platformer
+        run: |
+          "$CACHE_TOOL" --zero-stats
+
       - name: Build instrumented platformer
         run: cmake --build build/coverage --target platformer
 
+      - name: Show compiler cache stats for instrumented platformer
+        run: |
+          {
+            echo '### Compiler cache: instrumented platformer'
+            echo
+            echo '```text'
+            "$CACHE_TOOL" --show-stats
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Reset compiler cache stats for instrumented tests
+        run: |
+          "$CACHE_TOOL" --zero-stats
+
       - name: Build instrumented tests
         run: cmake --build build/coverage --target tests
+
+      - name: Show compiler cache stats for instrumented tests
+        run: |
+          {
+            echo '### Compiler cache: instrumented tests'
+            echo
+            echo '```text'
+            "$CACHE_TOOL" --show-stats
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Say what the tests never run
         env:
@@ -305,6 +367,7 @@ jobs:
 
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CACHE_TOOL: ccache
 
     steps:
       - uses: actions/checkout@v7
@@ -314,7 +377,8 @@ jobs:
           fetch-depth: 0
 
       - name: Name the submodules by what they are pinned to
-        run: echo "EXTERNAL=$(git rev-parse HEAD:external)" >> "$GITHUB_ENV"
+        id: external
+        run: echo "commit=$(git rev-parse HEAD:external)" >> "$GITHUB_OUTPUT"
 
       - name: Restore submodules
         id: submodules
@@ -323,7 +387,7 @@ jobs:
           path: |
             external
             .git/modules
-          key: submodules-${{ runner.os }}-${{ env.EXTERNAL }}
+          key: submodules-${{ runner.os }}-${{ steps.external.outputs.commit }}
 
       - name: Fetch submodules
         if: steps.submodules.outputs.cache-hit != 'true'
@@ -384,8 +448,22 @@ jobs:
             -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
             -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
 
+      - name: Reset compiler cache stats for header self-containment
+        run: |
+          "$CACHE_TOOL" --zero-stats
+
       - name: Check headers stand on their own
         run: cmake --build build/release --target header_self_containment
+
+      - name: Show compiler cache stats for header self-containment
+        run: |
+          {
+            echo '### Compiler cache: header self-containment'
+            echo
+            echo '```text'
+            "$CACHE_TOOL" --show-stats
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       # Strict status checks mean a branch is up to date before it merges, so
       # master is already carrying the verdict this step would repeat.

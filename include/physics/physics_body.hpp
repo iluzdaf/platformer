@@ -32,7 +32,6 @@ public:
     AABB wallProbeAtHead(float side) const;
     AABB underfootProbe() const;
     AABB underfootProbeAtEdge(float side) const;
-    bool grippableEdgeOn(float side, const TileMap &tileMap) const;
     AABB overheadProbe() const;
     bool contactWithGround(const TileMap &tileMap) const;
     bool contactWithCeiling(const TileMap &tileMap) const;
@@ -60,6 +59,7 @@ private:
         AABB &collisionAABB);
     AABB horizontalProbeAt(glm::vec2 positionWithOffset) const;
     AABB verticalProbeAt(glm::vec2 positionWithOffset) const;
+    bool grippableEdgeOn(float side, const TileMap &tileMap) const;
     void pushOutOfSolids(const TileMap &tileMap);
     void clampToTileMapBounds(const TileMap &tileMap);
 };

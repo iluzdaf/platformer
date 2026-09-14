@@ -211,6 +211,18 @@ jobs:
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # Enabled while investigating warm-cache build times. Set the repository
+      # Actions variable CAPTURE_NINJA_TIMINGS=false to stop collecting artifacts.
+      - name: Preserve Windows build timings
+        if: always() && runner.os == 'Windows' && vars.CAPTURE_NINJA_TIMINGS != 'false'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ninja-timings-Windows-${{ github.run_attempt }}
+          path: build/release/.ninja_log
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Stop sccache
         if: always() && runner.os == 'Windows'
         shell: bash

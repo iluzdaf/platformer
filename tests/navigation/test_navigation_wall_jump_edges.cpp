@@ -248,3 +248,27 @@ TEST_CASE("A leap through anything deadly is not offered", "[NavigationGraphBuil
     for (const NavigationEdge &leap : leapsOffWalls(graph))
         REQUIRE_FALSE(navigation::touchesDeadly(tileMap, leap.path, profile));
 }
+
+TEST_CASE(
+    "A body a hair from spikes touches them as the game counts a touch, and one over the bare "
+    "part of a spike tile does not",
+    "[NavigationGraphBuilder][WallJump]")
+{
+    constexpr glm::ivec2 Spikes{5, 5};
+    TilePaletteData palette = aPaletteWithASolidTile();
+    palette.tiles[SpikeTile].deadly = true;
+    palette.tiles[SpikeTile].collider =
+        TileColliderData{glm::vec2(0.0f, 12.0f), glm::vec2(16.0f, 4.0f)};
+    TileMap tileMap = aTileMap({{Spikes, SpikeTile}}, 10, 10, TestTileSize, palette);
+    NavigationProfile profile = wallJumperProfile();
+    float halfWidth = profile.physicsBodyData.colliderSize.x * 0.5f;
+    glm::vec2 floorOfTheSpikes = topLeftOf(Spikes + glm::ivec2(0, 1));
+
+    glm::vec2 aHairAway = floorOfTheSpikes - glm::vec2(halfWidth + 0.05f, 0.0f);
+    glm::vec2 wellAway = floorOfTheSpikes - glm::vec2(halfWidth + 0.5f, 0.0f);
+    glm::vec2 aboveTheirPoints = floorOfTheSpikes + glm::vec2(halfWidth + 4.0f, -4.5f);
+
+    REQUIRE(navigation::touchesDeadly(tileMap, {aHairAway}, profile));
+    REQUIRE_FALSE(navigation::touchesDeadly(tileMap, {wellAway}, profile));
+    REQUIRE_FALSE(navigation::touchesDeadly(tileMap, {aboveTheirPoints}, profile));
+}

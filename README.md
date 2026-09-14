@@ -407,8 +407,11 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   keeps the quickest leap onto each run.
 - The simulation takes hold of the wall before it leaps, as a walker that climbed there
   does. A climber stops within `ClimbArrivesWithin` of its node, so a leap is kept only
-  if it lands on the same run from that far above and below the node too. A leap
-  through anything deadly is not offered.
+  if it lands on the same run from that far above and below the node too.
+- A leap or a fall that touches anything deadly on the way is not offered. A touch is
+  counted as the game counts the one that kills the player: the body's collider, grown
+  by its contact skin, against the deadly tile's collider, so a path that grazes spikes
+  is refused and one over the bare part of a spike tile is not.
 - A leap comes down at a node of its own, joined by walks to the run it lands on.
 - A leap is a jump edge that says which side its wall is on, and the walker replays it
   as it does any other; only where it begins is new.

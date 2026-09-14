@@ -12,7 +12,8 @@
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "tile_map/tile_map.hpp"
-#include "physics/aabb.hpp"
+#include "physics/physics_body.hpp"
+#include "tile_map/tile.hpp"
 
 namespace
 {
@@ -77,20 +78,13 @@ namespace navigation
         const std::vector<glm::vec2> &path,
         const NavigationProfile &profile)
     {
-        constexpr float Inset = 0.5f;
-        glm::vec2 size = profile.physicsBodyData.colliderSize;
+        PhysicsBody body(profile.physicsBodyData);
         for (glm::vec2 feet : path)
         {
-            AABB body(
-                glm::vec2(feet.x - size.x * 0.5f + Inset, feet.y - size.y + Inset),
-                glm::vec2(size.x - Inset * 2.0f, size.y - Inset * 2.0f));
-            glm::ivec2 low = tileMap.tileContaining(body.position);
-            glm::ivec2 high = tileMap.tileContaining(body.position + body.size);
-            for (int y = low.y; y <= high.y; ++y)
-                for (int x = low.x; x <= high.x; ++x)
-                    if (tileMap.validTilePosition({x, y}) &&
-                        tileMap.getTileAtTilePosition({x, y}).isDeadly())
-                        return true;
+            body.setPosition(feet - body.bottomCenterOffset());
+            for (glm::ivec2 touched : tileMap.tilesTouching(body.touchBox()))
+                if (tileMap.getTileAtTilePosition(touched).isDeadly())
+                    return true;
         }
 
         return false;

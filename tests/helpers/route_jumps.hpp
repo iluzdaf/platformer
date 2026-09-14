@@ -10,6 +10,7 @@
 #include "navigation/input_program.hpp"
 #include "player/player.hpp"
 #include "player/player_data.hpp"
+#include "tile_map/touching_tiles.hpp"
 #include "timing/fixed_time_step.hpp"
 
 inline std::optional<glm::vec2> whereARouteJumpLands(
@@ -18,7 +19,8 @@ inline std::optional<glm::vec2> whereARouteJumpLands(
     glm::vec2 takeOff,
     const InputProgram &inputs,
     float towardsX,
-    float wallDirection = 0.0f)
+    float wallDirection = 0.0f,
+    bool touchingTiles = false)
 {
     PlayerData playerData;
     playerData.actorData = actorData;
@@ -48,6 +50,10 @@ inline std::optional<glm::vec2> whereARouteJumpLands(
         elapsed += PhysicsStep;
         player.beginFrame();
         player.fixedUpdate(PhysicsStep, level);
+        if (touchingTiles)
+            touchTiles(player, level.getTileMap());
+        if (!player.alive())
+            return std::nullopt;
         if (!player.onGround())
             airborne = true;
         else if (airborne)

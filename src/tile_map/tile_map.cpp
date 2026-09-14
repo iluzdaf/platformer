@@ -178,6 +178,20 @@ glm::vec2 middleOfTile(glm::ivec2 tilePosition, int tileSize)
     return topLeftOfTile(tilePosition, tileSize) + glm::vec2(tileSize * 0.5f);
 }
 
+std::vector<glm::ivec2> TileMap::tilesTouching(const AABB &box) const
+{
+    std::vector<glm::ivec2> touching;
+    for (glm::ivec2 tilePosition : tilesOverlapping(box.position, box.size))
+    {
+        std::optional<AABB> collider =
+            getTileAtTilePosition(tilePosition).getAABBAt(topLeftOfTile(tilePosition));
+        if (collider && collider->intersects(box))
+            touching.push_back(tilePosition);
+    }
+
+    return touching;
+}
+
 glm::vec2 TileMap::topLeftOfTile(glm::ivec2 tilePosition) const
 {
     return ::topLeftOfTile(tilePosition, tileSize);

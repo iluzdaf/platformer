@@ -348,8 +348,7 @@ jobs:
             echo '```'
             python3 tools/coverage.py build/coverage --files
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          python3 tools/coverage.py build/coverage
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Say what nothing calls, and what only the tests call
         run: |
@@ -359,8 +358,7 @@ jobs:
             echo '```'
             python3 tools/dead_code.py build/coverage
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          python3 tools/dead_code.py build/coverage
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
   checks:
     runs-on: ubuntu-latest

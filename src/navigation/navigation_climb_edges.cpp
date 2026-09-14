@@ -77,15 +77,17 @@ namespace navigation
         for (const auto &[id, node] : navigationGraph.getNodes())
             nextNodeId = std::max(nextNodeId, id + 1);
 
+        auto join = [&](int fromId, int toId, float wallDirection)
+        {
+            if (fromId != toId)
+                navigationGraph.addEdge(
+                    NavigationEdge{fromId, toId, EdgeType::Climb, {}, {}, wallDirection});
+        };
+
         auto joinBothWays = [&](int fromId, int toId, float wallDirection)
         {
-            if (fromId == toId)
-                return;
-
-            navigationGraph.addEdge(
-                NavigationEdge{fromId, toId, EdgeType::Climb, {}, {}, wallDirection});
-            navigationGraph.addEdge(
-                NavigationEdge{toId, fromId, EdgeType::Climb, {}, {}, wallDirection});
+            join(fromId, toId, wallDirection);
+            join(toId, fromId, wallDirection);
         };
 
         auto endOfTheFace = [&](int climbX, int wallX, int footRow)
@@ -143,7 +145,10 @@ namespace navigation
                     float wallDirection = static_cast<float>(side);
                     joinBothWays(topId, endOfTheFace(climbX, wallX, runBottom), wallDirection);
                     if (ledgeId)
-                        joinBothWays(topId, *ledgeId, wallDirection);
+                        join(topId, *ledgeId, wallDirection);
+
+                    if (ledgeId && profile.abilities.lower)
+                        join(*ledgeId, topId, wallDirection);
 
                     runTop.reset();
                 }

@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -103,13 +104,10 @@ TEST_CASE(
     REQUIRE(std::abs(route.feet.x - graph.getNode(destination).feet.x) <= reach);
 }
 
-TEST_CASE(
-    "Every jump and fall in a shipped level is taken by a walker to where it ends",
-    "[RouteWalker]")
+TEST_CASE("Every edge in a shipped level is taken by a walker to where it ends", "[RouteWalker]")
 {
     PlayerData playerData = loadGameData().playerData;
-    int jumpsTaken = 0;
-    int fallsTaken = 0;
+    std::map<EdgeType, int> taken;
 
     for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
     {
@@ -131,10 +129,8 @@ TEST_CASE(
 
             for (const NavigationEdge &edge : named.graph.getEdges())
             {
-                if (edge.type != EdgeType::Jump && edge.type != EdgeType::Fall)
-                    continue;
-
-                for (float offset : {-1.0f, 0.0f, 1.0f})
+                bool replayed = edge.type == EdgeType::Jump || edge.type == EdgeType::Fall;
+                for (float offset : replayed ? std::vector{-1.0f, 0.0f, 1.0f} : std::vector{0.0f})
                 {
                     glm::vec2 from =
                         named.graph.getNode(edge.fromId).feet + glm::vec2(offset, 0.0f);
@@ -146,12 +142,12 @@ TEST_CASE(
                         << edge.toId << ", ended at " << route.feet.x << "," << route.feet.y);
                     REQUIRE(route.arrived);
                     REQUIRE(passedAlong(route.passedThrough, edge.fromId, edge.toId));
-                    ++(edge.type == EdgeType::Jump ? jumpsTaken : fallsTaken);
+                    ++taken[edge.type];
                 }
             }
         }
     }
 
-    REQUIRE(jumpsTaken > 0);
-    REQUIRE(fallsTaken > 0);
+    for (EdgeType type : {EdgeType::Walk, EdgeType::Jump, EdgeType::Fall, EdgeType::Climb})
+        REQUIRE(taken[type] > 0);
 }

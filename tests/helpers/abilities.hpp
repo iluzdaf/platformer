@@ -52,6 +52,14 @@ inline Observed atALedge(WallSide side)
     return observed;
 }
 
+inline Observed atAnEdge(WallSide side)
+{
+    Observed observed = onTheGround();
+    observed.contacts.edgeOnLeft = side == WallSide::Left;
+    observed.contacts.edgeOnRight = side == WallSide::Right;
+    return observed;
+}
+
 inline Observed justOffAWall(WallSide side)
 {
     Observed observed = inTheAir();
@@ -74,6 +82,13 @@ inline InputIntentions pressingUp()
 inline InputIntentions pressingDown()
 {
     return pressing(0.0f, 1.0f);
+}
+
+inline InputIntentions pressingDownToClimb()
+{
+    InputIntentions intentions = pressingDown();
+    intentions.climbRequested = true;
+    return intentions;
 }
 
 inline AbilityStates hanging()

@@ -351,6 +351,36 @@ AABB PhysicsBody::underfootProbe() const
     return AABB(probePosition, probeSize);
 }
 
+AABB PhysicsBody::underfootProbeAtEdge(float side) const
+{
+    glm::vec2 probeSize(colliderSize().x * 0.25f, ContactProbeDepth);
+    glm::vec2 probePosition = now.position + colliderOffset();
+    if (side > 0.0f)
+        probePosition.x += colliderSize().x - probeSize.x;
+    probePosition.y += colliderSize().y;
+    return AABB(probePosition, probeSize);
+}
+
+bool PhysicsBody::grippableEdgeOn(float side, const TileMap &tileMap) const
+{
+    bool overNothing = !tileMap.probeSolidTiles(
+        underfootProbeAtEdge(side), [](const Tile &, const AABB &) { return true; });
+
+    return overNothing &&
+           tileMap.probeSolidTiles(
+               underfootProbe(), [](const Tile &tile, const AABB &) { return tile.isGrippable(); });
+}
+
+bool PhysicsBody::grippableEdgeOnLeft(const TileMap &tileMap) const
+{
+    return grippableEdgeOn(-1.0f, tileMap);
+}
+
+bool PhysicsBody::grippableEdgeOnRight(const TileMap &tileMap) const
+{
+    return grippableEdgeOn(1.0f, tileMap);
+}
+
 AABB PhysicsBody::overheadProbe() const
 {
     glm::vec2 probeSize(colliderSize().x * 0.5f, ContactProbeDepth);

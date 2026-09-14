@@ -270,11 +270,17 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   granted or withheld in json rather than by a flag or a counter.
 - Each ability reads anything and writes only its own slot: a velocity, an `active`
   flag, and an `emit` flag for the tick it started. It may read contacts, the velocity
-  physics produced, and other abilities' slots. Gravity is zero while hanging, sliding
-  or mantling; a mantle starts from `wallHang.active` at a ledge.
+  physics produced, and other abilities' slots. Gravity is zero while hanging, sliding,
+  mantling or lowering; a mantle starts from `wallHang.active` at a ledge.
+- A lower is a mantle's reverse. It starts from standing at an edge above grippable
+  ground, asking to climb and pressing down: it carries out over the edge until it is off
+  the ground, then drops straight down. Physics pushes a body out of a corner only once
+  the corner is above its step height, so the lower ends when it grips the face below
+  and touches nothing on the other side, and a hang takes over.
 - Abilities do not fight over velocity. `Abilities` runs them all, then picks with
-  a fixed ladder: a knockback, a dash, a mantle or a wall jump owns the whole vector;
-  otherwise move gives x, and a jump, a hang's climb or a slide gives y over gravity.
+  a fixed ladder: a knockback, a dash, a mantle, a lower or a wall jump owns the whole
+  vector; otherwise move gives x, and a jump, a hang's climb or a slide gives y over
+  gravity.
 - They run in a fixed order, move first and gravity last. A later ability sees what an
   earlier one decided this tick; an earlier one sees a later one's from the last tick.
   Contacts are what physics found at the end of the previous tick.

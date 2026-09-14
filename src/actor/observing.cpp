@@ -36,6 +36,8 @@ ActorContactState contactsAfterStep(
         contacts.touchingLeftWall && !physicsBody.contactWithLeftWallAtHead(tileMap);
     contacts.ledgeOnRight =
         contacts.touchingRightWall && !physicsBody.contactWithRightWallAtHead(tileMap);
+    contacts.edgeOnLeft = physicsBody.grippableEdgeOnLeft(tileMap);
+    contacts.edgeOnRight = physicsBody.grippableEdgeOnRight(tileMap);
 
     if (contacts.grippableLeftWall)
         contacts.wasLastWallLeft = true;

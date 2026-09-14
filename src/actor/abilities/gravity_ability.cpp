@@ -22,7 +22,7 @@ void GravityAbility::decide(
     AbilityStates &states)
 {
     if (observed.contacts.onGround || states.wallHang.active || states.wallSlide.active ||
-        states.mantle.active || states.knockback.active)
+        states.mantle.active || states.lower.active || states.knockback.active)
         states.gravity.velocity.y = 0.0f;
     else
     {

@@ -247,6 +247,7 @@ add_library(platformer_lib OBJECT
     src/actor/abilities/wall_hang_ability.cpp
     src/actor/abilities/wall_climb_ability.cpp
     src/actor/abilities/mantle_ability.cpp
+    src/actor/abilities/lower_ability.cpp
     src/actor/abilities/grace_period.cpp
     src/actor/abilities/abilities.cpp
     src/actor/abilities/gravity_ability.cpp
@@ -483,6 +484,7 @@ add_executable(tests
     tests/actor/abilities/test_wall_hang_ability.cpp
     tests/actor/abilities/test_wall_climb_ability.cpp
     tests/actor/abilities/test_mantle_ability.cpp
+    tests/actor/abilities/test_lower_ability.cpp
     tests/actor/abilities/test_grace_period.cpp
     tests/actor/abilities/test_abilities.cpp
     tests/actor/abilities/test_gravity_ability.cpp

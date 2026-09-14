@@ -93,6 +93,7 @@
                 "wallHang":{},
                 "wallClimb":{"climbSpeed":70},
                 "mantle":{},
+                "lower":{},
                 "gravity":{},
                 "pounce":{}
             },

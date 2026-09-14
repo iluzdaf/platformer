@@ -26,9 +26,13 @@ public:
     bool gripOnRightWall(const TileMap &tileMap) const;
     bool contactWithLeftWallAtHead(const TileMap &tileMap) const;
     bool contactWithRightWallAtHead(const TileMap &tileMap) const;
+    bool grippableEdgeOnLeft(const TileMap &tileMap) const;
+    bool grippableEdgeOnRight(const TileMap &tileMap) const;
     AABB wallProbe(float side) const;
     AABB wallProbeAtHead(float side) const;
     AABB underfootProbe() const;
+    AABB underfootProbeAtEdge(float side) const;
+    bool grippableEdgeOn(float side, const TileMap &tileMap) const;
     AABB overheadProbe() const;
     bool contactWithGround(const TileMap &tileMap) const;
     bool contactWithCeiling(const TileMap &tileMap) const;

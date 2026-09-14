@@ -238,6 +238,7 @@ TEST_CASE("Every ability that can be active is a fact, or says why it is not", "
         {"jump", "rising already says it"},
         {"wallJump", "it is a jump"},
         {"mantle", "nothing asks about a mantle yet; add a row when something does"},
+        {"lower", "nothing asks about a lower yet; add a row when something does"},
         {"bite", "a bite is always ready, so asking would never tell anything apart"}};
 
     std::vector<std::string_view> flagged =

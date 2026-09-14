@@ -12,6 +12,7 @@
             "wallHang":{},
             "wallClimb":{},
             "mantle":{},
+            "lower":{},
             "gravity":{},
             "knockback":{},
             "swing":{}

@@ -9,6 +9,7 @@
 #include "actor/abilities/wall_hang_ability_data.hpp"
 #include "actor/abilities/wall_climb_ability_data.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
+#include "actor/abilities/lower_ability_data.hpp"
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
@@ -26,6 +27,7 @@ struct AbilitiesData
     std::optional<WallHangAbilityData> wallHang;
     std::optional<WallClimbAbilityData> wallClimb;
     std::optional<MantleAbilityData> mantle;
+    std::optional<LowerAbilityData> lower;
     std::optional<GravityAbilityData> gravity;
     std::optional<KnockbackAbilityData> knockback;
     std::optional<SwingAbilityData> swing;

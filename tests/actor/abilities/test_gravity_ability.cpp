@@ -78,6 +78,11 @@ TEST_CASE(
     tick(gravity, InputIntentions{}, inTheAir(), mantling);
     REQUIRE(mantling.gravity.velocity.y == 0.0f);
 
+    AbilityStates lowering = fallingFor(gravity, 10);
+    lowering.lower.active = true;
+    tick(gravity, InputIntentions{}, inTheAir(), lowering);
+    REQUIRE(lowering.gravity.velocity.y == 0.0f);
+
     AbilityStates knockedBack = fallingFor(gravity, 10);
     knockedBack.knockback.active = true;
     tick(gravity, InputIntentions{}, inTheAir(), knockedBack);

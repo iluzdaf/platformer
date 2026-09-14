@@ -8,6 +8,7 @@
 #include "actor/abilities/knockback_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
+#include "actor/abilities/lower_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
 #include <string>
 #include "actor/abilities/move_ability_data.hpp"
@@ -73,6 +74,7 @@ inline PlayerData playerDataWithEveryAbility()
     playerData.actorData.abilities.wallHang = WallHangAbilityData();
     playerData.actorData.abilities.wallClimb = WallClimbAbilityData();
     playerData.actorData.abilities.mantle = MantleAbilityData();
+    playerData.actorData.abilities.lower = LowerAbilityData();
     playerData.actorData.abilities.gravity = GravityAbilityData();
     playerData.actorData.abilities.knockback = KnockbackAbilityData();
     playerData.actorData.abilities.swing = SwingAbilityData();

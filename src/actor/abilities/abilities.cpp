@@ -10,6 +10,7 @@
 #include "actor/abilities/wall_hang_ability.hpp"
 #include "actor/abilities/wall_climb_ability.hpp"
 #include "actor/abilities/mantle_ability.hpp"
+#include "actor/abilities/lower_ability.hpp"
 #include "actor/abilities/gravity_ability.hpp"
 #include "actor/abilities/knockback_ability.hpp"
 #include "actor/abilities/swing_ability.hpp"
@@ -36,6 +37,8 @@ Abilities::Abilities(const AbilitiesData &data)
         abilities.push_back(std::make_unique<WallClimbAbility>(data.wallClimb.value()));
     if (data.mantle)
         abilities.push_back(std::make_unique<MantleAbility>(data.mantle.value()));
+    if (data.lower)
+        abilities.push_back(std::make_unique<LowerAbility>(data.lower.value()));
     if (data.gravity)
         abilities.push_back(std::make_unique<GravityAbility>(data.gravity.value()));
     if (data.pounce)
@@ -66,6 +69,8 @@ glm::vec2 Abilities::decide(
         velocity = states.dash.velocity;
     else if (states.mantle.active)
         velocity = states.mantle.velocity;
+    else if (states.lower.active)
+        velocity = states.lower.velocity;
     else if (states.pounce.active)
         velocity = states.pounce.velocity;
     else if (states.charge.active)

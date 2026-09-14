@@ -230,10 +230,11 @@ namespace navigation
     void addJumpEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
+        const NavigationProfile &profile,
         int headroom,
-        float stepHeight,
         const std::vector<ChosenJump> &jumps)
     {
+        float stepHeight = profile.physicsBodyData.stepHeight;
         for (const ChosenJump &jump : jumps)
         {
             std::optional<int> toId =
@@ -241,7 +242,10 @@ namespace navigation
             if (!toId || *toId == jump.fromId)
                 continue;
 
-            navigationGraph.addEdge({jump.fromId, *toId, EdgeType::Jump, jump.path, jump.inputs});
+            navigationGraph.addEdge(timed(
+                {jump.fromId, *toId, EdgeType::Jump, jump.path, jump.inputs},
+                navigationGraph,
+                profile));
         }
     }
 

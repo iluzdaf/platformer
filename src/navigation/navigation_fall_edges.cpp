@@ -167,7 +167,8 @@ namespace navigation
                     runs.at(*toId)))
                 continue;
 
-            navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, fall.path, fall.inputs});
+            navigationGraph.addEdge(timed(
+                {fromId, *toId, EdgeType::Fall, fall.path, fall.inputs}, navigationGraph, profile));
         }
     }
 }

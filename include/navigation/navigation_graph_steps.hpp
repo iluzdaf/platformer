@@ -5,6 +5,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "navigation/input_program.hpp"
+#include "navigation/navigation_edge.hpp"
 
 class NavigationGraph;
 class TileMap;
@@ -65,11 +66,16 @@ namespace navigation
         int headroom,
         float stepHeight);
 
+    NavigationEdge timed(
+        NavigationEdge edge,
+        const NavigationGraph &navigationGraph,
+        const NavigationProfile &profile);
+
     void addWalkEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
-        int headroom,
-        float stepHeight);
+        const NavigationProfile &profile,
+        int headroom);
 
     std::unordered_map<int, int> runOfEachNode(
         const NavigationGraph &navigationGraph,
@@ -100,8 +106,8 @@ namespace navigation
     void addJumpEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
+        const NavigationProfile &profile,
         int headroom,
-        float stepHeight,
         const std::vector<ChosenJump> &jumps);
 
     std::vector<ChosenFall> addFallLandingNodes(

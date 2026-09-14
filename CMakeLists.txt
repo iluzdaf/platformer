@@ -215,6 +215,7 @@ add_library(platformer_lib OBJECT
     src/navigation/navigation_graph.cpp
     src/navigation/navigation_graph_builder.cpp
     src/navigation/navigation_walk_edges.cpp
+    src/navigation/navigation_edge_durations.cpp
     src/navigation/navigation_jump_edges.cpp
     src/navigation/navigation_fall_edges.cpp
     src/navigation/navigation_climb_edges.cpp
@@ -417,6 +418,7 @@ add_executable(tests
     tests/navigation/test_navigation_jump_edges.cpp
     tests/navigation/test_navigation_walk_edges.cpp
     tests/navigation/test_navigation_path.cpp
+    tests/navigation/test_navigation_edge_durations.cpp
     tests/navigation/test_navigation_place.cpp
     tests/navigation/test_navigation_profile.cpp
     tests/navigation/test_jump_simulation.cpp

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <optional>
 #include <vector>
 #include "navigation/input_program.hpp"
 
@@ -19,4 +20,5 @@ struct NavigationEdge
     std::vector<glm::vec2> path;
     InputProgram inputs;
     float wallDirection = 0.0f;
+    std::optional<float> duration = std::nullopt;
 };

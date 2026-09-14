@@ -392,8 +392,24 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   the ledge above a wall it lowers it onto the face.
 - Climbing down onto a wall from the ledge above is offered only to a body that can
   lower itself.
-- Every edge of every shipped level is taken by a walker on real physics in the tests,
-  from its node, and a jump or fall from a pixel either side of it too.
+- Every edge of every shipped level gets a walker on real physics where it ends in the
+  tests, from its node, and a jump or fall from a pixel either side of it too.
+
+**A route is the quickest way, not the shortest.**
+
+- Each edge the builder makes says how long it takes. A walk takes its width at the move
+  speed. A climb takes its height at the climb speed, and a climb onto the ledge above
+  is the mantle, plus whatever climbing its pull-up leaves. A jump or fall takes its
+  ticks in the air, plus the walk on from where it lands to its node. A body that cannot
+  move has no time for a walk.
+- The pathfinder adds up those times. An edge that says nothing of its time, as in a
+  graph made by hand, costs its length. It stays A*: a node's estimate is its distance
+  to the goal at the quickest pace any edge of the graph covers ground, which no route
+  can beat, so a route may head away from its goal when that is quicker.
+- So the way depends on the body. Off a tall grippable wall, a body that slides down it
+  climbs down, and one that does not slide drops.
+- Where an edge is the quickest way to its end, a walker in the tests takes it within
+  0.15 s of the time it says.
 
 **A state can be scripted, and walking stays in C++.**
 

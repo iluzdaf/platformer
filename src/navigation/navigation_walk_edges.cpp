@@ -8,6 +8,7 @@
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_edge.hpp"
+#include "navigation/navigation_profile.hpp"
 #include "tile_map/tile_map.hpp"
 
 namespace navigation
@@ -60,14 +61,20 @@ namespace navigation
     void addWalkEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
-        int headroom,
-        float stepHeight)
+        const NavigationProfile &profile,
+        int headroom)
     {
+        float stepHeight = profile.physicsBodyData.stepHeight;
         for (const std::vector<int> &run : walkRuns(navigationGraph, tileMap, headroom, stepHeight))
             for (size_t index = 1; index < run.size(); ++index)
             {
-                navigationGraph.addEdge(run[index - 1], run[index], EdgeType::Walk);
-                navigationGraph.addEdge(run[index], run[index - 1], EdgeType::Walk);
+                auto walk = [&](int fromId, int toId)
+                {
+                    navigationGraph.addEdge(
+                        timed({fromId, toId, EdgeType::Walk, {}, {}}, navigationGraph, profile));
+                };
+                walk(run[index - 1], run[index]);
+                walk(run[index], run[index - 1]);
             }
     }
 }

@@ -65,6 +65,7 @@ public:
 struct RouteTaken
 {
     bool arrived = false;
+    float seconds = 0.0f;
     std::optional<int> firstLeg;
     std::vector<int> passedThrough;
     glm::vec2 feet = glm::vec2(0.0f);
@@ -96,11 +97,17 @@ inline RouteTaken takeTheRoute(
     RoutingTo &routing = *script;
     npc.scriptStatesWith(std::move(script));
 
-    for (int step = 0; step < steps && !routing.arrived; ++step)
+    int step = 0;
+    for (; step < steps && !routing.arrived; ++step)
     {
         npc.beginFrame();
         npc.fixedUpdate(PhysicsStep, level);
     }
 
-    return {routing.arrived, routing.firstLeg, routing.passedThrough, npc.feet()};
+    return {
+        routing.arrived,
+        static_cast<float>(step) * PhysicsStep,
+        routing.firstLeg,
+        routing.passedThrough,
+        npc.feet()};
 }

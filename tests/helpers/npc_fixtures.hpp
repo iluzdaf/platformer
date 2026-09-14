@@ -7,6 +7,7 @@
 #include "actor/behaviors/scripted_behavior_data.hpp"
 #include "helpers/creature_scripts.hpp"
 #include "actor/behaviors/state_machine_behavior_data.hpp"
+#include "actor/perceived.hpp"
 #include "game/level.hpp"
 #include "npc/npc.hpp"
 #include "npc/npc_data.hpp"
@@ -52,12 +53,12 @@ inline NpcData thatPatrols(NpcData npcData)
     return npcData;
 }
 
-inline void stepNpc(Npc &npc, const Level &level, int steps)
+inline void stepNpc(Npc &npc, const Level &level, int steps, const Perceived &perceived = {})
 {
     for (int step = 0; step < steps; ++step)
     {
         npc.beginFrame();
-        npc.fixedUpdate(0.01f, level);
+        npc.fixedUpdate(0.01f, level, perceived);
     }
 }
 

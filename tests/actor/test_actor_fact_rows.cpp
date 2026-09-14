@@ -18,6 +18,7 @@
 #include "conditions/asked.hpp"
 #include "conditions/fact_rows.hpp"
 #include "helpers/actor_facts.hpp"
+#include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 
 namespace
@@ -89,6 +90,22 @@ TEST_CASE(
     REQUIRE_FALSE(holds(
         "threatOnMySurface",
         standingAt(navigationGraph, {96.0f, 192.0f}, glm::vec2(100.0f, 288.0f))));
+}
+
+TEST_CASE("A hanging threat is not on my floor but can share my connected wall", "[ActorFactRows]")
+{
+    NavigationGraph graph;
+    graph.addNode(0, {24.0f, 48.0f});
+    graph.addNode(1, {72.0f, 48.0f});
+    graph.addEdge(0, 1, EdgeType::Walk);
+
+    REQUIRE_FALSE(
+        holds("threatOnMySurface", standingAt(graph, {24.0f, 48.0f}, glm::vec2(24.0f, 16.0f))));
+
+    graph.addNode(2, {24.0f, 0.0f});
+    graph.addEdge(0, 2, EdgeType::Climb);
+    REQUIRE(holds("threatOnMySurface", standingAt(graph, {48.0f, 48.0f}, glm::vec2(24.0f, 16.0f))));
+    REQUIRE(holds("threatOnMySurface", standingAt(graph, {24.0f, 16.0f}, glm::vec2(48.0f, 48.0f))));
 }
 
 TEST_CASE("A threat is close within my close, and in reach within my reach", "[ActorFactRows]")

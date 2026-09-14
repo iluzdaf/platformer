@@ -12,4 +12,6 @@ std::vector<int> roundTripFrom(const NavigationGraph &navigationGraph, int fromI
 
 std::vector<int> walkableFrom(const NavigationGraph &navigationGraph, int fromId);
 
+bool connectedInContact(const NavigationGraph &navigationGraph, int fromId, int toId);
+
 std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::vec2 position);

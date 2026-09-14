@@ -859,10 +859,21 @@ TEST_CASE("A boar's floor is not shared by a player hanging above it", "[Npc][Le
         PlayerData(),
         shippedNpcData(),
         {});
-    Npc boar(spawn, shippedNpcData().at("boar"));
+    NpcData data = shippedNpcData().at("boar");
+
+    auto &states = data.stateMachineBehaviorData->states;
+    auto stunned = std::find_if(
+        states.begin(), states.end(), [](const auto &state) { return state.name == "stunned"; });
+    REQUIRE(stunned != states.end());
+    std::iter_swap(states.begin(), stunned);
+    Npc boar(spawn, data);
+    ScriptedNpcs scripts;
+    scripts.script(boar);
     boar.beginFrame();
     boar.fixedUpdate(0.01f, level, {.threatFeet = feetOf(HangingPlayer)});
 
+    REQUIRE(boar.stateName() == "stunned");
+    CHECK_FALSE(boar.onSameSurfaceAs(feetOf(HangingPlayer)));
+    stepNpc(boar, level, 160, {.threatFeet = feetOf(HangingPlayer)});
     REQUIRE(boar.stateName() == "sleep");
-    REQUIRE_FALSE(boar.onSameSurfaceAs(feetOf(HangingPlayer)));
 }

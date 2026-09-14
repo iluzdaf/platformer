@@ -308,6 +308,31 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   down is still one run.
 - Feet placed on a tile in the editor stand on the collider beneath it too.
 
+**Sharing a surface is contact connectivity, not attack feasibility.**
+
+- `threatOnMySurface` and `onSameSurfaceAs` place both feet near nodes or Walk/Climb
+  segments in the querying actor's navigation graph, then check their undirected
+  connectivity. Jump and Fall edges do not join these runs. This is not a distance
+  check or a guarantee that a directed route exists.
+- Connecting climbs deliberately goes beyond the old nearest-node fallback: a spider
+  on a floor can share a surface with a threat on a connected wall or ledge above it,
+  not just notice that ledge while climbing. A boar's floor does not include a player
+  hanging above it where the boar has no climb run.
+- Neither position falls back to a distant node. A jumping threat (or NPC) outside
+  the run's tolerance no longer counts, though a position near a climb segment can
+  still count. Transitions requiring this fact can stop qualifying during a jump;
+  timed loss-of-surface transitions only fire after their condition holds continuously.
+- Both positions use the querying actor's half-width plus one pixel horizontally,
+  and its settling tolerance vertically. This approximates support: a single-node
+  platform does not describe its full collider extent, so supported positions near
+  an edge can still be missed. Recording platform extents is follow-up work, rather
+  than increasing the tolerance or substituting the threat's width.
+- Surface membership can suit floor-bound reactions, but need not gate every chase or
+  attack. `threatClose` and `threatInReach` are distance filters, not checks for blocked
+  trajectories or valid launch states. Follow-up work should define attack-specific
+  eligibility (for example, `canPounceAtThreat`) and wall/ceiling launch support.
+  Changing a transition alone cannot make a pounce detach and launch correctly.
+
 **A simulated jump moves as the actor does.**
 
 - `Mover` is the part of an actor that input moves: its abilities decide, its body

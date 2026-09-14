@@ -70,8 +70,20 @@ TEST_CASE("Airborne connections do not join runs", "[NavigationPlace]")
         graph.addEdge(2, 1, type);
 
         REQUIRE_FALSE(onTheSameRun(graph, {32.0f, 96.0f}, {112.0f, 96.0f}));
-        REQUIRE_FALSE(onTheSameRun(graph, {80.0f, 96.0f}, {112.0f, 96.0f}));
+        REQUIRE_FALSE(onTheSameRun(graph, {112.0f, 96.0f}, {32.0f, 96.0f}));
     }
+}
+
+TEST_CASE("Unsupported positions do not belong to the run beneath them", "[NavigationPlace]")
+{
+    NavigationGraph graph;
+    graph.addNode(0, {16.0f, 96.0f});
+    graph.addNode(1, {112.0f, 96.0f});
+    graph.addEdge(0, 1, EdgeType::Walk);
+
+    REQUIRE(onTheSameRun(graph, {32.0f, 96.0f}, {80.0f, 96.0f}, 8.0f, 3.0f));
+    REQUIRE_FALSE(onTheSameRun(graph, {32.0f, 96.0f}, {80.0f, 80.0f}, 8.0f, 3.0f));
+    REQUIRE_FALSE(onTheSameRun(graph, {80.0f, 80.0f}, {32.0f, 96.0f}, 8.0f, 3.0f));
 }
 
 TEST_CASE("A place is judged by the run under its feet, not the nearest node", "[NavigationPlace]")

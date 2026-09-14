@@ -408,12 +408,10 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   the top, since the kick carries it out further than it can return before it falls.
 - A flight that comes back to the wall it left is sliding down it, not leaping, and the
   simulation stops it there.
-- A face is leapt from only if a route can reach it, through an end that something
-  outside the face arrives at: a walk onto its foot, or a lower from the ledge above.
-  From each such end, the builder keeps the hold whose leap reaches a run soonest,
-  climb included, and only if that is at least 0.15 s quicker than any route the graph
-  already has to where it lands, or the graph has none. A walker arrives within 0.15 s
-  of an edge's time, so a smaller saving is no saving.
+- Every leap that works is kept, not only ones that are quicker than another way: the
+  builder records what a body can do, and the pathfinder chooses. From each hold, the
+  quickest leap onto each run is kept, so a hold does not carry several flights to the
+  same ground.
 - A hold that keeps a leap becomes a node on its face, joined by climbs to the holds
   and ends either side of it.
 - The simulation takes hold of the wall before it leaps, as a walker that climbed there

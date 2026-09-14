@@ -1,10 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include <optional>
+#include <set>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "helpers/actors.hpp"
-#include "helpers/graph_queries.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/navigation_maps.hpp"
@@ -55,6 +55,22 @@ namespace
         return false;
     }
 
+    bool climbsReach(const NavigationGraph &graph, int fromId, int toId)
+    {
+        std::vector<int> pending{fromId};
+        std::set<int> reached{fromId};
+        while (!pending.empty())
+        {
+            int at = pending.back();
+            pending.pop_back();
+            for (const NavigationEdge &edge : graph.getOutgoingEdges(at))
+                if (edge.type == EdgeType::Climb && reached.insert(edge.toId).second)
+                    pending.push_back(edge.toId);
+        }
+
+        return reached.contains(toId);
+    }
+
     NavigationProfile withoutAWallJump(NavigationProfile profile)
     {
         profile.abilities.wallJump.reset();
@@ -78,26 +94,31 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "A leap leaves from a hold partway up its wall that climbs join, and says which side the "
-    "wall is on",
+    "A leap can leave from a hold partway up its wall, which climbs from either end reach, "
+    "and says which side the wall is on",
     "[NavigationGraphBuilder][WallJump]")
 {
     TileMap tileMap = aWallAcrossFromAShelfMap();
     NavigationGraph graph = buildNavigationGraph(tileMap, wallJumperProfile());
 
-    std::optional<NavigationEdge> leap = leapOnto(graph, surfaceOf(ShelfRow));
+    float faceX = topLeftOf({ShelfWallX + 1, 0}).x;
+    std::optional<NavigationEdge> leap;
+    for (const NavigationEdge &edge : leapsOffWalls(graph))
+        if (graph.getNode(edge.toId).feet.y == surfaceOf(ShelfRow) &&
+            graph.getNode(edge.fromId).feet.y > surfaceOf(ShelfWallTopRow + 1))
+            leap = edge;
     REQUIRE(leap);
     NavigationNode takeOff = graph.getNode(leap->fromId);
-    float faceX = topLeftOf({ShelfWallX + 1, 0}).x;
 
     REQUIRE(takeOff.kind == NodeKind::OnWall);
     REQUIRE(takeOff.feet.x == faceX);
-    REQUIRE(takeOff.feet.y > surfaceOf(ShelfWallTopRow + 1));
     REQUIRE(takeOff.feet.y < surfaceOf(ShelfFloorRow));
     for (float y : {surfaceOf(ShelfWallTopRow + 1), surfaceOf(ShelfFloorRow)})
     {
-        REQUIRE(hasEdgeBetween(graph, glm::vec2(faceX, y), takeOff.feet, EdgeType::Climb));
-        REQUIRE(hasEdgeBetween(graph, takeOff.feet, glm::vec2(faceX, y), EdgeType::Climb));
+        std::optional<int> end = graph.nodeAtPosition(glm::vec2(faceX, y));
+        REQUIRE(end);
+        REQUIRE(climbsReach(graph, *end, leap->fromId));
+        REQUIRE(climbsReach(graph, leap->fromId, *end));
     }
     REQUIRE(leap->wallDirection == -1.0f);
     REQUIRE(leap->inputs.front().pressed.jumpHeld);

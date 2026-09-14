@@ -159,37 +159,6 @@ std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, in
     return {};
 }
 
-std::unordered_map<int, float> costsFrom(const NavigationGraph &navigationGraph, int fromId)
-{
-    navigationGraph.getNode(fromId);
-
-    std::priority_queue<Step, std::vector<Step>, decltype(&furtherThan)> pending(&furtherThan);
-    std::unordered_map<int, float> costs{{fromId, 0.0f}};
-    std::unordered_set<int> settled;
-    pending.push({0.0f, fromId});
-
-    while (!pending.empty())
-    {
-        int at = pending.top().id;
-        pending.pop();
-        if (!settled.insert(at).second)
-            continue;
-
-        for (const NavigationEdge &edge : navigationGraph.getOutgoingEdges(at))
-        {
-            float cost = costs.at(at) + costOf(navigationGraph, edge);
-            auto found = costs.find(edge.toId);
-            if (found != costs.end() && found->second <= cost)
-                continue;
-
-            costs[edge.toId] = cost;
-            pending.push({cost, edge.toId});
-        }
-    }
-
-    return costs;
-}
-
 std::vector<int> roundTripFrom(const NavigationGraph &navigationGraph, int fromId)
 {
     navigationGraph.getNode(fromId);

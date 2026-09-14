@@ -1,7 +1,5 @@
 #include <algorithm>
-#include <cmath>
 #include <cstddef>
-#include <limits>
 #include <map>
 #include <optional>
 #include <set>
@@ -16,70 +14,16 @@
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
-#include "navigation/navigation_path.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "tile_map/tile_map.hpp"
-#include "timing/fixed_time_step.hpp"
 
 namespace
 {
-    constexpr float Never = std::numeric_limits<float>::infinity();
-    constexpr float ReliablyQuicker = 0.15f;
-
-    struct Entry
-    {
-        glm::vec2 feet;
-        std::unordered_map<int, float> costs;
-    };
-
     struct Pick
     {
         int row = 0;
         navigation::Leap leap;
-        float seconds = 0.0f;
     };
-
-    float secondsToWalk(const NavigationProfile &profile, float across)
-    {
-        if (profile.abilities.move && profile.abilities.move->moveSpeed > 0.0f)
-            return std::abs(across) / profile.abilities.move->moveSpeed;
-
-        return across == 0.0f ? 0.0f : Never;
-    }
-
-    float quickestWithoutLeaping(
-        const NavigationGraph &navigationGraph,
-        const NavigationProfile &profile,
-        const std::unordered_map<int, int> &runs,
-        const Entry &entry,
-        int run,
-        glm::vec2 landing)
-    {
-        float quickest = Never;
-        for (const auto &[id, runOf] : runs)
-        {
-            auto reached = entry.costs.find(id);
-            if (runOf != run || reached == entry.costs.end())
-                continue;
-
-            float across = landing.x - navigationGraph.getNode(id).feet.x;
-            quickest = std::min(quickest, reached->second + secondsToWalk(profile, across));
-        }
-
-        return quickest;
-    }
-
-    bool enteredFromElsewhere(
-        const NavigationGraph &navigationGraph,
-        const navigation::ClimbFace &face,
-        int endId)
-    {
-        for (const NavigationEdge &edge : navigationGraph.getEdges())
-            if (edge.toId == endId && edge.fromId != face.topId && edge.fromId != face.bottomId)
-                return true;
-
-        return false;
-    }
 
     bool roomToLeapFrom(
         const TileMap &tileMap,
@@ -151,10 +95,9 @@ namespace navigation
         int headroom,
         const std::vector<ClimbFace> &faces)
     {
-        if (!profile.abilities.wallJump || !profile.abilities.wallClimb)
+        if (!profile.abilities.wallJump)
             return;
 
-        float climbSpeed = profile.abilities.wallClimb->climbSpeed;
         float stepHeight = profile.physicsBodyData.stepHeight;
         std::unordered_map<int, int> runs =
             runOfEachNode(navigationGraph, tileMap, headroom, stepHeight);
@@ -163,21 +106,13 @@ namespace navigation
         for (const ClimbFace &face : faces)
         {
             float wallDirection = static_cast<float>(face.wallX - face.climbX);
-            std::vector<Entry> entries;
-            for (int id : std::set{face.topId, face.bottomId})
-                if (enteredFromElsewhere(navigationGraph, face, id))
-                    entries.push_back(
-                        {navigationGraph.getNode(id).feet, costsFrom(navigationGraph, id)});
-            if (entries.empty())
-                continue;
-
-            std::map<std::pair<std::size_t, int>, Pick> quickest;
             for (int row = face.topRow; row <= face.bottomRow; ++row)
             {
                 if (!roomToLeapFrom(tileMap, face, row, headroom))
                     continue;
 
                 glm::vec2 hold = againstTheWall(tileMap, face.climbX, face.wallX, row);
+                std::map<int, Leap> quickest;
                 for (Leap &leap :
                      leapsFrom(navigationGraph, tileMap, profile, headroom, hold, wallDirection))
                 {
@@ -185,45 +120,27 @@ namespace navigation
                     if (landsOn == runs.end())
                         continue;
 
-                    int run = landsOn->second;
-                    float flight = static_cast<float>(leap.attempt.path.size() - 1) * PhysicsStep;
-                    std::optional<bool> sound;
-                    for (std::size_t from = 0; from < entries.size(); ++from)
-                    {
-                        float seconds =
-                            std::abs(hold.y - entries[from].feet.y) / climbSpeed + flight;
-                        if (seconds + ReliablyQuicker >= quickestWithoutLeaping(
-                                                             navigationGraph,
-                                                             profile,
-                                                             runs,
-                                                             entries[from],
-                                                             run,
-                                                             leap.attempt.path.back()))
-                            continue;
+                    auto found = quickest.find(landsOn->second);
+                    if (found != quickest.end() &&
+                        found->second.attempt.path.size() <= leap.attempt.path.size())
+                        continue;
 
-                        auto found = quickest.find({from, run});
-                        if (found != quickest.end() && found->second.seconds <= seconds)
-                            continue;
-
-                        if (!sound)
-                            sound = landsFromAnywhereItTakesOff(
-                                navigationGraph,
-                                tileMap,
-                                profile,
-                                headroom,
-                                leap.attempt.path,
-                                leap.attempt.inputs,
-                                runs,
-                                run,
-                                wallDirection);
-                        if (*sound)
-                            quickest[{from, run}] = {row, leap, seconds};
-                    }
+                    if (landsFromAnywhereItTakesOff(
+                            navigationGraph,
+                            tileMap,
+                            profile,
+                            headroom,
+                            leap.attempt.path,
+                            leap.attempt.inputs,
+                            runs,
+                            landsOn->second,
+                            wallDirection))
+                        quickest[landsOn->second] = leap;
                 }
-            }
 
-            for (const auto &[fromAndRun, pick] : quickest)
-                picked.emplace_back(&face, pick);
+                for (const auto &[run, leap] : quickest)
+                    picked.push_back({&face, {row, leap}});
+            }
         }
 
         int nextNodeId = 0;

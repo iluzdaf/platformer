@@ -17,4 +17,9 @@ float durationOf(const InputProgram &program);
 
 InputProgram cutShortAt(const InputProgram &program, float elapsed);
 
-InputIntentions replaying(const InputProgram &program, float elapsed, float feetX, float towardsX);
+InputIntentions replaying(
+    const InputProgram &program,
+    float elapsed,
+    float feetX,
+    float towardsX,
+    float stride = 0.0f);

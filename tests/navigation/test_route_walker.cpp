@@ -6,6 +6,7 @@
 #include "navigation/navigation_edge.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/footing.hpp"
+#include "navigation/input_program.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
 
@@ -347,4 +348,99 @@ TEST_CASE("A jump leg sends a direction its inputs set, not the way to its targe
     REQUIRE(first.jumpHeld);
     REQUIRE(after.direction.x == 1.0f);
     REQUIRE_FALSE(after.jumpHeld);
+}
+
+TEST_CASE(
+    "A walker that starts a fall short of its take-off walks on off the edge",
+    "[RouteWalker]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, Upper});
+    navigationGraph.addNode(1, {96.0f, Upper});
+    navigationGraph.addNode(2, {101.0f, Lower});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    InputIntentions walkingOff;
+    walkingOff.direction.x = 1.0f;
+    navigationGraph.addEdge({1, 2, EdgeType::Fall, {}, {{0.02f, walkingOff}}});
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {94.6f, Upper}));
+    walker.takeRouteTo(at(navigationGraph, {94.6f, Upper}), 2);
+    REQUIRE(walker.getTargetNodeId() == 2);
+
+    walker.follow(0.01f, at(navigationGraph, {94.6f, Upper}));
+    walker.follow(0.01f, at(navigationGraph, {96.6f, Upper}));
+    InputIntentions stillOnTheLedge = walker.follow(0.01f, at(navigationGraph, {98.6f, Upper}));
+
+    REQUIRE(stillOnTheLedge.direction.x == 1.0f);
+}
+
+TEST_CASE("A fall leg sends a direction its inputs set, not the way to its target", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, Upper});
+    navigationGraph.addNode(1, {96.0f, Upper});
+    navigationGraph.addNode(2, {101.0f, Lower});
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(1, 0, EdgeType::Walk);
+    InputIntentions backingOff;
+    backingOff.direction.x = -1.0f;
+    navigationGraph.addEdge({1, 2, EdgeType::Fall, {}, {{0.02f, backingOff}}});
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {96.0f, Upper}));
+    walker.takeRouteTo(at(navigationGraph, {96.0f, Upper}), 2);
+
+    REQUIRE(walker.follow(0.01f, at(navigationGraph, {96.0f, Upper})).direction.x == -1.0f);
+}
+
+TEST_CASE("A walker that lands short of a jump goes back to try it again", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, Lower});
+    navigationGraph.addNode(1, {96.0f, Upper});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.02f)});
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {0.0f, Lower}));
+    walker.takeRouteTo(at(navigationGraph, {0.0f, Lower}), 1);
+    ActorFacts inTheAir{
+        navigationGraph,
+        {20.0f, Lower - 10.0f},
+        glm::vec2(8.0f, 13.0f),
+        StepHeight,
+        std::nullopt,
+        ActorContactState{}};
+
+    walker.follow(0.01f, at(navigationGraph, {0.0f, Lower}));
+    walker.follow(0.01f, inTheAir);
+    walker.follow(0.01f, inTheAir);
+    InputIntentions cameDownShort = walker.follow(0.01f, at(navigationGraph, {30.0f, Lower}));
+
+    REQUIRE(cameDownShort.direction.x == -1.0f);
+}
+
+TEST_CASE("A walker in the air does not push past where its leg goes", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, Lower});
+    navigationGraph.addNode(1, {96.0f, Upper});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.01f)});
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {0.0f, Lower}));
+    walker.takeRouteTo(at(navigationGraph, {0.0f, Lower}), 1);
+    walker.follow(0.01f, at(navigationGraph, {0.0f, Lower}));
+    auto inTheAirAt = [&](float x)
+    {
+        ActorFacts facts{
+            navigationGraph,
+            {x, Upper - 10.0f},
+            glm::vec2(8.0f, 13.0f),
+            StepHeight,
+            std::nullopt,
+            ActorContactState{}};
+        facts.moveSpeed = 250.0f;
+        return facts;
+    };
+
+    REQUIRE(walker.follow(0.01f, inTheAirAt(97.0f)).direction.x == 0.0f);
+    REQUIRE(walker.follow(0.01f, inTheAirAt(98.0f)).direction.x == -1.0f);
 }

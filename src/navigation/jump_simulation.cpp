@@ -1,9 +1,11 @@
+#include <algorithm>
 #include <cmath>
 #include <optional>
 #include <vector>
 #include "navigation/jump_simulation.hpp"
 #include "actor/abilities/abilities.hpp"
 #include "actor/abilities/abilities_data.hpp"
+#include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/ability_states.hpp"
 #include "actor/mover.hpp"
 #include "actor/observed.hpp"
@@ -23,10 +25,22 @@ namespace
     constexpr float Settle = 0.5f;
     constexpr float HoldFractions[] = {1.0f, 0.75f, 0.5f, 0.25f};
 
-    float restingOn(const TileMap &tileMap, glm::vec2 feet, float width)
+    float restingOn(const TileMap &tileMap, glm::vec2 feet, const PhysicsBodyData &body)
     {
-        float beneath = width * 0.5f - Settle;
-        for (float across : {0.0f, -beneath, beneath})
+        std::optional<float> underTheFeet;
+        for (float across : {-Settle, Settle})
+        {
+            glm::ivec2 under = tileMap.tileContaining(feet + glm::vec2(across, Settle));
+            std::optional<AABB> ground = tileMap.groundAt(under);
+            if (ground && ground->top() >= feet.y - Settle &&
+                ground->top() <= feet.y + body.stepHeight + Settle)
+                underTheFeet = std::max(underTheFeet.value_or(ground->top()), ground->top());
+        }
+        if (underTheFeet)
+            return *underTheFeet;
+
+        float beneath = body.colliderSize.x * 0.5f - Settle;
+        for (float across : {-beneath, beneath})
         {
             glm::ivec2 under = tileMap.tileContaining(feet + glm::vec2(across, Settle));
             std::optional<AABB> ground = tileMap.groundAt(under);
@@ -38,6 +52,34 @@ namespace
     }
 
     constexpr float FarAway = 1.0e6f;
+
+    float strideOf(const AbilitiesData &abilitiesData)
+    {
+        return abilitiesData.move ? abilitiesData.move->moveSpeed * PhysicsStep : 0.0f;
+    }
+    constexpr float StillOnTheGroundFor = 0.1f;
+
+    bool settleOnto(
+        Mover &mover,
+        const TileMap &tileMap,
+        glm::vec2 takeOffFeet,
+        const PhysicsBodyData &physicsBodyData)
+    {
+        mover.standAt(takeOffFeet);
+        mover.lookAround(tileMap);
+        for (int settling = 0;
+             settling < MaximumSettlingSteps && !mover.observed().contacts.onGround;
+             ++settling)
+            mover.step(PhysicsStep, InputIntentions{}, tileMap);
+
+        return feetSettledOn(mover.feet().y, takeOffFeet.y, physicsBodyData.stepHeight);
+    }
+
+    void comeToRest(JumpAttempt &attempt, const TileMap &tileMap, const PhysicsBodyData &body)
+    {
+        attempt.path.back().y = restingOn(tileMap, attempt.path.back(), body);
+        attempt.landed = true;
+    }
 
     float holdDurationOf(const AbilitiesData &abilitiesData, float holdFraction)
     {
@@ -122,36 +164,84 @@ JumpAttempt simulateInputsAgainst(
     float towardsX)
 {
     Mover mover(abilitiesData, physicsBodyData);
-    mover.standAt(takeOffFeet);
-    mover.lookAround(tileMap);
-    for (int settling = 0; settling < MaximumSettlingSteps && !mover.observed().contacts.onGround;
-         ++settling)
-        mover.step(PhysicsStep, InputIntentions{}, tileMap);
-
     JumpAttempt attempt;
-    if (!feetSettledOn(mover.feet().y, takeOffFeet.y, physicsBodyData.stepHeight))
+    if (!settleOnto(mover, tileMap, takeOffFeet, physicsBodyData))
         return attempt;
 
     attempt.path.push_back(takeOffFeet);
 
     float elapsed = 0.0f;
+    bool airborne = false;
     for (int step = 0; step < MaximumSteps; ++step)
     {
-        mover.step(PhysicsStep, replaying(inputs, elapsed, mover.feet().x, towardsX), tileMap);
+        mover.step(
+            PhysicsStep,
+            replaying(inputs, elapsed, mover.feet().x, towardsX, strideOf(abilitiesData)),
+            tileMap);
         elapsed += PhysicsStep;
 
         attempt.path.push_back(mover.feet());
         attempt.steps = step + 1;
 
-        if (step > 0 && mover.observed().contacts.onGround)
+        if (!mover.observed().contacts.onGround)
+            airborne = true;
+        else if (airborne)
         {
-            attempt.path.back().y =
-                restingOn(tileMap, attempt.path.back(), physicsBodyData.colliderSize.x);
-
             attempt.inputs = cutShortAt(inputs, elapsed);
-            attempt.landed = true;
+            comeToRest(attempt, tileMap, physicsBodyData);
             return attempt;
         }
+        else if (elapsed > durationOf(inputs) + StillOnTheGroundFor)
+            return attempt;
+    }
+
+    JumpAttempt capped;
+    capped.steps = attempt.steps;
+    capped.capped = true;
+    return capped;
+}
+
+JumpAttempt simulateFallAgainst(
+    const TileMap &tileMap,
+    const AbilitiesData &abilitiesData,
+    const PhysicsBodyData &physicsBodyData,
+    glm::vec2 takeOffFeet,
+    float direction)
+{
+    Mover mover(abilitiesData, physicsBodyData);
+    JumpAttempt attempt;
+    if (!settleOnto(mover, tileMap, takeOffFeet, physicsBodyData))
+        return attempt;
+
+    attempt.path.push_back(takeOffFeet);
+
+    InputIntentions walkingOff;
+    walkingOff.direction.x = direction;
+    float elapsed = 0.0f;
+    std::optional<float> leftTheGroundAt;
+    for (int step = 0; step < MaximumSteps; ++step)
+    {
+        float wasAtX = mover.feet().x;
+        mover.step(PhysicsStep, leftTheGroundAt ? InputIntentions{} : walkingOff, tileMap);
+        elapsed += PhysicsStep;
+
+        attempt.path.push_back(mover.feet());
+        attempt.steps = step + 1;
+
+        bool onGround = mover.observed().contacts.onGround;
+        if (!leftTheGroundAt && !onGround)
+            leftTheGroundAt = elapsed;
+        else if (leftTheGroundAt && onGround)
+        {
+            attempt.inputs = {{*leftTheGroundAt, walkingOff}};
+            comeToRest(attempt, tileMap, physicsBodyData);
+            return attempt;
+        }
+        else if (
+            !leftTheGroundAt &&
+            (mover.feet().x == wasAtX ||
+             std::abs(mover.feet().x - takeOffFeet.x) > physicsBodyData.colliderSize.x))
+            return attempt;
     }
 
     JumpAttempt capped;

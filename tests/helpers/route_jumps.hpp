@@ -29,13 +29,18 @@ inline std::optional<glm::vec2> whereARouteJumpLands(
     }
 
     float elapsed = 0.0f;
+    bool airborne = false;
     for (int step = 0; step < 1000; ++step)
     {
-        input.set(replaying(inputs, elapsed, player.feet().x, towardsX));
+        float stride =
+            actorData.abilities.move ? actorData.abilities.move->moveSpeed * PhysicsStep : 0.0f;
+        input.set(replaying(inputs, elapsed, player.feet().x, towardsX, stride));
         elapsed += PhysicsStep;
         player.beginFrame();
         player.fixedUpdate(PhysicsStep, level);
-        if (step > 0 && player.onGround())
+        if (!player.onGround())
+            airborne = true;
+        else if (airborne)
             return player.feet();
     }
 

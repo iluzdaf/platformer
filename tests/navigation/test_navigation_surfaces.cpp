@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
 #include "timing/fixed_time_step.hpp"
 #include "navigation/input_program.hpp"
@@ -31,6 +32,7 @@ namespace
     constexpr int InsetFromTheLeft = 3;
     constexpr int InsetFromTheRight = 4;
     constexpr int AThinFloorLowDown = 5;
+    constexpr int APostAtTheRight = 6;
     constexpr int Floor = 9;
     constexpr float FloorTop = Floor * 16.0f;
 
@@ -50,7 +52,8 @@ namespace
              {APixelLower, solidWith(TileColliderData{{0.0f, 1.0f}, {16.0f, 15.0f}})},
              {InsetFromTheLeft, solidWith(TileColliderData{{2.0f, 0.0f}, {14.0f, 16.0f}})},
              {InsetFromTheRight, solidWith(TileColliderData{{0.0f, 0.0f}, {14.0f, 16.0f}})},
-             {AThinFloorLowDown, solidWith(TileColliderData{{0.0f, 12.0f}, {16.0f, 4.0f}})}});
+             {AThinFloorLowDown, solidWith(TileColliderData{{0.0f, 12.0f}, {16.0f, 4.0f}})},
+             {APostAtTheRight, solidWith(TileColliderData{{12.0f, 0.0f}, {4.0f, 16.0f}})}});
         return aTileMap(laid, width, height, 16, palette);
     }
 
@@ -505,4 +508,124 @@ TEST_CASE("A jump that lands while still held records only what it pressed", "[N
     REQUIRE(attempt.landed);
     REQUIRE(durationOf(attempt.inputs) < profile.abilities.jump->jumpDuration);
     REQUIRE(durationOf(attempt.inputs) == Catch::Approx(attempt.steps * PhysicsStep));
+}
+
+TEST_CASE("A fall into a wall is refused", "[NavigationSurfaces]")
+{
+    Placed laid;
+    layRow(laid, Floor, 0, 9, Full);
+    layColumn(laid, 6, 0, Floor - 1, Full);
+    TileMap tileMap = aMapOf(laid);
+    NavigationProfile profile = jumperProfile();
+
+    JumpAttempt fall = simulateFallAgainst(
+        tileMap, profile.abilities, profile.physicsBodyData, glm::vec2(92.0f, FloorTop), 1.0f);
+
+    REQUIRE_FALSE(fall.landed);
+}
+
+TEST_CASE("A step down no deeper than the body steps is walked, not fallen", "[NavigationSurfaces]")
+{
+    Placed laid;
+    layRow(laid, Floor, 1, 3, Full);
+    layRow(laid, Floor, 4, 6, APixelLower);
+
+    NavigationGraph graph = buildNavigationGraph(aMapOf(laid), jumperProfile());
+
+    for (const NavigationEdge &edge : graph.getEdges())
+        REQUIRE(edge.type != EdgeType::Fall);
+}
+
+TEST_CASE(
+    "A fall down the face of a wall rests on the floor under its feet, not the corner beside it",
+    "[NavigationSurfaces]")
+{
+    Placed laid;
+    layColumn(laid, 5, 2, Floor - 1, InsetFromTheLeft);
+    for (int column = 6; column <= 9; ++column)
+        layColumn(laid, column, 2, Floor - 1, Full);
+    layRow(laid, Floor, 0, 4, APixelLower);
+    layRow(laid, Floor, 5, 9, Full);
+    TileMap tileMap = aMapOf(laid);
+
+    for (float width : {4.0f, 5.0f, 6.0f})
+    {
+        NavigationProfile profile = jumperProfile();
+        profile.physicsBodyData.colliderSize.x = width;
+        profile.abilities.move->moveSpeed = 60.0f;
+
+        JumpAttempt fall = simulateFallAgainst(
+            tileMap, profile.abilities, profile.physicsBodyData, glm::vec2(82.0f, 32.0f), -1.0f);
+
+        INFO("a body " << width << " wide");
+        REQUIRE(fall.landed);
+        REQUIRE(fall.path.back().y == FloorTop + 1.0f);
+    }
+}
+
+TEST_CASE("A fall onto ground the graph cannot stand on is no edge", "[NavigationSurfaces]")
+{
+    Placed laid;
+    layRow(laid, 5, 0, 3, Full);
+    layColumn(laid, 4, 0, Floor - 1, APostAtTheRight);
+    layRow(laid, Floor, 0, 9, Full);
+    TileMap tileMap = aMapOf(laid);
+    NavigationProfile profile = jumperProfile();
+
+    JumpAttempt fall = simulateFallAgainst(
+        tileMap, profile.abilities, profile.physicsBodyData, glm::vec2(64.0f, 80.0f), 1.0f);
+    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+    REQUIRE(fall.landed);
+    REQUIRE(tileMap.tileContaining(fall.path.back()).x == 4);
+    for (const NavigationEdge &edge : graph.getEdges())
+        REQUIRE(edge.type != EdgeType::Fall);
+}
+
+TEST_CASE(
+    "A fall is kept only if it lands on its run from anywhere a walker takes off for it",
+    "[NavigationSurfaces]")
+{
+    Placed withoutALedge;
+    layRow(withoutALedge, 3, 0, 3, Full);
+    layRow(withoutALedge, Floor + 1, 0, 11, Full);
+    Placed withALedgeBelow = withoutALedge;
+    withALedgeBelow.push_back({{4, 5}, InsetFromTheLeft});
+    NavigationProfile profile = jumperProfile();
+    profile.physicsBodyData.colliderSize.x = 5.0f;
+    profile.abilities.move->moveSpeed = 400.0f;
+
+    int fallsChecked = 0;
+    for (const Placed &laid : {withoutALedge, withALedgeBelow})
+    {
+        TileMap tileMap = aMapOf(laid, 12, 12);
+        NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+        for (const NavigationEdge &edge : graph.getEdges())
+        {
+            if (edge.type != EdgeType::Fall)
+                continue;
+
+            ++fallsChecked;
+            for (float offset : {-TakeOffReach, TakeOffReach})
+            {
+                JumpAttempt again = simulateInputsAgainst(
+                    tileMap,
+                    profile.abilities,
+                    profile.physicsBodyData,
+                    edge.path.front() + glm::vec2(offset, 0.0f),
+                    edge.inputs,
+                    edge.path.back().x);
+                INFO(
+                    "falling from " << edge.path.front().x << "," << edge.path.front().y
+                                    << ", taking off " << offset << " from it");
+                if (again.steps == 0)
+                    continue;
+
+                REQUIRE(again.landed);
+                REQUIRE(again.path.back().y == edge.path.back().y);
+            }
+        }
+    }
+    REQUIRE(fallsChecked > 0);
 }

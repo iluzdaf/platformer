@@ -63,30 +63,38 @@ namespace
         return durationOf(candidate.inputs) < durationOf(against.inputs);
     }
 
-    bool landsOnTheRun(
-        const NavigationGraph &navigationGraph,
-        const TileMap &tileMap,
-        const NavigationProfile &profile,
-        int headroom,
-        const std::unordered_map<int, int> &components,
-        int component,
-        glm::vec2 feet)
+}
+
+namespace navigation
+{
+    namespace
     {
-        float standsOn = profile.physicsBodyData.colliderSize.x * 0.25f;
-        for (float across : {0.0f, -standsOn, standsOn})
+        bool landsOnTheRun(
+            const NavigationGraph &navigationGraph,
+            const TileMap &tileMap,
+            const NavigationProfile &profile,
+            int headroom,
+            const std::unordered_map<int, int> &components,
+            int component,
+            glm::vec2 feet)
         {
-            std::optional<int> governing = navigation::nodeGoverning(
-                navigationGraph,
-                tileMap,
-                feet + glm::vec2(across, 0.0f),
-                headroom,
-                profile.physicsBodyData.stepHeight);
-            auto run = governing ? components.find(*governing) : components.end();
-            if (run != components.end() && run->second == component)
-                return true;
+            float standsOn = profile.physicsBodyData.colliderSize.x * 0.25f;
+            for (float across : {0.0f, -standsOn, standsOn})
+            {
+                std::optional<int> governing = nodeGoverning(
+                    navigationGraph,
+                    tileMap,
+                    feet + glm::vec2(across, 0.0f),
+                    headroom,
+                    profile.physicsBodyData.stepHeight);
+                auto run = governing ? components.find(*governing) : components.end();
+                if (run != components.end() && run->second == component)
+                    return true;
+            }
+
+            return false;
         }
 
-        return false;
     }
 
     bool landsFromAnywhereItTakesOff(
@@ -94,7 +102,8 @@ namespace
         const TileMap &tileMap,
         const NavigationProfile &profile,
         int headroom,
-        const JumpCandidate &jump,
+        const std::vector<glm::vec2> &path,
+        const InputProgram &inputs,
         const std::unordered_map<int, int> &components,
         int component)
     {
@@ -104,9 +113,9 @@ namespace
                 tileMap,
                 profile.abilities,
                 profile.physicsBodyData,
-                jump.path.front() + glm::vec2(offset, 0.0f),
-                jump.inputs,
-                jump.path.back().x);
+                path.front() + glm::vec2(offset, 0.0f),
+                inputs,
+                path.back().x);
             navigationGraph.building().noting(again);
             bool couldStandThere = again.steps > 0;
             if (!couldStandThere)
@@ -125,10 +134,7 @@ namespace
 
         return true;
     }
-}
 
-namespace navigation
-{
     std::vector<ChosenJump> chooseJumps(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -136,12 +142,8 @@ namespace navigation
         int headroom)
     {
         float stepHeight = profile.physicsBodyData.stepHeight;
-        std::unordered_map<int, int> components;
-        std::vector<std::vector<int>> runs =
-            walkRuns(navigationGraph, tileMap, headroom, stepHeight);
-        for (size_t run = 0; run < runs.size(); ++run)
-            for (int id : runs[run])
-                components[id] = static_cast<int>(run);
+        std::unordered_map<int, int> components =
+            runOfEachNode(navigationGraph, tileMap, headroom, stepHeight);
 
         std::map<std::pair<int, int>, std::vector<JumpCandidate>> candidates;
 
@@ -182,7 +184,8 @@ namespace navigation
                         tileMap,
                         profile,
                         headroom,
-                        candidate,
+                        candidate.path,
+                        candidate.inputs,
                         components,
                         platform.second))
                 {
@@ -192,6 +195,21 @@ namespace navigation
         }
 
         return chosen;
+    }
+
+    std::unordered_map<int, int> runOfEachNode(
+        const NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        int headroom,
+        float stepHeight)
+    {
+        std::unordered_map<int, int> runs;
+        std::vector<std::vector<int>> found =
+            walkRuns(navigationGraph, tileMap, headroom, stepHeight);
+        for (size_t run = 0; run < found.size(); ++run)
+            for (int id : found[run])
+                runs[id] = static_cast<int>(run);
+        return runs;
     }
 
     void addJumpLandingNodes(NavigationGraph &navigationGraph, const std::vector<ChosenJump> &jumps)

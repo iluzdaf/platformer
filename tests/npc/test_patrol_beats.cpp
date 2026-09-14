@@ -161,6 +161,43 @@ TEST_CASE("A patrol turns at a beat just past a step in its run", "[Npc][Patrol]
     REQUIRE(turnedAtTheStep >= 2);
 }
 
+TEST_CASE("An npc that steps off a ledge a little late still drops to the floor", "[Npc][Patrol]")
+{
+    constexpr int Floor = 9;
+    TileData solid;
+    solid.solid = solid.grippable = true;
+    Placed laid;
+    layRow(laid, 3, 0, 3);
+    layRow(laid, Floor, 0, 11);
+    NpcData quick = thatPatrols(setupNpcData());
+    quick.actorData.abilities.move = MoveAbilityData{250.0f};
+    quick.actorData.physicsBodyData.colliderSize = glm::vec2(5.0f, 13.0f);
+    quick.actorData.physicsBodyData.colliderOffset = glm::vec2(5.5f, 3.0f);
+    std::map<std::string, NpcData> walkers{{"walker", quick}};
+    NpcSpawnData spawn = patrolling("walker", {3, 2}, {8, Floor - 1}, {1, 2});
+    spawn.feet = glm::vec2(62.6f, 48.0f);
+    Level level(
+        aLevelPlacing(laid, 12, 12, {1, 2}, {spawn}),
+        theOnlyPalette(paletteOf({{EmptyTile, TileData{}}, {SolidTile, solid}})),
+        PlayerData(),
+        walkers,
+        {});
+    Npc npc(spawn, walkers.at("walker"));
+    ScriptedNpcs scripts;
+    scripts.script(npc);
+
+    bool onTheFloor = false;
+    for (int step = 0; step < 300 && !onTheFloor; ++step)
+    {
+        npc.beginFrame();
+        npc.fixedUpdate(0.01f, level);
+        onTheFloor = npc.onGround() && footOf(npc).y > 100.0f;
+    }
+
+    INFO("ended at " << footOf(npc).x << "," << footOf(npc).y);
+    REQUIRE(onTheFloor);
+}
+
 TEST_CASE("A patrol resumed after a chase stays between its beats", "[Npc][Patrol][Chase]")
 {
     std::map<std::string, NpcData> chasers{{"chaser", aWalkerThatChases()}};

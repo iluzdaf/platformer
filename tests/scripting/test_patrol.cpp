@@ -400,7 +400,7 @@ TEST_CASE("Picks itself up again after coming off its route", "[Patrol]")
     REQUIRE(behavior.decide(0.01f, knockedDown).direction.x != 0.0f);
 }
 
-TEST_CASE("Does not steer while falling", "[Patrol]")
+TEST_CASE("Steers towards where a fall lands while falling", "[Patrol]")
 {
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {0.0f, 128.0f});
@@ -422,8 +422,9 @@ TEST_CASE("Does not steer while falling", "[Patrol]")
     for (float x : {99.0f, 101.0f, 103.0f, 100.0f, 102.0f})
     {
         INFO("falling past x " << x);
+        float steers = x < 101.0f ? 1.0f : (x > 101.0f ? -1.0f : 0.0f);
         REQUIRE(
-            behavior.decide(0.01f, airborneAt(navigationGraph, {x, 300.0f})).direction.x == 0.0f);
+            behavior.decide(0.01f, airborneAt(navigationGraph, {x, 300.0f})).direction.x == steers);
     }
 }
 

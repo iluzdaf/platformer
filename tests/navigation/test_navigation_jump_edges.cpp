@@ -379,11 +379,12 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Every jump edge in a shipped level lands the actor that walks it where the edge ends",
+    "Every jump and fall in a shipped level lands the actor that takes it where the edge ends",
     "[NavigationGraphBuilder][Jump]")
 {
     PlayerData playerData = loadGameData().playerData;
     int jumpsChecked = 0;
+    int fallsChecked = 0;
 
     for (const auto &entry : std::filesystem::directory_iterator(assetPath("levels")))
     {
@@ -405,7 +406,7 @@ TEST_CASE(
 
             for (const NavigationEdge &edge : named.graph.getEdges())
             {
-                if (edge.type != EdgeType::Jump)
+                if (edge.type != EdgeType::Jump && edge.type != EdgeType::Fall)
                     continue;
 
                 glm::vec2 from = named.graph.getNode(edge.fromId).feet;
@@ -415,17 +416,18 @@ TEST_CASE(
 
                 INFO(
                     entry.path().filename().string()
-                    << " " << named.name << " jumping from " << from.x << "," << from.y << " to "
+                    << " " << named.name << " leaving " << from.x << "," << from.y << " for "
                     << to.x << "," << to.y);
                 REQUIRE(landed.has_value());
                 REQUIRE(landed->x == Catch::Approx(edge.path.back().x).margin(1.0f));
                 REQUIRE(
                     level.getTileMap().tileStoodOnAt(*landed) ==
                     level.getTileMap().tileStoodOnAt(edge.path.back()));
-                ++jumpsChecked;
+                ++(edge.type == EdgeType::Jump ? jumpsChecked : fallsChecked);
             }
         }
     }
 
     REQUIRE(jumpsChecked > 0);
+    REQUIRE(fallsChecked > 0);
 }

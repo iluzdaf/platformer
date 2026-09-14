@@ -319,6 +319,21 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - A take-off first settles onto the ground under the node. A node whose feet are more
   than a settle above the ground it settles onto is not jumped from.
 
+**A jump edge carries the inputs that make it.**
+
+- An edge's `InputProgram` says what is pressed and for how long, cut short where the
+  simulated jump landed. The graph builder writes it; `RouteWalker` replays it.
+- One function, `replaying`, turns a program into input for each tick, for the walker,
+  for the actor that checks a shipped edge, and for the simulation. A step that sets no
+  direction is steered towards where the leg goes, so a walker keeps correcting in the
+  air; a step that sets one sends it as it is.
+- A walker takes off anywhere within `TakeOffReach` of the node, so a jump is kept only
+  if its inputs land it on the same run from both ends of that window. It has landed on
+  a run when the ground under its feet, or under either edge of the middle half of its
+  body that physics stands it on, belongs to that run, so a landing on the very corner
+  counts. An end the walker could not stand at does not count against it.
+- New moves are new programs for the builder to try; the walker does not change.
+
 **A state can be scripted, and walking stays in C++.**
 
 - A state that does `{"kind": "script", "call": "flee"}` is run by `states.flee` in its

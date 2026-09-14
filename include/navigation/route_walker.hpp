@@ -33,7 +33,7 @@ private:
     std::optional<int> currentNodeId, targetNodeId;
     std::optional<glm::vec2> stopShortAt;
     std::vector<int> legsLeft;
-    float jumpHeldFor = 0.0f;
+    float replayedFor = 0.0f;
 
     void anchor(const ActorFacts &context);
     glm::vec2 targetPosition(const ActorFacts &context, int setOffAt, int headingFor) const;

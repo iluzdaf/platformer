@@ -10,6 +10,7 @@
 #include "actor/patrol_data.hpp"
 #include "helpers/behavior_file.hpp"
 #include "navigation/navigation_edge.hpp"
+#include "navigation/input_program.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_graph.hpp"
 
@@ -22,8 +23,8 @@ namespace
         NavigationGraph navigationGraph;
         navigationGraph.addNode(0, {0.0f, 192.0f});
         navigationGraph.addNode(1, {96.0f, 192.0f});
-        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
-        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
+        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
+        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
         return navigationGraph;
     }
 
@@ -32,8 +33,8 @@ namespace
         NavigationGraph navigationGraph;
         navigationGraph.addNode(0, {0.0f, 192.0f});
         navigationGraph.addNode(1, {96.0f, 160.0f});
-        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
-        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
+        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
+        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
         return navigationGraph;
     }
 
@@ -276,8 +277,8 @@ TEST_CASE("Stops asking to jump once the hold is spent", "[Patrol]")
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {0.0f, 192.0f});
     navigationGraph.addNode(1, {96.0f, 192.0f});
-    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.05f});
-    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.05f});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.05f)});
+    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, aJumpHeldFor(0.05f)});
 
     BehaviorFile behavior(Patrol, between({0.0f, 192.0f}, {96.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
@@ -302,8 +303,8 @@ TEST_CASE("Holds a longer jump for longer", "[Patrol]")
         NavigationGraph navigationGraph;
         navigationGraph.addNode(0, {0.0f, 192.0f});
         navigationGraph.addNode(1, {96.0f, 192.0f});
-        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, holdDuration});
-        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, holdDuration});
+        navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(holdDuration)});
+        navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, aJumpHeldFor(holdDuration)});
 
         BehaviorFile behavior(Patrol, between({0.0f, 192.0f}, {96.0f, 192.0f}));
         anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
@@ -373,7 +374,7 @@ TEST_CASE("Will not roam somewhere it cannot get back from", "[Patrol]")
 TEST_CASE("Roams to the far platform when it can get back", "[Patrol]")
 {
     NavigationGraph navigationGraph = setupPlatformOverAnother();
-    navigationGraph.addEdge({3, 2, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({3, 2, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
 
     BehaviorFile behavior(Patrol, between({0.0f, 128.0f}, {288.0f, 192.0f}));
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});
@@ -385,7 +386,7 @@ TEST_CASE("Roams to the far platform when it can get back", "[Patrol]")
 TEST_CASE("Picks itself up again after coming off its route", "[Patrol]")
 {
     NavigationGraph navigationGraph = setupPlatformOverAnother();
-    navigationGraph.addEdge({3, 2, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({3, 2, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
 
     BehaviorFile behavior(Patrol, between({0.0f, 128.0f}, {288.0f, 192.0f}));
 
@@ -408,7 +409,7 @@ TEST_CASE("Does not steer while falling", "[Patrol]")
     navigationGraph.addEdge(0, 1, EdgeType::Walk);
     navigationGraph.addEdge(1, 0, EdgeType::Walk);
     navigationGraph.addEdge(1, 2, EdgeType::Fall);
-    navigationGraph.addEdge({2, 1, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({2, 1, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
 
     BehaviorFile behavior(Patrol, between({101.0f, 400.0f}, {0.0f, 128.0f}));
     anchorAt(behavior, navigationGraph, {96.0f, 128.0f});
@@ -437,8 +438,8 @@ TEST_CASE("Notices it is on a different platform at the same height", "[Patrol]"
     navigationGraph.addEdge(1, 0, EdgeType::Walk);
     navigationGraph.addEdge(2, 3, EdgeType::Walk);
     navigationGraph.addEdge(3, 2, EdgeType::Walk);
-    navigationGraph.addEdge({1, 2, EdgeType::Jump, {}, 0.2f});
-    navigationGraph.addEdge({2, 1, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({1, 2, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
+    navigationGraph.addEdge({2, 1, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
 
     BehaviorFile behavior(Patrol, between({48.0f, 128.0f}, {304.0f, 128.0f}));
     anchorAt(behavior, navigationGraph, {48.0f, 128.0f});
@@ -456,8 +457,8 @@ TEST_CASE("Tries the jump again after coming up short", "[Patrol]")
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {0.0f, 128.0f});
     navigationGraph.addNode(1, {96.0f, 64.0f});
-    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
-    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
+    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
 
     BehaviorFile behavior(Patrol, between({0.0f, 128.0f}, {96.0f, 64.0f}));
     anchorAt(behavior, navigationGraph, {0.0f, 128.0f});

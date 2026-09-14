@@ -9,6 +9,8 @@
 #include "navigation/navigation_graph_steps.hpp"
 #include "navigation/jump_arc.hpp"
 #include "navigation/jump_simulation.hpp"
+#include "navigation/input_program.hpp"
+#include "navigation/footing.hpp"
 #include "navigation/navigation_build_report.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -24,6 +26,7 @@ namespace
     {
         glm::vec2 position;
         std::vector<glm::vec2> path;
+        InputProgram inputs;
     };
 
     std::optional<JumpLanding> jumpFrom(
@@ -45,19 +48,82 @@ namespace
         if (!attempt.landed)
             return std::nullopt;
 
-        return JumpLanding{attempt.path.back(), attempt.path};
+        return JumpLanding{attempt.path.back(), attempt.path, attempt.inputs};
     }
 
     struct JumpCandidate
     {
         int toId = 0;
         std::vector<glm::vec2> path;
-        float holdDuration = 0.0f;
+        InputProgram inputs;
     };
 
     bool easierThan(const JumpCandidate &candidate, const JumpCandidate &against)
     {
-        return candidate.holdDuration < against.holdDuration;
+        return durationOf(candidate.inputs) < durationOf(against.inputs);
+    }
+
+    bool landsOnTheRun(
+        const NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom,
+        const std::unordered_map<int, int> &components,
+        int component,
+        glm::vec2 feet)
+    {
+        float standsOn = profile.physicsBodyData.colliderSize.x * 0.25f;
+        for (float across : {0.0f, -standsOn, standsOn})
+        {
+            std::optional<int> governing = navigation::nodeGoverning(
+                navigationGraph,
+                tileMap,
+                feet + glm::vec2(across, 0.0f),
+                headroom,
+                profile.physicsBodyData.stepHeight);
+            auto run = governing ? components.find(*governing) : components.end();
+            if (run != components.end() && run->second == component)
+                return true;
+        }
+
+        return false;
+    }
+
+    bool landsFromAnywhereItTakesOff(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom,
+        const JumpCandidate &jump,
+        const std::unordered_map<int, int> &components,
+        int component)
+    {
+        for (float offset : {-TakeOffReach, TakeOffReach})
+        {
+            JumpAttempt again = simulateInputsAgainst(
+                tileMap,
+                profile.abilities,
+                profile.physicsBodyData,
+                jump.path.front() + glm::vec2(offset, 0.0f),
+                jump.inputs,
+                jump.path.back().x);
+            navigationGraph.building().noting(again);
+            bool couldStandThere = again.steps > 0;
+            if (!couldStandThere)
+                continue;
+
+            if (!again.landed || !landsOnTheRun(
+                                     navigationGraph,
+                                     tileMap,
+                                     profile,
+                                     headroom,
+                                     components,
+                                     component,
+                                     again.path.back()))
+                return false;
+        }
+
+        return true;
     }
 }
 
@@ -77,7 +143,7 @@ namespace navigation
             for (int id : runs[run])
                 components[id] = static_cast<int>(run);
 
-        std::map<std::pair<int, int>, JumpCandidate> easiest;
+        std::map<std::pair<int, int>, std::vector<JumpCandidate>> candidates;
 
         std::vector<std::pair<int, glm::vec2>> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
@@ -102,20 +168,28 @@ namespace navigation
                     if (components.at(fromId) == components.at(*toId))
                         continue;
 
-                    JumpCandidate candidate{*toId, landing->path, arc.holdDuration};
-
-                    std::pair<int, int> platform(fromId, components.at(*toId));
-                    auto found = easiest.find(platform);
-                    if (found != easiest.end() && !easierThan(candidate, found->second))
-                        continue;
-
-                    easiest[platform] = candidate;
+                    candidates[{fromId, components.at(*toId)}].push_back(
+                        {*toId, landing->path, landing->inputs});
                 }
 
         std::vector<ChosenJump> chosen;
-        chosen.reserve(easiest.size());
-        for (const auto &[platform, candidate] : easiest)
-            chosen.push_back({platform.first, candidate.path, candidate.holdDuration});
+        for (auto &[platform, found] : candidates)
+        {
+            std::ranges::stable_sort(found, easierThan);
+            for (const JumpCandidate &candidate : found)
+                if (landsFromAnywhereItTakesOff(
+                        navigationGraph,
+                        tileMap,
+                        profile,
+                        headroom,
+                        candidate,
+                        components,
+                        platform.second))
+                {
+                    chosen.push_back({platform.first, candidate.path, candidate.inputs});
+                    break;
+                }
+        }
 
         return chosen;
     }
@@ -149,8 +223,7 @@ namespace navigation
             if (!toId || *toId == jump.fromId)
                 continue;
 
-            navigationGraph.addEdge(
-                {jump.fromId, *toId, EdgeType::Jump, jump.path, jump.holdDuration});
+            navigationGraph.addEdge({jump.fromId, *toId, EdgeType::Jump, jump.path, jump.inputs});
         }
     }
 

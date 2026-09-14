@@ -337,7 +337,11 @@ namespace
         REQUIRE(attempt.landed);
 
         std::optional<glm::vec2> actual = whereARouteJumpLands(
-            level, playerData.actorData, feetOf(TakeOffTile), 1.0f, arc.holdDuration);
+            level,
+            playerData.actorData,
+            feetOf(TakeOffTile),
+            attempt.inputs,
+            attempt.path.back().x);
         REQUIRE(actual.has_value());
 
         return {attempt.path.back(), *actual};

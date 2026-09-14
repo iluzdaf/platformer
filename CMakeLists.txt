@@ -221,6 +221,7 @@ add_library(platformer_lib OBJECT
     src/navigation/navigation_path.cpp
     src/navigation/navigation_place.cpp
     src/navigation/jump_simulation.cpp
+    src/navigation/input_program.cpp
     src/navigation/navigation_build_report.cpp
     src/navigation/navigation_profile_builder.cpp
     src/navigation/route_walker.cpp
@@ -418,6 +419,7 @@ add_executable(tests
     tests/navigation/test_navigation_place.cpp
     tests/navigation/test_navigation_profile.cpp
     tests/navigation/test_jump_simulation.cpp
+    tests/navigation/test_input_program.cpp
     tests/navigation/test_navigation_build_cost.cpp
     tests/navigation/test_route_walker.cpp
     tests/navigation/test_navigation_surfaces.cpp

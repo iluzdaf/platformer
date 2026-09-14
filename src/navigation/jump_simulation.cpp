@@ -9,6 +9,7 @@
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/footing.hpp"
+#include "navigation/input_program.hpp"
 #include "navigation/jump_arc.hpp"
 #include "physics/aabb.hpp"
 #include "physics/physics_body_data.hpp"
@@ -36,48 +37,31 @@ namespace
         return feet.y;
     }
 
+    constexpr float FarAway = 1.0e6f;
+
     float holdDurationOf(const AbilitiesData &abilitiesData, float holdFraction)
     {
         return abilitiesData.jump ? abilitiesData.jump->jumpDuration * holdFraction : 0.0f;
     }
-
-    class HoldingJump
-    {
-    public:
-        HoldingJump(float direction, float holdFor) : direction(direction), holdFor(holdFor)
-        {
-        }
-
-        InputIntentions next(float deltaTime)
-        {
-            InputIntentions inputIntentions;
-            inputIntentions.direction.x = direction;
-            if (heldFor < holdFor)
-            {
-                inputIntentions.jumpRequested = true;
-                inputIntentions.jumpHeld = true;
-                heldFor += deltaTime;
-            }
-            return inputIntentions;
-        }
-
-    private:
-        float direction = 0.0f;
-        float holdFor = 0.0f;
-        float heldFor = 0.0f;
-    };
 }
 
 JumpArc simulateJumpArc(const AbilitiesData &abilitiesData, float holdFraction)
 {
     float holdDuration = holdDurationOf(abilitiesData, holdFraction);
+    InputProgram inputs = aJumpHeldFor(holdDuration);
     Abilities abilities(abilitiesData);
     AbilityStates states;
     Observed observed;
-    HoldingJump holding(1.0f, holdDuration);
+    float elapsed = 0.0f;
+    auto next = [&]
+    {
+        InputIntentions pressed = replaying(inputs, elapsed, 0.0f, FarAway);
+        elapsed += PhysicsStep;
+        return pressed;
+    };
 
     observed.contacts.onGround = true;
-    glm::vec2 takeOff = abilities.decide(PhysicsStep, holding.next(PhysicsStep), observed, states);
+    glm::vec2 takeOff = abilities.decide(PhysicsStep, next(), observed, states);
     if (takeOff.y >= 0.0f)
         return {};
 
@@ -88,8 +72,7 @@ JumpArc simulateJumpArc(const AbilitiesData &abilitiesData, float holdFraction)
     observed.contacts.onGround = false;
     for (int step = 1; step < MaximumSteps; ++step)
     {
-        offset += abilities.decide(PhysicsStep, holding.next(PhysicsStep), observed, states) *
-                  PhysicsStep;
+        offset += abilities.decide(PhysicsStep, next(), observed, states) * PhysicsStep;
         offsets.push_back(offset);
 
         if (offset.y >= 0.0f)
@@ -121,6 +104,23 @@ JumpAttempt simulateJumpAgainst(
     float direction,
     float holdFraction)
 {
+    return simulateInputsAgainst(
+        tileMap,
+        abilitiesData,
+        physicsBodyData,
+        takeOffFeet,
+        aJumpHeldFor(holdDurationOf(abilitiesData, holdFraction)),
+        takeOffFeet.x + direction * FarAway);
+}
+
+JumpAttempt simulateInputsAgainst(
+    const TileMap &tileMap,
+    const AbilitiesData &abilitiesData,
+    const PhysicsBodyData &physicsBodyData,
+    glm::vec2 takeOffFeet,
+    const InputProgram &inputs,
+    float towardsX)
+{
     Mover mover(abilitiesData, physicsBodyData);
     mover.standAt(takeOffFeet);
     mover.lookAround(tileMap);
@@ -132,12 +132,13 @@ JumpAttempt simulateJumpAgainst(
     if (!feetSettledOn(mover.feet().y, takeOffFeet.y, physicsBodyData.stepHeight))
         return attempt;
 
-    HoldingJump holding(direction, holdDurationOf(abilitiesData, holdFraction));
     attempt.path.push_back(takeOffFeet);
 
+    float elapsed = 0.0f;
     for (int step = 0; step < MaximumSteps; ++step)
     {
-        mover.step(PhysicsStep, holding.next(PhysicsStep), tileMap);
+        mover.step(PhysicsStep, replaying(inputs, elapsed, mover.feet().x, towardsX), tileMap);
+        elapsed += PhysicsStep;
 
         attempt.path.push_back(mover.feet());
         attempt.steps = step + 1;
@@ -147,6 +148,7 @@ JumpAttempt simulateJumpAgainst(
             attempt.path.back().y =
                 restingOn(tileMap, attempt.path.back(), physicsBodyData.colliderSize.x);
 
+            attempt.inputs = cutShortAt(inputs, elapsed);
             attempt.landed = true;
             return attempt;
         }

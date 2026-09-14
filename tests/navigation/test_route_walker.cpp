@@ -4,6 +4,7 @@
 #include "actor/actor_contact_state.hpp"
 #include "navigation/route_walker.hpp"
 #include "navigation/navigation_edge.hpp"
+#include "input/input_intentions.hpp"
 #include "navigation/footing.hpp"
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_node.hpp"
@@ -314,4 +315,36 @@ TEST_CASE("A walker whose ground is gone altogether takes no route", "[RouteWalk
     REQUIRE_NOTHROW(walker.keepInStep(at(nothing, {0.0f, 192.0f})));
 
     REQUIRE_FALSE(walker.isAnchored());
+}
+
+TEST_CASE("A jump leg sends a direction its inputs set, not the way to its target", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, Lower});
+    navigationGraph.addNode(1, {96.0f, Upper});
+    InputIntentions backingOff;
+    backingOff.direction.x = -1.0f;
+    backingOff.jumpRequested = backingOff.jumpHeld = true;
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, {{0.05f, backingOff}}});
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {0.0f, Lower}));
+    walker.takeRouteTo(at(navigationGraph, {0.0f, Lower}), 1);
+
+    ActorFacts inTheAir{
+        navigationGraph,
+        {0.0f, Lower - 10.0f},
+        glm::vec2(8.0f, 13.0f),
+        StepHeight,
+        std::nullopt,
+        ActorContactState{}};
+
+    InputIntentions first = walker.follow(0.01f, at(navigationGraph, {0.0f, Lower}));
+    for (int tick = 0; tick < 5; ++tick)
+        walker.follow(0.01f, inTheAir);
+    InputIntentions after = walker.follow(0.01f, inTheAir);
+
+    REQUIRE(first.direction.x == -1.0f);
+    REQUIRE(first.jumpHeld);
+    REQUIRE(after.direction.x == 1.0f);
+    REQUIRE_FALSE(after.jumpHeld);
 }

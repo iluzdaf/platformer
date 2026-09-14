@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include "navigation/input_program.hpp"
 
 enum class EdgeType
 {
@@ -16,6 +17,6 @@ struct NavigationEdge
     int fromId, toId;
     EdgeType type;
     std::vector<glm::vec2> path;
-    float holdDuration = 0.0f;
+    InputProgram inputs;
     float wallDirection = 0.0f;
 };

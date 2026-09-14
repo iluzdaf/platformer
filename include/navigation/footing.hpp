@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+inline constexpr float TakeOffReach = 1.5f;
+
 // A climber counts as having reached a node on its wall once its feet are this close.
 inline constexpr float ClimbArrivesWithin = 1.0f;
 

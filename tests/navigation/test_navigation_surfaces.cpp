@@ -1,4 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
+#include "actor/abilities/jump_ability_data.hpp"
+#include "timing/fixed_time_step.hpp"
+#include "navigation/input_program.hpp"
+#include "navigation/footing.hpp"
+#include <catch2/catch_approx.hpp>
+#include <cmath>
 #include <optional>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
@@ -346,4 +352,157 @@ TEST_CASE("Feet are over ground to within a settle of the collider's edges", "[N
     REQUIRE_FALSE(navigation::feetOverGround(tileMap, {79.0f, FloorTop}));
     REQUIRE_FALSE(navigation::feetOverGround(tileMap, {95.0f, FloorTop}));
     REQUIRE_FALSE(navigation::feetOverGround(tileMap, {64.0f, FloorTop}));
+}
+
+namespace
+{
+    Placed aNarrowLedgeWithAnotherBeyond(int narrow, int gap, int row, bool onTheLeft)
+    {
+        auto column = [&](int x) { return onTheLeft ? x : 15 - x; };
+        Placed laid;
+        laid.push_back({{column(narrow), row}, Full});
+        for (int x = 0; x <= narrow - gap; ++x)
+            laid.push_back({{column(x), row}, Full});
+        for (int x = narrow + 1; x <= 15; ++x)
+            laid.push_back({{column(x), Floor - 2}, Full});
+        return laid;
+    }
+
+    Placed aLedgeInsetFromTheLeft()
+    {
+        Placed laid;
+        layRow(laid, 4, 0, 1, Full);
+        laid.push_back({{2, 4}, InsetFromTheRight});
+        layRow(laid, Floor - 2, 2, 15, Full);
+        return laid;
+    }
+}
+
+TEST_CASE(
+    "A jump is kept only if it lands on its run from anywhere a walker takes off for it",
+    "[NavigationSurfaces]")
+{
+    struct Scene
+    {
+        Placed laid;
+        float width;
+    };
+    std::vector<Scene> scenes{
+        {aLedgeInsetFromTheLeft(), 11.0f},
+        {aNarrowLedgeWithAnotherBeyond(5, 2, 4, true), 5.0f},
+        {aNarrowLedgeWithAnotherBeyond(5, 2, 6, true), 5.0f},
+        {aNarrowLedgeWithAnotherBeyond(5, 2, 5, false), 5.0f}};
+
+    for (const Scene &scene : scenes)
+    {
+        TileMap tileMap = aMapOf(scene.laid, 16, 12);
+        NavigationProfile profile = jumperProfile();
+        profile.physicsBodyData.colliderSize.x = scene.width;
+        NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+        for (const NavigationEdge &edge : graph.getEdges())
+        {
+            if (edge.type != EdgeType::Jump)
+                continue;
+
+            for (float offset : {-TakeOffReach, TakeOffReach})
+            {
+                JumpAttempt again = simulateInputsAgainst(
+                    tileMap,
+                    profile.abilities,
+                    profile.physicsBodyData,
+                    edge.path.front() + glm::vec2(offset, 0.0f),
+                    edge.inputs,
+                    edge.path.back().x);
+                INFO(
+                    "jumping from " << edge.path.front().x << "," << edge.path.front().y << " to "
+                                    << edge.path.back().x << "," << edge.path.back().y
+                                    << ", taking off " << offset << " from it");
+                REQUIRE(again.landed);
+                REQUIRE(again.path.back().y == edge.path.back().y);
+                REQUIRE(std::abs(again.path.back().x - edge.path.back().x) <= 2.0f * TakeOffReach);
+            }
+        }
+    }
+}
+
+TEST_CASE("A jump that lands on the very corner of its run is kept", "[NavigationSurfaces]")
+{
+    struct Corner
+    {
+        Placed laid;
+        float width;
+        glm::vec2 at;
+    };
+    Placed onTheLeft;
+    layRow(onTheLeft, 4, 0, 2, Full);
+    layRow(onTheLeft, Floor - 2, 3, 15, Full);
+    Placed onTheRight;
+    layRow(onTheRight, 4, 13, 15, Full);
+    layRow(onTheRight, Floor - 2, 0, 12, Full);
+    Placed insetOnTheRight;
+    layRow(insetOnTheRight, 5, 14, 15, Full);
+    insetOnTheRight.push_back({{13, 5}, InsetFromTheLeft});
+    layRow(insetOnTheRight, Floor - 2, 0, 10, Full);
+    std::vector<Corner> corners{
+        {onTheLeft, 8.0f, {48.0f, 64.0f}},
+        {onTheRight, 8.0f, {208.0f, 64.0f}},
+        {insetOnTheRight, 5.0f, {210.0f, 80.0f}}};
+
+    for (const Corner &corner : corners)
+    {
+        NavigationProfile profile = jumperProfile();
+        profile.physicsBodyData.colliderSize.x = corner.width;
+        NavigationGraph graph = buildNavigationGraph(aMapOf(corner.laid, 16, 12), profile);
+
+        bool ontoTheCorner = false;
+        for (const NavigationEdge &edge : graph.getEdges())
+            ontoTheCorner = ontoTheCorner ||
+                            (edge.type == EdgeType::Jump && edge.path.back().y == corner.at.y &&
+                             std::abs(edge.path.back().x - corner.at.x) <= 2.0f);
+        INFO("the corner at " << corner.at.x << "," << corner.at.y);
+        REQUIRE(ontoTheCorner);
+    }
+}
+
+TEST_CASE(
+    "A jump from the very end of its run is not held to where the walker cannot stand",
+    "[NavigationSurfaces]")
+{
+    Placed laid;
+    layRow(laid, 5, 0, 1, Full);
+    laid.push_back({{2, 5}, InsetFromTheRight});
+    layRow(laid, Floor - 2, 4, 15, Full);
+    TileMap tileMap = aMapOf(laid, 16, 12);
+    NavigationProfile profile = jumperProfile();
+    profile.physicsBodyData.colliderSize.x = 5.0f;
+
+    NavigationGraph graph = buildNavigationGraph(tileMap, profile);
+
+    bool jumpsUp = false;
+    for (const NavigationEdge &edge : graph.getEdges())
+        jumpsUp = jumpsUp || (edge.type == EdgeType::Jump && edge.path.front().x == 64.0f &&
+                              edge.path.back().y == 80.0f);
+    REQUIRE(jumpsUp);
+}
+
+TEST_CASE("A jump that lands while still held records only what it pressed", "[NavigationSurfaces]")
+{
+    Placed laid;
+    layRow(laid, Floor, 0, 9, Full);
+    layRow(laid, Floor - 2, 0, 9, Full);
+    TileMap tileMap = aMapOf(laid);
+    NavigationProfile profile = jumperProfile();
+
+    JumpAttempt attempt = simulateJumpAgainst(
+        tileMap,
+        profile.abilities,
+        profile.physicsBodyData,
+        glm::vec2(64.0f, FloorTop),
+        1.0f,
+        1.0f);
+
+    REQUIRE(attempt.landed);
+    REQUIRE(durationOf(attempt.inputs) < profile.abilities.jump->jumpDuration);
+    REQUIRE(durationOf(attempt.inputs) == Catch::Approx(attempt.steps * PhysicsStep));
 }

@@ -123,7 +123,7 @@ namespace navigation
                 if (!toId || *toId == fromId)
                     continue;
 
-                navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, {}, 0.0f});
+                navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, {}, {}});
             }
     }
 }

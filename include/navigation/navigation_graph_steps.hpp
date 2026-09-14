@@ -3,6 +3,7 @@
 #include <optional>
 #include <vector>
 #include <glm/glm.hpp>
+#include "navigation/input_program.hpp"
 
 class NavigationGraph;
 class TileMap;
@@ -14,7 +15,7 @@ namespace navigation
     {
         int fromId = 0;
         std::vector<glm::vec2> path;
-        float holdDuration = 0.0f;
+        InputProgram inputs;
     };
 
     bool canStandOn(const TileMap &tileMap, glm::ivec2 groundTilePosition, int headroom);

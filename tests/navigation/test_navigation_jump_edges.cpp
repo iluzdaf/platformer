@@ -378,7 +378,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Every jump and fall in a shipped level lands the actor that takes it where the edge ends",
+    "Every jump and fall in a shipped level lands the actor that takes it where the edge ends, "
+    "and a fall or a leap off a wall does not touch spikes on the way",
     "[NavigationGraphBuilder][Jump]")
 {
     PlayerData playerData = loadGameData().playerData;
@@ -410,8 +411,16 @@ TEST_CASE(
 
                 glm::vec2 from = named.graph.getNode(edge.fromId).feet;
                 glm::vec2 to = named.graph.getNode(edge.toId).feet;
-                std::optional<glm::vec2> landed =
-                    whereARouteJumpLands(level, actorData, from, edge.inputs, to.x);
+                bool keptClearOfSpikes = edge.type == EdgeType::Fall ||
+                                         named.graph.getNode(edge.fromId).kind == NodeKind::OnWall;
+                std::optional<glm::vec2> landed = whereARouteJumpLands(
+                    level,
+                    actorData,
+                    from,
+                    edge.inputs,
+                    to.x,
+                    edge.wallDirection,
+                    keptClearOfSpikes);
 
                 INFO(
                     entry.path().filename().string()

@@ -11,6 +11,7 @@
 #include "helpers/tiles.hpp"
 #include "physics/aabb.hpp"
 #include "tile_map/tile_map.hpp"
+#include "tile_map/tile_collider_data.hpp"
 #include "tile_map/tile_data.hpp"
 #include "tile_map/tile_map_data.hpp"
 #include "tile_map/tile_palette_data.hpp"
@@ -499,4 +500,22 @@ TEST_CASE("Where feet and middles fall on a tile is the same with or without a m
     REQUIRE(topLeftOfTile(tile, 16) == tileMap.topLeftOfTile(tile));
     REQUIRE(feetOnTile(tile, 16) == glm::vec2(56.0f, 80.0f));
     REQUIRE(middleOfTile(tile, 16) == glm::vec2(56.0f, 72.0f));
+}
+
+TEST_CASE("A box touches the tiles whose colliders it overlaps, and no others", "[TileMap]")
+{
+    constexpr int ShallowTile = 2;
+    TileData shallow;
+    shallow.solid = true;
+    shallow.collider = TileColliderData{glm::vec2(0.0f, 12.0f), glm::vec2(16.0f, 4.0f)};
+    TilePaletteData palette = aPaletteWithASolidTile();
+    palette.tiles[ShallowTile] = shallow;
+    TileMap tileMap = aTileMap({{{1, 1}, SolidTile}, {{3, 1}, ShallowTile}}, 10, 10, 16, palette);
+
+    REQUIRE(
+        tileMap.tilesTouching(AABB({30.0f, 20.0f}, {4.0f, 4.0f})) == std::vector{glm::ivec2(1, 1)});
+    REQUIRE(tileMap.tilesTouching(AABB({32.0f, 20.0f}, {4.0f, 4.0f})).empty());
+    REQUIRE(tileMap.tilesTouching(AABB({50.0f, 20.0f}, {4.0f, 4.0f})).empty());
+    REQUIRE(
+        tileMap.tilesTouching(AABB({50.0f, 26.0f}, {4.0f, 4.0f})) == std::vector{glm::ivec2(3, 1)});
 }

@@ -7,6 +7,7 @@
 #include "actor/abilities/abilities_data.hpp"
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/ability_states.hpp"
+#include "actor/actor_contact_state.hpp"
 #include "actor/mover.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
@@ -73,6 +74,34 @@ namespace
             mover.step(PhysicsStep, InputIntentions{}, tileMap);
 
         return feetSettledOn(mover.feet().y, takeOffFeet.y, physicsBodyData.stepHeight);
+    }
+
+    bool takeHold(Mover &mover, const TileMap &tileMap, glm::vec2 takeOffFeet, float wallDirection)
+    {
+        mover.standAt(takeOffFeet);
+        mover.lookAround(tileMap);
+        InputIntentions holding;
+        holding.climbRequested = true;
+        holding.direction.x = wallDirection;
+        for (int settling = 0; settling < MaximumSettlingSteps && !mover.states().wallHang.active;
+             ++settling)
+            mover.step(PhysicsStep, holding, tileMap);
+
+        return mover.states().wallHang.active &&
+               std::abs(mover.feet().y - takeOffFeet.y) <= ClimbArrivesWithin;
+    }
+
+    bool getReady(
+        Mover &mover,
+        const TileMap &tileMap,
+        glm::vec2 takeOffFeet,
+        float wallDirection,
+        const PhysicsBodyData &physicsBodyData)
+    {
+        if (wallDirection == 0.0f)
+            return settleOnto(mover, tileMap, takeOffFeet, physicsBodyData);
+
+        return takeHold(mover, tileMap, takeOffFeet, wallDirection);
     }
 
     void comeToRest(JumpAttempt &attempt, const TileMap &tileMap, const PhysicsBodyData &body)
@@ -155,23 +184,42 @@ JumpAttempt simulateJumpAgainst(
         takeOffFeet.x + direction * FarAway);
 }
 
+JumpAttempt simulateWallJumpAgainst(
+    const TileMap &tileMap,
+    const AbilitiesData &abilitiesData,
+    const PhysicsBodyData &physicsBodyData,
+    glm::vec2 takeOffFeet,
+    float wallDirection)
+{
+    return simulateInputsAgainst(
+        tileMap,
+        abilitiesData,
+        physicsBodyData,
+        takeOffFeet,
+        aWallJumpAwayFrom(wallDirection),
+        takeOffFeet.x - wallDirection * FarAway,
+        wallDirection);
+}
+
 JumpAttempt simulateInputsAgainst(
     const TileMap &tileMap,
     const AbilitiesData &abilitiesData,
     const PhysicsBodyData &physicsBodyData,
     glm::vec2 takeOffFeet,
     const InputProgram &inputs,
-    float towardsX)
+    float towardsX,
+    float wallDirection)
 {
     Mover mover(abilitiesData, physicsBodyData);
     JumpAttempt attempt;
-    if (!settleOnto(mover, tileMap, takeOffFeet, physicsBodyData))
+    if (!getReady(mover, tileMap, takeOffFeet, wallDirection, physicsBodyData))
         return attempt;
 
     attempt.path.push_back(takeOffFeet);
 
     float elapsed = 0.0f;
     bool airborne = false;
+    bool leftTheWall = false;
     for (int step = 0; step < MaximumSteps; ++step)
     {
         mover.step(
@@ -183,7 +231,18 @@ JumpAttempt simulateInputsAgainst(
         attempt.path.push_back(mover.feet());
         attempt.steps = step + 1;
 
-        if (!mover.observed().contacts.onGround)
+        const ActorContactState &contacts = mover.observed().contacts;
+        bool atTheWall =
+            wallDirection != 0.0f &&
+            (wallDirection < 0.0f ? contacts.touchingLeftWall : contacts.touchingRightWall);
+        if (atTheWall && leftTheWall)
+        {
+            attempt.cameBackToTheWall = true;
+            return attempt;
+        }
+        leftTheWall = leftTheWall || !atTheWall;
+
+        if (!contacts.onGround)
             airborne = true;
         else if (airborne)
         {

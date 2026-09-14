@@ -105,17 +105,21 @@ namespace navigation
         const std::vector<glm::vec2> &path,
         const InputProgram &inputs,
         const std::unordered_map<int, int> &components,
-        int component)
+        int component,
+        float wallDirection)
     {
-        for (float offset : {-TakeOffReach, TakeOffReach})
+        glm::vec2 along = wallDirection == 0.0f ? glm::vec2(TakeOffReach, 0.0f)
+                                                : glm::vec2(0.0f, ClimbArrivesWithin);
+        for (glm::vec2 offset : {-along, along})
         {
             JumpAttempt again = simulateInputsAgainst(
                 tileMap,
                 profile.abilities,
                 profile.physicsBodyData,
-                path.front() + glm::vec2(offset, 0.0f),
+                path.front() + offset,
                 inputs,
-                path.back().x);
+                path.back().x,
+                wallDirection);
             navigationGraph.building().noting(again);
             bool couldStandThere = again.steps > 0;
             if (!couldStandThere)

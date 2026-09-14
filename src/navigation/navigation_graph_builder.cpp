@@ -271,7 +271,9 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
     navigation::addJumpEdges(navigationGraph, tileMap, profile, headroom, jumps);
     navigation::addFallEdges(navigationGraph, tileMap, profile, headroom, falls);
 
-    navigation::addClimbing(navigationGraph, tileMap, profile, headroom);
+    std::vector<navigation::ClimbFace> faces =
+        navigation::addClimbing(navigationGraph, tileMap, profile, headroom);
+    navigation::addWallJumps(navigationGraph, tileMap, profile, headroom, faces);
 
     return navigationGraph;
 }

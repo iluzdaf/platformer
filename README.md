@@ -380,6 +380,8 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - A walker begins a replayed leg only once it stands within `TakeOffReach` of the
   take-off, and walks there until it does. The inputs were recorded from standing, and a
   jump pressed before the actor stands is lost while the steering walks it off the edge.
+  A leg that leaves from a node on a wall begins once the walker holds that wall within
+  `ClimbArrivesWithin` of the node's height, and until then it climbs there, holding on.
 - A walker goes back to try a replayed leg again once its inputs have run out and it is
   on the ground, having left it or still at the take-off; a fall begun a little short of
   its take-off walks on off the edge.
@@ -393,7 +395,35 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - Climbing down onto a wall from the ledge above is offered only to a body that can
   lower itself.
 - Every edge of every shipped level gets a walker on real physics where it ends in the
-  tests, from its node, and a jump or fall from a pixel either side of it too.
+  tests, from its node, and a jump or fall from a pixel either side of it too, or above
+  and below it for a leap off a wall.
+
+**A wall jump is a jump from a hold on a wall.**
+
+- A body that can wall jump may leap from any hold on a face it climbs: each tile row
+  where it hangs against grippable wall, off the ground, with a tile of room above its
+  head for the kick. A leap is one step of jump pressed away from the wall, then
+  steering away, all the way or towards each node the first flight passes over, so it
+  can stop over a shelf in the gap. Steering back only brings it into the wall below
+  the top, since the kick carries it out further than it can return before it falls.
+- A flight that comes back to the wall it left is sliding down it, not leaping, and the
+  simulation stops it there.
+- Every leap that works is kept, not only ones that are quicker than another way: the
+  builder records what a body can do, and the pathfinder chooses. From each hold, the
+  quickest leap onto each run is kept, so a hold does not carry several flights to the
+  same ground.
+- A hold that keeps a leap becomes a node on its face, joined by climbs to the holds
+  and ends either side of it.
+- The simulation takes hold of the wall before it leaps, as a walker that climbed there
+  does. A climber stops within `ClimbArrivesWithin` of its hold, so a leap is kept only
+  if it lands on the same run from that far above and below it too.
+- A leap or a fall that touches anything deadly on the way is not offered. A touch is
+  counted as the game counts the one that kills the player: the body's collider, grown
+  by its contact skin, against the deadly tile's collider, so a path that grazes spikes
+  is refused and one over the bare part of a spike tile is not.
+- A leap comes down at a node of its own, joined by walks to the run it lands on.
+- A leap is a jump edge that says which side its wall is on, and the walker replays it
+  as it does any other; only where it begins is new.
 
 **A route is the quickest way, not the shortest.**
 
@@ -406,8 +436,9 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   graph made by hand, costs its length. It stays A*: a node's estimate is its distance
   to the goal at the quickest pace any edge of the graph covers ground, which no route
   can beat, so a route may head away from its goal when that is quicker.
-- So the way depends on the body. Off a tall grippable wall, a body that slides down it
-  climbs down, and one that does not slide drops.
+- So the way depends on the body. Off a tall grippable wall, a body that can wall jump
+  lowers onto it and leaps clear. Of those that cannot, one that slides down it climbs
+  down, and one that does not slide drops.
 - Where an edge is the quickest way to its end, a walker in the tests takes it within
   0.15 s of the time it says.
 

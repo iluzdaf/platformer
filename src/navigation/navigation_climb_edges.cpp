@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <optional>
+#include <vector>
 #include "navigation/navigation_graph_steps.hpp"
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_profile.hpp"
@@ -32,13 +33,6 @@ namespace
                grippableBeside(tileMap, wallX, footRow, headroom);
     }
 
-    glm::vec2 againstTheWall(const TileMap &tileMap, int climbX, int wallX, int footRow)
-    {
-        float tileSize = static_cast<float>(tileMap.getTileSize());
-        glm::vec2 corner = tileMap.topLeftOfTile(glm::ivec2(climbX, footRow));
-        return corner + glm::vec2(wallX > climbX ? tileSize : 0.0f, 0.0f);
-    }
-
     std::optional<int> ledgeAboveTheFace(
         const NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -56,7 +50,7 @@ namespace
         return navigation::nodeGoverning(
             navigationGraph,
             tileMap,
-            againstTheWall(tileMap, wallX, climbX, wallTop.y),
+            navigation::againstTheWall(tileMap, wallX, climbX, wallTop.y),
             headroom,
             stepHeight);
     }
@@ -64,14 +58,22 @@ namespace
 
 namespace navigation
 {
-    void addClimbing(
+    glm::vec2 againstTheWall(const TileMap &tileMap, int climbX, int wallX, int footRow)
+    {
+        float tileSize = static_cast<float>(tileMap.getTileSize());
+        glm::vec2 corner = tileMap.topLeftOfTile(glm::ivec2(climbX, footRow));
+        return corner + glm::vec2(wallX > climbX ? tileSize : 0.0f, 0.0f);
+    }
+
+    std::vector<ClimbFace> addClimbing(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
         int headroom)
     {
+        std::vector<ClimbFace> faces;
         if (!profile.climbs())
-            return;
+            return faces;
 
         int nextNodeId = 0;
         for (const auto &[id, node] : navigationGraph.getNodes())
@@ -144,8 +146,10 @@ namespace navigation
                     }
 
                     int topId = endOfTheFace(climbX, wallX, *runTop);
+                    int bottomId = endOfTheFace(climbX, wallX, runBottom);
                     float wallDirection = static_cast<float>(side);
-                    joinBothWays(topId, endOfTheFace(climbX, wallX, runBottom), wallDirection);
+                    joinBothWays(topId, bottomId, wallDirection);
+                    faces.push_back({climbX, wallX, *runTop, runBottom, topId, bottomId});
                     if (ledgeId)
                         join(topId, *ledgeId, wallDirection);
 
@@ -155,5 +159,7 @@ namespace navigation
                     runTop.reset();
                 }
             }
+
+        return faces;
     }
 }

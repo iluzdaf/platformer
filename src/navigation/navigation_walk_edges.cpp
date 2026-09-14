@@ -11,6 +11,21 @@
 #include "navigation/navigation_profile.hpp"
 #include "tile_map/tile_map.hpp"
 
+namespace
+{
+    void walkBothWays(
+        NavigationGraph &navigationGraph,
+        const NavigationProfile &profile,
+        int oneId,
+        int otherId)
+    {
+        for (auto [fromId, toId] : {std::pair(oneId, otherId), std::pair(otherId, oneId)})
+            navigationGraph.addEdge(
+                navigation::timed(
+                    {fromId, toId, EdgeType::Walk, {}, {}}, navigationGraph, profile));
+    }
+}
+
 namespace navigation
 {
     std::vector<std::vector<int>> walkRuns(
@@ -67,14 +82,27 @@ namespace navigation
         float stepHeight = profile.physicsBodyData.stepHeight;
         for (const std::vector<int> &run : walkRuns(navigationGraph, tileMap, headroom, stepHeight))
             for (size_t index = 1; index < run.size(); ++index)
+                walkBothWays(navigationGraph, profile, run[index - 1], run[index]);
+    }
+
+    void addWalksTo(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom,
+        int nodeId)
+    {
+        float stepHeight = profile.physicsBodyData.stepHeight;
+        for (const std::vector<int> &run : walkRuns(navigationGraph, tileMap, headroom, stepHeight))
+            for (size_t index = 0; index < run.size(); ++index)
             {
-                auto walk = [&](int fromId, int toId)
-                {
-                    navigationGraph.addEdge(
-                        timed({fromId, toId, EdgeType::Walk, {}, {}}, navigationGraph, profile));
-                };
-                walk(run[index - 1], run[index]);
-                walk(run[index], run[index - 1]);
+                if (run[index] != nodeId)
+                    continue;
+
+                if (index > 0)
+                    walkBothWays(navigationGraph, profile, run[index - 1], nodeId);
+                if (index + 1 < run.size())
+                    walkBothWays(navigationGraph, profile, nodeId, run[index + 1]);
             }
     }
 }

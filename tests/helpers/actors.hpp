@@ -142,6 +142,16 @@ inline AbilitiesData climberAbilities()
     return abilitiesData;
 }
 
+inline AbilitiesData wallJumperAbilities()
+{
+    AbilitiesData abilitiesData = climberAbilities();
+    abilitiesData.move = MoveAbilityData{};
+    abilitiesData.gravity = GravityAbilityData{};
+    abilitiesData.mantle = MantleAbilityData{};
+    abilitiesData.wallJump = WallJumpAbilityData{};
+    return abilitiesData;
+}
+
 inline NavigationProfile profileThatMoves(float height, const AbilitiesData &abilitiesData)
 {
     ActorData actorData = anActorOfHeight(height);
@@ -167,4 +177,9 @@ inline NavigationProfile jumperProfile()
 inline NavigationProfile climberProfile()
 {
     return profileThatMoves(13.0f, climberAbilities());
+}
+
+inline NavigationProfile wallJumperProfile()
+{
+    return profileThatMoves(13.0f, wallJumperAbilities());
 }

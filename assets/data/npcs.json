@@ -90,6 +90,7 @@
             "abilities":{
                 "move":{"moveSpeed":90},
                 "jump":{"jumpSpeed":-320},
+                "wallJump":{},
                 "wallHang":{},
                 "wallClimb":{"climbSpeed":70},
                 "mantle":{},

@@ -2,6 +2,7 @@
 #include <cmath>
 #include "navigation/input_program.hpp"
 #include "input/input_intentions.hpp"
+#include "timing/fixed_time_step.hpp"
 
 InputProgram aJumpHeldFor(float seconds)
 {
@@ -9,6 +10,14 @@ InputProgram aJumpHeldFor(float seconds)
     jumping.jumpRequested = true;
     jumping.jumpHeld = true;
     return {{seconds, jumping}};
+}
+
+InputProgram aWallJumpAwayFrom(float wallDirection)
+{
+    InputIntentions kicking;
+    kicking.jumpHeld = true;
+    kicking.direction.x = -wallDirection;
+    return {{PhysicsStep, kicking}};
 }
 
 float durationOf(const InputProgram &program)

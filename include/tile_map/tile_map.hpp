@@ -32,6 +32,7 @@ public:
     const SheetData &getTileSet() const;
     void update(float deltaTime);
     std::vector<glm::ivec2> tilesOverlapping(glm::vec2 worldPosition, glm::vec2 size) const;
+    std::vector<glm::ivec2> tilesTouching(const AABB &box) const;
     glm::vec2 topLeftOfTile(glm::ivec2 tilePosition) const;
     glm::vec2 feetOnTile(glm::ivec2 tilePosition) const;
     std::optional<AABB> groundAt(glm::ivec2 tilePosition) const;

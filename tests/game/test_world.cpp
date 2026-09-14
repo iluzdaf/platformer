@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "navigation/navigation_graph_builder.hpp"
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "actor/abilities/bite_ability_data.hpp"
 #include "actor/abilities/swing_ability_data.hpp"
@@ -49,7 +50,6 @@
 #include <filesystem>
 #include <fstream>
 #include "state_machines/state_machine_data.hpp"
-#include <algorithm>
 
 namespace
 {
@@ -1000,17 +1000,21 @@ TEST_CASE("A tile painted leaves no creature walking a node that is gone", "[Wor
     const Npc &climbing = *creatures[1];
     REQUIRE(climbing.getSpawn().type == "spider");
 
-    int lastNode = 0;
-    for (const auto &[id, node] : world.getLevel().graphFor(climbing.profile()).getNodes())
-        lastNode = std::max(lastNode, id);
-    for (int step = 0; step < 1000 && climbing.targetNodeId() != lastNode; ++step)
+    TileMapData painted = world.getLevelData().tileMapData;
+    painted.indices[5][3] = 6;
+    NavigationGraph repainted =
+        buildNavigationGraph(TileMap(painted, gameData.tilePalettes), climbing.profile());
+    auto headingForGroundThatGoes = [&]
+    {
+        std::optional<int> target = climbing.targetNodeId();
+        return target && !repainted.hasNode(*target);
+    };
+    for (int step = 0; step < 1000 && !headingForGroundThatGoes(); ++step)
         walkFor(world, 1);
 
     std::optional<int> headingFor = climbing.targetNodeId();
-    REQUIRE(headingFor == lastNode);
+    REQUIRE(headingForGroundThatGoes());
 
-    TileMapData painted = world.getLevelData().tileMapData;
-    painted.indices[2][1] = 6;
     world.tilesChanged(painted);
 
     REQUIRE_FALSE(world.getLevel().graphFor(climbing.profile()).hasNode(*headingFor));

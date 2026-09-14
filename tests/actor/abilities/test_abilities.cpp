@@ -9,6 +9,7 @@
 #include "actor/abilities/gravity_ability_data.hpp"
 #include "actor/abilities/jump_ability_data.hpp"
 #include "actor/abilities/knockback_ability_data.hpp"
+#include "actor/abilities/lower_ability_data.hpp"
 #include "actor/abilities/mantle_ability_data.hpp"
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/pounce_ability_data.hpp"
@@ -159,6 +160,27 @@ TEST_CASE("A mantle owns the velocity over walking, climbing and gravity", "[Abi
 
     REQUIRE(states.mantle.active);
     REQUIRE(velocity == glm::vec2(0.0f, -data.mantle->mantleSpeed));
+}
+
+TEST_CASE(
+    "A hang reached by walking off an edge ignores that walk until it is let go",
+    "[Abilities]")
+{
+    AbilitiesData data = everyAbility();
+    data.lower = LowerAbilityData{};
+    Abilities abilities(data);
+    AbilityStates states;
+    states.wallHang.active = true;
+    states.lower.direction = -1.0f;
+    states.lower.stillWalkingOff = true;
+    Observed observed = onAWall(WallSide::Right);
+
+    glm::vec2 velocity = settle(abilities, askingToClimb(pressing(-1.0f)), observed, states);
+    REQUIRE(velocity.x == 0.0f);
+
+    settle(abilities, askingToClimb(), observed, states);
+    velocity = settle(abilities, askingToClimb(pressing(-1.0f)), observed, states);
+    REQUIRE(velocity.x == Approx(-data.move->moveSpeed));
 }
 
 TEST_CASE("A pounce owns the velocity over walking, and gravity bends it", "[Abilities]")

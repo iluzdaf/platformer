@@ -77,7 +77,7 @@ glm::vec2 Abilities::decide(
         velocity = states.charge.velocity;
     else
     {
-        velocity.x = states.move.velocity.x;
+        velocity.x = states.lower.stillWalkingOff ? 0.0f : states.move.velocity.x;
 
         if (states.jump.active)
             velocity.y = states.jump.velocity.y;

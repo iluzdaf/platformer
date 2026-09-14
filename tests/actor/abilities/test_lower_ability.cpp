@@ -43,6 +43,40 @@ TEST_CASE(
     REQUIRE(states.lower.velocity == glm::vec2(-data.lowerSpeed, 0.0f));
 }
 
+TEST_CASE("Walking towards an edge while asking to climb starts a lower too", "[LowerAbility]")
+{
+    LowerAbilityData data;
+    LowerAbility lower(data);
+    AbilityStates states;
+    InputIntentions walkingOff = pressing(-1.0f);
+    walkingOff.climbRequested = true;
+
+    tick(lower, walkingOff, atAnEdge(WallSide::Left), states);
+    REQUIRE(states.lower.active);
+    REQUIRE(states.lower.velocity == glm::vec2(-data.lowerSpeed, 0.0f));
+
+    AbilityStates onTheRight;
+    walkingOff.direction.x = 1.0f;
+    tick(lower, walkingOff, atAnEdge(WallSide::Right), onTheRight);
+    REQUIRE(onTheRight.lower.active);
+    REQUIRE(onTheRight.lower.velocity == glm::vec2(data.lowerSpeed, 0.0f));
+}
+
+TEST_CASE("Walking away from an edge while asking to climb starts no lower", "[LowerAbility]")
+{
+    LowerAbility lower(LowerAbilityData{});
+    AbilityStates states;
+    InputIntentions walkingAway = pressing(1.0f);
+    walkingAway.climbRequested = true;
+
+    tick(lower, walkingAway, atAnEdge(WallSide::Left), states);
+    REQUIRE_FALSE(states.lower.active);
+
+    walkingAway.direction.x = -1.0f;
+    tick(lower, walkingAway, atAnEdge(WallSide::Right), states);
+    REQUIRE_FALSE(states.lower.active);
+}
+
 TEST_CASE("Once off the ground, a lower drops straight down", "[LowerAbility]")
 {
     LowerAbilityData data;
@@ -82,6 +116,66 @@ TEST_CASE("A lower ends once it grips the wall it went over", "[LowerAbility]")
     REQUIRE(states.lower.velocity == glm::vec2(0.0f));
 }
 
+TEST_CASE(
+    "A lower walked off an edge hands over still holding against that press",
+    "[LowerAbility]")
+{
+    LowerAbility lower(LowerAbilityData{});
+    AbilityStates states;
+    InputIntentions walkingOff = pressing(-1.0f);
+    walkingOff.climbRequested = true;
+    tick(lower, walkingOff, atAnEdge(WallSide::Left), states);
+    tick(lower, walkingOff, inTheAir(), states);
+    states.wallHang.active = true;
+
+    tick(lower, walkingOff, onAWall(WallSide::Right), states);
+    REQUIRE_FALSE(states.lower.active);
+    REQUIRE(states.lower.stillWalkingOff);
+
+    tick(lower, walkingOff, onAWall(WallSide::Right), states);
+    REQUIRE(states.lower.stillWalkingOff);
+
+    InputIntentions justHolding;
+    justHolding.climbRequested = true;
+    tick(lower, justHolding, onAWall(WallSide::Right), states);
+    REQUIRE_FALSE(states.lower.stillWalkingOff);
+
+    tick(lower, walkingOff, onAWall(WallSide::Right), states);
+    REQUIRE_FALSE(states.lower.stillWalkingOff);
+}
+
+TEST_CASE("A hang let go of ends the hold against walking off", "[LowerAbility]")
+{
+    LowerAbility lower(LowerAbilityData{});
+    AbilityStates states;
+    InputIntentions walkingOff = pressing(-1.0f);
+    walkingOff.climbRequested = true;
+    tick(lower, walkingOff, atAnEdge(WallSide::Left), states);
+    tick(lower, walkingOff, inTheAir(), states);
+    states.wallHang.active = true;
+    tick(lower, walkingOff, onAWall(WallSide::Right), states);
+    REQUIRE(states.lower.stillWalkingOff);
+
+    states.wallHang.active = false;
+    tick(lower, walkingOff, onTheGround(), states);
+
+    REQUIRE_FALSE(states.lower.stillWalkingOff);
+}
+
+TEST_CASE("A lower pressed down hands over holding nothing", "[LowerAbility]")
+{
+    LowerAbility lower(LowerAbilityData{});
+    AbilityStates states;
+    tick(lower, pressingDownToClimb(), atAnEdge(WallSide::Left), states);
+    tick(lower, pressingDownToClimb(), inTheAir(), states);
+    states.wallHang.active = true;
+
+    tick(lower, pressingDownToClimb(), onAWall(WallSide::Right), states);
+
+    REQUIRE_FALSE(states.lower.active);
+    REQUIRE_FALSE(states.lower.stillWalkingOff);
+}
+
 TEST_CASE("A lower still inside the corner it went over carries on down", "[LowerAbility]")
 {
     LowerAbility lower(LowerAbilityData{});
@@ -118,12 +212,15 @@ TEST_CASE("A lower lasts no longer than it says, and then lets go", "[LowerAbili
     REQUIRE(states.lower.velocity == glm::vec2(0.0f));
 }
 
-TEST_CASE("There is no lower without pressing down and asking to climb", "[LowerAbility]")
+TEST_CASE("There is no lower without asking to climb, nor by pressing up", "[LowerAbility]")
 {
     LowerAbility lower(LowerAbilityData{});
     AbilityStates states;
 
     tick(lower, pressingDown(), atAnEdge(WallSide::Left), states);
+    REQUIRE_FALSE(states.lower.active);
+
+    tick(lower, pressing(-1.0f), atAnEdge(WallSide::Left), states);
     REQUIRE_FALSE(states.lower.active);
 
     InputIntentions climbingUp = pressingUp();

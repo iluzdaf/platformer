@@ -368,6 +368,9 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   body that physics stands it on, belongs to that run, so a landing on the very corner
   counts. An end the walker could not stand at does not count against it. Falls are
   checked the same way.
+- A walker begins a replayed leg only once it stands within `TakeOffReach` of the
+  take-off, and walks there until it does. The inputs were recorded from standing, and a
+  jump pressed before the actor stands is lost while the steering walks it off the edge.
 - A walker goes back to try a replayed leg again once its inputs have run out and it is
   on the ground, having left it or still at the take-off; a fall begun a little short of
   its take-off walks on off the edge.

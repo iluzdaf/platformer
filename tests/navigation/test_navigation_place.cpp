@@ -26,7 +26,7 @@ TEST_CASE("Two places on one walkable run are on the same run", "[NavigationPlac
 
     SECTION("Out past the node at the end of it, where the ledge still is")
     {
-        REQUIRE(onTheSameRun(navigationGraph, {112.0f, 96.0f}, {4.0f, 96.0f}));
+        REQUIRE(onTheSameRun(navigationGraph, {112.0f, 96.0f}, {4.0f, 96.0f}, 24.0f));
     }
 
     SECTION("The platform below is a run of its own")
@@ -37,6 +37,40 @@ TEST_CASE("Two places on one walkable run are on the same run", "[NavigationPlac
     SECTION("A fall down to it does not join the two")
     {
         REQUIRE_FALSE(onTheSameRun(navigationGraph, {112.0f, 96.0f}, {160.0f, 128.0f}));
+    }
+}
+
+TEST_CASE("A floor and wall share connected runs between their nodes", "[NavigationPlace]")
+{
+    NavigationGraph graph;
+    graph.addNode(0, {16.0f, 96.0f});
+    graph.addNode(1, {112.0f, 96.0f});
+    graph.addNode(2, {16.0f, 16.0f});
+    graph.addEdge(0, 1, EdgeType::Walk);
+    graph.addEdge(0, 2, EdgeType::Climb);
+
+    REQUIRE(onTheSameRun(graph, {64.0f, 96.0f}, {16.0f, 48.0f}));
+    REQUIRE(onTheSameRun(graph, {16.0f, 48.0f}, {64.0f, 96.0f}));
+    REQUIRE(onTheSameRun(graph, {20.0f, 48.0f}, {64.0f, 96.0f}, 8.0f));
+    REQUIRE_FALSE(onTheSameRun(graph, {64.0f, 48.0f}, {64.0f, 96.0f}));
+}
+
+TEST_CASE("Airborne connections do not join runs", "[NavigationPlace]")
+{
+    for (EdgeType type : {EdgeType::Jump, EdgeType::Fall})
+    {
+        NavigationGraph graph;
+        graph.addNode(0, {16.0f, 96.0f});
+        graph.addNode(1, {64.0f, 96.0f});
+        graph.addNode(2, {96.0f, 96.0f});
+        graph.addNode(3, {144.0f, 96.0f});
+        graph.addEdge(0, 1, EdgeType::Walk);
+        graph.addEdge(2, 3, EdgeType::Walk);
+        graph.addEdge(1, 2, type);
+        graph.addEdge(2, 1, type);
+
+        REQUIRE_FALSE(onTheSameRun(graph, {32.0f, 96.0f}, {112.0f, 96.0f}));
+        REQUIRE_FALSE(onTheSameRun(graph, {80.0f, 96.0f}, {112.0f, 96.0f}));
     }
 }
 

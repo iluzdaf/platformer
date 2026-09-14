@@ -161,7 +161,7 @@ float Actor::distanceTo(glm::vec2 at) const
 
 bool Actor::onSameSurfaceAs(glm::vec2 at) const
 {
-    return onTheSameRun(graphWalked(), feet(), at);
+    return onTheSameRun(graphWalked(), feet(), at, body().colliderSize().x, body().stepHeight());
 }
 
 bool Actor::corneredBy(glm::vec2 at) const

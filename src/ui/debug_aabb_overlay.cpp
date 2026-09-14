@@ -295,6 +295,20 @@ void drawContactProbes(
         camera,
         contacts.onGround,
         false);
+    drawProbe(
+        drawList,
+        imGuiManager,
+        thickEnoughToSee(physicsBody.underfootProbeAtEdge(-1.0f), true),
+        camera,
+        contacts.edgeOnLeft,
+        contacts.edgeOnLeft);
+    drawProbe(
+        drawList,
+        imGuiManager,
+        thickEnoughToSee(physicsBody.underfootProbeAtEdge(1.0f), true),
+        camera,
+        contacts.edgeOnRight,
+        contacts.edgeOnRight);
     drawProbe(drawList, imGuiManager, overhead, camera, contacts.bumpedCeiling, false);
     if (contacts.bumpedCeiling)
         fadingAABBs.add(overhead, ProbeFoundColor, 0.2f);

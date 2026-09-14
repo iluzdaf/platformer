@@ -224,13 +224,10 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
         leftTheGround = false;
     }
 
-    if (replayed && replayedFor == 0.0f)
+    if (replayed && replayedFor == 0.0f && !(atTheTakeOff && context.contacts.onGround))
     {
-        if (!atTheTakeOff)
-        {
-            inputIntentions.direction.x = directionTowards(context.feet.x, takeOff.feet.x);
-            return inputIntentions;
-        }
+        inputIntentions.direction.x = directionTowards(context.feet.x, takeOff.feet.x);
+        return inputIntentions;
     }
 
     if (leg && leg->type == EdgeType::Climb)

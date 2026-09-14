@@ -418,6 +418,32 @@ TEST_CASE("A walker that lands short of a jump goes back to try it again", "[Rou
     REQUIRE(cameDownShort.direction.x == -1.0f);
 }
 
+TEST_CASE("A walker at its take-off waits to stand before it jumps", "[RouteWalker]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, {0.0f, Lower});
+    navigationGraph.addNode(1, {96.0f, Upper});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.02f)});
+    RouteWalker walker(ArrivalThreshold);
+    walker.keepInStep(at(navigationGraph, {1.0f, Lower}));
+    walker.takeRouteTo(at(navigationGraph, {1.0f, Lower}), 1);
+    ActorFacts notYetStanding{
+        navigationGraph,
+        {1.0f, Lower},
+        glm::vec2(8.0f, 13.0f),
+        StepHeight,
+        std::nullopt,
+        ActorContactState{}};
+
+    InputIntentions settling = walker.follow(0.01f, notYetStanding);
+    InputIntentions standing = walker.follow(0.01f, at(navigationGraph, {1.0f, Lower}));
+
+    REQUIRE_FALSE(settling.jumpRequested);
+    REQUIRE(settling.direction.x == -1.0f);
+    REQUIRE(standing.jumpRequested);
+    REQUIRE(standing.direction.x == 1.0f);
+}
+
 TEST_CASE("A walker in the air does not push past where its leg goes", "[RouteWalker]")
 {
     NavigationGraph navigationGraph;

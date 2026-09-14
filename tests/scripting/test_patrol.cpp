@@ -156,7 +156,7 @@ TEST_CASE("Asks to jump while crossing a jump edge", "[Patrol]")
 
     anchorAt(behavior, navigationGraph, {0.0f, 192.0f});
     InputIntentions inputIntentions =
-        behavior.decide(0.01f, airborneAt(navigationGraph, {0.0f, 192.0f}));
+        behavior.decide(0.01f, standingAt(navigationGraph, {0.0f, 192.0f}));
 
     REQUIRE(inputIntentions.jumpRequested);
     REQUIRE(inputIntentions.direction.x > 0.0f);
@@ -287,8 +287,9 @@ TEST_CASE("Stops asking to jump once the hold is spent", "[Patrol]")
     std::vector<bool> asked;
     for (int step = 0; step < 10; ++step)
     {
-        asked.push_back(
-            behavior.decide(0.01f, airborneAt(navigationGraph, position)).jumpRequested);
+        ActorFacts facts = step == 0 ? standingAt(navigationGraph, position)
+                                     : airborneAt(navigationGraph, position);
+        asked.push_back(behavior.decide(0.01f, facts).jumpRequested);
         position.x += 1.0f;
     }
 
@@ -313,7 +314,9 @@ TEST_CASE("Holds a longer jump for longer", "[Patrol]")
         glm::vec2 position(0.0f, 192.0f);
         for (int step = 0; step < 40; ++step)
         {
-            if (behavior.decide(0.01f, airborneAt(navigationGraph, position)).jumpRequested)
+            ActorFacts facts = step == 0 ? standingAt(navigationGraph, position)
+                                         : airborneAt(navigationGraph, position);
+            if (behavior.decide(0.01f, facts).jumpRequested)
                 ++steps;
             position.x += 1.0f;
         }

@@ -400,14 +400,25 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 
 **A wall jump is a jump from a hold on a wall.**
 
-- A body that can wall jump gets jump edges from each node on a wall: one step of jump
-  pressed away from the wall, then steering. The builder steers all the way away, all
-  the way back, which can bring it down on top of the wall, and towards each node the
-  first flight passes over, so it can stop over a shelf in the gap. From each node it
-  keeps the quickest leap onto each run.
+- A body that can wall jump may leap from any hold on a face it climbs: each tile row
+  where it hangs against grippable wall, off the ground, with a tile of room above its
+  head for the kick. A leap is one step of jump pressed away from the wall, then
+  steering away, all the way or towards each node the first flight passes over, so it
+  can stop over a shelf in the gap. Steering back only brings it into the wall below
+  the top, since the kick carries it out further than it can return before it falls.
+- A flight that comes back to the wall it left is sliding down it, not leaping, and the
+  simulation stops it there.
+- A face is leapt from only if a route can reach it, through an end that something
+  outside the face arrives at: a walk onto its foot, or a lower from the ledge above.
+  From each such end, the builder keeps the hold whose leap reaches a run soonest,
+  climb included, and only if that is at least 0.15 s quicker than any route the graph
+  already has to where it lands, or the graph has none. A walker arrives within 0.15 s
+  of an edge's time, so a smaller saving is no saving.
+- A hold that keeps a leap becomes a node on its face, joined by climbs to the holds
+  and ends either side of it.
 - The simulation takes hold of the wall before it leaps, as a walker that climbed there
-  does. A climber stops within `ClimbArrivesWithin` of its node, so a leap is kept only
-  if it lands on the same run from that far above and below the node too.
+  does. A climber stops within `ClimbArrivesWithin` of its hold, so a leap is kept only
+  if it lands on the same run from that far above and below it too.
 - A leap or a fall that touches anything deadly on the way is not offered. A touch is
   counted as the game counts the one that kills the player: the body's collider, grown
   by its contact skin, against the deadly tile's collider, so a path that grazes spikes

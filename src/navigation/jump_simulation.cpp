@@ -7,6 +7,7 @@
 #include "actor/abilities/abilities_data.hpp"
 #include "actor/abilities/move_ability_data.hpp"
 #include "actor/abilities/ability_states.hpp"
+#include "actor/actor_contact_state.hpp"
 #include "actor/mover.hpp"
 #include "actor/observed.hpp"
 #include "input/input_intentions.hpp"
@@ -188,8 +189,7 @@ JumpAttempt simulateWallJumpAgainst(
     const AbilitiesData &abilitiesData,
     const PhysicsBodyData &physicsBodyData,
     glm::vec2 takeOffFeet,
-    float wallDirection,
-    float direction)
+    float wallDirection)
 {
     return simulateInputsAgainst(
         tileMap,
@@ -197,7 +197,7 @@ JumpAttempt simulateWallJumpAgainst(
         physicsBodyData,
         takeOffFeet,
         aWallJumpAwayFrom(wallDirection),
-        takeOffFeet.x + direction * FarAway,
+        takeOffFeet.x - wallDirection * FarAway,
         wallDirection);
 }
 
@@ -219,6 +219,7 @@ JumpAttempt simulateInputsAgainst(
 
     float elapsed = 0.0f;
     bool airborne = false;
+    bool leftTheWall = false;
     for (int step = 0; step < MaximumSteps; ++step)
     {
         mover.step(
@@ -230,7 +231,18 @@ JumpAttempt simulateInputsAgainst(
         attempt.path.push_back(mover.feet());
         attempt.steps = step + 1;
 
-        if (!mover.observed().contacts.onGround)
+        const ActorContactState &contacts = mover.observed().contacts;
+        bool atTheWall =
+            wallDirection != 0.0f &&
+            (wallDirection < 0.0f ? contacts.touchingLeftWall : contacts.touchingRightWall);
+        if (atTheWall && leftTheWall)
+        {
+            attempt.cameBackToTheWall = true;
+            return attempt;
+        }
+        leftTheWall = leftTheWall || !atTheWall;
+
+        if (!contacts.onGround)
             airborne = true;
         else if (airborne)
         {

@@ -218,7 +218,7 @@ TEST_CASE(
     ActorData leaper = setupNpcData().actorData;
     leaper.physicsBodyData.colliderSize = glm::vec2(8.0f, 13.0f);
     leaper.abilities = wallJumperAbilities();
-    glm::vec2 onTheFloor = feetOf({1, ShelfFloorRow - 1});
+    glm::vec2 onTheFloor = feetOf({ShelfWallX + 2, ShelfFloorRow - 1});
     Level level(
         aLevelPlacing(
             aWallAcrossFromAShelf(), ShelfSceneTiles, ShelfSceneTiles, {1, ShelfFloorRow - 1}, {}),

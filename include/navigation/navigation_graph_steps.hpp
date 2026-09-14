@@ -5,6 +5,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "navigation/input_program.hpp"
+#include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_edge.hpp"
 
 class NavigationGraph;
@@ -25,6 +26,17 @@ namespace navigation
         int fromId = 0;
         std::vector<glm::vec2> path;
         InputProgram inputs;
+    };
+
+    struct ClimbFace
+    {
+        int climbX = 0, wallX = 0, topRow = 0, bottomRow = 0, topId = 0, bottomId = 0;
+    };
+
+    struct Leap
+    {
+        JumpAttempt attempt;
+        int landsBy = 0;
     };
 
     bool canStandOn(const TileMap &tileMap, glm::ivec2 groundTilePosition, int headroom);
@@ -135,7 +147,9 @@ namespace navigation
         int headroom,
         const std::vector<ChosenFall> &falls);
 
-    void addClimbing(
+    glm::vec2 againstTheWall(const TileMap &tileMap, int climbX, int wallX, int footRow);
+
+    std::vector<ClimbFace> addClimbing(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
@@ -148,9 +162,18 @@ namespace navigation
         int headroom,
         int nodeId);
 
+    std::vector<Leap> leapsFrom(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom,
+        glm::vec2 hold,
+        float wallDirection);
+
     void addWallJumps(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
-        int headroom);
+        int headroom,
+        const std::vector<ClimbFace> &faces);
 }

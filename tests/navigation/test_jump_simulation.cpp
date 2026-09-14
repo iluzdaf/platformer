@@ -18,6 +18,7 @@
 #include "input/input_intentions.hpp"
 #include "player/player_data.hpp"
 #include "timing/fixed_time_step.hpp"
+#include "navigation/input_program.hpp"
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_build_report.hpp"
 #include "actor/abilities/abilities_data.hpp"
@@ -426,8 +427,8 @@ TEST_CASE("A wall jump kicks up and away from the wall it holds", "[JumpArc]")
     NavigationProfile profile = wallJumperProfile();
     glm::vec2 hold = holdOnTheShelfWall();
 
-    JumpAttempt attempt = simulateWallJumpAgainst(
-        tileMap, profile.abilities, profile.physicsBodyData, hold, -1.0f, 1.0f);
+    JumpAttempt attempt =
+        simulateWallJumpAgainst(tileMap, profile.abilities, profile.physicsBodyData, hold, -1.0f);
 
     REQUIRE(attempt.landed);
     REQUIRE(attempt.path.front() == hold);
@@ -442,8 +443,8 @@ TEST_CASE("Without a wall jump, a hold let go of only drops", "[JumpArc]")
     profile.abilities.wallJump.reset();
     glm::vec2 hold = holdOnTheShelfWall();
 
-    JumpAttempt attempt = simulateWallJumpAgainst(
-        tileMap, profile.abilities, profile.physicsBodyData, hold, -1.0f, 1.0f);
+    JumpAttempt attempt =
+        simulateWallJumpAgainst(tileMap, profile.abilities, profile.physicsBodyData, hold, -1.0f);
 
     REQUIRE(attempt.landed);
     REQUIRE(hold.y - highestOf(attempt.path, hold.y) < 1.0f);
@@ -456,7 +457,7 @@ TEST_CASE("A wall jump asked of a place with no wall to hold is refused", "[Jump
     glm::vec2 inTheOpen = holdOnTheShelfWall() + glm::vec2(32.0f, 0.0f);
 
     JumpAttempt attempt = simulateWallJumpAgainst(
-        tileMap, profile.abilities, profile.physicsBodyData, inTheOpen, -1.0f, 1.0f);
+        tileMap, profile.abilities, profile.physicsBodyData, inTheOpen, -1.0f);
 
     REQUIRE_FALSE(attempt.landed);
     REQUIRE(attempt.path.empty());
@@ -479,15 +480,16 @@ TEST_CASE(
     glm::vec2 hold = holdOnTheShelfWall();
     const ActorData &actorData = playerData.actorData;
 
-    for (float direction : {1.0f, -1.0f})
+    for (float towardsX : {hold.x + 1000.0f, topLeftOf({ShelfTo + 1, 0}).x})
     {
-        JumpAttempt attempt = simulateWallJumpAgainst(
+        JumpAttempt attempt = simulateInputsAgainst(
             level.getTileMap(),
             actorData.abilities,
             actorData.physicsBodyData,
             hold,
-            -1.0f,
-            direction);
+            aWallJumpAwayFrom(-1.0f),
+            towardsX,
+            -1.0f);
         REQUIRE(attempt.landed);
         std::optional<glm::vec2> actual = whereARouteJumpLands(
             level, actorData, hold, attempt.inputs, attempt.path.back().x, -1.0f);
@@ -498,4 +500,24 @@ TEST_CASE(
         REQUIRE(actual->y == attempt.path.back().y);
         REQUIRE(actual->x == Catch::Approx(attempt.path.back().x).margin(1.0f));
     }
+}
+
+TEST_CASE("A leap steered back into the wall it left stops there, not landed", "[JumpArc]")
+{
+    TileMap tileMap = aWallAcrossFromAShelfMap();
+    NavigationProfile profile = wallJumperProfile();
+    glm::vec2 wellBelowTheTop = holdOnTheShelfWall() + glm::vec2(0.0f, 48.0f);
+
+    JumpAttempt attempt = simulateInputsAgainst(
+        tileMap,
+        profile.abilities,
+        profile.physicsBodyData,
+        wellBelowTheTop,
+        aWallJumpAwayFrom(-1.0f),
+        wellBelowTheTop.x - 1000.0f,
+        -1.0f);
+
+    REQUIRE(attempt.cameBackToTheWall);
+    REQUIRE_FALSE(attempt.landed);
+    REQUIRE(attempt.path.back().x - wellBelowTheTop.x < 8.0f);
 }

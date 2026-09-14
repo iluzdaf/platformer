@@ -16,6 +16,7 @@ struct JumpAttempt
     bool landed = false;
     int steps = 0;
     bool capped = false;
+    bool cameBackToTheWall = false;
 };
 
 JumpArc simulateJumpArc(const AbilitiesData &abilitiesData, float holdFraction = 1.0f);
@@ -44,8 +45,7 @@ JumpAttempt simulateWallJumpAgainst(
     const AbilitiesData &abilitiesData,
     const PhysicsBodyData &physicsBodyData,
     glm::vec2 takeOffFeet,
-    float wallDirection,
-    float direction);
+    float wallDirection);
 
 JumpAttempt simulateFallAgainst(
     const TileMap &tileMap,

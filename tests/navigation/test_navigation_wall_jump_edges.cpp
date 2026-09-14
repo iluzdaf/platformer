@@ -4,6 +4,7 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "helpers/actors.hpp"
+#include "helpers/graph_queries.hpp"
 #include "helpers/palettes.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/navigation_maps.hpp"
@@ -77,7 +78,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "A wall jump leaves from a hold on its wall and says which side the wall is on",
+    "A leap leaves from a hold partway up its wall that climbs join, and says which side the "
+    "wall is on",
     "[NavigationGraphBuilder][WallJump]")
 {
     TileMap tileMap = aWallAcrossFromAShelfMap();
@@ -86,28 +88,22 @@ TEST_CASE(
     std::optional<NavigationEdge> leap = leapOnto(graph, surfaceOf(ShelfRow));
     REQUIRE(leap);
     NavigationNode takeOff = graph.getNode(leap->fromId);
+    float faceX = topLeftOf({ShelfWallX + 1, 0}).x;
 
-    REQUIRE(takeOff.feet == topLeftOf({ShelfWallX + 1, ShelfWallTopRow + 1}));
+    REQUIRE(takeOff.kind == NodeKind::OnWall);
+    REQUIRE(takeOff.feet.x == faceX);
+    REQUIRE(takeOff.feet.y > surfaceOf(ShelfWallTopRow + 1));
+    REQUIRE(takeOff.feet.y < surfaceOf(ShelfFloorRow));
+    for (float y : {surfaceOf(ShelfWallTopRow + 1), surfaceOf(ShelfFloorRow)})
+    {
+        REQUIRE(hasEdgeBetween(graph, glm::vec2(faceX, y), takeOff.feet, EdgeType::Climb));
+        REQUIRE(hasEdgeBetween(graph, takeOff.feet, glm::vec2(faceX, y), EdgeType::Climb));
+    }
     REQUIRE(leap->wallDirection == -1.0f);
     REQUIRE(leap->inputs.front().pressed.jumpHeld);
     REQUIRE(leap->inputs.front().pressed.direction.x == 1.0f);
     REQUIRE(
         *leap->duration == Catch::Approx(static_cast<float>(leap->path.size() - 1) * PhysicsStep));
-}
-
-TEST_CASE(
-    "Kicked back towards its wall, a wall jump comes down on top of it",
-    "[NavigationGraphBuilder][WallJump]")
-{
-    TileMap tileMap = aWallAcrossFromAShelfMap();
-    NavigationGraph graph = buildNavigationGraph(tileMap, wallJumperProfile());
-
-    std::optional<NavigationEdge> leap = leapOnto(graph, surfaceOf(ShelfWallTopRow));
-    REQUIRE(leap);
-    float landedX = graph.getNode(leap->toId).feet.x;
-
-    REQUIRE(landedX > topLeftOf({ShelfWallX, 0}).x);
-    REQUIRE(landedX < topLeftOf({ShelfWallX + 1, 0}).x);
 }
 
 TEST_CASE(
@@ -158,7 +154,7 @@ namespace
     {
         glm::vec2 hold = topLeftOf({ShelfWallX + 1, ShelfWallTopRow + 1});
         JumpAttempt leap = simulateWallJumpAgainst(
-            tileMap, profile.abilities, profile.physicsBodyData, hold, -1.0f, 1.0f);
+            tileMap, profile.abilities, profile.physicsBodyData, hold, -1.0f);
         return simulateInputsAgainst(
             tileMap,
             profile.abilities,
@@ -215,8 +211,7 @@ TEST_CASE(
         profile.abilities,
         profile.physicsBodyData,
         topLeftOf({ShelfWallX + 1, ShelfWallTopRow + 1}),
-        -1.0f,
-        1.0f);
+        -1.0f);
     INFO("lands " << fromTheHold.path.back().x << "," << fromTheHold.path.back().y);
     REQUIRE(tileMap.tileContaining(fromTheHold.path.back()).x == CornerX);
     REQUIRE_FALSE(navigation::feetOverGround(tileMap, fromTheHold.path.back()));

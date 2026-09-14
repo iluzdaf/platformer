@@ -2,11 +2,13 @@
 #include <algorithm>
 #include <optional>
 #include <vector>
+#include <unordered_set>
 #include <glm/geometric.hpp>
 #include "navigation/navigation_place.hpp"
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/footing.hpp"
 
 namespace
 {
@@ -112,19 +114,48 @@ int endOfThePathBeyond(
     return glm::dot(oneEnd - place.feet, travelling) >= 0.0f ? place.fromId : place.toId;
 }
 
-bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there)
+bool onTheSameRun(
+    const NavigationGraph &navigationGraph,
+    glm::vec2 here,
+    glm::vec2 there,
+    float bodyWidth,
+    float stepHeight)
 {
-    std::optional<int> from = nodeUnderfoot(navigationGraph, here);
-    std::optional<int> to = nodeUnderfoot(navigationGraph, there);
+    auto onRun = [&](glm::vec2 at) -> std::optional<PlaceOnThePath>
+    {
+        std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, at);
+        if (!place || std::abs(place->feet.x - at.x) > bodyWidth * 0.5f + SurfaceTolerance ||
+            !feetSettledOn(at.y, place->feet.y, stepHeight))
+            return std::nullopt;
+
+        return place;
+    };
+
+    std::optional<PlaceOnThePath> from = onRun(here);
+    std::optional<PlaceOnThePath> to = onRun(there);
     if (!from || !to)
         return false;
 
-    if (*from == *to)
-        return true;
+    std::unordered_set<int> seen{from->fromId};
+    std::vector<int> pending{from->fromId};
+    while (!pending.empty())
+    {
+        int at = pending.back();
+        pending.pop_back();
+        if (at == to->fromId)
+            return true;
 
-    std::vector<int> run = walkableFrom(navigationGraph, *from);
+        for (const NavigationEdge &edge : navigationGraph.getEdges())
+        {
+            if (!travelledInContact(edge.type) || (edge.fromId != at && edge.toId != at))
+                continue;
 
-    return std::find(run.begin(), run.end(), *to) != run.end();
+            int next = edge.fromId == at ? edge.toId : edge.fromId;
+            if (seen.insert(next).second)
+                pending.push_back(next);
+        }
+    }
+    return false;
 }
 
 bool canPatrolBetween(const NavigationGraph &navigationGraph, glm::vec2 from, glm::vec2 to)

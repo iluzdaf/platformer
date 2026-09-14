@@ -141,8 +141,12 @@ namespace
             "threat not on my surface",
             [](const Asked &asked, const ActorFacts &facts)
             {
-                bool onIt = facts.threatFeet &&
-                            onTheSameRun(facts.navigationGraph, facts.feet, *facts.threatFeet);
+                bool onIt = facts.threatFeet && onTheSameRun(
+                                                    facts.navigationGraph,
+                                                    facts.feet,
+                                                    *facts.threatFeet,
+                                                    facts.colliderSize.x,
+                                                    facts.stepHeight);
                 return yes(asked) == onIt;
             },
             ""},

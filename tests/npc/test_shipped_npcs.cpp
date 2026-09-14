@@ -294,7 +294,7 @@ TEST_CASE("The shipped rat does not shuffle on the spot once it is cornered", "[
     ScriptedNpcs scripts;
     scripts.script(npc);
 
-    glm::vec2 driving(8.0f, 96.0f);
+    glm::vec2 driving = feetOf(LedgeLeftEnd);
     int flips = 0;
     bool wasFacingLeft = npc.observed().facingLeft;
 
@@ -835,4 +835,34 @@ TEST_CASE("Every shipped creature's script has the states it runs", "[ShippedNpc
         INFO(type);
         REQUIRE(lua.errorsReported() == 0);
     }
+}
+
+TEST_CASE("A boar's floor is not shared by a player hanging above it", "[Npc][Level]")
+{
+    // #P
+    // #
+    // #B
+    // #####
+    constexpr glm::ivec2 HangingPlayer{1, 0};
+    constexpr glm::ivec2 IdleBoar{1, 2};
+    constexpr int Width = 5;
+    constexpr int Height = 4;
+
+    Placed laid;
+    layColumn(laid, 0, 0, Height - 2);
+    layRow(laid, Height - 1, 0, Width - 1);
+
+    NpcSpawnData spawn = spawnAt("boar", IdleBoar);
+    Level level(
+        aLevelPlacing(laid, Width, Height, HangingPlayer, {spawn}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        PlayerData(),
+        shippedNpcData(),
+        {});
+    Npc boar(spawn, shippedNpcData().at("boar"));
+    boar.beginFrame();
+    boar.fixedUpdate(0.01f, level, {.threatFeet = feetOf(HangingPlayer)});
+
+    REQUIRE(boar.stateName() == "sleep");
+    REQUIRE_FALSE(boar.onSameSurfaceAs(feetOf(HangingPlayer)));
 }

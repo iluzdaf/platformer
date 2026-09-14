@@ -29,7 +29,12 @@ int endOfThePathBeyond(
     const PlaceOnThePath &place,
     glm::vec2 comingFrom);
 
-bool onTheSameRun(const NavigationGraph &navigationGraph, glm::vec2 here, glm::vec2 there);
+bool onTheSameRun(
+    const NavigationGraph &navigationGraph,
+    glm::vec2 here,
+    glm::vec2 there,
+    float bodyWidth = 0.0f,
+    float stepHeight = 0.0f);
 
 bool canPatrolBetween(const NavigationGraph &navigationGraph, glm::vec2 from, glm::vec2 to);
 

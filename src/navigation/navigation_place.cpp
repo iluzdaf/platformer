@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <optional>
 #include <vector>
-#include <unordered_set>
 #include <glm/geometric.hpp>
 #include "navigation/navigation_place.hpp"
 #include "navigation/navigation_path.hpp"
@@ -136,26 +135,7 @@ bool onTheSameRun(
     if (!from || !to)
         return false;
 
-    std::unordered_set<int> seen{from->fromId};
-    std::vector<int> pending{from->fromId};
-    while (!pending.empty())
-    {
-        int at = pending.back();
-        pending.pop_back();
-        if (at == to->fromId)
-            return true;
-
-        for (const NavigationEdge &edge : navigationGraph.getEdges())
-        {
-            if (!travelledInContact(edge.type) || (edge.fromId != at && edge.toId != at))
-                continue;
-
-            int next = edge.fromId == at ? edge.toId : edge.fromId;
-            if (seen.insert(next).second)
-                pending.push_back(next);
-        }
-    }
-    return false;
+    return connectedInContact(navigationGraph, from->fromId, to->fromId);
 }
 
 bool canPatrolBetween(const NavigationGraph &navigationGraph, glm::vec2 from, glm::vec2 to)

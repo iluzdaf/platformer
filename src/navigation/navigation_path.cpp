@@ -8,6 +8,7 @@
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_place.hpp"
 
 namespace
 {
@@ -151,6 +152,22 @@ std::vector<int> walkableFrom(const NavigationGraph &navigationGraph, int fromId
     navigationGraph.getNode(fromId);
 
     return inIdOrder(spreadFrom(fromId, waysOn(navigationGraph, true)));
+}
+
+bool connectedInContact(const NavigationGraph &navigationGraph, int fromId, int toId)
+{
+    navigationGraph.getNode(fromId);
+    navigationGraph.getNode(toId);
+
+    Ways ways;
+    for (const NavigationEdge &edge : navigationGraph.getEdges())
+        if (travelledInContact(edge.type))
+        {
+            ways[edge.fromId].push_back(edge.toId);
+            ways[edge.toId].push_back(edge.fromId);
+        }
+
+    return spreadFrom(fromId, ways).contains(toId);
 }
 
 std::optional<int> nearestNodeTo(const NavigationGraph &navigationGraph, glm::vec2 position)

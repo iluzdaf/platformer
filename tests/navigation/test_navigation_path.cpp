@@ -103,6 +103,28 @@ TEST_CASE("A walk stays on the platform", "[NavigationPath]")
     REQUIRE(walkableFrom(setupTwoFloors(), 4) == std::vector{3, 4, 5});
 }
 
+TEST_CASE("Contact connectivity crosses walks and climbs in either direction", "[NavigationPath]")
+{
+    NavigationGraph graph;
+    graph.addNode(0, {0.0f, 0.0f});
+    graph.addNode(1, {32.0f, 0.0f});
+    graph.addNode(2, {32.0f, -32.0f});
+    graph.addNode(3, {64.0f, -32.0f});
+    graph.addNode(4, {64.0f, 32.0f});
+    graph.addNode(5, {128.0f, 32.0f});
+    graph.addEdge(0, 1, EdgeType::Walk);
+    graph.addEdge(1, 2, EdgeType::Climb);
+    graph.addEdge(2, 3, EdgeType::Jump);
+    graph.addEdge(2, 4, EdgeType::Fall);
+
+    REQUIRE(connectedInContact(graph, 0, 2));
+    REQUIRE(connectedInContact(graph, 2, 0));
+    REQUIRE_FALSE(connectedInContact(graph, 0, 3));
+    REQUIRE_FALSE(connectedInContact(graph, 0, 4));
+    REQUIRE_FALSE(connectedInContact(graph, 0, 5));
+    REQUIRE(connectedInContact(graph, 5, 5));
+}
+
 TEST_CASE("A route found twice is settled once, by the cheaper way", "[NavigationPath]")
 {
     NavigationGraph navigationGraph;

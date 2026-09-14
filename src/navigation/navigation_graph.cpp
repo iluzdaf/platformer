@@ -21,7 +21,7 @@ void NavigationGraph::addNode(NavigationNode node)
 
 void NavigationGraph::addEdge(int fromId, int toId, EdgeType type)
 {
-    addEdge({fromId, toId, type, {}, 0.0f});
+    addEdge({fromId, toId, type, {}, {}});
 }
 
 void NavigationGraph::addEdge(const NavigationEdge &edge)

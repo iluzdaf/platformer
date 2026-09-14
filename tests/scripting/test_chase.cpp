@@ -6,6 +6,7 @@
 #include "helpers/behavior_file.hpp"
 #include "input/input_intentions.hpp"
 #include "navigation/navigation_edge.hpp"
+#include "navigation/input_program.hpp"
 #include "navigation/navigation_graph.hpp"
 
 namespace
@@ -170,7 +171,7 @@ TEST_CASE("Keeps going for a threat on a ledge it can jump to", "[Chase]")
 {
     NavigationGraph navigationGraph = aWalkRun();
     navigationGraph.addNode(5, {192.0f, 96.0f});
-    navigationGraph.addEdge({2, 5, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({2, 5, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
     navigationGraph.addEdge(5, 2, EdgeType::Fall);
     BehaviorFile behavior(Chase);
     glm::vec2 threat(192.0f, 96.0f);

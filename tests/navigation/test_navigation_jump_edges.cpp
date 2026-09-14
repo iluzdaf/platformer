@@ -16,6 +16,7 @@
 #include "helpers/actors.hpp"
 #include "helpers/asset_path.hpp"
 #include "helpers/route_jumps.hpp"
+#include "navigation/input_program.hpp"
 #include "helpers/shipped.hpp"
 #include "navigation/named_navigation_graph.hpp"
 #include "player/player_data.hpp"
@@ -205,18 +206,24 @@ TEST_CASE(
     REQUIRE(jumps > 0);
 }
 
-TEST_CASE("A jump edge records the hold that made it", "[NavigationGraphBuilder][Jump]")
+TEST_CASE("A jump edge records the jump it presses", "[NavigationGraphBuilder][Jump]")
 {
     TileMap tileMap = twoPlatformsApart(3);
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
+    int jumps = 0;
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Jump)
-            REQUIRE(edge.holdDuration > 0.0f);
+        {
+            ++jumps;
+            REQUIRE(durationOf(edge.inputs) > 0.0f);
+            REQUIRE(edge.inputs.front().pressed.jumpHeld);
+        }
+    REQUIRE(jumps > 0);
 }
 
-TEST_CASE("A walk edge is held for nothing", "[NavigationGraphBuilder][Jump]")
+TEST_CASE("A walk edge presses nothing", "[NavigationGraphBuilder][Jump]")
 {
     TileMap tileMap = twoPlatformsApart(3);
 
@@ -224,7 +231,7 @@ TEST_CASE("A walk edge is held for nothing", "[NavigationGraphBuilder][Jump]")
 
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Walk)
-            REQUIRE(edge.holdDuration == 0.0f);
+            REQUIRE(edge.inputs.empty());
 }
 
 TEST_CASE("A gap needing less than a full jump records less", "[NavigationGraphBuilder][Jump]")
@@ -236,7 +243,7 @@ TEST_CASE("A gap needing less than a full jump records less", "[NavigationGraphB
 
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Jump)
-            REQUIRE(edge.holdDuration <= profile.jumpArcs.front().holdDuration);
+            REQUIRE(durationOf(edge.inputs) <= profile.jumpArcs.front().holdDuration);
 }
 
 TEST_CASE("A jump is the smallest one that reaches", "[NavigationGraphBuilder][Jump]")
@@ -260,11 +267,11 @@ TEST_CASE("A jump is the smallest one that reaches", "[NavigationGraphBuilder][J
     const NavigationEdge *back = onlyJumpFrom(graph, farSide);
     REQUIRE(there);
     REQUIRE(back);
-    REQUIRE(there->holdDuration == back->holdDuration);
+    REQUIRE(durationOf(there->inputs) == durationOf(back->inputs));
 
     const NavigationEdge *further = onlyJumpFrom(graph, longWayOff);
     REQUIRE(further);
-    REQUIRE(there->holdDuration < further->holdDuration);
+    REQUIRE(durationOf(there->inputs) < durationOf(further->inputs));
 }
 
 TEST_CASE("A jump crosses to a platform once", "[NavigationGraphBuilder][Jump]")
@@ -344,7 +351,7 @@ TEST_CASE(
         std::vector<float> holds;
         for (const auto &edge : graph.getEdges())
             if (edge.type == EdgeType::Jump)
-                holds.push_back(edge.holdDuration);
+                holds.push_back(durationOf(edge.inputs));
         std::ranges::sort(holds);
         return holds;
     };
@@ -362,7 +369,8 @@ TEST_CASE(
     NavigationGraph graph;
     graph.addNode(0, takeOffPosition(tileMap));
     glm::vec2 comesDown(takeOffPosition(tileMap).x + 40.0f, static_cast<float>(FloorBelowRow * 16));
-    std::vector<navigation::ChosenJump> jumps{{0, {takeOffPosition(tileMap), comesDown}, 0.2f}};
+    std::vector<navigation::ChosenJump> jumps{
+        {0, {takeOffPosition(tileMap), comesDown}, aJumpHeldFor(0.2f)}};
 
     navigation::addJumpEdges(
         graph, tileMap, 1, standardProfile().physicsBodyData.stepHeight, jumps);
@@ -402,8 +410,8 @@ TEST_CASE(
 
                 glm::vec2 from = named.graph.getNode(edge.fromId).feet;
                 glm::vec2 to = named.graph.getNode(edge.toId).feet;
-                std::optional<glm::vec2> landed = whereARouteJumpLands(
-                    level, actorData, from, to.x > from.x ? 1.0f : -1.0f, edge.holdDuration);
+                std::optional<glm::vec2> landed =
+                    whereARouteJumpLands(level, actorData, from, edge.inputs, to.x);
 
                 INFO(
                     entry.path().filename().string()

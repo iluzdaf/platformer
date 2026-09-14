@@ -4,6 +4,7 @@
 #include <vector>
 #include "navigation/route_walker.hpp"
 #include "navigation/footing.hpp"
+#include "navigation/input_program.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "actor/actor_facts.hpp"
 #include "input/input_intentions.hpp"
@@ -15,8 +16,6 @@
 namespace
 {
     constexpr float SurfaceTolerance = 1.0f;
-
-    constexpr float TakeOffReach = 1.5f;
 
     float directionTowards(float from, float to)
     {
@@ -49,7 +48,7 @@ void RouteWalker::reset()
     targetNodeId.reset();
     stopShortAt.reset();
     legsLeft.clear();
-    jumpHeldFor = 0.0f;
+    replayedFor = 0.0f;
 }
 
 void RouteWalker::anchor(const ActorFacts &context)
@@ -141,7 +140,7 @@ void RouteWalker::advanceOnArrival(const ActorFacts &context)
         return;
 
     currentNodeId = targetNodeId;
-    jumpHeldFor = 0.0f;
+    replayedFor = 0.0f;
 
     legsLeft.erase(legsLeft.begin());
     targetNodeId = legsLeft.empty() ? std::nullopt : std::optional(legsLeft.front());
@@ -210,10 +209,10 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
     const NavigationEdge *leg = edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
     if (leg && leg->type == EdgeType::Jump && context.contacts.onGround &&
-        jumpHeldFor >= leg->holdDuration)
-        jumpHeldFor = 0.0f;
+        replayedFor >= durationOf(leg->inputs))
+        replayedFor = 0.0f;
 
-    if (leg && leg->type == EdgeType::Jump && jumpHeldFor == 0.0f)
+    if (leg && leg->type == EdgeType::Jump && replayedFor == 0.0f)
     {
         NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
         if (std::abs(takeOff.feet.x - context.feet.x) > TakeOffReach)
@@ -236,11 +235,10 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
         }
     }
 
-    if (leg && leg->type == EdgeType::Jump && jumpHeldFor < leg->holdDuration)
+    if (leg && leg->type == EdgeType::Jump)
     {
-        jumpHeldFor += deltaTime;
-        inputIntentions.jumpRequested = true;
-        inputIntentions.jumpHeld = true;
+        inputIntentions = replaying(leg->inputs, replayedFor, context.feet.x, target.x);
+        replayedFor += deltaTime;
     }
 
     return inputIntentions;

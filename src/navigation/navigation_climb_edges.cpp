@@ -83,9 +83,9 @@ namespace navigation
                 return;
 
             navigationGraph.addEdge(
-                NavigationEdge{fromId, toId, EdgeType::Climb, {}, 0.0f, wallDirection});
+                NavigationEdge{fromId, toId, EdgeType::Climb, {}, {}, wallDirection});
             navigationGraph.addEdge(
-                NavigationEdge{toId, fromId, EdgeType::Climb, {}, 0.0f, wallDirection});
+                NavigationEdge{toId, fromId, EdgeType::Climb, {}, {}, wallDirection});
         };
 
         auto endOfTheFace = [&](int climbX, int wallX, int footRow)

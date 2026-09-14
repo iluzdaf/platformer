@@ -1,6 +1,7 @@
 #include <optional>
 #include <catch2/catch_test_macros.hpp>
 #include "navigation/navigation_edge.hpp"
+#include "navigation/input_program.hpp"
 #include "navigation/navigation_place.hpp"
 #include "navigation/navigation_path.hpp"
 #include "navigation/navigation_graph.hpp"
@@ -178,8 +179,8 @@ TEST_CASE("A jump is not somewhere to stop partway", "[NavigationPlace]")
     NavigationGraph navigationGraph;
     navigationGraph.addNode(0, {0.0f, 192.0f});
     navigationGraph.addNode(1, {96.0f, 96.0f});
-    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, 0.2f});
-    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({0, 1, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
+    navigationGraph.addEdge({1, 0, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
 
     std::optional<PlaceOnThePath> place = placeOnThePath(navigationGraph, {48.0f, 144.0f});
 
@@ -201,8 +202,8 @@ TEST_CASE("A beat is judged by the path it lands on, not the node it is near", "
     navigationGraph.addEdge(3, 2, EdgeType::Walk);
 
     navigationGraph.addNode(4, {48.0f, 110.0f});
-    navigationGraph.addEdge({0, 4, EdgeType::Jump, {}, 0.2f});
-    navigationGraph.addEdge({4, 0, EdgeType::Jump, {}, 0.2f});
+    navigationGraph.addEdge({0, 4, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
+    navigationGraph.addEdge({4, 0, EdgeType::Jump, {}, aJumpHeldFor(0.2f)});
 
     REQUIRE(nearestNodeTo(navigationGraph, {48.0f, 100.0f}) == 4);
     REQUIRE(placeOnThePath(navigationGraph, {48.0f, 100.0f})->feet == glm::vec2(48.0f, 100.0f));

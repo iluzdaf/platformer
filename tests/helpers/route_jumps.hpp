@@ -5,7 +5,7 @@
 #include "actor/actor_data.hpp"
 #include "game/level.hpp"
 #include "helpers/actors.hpp"
-#include "input/input_intentions.hpp"
+#include "navigation/input_program.hpp"
 #include "player/player.hpp"
 #include "player/player_data.hpp"
 #include "timing/fixed_time_step.hpp"
@@ -14,8 +14,8 @@ inline std::optional<glm::vec2> whereARouteJumpLands(
     const Level &level,
     const ActorData &actorData,
     glm::vec2 takeOff,
-    float direction,
-    float holdFor)
+    const InputProgram &inputs,
+    float towardsX)
 {
     PlayerData playerData;
     playerData.actorData = actorData;
@@ -28,18 +28,11 @@ inline std::optional<glm::vec2> whereARouteJumpLands(
         player.fixedUpdate(PhysicsStep, level);
     }
 
-    float heldFor = 0.0f;
+    float elapsed = 0.0f;
     for (int step = 0; step < 1000; ++step)
     {
-        InputIntentions running;
-        running.direction.x = direction;
-        if (heldFor < holdFor)
-        {
-            running.jumpRequested = true;
-            running.jumpHeld = true;
-            heldFor += PhysicsStep;
-        }
-        input.set(running);
+        input.set(replaying(inputs, elapsed, player.feet().x, towardsX));
+        elapsed += PhysicsStep;
         player.beginFrame();
         player.fixedUpdate(PhysicsStep, level);
         if (step > 0 && player.onGround())

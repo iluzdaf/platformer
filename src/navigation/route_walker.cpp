@@ -233,11 +233,9 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
     if (leg && leg->type == EdgeType::Climb)
     {
         inputIntentions.climbRequested = true;
+        inputIntentions.direction.y = directionTowards(context.feet.y, target.y);
         if (context.contacts.touchingWall())
-        {
             inputIntentions.direction.x = leg->wallDirection;
-            inputIntentions.direction.y = directionTowards(context.feet.y, target.y);
-        }
     }
 
     if (replayed)

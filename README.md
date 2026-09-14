@@ -382,6 +382,16 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
   its take-off walks on off the edge.
 - New moves are new programs for the builder to try; the walker does not change.
 
+**A climb leg asks for what it needs, and abilities make the moves.**
+
+- A climb leg asks to climb and presses towards its node's height, and into the wall
+  once it touches it. At the top of a wall that mantles it onto the ledge; at the edge of
+  the ledge above a wall it lowers it onto the face.
+- Climbing down onto a wall from the ledge above is offered only to a body that can
+  lower itself.
+- Every edge of every shipped level is taken by a walker on real physics in the tests,
+  from its node, and a jump or fall from a pixel either side of it too.
+
 **A state can be scripted, and walking stays in C++.**
 
 - A state that does `{"kind": "script", "call": "flee"}` is run by `states.flee` in its

@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
+#include "actor/abilities/lower_ability_data.hpp"
 #include "game/game_data.hpp"
 #include "helpers/asset_path.hpp"
 #include "helpers/actors.hpp"
@@ -32,14 +33,29 @@ TEST_CASE(
     "[NavigationGraphBuilder][Climb]")
 {
     TileMap tileMap = aWallFromTheFloor();
+    NavigationProfile lowers = climberProfile();
+    lowers.abilities.lower = LowerAbilityData();
 
     std::set<std::pair<int, int>> joined =
-        rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
+        rowsJoinedByClimbing(buildNavigationGraph(tileMap, lowers), tileMap);
 
     REQUIRE(joined.contains({ClimbFloorRow, ClimbHangRow}));
     REQUIRE(joined.contains({ClimbHangRow, ClimbFloorRow}));
     REQUIRE(joined.contains({ClimbHangRow, ClimbWallTopRow}));
     REQUIRE(joined.contains({ClimbWallTopRow, ClimbHangRow}));
+}
+
+TEST_CASE(
+    "An actor that cannot lower itself has no way from the top of a wall down onto it",
+    "[NavigationGraphBuilder][Climb]")
+{
+    TileMap tileMap = aWallFromTheFloor();
+
+    std::set<std::pair<int, int>> joined =
+        rowsJoinedByClimbing(buildNavigationGraph(tileMap, climberProfile()), tileMap);
+
+    REQUIRE(joined.contains({ClimbHangRow, ClimbWallTopRow}));
+    REQUIRE_FALSE(joined.contains({ClimbWallTopRow, ClimbHangRow}));
 }
 
 TEST_CASE("An actor that cannot climb is given no way up a wall", "[NavigationGraphBuilder][Climb]")

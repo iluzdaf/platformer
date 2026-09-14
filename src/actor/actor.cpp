@@ -305,6 +305,8 @@ ActorFacts Actor::factsNow() const
     facts.beat = beat ? &*beat : nullptr;
     facts.tuning = &tuned;
     facts.velocity = mover.observed().velocity;
+    facts.moveSpeed =
+        navigationProfile.abilities.move ? navigationProfile.abilities.move->moveSpeed : 0.0f;
     facts.alive = mover.observed().alive;
     facts.inState = stateName();
     return facts;

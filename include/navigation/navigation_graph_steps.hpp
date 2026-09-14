@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <unordered_map>
 #include <vector>
 #include <glm/glm.hpp>
 #include "navigation/input_program.hpp"
@@ -12,6 +13,13 @@ struct NavigationProfile;
 namespace navigation
 {
     struct ChosenJump
+    {
+        int fromId = 0;
+        std::vector<glm::vec2> path;
+        InputProgram inputs;
+    };
+
+    struct ChosenFall
     {
         int fromId = 0;
         std::vector<glm::vec2> path;
@@ -63,6 +71,22 @@ namespace navigation
         int headroom,
         float stepHeight);
 
+    std::unordered_map<int, int> runOfEachNode(
+        const NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        int headroom,
+        float stepHeight);
+
+    bool landsFromAnywhereItTakesOff(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const NavigationProfile &profile,
+        int headroom,
+        const std::vector<glm::vec2> &path,
+        const InputProgram &inputs,
+        const std::unordered_map<int, int> &components,
+        int component);
+
     std::vector<ChosenJump> chooseJumps(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
@@ -80,7 +104,7 @@ namespace navigation
         float stepHeight,
         const std::vector<ChosenJump> &jumps);
 
-    void addFallLandingNodes(
+    std::vector<ChosenFall> addFallLandingNodes(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
@@ -96,7 +120,8 @@ namespace navigation
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
-        int headroom);
+        int headroom,
+        const std::vector<ChosenFall> &falls);
 
     void addClimbing(
         NavigationGraph &navigationGraph,

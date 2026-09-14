@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include "navigation/input_program.hpp"
 #include "input/input_intentions.hpp"
 
@@ -35,7 +36,12 @@ InputProgram cutShortAt(const InputProgram &program, float elapsed)
     return cut;
 }
 
-InputIntentions replaying(const InputProgram &program, float elapsed, float feetX, float towardsX)
+InputIntentions replaying(
+    const InputProgram &program,
+    float elapsed,
+    float feetX,
+    float towardsX,
+    float stride)
 {
     InputIntentions inputIntentions;
     float endsAt = 0.0f;
@@ -49,7 +55,7 @@ InputIntentions replaying(const InputProgram &program, float elapsed, float feet
         }
     }
 
-    if (inputIntentions.direction.x == 0.0f && towardsX != feetX)
+    if (inputIntentions.direction.x == 0.0f && std::abs(towardsX - feetX) > stride * 0.5f)
         inputIntentions.direction.x = towardsX > feetX ? 1.0f : -1.0f;
 
     return inputIntentions;

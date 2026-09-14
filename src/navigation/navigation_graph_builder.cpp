@@ -259,7 +259,8 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
     float stepHeight = profile.physicsBodyData.stepHeight;
 
     addRunEnds(navigationGraph, tileMap, headroom, stepHeight);
-    navigation::addFallLandingNodes(navigationGraph, tileMap, profile, headroom);
+    std::vector<navigation::ChosenFall> falls =
+        navigation::addFallLandingNodes(navigationGraph, tileMap, profile, headroom);
     navigation::addJumpTakeOffNodes(navigationGraph, tileMap, profile, headroom);
 
     std::vector<navigation::ChosenJump> jumps =
@@ -268,7 +269,7 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
 
     navigation::addWalkEdges(navigationGraph, tileMap, headroom, stepHeight);
     navigation::addJumpEdges(navigationGraph, tileMap, headroom, stepHeight, jumps);
-    navigation::addFallEdges(navigationGraph, tileMap, profile, headroom);
+    navigation::addFallEdges(navigationGraph, tileMap, profile, headroom, falls);
 
     navigation::addClimbing(navigationGraph, tileMap, profile, headroom);
 

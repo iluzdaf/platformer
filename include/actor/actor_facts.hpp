@@ -28,6 +28,7 @@ struct ActorFacts
     const PatrolData *beat = nullptr;
     const std::map<std::string, float> *tuning = nullptr;
     glm::vec2 velocity = glm::vec2(0.0f);
+    float moveSpeed = 0.0f;
     bool alive = true;
 
     std::string_view inState = {};

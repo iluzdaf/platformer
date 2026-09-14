@@ -77,7 +77,7 @@ namespace
 
             glm::vec2 control = 2.0f * apex - (leaves + comesDown) * 0.5f;
 
-            if (jumpsDrawnAs == JumpsDrawnAs::TheFlightItself)
+            if (jumpsDrawnAs == JumpsDrawnAs::TheFlightItself || edge.type == EdgeType::Fall)
                 for (const glm::vec2 &position : edge.path)
                     drawList->PathLineTo(screen(position));
             else

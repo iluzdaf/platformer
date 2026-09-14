@@ -34,6 +34,7 @@ private:
     std::optional<glm::vec2> stopShortAt;
     std::vector<int> legsLeft;
     float replayedFor = 0.0f;
+    bool leftTheGround = false;
 
     void anchor(const ActorFacts &context);
     glm::vec2 targetPosition(const ActorFacts &context, int setOffAt, int headingFor) const;

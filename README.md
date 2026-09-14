@@ -344,19 +344,33 @@ assets. Visual Studio reads `CMakeLists.txt` directly and needs none of it.
 - A take-off first settles onto the ground under the node. A node whose feet are more
   than a settle above the ground it settles onto is not jumped from.
 
-**A jump edge carries the inputs that make it.**
+**Jump and fall edges carry the inputs that make them.**
 
 - An edge's `InputProgram` says what is pressed and for how long, cut short where the
-  simulated jump landed. The graph builder writes it; `RouteWalker` replays it.
+  simulated jump or fall landed. The graph builder writes it; `RouteWalker` replays it.
+- A fall walks off the end of its run and lets go once it is off the ground, simulated on
+  a `Mover` like a jump, so it lands where the actor does, sliding down a grippable wall
+  if the actor would. It leaves only from the outermost node of its run that way. A drop
+  no deeper than a step is walked, not fallen, and a fall through anything deadly is not
+  offered.
+- A landing rests on the ground under its feet when that is within a step below, not on
+  the corner of the step beside it, so its node joins the run it will walk.
 - One function, `replaying`, turns a program into input for each tick, for the walker,
   for the actor that checks a shipped edge, and for the simulation. A step that sets no
   direction is steered towards where the leg goes, so a walker keeps correcting in the
   air; a step that sets one sends it as it is.
+- Moving is all or nothing, a whole stride each tick, so steering holds off within half
+  a stride of where the leg goes. Pushing closer would overshoot by more than it
+  corrects, and could carry an actor that has just stepped off a ledge back onto it.
 - A walker takes off anywhere within `TakeOffReach` of the node, so a jump is kept only
   if its inputs land it on the same run from both ends of that window. It has landed on
   a run when the ground under its feet, or under either edge of the middle half of its
   body that physics stands it on, belongs to that run, so a landing on the very corner
-  counts. An end the walker could not stand at does not count against it.
+  counts. An end the walker could not stand at does not count against it. Falls are
+  checked the same way.
+- A walker goes back to try a replayed leg again once its inputs have run out and it is
+  on the ground, having left it or still at the take-off; a fall begun a little short of
+  its take-off walks on off the edge.
 - New moves are new programs for the builder to try; the walker does not change.
 
 **A state can be scripted, and walking stays in C++.**

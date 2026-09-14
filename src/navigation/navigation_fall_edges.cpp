@@ -1,12 +1,14 @@
 #include <algorithm>
-#include <cstddef>
 #include <optional>
+#include <unordered_map>
 #include <utility>
 #include <vector>
+#include <glm/gtc/matrix_transform.hpp>
 #include "navigation/navigation_graph_steps.hpp"
 #include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_build_report.hpp"
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "tile_map/tile_map.hpp"
@@ -14,116 +16,158 @@
 
 namespace
 {
-    std::optional<glm::vec2> surfaceBelow(
+    bool touchesDeadly(
         const TileMap &tileMap,
-        glm::vec2 from,
-        const NavigationProfile &profile,
-        int headroom)
+        const std::vector<glm::vec2> &path,
+        const NavigationProfile &profile)
     {
-        glm::ivec2 start = tileMap.tileContaining(from);
-        if (!tileMap.validTilePosition(start))
-            return std::nullopt;
-
-        std::optional<AABB> inside = tileMap.groundAt(start);
-        if (inside && inside->covers(from))
-            return std::nullopt;
-
-        std::optional<glm::vec2> landing =
-            navigation::standingBelow(tileMap, from.x, from.y, profile, headroom);
-        if (!landing)
-            return std::nullopt;
-
-        float tileSize = static_cast<float>(tileMap.getTileSize());
-        for (int row = start.y; static_cast<float>(row) * tileSize < landing->y; ++row)
-            if (!navigation::clearAt(
-                    tileMap, glm::vec2(from.x, static_cast<float>(row) * tileSize), profile))
-                return std::nullopt;
-
-        return landing;
-    }
-
-    std::vector<glm::vec2> fallLandings(
-        const TileMap &tileMap,
-        glm::vec2 takeOff,
-        const NavigationProfile &profile,
-        int headroom)
-    {
-        float stride = profile.physicsBodyData.colliderSize.x * 0.5f + 1.0f;
-
-        std::vector<glm::vec2> landings;
-        for (float direction : {-1.0f, 1.0f})
+        constexpr float Inset = 0.5f;
+        glm::vec2 size = profile.physicsBodyData.colliderSize;
+        for (glm::vec2 feet : path)
         {
-            glm::vec2 steppedOff(takeOff.x + direction * stride, takeOff.y);
-            if (std::optional<glm::vec2> landing =
-                    surfaceBelow(tileMap, steppedOff, profile, headroom))
-                landings.push_back(*landing);
+            AABB body(
+                glm::vec2(feet.x - size.x * 0.5f + Inset, feet.y - size.y + Inset),
+                glm::vec2(size.x - Inset * 2.0f, size.y - Inset * 2.0f));
+            glm::ivec2 low = tileMap.tileContaining(body.position);
+            glm::ivec2 high = tileMap.tileContaining(body.position + body.size);
+            for (int y = low.y; y <= high.y; ++y)
+                for (int x = low.x; x <= high.x; ++x)
+                    if (tileMap.validTilePosition({x, y}) &&
+                        tileMap.getTileAtTilePosition({x, y}).isDeadly())
+                        return true;
         }
 
-        return landings;
+        return false;
     }
 
+    bool outermostOfItsRun(
+        const NavigationGraph &navigationGraph,
+        const std::unordered_map<int, int> &runs,
+        int takeOffId,
+        float direction)
+    {
+        float x = navigationGraph.getNode(takeOffId).feet.x;
+        int run = runs.at(takeOffId);
+        for (const auto &[id, other] : runs)
+            if (other == run && (navigationGraph.getNode(id).feet.x - x) * direction > 0.0f)
+                return false;
+
+        return true;
+    }
+
+    std::vector<JumpAttempt> fallsFrom(
+        NavigationGraph &navigationGraph,
+        const TileMap &tileMap,
+        const std::unordered_map<int, int> &runs,
+        int takeOffId,
+        const NavigationProfile &profile,
+        int headroom)
+    {
+        std::vector<JumpAttempt> falls;
+        if (!runs.contains(takeOffId))
+            return falls;
+
+        glm::vec2 takeOff = navigationGraph.getNode(takeOffId).feet;
+        for (float direction : {-1.0f, 1.0f})
+        {
+            if (!outermostOfItsRun(navigationGraph, runs, takeOffId, direction))
+                continue;
+
+            JumpAttempt fall = simulateFallAgainst(
+                tileMap, profile.abilities, profile.physicsBodyData, takeOff, direction);
+            navigationGraph.building().noting(fall);
+            if (!fall.landed)
+                continue;
+
+            glm::vec2 landing = fall.path.back();
+            glm::ivec2 ground(
+                tileMap.tileContaining(landing).x, navigation::groundRowOf(tileMap, landing));
+            if (!navigation::feetOverGround(tileMap, landing) ||
+                !navigation::canStandOn(tileMap, ground, headroom) ||
+                touchesDeadly(tileMap, fall.path, profile))
+                continue;
+
+            falls.push_back(std::move(fall));
+        }
+
+        return falls;
+    }
 }
 
 namespace navigation
 {
-    void addFallLandingNodes(
+    std::vector<ChosenFall> addFallLandingNodes(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
         int headroom)
     {
+        std::vector<ChosenFall> falls;
         if (!profile.falls())
-            return;
+            return falls;
 
+        float stepHeight = profile.physicsBodyData.stepHeight;
         int nextNodeId = 0;
+        std::vector<int> takeOffs;
         for (const auto &[id, node] : navigationGraph.getNodes())
-            nextNodeId = std::max(nextNodeId, id + 1);
-
-        for (bool added = true; added;)
         {
-            added = false;
-            std::vector<glm::vec2> takeOffs;
-            for (const auto &[id, node] : navigationGraph.getNodes())
-                takeOffs.push_back(node.feet);
+            nextNodeId = std::max(nextNodeId, id + 1);
+            takeOffs.push_back(id);
+        }
 
-            for (glm::vec2 takeOff : takeOffs)
-                for (glm::vec2 landing : fallLandings(tileMap, takeOff, profile, headroom))
+        while (!takeOffs.empty())
+        {
+            std::unordered_map<int, int> runs =
+                runOfEachNode(navigationGraph, tileMap, headroom, stepHeight);
+            std::vector<int> landedOn;
+            for (int takeOffId : takeOffs)
+                for (const JumpAttempt &fall :
+                     fallsFrom(navigationGraph, tileMap, runs, takeOffId, profile, headroom))
                 {
-                    if (navigationGraph.hasNodeAtPosition(landing))
+                    falls.push_back({takeOffId, fall.path, fall.inputs});
+                    if (navigationGraph.hasNodeAtPosition(fall.path.back()))
                         continue;
 
-                    navigationGraph.addNode(nextNodeId++, landing, NodeKind::Landing);
-                    added = true;
+                    navigationGraph.addNode(nextNodeId, fall.path.back(), NodeKind::Landing);
+                    landedOn.push_back(nextNodeId++);
                 }
+            takeOffs = landedOn;
         }
+
+        return falls;
     }
 
     void addFallEdges(
         NavigationGraph &navigationGraph,
         const TileMap &tileMap,
         const NavigationProfile &profile,
-        int headroom)
+        int headroom,
+        const std::vector<ChosenFall> &falls)
     {
-        if (!profile.falls())
-            return;
+        float stepHeight = profile.physicsBodyData.stepHeight;
+        std::unordered_map<int, int> runs =
+            runOfEachNode(navigationGraph, tileMap, headroom, stepHeight);
 
-        std::vector<std::pair<int, glm::vec2>> takeOffs;
-        for (const auto &[id, node] : navigationGraph.getNodes())
-            takeOffs.emplace_back(id, node.feet);
+        for (const ChosenFall &fall : falls)
+        {
+            int fromId = fall.fromId;
+            std::optional<int> toId =
+                nodeGoverning(navigationGraph, tileMap, fall.path.back(), headroom, stepHeight);
+            if (!toId || *toId == fromId || !runs.contains(*toId))
+                continue;
 
-        for (const auto &[fromId, takeOff] : takeOffs)
-            for (glm::vec2 landing : fallLandings(tileMap, takeOff, profile, headroom))
-            {
-                std::optional<int> toId = nodeGoverning(
+            if (!landsFromAnywhereItTakesOff(
                     navigationGraph,
                     tileMap,
-                    landing,
+                    profile,
                     headroom,
-                    profile.physicsBodyData.stepHeight);
-                if (!toId || *toId == fromId)
-                    continue;
+                    fall.path,
+                    fall.inputs,
+                    runs,
+                    runs.at(*toId)))
+                continue;
 
-                navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, {}, {}});
-            }
+            navigationGraph.addEdge({fromId, *toId, EdgeType::Fall, fall.path, fall.inputs});
+        }
     }
 }

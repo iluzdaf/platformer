@@ -1,7 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
+#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/abilities/abilities_data.hpp"
+#include "actor/abilities/move_ability_data.hpp"
 #include "helpers/actors.hpp"
 #include "helpers/tiles.hpp"
 #include "helpers/navigation_maps.hpp"
@@ -11,6 +13,9 @@
 #include "navigation/navigation_graph.hpp"
 #include "navigation/navigation_graph_builder.hpp"
 #include "navigation/navigation_graph_steps.hpp"
+#include "timing/fixed_time_step.hpp"
+#include "navigation/input_program.hpp"
+#include "navigation/jump_simulation.hpp"
 #include "navigation/navigation_node.hpp"
 #include "navigation/navigation_profile.hpp"
 #include "tile_map/tile_map.hpp"
@@ -44,14 +49,14 @@ TEST_CASE("Falling is not offered where you could walk", "[NavigationGraphBuilde
     REQUIRE(countEdgesOfType(graph, EdgeType::Fall) == 0);
 }
 
-TEST_CASE("A profile that cannot move still falls", "[NavigationGraphBuilder][Fall]")
+TEST_CASE("A profile that cannot move has no fall to take", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = aLedgeAboveAFloor();
     NavigationProfile profile = profileThatMoves(13.0f, fallerAbilities());
 
     NavigationGraph graph = buildNavigationGraph(tileMap, profile);
 
-    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
+    REQUIRE(countEdgesOfType(graph, EdgeType::Fall) == 0);
     REQUIRE(countEdgesOfType(graph, EdgeType::Jump) == 0);
 }
 
@@ -68,15 +73,22 @@ TEST_CASE("A slow actor can still step off a ledge", "[NavigationGraphBuilder][F
     REQUIRE(countEdgesOfType(graph, EdgeType::Fall) > 0);
 }
 
-TEST_CASE("A fall is drawn as the straight drop it is", "[NavigationGraphBuilder][Fall]")
+TEST_CASE("A fall is drawn as the path it takes", "[NavigationGraphBuilder][Fall]")
 {
     TileMap tileMap = aLedgeAboveAFloor();
 
     NavigationGraph graph = buildNavigationGraph(tileMap, jumperProfile());
 
+    int falls = 0;
     for (const auto &edge : graph.getEdges())
         if (edge.type == EdgeType::Fall)
-            REQUIRE(edge.path.empty());
+        {
+            ++falls;
+            REQUIRE(edge.path.size() > 2);
+            REQUIRE(edge.path.front() == graph.getNode(edge.fromId).feet);
+            REQUIRE(edge.path.back().y == graph.getNode(edge.toId).feet.y);
+        }
+    REQUIRE(falls > 0);
 }
 
 TEST_CASE("A node falls to the one below it and nowhere else", "[NavigationGraphBuilder][Fall]")
@@ -192,7 +204,58 @@ TEST_CASE(
     NavigationGraph graph;
     graph.addNode(0, takeOffPosition(tileMap));
 
-    navigation::addFallEdges(graph, tileMap, jumperProfile(), 1);
+    glm::vec2 comesDown(takeOffPosition(tileMap).x + 8.0f, static_cast<float>(FloorBelowRow * 16));
+    std::vector<navigation::ChosenFall> falls{{0, {takeOffPosition(tileMap), comesDown}, {}}};
+
+    navigation::addFallEdges(graph, tileMap, jumperProfile(), 1, falls);
 
     REQUIRE(graph.getEdges().empty());
+}
+
+TEST_CASE("A fall walks off its ledge and then lets go", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = aLedgeAboveAFloor();
+    NavigationProfile profile = jumperProfile();
+
+    JumpAttempt fall = simulateFallAgainst(
+        tileMap, profile.abilities, profile.physicsBodyData, takeOffPosition(tileMap), 1.0f);
+
+    REQUIRE(fall.landed);
+    REQUIRE(fall.path.back().y == static_cast<float>(FloorBelowRow * 16));
+    REQUIRE(fall.inputs.size() == 1);
+    REQUIRE(fall.inputs.front().pressed.direction.x == 1.0f);
+    REQUIRE(fall.inputs.front().duration > 0.0f);
+    float pushedFor = fall.inputs.front().duration * profile.abilities.move->moveSpeed;
+    REQUIRE(
+        pushedFor <= profile.physicsBodyData.colliderSize.x * 0.5f +
+                         profile.abilities.move->moveSpeed * PhysicsStep);
+}
+
+TEST_CASE("A fall asked of a node away from its ledge is refused", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = aLedgeAboveAFloor();
+    NavigationProfile profile = jumperProfile();
+    glm::vec2 wellBack = takeOffPosition(tileMap) - glm::vec2(32.0f, 0.0f);
+
+    JumpAttempt fall =
+        simulateFallAgainst(tileMap, profile.abilities, profile.physicsBodyData, wellBack, 1.0f);
+
+    REQUIRE_FALSE(fall.landed);
+}
+
+TEST_CASE("A fall leaves from the end of its run", "[NavigationGraphBuilder][Fall]")
+{
+    TileMap tileMap = aLedgeAboveAFloor();
+    glm::vec2 end = takeOffPosition(tileMap);
+    NavigationGraph graph;
+    graph.addNode(0, {0.0f, end.y});
+    graph.addNode(1, end);
+    graph.addNode(2, end - glm::vec2(3.0f, 0.0f));
+
+    std::vector<navigation::ChosenFall> falls =
+        navigation::addFallLandingNodes(graph, tileMap, jumperProfile(), 1);
+
+    REQUIRE_FALSE(falls.empty());
+    for (const navigation::ChosenFall &fall : falls)
+        REQUIRE(fall.fromId == 1);
 }

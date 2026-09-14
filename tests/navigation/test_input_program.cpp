@@ -69,3 +69,13 @@ TEST_CASE("A program cut short keeps only what came before", "[InputProgram]")
     REQUIRE(cutShortAt(program, 1.0f).size() == 2);
     REQUIRE(durationOf(cutShortAt(program, 1.0f)) == Catch::Approx(0.5f));
 }
+
+TEST_CASE("Steering holds off within half a stride of where the leg goes", "[InputProgram]")
+{
+    InputProgram nothing;
+
+    REQUIRE(replaying(nothing, 0.0f, 10.0f, 11.0f, 2.5f).direction.x == 0.0f);
+    REQUIRE(replaying(nothing, 0.0f, 10.0f, 9.0f, 2.5f).direction.x == 0.0f);
+    REQUIRE(replaying(nothing, 0.0f, 10.0f, 11.5f, 2.5f).direction.x == 1.0f);
+    REQUIRE(replaying(nothing, 0.0f, 10.0f, 8.5f, 2.5f).direction.x == -1.0f);
+}

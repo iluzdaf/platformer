@@ -49,6 +49,7 @@ void RouteWalker::reset()
     stopShortAt.reset();
     legsLeft.clear();
     replayedFor = 0.0f;
+    leftTheGround = false;
 }
 
 void RouteWalker::anchor(const ActorFacts &context)
@@ -141,6 +142,7 @@ void RouteWalker::advanceOnArrival(const ActorFacts &context)
 
     currentNodeId = targetNodeId;
     replayedFor = 0.0f;
+    leftTheGround = false;
 
     legsLeft.erase(legsLeft.begin());
     targetNodeId = legsLeft.empty() ? std::nullopt : std::optional(legsLeft.front());
@@ -208,22 +210,28 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
 
     const NavigationEdge *leg = edgeBetween(context.navigationGraph, *currentNodeId, *targetNodeId);
 
-    if (leg && leg->type == EdgeType::Jump && context.contacts.onGround &&
-        replayedFor >= durationOf(leg->inputs))
-        replayedFor = 0.0f;
+    bool replayed = leg && (leg->type == EdgeType::Jump || leg->type == EdgeType::Fall);
+    NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
+    bool atTheTakeOff = std::abs(takeOff.feet.x - context.feet.x) <= TakeOffReach;
 
-    if (leg && leg->type == EdgeType::Jump && replayedFor == 0.0f)
+    if (replayed && !context.contacts.onGround)
+        leftTheGround = true;
+
+    if (replayed && context.contacts.onGround && replayedFor >= durationOf(leg->inputs) &&
+        (leftTheGround || atTheTakeOff))
     {
-        NavigationNode takeOff = context.navigationGraph.getNode(*currentNodeId);
-        if (std::abs(takeOff.feet.x - context.feet.x) > TakeOffReach)
+        replayedFor = 0.0f;
+        leftTheGround = false;
+    }
+
+    if (replayed && replayedFor == 0.0f)
+    {
+        if (!atTheTakeOff)
         {
             inputIntentions.direction.x = directionTowards(context.feet.x, takeOff.feet.x);
             return inputIntentions;
         }
     }
-
-    if (leg && leg->type == EdgeType::Fall && !context.contacts.onGround)
-        inputIntentions.direction.x = 0.0f;
 
     if (leg && leg->type == EdgeType::Climb)
     {
@@ -235,9 +243,10 @@ InputIntentions RouteWalker::follow(float deltaTime, const ActorFacts &context)
         }
     }
 
-    if (leg && leg->type == EdgeType::Jump)
+    if (replayed)
     {
-        inputIntentions = replaying(leg->inputs, replayedFor, context.feet.x, target.x);
+        inputIntentions = replaying(
+            leg->inputs, replayedFor, context.feet.x, target.x, context.moveSpeed * deltaTime);
         replayedFor += deltaTime;
     }
 

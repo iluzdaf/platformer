@@ -80,8 +80,10 @@ namespace navigation
         auto join = [&](int fromId, int toId, float wallDirection)
         {
             if (fromId != toId)
-                navigationGraph.addEdge(
-                    NavigationEdge{fromId, toId, EdgeType::Climb, {}, {}, wallDirection});
+                navigationGraph.addEdge(timed(
+                    {fromId, toId, EdgeType::Climb, {}, {}, wallDirection},
+                    navigationGraph,
+                    profile));
         };
 
         auto joinBothWays = [&](int fromId, int toId, float wallDirection)

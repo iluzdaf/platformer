@@ -5,6 +5,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "actor/actor_data.hpp"
@@ -22,6 +23,7 @@
 #include "navigation/named_navigation_graph.hpp"
 #include "navigation/navigation_edge.hpp"
 #include "navigation/navigation_graph.hpp"
+#include "navigation/navigation_path.hpp"
 #include "navigation/navigation_profile_builder.hpp"
 #include "navigation/route_walker.hpp"
 #include "player/player_data.hpp"
@@ -104,8 +106,59 @@ TEST_CASE(
     REQUIRE(std::abs(route.feet.x - graph.getNode(destination).feet.x) <= reach);
 }
 
-TEST_CASE("Every edge in a shipped level is taken by a walker to where it ends", "[RouteWalker]")
+TEST_CASE(
+    "Off a tall wall, a body that slides down it climbs down, and one that does not drops",
+    "[RouteWalker]")
 {
+    constexpr int Floor = 13;
+    constexpr int PillarTop = 3;
+    Placed laid;
+    layRow(laid, Floor, 0, 9);
+    for (int row = PillarTop; row < Floor; ++row)
+        layRow(laid, row, 4, 5);
+    PlayerData playerData = loadGameData().playerData;
+    const ActorData &spider = shippedNpcData().at("spider").actorData;
+    Level level(
+        aLevelPlacing(laid, 10, 16, {1, Floor - 1}, {}),
+        theOnlyPalette(aPaletteWithASolidTile()),
+        playerData,
+        {{"spider", shippedNpcData().at("spider")}},
+        {});
+    REQUIRE(playerData.actorData.abilities.wallSlide);
+    REQUIRE_FALSE(spider.abilities.wallSlide);
+
+    auto wayDown = [&](const ActorData &actorData)
+    {
+        const NavigationGraph &graph = level.graphFor(buildNavigationProfile(actorData));
+        int ledgeEnd = endOfTheRow(graph, surfaceOf(PillarTop));
+        std::optional<int> farEndOfTheFloor;
+        for (const auto &[id, node] : graph.getNodes())
+            if (node.feet.y == surfaceOf(Floor) &&
+                (!farEndOfTheFloor || node.feet.x > graph.getNode(*farEndOfTheFloor).feet.x))
+                farEndOfTheFloor = id;
+
+        RouteTaken route =
+            takeTheRoute(level, actorData, graph.getNode(ledgeEnd).feet, *farEndOfTheFloor);
+        REQUIRE(route.arrived);
+        return std::pair(
+            tookA(EdgeType::Climb, graph, route.passedThrough),
+            tookA(EdgeType::Fall, graph, route.passedThrough));
+    };
+
+    auto [playerClimbed, playerFell] = wayDown(playerData.actorData);
+    REQUIRE(playerClimbed);
+    REQUIRE_FALSE(playerFell);
+
+    auto [spiderClimbed, spiderFell] = wayDown(spider);
+    REQUIRE_FALSE(spiderClimbed);
+    REQUIRE(spiderFell);
+}
+
+TEST_CASE(
+    "Every edge in a shipped level gets a walker where it ends, in about the time it says",
+    "[RouteWalker]")
+{
+    constexpr float AboutItsDuration = 0.15f;
     PlayerData playerData = loadGameData().playerData;
     std::map<EdgeType, int> taken;
 
@@ -129,6 +182,18 @@ TEST_CASE("Every edge in a shipped level is taken by a walker to where it ends",
 
             for (const NavigationEdge &edge : named.graph.getEdges())
             {
+                if (findPath(named.graph, edge.fromId, edge.toId) !=
+                    std::vector{edge.fromId, edge.toId})
+                {
+                    RouteTaken around = takeTheRoute(
+                        level, actorData, named.graph.getNode(edge.fromId).feet, edge.toId);
+                    INFO(
+                        entry.path().filename().string()
+                        << " " << named.name << " around to node " << edge.toId);
+                    REQUIRE(around.arrived);
+                    continue;
+                }
+
                 bool replayed = edge.type == EdgeType::Jump || edge.type == EdgeType::Fall;
                 for (float offset : replayed ? std::vector{-1.0f, 0.0f, 1.0f} : std::vector{0.0f})
                 {
@@ -142,6 +207,8 @@ TEST_CASE("Every edge in a shipped level is taken by a walker to where it ends",
                         << edge.toId << ", ended at " << route.feet.x << "," << route.feet.y);
                     REQUIRE(route.arrived);
                     REQUIRE(passedAlong(route.passedThrough, edge.fromId, edge.toId));
+                    REQUIRE(
+                        std::abs(route.seconds - costOf(named.graph, edge)) <= AboutItsDuration);
                     ++taken[edge.type];
                 }
             }

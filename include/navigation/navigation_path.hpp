@@ -5,6 +5,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 class NavigationGraph;
+struct NavigationEdge;
+
+float costOf(const NavigationGraph &navigationGraph, const NavigationEdge &edge);
 
 std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, int toId);
 

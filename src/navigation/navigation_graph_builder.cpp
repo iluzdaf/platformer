@@ -267,8 +267,8 @@ NavigationGraph buildNavigationGraph(const TileMap &tileMap, const NavigationPro
         navigation::chooseJumps(navigationGraph, tileMap, profile, headroom);
     navigation::addJumpLandingNodes(navigationGraph, jumps);
 
-    navigation::addWalkEdges(navigationGraph, tileMap, headroom, stepHeight);
-    navigation::addJumpEdges(navigationGraph, tileMap, headroom, stepHeight, jumps);
+    navigation::addWalkEdges(navigationGraph, tileMap, profile, headroom);
+    navigation::addJumpEdges(navigationGraph, tileMap, profile, headroom, jumps);
     navigation::addFallEdges(navigationGraph, tileMap, profile, headroom, falls);
 
     navigation::addClimbing(navigationGraph, tileMap, profile, headroom);

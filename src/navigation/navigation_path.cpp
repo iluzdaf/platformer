@@ -66,6 +66,24 @@ namespace
         return found;
     }
 
+    float quickestPace(const NavigationGraph &navigationGraph)
+    {
+        std::optional<float> quickest;
+        for (const NavigationEdge &edge : navigationGraph.getEdges())
+        {
+            float across = glm::distance(
+                navigationGraph.getNode(edge.fromId).feet, navigationGraph.getNode(edge.toId).feet);
+            if (across <= 0.0f)
+                continue;
+
+            float pace = costOf(navigationGraph, edge) / across;
+            if (!quickest || pace < *quickest)
+                quickest = pace;
+        }
+
+        return quickest.value_or(0.0f);
+    }
+
     std::vector<int> inIdOrder(const std::unordered_set<int> &ids)
     {
         std::vector<int> ordered(ids.begin(), ids.end());
@@ -87,6 +105,15 @@ namespace
     }
 }
 
+float costOf(const NavigationGraph &navigationGraph, const NavigationEdge &edge)
+{
+    if (edge.duration)
+        return *edge.duration;
+
+    return glm::distance(
+        navigationGraph.getNode(edge.fromId).feet, navigationGraph.getNode(edge.toId).feet);
+}
+
 std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, int toId)
 {
     glm::vec2 start = navigationGraph.getNode(fromId).feet;
@@ -95,12 +122,13 @@ std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, in
     if (fromId == toId)
         return {fromId};
 
+    float pace = quickestPace(navigationGraph);
     std::priority_queue<Step, std::vector<Step>, decltype(&furtherThan)> pending(&furtherThan);
     std::unordered_map<int, float> travelled{{fromId, 0.0f}};
     std::unordered_map<int, int> arrivedFrom;
     std::unordered_set<int> settled;
 
-    pending.push({glm::distance(start, goal), fromId});
+    pending.push({glm::distance(start, goal) * pace, fromId});
 
     while (!pending.empty())
     {
@@ -113,11 +141,10 @@ std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, in
         if (!settled.insert(at).second)
             continue;
 
-        glm::vec2 here = navigationGraph.getNode(at).feet;
         for (const NavigationEdge &edge : navigationGraph.getOutgoingEdges(at))
         {
             glm::vec2 there = navigationGraph.getNode(edge.toId).feet;
-            float cost = travelled.at(at) + glm::distance(here, there);
+            float cost = travelled.at(at) + costOf(navigationGraph, edge);
 
             auto found = travelled.find(edge.toId);
             if (found != travelled.end() && found->second <= cost)
@@ -125,7 +152,7 @@ std::vector<int> findPath(const NavigationGraph &navigationGraph, int fromId, in
 
             travelled[edge.toId] = cost;
             arrivedFrom[edge.toId] = at;
-            pending.push({cost + glm::distance(there, goal), edge.toId});
+            pending.push({cost + glm::distance(there, goal) * pace, edge.toId});
         }
     }
 

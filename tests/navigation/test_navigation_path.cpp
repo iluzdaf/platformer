@@ -145,3 +145,51 @@ TEST_CASE("A route found twice is settled once, by the cheaper way", "[Navigatio
 
     REQUIRE(findPath(navigationGraph, 0, 5) == std::vector{0, 2, 3, 4, 5});
 }
+
+namespace
+{
+    NavigationEdge taking(int fromId, int toId, EdgeType type, float seconds)
+    {
+        return {fromId, toId, type, {}, {}, 0.0f, seconds};
+    }
+}
+
+TEST_CASE("A route takes the quicker way, not the shorter one", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, glm::vec2(0.0f, 0.0f));
+    navigationGraph.addNode(1, glm::vec2(100.0f, 0.0f));
+    navigationGraph.addNode(2, glm::vec2(50.0f, 50.0f));
+    navigationGraph.addEdge(taking(0, 1, EdgeType::Climb, 1.0f));
+    navigationGraph.addEdge(taking(0, 2, EdgeType::Fall, 0.1f));
+    navigationGraph.addEdge(taking(2, 1, EdgeType::Jump, 0.1f));
+
+    REQUIRE(findPath(navigationGraph, 0, 1) == std::vector{0, 2, 1});
+}
+
+TEST_CASE(
+    "A route that heads away from where it goes can still be the quickest",
+    "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, glm::vec2(0.0f, 0.0f));
+    navigationGraph.addNode(1, glm::vec2(100.0f, 0.0f));
+    navigationGraph.addNode(2, glm::vec2(-200.0f, 0.0f));
+    navigationGraph.addEdge(taking(0, 1, EdgeType::Walk, 1.0f));
+    navigationGraph.addEdge(taking(0, 2, EdgeType::Fall, 0.2f));
+    navigationGraph.addEdge(taking(2, 1, EdgeType::Jump, 0.3f));
+
+    REQUIRE(findPath(navigationGraph, 0, 1) == std::vector{0, 2, 1});
+}
+
+TEST_CASE("An edge that says nothing of its time costs its length", "[NavigationPath]")
+{
+    NavigationGraph navigationGraph;
+    navigationGraph.addNode(0, glm::vec2(0.0f, 0.0f));
+    navigationGraph.addNode(1, glm::vec2(30.0f, 40.0f));
+    navigationGraph.addEdge(0, 1, EdgeType::Walk);
+    navigationGraph.addEdge(taking(1, 0, EdgeType::Walk, 2.0f));
+
+    REQUIRE(costOf(navigationGraph, navigationGraph.getOutgoingEdges(0).front()) == 50.0f);
+    REQUIRE(costOf(navigationGraph, navigationGraph.getOutgoingEdges(1).front()) == 2.0f);
+}
